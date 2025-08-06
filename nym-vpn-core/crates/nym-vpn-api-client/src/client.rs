@@ -19,10 +19,11 @@ use crate::{
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse,
-        NymVpnRegisterAccountResponse, NymVpnSubscription, NymVpnSubscriptionResponse,
-        NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost,
-        NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
+        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice,
+        NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
@@ -39,11 +40,23 @@ pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
+    base_url: Url,
+    user_agent: UserAgent,
 }
 
 impl VpnApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
         Self::new_with_resolver_overrides(base_url, user_agent, None)
+    }
+
+    pub fn override_resolver(&mut self, static_addresses: Option<&[SocketAddr]>) -> Result<()> {
+        let new_client = Self::new_with_resolver_overrides(
+            self.base_url.clone(),
+            self.user_agent.clone(),
+            static_addresses,
+        )?;
+        self.inner = new_client.inner;
+        Ok(())
     }
 
     pub fn new_with_resolver_overrides(
@@ -54,7 +67,7 @@ impl VpnApiClient {
         nym_http_api_client::Client::builder(base_url.clone())
             .map(|builder| {
                 let mut builder = builder
-                    .with_user_agent(user_agent)
+                    .with_user_agent(user_agent.clone())
                     .with_timeout(NYM_VPN_API_TIMEOUT);
 
                 if let Some(domain) = base_url.domain()
@@ -75,12 +88,12 @@ impl VpnApiClient {
                 builder
             })
             .and_then(|builder| builder.build())
-            .map(|c| Self { inner: c })
+            .map(|c| Self {
+                inner: c,
+                base_url,
+                user_agent,
+            })
             .map_err(VpnApiClientError::CreateVpnApiClient)
-    }
-
-    pub fn swap_inner_client(&mut self, client: VpnApiClient) {
-        self.inner = client.inner;
     }
 
     pub fn current_url(&self) -> &Url {
@@ -554,6 +567,28 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::GetAccountSummary)
+    }
+
+    pub async fn get_account_summary_with_device(
+        &self,
+        account: &VpnApiAccount,
+        device: &Device,
+    ) -> Result<NymVpnAccountSummaryWithDeviceResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                account.id(),
+                routes::DEVICE,
+                &device.identity_key().to_string(),
+                routes::SUMMARY,
+            ],
+            account,
+            Some(device),
+        )
+        .await
+        .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
     }
 
     // DEVICES

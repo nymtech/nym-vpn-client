@@ -8,8 +8,6 @@ use nym_vpn_store::{
     mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
 
-mod helpers;
-
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
 
 pub struct VpnClientOnDiskStorage {
@@ -39,7 +37,7 @@ impl nym_vpn_store::VpnStorage for VpnClientOnDiskStorage {}
 impl DeviceKeyStore for VpnClientOnDiskStorage {
     type StorageError = OnDiskKeysError;
 
-    async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError> {
+    async fn load_keys(&self) -> Result<Option<DeviceKeys>, Self::StorageError> {
         self.key_store.load_keys().await
     }
 
@@ -64,7 +62,7 @@ impl DeviceKeyStore for VpnClientOnDiskStorage {
 impl MnemonicStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskMnemonicStorageError;
 
-    async fn load_mnemonic(&self) -> Result<Mnemonic, Self::StorageError> {
+    async fn load_mnemonic(&self) -> Result<Option<Mnemonic>, Self::StorageError> {
         self.mnemonic_storage.load_mnemonic().await
     }
 

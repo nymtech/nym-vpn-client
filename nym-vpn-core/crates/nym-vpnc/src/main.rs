@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
         Command::ForgetAccount => forget_account(rpc_client).await?,
         Command::GetAccountId => get_account_id(rpc_client).await?,
         Command::GetAccountLinks(args) => get_account_links(rpc_client, args).await?,
-        Command::GetAccountState => get_account_state(rpc_client).await?,
+        Command::GetAccountState { listen } => get_account_state(rpc_client, listen).await?,
         Command::ListEntryGateways => {
             list_gateways(rpc_client, GatewayType::MixnetEntry, user_agent).await?
         }
@@ -68,18 +68,8 @@ async fn main() -> Result<()> {
             Internal::SyncAccountState => refresh_account_state(rpc_client).await?,
             Internal::GetAccountUsage => get_account_usage(rpc_client).await?,
             Internal::ResetDeviceIdentity(args) => reset_device_identity(rpc_client, args).await?,
-            Internal::RegisterDevice => register_device(rpc_client).await?,
             Internal::GetDevices => get_devices(rpc_client).await?,
             Internal::GetActiveDevices => get_active_devices(rpc_client).await?,
-            Internal::RequestZkNym => request_zk_nym(rpc_client).await?,
-            Internal::GetDeviceZkNym => get_device_zk_nym(rpc_client).await?,
-            Internal::GetZkNymsAvailableForDownload => {
-                get_zk_nyms_available_for_download(rpc_client).await?
-            }
-            Internal::GetZkNymById(args) => get_zk_nym_by_id(rpc_client, args).await?,
-            Internal::ConfirmZkNymDownloaded(args) => {
-                confirm_zk_nym_downloaded(rpc_client, args).await?
-            }
             Internal::GetAvailableTickets => get_available_tickets(rpc_client).await?,
         },
     }
@@ -303,9 +293,25 @@ async fn get_account_links(
     Ok(())
 }
 
-async fn get_account_state(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_account_state().await?;
-    println!("{response:#?}");
+async fn get_account_state(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
+    if listen {
+        let mut stream = rpc_client.listen_to_account_controller_state().await?;
+
+        let initial_state = tokio::select! {
+            initial_state = rpc_client.get_account_state() => initial_state,
+            Some(initial_state) = stream.next() => initial_state
+        }?;
+        println!("{initial_state}");
+
+        while let Some(new_state) = stream.next().await {
+            let new_state = new_state?;
+            println!("{new_state}");
+        }
+    } else {
+        let response = rpc_client.get_account_state().await?;
+        println!("{response}");
+    }
+
     Ok(())
 }
 
@@ -324,11 +330,6 @@ async fn get_device_id(mut rpc_client: RpcClient) -> Result<()> {
     Ok(())
 }
 
-async fn register_device(mut rpc_client: RpcClient) -> Result<()> {
-    rpc_client.register_device().await?;
-    Ok(())
-}
-
 async fn get_devices(mut rpc_client: RpcClient) -> Result<()> {
     let response = rpc_client.get_devices().await?;
     println!("{response:#?}");
@@ -338,34 +339,6 @@ async fn get_devices(mut rpc_client: RpcClient) -> Result<()> {
 async fn get_active_devices(mut rpc_client: RpcClient) -> Result<()> {
     let response = rpc_client.get_active_devices().await?;
     println!("{response:#?}");
-    Ok(())
-}
-
-async fn request_zk_nym(mut rpc_client: RpcClient) -> Result<()> {
-    rpc_client.request_zk_nym().await?;
-    Ok(())
-}
-
-async fn get_device_zk_nym(mut rpc_client: RpcClient) -> Result<()> {
-    rpc_client.get_device_zk_nyms().await?;
-    Ok(())
-}
-
-async fn get_zk_nyms_available_for_download(mut rpc_client: RpcClient) -> Result<()> {
-    rpc_client.get_zk_nyms_available_for_download().await?;
-    Ok(())
-}
-
-async fn get_zk_nym_by_id(mut rpc_client: RpcClient, args: cli::GetZkNymByIdArgs) -> Result<()> {
-    rpc_client.get_zk_nym_by_id(args.id).await?;
-    Ok(())
-}
-
-async fn confirm_zk_nym_downloaded(
-    mut rpc_client: RpcClient,
-    args: cli::ConfirmZkNymDownloadedArgs,
-) -> Result<()> {
-    rpc_client.confirm_zk_nym_downloaded(args.id).await?;
     Ok(())
 }
 

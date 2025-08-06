@@ -18,9 +18,10 @@ pub enum TunnelError {
     InvalidExitGwCountry(Option<String>),
     MaxDevicesReached(Option<String>),
     BandwidthExceeded(Option<String>),
-    SubscriptionExpired(Option<String>),
+    InactiveSubscription(Option<String>),
     DeviceTimeOutOfSync(Option<String>),
     Ipv6Unavailable(Option<String>),
+    AccountControl(Option<String>),
 }
 
 impl From<ProtoTunnelError> for TunnelError {
@@ -41,11 +42,14 @@ impl From<ProtoTunnelError> for TunnelError {
             }
             ErrorStateReason::MaxDevicesReached => TunnelError::MaxDevicesReached(error.detail),
             ErrorStateReason::BandwidthExceeded => TunnelError::BandwidthExceeded(error.detail),
-            ErrorStateReason::SubscriptionExpired => TunnelError::SubscriptionExpired(error.detail),
+            ErrorStateReason::InactiveSubscription => {
+                TunnelError::InactiveSubscription(error.detail)
+            }
             ErrorStateReason::Api => TunnelError::Api(error.detail),
             ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(error.detail),
             ErrorStateReason::CreateMixnetStorage => TunnelError::Internal(error.detail),
             ErrorStateReason::Ipv6Unavailable => TunnelError::Ipv6Unavailable(error.detail),
+            ErrorStateReason::AccountControl => TunnelError::AccountControl(error.detail),
         }
     }
 }

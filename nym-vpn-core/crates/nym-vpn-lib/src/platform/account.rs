@@ -1,16 +1,12 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
+use std::{path::PathBuf, str::FromStr, time::Duration};
 
 use nym_common::trace_err_chain;
-use nym_vpn_account_controller::{
-    AccountCommandSender, SharedAccountState, shared_state::DeviceState,
-};
-use nym_vpn_api_client::{
-    response::NymVpnAccountSummaryResponse,
-    types::{Platform, VpnApiAccount},
-};
+use nym_offline_monitor::ConnectivityHandle;
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::types::{Platform, VpnApiAccount};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::device::DeviceKeyStore,
@@ -19,7 +15,10 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::uniffi_custom_impls::{AccountStateSummary, RegisterAccountResponse};
+use crate::platform::offline_monitor;
+
+use super::uniffi_custom_impls::RegisterAccountResponse;
+use super::uniffi_lib_types::AccountControllerState;
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 
@@ -31,8 +30,13 @@ pub(super) async fn init_account_controller(
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     if guard.is_none() {
-        let account_controller_handle =
-            start_account_controller(data_dir, credential_mode, network).await?;
+        let account_controller_handle = start_account_controller(
+            data_dir,
+            credential_mode,
+            network,
+            offline_monitor::get_connectivity_handle().await?,
+        )
+        .await?;
         *guard = Some(account_controller_handle);
         Ok(())
     } else {
@@ -60,25 +64,31 @@ async fn start_account_controller(
     data_dir: PathBuf,
     credential_mode: Option<bool>,
     network_env: Network,
+    connectivity_handle: ConnectivityHandle,
 ) -> Result<AccountControllerHandle, VpnError> {
-    let storage = Arc::new(tokio::sync::Mutex::new(
-        crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
-    ));
+    let storage = crate::storage::VpnClientOnDiskStorage::new(data_dir.clone());
     // TODO: pass in as argument
     let user_agent = crate::util::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
+    let nym_vpn_api_client =
+        nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(
+            |err| VpnError::InternalError {
+                details: err.to_string(),
+            },
+        )?;
+
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
-        user_agent,
         credentials_mode: credential_mode,
         network_env,
     };
 
     let account_controller = nym_vpn_account_controller::AccountController::new(
+        nym_vpn_api_client,
         account_controller_config,
-        Arc::clone(&storage),
-        None,
+        storage,
+        connectivity_handle,
         shutdown_token.child_token(),
     )
     .await
@@ -86,13 +96,13 @@ async fn start_account_controller(
         details: err.to_string(),
     })?;
 
-    let shared_account_state = account_controller.get_shared_state();
     let command_sender = account_controller.get_command_sender();
+    let state_receiver = account_controller.get_state_receiver();
     let account_controller_handle = tokio::spawn(account_controller.run());
 
     Ok(AccountControllerHandle {
         command_sender,
-        shared_state: shared_account_state,
+        state_receiver,
         handle: account_controller_handle,
         shutdown_token,
     })
@@ -100,7 +110,7 @@ async fn start_account_controller(
 
 pub(super) struct AccountControllerHandle {
     command_sender: AccountCommandSender,
-    shared_state: nym_vpn_account_controller::SharedAccountState,
+    state_receiver: AccountStateReceiver,
     handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
@@ -129,16 +139,6 @@ async fn assert_account_controller_not_running() -> Result<(), VpnError> {
     }
 }
 
-async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
-    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
-        Ok(guard.shared_state.clone())
-    } else {
-        Err(VpnError::InvalidStateError {
-            details: "Account controller is not running.".to_owned(),
-        })
-    }
-}
-
 pub(super) async fn get_command_sender() -> Result<AccountCommandSender, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         Ok(guard.command_sender.clone())
@@ -149,76 +149,35 @@ pub(super) async fn get_command_sender() -> Result<AccountCommandSender, VpnErro
     }
 }
 
-pub(super) async fn wait_for_update_account()
--> Result<Option<NymVpnAccountSummaryResponse>, VpnError> {
-    get_command_sender()
-        .await?
-        .ensure_update_account()
-        .await
-        .map_err(|err| VpnError::SyncAccount {
-            details: err.into(),
+pub(super) async fn get_state_receiver() -> Result<AccountStateReceiver, VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        Ok(guard.state_receiver.clone())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
         })
+    }
 }
 
-pub(super) async fn wait_for_update_device() -> Result<DeviceState, VpnError> {
-    get_command_sender()
-        .await?
-        .ensure_update_device()
+pub(super) async fn wait_for_account_ready_to_connect(timeout: Duration) -> Result<(), VpnError> {
+    let mut state_receiver = get_state_receiver().await?;
+    tokio::time::timeout(timeout, state_receiver.wait_for_account_ready_to_connect())
         .await
-        .map_err(|err| VpnError::SyncDevice {
-            details: err.into(),
-        })
+        .map_err(|_| VpnError::VpnApiTimeout)?
+        .map_err(VpnError::from)
 }
 
-pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
-    get_command_sender()
-        .await?
-        .ensure_register_device()
-        .await
-        .map_err(|err| VpnError::RegisterDevice {
-            details: err.into(),
-        })
-}
-
-pub(super) async fn wait_for_available_zk_nyms() -> Result<(), VpnError> {
-    get_command_sender()
-        .await?
-        .ensure_available_zk_nyms()
-        .await
-        .map_err(|err| VpnError::RequestZkNym {
-            details: err.into(),
-        })
-}
-
-pub(super) async fn wait_for_account_ready_to_connect(
-    credential_mode: bool,
-    timeout: Duration,
-) -> Result<(), VpnError> {
-    let command_sender = get_command_sender().await?;
-    tokio::time::timeout(
-        timeout,
-        command_sender.wait_for_account_ready_to_connect(credential_mode),
-    )
-    .await
-    .map_err(|_| VpnError::VpnApiTimeout)?
-    .map_err(VpnError::from)
-}
-
-pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError> {
-    let shared_account_state = get_shared_account_state().await?;
-    let account_state_summary = shared_account_state.lock().await.clone();
-    Ok(AccountStateSummary::from(account_state_summary))
+pub(super) async fn get_account_state() -> Result<AccountControllerState, VpnError> {
+    let state_receiver = get_state_receiver().await?;
+    Ok(state_receiver.get_state().into())
 }
 
 pub(super) async fn update_account_state() -> Result<(), VpnError> {
     get_command_sender()
         .await?
-        .sync_account_state()
+        .background_refresh_account_state()
         .await
-        .map_err(|err| VpnError::SyncAccount {
-            details: err.into(),
-        })
-        .map(|_| ())
+        .map_err(VpnError::from)
 }
 
 async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
@@ -229,7 +188,7 @@ async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
 
 pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
     let mnemonic = parse_mnemonic(mnemonic).await?;
-    get_command_sender().await?.login(mnemonic).await?;
+    get_command_sender().await?.store_account(mnemonic).await?;
     Ok(())
 }
 
@@ -244,9 +203,10 @@ pub(super) async fn create_account() -> Result<(), VpnError> {
 pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnError> {
     let mnemonic = get_command_sender()
         .await?
-        .get_stored_mnemonic_command()
+        .get_stored_mnemonic()
         .await
-        .map_err(VpnError::from)?;
+        .map_err(VpnError::from)?
+        .ok_or(VpnError::NoAccountStored)?;
     let platform = if cfg!(target_os = "ios") {
         Platform::Apple
     } else {
@@ -256,7 +216,7 @@ pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnErr
     };
     get_command_sender()
         .await?
-        .register_account_command(mnemonic, platform)
+        .register_account(mnemonic, platform)
         .await
         .map(RegisterAccountResponse::from)
         .map_err(VpnError::from)
@@ -271,19 +231,24 @@ pub(super) async fn forget_account() -> Result<(), VpnError> {
 }
 
 pub(super) async fn get_account_id() -> Result<Option<String>, VpnError> {
-    Ok(get_shared_account_state().await?.get_account_id().await)
+    Ok(get_command_sender().await?.get_account_id().await?)
 }
 
 pub(super) async fn is_account_mnemonic_stored() -> Result<bool, VpnError> {
-    Ok(get_shared_account_state().await?.is_account_stored().await)
+    Ok(get_command_sender()
+        .await?
+        .get_account_id()
+        .await?
+        .is_some())
 }
 
 pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
     Ok(get_command_sender()
         .await?
-        .get_stored_mnemonic_command()
+        .get_stored_mnemonic()
         .await
         .map_err(VpnError::from)?
+        .ok_or(VpnError::NoAccountStored)?
         .to_string())
 }
 
@@ -355,7 +320,10 @@ pub(crate) mod raw {
         let mnemonic = storage
             .load_mnemonic()
             .await
-            .map_err(|_err| VpnError::NoAccountStored)?;
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
         let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
         let account_token = register_account_by_account_raw(&account, platform)
             .await?
@@ -370,7 +338,11 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_stored_mnemonic_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        Ok(storage.load_mnemonic().await?.to_string())
+        Ok(storage
+            .load_mnemonic()
+            .await?
+            .ok_or(VpnError::NoAccountStored)?
+            .to_string())
     }
 
     pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
@@ -378,7 +350,10 @@ pub(crate) mod raw {
         let mnemonic = storage
             .load_mnemonic()
             .await
-            .map_err(|_err| VpnError::NoAccountStored)?;
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
         VpnApiAccount::try_from(mnemonic)
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
@@ -424,11 +399,14 @@ pub(crate) mod raw {
 
     async fn load_device(path: &str) -> Result<Device, VpnError> {
         let account_storage = setup_account_storage(path).await?;
-        account_storage
+        let device_id = account_storage
             .load_keys()
             .await
-            .map_err(|_| VpnError::NoDeviceIdentity)
-            .map(|d| Device::from(d.device_keypair().clone()))
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(Device::from(device_id.device_keypair().clone()))
     }
 
     async fn unregister_device_raw(path: &str) -> Result<(), VpnError> {
@@ -437,7 +415,10 @@ pub(crate) mod raw {
         let mnemonic = account_storage
             .load_mnemonic()
             .await
-            .map_err(|_| VpnError::NoAccountStored)?;
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
         let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
 
         let vpn_api_client = create_vpn_api_client().await?;
@@ -506,11 +487,12 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_device_id_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage
+        let device_id = storage
             .load_keys()
             .await
-            .map(|keys| keys.device_keypair().public_key().to_string())
-            .map_err(|_err| VpnError::NoDeviceIdentity)
+            .map_err(|_err| VpnError::NoDeviceIdentity)?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(device_id.device_keypair().public_key().to_string())
     }
 
     pub(crate) async fn remove_device_identity_raw(path: &str) -> Result<(), VpnError> {

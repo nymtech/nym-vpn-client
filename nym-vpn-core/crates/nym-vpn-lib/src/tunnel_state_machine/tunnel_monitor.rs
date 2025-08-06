@@ -5,6 +5,7 @@ use futures::{FutureExt, future::Fuse};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_sdk::UserAgent;
+use nym_vpn_account_controller::AccountStateReceiver;
 use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::{Ipv4Addr, Ipv6Addr};
@@ -30,7 +31,6 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{
     CachingGatewayClient, GatewayClient, GatewayMinPerformance, ResolvedConfig,
 };
-use nym_vpn_account_controller::AccountCommandSender;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -53,7 +53,7 @@ use super::{
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
-    RequestZkNymError, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -137,15 +137,6 @@ pub enum TunnelMonitorEvent {
     /// Initializing mixnet client
     InitializingClient,
 
-    /// Syncronizing account with vpn-api
-    SyncingAccount,
-
-    /// Registering device with vpn-api
-    RegisteringDevice,
-
-    /// Requesting and downloading zknym credentials from vpn-api
-    RequestingZkNyms,
-
     /// Selecting gateways
     SelectingGateways,
 
@@ -224,7 +215,7 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    account_commands: AccountCommandSender,
+    account_controller_state: AccountStateReceiver,
     gateway_directory_client: CachingGatewayClient,
     custom_topology_provider: VpnTopologyProvider,
     shutdown_token: CancellationToken,
@@ -233,7 +224,7 @@ pub struct TunnelMonitor {
 impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
-        account_commands: AccountCommandSender,
+        account_controller_state: AccountStateReceiver,
         gateway_directory_client: CachingGatewayClient,
         custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
@@ -252,7 +243,7 @@ impl TunnelMonitor {
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
-            account_commands,
+            account_controller_state,
             gateway_directory_client,
             custom_topology_provider,
             shutdown_token: shutdown_token.clone(),
@@ -307,7 +298,10 @@ impl TunnelMonitor {
 
         self.send_event(TunnelMonitorEvent::InitializingClient);
 
-        self.setup_account().await?;
+        self.account_controller_state
+            .wait_for_account_ready_to_connect()
+            .await
+            .map_err(|e| Error::Account(account::Error::ControllerState(e)))?;
 
         self.send_event(TunnelMonitorEvent::SelectingGateways);
 
@@ -587,65 +581,6 @@ impl TunnelMonitor {
         {
             tracing::error!("Failed to send monitor event: {}", e);
         }
-    }
-
-    async fn setup_account(&mut self) -> Result<()> {
-        // Check that the device time is synced as a precondition to continuing
-        account::check_device_time_sync(
-            self.account_commands.clone(),
-            self.shutdown_token.child_token(),
-        )
-        .await?;
-
-        // Check if we have ticketbooks already stored, then we can sidestep the account and device
-        // sync
-        let is_already_tickets_stored = self
-            .account_commands
-            .get_available_tickets()
-            .await
-            .map_err(|err| {
-                account::Error::from(RequestZkNymError::CredentialStorage(err.to_string()))
-            })?
-            .is_all_ticket_types_above_soft_threshold();
-
-        if is_already_tickets_stored {
-            // If we have tickets stored, trigger sync and register in the background while we
-            // proceed anyway.
-            self.send_event(TunnelMonitorEvent::SyncingAccount);
-            self.account_commands.background_sync_account_state();
-            self.account_commands.background_sync_device_state();
-        } else {
-            // If we don't have ticket stored, go through the steps one by one, syncing and
-            // registering and getting credentials.
-            self.send_event(TunnelMonitorEvent::SyncingAccount);
-            account::wait_for_account_sync(
-                self.account_commands.clone(),
-                self.shutdown_token.child_token(),
-            )
-            .await?;
-
-            account::wait_for_device_sync(
-                self.account_commands.clone(),
-                self.shutdown_token.child_token(),
-            )
-            .await?;
-
-            self.send_event(TunnelMonitorEvent::RegisteringDevice);
-            account::wait_for_device_register(
-                self.account_commands.clone(),
-                self.shutdown_token.child_token(),
-            )
-            .await?;
-        }
-
-        self.send_event(TunnelMonitorEvent::RequestingZkNyms);
-        account::wait_for_credentials_ready(
-            self.account_commands.clone(),
-            self.shutdown_token.child_token(),
-        )
-        .await?;
-
-        Ok(())
     }
 
     async fn start_mixnet_tunnel(

@@ -7,12 +7,11 @@ use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
 };
-use nym_vpn_lib_types::{AvailableTickets, TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{AccountControllerState, AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ConnectArgs, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest, StoreAccountResponse,
-    account_state::AccountStateSummary,
+    AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
+    StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -186,7 +185,7 @@ impl RpcClient {
     pub async fn store_account(
         &mut self,
         store_request: StoreAccountRequest,
-    ) -> Result<StoreAccountResponse> {
+    ) -> Result<AccountCommandResponse> {
         let request = proto::StoreAccountRequest::from(store_request);
         let response = self
             .0
@@ -195,7 +194,7 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        StoreAccountResponse::try_from(response).map_err(Error::InvalidResponse)
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn is_account_stored(&mut self) -> Result<bool> {
@@ -206,7 +205,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn forget_account(&mut self) -> Result<ForgetAccountResponse> {
+    pub async fn forget_account(&mut self) -> Result<AccountCommandResponse> {
         let response = self
             .0
             .forget_account(())
@@ -214,7 +213,7 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        ForgetAccountResponse::try_from(response).map_err(Error::InvalidResponse)
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_account_identity(&mut self) -> Result<Option<String>> {
@@ -237,17 +236,32 @@ impl RpcClient {
         ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_account_state(&mut self) -> Result<AccountStateSummary> {
-        let response = self
+    pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {
+        let state = self
             .0
             .get_account_state(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
 
-        let account_state = response.account.ok_or(Error::MissingAccountState)?;
+        AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
+    }
 
-        AccountStateSummary::try_from(account_state).map_err(Error::InvalidResponse)
+    pub async fn listen_to_account_controller_state(
+        &mut self,
+    ) -> Result<impl Stream<Item = Result<AccountControllerState>> + 'static> {
+        let listener = self
+            .0
+            .listen_to_account_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(listener.map(|item| {
+            item.map_err(Error::Rpc).and_then(|account_state| {
+                AccountControllerState::try_from(account_state).map_err(Error::InvalidResponse)
+            })
+        }))
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {
@@ -291,14 +305,6 @@ impl RpcClient {
         Ok(response.device_identity)
     }
 
-    pub async fn register_device(&mut self) -> Result<()> {
-        self.0
-            .register_device(())
-            .await
-            .map(|v| v.into_inner())
-            .map_err(Error::Rpc)
-    }
-
     pub async fn get_devices(&mut self) -> Result<Vec<NymVpnDevice>> {
         let response = self
             .0
@@ -338,45 +344,6 @@ impl RpcClient {
 
         Ok(devices)
     }
-
-    pub async fn request_zk_nym(&mut self) -> Result<()> {
-        self.0
-            .request_zk_nym(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn get_device_zk_nyms(&mut self) -> Result<()> {
-        self.0
-            .get_device_zk_nyms(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn get_zk_nym_by_id(&mut self, id: String) -> Result<()> {
-        let request = proto::GetZkNymByIdRequest { id };
-        self.0
-            .get_zk_nym_by_id(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn confirm_zk_nym_downloaded(&mut self, id: String) -> Result<()> {
-        let request = proto::ConfirmZkNymDownloadedRequest { id };
-        self.0
-            .confirm_zk_nym_downloaded(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
     pub async fn get_available_tickets(&mut self) -> Result<AvailableTickets> {
         let response = self
             .0
@@ -386,15 +353,6 @@ impl RpcClient {
             .into_inner();
 
         Ok(AvailableTickets::from(response))
-    }
-
-    pub async fn get_zk_nyms_available_for_download(&mut self) -> Result<()> {
-        self.0
-            .get_zk_nyms_available_for_download(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

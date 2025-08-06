@@ -112,17 +112,3 @@ pub(crate) async fn get_account_links_raw(
         })
         .map(AccountLinks::from)
 }
-
-pub(crate) async fn get_feature_flag_credential_mode() -> Result<bool, VpnError> {
-    let current_environment = NETWORK_ENVIRONMENT.lock().await.clone();
-    current_environment
-        .as_ref()
-        .map(get_credential_mode)
-        .ok_or(VpnError::InvalidStateError {
-            details: "Network environment not set".to_string(),
-        })
-}
-
-fn get_credential_mode(network: &nym_vpn_network_config::Network) -> bool {
-    network.get_feature_flag_credential_mode().unwrap_or(false)
-}

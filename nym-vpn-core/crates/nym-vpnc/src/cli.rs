@@ -61,8 +61,12 @@ pub enum Command {
     /// Get the account ID.
     GetAccountId,
 
-    /// Get the current account state.
-    GetAccountState,
+    /// Get the current account controller state.
+    GetAccountState {
+        /// Monitor account controller state continuously until ctrl+c.
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        listen: bool,
+    },
 
     /// Get URLs for managing your nym-vpn account.
     GetAccountLinks(GetAccountLinksArgs),
@@ -111,30 +115,11 @@ pub enum Internal {
     /// identity for testing.
     ResetDeviceIdentity(ResetDeviceIdentityArgs),
 
-    /// Register the device with your account.
-    RegisterDevice,
-
     /// Get the devices associated with the account.
     GetDevices,
 
     /// Get the active devices associated with the account.
     GetActiveDevices,
-
-    /// Manually request zknym credentials.
-    RequestZkNym,
-
-    /// Get the zknym credentials associated with this device.
-    GetDeviceZkNym,
-
-    /// Get the zknym credentials available to download for this device.
-    GetZkNymsAvailableForDownload,
-
-    /// Get a specific zknym credential by ID.
-    GetZkNymById(GetZkNymByIdArgs),
-
-    /// Manually confirm that a zknym credential has been downloaded to the device and stored in
-    /// the local credential store.
-    ConfirmZkNymDownloaded(ConfirmZkNymDownloadedArgs),
 
     /// List the available zknym ticketbooks in the local credential store.
     GetAvailableTickets,

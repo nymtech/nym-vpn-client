@@ -44,22 +44,25 @@ impl From<proto::tunnel_state::Error> for ClientErrorReason {
             proto::tunnel_state::ErrorStateReason::BandwidthExceeded => {
                 ClientErrorReason::BandwidthExceeded
             }
-            proto::tunnel_state::ErrorStateReason::SubscriptionExpired => {
-                ClientErrorReason::SubscriptionExpired
+            proto::tunnel_state::ErrorStateReason::InactiveSubscription => {
+                ClientErrorReason::InactiveSubscription
             }
             proto::tunnel_state::ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
             proto::tunnel_state::ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
-            proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync => {
-                ClientErrorReason::DeviceTimeOutOfSync
-            }
             proto::tunnel_state::ErrorStateReason::CreateMixnetStorage => {
                 ClientErrorReason::CreateMixnetStorage
+            }
+            proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync => {
+                ClientErrorReason::DeviceTimeOutOfSync
             }
             proto::tunnel_state::ErrorStateReason::Ipv6Unavailable => {
                 ClientErrorReason::Ipv6Unavailable
             }
             proto::tunnel_state::ErrorStateReason::Internal => {
                 ClientErrorReason::Internal(value.detail)
+            }
+            proto::tunnel_state::ErrorStateReason::AccountControl => {
+                ClientErrorReason::AccountControl(value.detail)
             }
         }
     }
@@ -96,8 +99,8 @@ impl From<ClientErrorReason> for proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::BandwidthExceeded.into(),
                 detail: None,
             },
-            ClientErrorReason::SubscriptionExpired => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::SubscriptionExpired.into(),
+            ClientErrorReason::InactiveSubscription => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::InactiveSubscription.into(),
                 detail: None,
             },
             ClientErrorReason::Dns(detail) => proto::tunnel_state::Error {
@@ -108,10 +111,6 @@ impl From<ClientErrorReason> for proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::Api.into(),
                 detail,
             },
-            ClientErrorReason::DeviceTimeOutOfSync => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync.into(),
-                detail: None,
-            },
             ClientErrorReason::CreateMixnetStorage => proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::CreateMixnetStorage.into(),
                 detail: None,
@@ -120,8 +119,16 @@ impl From<ClientErrorReason> for proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::Ipv6Unavailable.into(),
                 detail: None,
             },
+            ClientErrorReason::DeviceTimeOutOfSync => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync.into(),
+                detail: None,
+            },
             ClientErrorReason::Internal(detail) => proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::Internal.into(),
+                detail,
+            },
+            ClientErrorReason::AccountControl(detail) => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::AccountControl.into(),
                 detail,
             },
         }

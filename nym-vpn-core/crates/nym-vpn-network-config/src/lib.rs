@@ -270,19 +270,19 @@ pub enum Error {
     },
 
     #[error("failed to bootstrap api client")]
-    CreateBootstrapApiClient(#[source] nym_vpn_api_client::VpnApiClientError),
+    CreateBootstrapApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to create vpn api client")]
-    CreateVpnApiClient(#[source] nym_vpn_api_client::VpnApiClientError),
+    CreateVpnApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to fetch well known current env")]
-    GetWellKnownCurrentEnv(#[source] nym_vpn_api_client::VpnApiClientError),
+    GetWellKnownCurrentEnv(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to fetch well known envs")]
-    GetWellKnownEnvs(#[source] nym_vpn_api_client::VpnApiClientError),
+    GetWellKnownEnvs(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to fetch well known discovery")]
-    GetWellKnownDiscovery(#[source] nym_vpn_api_client::VpnApiClientError),
+    GetWellKnownDiscovery(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to get network details")]
     GetNetworkDetails(#[source] nym_validator_client::nym_api::error::NymAPIError),

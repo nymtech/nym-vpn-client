@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+async-trait.workspace = true
 bincode.workspace = true
 futures.workspace = true
 nym-common.workspace = true
@@ -50,3 +51,10 @@ zeroize.workspace = true
 [build-dependencies]
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[dev-dependencies]
+httpmock.workspace = true
+serde_json.workspace = true
+rand_chacha.workspace = true
+nym-crypto.workspace = true
+nym-vpn-lib.workspace = true

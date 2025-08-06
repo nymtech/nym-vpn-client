@@ -8,7 +8,7 @@ use std::{
     path::PathBuf,
 };
 
-use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
+use super::{MnemonicStorage, StoredMnemonic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
@@ -32,15 +32,6 @@ pub enum OnDiskMnemonicStorageError {
 
     #[error("failed to remove mnemonic file")]
     RemoveError(#[source] std::io::Error),
-}
-
-impl MnemonicStorageError for OnDiskMnemonicStorageError {
-    fn is_mnemonic_stored(&self) -> bool {
-        matches!(
-            self,
-            OnDiskMnemonicStorageError::MnemonicAlreadyStored { .. }
-        )
-    }
 }
 
 pub struct OnDiskMnemonicStorage {
@@ -136,22 +127,29 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         Ok(())
     }
 
-    async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, OnDiskMnemonicStorageError> {
+    async fn load_mnemonic(&self) -> Result<Option<bip39::Mnemonic>, OnDiskMnemonicStorageError> {
         tracing::debug!("Opening: {}", self.path.display());
 
         // Make sure that the file has permissions set to 600 (rw------)
         #[cfg(unix)]
         {
             let permissions = Permissions::from_mode(0o600);
-            tokio::fs::set_permissions(&self.path, permissions)
-                .await
-                .map_err(OnDiskMnemonicStorageError::FileOpenError)?;
+            if let Err(e) = tokio::fs::set_permissions(&self.path, permissions).await
+                && e.kind() != std::io::ErrorKind::NotFound
+            {
+                return Err(OnDiskMnemonicStorageError::FileOpenError(e));
+            }
         }
+        // We still that checks, for non-unix at least
+        let file = match File::open(&self.path) {
+            Ok(f) => f,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(e) => return Err(OnDiskMnemonicStorageError::FileOpenError(e)),
+        };
 
-        let file = File::open(&self.path).map_err(OnDiskMnemonicStorageError::FileOpenError)?;
         serde_json::from_reader(file)
             .map_err(OnDiskMnemonicStorageError::ReadError)
-            .map(|s: StoredMnemonic| s.mnemonic.clone())
+            .map(|s: StoredMnemonic| Some(s.mnemonic.clone()))
     }
 
     async fn remove_mnemonic(&self) -> Result<(), OnDiskMnemonicStorageError> {
@@ -180,7 +178,7 @@ mod tests {
             .unwrap();
 
         let stored_mnemonic = mnemonic_storage.load_mnemonic().await.unwrap();
-        assert_eq!(mnemonic, stored_mnemonic);
+        assert_eq!(Some(mnemonic), stored_mnemonic);
     }
 
     #[tokio::test]
@@ -202,27 +200,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn load_fails_if_file_does_not_exist() {
+    async fn load_return_none_if_file_does_not_exist() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         let result = mnemonic_storage.load_mnemonic().await;
-        assert!(matches!(
-            result,
-            Err(OnDiskMnemonicStorageError::FileOpenError(_))
-        ));
-    }
-
-    #[tokio::test]
-    async fn load_fails_if_no_mnemonic_file() {
-        let tempdir = tempfile::tempdir().unwrap();
-        let path = tempdir.path().join("test.txt");
-        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
-        let result = mnemonic_storage.load_mnemonic().await;
-        assert!(matches!(
-            result,
-            Err(OnDiskMnemonicStorageError::FileOpenError(_))
-        ));
+        assert!(matches!(result, Ok(None)));
     }
 
     #[tokio::test]

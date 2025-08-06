@@ -32,12 +32,11 @@ use std::{
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
-use nym_vpn_account_controller::AccountCommandSender;
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -411,6 +410,7 @@ pub struct SharedState {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
+    account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
     gateway_directory: CachingGatewayClient,
     topology_provider: VpnTopologyProvider,
@@ -445,6 +445,7 @@ impl TunnelStateMachine {
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
+        account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
         gateway_directory: CachingGatewayClient,
         topology_provider: VpnTopologyProvider,
@@ -468,15 +469,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
-
-        let offline_watch = connectivity_handle.clone();
-        account_command_tx
-            .register_offline_monitor(offline_watch)
-            .await
-            .inspect_err(|err| {
-                trace_err_chain!(err, "Failed to register offline watch");
-            })
-            .ok();
 
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
 
@@ -506,6 +498,7 @@ impl TunnelStateMachine {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_command_tx,
+            account_controller_state,
             statistics_event_sender,
             gateway_directory,
             topology_provider,
@@ -660,9 +653,6 @@ pub enum Error {
     #[error(transparent)]
     Account(#[from] account::Error),
 
-    #[error("device time not synced")]
-    DeviceTimeOutOfSync,
-
     #[error("ipv6 is disabled in the system")]
     Ipv6Unavailable,
 }
@@ -696,7 +686,6 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
-            Self::DeviceTimeOutOfSync => ErrorStateReason::DeviceTimeOutOfSync,
             Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
         })
     }
@@ -760,14 +749,18 @@ impl tunnel::Error {
 
 impl account::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
+        use nym_vpn_lib_types::AccountControllerError as AcError;
         match self {
-            Self::SyncAccount(e) => Some(e.into()),
-            Self::SyncDevice(e) => Some(e.into()),
-            Self::RegisterDevice(e) => Some(e.into()),
-            Self::RequestZkNym(e) => Some(e.into()),
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
-            Self::DeviceTimeOutOfSync => Some(ErrorStateReason::DeviceTimeOutOfSync),
             Self::Cancelled => None,
+            Self::ControllerState(e) => match e {
+                AcError::Offline => Some(ErrorStateReason::AccountControllerOffline),
+                AcError::NoAccountStored => Some(ErrorStateReason::AccountControllerLoggedOut),
+                AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
+                AcError::ErrorState(reason) => {
+                    Some(ErrorStateReason::AccountControllerError(reason))
+                }
+            },
         }
     }
 }

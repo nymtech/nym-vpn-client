@@ -1,167 +1,51 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityHandle;
-use nym_vpn_lib_types::{
-    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
-    RegisterAccountError, RegisterDeviceError, RequestZkNymError, StoreAccountError,
-    SyncAccountError, SyncDeviceError,
-};
+use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
 
 use std::net::SocketAddr;
 
 use nym_vpn_api_client::{
-    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage},
-    types::{Platform, VpnApiTimeSynced},
+    response::{NymVpnDevice, NymVpnUsage},
+    types::Platform,
 };
 use tokio::sync::oneshot;
 
-use crate::{
-    AvailableTicketbooks, Error, RegisterAccountResponse,
-    commands::tasks::request_zknym::RequestZkNymSummary, shared_state::DeviceState,
-};
+use crate::{AvailableTicketbooks, RegisterAccountResponse};
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
-    CreateAccount(ReturnSender<(), CreateAccountError>),
-    StoreAccount(ReturnSender<(), StoreAccountError>, Mnemonic),
-    GetStoredMnemonic(ReturnSender<Mnemonic, GetMnemonicError>),
+    CreateAccount(ReturnSender<(), AccountCommandError>), // Generate a mnemonic and store it
+    StoreAccount(ReturnSender<(), AccountCommandError>, Mnemonic), // Store the given mnemonic (optional API check)
     RegisterAccount(
-        ReturnSender<RegisterAccountResponse, RegisterAccountError>,
+        // Register the given mnemnonic (meant to take the sotred mnemonic). DOES NOT STORE IT
+        ReturnSender<RegisterAccountResponse, AccountCommandError>,
         Mnemonic,
         Platform,
     ),
-    ForgetAccount(ReturnSender<(), ForgetAccountError>),
-    SyncAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse, SyncAccountError>>),
-    SyncDeviceState(Option<ReturnSender<DeviceState, SyncDeviceError>>),
-    GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),
+    ForgetAccount(ReturnSender<(), AccountCommandError>),
+    ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
+
+    RefreshAccountState(ReturnSender<(), AccountCommandError>),
+
+    Common(CommonCommand),
+}
+
+/// These commands have no impact on the state. Handling can be grouped in some cases
+#[derive(Debug, strum::Display)]
+pub enum CommonCommand {
+    GetStoredMnemonic(ReturnSender<Option<Mnemonic>, AccountCommandError>),
+    GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
     GetDeviceIdentity(ReturnSender<String, AccountCommandError>),
-    RegisterDevice(Option<ReturnSender<NymVpnDevice, RegisterDeviceError>>),
+    GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),
     GetDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
     GetActiveDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
-    RequestZkNym(Option<ReturnSender<RequestZkNymSummary, RequestZkNymError>>),
-    GetDeviceZkNym,
-    GetZkNymsAvailableForDownload,
-    GetZkNymById(String),
-    ConfirmZkNymIdDownloaded(String),
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
     SetStaticApiAddresses(
         ReturnSender<(), AccountCommandError>,
         Option<Vec<SocketAddr>>,
     ),
-    RegisterOfflineMonitor(ReturnSender<(), AccountCommandError>, ConnectivityHandle),
-    CheckDeviceTimeSync(ReturnSender<VpnApiTimeSynced, AccountCommandError>),
-}
-
-impl AccountCommand {
-    pub fn kind(&self) -> String {
-        self.to_string()
-    }
-
-    pub fn return_no_account(self, error: Error) {
-        tracing::debug!("No account found: {error}");
-        match self {
-            AccountCommand::SyncAccountState(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(SyncAccountError::NoAccountStored));
-                } else {
-                    tracing::debug!("No account found during background account sync");
-                }
-            }
-            AccountCommand::SyncDeviceState(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(SyncDeviceError::NoAccountStored));
-                } else {
-                    tracing::debug!("No account found during background device sync");
-                }
-            }
-            AccountCommand::RegisterDevice(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(RegisterDeviceError::NoAccountStored));
-                } else {
-                    tracing::debug!("No account found during background device registration");
-                }
-            }
-            AccountCommand::RequestZkNym(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(RequestZkNymError::NoAccountStored));
-                } else {
-                    tracing::debug!("No account found during background zk-nym request");
-                }
-            }
-            _ => {
-                tracing::error!("Command does not support no account: {self}");
-            }
-        }
-    }
-
-    pub fn return_no_device(self, error: Error) {
-        tracing::debug!("No device found: {error}");
-        match self {
-            AccountCommand::SyncDeviceState(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(SyncDeviceError::NoDeviceStored));
-                } else {
-                    tracing::debug!("No device found during background device sync");
-                }
-            }
-            AccountCommand::RegisterDevice(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(RegisterDeviceError::NoDeviceStored));
-                } else {
-                    tracing::debug!("No device found during background device registration");
-                }
-            }
-            AccountCommand::RequestZkNym(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(RequestZkNymError::NoDeviceStored));
-                } else {
-                    tracing::debug!("No device found during background zk-nym request");
-                }
-            }
-            _ => {
-                tracing::error!("Command does not support no device: {self}");
-            }
-        }
-    }
-
-    pub fn return_no_connectivity(self) {
-        tracing::debug!("No connectivity");
-        match self {
-            AccountCommand::SyncAccountState(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(SyncAccountError::Offline));
-                } else {
-                    tracing::debug!("No connectivity during background account sync");
-                }
-            }
-            AccountCommand::SyncDeviceState(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(SyncDeviceError::Offline));
-                } else {
-                    tracing::debug!("No connectivity during background device sync");
-                }
-            }
-            AccountCommand::RegisterDevice(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(RegisterDeviceError::Offline));
-                } else {
-                    tracing::debug!("No connectivity during background device registration");
-                }
-            }
-            AccountCommand::RequestZkNym(tx) => {
-                if let Some(tx) = tx {
-                    tx.send(Err(RequestZkNymError::Offline));
-                } else {
-                    tracing::debug!("No connectivity during background zk-nym request");
-                }
-            }
-            _ => {
-                tracing::error!("Command does not support offline mode: {self}");
-            }
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -190,53 +74,5 @@ where
                 tracing::error!("Failed to send response: {:#?}", err);
             })
             .ok();
-    }
-}
-
-#[derive(Debug)]
-pub(crate) enum AccountCommandResult {
-    SyncAccountState(Result<NymVpnAccountSummaryResponse, SyncAccountError>),
-    SyncDeviceState(Result<DeviceState, SyncDeviceError>),
-    RegisterDevice(Result<NymVpnDevice, RegisterDeviceError>),
-    RequestZkNym(Result<RequestZkNymSummary, RequestZkNymError>),
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn account_command_kind_representation() {
-        assert_eq!(
-            AccountCommand::SyncAccountState(None).kind(),
-            "SyncAccountState"
-        );
-        assert_eq!(
-            AccountCommand::SyncDeviceState(None).kind(),
-            "SyncDeviceState"
-        );
-        assert_eq!(
-            AccountCommand::RegisterDevice(None).kind(),
-            "RegisterDevice"
-        );
-        assert_eq!(AccountCommand::RequestZkNym(None).kind(), "RequestZkNym");
-        assert_eq!(AccountCommand::GetDeviceZkNym.kind(), "GetDeviceZkNym");
-        assert_eq!(
-            AccountCommand::GetZkNymsAvailableForDownload.kind(),
-            "GetZkNymsAvailableForDownload"
-        );
-        assert_eq!(
-            AccountCommand::GetZkNymById("some_id".to_string()).kind(),
-            "GetZkNymById"
-        );
-        assert_eq!(
-            AccountCommand::ConfirmZkNymIdDownloaded("some_id".to_string()).kind(),
-            "ConfirmZkNymIdDownloaded"
-        );
-        let (tx, _) = ReturnSender::new();
-        assert_eq!(
-            AccountCommand::GetAvailableTickets(tx).kind(),
-            "GetAvailableTickets"
-        );
     }
 }

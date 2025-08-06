@@ -10,15 +10,11 @@ mod tunnel_state;
 
 pub use account::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
-    create_account::CreateAccountError,
-    forget_account::ForgetAccountError,
-    get_mnemonic::GetMnemonicError,
-    register_account::RegisterAccountError,
-    register_device::RegisterDeviceError,
+    controller_error::AccountControllerError,
+    controller_error::ErrorStateReason as AccountControllerErrorStateReason,
+    controller_event::AccountControllerEvent,
+    controller_state::AccountControllerState,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
-    store_account::StoreAccountError,
-    sync_account::SyncAccountError,
-    sync_device::SyncDeviceError,
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{

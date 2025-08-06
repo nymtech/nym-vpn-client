@@ -19,7 +19,7 @@ pub enum Error {
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
-    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
+    VpnApiClientError(#[from] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to resolve gateway hostname: {hostname}")]
     FailedToDnsResolveGateway {

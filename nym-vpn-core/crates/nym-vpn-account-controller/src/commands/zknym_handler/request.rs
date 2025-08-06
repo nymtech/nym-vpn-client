@@ -23,10 +23,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use time::Date;
 
-use crate::{
-    connectivity::OfflineWatch,
-    storage::{PendingCredentialRequest, VpnCredentialStorage},
-};
+use crate::storage::{PendingCredentialRequest, VpnCredentialStorage};
 
 use super::{ZkNymId, cached_data::CachedData};
 
@@ -38,7 +35,6 @@ pub(super) struct RequestZkNymTask {
     device: Device,
     vpn_api_client: VpnApiClient,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
-    offline_watch: OfflineWatch,
     cached_data: CachedData,
 }
 
@@ -48,7 +44,6 @@ impl RequestZkNymTask {
         device: Device,
         vpn_api_client: VpnApiClient,
         credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
-        offline_watch: OfflineWatch,
         cached_data: CachedData,
     ) -> Self {
         RequestZkNymTask {
@@ -56,7 +51,6 @@ impl RequestZkNymTask {
             device,
             vpn_api_client,
             credential_storage,
-            offline_watch,
             cached_data,
         }
     }
@@ -100,6 +94,7 @@ impl RequestZkNymTask {
         // Poll the nym-vpn-api for the zk-nym ticketbook to be ready. This could take some time,
         // but likely not more than a few seconds.
         let poll_result = self.poll_zk_nym(&id).await?;
+        let ticketbook_type = poll_result.ticketbook_type.clone();
 
         // The result might contain attached keys and signatures. If so, import them.
         self.import_attached_keys_and_signatures(&poll_result, pending_request.expiration_date)
@@ -115,7 +110,10 @@ impl RequestZkNymTask {
         // Remove the pending request from the storage. We no longer need it.
         self.remove_pending_request(&id).await?;
 
-        Ok(RequestZkNymSuccess { id })
+        Ok(RequestZkNymSuccess {
+            id,
+            ticketbook_type,
+        })
     }
 
     fn construct_zk_nym_request_data(
@@ -153,9 +151,6 @@ impl RequestZkNymTask {
         request: &ZkNymRequestData,
     ) -> Result<NymVpnZkNymPost, RequestZkNymError> {
         tracing::debug!("Requesting zk-nym ticketbook");
-        if self.offline_watch.is_offline() {
-            return Err(RequestZkNymError::Offline);
-        }
         self.vpn_api_client
             .request_zk_nym(
                 &self.account,
@@ -216,9 +211,6 @@ impl RequestZkNymTask {
         let start_time = Instant::now();
         loop {
             tracing::debug!("Polling zk-nym status");
-            if self.offline_watch.is_offline() {
-                return Err(RequestZkNymError::Offline);
-            }
 
             match self
                 .vpn_api_client
@@ -586,9 +578,6 @@ impl RequestZkNymTask {
 
     async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<StatusOk, RequestZkNymError> {
         tracing::info!("Confirming zk-nym downloaded");
-        if self.offline_watch.is_offline() {
-            return Err(RequestZkNymError::Offline);
-        }
         self.vpn_api_client
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await

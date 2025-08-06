@@ -3,37 +3,20 @@
 
 use tokio::sync::Mutex;
 
-use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
+use super::{MnemonicStorage, StoredMnemonic};
 
-struct InMemoryMnemonicStorage {
+#[derive(Default)]
+pub struct InMemoryMnemonicStorage {
     mnemonic: Mutex<Option<StoredMnemonic>>,
 }
 
-impl InMemoryMnemonicStorage {
-    #[allow(unused)]
-    fn new() -> Self {
-        Self {
-            mnemonic: Mutex::new(None),
-        }
-    }
-}
-
 #[derive(Debug, thiserror::Error)]
-enum InMemoryMnemonicStorageError {
+pub enum InMemoryMnemonicStorageError {
     #[error("no mnemonic stored")]
     NoMnemonicStored,
 
     #[error("mnemonic already stored")]
     MnemonicAlreadyStored,
-}
-
-impl MnemonicStorageError for InMemoryMnemonicStorageError {
-    fn is_mnemonic_stored(&self) -> bool {
-        match self {
-            InMemoryMnemonicStorageError::NoMnemonicStored => false,
-            InMemoryMnemonicStorageError::MnemonicAlreadyStored => true,
-        }
-    }
 }
 
 #[async_trait::async_trait]
@@ -62,13 +45,13 @@ impl MnemonicStorage for InMemoryMnemonicStorage {
         }
     }
 
-    async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, InMemoryMnemonicStorageError> {
-        self.mnemonic
+    async fn load_mnemonic(&self) -> Result<Option<bip39::Mnemonic>, InMemoryMnemonicStorageError> {
+        Ok(self
+            .mnemonic
             .lock()
             .await
             .as_ref()
-            .map(|stored| stored.mnemonic.clone())
-            .ok_or(InMemoryMnemonicStorageError::NoMnemonicStored)
+            .map(|stored| stored.mnemonic.clone()))
     }
 
     async fn remove_mnemonic(&self) -> Result<(), InMemoryMnemonicStorageError> {
@@ -92,10 +75,18 @@ mod tests {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
         let mnemonic = bip39::Mnemonic::parse(mnemonic).unwrap();
 
-        let storage = InMemoryMnemonicStorage::new();
+        let storage = InMemoryMnemonicStorage::default();
         storage.store_mnemonic(mnemonic.clone()).await.unwrap();
 
         let loaded_mnemonic = storage.load_mnemonic().await.unwrap();
-        assert_eq!(loaded_mnemonic, mnemonic);
+        assert_eq!(loaded_mnemonic, Some(mnemonic));
+    }
+
+    #[tokio::test]
+    async fn load_non_existing_mnemonic_returns_none() {
+        let storage = InMemoryMnemonicStorage::default();
+
+        let loaded_mnemonic = storage.load_mnemonic().await.unwrap();
+        assert_eq!(loaded_mnemonic, None);
     }
 }

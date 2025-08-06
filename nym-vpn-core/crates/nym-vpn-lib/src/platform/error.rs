@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerError};
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum VpnError {
@@ -50,64 +50,17 @@ pub enum VpnError {
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
-    #[error("failed to get stored mnemonic: {details}")]
-    GetMnemonic {
-        #[from]
-        details: super::uniffi_lib_types::GetMnemonicError,
-    },
-
-    #[error("failed to create account: {details}")]
-    CreateAccount {
-        #[from]
-        details: super::uniffi_lib_types::CreateAccountError,
-    },
-
-    #[error("failed to store account: {details}")]
-    StoreAccount {
-        #[from]
-        details: super::uniffi_lib_types::StoreAccountError,
-    },
-
-    #[error("failed to register account: {details}")]
-    RegisterAccount {
-        #[from]
-        details: super::uniffi_lib_types::RegisterAccountError,
-    },
-
-    #[error("sync account failed: {details}")]
-    SyncAccount {
-        #[from]
-        details: super::uniffi_lib_types::SyncAccountError,
-    },
-    #[error("sync device failed: {details}")]
-    SyncDevice {
-        #[from]
-        details: super::uniffi_lib_types::SyncDeviceError,
-    },
-
-    #[error("device registration failed: {details}")]
-    RegisterDevice {
-        #[from]
-        details: super::uniffi_lib_types::RegisterDeviceError,
-    },
-
     #[error("failed to request zk nym")]
     RequestZkNym {
         #[from]
         details: super::uniffi_lib_types::RequestZkNymError,
     },
 
-    #[error("when requesting zk nym, some were reported as failed")]
-    RequestZkNymBundle {
-        successes: Vec<super::uniffi_lib_types::RequestZkNymSuccess>,
-        failed: Vec<super::uniffi_lib_types::RequestZkNymError>,
-    },
+    #[error("an account is already stored")]
+    ExistingAccount,
 
-    #[error("failed to forget account: {details}")]
-    ForgetAccount {
-        #[from]
-        details: super::uniffi_lib_types::ForgetAccountError,
-    },
+    #[error("account controller error")]
+    AccountControllerError { details: String },
 }
 
 impl VpnError {
@@ -130,29 +83,8 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::Offline => Self::NetworkConnectionError {
                 details: "Unable to proceed with command since we are offline".to_owned(),
             },
-            AccountCommandError::GetMnemonic(e) => Self::GetMnemonic { details: e.into() },
-            AccountCommandError::CreateAccount(e) => Self::CreateAccount { details: e.into() },
-            AccountCommandError::StoreAccount(e) => Self::StoreAccount { details: e.into() },
-            AccountCommandError::RegisterAccount(e) => Self::RegisterAccount { details: e.into() },
-            AccountCommandError::SyncAccount(e) => Self::SyncAccount { details: e.into() },
-            AccountCommandError::SyncDevice(e) => Self::SyncDevice { details: e.into() },
-            AccountCommandError::RegisterDevice(e) => Self::RegisterDevice { details: e.into() },
-            AccountCommandError::RequestZkNym(e) => Self::RequestZkNym { details: e.into() },
-            AccountCommandError::RequestZkNymBundle { successes, failed } => {
-                Self::RequestZkNymBundle {
-                    successes: successes.into_iter().map(|e| e.into()).collect(),
-                    failed: failed.into_iter().map(|e| e.into()).collect(),
-                }
-            }
-            AccountCommandError::ForgetAccount(e) => Self::ForgetAccount { details: e.into() },
-        }
-    }
-}
-
-impl From<nym_vpn_lib_types::ForgetAccountError> for VpnError {
-    fn from(value: nym_vpn_lib_types::ForgetAccountError) -> Self {
-        Self::ForgetAccount {
-            details: value.into(),
+            AccountCommandError::ExistingAccount => Self::ExistingAccount,
+            AccountCommandError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
         }
     }
 }
@@ -175,6 +107,14 @@ impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
 
 impl From<nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError> for VpnError {
     fn from(value: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError) -> Self {
+        Self::Storage {
+            details: value.to_string(),
+        }
+    }
+}
+
+impl From<AccountControllerError> for VpnError {
+    fn from(value: AccountControllerError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }

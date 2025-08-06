@@ -3,15 +3,10 @@
 
 use std::{fmt::Debug, sync::Arc};
 
-pub mod create_account;
-pub mod forget_account;
-pub mod get_mnemonic;
-pub mod register_account;
-pub mod register_device;
+pub mod controller_error;
+pub mod controller_event;
+pub mod controller_state;
 pub mod request_zknym;
-pub mod store_account;
-pub mod sync_account;
-pub mod sync_device;
 pub mod ticketbooks;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
@@ -35,44 +30,14 @@ pub enum AccountCommandError {
     #[error("no device stored")]
     NoDeviceStored,
 
+    #[error("an account is already stored")]
+    ExistingAccount,
+
     #[error("no connectivity")]
     Offline,
 
-    //
-    // --- Error cases for specific commands ---
-    //
-    #[error("failed to create account")]
-    CreateAccount(#[from] create_account::CreateAccountError),
-
-    #[error("failed to get mnemonic")]
-    GetMnemonic(#[from] get_mnemonic::GetMnemonicError),
-
-    #[error("failed to store account")]
-    StoreAccount(#[from] store_account::StoreAccountError),
-
-    #[error("failed to register account")]
-    RegisterAccount(#[from] register_account::RegisterAccountError),
-
-    #[error("failed to sync account state")]
-    SyncAccount(#[from] sync_account::SyncAccountError),
-
-    #[error("failed to sync device state")]
-    SyncDevice(#[from] sync_device::SyncDeviceError),
-
-    #[error("failed to register device")]
-    RegisterDevice(#[from] register_device::RegisterDeviceError),
-
-    #[error("failed to request zk nym:")]
-    RequestZkNym(#[from] request_zknym::RequestZkNymError),
-
-    #[error("failed to request zk nym")]
-    RequestZkNymBundle {
-        successes: Vec<request_zknym::RequestZkNymSuccess>,
-        failed: Vec<request_zknym::RequestZkNymError>,
-    },
-
-    #[error("failed to forget account")]
-    ForgetAccount(#[from] forget_account::ForgetAccountError),
+    #[error("invalid mnemonic: {0}")]
+    InvalidMnemonic(String),
 }
 
 impl AccountCommandError {
@@ -86,19 +51,6 @@ impl AccountCommandError {
 
     pub fn unexpected_response(message: impl Debug) -> Self {
         AccountCommandError::UnexpectedVpnApiResponse(format!("{message:?}"))
-    }
-}
-
-// Local alias for syntactic simplification
-type RequestZkNymVec =
-    Vec<Result<request_zknym::RequestZkNymSuccess, request_zknym::RequestZkNymError>>;
-
-impl From<RequestZkNymVec> for AccountCommandError {
-    fn from(summary: RequestZkNymVec) -> Self {
-        let (successes, failed): (Vec<_>, Vec<_>) = summary.into_iter().partition(Result::is_ok);
-        let successes = successes.into_iter().map(Result::unwrap).collect();
-        let failed = failed.into_iter().map(Result::unwrap_err).collect();
-        Self::RequestZkNymBundle { successes, failed }
     }
 }
 
@@ -169,11 +121,12 @@ impl VpnApiError {
     }
 }
 
+// That should disappear when reworking those errors
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
-    type Error = nym_vpn_api_client::VpnApiClientError;
+impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
 
-    fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+    fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
         let err = match VpnApiErrorResponse::try_from(err) {
             Ok(err) => return Ok(Self::Response(err)),
             Err(err) => err,
@@ -181,20 +134,32 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
 
         if err
             .http_client_error()
-            .is_some_and(nym_vpn_api_client::HttpClientError::is_timeout)
+            .is_some_and(nym_vpn_api_client::error::HttpClientError::is_timeout)
         {
             return Ok(Self::Timeout(Arc::new(err)));
         }
 
         match err
             .http_client_error()
-            .and_then(nym_vpn_api_client::HttpClientError::status_code)
+            .and_then(nym_vpn_api_client::error::HttpClientError::status_code)
         {
             Some(code) => Ok(Self::StatusCode {
                 code: code.into(),
                 source: Arc::new(err),
             }),
             None => Err(err),
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError {
+    fn from(err: nym_vpn_api_client::error::VpnApiClientError) -> Self {
+        use nym_vpn_api_client::response::NymErrorResponse;
+
+        match NymErrorResponse::try_from(err) {
+            Ok(e) => AccountCommandError::VpnApi(VpnApiError::Response(e.into())),
+            Err(e) => AccountCommandError::Internal(e.to_string()),
         }
     }
 }
@@ -208,14 +173,21 @@ pub struct VpnApiErrorResponse {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponse {
-    type Error = nym_vpn_api_client::VpnApiClientError;
+impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiErrorResponse {
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
 
-    fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
-        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(|res| Self {
-            message: res.message,
-            message_id: res.message_id,
-            code_reference_id: res.code_reference_id,
-        })
+    fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
+        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(Into::into)
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorResponse {
+    fn from(err: nym_vpn_api_client::response::NymErrorResponse) -> Self {
+        Self {
+            message: err.message,
+            message_id: err.message_id,
+            code_reference_id: err.code_reference_id,
+        }
     }
 }

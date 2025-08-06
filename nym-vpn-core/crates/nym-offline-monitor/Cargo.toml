@@ -23,10 +23,8 @@ tokio-util.workspace = true
 nym-common.workspace = true
 nym-routing.workspace = true
 nym-windows.workspace = true
+async-trait.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 dispatch2.workspace = true
 nym-apple-network.workspace = true
-
-[target.'cfg(target_os = "android")'.dependencies]
-async-trait.workspace = true

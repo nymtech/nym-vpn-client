@@ -9,5 +9,5 @@ pub use key_store::DeviceKeyStore;
 pub use keys::DeviceKeys;
 pub use persistence::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME, DeviceKeysPaths,
-    OnDiskKeys, OnDiskKeysError,
+    InMemEphemeralKeys, OnDiskKeys, OnDiskKeysError,
 };

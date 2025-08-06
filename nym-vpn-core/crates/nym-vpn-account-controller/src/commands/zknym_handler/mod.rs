@@ -5,6 +5,4 @@ mod cached_data;
 mod handler;
 mod request;
 
-pub use handler::RequestZkNymSummary;
-
-pub(crate) use handler::{WaitingRequestZkNymCommandHandler, ZkNymId};
+pub(crate) use handler::{RequestZkNymCommandHandler, ZkNymId};

@@ -5,9 +5,15 @@ use std::error::Error;
 
 pub use nym_http_api_client::HttpClientError;
 
-use nym_contracts_common::ContractsCommonError;
+use crate::response::{NymErrorResponse, UnexpectedError};
 
-use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
+// Error code id to allow error catching. These are emitted by the backend and are unique.
+
+// https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/route.ts#L218
+pub const UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID: &str = "235ba475-8c64-4c46-8147-d1d523df972c";
+
+// https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/zknym/route.ts#L255
+pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
 
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
@@ -19,6 +25,9 @@ pub enum VpnApiClientError {
 
     #[error("failed to get account summary")]
     GetAccountSummary(#[source] HttpClientError<NymErrorResponse>),
+
+    #[error("failed to get account summary with device")]
+    GetAccountSummaryWithDevice(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get devices")]
     GetDevices(#[source] HttpClientError<NymErrorResponse>),
@@ -51,7 +60,7 @@ pub enum VpnApiClientError {
     ConfirmZkNymDownloadById(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get free passes")]
-    GetFreePasses(#[source] HttpClientError<ErrorMessage>),
+    GetFreePasses(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to apply free pass")]
     ApplyFreepass(#[source] HttpClientError<NymErrorResponse>),
@@ -89,16 +98,8 @@ pub enum VpnApiClientError {
     #[error("failed to get vpn gateway countries")]
     GetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
-    #[error("invalud percent value")]
-    InvalidPercentValue(#[source] ContractsCommonError),
-
-    #[error("failed to derive from path")]
-    CosmosDeriveFromPath(
-        #[source] nym_validator_client::signing::direct_wallet::DirectSecp256k1HdWalletError,
-    ),
-
     #[error("failed to get directory zk-nym ticketbook partial verification keys")]
-    GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] HttpClientError<ErrorMessage>),
+    GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get health")]
     GetHealth(#[source] HttpClientError<UnexpectedError>),
@@ -117,9 +118,6 @@ pub enum VpnApiClientError {
 
     #[error("failed to post account")]
     PostAccount(#[source] HttpClientError<UnexpectedError>),
-
-    #[error("create account")]
-    CreateAccount(#[source] crate::types::AccountError),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

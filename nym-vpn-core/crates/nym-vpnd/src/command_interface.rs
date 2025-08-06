@@ -241,14 +241,14 @@ impl NymVpnService for CommandInterface {
     async fn store_account(
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,
-    ) -> Result<tonic::Response<proto::StoreAccountResponse>> {
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let store_request = nym_vpnd_types::StoreAccountRequest::from(request.into_inner());
         let result = self
             .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
             .await?;
 
-        let response = proto::StoreAccountResponse {
-            error: result.err().map(proto::StoreAccountError::from),
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -268,13 +268,13 @@ impl NymVpnService for CommandInterface {
     async fn forget_account(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::ForgetAccountResponse>> {
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let result = self
             .send_and_wait(VpnServiceCommand::ForgetAccount, ())
             .await?;
 
-        let response = proto::ForgetAccountResponse {
-            error: result.err().map(proto::ForgetAccountError::from),
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -286,7 +286,10 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<proto::GetAccountIdentityResponse>> {
         let account_identity = self
             .send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
-            .await?;
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get account identity: {err}"))
+            })?;
 
         Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
             account_identity,
@@ -314,16 +317,28 @@ impl NymVpnService for CommandInterface {
     async fn get_account_state(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountStateResponse>> {
-        let account_state_summary = self
+    ) -> Result<tonic::Response<proto::AccountControllerState>> {
+        let account_controller_state = self
             .send_and_wait(VpnServiceCommand::GetAccountState, ())
-            .await?;
+            .await
+            .map(proto::AccountControllerState::from)?;
 
-        Ok(tonic::Response::new(proto::GetAccountStateResponse {
-            account: Some(
-                proto::get_account_state_response::AccountStateSummary::from(account_state_summary),
-            ),
-        }))
+        Ok(tonic::Response::new(account_controller_state))
+    }
+
+    type ListenToAccountStateStream = BoxStream<'static, Result<proto::AccountControllerState>>;
+    async fn listen_to_account_state(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<Self::ListenToAccountStateStream>> {
+        let rx = self
+            .send_and_wait(VpnServiceCommand::SubscribeToAccountControllerState, ())
+            .await?;
+        let stream = tokio_stream::wrappers::WatchStream::new(rx)
+            .map(|new_state| Ok(proto::AccountControllerState::from(new_state)));
+        Ok(tonic::Response::new(
+            Box::pin(stream) as Self::ListenToAccountStateStream
+        ))
     }
 
     async fn refresh_account_state(
@@ -393,12 +408,6 @@ impl NymVpnService for CommandInterface {
         }))
     }
 
-    async fn register_device(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::RegisterDevice, ())
-            .await?;
-        Ok(tonic::Response::new(()))
-    }
-
     async fn get_devices(
         &self,
         _request: tonic::Request<()>,
@@ -428,77 +437,6 @@ impl NymVpnService for CommandInterface {
             devices: Some(proto::get_devices_response::Devices::from(devices)),
         }))
     }
-
-    async fn request_zk_nym(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::RequestZkNym, ())
-            .await?;
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn get_device_zk_nyms(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
-        // Internal command where returning the result is not yet implemented. It's primary
-        // implementation is to trigger the command interface.
-        let _ = self
-            .send_and_wait(VpnServiceCommand::GetDeviceZkNyms, ())
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get device zk nyms: {err}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn get_zk_nyms_available_for_download(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
-        // Internal command where returning the result is not yet implemented. It's primary
-        // purpose is to trigger the command interface.
-        let _ = self
-            .send_and_wait(VpnServiceCommand::GetZkNymsAvailableForDownload, ())
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!(
-                    "Failed to get zknyms available for download: {err}",
-                ))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn get_zk_nym_by_id(
-        &self,
-        request: tonic::Request<proto::GetZkNymByIdRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let id = request.into_inner().id;
-
-        // This is an internal command, and returning the ID is not yet implemented. It's primary
-        // purpose is to trigger the command interface.
-        let _ = self
-            .send_and_wait(VpnServiceCommand::GetZkNymById, id)
-            .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to get zknym by id: {err}")))?;
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn confirm_zk_nym_downloaded(
-        &self,
-        request: tonic::Request<proto::ConfirmZkNymDownloadedRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let id = request.into_inner().id;
-
-        self.send_and_wait(VpnServiceCommand::ConfirmZkNymIdDownloaded, id)
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to confirm zk nym downloaded: {err}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
     async fn get_available_tickets(
         &self,
         _request: tonic::Request<()>,

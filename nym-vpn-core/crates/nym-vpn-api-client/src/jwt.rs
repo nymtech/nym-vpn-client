@@ -172,11 +172,8 @@ mod tests {
 
         if jwt_str != jwt_expected_from_js_snapshot {
             println!("== secp256k1 / ED256K1 ==");
-            println!(
-                "jwt_expected_from_js_snapshot = {}",
-                jwt_expected_from_js_snapshot
-            );
-            println!("jwt_str                       = {}", jwt_str);
+            println!("jwt_expected_from_js_snapshot = {jwt_expected_from_js_snapshot}");
+            println!("jwt_str                       = {jwt_str}");
         }
 
         assert_eq!(
@@ -222,11 +219,8 @@ mod tests {
 
         if jwt_str != jwt_expected_from_js_snapshot {
             println!("== ed25519 / ECDSA ==");
-            println!(
-                "jwt_expected_from_js_snapshot = {}",
-                jwt_expected_from_js_snapshot
-            );
-            println!("jwt_str                       = {}", jwt_str);
+            println!("jwt_expected_from_js_snapshot = {jwt_expected_from_js_snapshot}");
+            println!("jwt_str                       = {jwt_str}");
         }
 
         assert_eq!(

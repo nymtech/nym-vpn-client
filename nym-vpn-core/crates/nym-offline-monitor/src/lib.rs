@@ -90,6 +90,23 @@ impl ConnectivityHandle {
     }
 }
 
+#[async_trait::async_trait]
+impl ConnectivityMonitor for ConnectivityHandle {
+    /// Returns current connectivity status.
+    async fn connectivity(&'async_trait self) -> Connectivity {
+        self.connectivity().await
+    }
+
+    /// Returns next connectivity status once changed.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe as it uses the channel internally.
+    async fn next(&'async_trait mut self) -> Option<Connectivity> {
+        self.next().await
+    }
+}
+
 /// Spawn offline monitor.
 pub async fn spawn_monitor(
     #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
@@ -204,4 +221,17 @@ impl Connectivity {
     pub fn has_ipv6(&self) -> bool {
         self.is_online()
     }
+}
+
+#[async_trait::async_trait]
+pub trait ConnectivityMonitor: Send + Sync {
+    /// Returns current connectivity status.
+    async fn connectivity(&'async_trait self) -> Connectivity;
+
+    /// Returns next connectivity status once changed.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe as it uses the channel internally.
+    async fn next(&'async_trait mut self) -> Option<Connectivity>;
 }

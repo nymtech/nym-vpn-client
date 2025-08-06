@@ -4,7 +4,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to setup nym-vpn-api client")]
-    SetupVpnApiClient(nym_vpn_api_client::VpnApiClientError),
+    SetupVpnApiClient(nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("mnemonic store error")]
     MnemonicStore {

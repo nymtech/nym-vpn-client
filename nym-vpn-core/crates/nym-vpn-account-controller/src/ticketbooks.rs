@@ -15,6 +15,9 @@ use crate::error::Error;
 // If we go below this threshold, we should request more tickets
 const TICKET_NUMBER_THRESHOLD: u64 = 30;
 
+// If we go below this threshold, we cannot proceed
+const MINIMUM_TICKET_NUMBER: u64 = 10;
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct AvailableTicketbook {
     pub id: i64,
@@ -162,6 +165,14 @@ impl AvailableTicketbooks {
 
     pub fn is_all_ticket_types_above_soft_threshold(&self) -> bool {
         self.is_all_ticket_types_above_threshold(TICKET_NUMBER_THRESHOLD)
+    }
+
+    pub fn is_all_ticket_types_above_minimal_threshold(&self) -> bool {
+        self.is_all_ticket_types_above_threshold(MINIMUM_TICKET_NUMBER)
+    }
+
+    pub fn is_all_ticket_types_non_empty(&self) -> bool {
+        self.is_all_ticket_types_above_threshold(0)
     }
 
     pub fn ticket_types_running_low(&self) -> Vec<TicketType> {

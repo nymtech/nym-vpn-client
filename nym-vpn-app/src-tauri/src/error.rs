@@ -129,6 +129,10 @@ pub enum ErrorKey {
     NoBandwidth,
     // Some specific account management errors
     AccountInvalidMnemonic,
+    NoAccountStored,
+    NoDeviceStored,
+    ExistingAccount,
+    AccountControllerOffline,
     // Failure when querying countries from gRPC
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,

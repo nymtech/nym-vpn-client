@@ -51,6 +51,7 @@ pub mod swift;
 
 mod account;
 mod environment;
+mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
 mod stats;
@@ -73,17 +74,21 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
     gateway_directory::GatewayClient,
-    platform::{stats::StatisticsControllerHandle, uniffi_custom_impls::NetworkCompatibility},
+    platform::{
+        offline_monitor::OfflineMonitorHandle, stats::StatisticsControllerHandle,
+        uniffi_custom_impls::NetworkCompatibility,
+    },
 };
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
-    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
-    NetworkEnvironment, RegisterAccountResponse, SystemMessage, UserAgent,
+    AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location, NetworkEnvironment,
+    RegisterAccountResponse, SystemMessage, UserAgent,
 };
-use uniffi_lib_types::TunnelEvent;
+use uniffi_lib_types::{AccountControllerState, TunnelEvent};
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
+    static ref OFFLINE_MONITOR_HANDLE: Mutex<Option<OfflineMonitorHandle>> = Mutex::new(None);
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
     static ref STATISTICS_CONTROLLER_HANDLE: Mutex<Option<StatisticsControllerHandle>> =
@@ -128,40 +133,35 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 /// Setup the library with the given data directory and optionally enable credential mode.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn configureLib(
-    data_dir: String,
-    credential_mode: Option<bool>,
-    sentry_monitoring: bool,
-    statistics_enabled: bool,
-) -> Result<(), VpnError> {
-    RUNTIME.block_on(configure_lib(
-        data_dir,
-        credential_mode,
-        sentry_monitoring,
-        statistics_enabled,
-    ))
+pub fn configureLib(config: NymVpnLibConfig) -> Result<(), VpnError> {
+    RUNTIME.block_on(configure_lib(config))
 }
 
-async fn configure_lib(
-    data_dir: String,
-    credential_mode: Option<bool>,
-    sentry_monitoring: bool,
-    statistics_enabled: bool,
-) -> Result<(), VpnError> {
+async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
     let os = crate::SysInfo::new();
     os.raw_display(true);
-    if sentry_monitoring {
+    if config.sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
-    stats::init_statistics_controller(
-        PathBuf::from(data_dir.clone()),
-        network.clone(),
-        statistics_enabled,
+    offline_monitor::init_offline_monitor(
+        #[cfg(target_os = "android")]
+        config.tun_provider,
     )
     .await?;
-    account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
+    stats::init_statistics_controller(
+        PathBuf::from(config.data_dir.clone()),
+        network.clone(),
+        config.statistics_enabled,
+    )
+    .await?;
+    account::init_account_controller(
+        PathBuf::from(config.data_dir),
+        config.credential_mode,
+        network,
+    )
+    .await
 }
 
 async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_monitoring: bool) {
@@ -358,7 +358,7 @@ pub fn updateAccountState() -> Result<(), VpnError> {
 /// Get the account state
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
+pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
     RUNTIME.block_on(account::get_account_state())
 }
 
@@ -485,8 +485,8 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     let network_env = environment::current_environment_details().await?;
 
     let account_controller_tx = account::get_command_sender().await?;
+    let account_controller_state = account::get_state_receiver().await?;
 
-    // SW Get a stats reporting channel here and give it to the state_machine
     let statistics_event_sender = stats::get_events_sender().await?;
 
     // Once we have established that the account is ready, we can start the state machine.
@@ -494,6 +494,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
         config,
         network_env,
         account_controller_tx,
+        account_controller_state,
         statistics_event_sender,
     )
     .await
@@ -562,4 +563,14 @@ pub struct VPNConfig {
 #[uniffi::export(with_foreign)]
 pub trait TunnelStatusListener: Send + Sync {
     fn on_event(&self, event: TunnelEvent);
+}
+
+#[derive(uniffi::Record)]
+pub struct NymVpnLibConfig {
+    pub data_dir: String,
+    pub credential_mode: Option<bool>,
+    pub sentry_monitoring: bool,
+    pub statistics_enabled: bool,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
 }

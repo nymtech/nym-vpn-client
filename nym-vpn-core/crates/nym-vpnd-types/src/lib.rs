@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub mod account_state;
+//pub mod account_state;
 pub mod gateway;
 pub mod log_path;
 pub mod service;
@@ -60,10 +60,6 @@ impl std::fmt::Debug for StoreAccountRequest {
     }
 }
 
-pub struct StoreAccountResponse {
-    pub error: Option<nym_vpn_lib_types::StoreAccountError>,
-}
-
-pub struct ForgetAccountResponse {
-    pub error: Option<nym_vpn_lib_types::ForgetAccountError>,
+pub struct AccountCommandResponse {
+    pub error: Option<nym_vpn_lib_types::AccountCommandError>,
 }

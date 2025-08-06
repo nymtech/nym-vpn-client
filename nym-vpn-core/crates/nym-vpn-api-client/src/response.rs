@@ -36,7 +36,7 @@ pub struct NymVpnAccountResponse {
     pub status: NymVpnAccountStatusResponse,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum_macros::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnAccountStatusResponse {
     Active,
@@ -51,6 +51,14 @@ pub struct NymVpnAccountSummaryResponse {
     pub subscription: NymVpnAccountSummarySubscription,
     pub devices: NymVpnAccountSummaryDevices,
     pub fair_usage: NymVpnAccountSummaryFairUsage,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnAccountSummaryWithDeviceResponse {
+    #[serde(flatten)]
+    pub account_summary: NymVpnAccountSummaryResponse,
+    pub active_device: Option<NymVpnDevice>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -524,17 +532,6 @@ impl fmt::Display for NymErrorResponse {
         .filter_map(|x| x.clone())
         .collect::<Vec<_>>();
         write!(f, "{}", fields.join(", "))
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ErrorMessage {
-    message: String,
-}
-
-impl fmt::Display for ErrorMessage {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
     }
 }
 
