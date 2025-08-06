@@ -145,8 +145,8 @@ For convenience, all build artifacts are also mirrored under `build/` directory 
 
 If you want to build for different architecture, pass one of the following parameters to `make`:
 
-- `CPU_ARCH=amd64` to build for x64
-- `CPU_ARCH=arm64` to build for ARM64
+- `CPU_ARCH=AMD64` to build for x64
+- `CPU_ARCH=ARM64` to build for ARM64
 
 ## Build VPN libraries and executables
 

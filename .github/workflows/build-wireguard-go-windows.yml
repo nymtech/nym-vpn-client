@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
@@ -42,7 +42,7 @@ jobs:
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk libwg CPU_ARCH=amd64
+        run: make -f Windows.mk libwg CPU_ARCH=AMD64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
