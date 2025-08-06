@@ -5,7 +5,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { S_STATE } from '../static';
 
 let initialized = false;
-const splashDuration = 1000; // 1s, duration of the lottie animation
+const splashDuration = 1000; // 1s, duration of the animation
 
 function IntroAnim() {
   const [completed, setCompleted] = useState(false);
