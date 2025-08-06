@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add splash animation (Windows only)
+
 ### Changed
 
 - Improve UI emphasis when connection to the daemon is down
