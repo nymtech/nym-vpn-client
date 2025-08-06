@@ -213,8 +213,12 @@ pub enum ClientErrorReason {
     SameEntryAndExitGateway,
     InvalidEntryGatewayCountry,
     InvalidExitGatewayCountry,
+    MaxDevicesReached,
+    BandwidthExceeded,
+    InactiveSubscription,
     Dns(Option<String>),
     Api(Option<String>),
+    DeviceTimeOutOfSync,
     CreateMixnetStorage,
     Ipv6Unavailable,
     Internal(Option<String>),
@@ -239,6 +243,18 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
             ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
+            ErrorStateReason::AccountControllerError(
+                AccountControllerErrorStateReason::BandwidthExceeded { .. },
+            ) => Self::BandwidthExceeded,
+            ErrorStateReason::AccountControllerError(
+                AccountControllerErrorStateReason::MaxDeviceReached,
+            ) => Self::MaxDevicesReached,
+            ErrorStateReason::AccountControllerError(
+                AccountControllerErrorStateReason::InactiveSubscription,
+            ) => Self::InactiveSubscription,
+            ErrorStateReason::AccountControllerError(
+                AccountControllerErrorStateReason::DeviceTimeDesynced,
+            ) => Self::DeviceTimeOutOfSync,
             ErrorStateReason::AccountControllerError(reason) => {
                 Self::AccountControl(Some(reason.to_string()))
             }
