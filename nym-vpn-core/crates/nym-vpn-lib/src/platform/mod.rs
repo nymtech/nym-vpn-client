@@ -133,49 +133,35 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 /// Setup the library with the given data directory and optionally enable credential mode.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn configureLib(
-    data_dir: String,
-    credential_mode: Option<bool>,
-    _config: VPNConfig,
-    sentry_monitoring: bool,
-    statistics_enabled: bool,
-) -> Result<(), VpnError> {
-    RUNTIME.block_on(configure_lib(
-        data_dir,
-        credential_mode,
-        #[cfg(target_os = "android")]
-        _config,
-        sentry_monitoring,
-        statistics_enabled,
-    ))
+pub fn configureLib(config: NymVpnLibConfig) -> Result<(), VpnError> {
+    RUNTIME.block_on(configure_lib(config))
 }
 
-async fn configure_lib(
-    data_dir: String,
-    credential_mode: Option<bool>,
-    #[cfg(target_os = "android")] config: VPNConfig,
-    sentry_monitoring: bool,
-    statistics_enabled: bool,
-) -> Result<(), VpnError> {
+async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
     let os = crate::SysInfo::new();
     os.raw_display(true);
-    if sentry_monitoring {
+    if config.sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
     offline_monitor::init_offline_monitor(
         #[cfg(target_os = "android")]
-        config,
+        config.tun_provider,
     )
     .await?;
     stats::init_statistics_controller(
-        PathBuf::from(data_dir.clone()),
+        PathBuf::from(config.data_dir.clone()),
         network.clone(),
-        statistics_enabled,
+        config.statistics_enabled,
     )
     .await?;
-    account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
+    account::init_account_controller(
+        PathBuf::from(config.data_dir),
+        config.credential_mode,
+        network,
+    )
+    .await
 }
 
 async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_monitoring: bool) {
@@ -577,4 +563,14 @@ pub struct VPNConfig {
 #[uniffi::export(with_foreign)]
 pub trait TunnelStatusListener: Send + Sync {
     fn on_event(&self, event: TunnelEvent);
+}
+
+#[derive(uniffi::Record)]
+pub struct NymVpnLibConfig {
+    pub data_dir: String,
+    pub credential_mode: Option<bool>,
+    pub sentry_monitoring: bool,
+    pub statistics_enabled: bool,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
 }

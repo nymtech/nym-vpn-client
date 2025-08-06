@@ -9,17 +9,17 @@ use crate::{
 };
 
 #[cfg(target_os = "android")]
-use crate::platform::VPNConfig;
+use crate::tunnel_provider::android::AndroidTunProvider;
 
 pub(super) async fn init_offline_monitor(
-    #[cfg(target_os = "android")] config: VPNConfig,
+    #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
 ) -> Result<(), VpnError> {
     let mut guard = OFFLINE_MONITOR_HANDLE.lock().await;
 
     if guard.is_none() {
         let offline_monitor_handle = start_offline_monitor(
             #[cfg(target_os = "android")]
-            config,
+            tun_provider,
         )
         .await?;
         *guard = Some(offline_monitor_handle);
@@ -32,7 +32,7 @@ pub(super) async fn init_offline_monitor(
 }
 
 pub(super) async fn start_offline_monitor(
-    #[cfg(target_os = "android")] config: VPNConfig,
+    #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
 ) -> Result<OfflineMonitorHandle, VpnError> {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let route_handler = crate::tunnel_state_machine::RouteHandler::new()
@@ -43,7 +43,7 @@ pub(super) async fn start_offline_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler.inner_handle(),
         #[cfg(target_os = "android")]
-        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(config.tun_provider.clone()),
+        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(tun_provider),
         #[cfg(target_os = "linux")]
         Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
     )
