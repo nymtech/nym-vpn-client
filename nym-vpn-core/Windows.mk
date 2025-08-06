@@ -43,18 +43,18 @@ else
     CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
 endif
 
-CPU_ARCH_LOWER := $(shell "$(CPU_ARCH)".ToLower())
-
-ifeq ($(CPU_ARCH_LOWER),amd64)
+ifeq ($(CPU_ARCH),AMD64)
     RUST_TARGET := x86_64
     WINFW_PLATFORM := x64
     MSVC_PLATFORM := x64
-else ifeq ($(CPU_ARCH_LOWER),arm64)
+    CPU_ARCH_LOWER := amd64
+else ifeq ($(CPU_ARCH),ARM64)
     RUST_TARGET := aarch64
     WINFW_PLATFORM := ARM64
     MSVC_PLATFORM := arm64
+    CPU_ARCH_LOWER := arm64
 else
-    $(error Unsupported CPU architecture: $(CPU_ARCH_LOWER))
+    $(error Unsupported CPU architecture: $(CPU_ARCH))
 endif
 
 ifeq ($(RELEASE),1)
