@@ -28,9 +28,9 @@ WIREGUARD_DIR := $(CURDIR)/../wireguard
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build uniffi
+.PHONY: build swift-package uniffi clean
 
-all: $(LIBWG_BUILD_DIR)/libwg.a build uniffi
+all: $(LIBWG_BUILD_DIR)/libwg.a build swift-package uniffi
 
 build:
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --package nym-vpn-lib --target $(RUST_TRIPLET) $(RELEASE_FLAG)
@@ -40,5 +40,14 @@ uniffi: build
 		--library $(RUST_LIB_PATH) \
 		--language swift --out-dir $(UNIFFI_OUT_DIR) -n
 
+swift-package:
+	cd crates/nym-vpn-lib; \
+	cargo swift package --accept-all --platforms ios --name NymVpnLib --release
+
 $(LIBWG_BUILD_DIR)/libwg.a: $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh --ios
+
+clean:
+	rm -rf $(UNIFFI_OUT_DIR)
+	rm -rf $(LIBWG_BUILD_DIR)
+	cargo clean --target $(RUST_TRIPLET)
