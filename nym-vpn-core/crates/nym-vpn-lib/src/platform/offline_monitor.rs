@@ -10,6 +10,8 @@ use crate::tunnel_state_machine::RouteHandler;
 
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "android")]
+use std::sync::Arc;
 
 pub(super) async fn init_offline_monitor(
     #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
