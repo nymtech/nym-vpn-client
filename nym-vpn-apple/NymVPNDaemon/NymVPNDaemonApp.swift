@@ -95,7 +95,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(nymLogger.logFileManager)
         }
         .onChange(of: appSettings.appMode) { newMode in
-            appDelegate.configureActivationPolicy(newMode)
+            appDelegate.configureActivationPolicy(with: newMode)
             configureApp(for: AppSettings.shared.appMode)
         }
         .windowResizability(.contentMinSize)
