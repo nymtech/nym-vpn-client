@@ -32,8 +32,8 @@
   "logs": {
     "title": "Journaux",
     "desc": "Copier ou supprimer les journaux",
-    "app": "Journaux des applications",
-    "daemon": "Journaux des démons"
+    "app": "Journaux de l'application",
+    "daemon": "Journaux du démon"
   },
   "faq": "F.A.Q.",
   "display-theme": "Affichage",
