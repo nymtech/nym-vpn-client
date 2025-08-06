@@ -279,6 +279,7 @@ impl TunnelMonitor {
             }
         };
 
+        tracing::info!("Shutdown task manager [2]");
         // Repeat task manager shutdown in case of early return from run_inner()
         if task_manager.signal_shutdown().is_err() {
             tracing::error!("Failed to signal task manager shutdown");
@@ -596,6 +597,7 @@ impl TunnelMonitor {
             }
         }
 
+        tracing::info!("Shutdown task manager [1]");
         // Signal task manager to shutdown to stop detached tasks
         if task_manager.signal_shutdown().is_err() {
             tracing::error!("Failed to signal task manager shutdown");
