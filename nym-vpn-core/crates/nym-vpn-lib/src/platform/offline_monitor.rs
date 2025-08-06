@@ -3,10 +3,10 @@
 
 use nym_offline_monitor::ConnectivityHandle;
 
-use crate::{
-    platform::{OFFLINE_MONITOR_HANDLE, error::VpnError},
-    tunnel_state_machine::RouteHandler,
-};
+use crate::platform::{OFFLINE_MONITOR_HANDLE, error::VpnError};
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::RouteHandler;
 
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
@@ -51,6 +51,7 @@ pub(super) async fn start_offline_monitor(
 
     Ok(OfflineMonitorHandle {
         connectivity_handle,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,
     })
 }
