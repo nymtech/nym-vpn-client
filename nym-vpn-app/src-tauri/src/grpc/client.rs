@@ -201,7 +201,7 @@ impl GrpcClient {
                         tx.send(update).await.unwrap();
                     }
                     Ok(None) => {
-                        info!("vpnd DOWN: tunnel state stream closed");
+                        warn!("vpnd DOWN: tunnel state stream closed");
                         VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
                         return;
                     }
