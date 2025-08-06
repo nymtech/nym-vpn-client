@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- macOS: window activation
+
+## [2.8.0] - 2025-07-31
+
 ### Added
 
 - macOS: IPv6 toggle in settings

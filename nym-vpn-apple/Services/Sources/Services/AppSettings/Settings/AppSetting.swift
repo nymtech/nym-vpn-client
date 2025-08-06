@@ -51,5 +51,16 @@ public struct AppSetting {
                 "settings.appMode.both".localizedString
             }
         }
+
+#if os(macOS)
+        public var activationPolicy: NSApplication.ActivationPolicy {
+            switch self {
+            case .menubarOnly:
+                    .accessory
+            case .dockOnly, .both:
+                    .regular
+            }
+        }
+#endif
     }
 }

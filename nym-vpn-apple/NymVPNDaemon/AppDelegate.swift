@@ -9,8 +9,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var shouldTerminate = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        configureActivationPolicy(appSettings.appMode)
-        NSApplication.shared.delegate = self
+        NSApp.setActivationPolicy(appSettings.appMode.activationPolicy)
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        bringWindowToFront()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -26,13 +29,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         shouldTerminate ? .terminateNow : .terminateCancel
     }
 
-    func configureActivationPolicy(_ mode: AppSetting.AppMode) {
-        switch mode {
-        case .menubarOnly:
-            NSApp.setActivationPolicy(.accessory)
-        case .dockOnly, .both:
-            NSApp.setActivationPolicy(.regular)
-        }
+    func configureActivationPolicy(with mode: AppSetting.AppMode) {
+        guard NSApp.activationPolicy() != mode.activationPolicy else { return }
+        NSApp.setActivationPolicy(mode.activationPolicy)
+        NSApp.activate(ignoringOtherApps: true)
+        makeAppWindowVisibleAndOrderFront()
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -55,13 +56,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 extension AppDelegate {
     func bringWindowToFront() {
-        NSApp.windows.first?.makeKeyAndOrderFront(self)
-
-        if #available(macOS 14.0, *) {
-            NSApplication.shared.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.unhide(self)
+        makeAppWindowVisibleAndOrderFront()
     }
 }
 
@@ -90,6 +87,19 @@ private extension AppDelegate {
             true
         case .dockOnly:
             false
+        }
+    }
+
+    func makeAppWindowVisibleAndOrderFront() {
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            NSApp.unhide(self)
+            guard let window = NSApp.windows.first,
+                  window.canBecomeKey
+            else {
+                return
+            }
+            window.makeKeyAndOrderFront(self)
+            window.setIsVisible(true)
         }
     }
 }
