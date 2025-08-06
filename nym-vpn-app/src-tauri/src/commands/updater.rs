@@ -34,7 +34,7 @@ pub async fn fetch_update(
     pending_update: State<'_, PendingUpdate>,
 ) -> Result<Option<UpdateMetadata>, BackendError> {
     if !*UPDATER_ENABLED {
-        error!("updater is disabled for this build");
+        warn!("updater is disabled for this build");
         return Err(BackendError::internal("updater is disabled", None));
     }
     let update = updater::check(app)
@@ -54,7 +54,6 @@ pub async fn fetch_update(
     }
 }
 
-// TODO: Downgrad log level to info
 // Based on https://v2.tauri.app/plugin/updater/#checking-for-updates
 #[tauri::command]
 #[instrument(skip_all)]
@@ -63,13 +62,13 @@ pub async fn install_update(
     on_event: Channel<DownloadUpdateEvent>,
 ) -> Result<(), BackendError> {
     if !*UPDATER_ENABLED {
-        info!("updater is disabled for this build");
+        warn!("updater is disabled for this build");
         return Err(BackendError::internal("updater is disabled", None));
     }
     let Some(update) = pending_update.0.lock().await.take() else {
         // calling this function without a pending update is an error
-        info!("no update available");
-        return Err(BackendError::internal("no update available", None));
+        info!("no pending update to install");
+        return Err(BackendError::internal("install_update called without a pending update", None));
     };
 
     let mut started = false;
@@ -95,6 +94,6 @@ pub async fn install_update(
             },
         )
         .await
-        .inspect_err(|e| warn!("Update download and install failed: {}", e))?;
+        .inspect_err(|e| error!("Update download and install failed: {}", e))?;
     Ok(())
 }
