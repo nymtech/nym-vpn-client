@@ -54,13 +54,13 @@ function Home() {
         })
         .catch((e: unknown) => {
           const backendError = e as BackendError;
-          dispatch({ 
+          dispatch({
             type: 'set-error',
             error: {
               message: backendError.message,
               key: backendError.key,
               data: backendError.data,
-            }
+            },
           });
         });
     } else if (state === 'Disconnected') {
@@ -73,17 +73,17 @@ function Home() {
         })
         .catch((e: unknown) => {
           const backendError = e as BackendError;
-          dispatch({ 
+          dispatch({
             type: 'set-error',
             error: {
               message: backendError.message,
               key: backendError.key,
               data: backendError.data,
-            }
+            },
           });
         });
     }
-  }
+  };
 
   useEffect(() => {
     if (devMode || compatChecked) {

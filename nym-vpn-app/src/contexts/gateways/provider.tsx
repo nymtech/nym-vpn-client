@@ -76,18 +76,18 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
         } catch (e) {
           const backendError = e as BackendError;
           // if (nodeType === 'mx-entry') {
-            // this also reset loading state
-            dispatch({
-              type: 'set-gateways-error',
-              payload: {
-                type: nodeType,
-                error: {
-                  message: backendError.message,
-                  key: backendError.key,
-                  data: backendError.data || null,
-                },
+          // this also reset loading state
+          dispatch({
+            type: 'set-gateways-error',
+            payload: {
+              type: nodeType,
+              error: {
+                message: backendError.message,
+                key: backendError.key,
+                data: backendError.data || null,
               },
-            });
+            },
+          });
           // }
         }
       }

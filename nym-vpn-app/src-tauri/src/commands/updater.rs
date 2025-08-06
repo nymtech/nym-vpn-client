@@ -68,7 +68,10 @@ pub async fn install_update(
     let Some(update) = pending_update.0.lock().await.take() else {
         // calling this function without a pending update is an error
         info!("no pending update to install");
-        return Err(BackendError::internal("install_update called without a pending update", None));
+        return Err(BackendError::internal(
+            "install_update called without a pending update",
+            None,
+        ));
     };
 
     let mut started = false;
