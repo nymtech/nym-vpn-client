@@ -43,16 +43,18 @@ else
     CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
 endif
 
-ifeq ($(CPU_ARCH),AMD64)
+CPU_ARCH_LOWER := $(shell "$(CPU_ARCH)".ToLower())
+
+ifeq ($(CPU_ARCH_LOWER),amd64)
     RUST_TARGET := x86_64
     WINFW_PLATFORM := x64
     MSVC_PLATFORM := x64
-else ifeq ($(CPU_ARCH),ARM64)
+else ifeq ($(CPU_ARCH_LOWER),arm64)
     RUST_TARGET := aarch64
     WINFW_PLATFORM := ARM64
     MSVC_PLATFORM := arm64
 else
-    $(error Unsupported CPU architecture: $(CPU_ARCH))
+    $(error Unsupported CPU architecture: $(CPU_ARCH_LOWER))
 endif
 
 ifeq ($(RELEASE),1)
@@ -81,7 +83,7 @@ default: wintun libwg winfw
 # Build libwg and copy it to build/lib
 libwg: create_target_dir
 	$(call setup_env_path) ; #\
-	if ("$(CPU_ARCH)" -eq "ARM64") { #\
+	if ("$(CPU_ARCH_LOWER)" -eq "arm64") { #\
 		$$wg_arm64_flag = "--arm64" ; #\
 		$$msystem = "clangarm64" ; #\
 	} else { #\
@@ -110,7 +112,7 @@ wintun: create_target_dir
 	Expand-Archive -Path $(TMP)/wintun.zip -DestinationPath "$(TMP)" -Force
 
 # Check digital signature of wintun dll
-	$$sig = Get-AuthenticodeSignature -FilePath "$(WINTUN_BIN_DIR)/$(CPU_ARCH)/$(WINTUN_DLL_NAME)"; #\
+	$$sig = Get-AuthenticodeSignature -FilePath "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)"; #\
 	$$fingerprint = $$sig.SignerCertificate.Thumbprint.ToUpper(); #\
 	#\
 	if ($$fingerprint -ne "$(WINTUN_FINGERPRINT)") { #\
@@ -121,7 +123,7 @@ wintun: create_target_dir
 	}
 	
 # Copy wintun dll to target directory
-	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force -Verbose
+	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force -Verbose
 
 create_target_dir:
 	if (-not (Test-Path "$(TARGET_DIR)")) { #\
