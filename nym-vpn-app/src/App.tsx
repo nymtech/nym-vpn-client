@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
+import { type } from '@tauri-apps/plugin-os';
 import * as Toast from '@radix-ui/react-toast';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -17,10 +18,11 @@ import router from './router';
 import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
 import { GatewaysProvider } from './contexts/gateways';
-import { IntroSplash } from './screens';
+import { IntroAnim, IntroSplash } from './screens';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
+const os = type();
 
 function App() {
   const { i18n } = useTranslation();
@@ -28,6 +30,7 @@ function App() {
   dayjs.extend(customParseFormat);
 
   const { set } = useLang();
+  const intro = os === 'windows' ? <IntroAnim /> : <IntroSplash />;
 
   useEffect(() => {
     if (initialized) {
@@ -54,7 +57,7 @@ function App() {
 
   return (
     <>
-      {!noSplash && <IntroSplash />}
+      {!noSplash && intro}
       <InAppNotificationProvider>
         <Toast.Provider>
           <MainStateProvider>
