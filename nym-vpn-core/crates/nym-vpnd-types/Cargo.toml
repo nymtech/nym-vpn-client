@@ -14,7 +14,6 @@ workspace = true
 [dependencies]
 serde.workspace = true
 time.workspace = true
-thiserror.workspace = true
 zeroize.workspace = true
 
 nym-vpn-lib-types.workspace = true
