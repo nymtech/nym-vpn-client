@@ -163,6 +163,7 @@ private extension ConfigurationManager {
 #elseif os(macOS)
         try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()
+        try? await updateNetworkStatisticsIfNeeded()
 #endif
         updateAccountLinks()
         updateCompatibilityVersions()
@@ -205,8 +206,12 @@ private extension ConfigurationManager {
         try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
     }
 
-    func updateErrorReportingIfNeeded() async throws  {
+    func updateErrorReportingIfNeeded() async throws {
         try await grpcManager.updateErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
+    }
+
+    func updateNetworkStatisticsIfNeeded() async throws {
+        try await grpcManager.updateNetworkStatisticsIfNeeded(with: appSettings.isStatisticsEnabled)
     }
 #endif
 }

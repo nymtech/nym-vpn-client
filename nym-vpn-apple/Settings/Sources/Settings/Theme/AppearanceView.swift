@@ -23,6 +23,12 @@ public struct AppearanceView: View {
                 .frame(height: 24)
             theme()
                 .frame(maxWidth: MagicNumbers.maxWidth)
+#if os(macOS)
+            Spacer()
+                .frame(height: 24)
+            appMode()
+                .frame(maxWidth: MagicNumbers.maxWidth)
+#endif
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -36,7 +42,6 @@ public struct AppearanceView: View {
 }
 
 extension AppearanceView {
-    @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
             title: "settings.appearance".localizedString,
@@ -44,7 +49,6 @@ extension AppearanceView {
         )
     }
 
-    @ViewBuilder
     func language() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
@@ -59,7 +63,6 @@ extension AppearanceView {
         )
     }
 
-    @ViewBuilder
     func theme() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
@@ -74,3 +77,27 @@ extension AppearanceView {
         )
     }
 }
+
+#if os(macOS)
+private extension AppearanceView {
+    func appMode() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.appMode".localizedString,
+                systemImageName: "menubar.dock.rectangle",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    Task { @MainActor in
+                        navigateToAppMode()
+                    }
+                }
+            )
+        )
+    }
+
+    @MainActor func navigateToAppMode() {
+        path.append(SettingLink.appMode)
+    }
+}
+#endif

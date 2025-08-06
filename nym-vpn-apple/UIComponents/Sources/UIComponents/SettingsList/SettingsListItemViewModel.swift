@@ -47,6 +47,7 @@ public final class SettingsListItemViewModel: Hashable {
 
     let title: String
     let subtitle: String?
+    let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
     let accessory: Accessory
@@ -58,6 +59,7 @@ public final class SettingsListItemViewModel: Hashable {
         accessory: Accessory,
         title: String,
         subtitle: String? = nil,
+        multilineText: AttributedString? = nil,
         imageName: String? = nil,
         systemImageName: String? = nil,
         position: SettingsListItemPosition = SettingsListItemPosition(isFirst: false, isLast: false),
@@ -65,6 +67,7 @@ public final class SettingsListItemViewModel: Hashable {
     ) {
         self.title = title
         self.subtitle = subtitle
+        self.multilineText = multilineText
         self.imageName = imageName
         self.systemImageName = systemImageName
         self.accessory = accessory

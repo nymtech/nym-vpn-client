@@ -9,8 +9,7 @@ public struct AppModeView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @State private var isHovered = false
     @State private var hoveredId: Int?
-
-    @Binding var path: NavigationPath
+    @Binding private var path: NavigationPath
 
     public var body: some View {
         VStack {

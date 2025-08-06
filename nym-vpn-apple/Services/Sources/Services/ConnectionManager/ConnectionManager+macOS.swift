@@ -13,6 +13,7 @@ extension ConnectionManager {
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
                 isErrorReportingEnabled: isErrorReportingEnabled,
+                isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
@@ -20,6 +21,7 @@ extension ConnectionManager {
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
                 isErrorReportingEnabled: isErrorReportingEnabled,
+                isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isTwoHopEnabled: true
             )
         }

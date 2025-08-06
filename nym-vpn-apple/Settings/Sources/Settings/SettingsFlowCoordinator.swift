@@ -56,6 +56,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case .appMode:
             AppModeView(path: $flowState.path)
 #endif
+        case .privacyAndData:
+            PrivacyAndDataView(path: $flowState.path)
         }
     }
 }

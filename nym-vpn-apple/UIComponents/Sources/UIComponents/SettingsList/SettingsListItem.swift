@@ -14,20 +14,21 @@ public struct SettingsListItem: View {
     public var body: some View {
         VStack(spacing: 0) {
             Spacer()
+                .frame(height: 18)
             HStack {
                 iconImage()
                     .padding(.leading, 16)
-
                 titleSubtitle()
                 Spacer()
-
                 optionalAccessoryImage()
                 optionalToggleView()
             }
+            optionalMultilineLabel()
             Spacer()
+                .frame(height: 18)
             optionalDivider()
         }
-        .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64)
+
         .background {
             NymColor.elevation.opacity(isHovered ? 0.7 : 1)
         }
@@ -96,7 +97,6 @@ private extension SettingsListItem {
                 )
             }
         }
-        .clipped()
         .padding(.leading, 16)
     }
 
@@ -114,6 +114,22 @@ private extension SettingsListItem {
         if case let .toggle(viewModel: viewModel) = viewModel.accessory {
             ToggleView(viewModel: viewModel)
                 .padding(.trailing, 24)
+        }
+    }
+
+    @ViewBuilder
+    func optionalMultilineLabel() -> some View {
+        if let multilineText = viewModel.multilineText {
+            Spacer()
+                .frame(height: 18)
+            HStack(spacing: 0) {
+                Text(multilineText)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.gray1)
+                    .padding(.horizontal, 16)
+                    .tint(NymColor.gray1)
+                Spacer()
+            }
         }
     }
 }

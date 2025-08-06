@@ -8,6 +8,7 @@ import ConfigurationManager
 import Constants
 import CountriesManager
 import GatewayManager
+import GRPCManager
 import Home
 import HelperManager
 import NotificationsManager
@@ -38,6 +39,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+    @ObservedObject private var grpcManager = GRPCManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -89,6 +91,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
+            .environmentObject(grpcManager)
             .environmentObject(nymLogger.logFileManager)
         }
         .onChange(of: appSettings.appMode) { newMode in

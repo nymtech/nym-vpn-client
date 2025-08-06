@@ -4,7 +4,7 @@ import Theme
 public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
     public let id = UUID()
 
-    @Published var isOn = false {
+    @Binding var isOn: Bool {
         didSet {
             configure(with: isOn)
         }
@@ -16,13 +16,13 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
     @Published var strokeColor = NymColor.gray1
     @Published var isDisabled: Bool
 
-    private var action: ((Bool) -> Void)
+    private var action: ((Bool) -> Void)?
 
-    public init(isOn: Bool, isDisabled: Bool = false, action: @escaping ((Bool) -> Void) = { _ in }) {
-        self.isOn = isOn
+    public init(isOn: Binding<Bool>, isDisabled: Bool = false, action: ((Bool) -> Void)? = nil) {
+        _isOn = isOn
         self.action = action
         self.isDisabled = isDisabled
-        configure(with: isOn)
+        configure(with: isOn.wrappedValue)
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -37,7 +37,7 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
 extension ToggleViewModel {
     func onTap() {
         isOn.toggle()
-        action(isOn)
+        action?(isOn)
     }
 }
 

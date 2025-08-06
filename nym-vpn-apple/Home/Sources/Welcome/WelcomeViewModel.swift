@@ -26,14 +26,7 @@ public final class WelcomeViewModel: ObservableObject {
 
     func sentryViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .toggle(
-                viewModel: ToggleViewModel(
-                    isOn: appSettings.isErrorReportingOn,
-                    action: { [weak self] isOn in
-                        self?.appSettings.isErrorReportingOn = isOn
-                    }
-                )
-            ),
+            accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isErrorReportingOn)),
             title: "settings.anonymousErrorReports.title".localizedString,
             subtitle: "settings.anonymousErrorReports.subtitle".localizedString,
             imageName: "errorReport",
