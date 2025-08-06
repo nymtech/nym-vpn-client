@@ -103,9 +103,6 @@ impl GrpcClient {
             if !logged {
                 warn!("failed to connect to the daemon: {}", e);
                 VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
-            } else if e.to_string().contains("Unimplemented") {
-                // Unimplemented error is returned when the vpnd service is not running
-                debug!("vpnd service is not running: {}", e);
             } else {
                 debug!("failed to connect to the daemon: {}", e);
             }
