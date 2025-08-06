@@ -83,7 +83,7 @@ jobs:
         shell: pwsh
         working-directory: nym-vpn-core
         run: |
-          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/${{ env.WINTUN_DIST_DIR }}"
+          make -f Windows.mk wintun PWSH=1 CPU_ARCH=AMD64 TARGET_DIR="${{ github.workspace }}/${{ env.WINTUN_DIST_DIR }}"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3

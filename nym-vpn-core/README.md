@@ -1,5 +1,95 @@
 # Nym VPN Core
 
+## Clone Git repository
+
+Use the following command to clone repository with submodules:
+
+```sh
+git clone --recursive https://github.com/nymtech/nym-vpn-client.git
+```
+
+## Prerequisites
+
+### All platforms
+
+Majority of code in this repository is written in Rust which can be installed from https://rustup.rs/
+
+### Linux
+
+1. Install system dependencies:
+    
+    ```sh
+    sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev
+    ```
+1. Install the latest protobuf-compiler from https://github.com/protocolbuffers/protobuf/releases
+1. Install Go from https://go.dev/dl/
+
+### macOS
+
+1. Install Protobuf
+    
+    ```sh
+    brew install protobuf
+    ```
+1. Install Golang
+    
+    ```sh
+    brew install go
+    ```
+
+### Windows
+
+1. Install Visual Studio 2022 Community
+
+    ```pwsh
+    winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Llvm.Clang"
+    ```
+    If you already have it installed, open Visual Studio Installer and modify the Visual Studio 2022 installation by adding the following components:
+    - Add workload: Desktop development with C++
+    - Add individual components:
+      - C++ Clang tools for Windows
+      - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
+1. Install GNU make:
+    
+    ```
+    winget install -e --id=GnuWin32.Make
+    ```
+1. Install the Protocol Buffers compiler (**protoc**)
+    
+    * Download `protoc-<version>-win64.zip`
+    * Unzip to `C:\Program Files\protoc`.
+    * Add to environment:
+
+      ```bat
+      setx PROTOC "C:\Program Files\protoc\bin\protoc.exe" /M
+      setx PATH "%PATH%;C:\Program Files\protoc\bin" /M
+      ```
+    * Verify that `protoc` is available in the path:
+      
+      ```cmd
+      protoc --version
+      ```
+1. Install Libclang for x86 or x64 via winget:
+
+    ```
+    winget install -e --id=LLVM.LLVM
+    ```
+
+    If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
+
+    Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
+1. Install msys2 and mingw packages
+    - Download [msys2](https://www.msys2.org/#installation) and install it in the default location that it offers during installation (i.e: `C:\msys64`).
+    - Type in msys2 in the taskbar search then open "msys2 mingw64" if you run x64 Windows or "msys2 clangarm64" if you run arm64 Windows.
+    - In the appeared msys2 console, type in the following commands to update installed components and install clang for x64 and arm64:
+        
+        ```sh
+        pacman -Suy
+        pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
+        pacman -S mingw-w64-x86_64-clang
+        pacman -S mingw-w64-clang-aarch64-clang
+        ```
+
 ## Code formatting
 
 We use some of nightly features of rustfmt to format the codebase. Please install the nightly rust with rustfmt:
@@ -20,71 +110,34 @@ If you use VSCode and automatic formatting, configure rust-analyzer to use night
 "rust-analyzer.rustfmt.extraArgs": ["+nightly"],
 ```
 
-## Prerequisites
+## Build dependencies
 
-### Linux 
+### Linux and macOS
 
-```sh
-sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
-```
+1. Build wireguard-go for desktop:
+
+    ```sh
+    make build-wireguard
+    ```
+
+1. Build wireguard-go for iOS (macOS host only):
+
+    ```sh
+    make build-wireguard-ios
+    ```
 
 ### Windows
 
-- Install Visual Studio 2022 Community
-
-  ```pwsh
-  winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Llvm.Clang"
-  ```
-
-  if you already have it installed, open Visual Studio Installer and modify the Visual Studio 2022 installation by adding the following components:
-
-  - Add workload: Desktop development with C++
-  - Add individual components: 
-    - C++ Clang tools for Windows
-    - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
-
-- Install GNU make:
-
-  ```
-  winget install -e --id=GnuWin32.Make
-  ```
-
-- Install the Protocol Buffers compiler (**protoc**)
-  1. Download `protoc-<version>-win64.zip`
-  2. Unzip to `C:\protoc`.
-  3. Add to environment:
-     ```bat
-     setx PROTOC "C:\protoc\bin\protoc.exe" /M
-     setx PATH "%PATH%;C:\protoc\bin" /M
-     ```
-
-- Verify tools:
-  ```cmd
-  protoc --version
-  ```
-- Install Libclang for x86 or x64 via winget:
-
-  ```
-  winget install -e --id=LLVM.LLVM
-  ```
-  If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
-
-  Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
-
-## Build on Windows
-
-### Build all dependencies
-  
 Run the following command to build `winfw`, `libwg` and download `wintun`:
 
 ```sh
 make -f Windows.mk RELEASE=1
 ```
 
-This command build binaries for the machine CPU architecture and put them into `target/release`. 
+This command build binaries for the machine CPU architecture and put them into `target/release`.
 If you omit the `RELEASE` flag or set it to `0`, the binaries will be put into `target/debug`.
 
-> [!NOTE] 
+> [!NOTE]
 > Note that the `RELEASE` flag only affects the build configuration for `winfw`.
 > Both `libwg` and `wintun` are always provided as release binaries.
 
@@ -92,10 +145,10 @@ For convenience, all build artifacts are also mirrored under `build/` directory 
 
 If you want to build for different architecture, pass one of the following parameters to `make`:
 
-- `CPU_ARCH=amd64` to build for x64
-- `CPU_ARCH=arm64` to build for ARM64
+- `CPU_ARCH=AMD64` to build for x64
+- `CPU_ARCH=ARM64` to build for ARM64
 
-### Build VPN libraries and executables
+## Build VPN libraries and executables
 
 ```sh
 cd nym-vpn-core/
@@ -103,7 +156,7 @@ cd nym-vpn-core/
 # build only the the vpn daemon
 cargo build -p nym-vpnd --release
 
-# build all 
+# build all
 cargo build --release
 ```
 
@@ -133,6 +186,10 @@ cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 
 ## Firewall logging
 
+### Linux
+
+Use the following command to print firewall rules: `sudo nft list ruleset`
+
 ### macOS
 
 In order to inspect firewall logs, use the following commands:
@@ -144,11 +201,6 @@ In order to inspect firewall logs, use the following commands:
 
 Use the following command to print firewall rules: `sudo pfctl -a nym -sa`
 
-
-### Linux
-
-Use the following command to print firewall rules: `sudo nft list ruleset`
-
 ### Windows
 
 #### Internal winfw cli
@@ -156,14 +208,14 @@ Use the following command to print firewall rules: `sudo nft list ruleset`
 Compile winfw cli first by following next steps:
 
 1. Open `nym-vpn-windows/winfw/extras.sln` in Visual Studio (tested with 2022 community edition)
-2. Some things related to running against `winfw.dll` are not yet fixed, so feel free to comment out the problematic parts.
-3. Compile.
+1. Some things related to running against `winfw.dll` are not yet fixed, so feel free to comment out the problematic parts.
+1. Compile.
 
 Once compiled:
 
 1. Open Powershell under Administrator and navigate to `nym-vpn-windows\winfw\bin\x64-Debug` (or `ARM64-Debug` depending on selected build architecture)
-2. Execute `.\cli.exe`
-3. Type in `monitor events` and hit return key to monitor all blocked connections.
+1. Execute `.\cli.exe`
+1. Type in `monitor events` and hit return key to monitor all blocked connections.
 
 Type in `help` to see more capabilities of the cli.
 
@@ -198,7 +250,7 @@ It's fairly verbose but contains all filters registered with wfp and whatnot.
 ##### View events
 
 1. Open Event viewer
-2. Navigate to Windows Logs > Security to see the audit
+1. Navigate to Windows Logs > Security to see the audit
 
 If you want to filter by specific destination IP etc, add custom view and enter filter using XML, for example:
 

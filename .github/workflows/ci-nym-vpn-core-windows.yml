@@ -69,7 +69,7 @@ jobs:
 
       - name: Build Windows dependencies
         working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw CPU_ARCH=amd64
+        run: make -f Windows.mk winfw CPU_ARCH=AMD64
 
       - name: rustfmt check
         working-directory: nym-vpn-core
