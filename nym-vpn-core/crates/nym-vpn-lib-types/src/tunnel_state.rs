@@ -195,7 +195,7 @@ pub enum ErrorStateReason {
     AccountControllerOffline,
 
     /// Account controller is logged out
-    AccountControolerLoggedOut,
+    AccountControllerLoggedOut,
 }
 
 impl ErrorStateReason {
@@ -245,7 +245,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::AccountControllerOffline => {
                 Self::AccountControl(Some("offline".into()))
             }
-            ErrorStateReason::AccountControolerLoggedOut => {
+            ErrorStateReason::AccountControllerLoggedOut => {
                 Self::AccountControl(Some("logged out".into()))
             }
         }

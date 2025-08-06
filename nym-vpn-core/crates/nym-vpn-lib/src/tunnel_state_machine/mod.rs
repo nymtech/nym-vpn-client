@@ -755,7 +755,7 @@ impl account::Error {
             Self::Cancelled => None,
             Self::ControllerState(e) => match e {
                 AcError::Offline => Some(ErrorStateReason::AccountControllerOffline),
-                AcError::NoAccountStored => Some(ErrorStateReason::AccountControolerLoggedOut),
+                AcError::NoAccountStored => Some(ErrorStateReason::AccountControllerLoggedOut),
                 AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
                 AcError::ErrorState(reason) => {
                     Some(ErrorStateReason::AccountControllerError(reason))
