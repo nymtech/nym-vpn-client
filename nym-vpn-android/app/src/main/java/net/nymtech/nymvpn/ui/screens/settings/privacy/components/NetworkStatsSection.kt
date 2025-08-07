@@ -30,14 +30,9 @@ import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyViewModel
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun NetworkStatsSection(
-	appUiState: AppUiState,
-	viewModel: PrivacyViewModel,
-	context: Context,
-	shape: Shape = RoundedCornerShape(8.dp),
-) {
-
+fun NetworkStatsSection(appUiState: AppUiState, viewModel: PrivacyViewModel, context: Context, shape: Shape = RoundedCornerShape(8.dp)) {
 	val interactionSource = remember { MutableInteractionSource() }
+
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = shape,
@@ -93,6 +88,5 @@ fun NetworkStatsSection(
 				)
 			}
 		}
-
 	}
 }

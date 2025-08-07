@@ -18,7 +18,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltViewModel()) {
-
 	val context = LocalContext.current
 
 	Column(
