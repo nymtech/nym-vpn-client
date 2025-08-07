@@ -29,6 +29,7 @@ use crate::{
     logging::LogFileRemoverHandle,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
+use sha2::{Digest, Sha256};
 
 fn main() -> anyhow::Result<()> {
     let rt = runtime::new_runtime();
@@ -254,6 +255,9 @@ fn init_sentry() -> Option<ClientInitGuard> {
         return None;
     };
 
+    let os_info = nym_vpn_lib::SysInfo::new();
+    let identifier = collect_identifier_string(&os_info);
+
     println!("Sentry monitoring enabled");
     let guard = sentry::init((
         dsn,
@@ -264,10 +268,37 @@ fn init_sentry() -> Option<ClientInitGuard> {
             traces_sample_rate: 1.0,
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(2),
+            server_name: Some(std::borrow::Cow::Borrowed("nym")),
             ..Default::default()
         },
     ));
+    sentry::configure_scope(|scope| {
+        scope.set_tag("os_version", &os_info.os_version);
+        scope.set_tag("gpu", &os_info.arch);
+        scope.set_tag("extra_metadata", &os_info.extra.join(", "));
+        scope.set_user(Some(sentry::User {
+            id: Some(anonymize_identifier(identifier.as_ref())), // anonymized user identifier
+            ip_address: None,
+            ..Default::default()
+        }));
+    });
+
     Some(guard)
+}
+
+fn anonymize_identifier(identifier: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(identifier.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
+fn collect_identifier_string(os_info: &nym_vpn_lib::SysInfo) -> String {
+    format!(
+        "{} {} {}",
+        os_info.os_version,
+        os_info.arch,
+        os_info.extra.join(" ")
+    )
 }
 
 fn log_software_and_os_version() {

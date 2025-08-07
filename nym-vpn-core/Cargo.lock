@@ -5417,6 +5417,7 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "strum",
  "sysinfo",
  "thiserror 2.0.12",
