@@ -91,7 +91,7 @@ impl OsInfo {
     #[cfg(target_os = "linux")]
     pub fn convert_to_name_string(&self) -> String {
         let os_name = env::var("XDG_SESSION_DESKTOP").unwrap_or_else(|_| "unknown".to_string());
-        let parts = vec![
+        let parts = [
             self.version.clone(),
             self.kernel.clone().unwrap_or_default(),
             self.arch.clone(),
