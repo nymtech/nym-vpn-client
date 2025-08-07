@@ -144,8 +144,6 @@ impl ConnectedState {
             // todo: split tunneling
             #[cfg(target_os = "macos")]
             redirect_interface: None,
-            #[cfg(target_os = "macos")]
-            dns_redirect_port: shared_state.filtering_resolver.listen_addr().port(),
         };
 
         shared_state

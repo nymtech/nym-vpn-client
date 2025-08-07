@@ -62,8 +62,6 @@ impl OfflineState {
             // todo: fetch from config
             allow_lan: true,
             allowed_endpoints: Vec::new(),
-            #[cfg(target_os = "macos")]
-            dns_redirect_port: shared_state.filtering_resolver.listen_addr().port(),
         };
 
         shared_state
