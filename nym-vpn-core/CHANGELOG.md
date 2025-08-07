@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve shutdown sequence by exiting internal components in the reverse order of their creation. Drain tunnel events and deliver them to listeners before exiting the daemon. (https://github.com/nymtech/nym-vpn-client/pull/3185)
 - Fix potential infinite loop when sending a disconnect message over mixnet. Limit disconnect timeout to 5 seconds and add 500ms delay between retries. (https://github.com/nymtech/nym-vpn-client/pull/3160)
 - Prevent gateways refresh from blocking daemon shutdown during initialization. (https://github.com/nymtech/nym-vpn-client/pull/3160)
+- Fix DNS reset on macOS 15 (https://github.com/nymtech/nym-vpn-client/pull/3232)
 
 
 ## [1.13.1] - 2025-07-30
