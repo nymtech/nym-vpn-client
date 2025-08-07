@@ -381,7 +381,7 @@ impl LocalResolver {
             Config::Forwarding { mut dns_servers } => {
                 // make sure not to accidentally forward queries to ourselves
                 dns_servers.retain(|addr| *addr != self.bound_to.ip());
-                self.forwarding(vec![]);
+                self.forwarding(dns_servers);
             }
         }
     }
