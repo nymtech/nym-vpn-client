@@ -88,27 +88,21 @@ impl OsInfo {
         }
     }
 
-    #[cfg(target_os = "linux")]
-    pub fn convert_to_name_string(&self) -> String {
-        let os_name = env::var("XDG_SESSION_DESKTOP").unwrap_or_else(|_| "unknown".to_string());
+    pub fn stringify_identifier(&self) -> String {
         let parts = [
             self.version.clone(),
             self.kernel.clone().unwrap_or_default(),
             self.arch.clone(),
             sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string()),
-            os_name,
         ];
 
         parts.join(" ")
     }
 
-    #[cfg(target_os = "linux")]
     pub fn hash_identifier(&self) -> String {
-        let os_name = self.convert_to_name_string();
-        let mut hasher = Sha256::new();
-        hasher.update(os_name.as_bytes());
-
-        format!("{:x}", hasher.finalize())
+        let os_name = self.stringify_identifier();
+        let hash = Sha256::digest(os_name.as_bytes());
+        format!("{hash:x}")
     }
 }
 

@@ -1,5 +1,5 @@
 use sentry::{ClientInitGuard, User};
-use std::time::Duration;
+use std::{borrow::Cow, time::Duration};
 use tracing::{info, instrument, warn};
 
 use crate::env::APP_SENTRY_DSN;
@@ -22,7 +22,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             traces_sample_rate: 1.0,
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(1),
-            server_name: Some(std::borrow::Cow::Borrowed("nym")),
+            server_name: Some(Cow::Borrowed("nym")),
             ..Default::default()
         },
     ));
@@ -31,7 +31,6 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
         #[cfg(target_os = "linux")]
         {
             scope.set_tag("display_server", os.display_server.as_ref());
-            scope.set_tag("gpu", os.gpu.as_ref());
         }
         scope.set_user(Some(User {
             id: Some(os.hash_identifier()), // anonymized user identifier

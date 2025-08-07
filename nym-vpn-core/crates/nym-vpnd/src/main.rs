@@ -17,6 +17,7 @@ use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
 use sentry::ClientInitGuard;
+use std::borrow::Cow;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -256,7 +257,7 @@ fn init_sentry() -> Option<ClientInitGuard> {
     };
 
     let os_info = nym_vpn_lib::SysInfo::new();
-    let identifier = collect_identifier_string(&os_info);
+    let identifier = stringify_identifier(&os_info);
 
     println!("Sentry monitoring enabled");
     let guard = sentry::init((
@@ -268,13 +269,12 @@ fn init_sentry() -> Option<ClientInitGuard> {
             traces_sample_rate: 1.0,
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(2),
-            server_name: Some(std::borrow::Cow::Borrowed("nym")),
+            server_name: Some(Cow::Borrowed("nym")),
             ..Default::default()
         },
     ));
     sentry::configure_scope(|scope| {
         scope.set_tag("os_version", &os_info.os_version);
-        scope.set_tag("gpu", &os_info.arch);
         scope.set_tag("extra_metadata", os_info.extra.join(", "));
         scope.set_user(Some(sentry::User {
             id: Some(anonymize_identifier(identifier.as_ref())), // anonymized user identifier
@@ -287,12 +287,11 @@ fn init_sentry() -> Option<ClientInitGuard> {
 }
 
 fn anonymize_identifier(identifier: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(identifier.as_bytes());
-    format!("{:x}", hasher.finalize())
+    let hash = Sha256::digest(identifier.as_bytes());
+    format!("{hash:x}")
 }
 
-fn collect_identifier_string(os_info: &nym_vpn_lib::SysInfo) -> String {
+fn stringify_identifier(os_info: &nym_vpn_lib::SysInfo) -> String {
     format!(
         "{} {} {}",
         os_info.os_version,
