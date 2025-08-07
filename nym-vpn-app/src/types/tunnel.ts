@@ -73,30 +73,34 @@ export type TunnelError =
     }
   | { key: 'api'; data: string | null }
   | {
-      key: 'firewall';
+      key: 'account-controller';
       data: string | null;
     }
-  | { key: 'routing'; data: string | null }
+  | { key: 'firewall'; data: string | null }
   | {
-      key: 'same-entry-and-exit-gw';
+      key: 'routing';
       data: string | null;
     }
-  | { key: 'invalid-entry-gw-country'; data: string | null }
+  | { key: 'same-entry-and-exit-gw'; data: string | null }
   | {
-      key: 'invalid-exit-gw-country';
+      key: 'invalid-entry-gw-country';
       data: string | null;
     }
-  | { key: 'max-devices-reached'; data: string | null }
+  | { key: 'invalid-exit-gw-country'; data: string | null }
   | {
-      key: 'bandwidth-exceeded';
+      key: 'max-devices-reached';
       data: string | null;
     }
-  | { key: 'subscription-expired'; data: string | null }
+  | { key: 'bandwidth-exceeded'; data: string | null }
   | {
-      key: 'device-time-out-of-sync';
+      key: 'inactive-subscription';
       data: string | null;
     }
-  | { key: 'ipv6-unavailable'; data: string | null };
+  | { key: 'device-time-out-of-sync'; data: string | null }
+  | {
+      key: 'ipv6-unavailable';
+      data: string | null;
+    };
 
 export type TunnelStateEvent = {
   state: TunnelState;

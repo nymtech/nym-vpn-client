@@ -132,7 +132,6 @@ pub enum ErrorKey {
     NoAccountStored,
     NoDeviceStored,
     ExistingAccount,
-    AccountControllerOffline,
     // Failure when querying countries from gRPC
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,

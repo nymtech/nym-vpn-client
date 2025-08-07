@@ -29,6 +29,8 @@ function useI18nError() {
             return fmtErr(t('tunnel.internal'), error.data);
           case 'api':
             return fmtErr(t('tunnel.api'), error.data);
+          case 'account-controller':
+            return fmtErr(t('tunnel.account-controller'), error.data);
           case 'firewall':
             return fmtErr(t('tunnel.firewall'), error.data);
           case 'routing':
@@ -45,7 +47,7 @@ function useI18nError() {
             return fmtErr(t('tunnel.max-devices-reached'), error.data);
           case 'bandwidth-exceeded':
             return fmtErr(t('tunnel.bandwidth-exceeded'), error.data);
-          case 'subscription-expired':
+          case 'inactive-subscription':
             return fmtErr(t('tunnel.subscription-expired'), error.data);
           case 'device-time-out-of-sync':
             return fmtErr(t('tunnel.device-time-out-of-sync'), error.data);
@@ -73,8 +75,6 @@ function useI18nError() {
           return t('internal');
         case 'grpc':
           return t('grpc');
-        case 'unknown':
-          return t('unknown');
         case 'not-connected-to-daemon':
           return t('daemon.not-connected');
         case 'account-invalid-mnemonic':
@@ -85,8 +85,12 @@ function useI18nError() {
           return t('countries-request.exit');
         case 'get-wg-countries-query':
           return t('countries-request.fast-mode');
-        case 'invalid-network-name':
-          return t('daemon.invalid-network');
+        case 'no-account-stored':
+          return t('account.no-account-stored');
+        case 'no-device-stored':
+          return t('account.no-device-stored');
+        case 'existing-account':
+          return t('account.existing-account');
       }
 
       console.warn('unhandled backend error', error);
