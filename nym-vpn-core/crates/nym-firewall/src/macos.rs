@@ -12,7 +12,7 @@ use std::{
 
 use ipnetwork::IpNetwork;
 use libc::{c_int, sysctlbyname};
-use pfctl::{DropAction, FilterRuleAction, Ip, RedirectRule, Uid};
+use pfctl::{DropAction, FilterRuleAction, Ip, Uid};
 
 use super::{
     DNS_TCP_PORTS, FirewallArguments, FirewallPolicy,
@@ -274,7 +274,7 @@ impl Firewall {
         let mut anchor_change = pfctl::AnchorChange::new();
         anchor_change.set_scrub_rules(Self::get_scrub_rules()?);
         anchor_change.set_filter_rules(new_filter_rules);
-        anchor_change.set_redirect_rules(self.get_dns_redirect_rules(policy)?);
+        anchor_change.set_redirect_rules(vec![]);
         if *NAT_WORKAROUND {
             anchor_change.set_nat_rules(self.get_nat_rules(policy)?);
         }
@@ -290,54 +290,6 @@ impl Firewall {
             .action(pfctl::ScrubRuleAction::Scrub)
             .build()?;
         Ok(vec![scrub_rule])
-    }
-
-    fn get_dns_redirect_rules(
-        &mut self,
-        policy: &FirewallPolicy,
-    ) -> Result<Vec<pfctl::RedirectRule>> {
-        /// Redirect DNS requests to `port`. Technically this redirects UDP on port 53 to `port`.
-        ///
-        /// For this to work as expected, please make sure a DNS resolver is running on `port`.
-        fn redirect_dns_to(port: u16) -> Result<Vec<RedirectRule>> {
-            let redirect_dns = pfctl::RedirectRuleBuilder::default()
-                .action(pfctl::RedirectRuleAction::Redirect)
-                .interface("lo0")
-                .proto(pfctl::Proto::Udp)
-                .to(pfctl::Port::from(53))
-                .redirect_to(pfctl::Port::from(port))
-                .build()?;
-            Ok(vec![redirect_dns])
-        }
-
-        let redirect_rules = if *LOCAL_DNS_RESOLVER {
-            match policy {
-                FirewallPolicy::Connected { dns_config, .. } if dns_config.is_loopback() => {
-                    vec![]
-                }
-                FirewallPolicy::Blocked {
-                    dns_redirect_port, ..
-                }
-                | FirewallPolicy::Connecting {
-                    dns_redirect_port, ..
-                }
-                | FirewallPolicy::Connected {
-                    dns_redirect_port, ..
-                } => redirect_dns_to(*dns_redirect_port)?,
-            }
-        } else {
-            // Only apply redirect rules in the blocked state if we should *not* use our local DNS
-            // resolver, since it will be running in the blocked state to work with Apple's captive
-            // portal check.
-            match policy {
-                FirewallPolicy::Blocked {
-                    dns_redirect_port, ..
-                } => redirect_dns_to(*dns_redirect_port)?,
-                FirewallPolicy::Connecting { .. } | FirewallPolicy::Connected { .. } => vec![],
-            }
-        };
-
-        Ok(redirect_rules)
     }
 
     /// Force all traffic out on the VPN interface (except LAN and some other exceptions).
@@ -466,7 +418,6 @@ impl Firewall {
                 allowed_entry_tunnel_traffic,
                 allowed_exit_tunnel_traffic,
                 redirect_interface,
-                dns_redirect_port: _,
             } => {
                 let mut rules = Vec::new();
 
@@ -534,7 +485,6 @@ impl Firewall {
                 allow_lan,
                 dns_config,
                 redirect_interface,
-                dns_redirect_port: _,
             } => {
                 let mut rules = vec![];
                 let (entry_tunnel, exit_tunnel) = match tunnel {
@@ -596,7 +546,6 @@ impl Firewall {
             FirewallPolicy::Blocked {
                 allow_lan,
                 allowed_endpoints,
-                dns_redirect_port: _,
             } => {
                 let mut rules = Vec::new();
                 for allowed_endpoint in allowed_endpoints {

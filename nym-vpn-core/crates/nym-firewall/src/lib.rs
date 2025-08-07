@@ -126,10 +126,6 @@ pub enum FirewallPolicy {
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
-        /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
-        /// be redirected to `127.0.0.1:$dns_redirect_port`.
-        #[cfg(target_os = "macos")]
-        dns_redirect_port: u16,
     },
 
     /// Allow traffic only to server and over tunnel interface
@@ -146,10 +142,6 @@ pub enum FirewallPolicy {
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
-        /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
-        /// be redirected to `127.0.0.1:$dns_redirect_port`.
-        #[cfg(target_os = "macos")]
-        dns_redirect_port: u16,
     },
 
     /// Block all network traffic in and out from the computer.
@@ -158,10 +150,6 @@ pub enum FirewallPolicy {
         allow_lan: bool,
         /// Hosts that should be reachable while in the blocked state.
         allowed_endpoints: Vec<AllowedEndpoint>,
-        /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
-        /// be redirected to `127.0.0.1:$dns_redirect_port`.
-        #[cfg(target_os = "macos")]
-        dns_redirect_port: u16,
     },
 }
 
