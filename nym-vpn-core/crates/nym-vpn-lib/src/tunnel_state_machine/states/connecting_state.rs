@@ -74,7 +74,7 @@ impl ConnectingState {
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             return ErrorState::enter(
                 e.error_state_reason()
-                    .expect("failed to map to error state reason"),
+                    .expect("failed to map to error state reason"), // todo: fix me
                 shared_state,
             )
             .await;
@@ -221,7 +221,7 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             redirect_interface: None,
             #[cfg(target_os = "macos")]
-            dns_redirect_port: shared_state.filtering_resolver.listening_port(),
+            dns_redirect_port: shared_state.filtering_resolver.listen_addr().port(),
         };
 
         shared_state
@@ -241,16 +241,19 @@ impl ConnectingState {
         if *LOCAL_DNS_RESOLVER {
             // Set system DNS to our local DNS resolver
             let system_dns = DnsConfig::default().resolve(
-                &[std::net::Ipv4Addr::LOCALHOST.into()],
-                shared_state.filtering_resolver.listening_port(),
+                &[shared_state.filtering_resolver.listen_addr().ip()],
+                shared_state.filtering_resolver.listen_addr().port(),
             );
-            let _ = shared_state
+            if let Err(error) = shared_state
                 .dns_handler
                 .set("lo".to_owned(), system_dns)
                 .await
-                .inspect_err(|err| {
-                    trace_err_chain!(err, "Failed to configure system to use filtering resolver",);
-                });
+            {
+                trace_err_chain!(
+                    error,
+                    "Failed to configure system to use filtering resolver",
+                );
+            }
         }
 
         Ok(())

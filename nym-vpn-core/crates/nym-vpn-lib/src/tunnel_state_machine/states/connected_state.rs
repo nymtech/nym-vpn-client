@@ -5,10 +5,8 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(target_os = "linux", target_os = "windows"))]
+#[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
 use nym_common::trace_err_chain;
-#[cfg(target_os = "macos")]
-use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
 use nym_firewall::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -147,7 +145,7 @@ impl ConnectedState {
             #[cfg(target_os = "macos")]
             redirect_interface: None,
             #[cfg(target_os = "macos")]
-            dns_redirect_port: shared_state.filtering_resolver.listening_port(),
+            dns_redirect_port: shared_state.filtering_resolver.listen_addr().port(),
         };
 
         shared_state
@@ -168,34 +166,18 @@ impl ConnectedState {
             .await
             .map_err(Error::SetDns)?;
 
-        // On macOS, configure only the local DNS resolver
         #[cfg(target_os = "macos")]
         // We do not want to forward DNS queries to *our* local resolver if we do not run a local
         // DNS resolver *or* if the DNS config points to a loopback address.
-        if dns_config.is_loopback() || !*LOCAL_DNS_RESOLVER {
-            log::debug!("Not enabling local DNS resolver");
+        if *LOCAL_DNS_RESOLVER {
+            let ips = dns_config.addresses().collect::<Vec<_>>();
+            tracing::debug!("Enabling local DNS forwarder to: {:?}", ips);
+            shared_state.filtering_resolver.enable_forward(ips).await;
+        } else {
+            tracing::debug!("Not enabling local DNS resolver");
             shared_state
                 .dns_handler
                 .set(tunnel_metadata.interface.clone(), dns_config)
-                .await
-                .map_err(Error::SetDns)?;
-        } else {
-            log::debug!("Enabling local DNS resolver");
-            // Tell local DNS resolver to start forwarding DNS queries to whatever `dns_config`
-            // specifies as DNS.
-            shared_state
-                .filtering_resolver
-                .enable_forward(dns_config.addresses().collect())
-                .await;
-
-            // Set system DNS to our local DNS resolver
-            let system_dns = DnsConfig::default().resolve(
-                &[std::net::Ipv4Addr::LOCALHOST.into()],
-                shared_state.filtering_resolver.listening_port(),
-            );
-            shared_state
-                .dns_handler
-                .set("lo".to_owned(), system_dns)
                 .await
                 .map_err(Error::SetDns)?;
         }
@@ -203,9 +185,8 @@ impl ConnectedState {
         Ok(())
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
         if let Err(error) = shared_state
             .dns_handler
             .reset_before_interface_removal()
@@ -213,10 +194,16 @@ impl ConnectedState {
         {
             trace_err_chain!(error, "Failed to reset DNS");
         }
+    }
 
+    #[cfg(target_os = "macos")]
+    async fn reset_dns(shared_state: &mut SharedState) {
         // On macOS, configure only the local DNS resolver
-        #[cfg(target_os = "macos")]
-        shared_state.filtering_resolver.disable_forward().await;
+        if *LOCAL_DNS_RESOLVER {
+            shared_state.filtering_resolver.disable_forward().await;
+        } else if let Err(error) = shared_state.dns_handler.reset().await {
+            trace_err_chain!(error, "Failed to reset DNS");
+        }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
