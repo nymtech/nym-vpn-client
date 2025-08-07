@@ -62,6 +62,7 @@ import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
+import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -231,6 +232,9 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Appearance> {
 									AppearanceScreen()
+								}
+								composable<Route.Privacy> {
+									PrivacyScreen(appState)
 								}
 								composable<Route.Display> {
 									DisplayScreen(appState)

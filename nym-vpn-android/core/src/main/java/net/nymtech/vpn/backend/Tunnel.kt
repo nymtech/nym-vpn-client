@@ -9,8 +9,6 @@ interface Tunnel {
 	val entryPoint: EntryPoint
 	val exitPoint: ExitPoint
 	val mode: Mode
-	val environment: Environment
-	val credentialMode: Boolean?
 	val bypassLan: Boolean
 
 	/**

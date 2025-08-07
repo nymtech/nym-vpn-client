@@ -55,5 +55,13 @@ interface SettingsRepository {
 
 	suspend fun getBatteryOptSkipped(): Boolean
 
+	suspend fun getSentryMonitoringEnabled(): Boolean
+
+	suspend fun setSentryMonitoring(enabled: Boolean)
+
+	suspend fun getStatisticsEnabled(): Boolean
+
+	suspend fun setStatisticsEnabled(enabled: Boolean)
+
 	val settingsFlow: Flow<Settings>
 }

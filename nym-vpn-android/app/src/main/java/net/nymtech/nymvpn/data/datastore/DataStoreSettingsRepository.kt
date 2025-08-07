@@ -22,17 +22,16 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val exitPoint = stringPreferencesKey("EXIT_POINT")
 	private val theme = stringPreferencesKey("THEME")
 	private val vpnMode = stringPreferencesKey("TUNNEL_MODE")
-	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
-	private val analytics = booleanPreferencesKey("ANALYTICS")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
 	private val bypassLanEnabled = booleanPreferencesKey("BYPASS_LAN")
-	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val environment = stringPreferencesKey("ENVIRONMENT")
 	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val locale = stringPreferencesKey("LOCALE")
 	private val batteryOptSkip = booleanPreferencesKey("BATTERY_OPT_SKIP")
+	private val sentryEnabled = booleanPreferencesKey("SENTRY_ENABLED")
+	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -144,6 +143,22 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		return dataStoreManager.getFromStore(batteryOptSkip) ?: Settings.DEFAULT_BATTERY_OPT_SKIP
 	}
 
+	override suspend fun getSentryMonitoringEnabled(): Boolean {
+		return dataStoreManager.getFromStore(sentryEnabled) ?: Settings.DEFAULT_SENTRY_ENABLED
+	}
+
+	override suspend fun setSentryMonitoring(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.sentryEnabled, enabled)
+	}
+
+	override suspend fun getStatisticsEnabled(): Boolean {
+		return dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
+	}
+
+	override suspend fun setStatisticsEnabled(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.statsEnabled, enabled)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -158,12 +173,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						autoStartEnabled =
 						pref[autoStart]
 							?: Settings.AUTO_START_DEFAULT,
-						errorReportingEnabled =
-						pref[errorReporting]
-							?: Settings.REPORTING_DEFAULT,
-						analyticsEnabled = pref[analytics]
-							?: Settings.REPORTING_DEFAULT,
-						isAnalyticsShown = pref[analyticsShown] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
 						entryPoint = pref[entryPoint]?.asEntryPoint() ?: Settings.DEFAULT_ENTRY_POINT,
 						exitPoint = pref[exitPoint]?.asExitPoint() ?: Settings.DEFAULT_EXIT_POINT,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
@@ -172,6 +181,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						isCredentialMode = pref[credentialMode],
 						locale = pref[locale],
 						batteryOptSkip = pref[batteryOptSkip] ?: Settings.DEFAULT_BATTERY_OPT_SKIP,
+						sentryEnabled = pref[sentryEnabled] ?: Settings.DEFAULT_SENTRY_ENABLED,
+						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

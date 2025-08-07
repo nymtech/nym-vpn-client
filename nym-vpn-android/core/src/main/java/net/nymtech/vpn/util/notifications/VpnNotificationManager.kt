@@ -51,7 +51,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 		}
 	}
 
-	fun buildVpnNotification(state: Tunnel.State, environment: String?, credentialMode: Boolean?): Notification {
+	fun buildVpnNotification(state: Tunnel.State): Notification {
 		setupChannel()
 
 		val title = context.getString(R.string.vpn_notification_title)
@@ -63,10 +63,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			else -> state.toString()
 		}
 
-		val stopIntent = Intent(context, StopVpnReceiver::class.java).apply {
-			putExtra("ENVIRONMENT", environment)
-			putExtra("CREDENTIAL_MODE", credentialMode)
-		}
+		val stopIntent = Intent(context, StopVpnReceiver::class.java)
 
 		val pending = PendingIntent.getBroadcast(
 			context,
@@ -99,7 +96,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			.build()
 	}
 
-	internal fun updateVpnNotification(state: Tunnel.State, environment: String?, credentialMode: Boolean?) {
+	internal fun updateVpnNotification(state: Tunnel.State) {
 		withNotificationPermission {
 			val notificationManager = NotificationManagerCompat.from(context)
 			if (state == Tunnel.State.Down) {
@@ -107,7 +104,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			} else {
 				notificationManager.notify(
 					VPN_FOREGROUND_ID,
-					buildVpnNotification(state, environment, credentialMode),
+					buildVpnNotification(state),
 				)
 			}
 		}

@@ -18,7 +18,9 @@ import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.vpn.backend.service.StateMachineService
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.model.BackendEvent
+import net.nymtech.vpn.model.DeferredTunProvider
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.exceptions.BackendException
@@ -26,9 +28,9 @@ import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import nym_vpn_lib.AccountLinks
-import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.GatewayType
+import nym_vpn_lib.NymVpnLibConfig
 import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.TunnelEvent
 import nym_vpn_lib.TunnelStatusListener
@@ -60,6 +62,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	private val notificationManager = VpnNotificationManager.getInstance(context)
 
+	private val deferredTunProvider = DeferredTunProvider(this)
+
+	private lateinit var settingConfig: NymVpnLibConfig
+
 	init {
 		ReLinker.loadLibrary(
 			context,
@@ -86,13 +92,13 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		internal var alwaysOnCallback: (() -> Unit)? = null
 
 		@Volatile
-		private var instance: Backend? = null
+		var instance: Backend? = null
 
-		fun getInstance(context: Context, environment: Tunnel.Environment, credentialMode: Boolean? = false): Backend {
+		fun getInstance(context: Context, environment: Tunnel.Environment, config: SettingsConfig): Backend {
 			return instance ?: synchronized(this) {
 				instance ?: NymBackend(context).also {
 					instance = it
-					it.init(environment, credentialMode)
+					it.init(environment, config)
 				}
 			}
 		}
@@ -114,12 +120,12 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	@set:Synchronized
 	private var networkStatus: NetworkStatus = NetworkStatus.Unknown
 
-	private fun init(environment: Tunnel.Environment, credentialMode: Boolean?) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
+	private fun init(environment: Tunnel.Environment, config: SettingsConfig) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
 		runCatching {
 			startNetworkMonitorJob()
 			initLogger(null, LOG_LEVEL, false)
 			initEnvironment(environment)
-			configureLib(credentialMode)
+			configureLib(config)
 			initialized.complete(Unit)
 		}.onFailure {
 			Timber.e(it)
@@ -170,17 +176,16 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	private suspend fun configureLib(credentialMode: Boolean?) {
+	private suspend fun configureLib(settings: SettingsConfig) {
 		withContext(ioDispatcher) {
-			nym_vpn_lib.configureLib(storagePath, credentialMode, false, false) // TODO : pipe statistics enabled here
-		}
-	}
-
-	@Throws(VpnException::class)
-	override suspend fun getAccountSummary(): AccountStateSummary {
-		return withContext(ioDispatcher) {
-			initialized.await()
-			nym_vpn_lib.getAccountState()
+			settingConfig = NymVpnLibConfig(
+				storagePath,
+				settings.credentialsMode,
+				settings.sentryMonitoringEnabled,
+				settings.statisticsEnabled,
+				deferredTunProvider,
+			)
+			nym_vpn_lib.configureLib(settingConfig)
 		}
 	}
 
@@ -290,6 +295,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		val stateMachineService = stateMachineService.await()
 		vpnService.owner = this
 		stateMachineService.owner = this
+		settingConfig.tunProvider = vpnService
+		deferredTunProvider.setDelegate(vpnService)
 	}
 
 	private suspend fun startVpn(tunnel: Tunnel, userAgent: UserAgent) {
@@ -339,8 +346,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
-		tunnel?.environment?.networkName(),
-		tunnel?.credentialMode,
 	)
 
 	private suspend fun ensureNotificationAndStartForeground() {
@@ -348,8 +353,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 		val initialNotification = notificationManager.buildVpnNotification(
 			getState(),
-			tunnel?.environment?.networkName(),
-			tunnel?.credentialMode,
 		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			vpn.startForeground(
@@ -371,8 +374,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		notificationManager.withNotificationPermission {
 			val updatedNotification = notificationManager.buildVpnNotification(
 				getState(),
-				tunnel?.environment?.networkName(),
-				tunnel?.credentialMode,
 			)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				vpn.startForeground(
@@ -414,6 +415,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		this.state = state
 		tunnel?.onStateChange(state)
 
-		notificationManager.updateVpnNotification(state, tunnel?.environment?.networkName(), tunnel?.credentialMode)
+		notificationManager.updateVpnNotification(state)
 	}
 }

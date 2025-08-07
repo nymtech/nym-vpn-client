@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +54,29 @@ fun AppearanceSection(appUiState: AppUiState, viewModel: SettingsViewModel, cont
 				)
 			},
 			onClick = { navController.navigate(Route.Appearance) },
+		),
+		SelectionItem(
+			leading = {
+				Icon(
+					Icons.Outlined.PrivacyTip,
+					stringResource(R.string.data_privacy),
+					modifier = Modifier.size(iconSize.scaledWidth()),
+				)
+			},
+			trailing = {
+				Icon(
+					Icons.AutoMirrored.Outlined.ArrowRight,
+					stringResource(R.string.go),
+					modifier = Modifier.size(iconSize),
+				)
+			},
+			title = {
+				Text(
+					stringResource(R.string.data_privacy),
+					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+				)
+			},
+			onClick = { navController.navigate(Route.Privacy) },
 		),
 		SelectionItem(
 			leading = {

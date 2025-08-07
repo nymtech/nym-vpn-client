@@ -132,6 +132,15 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+			currentRoute.startsWith(Route.Privacy::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.data_privacy)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
 			currentRoute.startsWith(Route.Display::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.display_theme)) },
 				show = true,

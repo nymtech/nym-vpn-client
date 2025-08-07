@@ -35,9 +35,9 @@ import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.AccountLinks
-import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.BandwidthEvent
 import nym_vpn_lib.ConnectionData
 import nym_vpn_lib.ConnectionEvent
@@ -72,9 +72,13 @@ class NymBackendManager @Inject constructor(
 		applicationScope.launch {
 			if (_state.value.isInitialized) return@launch
 			val env = settingsRepository.getEnvironment()
-			val credentialMode = settingsRepository.isCredentialMode()
+			val settingsConfig = SettingsConfig(
+				settingsRepository.isCredentialMode(),
+				settingsRepository.getSentryMonitoringEnabled(),
+				settingsRepository.getStatisticsEnabled(),
+			)
 			val nymBackend = withContext(mainDispatcher) {
-				NymBackend.getInstance(context, env, credentialMode)
+				NymBackend.getInstance(context, env, settingsConfig)
 			}
 			backend.complete(nymBackend)
 			val isCompatible = isClientNetworkCompatible(env)
@@ -127,10 +131,8 @@ class NymBackendManager @Inject constructor(
 				entryPoint = getEntryPoint(),
 				exitPoint = getExitPoint(),
 				mode = settingsRepository.getVpnMode(),
-				environment = settingsRepository.getEnvironment(),
 				stateChange = ::onStateChange,
 				backendEvent = ::onBackendEvent,
-				credentialMode = settingsRepository.isCredentialMode(),
 				bypassLan = settingsRepository.isBypassLanEnabled(),
 			)
 			backend.await().start(tunnel, context.toUserAgent())
@@ -192,10 +194,6 @@ class NymBackendManager @Inject constructor(
 		return backend.await().getAccountIdentity()
 	}
 
-	override suspend fun getAccountSummary(): AccountStateSummary {
-		return backend.await().getAccountSummary()
-	}
-
 	override suspend fun getAccountLinks(): AccountLinks? {
 		return try {
 			backend.await().getAccountLinks()
@@ -249,6 +247,7 @@ class NymBackendManager @Inject constructor(
 				is MixnetEvent.Bandwidth -> {
 					Timber.d("Bandwidth: ${event.v1}")
 				}
+
 				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)
 				is MixnetEvent.ConnectionStatistics -> Timber.d("Stats: ${event.v1}")
 			}
@@ -257,6 +256,7 @@ class NymBackendManager @Inject constructor(
 				emitBackendUiEvent(BackendUiEvent.StartFailure(backendEvent.exception))
 				launchStartFailureNotification(backendEvent.exception)
 			}
+
 			is BackendEvent.Tunnel -> when (val state = backendEvent.state) {
 				is TunnelState.Connected -> emitConnectionData(state.connectionData)
 				is TunnelState.Connecting -> emitConnectionData(state.connectionData)
@@ -269,6 +269,7 @@ class NymBackendManager @Inject constructor(
 						backend.await().stop()
 					}
 				}
+
 				else -> Unit
 			}
 		}
@@ -309,6 +310,7 @@ class NymBackendManager @Inject constructor(
 				title = context.getString(R.string.bandwidth_alert),
 				description = context.getString(R.string.no_bandwidth),
 			)
+
 			is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
 				title = context.getString(R.string.bandwidth_alert),
 				description = context.getString(R.string.low_bandwidth) + " ${bandwidthEvent.v1.toMB()} MB",

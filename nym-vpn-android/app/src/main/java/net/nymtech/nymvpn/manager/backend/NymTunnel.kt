@@ -9,11 +9,9 @@ class NymTunnel(
 	override var entryPoint: EntryPoint,
 	override var exitPoint: ExitPoint,
 	override var mode: Tunnel.Mode,
-	override var environment: Tunnel.Environment,
 	override var bypassLan: Boolean,
 	val stateChange: (newState: Tunnel.State) -> Unit,
 	val backendEvent: (message: BackendEvent) -> Unit,
-	override var credentialMode: Boolean?,
 ) : Tunnel {
 	override fun onStateChange(newState: Tunnel.State) {
 		stateChange(newState)

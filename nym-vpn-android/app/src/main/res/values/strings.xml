@@ -264,9 +264,22 @@
 	<string name="device_time_out_of_sync">Device time out of sync</string>
 	<string name="create_mixnet_storage">Failed to create credential storage</string>
 	<string name="ipv6_unavailable">Ipv6 Unavailable</string>
+	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
 	<string name="skip">Skip</string>
 	<string name="battery_opt">Battery optimization</string>
 	<string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
+	<!-- Data & Privacy screen -->
+	<string name="data_privacy">Data &amp; Privacy</string>
+	<string name="title_anonymous_stats">Anonymous network stats</string>
+	<string name="descr_anonymous_stats">Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it\'s needed most. \n\nOnly network performance data is shared – never your browsing activity or personal data.</string>
+	<string name="link_anonymous_stats_text">Learn exactly what\'s shared</string>
+	<string name="link_anonymous_stats">https://nym.com/anonymous-stats</string>
+	<string name="title_error_reports">Error &amp; crash reports</string>
+	<string name="descr_error_reports">Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only.</string>
+	<string name="link_error_reports_text">View Sentry Privacy Policy</string>
+	<string name="link_error_reports">https://sentry.io/privacy/</string>
+	<string name="restart_error_reports">Changes will apply after app restart.</string>
+
 </resources>

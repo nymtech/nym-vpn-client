@@ -10,27 +10,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.nymtech.vpn.backend.NymBackend
-import net.nymtech.vpn.backend.Tunnel
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
 class StopVpnReceiver : BroadcastReceiver() {
 
 	override fun onReceive(context: Context, intent: Intent?) = goAsync { pendingResult ->
-		val environmentName = intent?.getStringExtra("ENVIRONMENT") ?: ""
-		val credentialMode = intent?.getBooleanExtra("CREDENTIAL_MODE", false) ?: false
-
-		val environment = try {
-			Tunnel.Environment.valueOf(environmentName)
-		} catch (e: IllegalArgumentException) {
-			Tunnel.Environment.MAINNET
+		val backend = NymBackend.instance as? NymBackend
+		if (backend == null) {
+			Toast.makeText(context, "VPN not running", Toast.LENGTH_SHORT).show()
+			return@goAsync
 		}
-		val backend = NymBackend.getInstance(context, environment, credentialMode) as? NymBackend
-
-		backend?.let {
-			it.stop()
-		}
-
+		backend.stop()
 		GlobalScope.launch(Dispatchers.Main) {
 			Toast.makeText(context, "VPN disconnected", Toast.LENGTH_SHORT).show()
 		}

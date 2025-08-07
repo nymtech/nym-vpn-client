@@ -10,7 +10,7 @@ import net.nymtech.nymvpn.R
 @Composable
 fun NavTitle(text: String) {
 	Text(
-		text.uppercase(),
+		text,
 		style = MaterialTheme.typography.titleLarge,
 		fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 	)

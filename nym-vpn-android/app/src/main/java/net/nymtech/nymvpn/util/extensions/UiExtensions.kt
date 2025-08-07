@@ -111,10 +111,11 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${error.v1}"
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
 		ErrorStateReason.Firewall, ErrorStateReason.Routing -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
-		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired_error)
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
 		ErrorStateReason.CreateMixnetStorage -> context.getString(R.string.create_mixnet_storage)
 		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.ipv6_unavailable)
+		is ErrorStateReason.AccountControl -> error.v1 ?: ""
+		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.subscription_expired_error)
 	}
 }
 
