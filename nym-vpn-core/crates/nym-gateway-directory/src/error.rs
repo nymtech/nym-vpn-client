@@ -30,6 +30,9 @@ pub enum Error {
     #[error("resolved hostname {0} but no IP address found")]
     ResolvedHostnameButNoIp(String),
 
+    #[error("timed out while attempting to resolve hostname: {hostname}")]
+    HostnameResolutionTimeout { hostname: String },
+
     #[error("failed to lookup described gateways")]
     FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
 
