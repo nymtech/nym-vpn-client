@@ -93,6 +93,7 @@ impl OsInfo {
             self.version.clone(),
             self.kernel.clone().unwrap_or_default(),
             self.arch.clone(),
+            self.gpu.as_ref().to_string(),
             sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string()),
         ];
 
