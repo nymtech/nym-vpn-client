@@ -276,36 +276,37 @@ impl LocalResolver {
                                 tracing::error!("Failed to gracefully shutdown DNS server: {err}");
                             }
                         }
+                        break;
                     }
                     result = server.block_until_done() => {
                         match result {
                             Ok(_) => {
                                 tracing::info!("DNS server stopped gracefully");
+                                break;
                             },
                             Err(err) => {
                                 tracing::error!("DNS server unexpectedly stopped: {err}");
+                                tracing::debug!("Attempting restart server");
+
+                                let socket = match UdpSocket::bind(resolver_addr).await {
+                                    Ok(socket) => socket,
+                                    Err(e) => {
+                                        tracing::error!("Failed to bind DNS server to {resolver_addr}: {e}");
+                                        break;
+                                    }
+                                };
+
+                                match Self::new_server(socket, cloned_tx.clone()).await {
+                                    Ok(new_server) => {
+                                        server = new_server;
+                                    }
+                                    Err(error) => {
+                                        tracing::error!("Failed to restart DNS server: {error}");
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-
-                tracing::debug!("Attempting restart server");
-
-                let socket = match UdpSocket::bind(resolver_addr).await {
-                    Ok(socket) => socket,
-                    Err(e) => {
-                        tracing::error!("Failed to bind DNS server to {resolver_addr}: {e}");
-                        break;
-                    }
-                };
-
-                match Self::new_server(socket, cloned_tx.clone()).await {
-                    Ok(new_server) => {
-                        server = new_server;
-                    }
-                    Err(error) => {
-                        tracing::error!("Failed to restart DNS server: {error}");
-                        break;
                     }
                 }
             }
@@ -321,7 +322,7 @@ impl LocalResolver {
 
         let join_handle = tokio::spawn(resolver.run());
 
-        Ok((ResolverHandle::new(tx.clone(), listen_addr), join_handle))
+        Ok((ResolverHandle::new(tx.clone(), resolver_addr), join_handle))
     }
 
     async fn new_server(
