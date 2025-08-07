@@ -464,7 +464,7 @@ impl TunnelStateMachine {
 
         #[cfg(target_os = "macos")]
         let (filtering_resolver, filtering_resolver_handle) = resolver::LocalResolver::spawn(
-            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0)),
+            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 53)),
             dns_handler_shutdown_token.child_token(),
         )
         .await
