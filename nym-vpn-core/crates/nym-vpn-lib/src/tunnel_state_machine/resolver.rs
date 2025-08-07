@@ -14,14 +14,8 @@ use std::{
     io,
     net::{IpAddr, Ipv4Addr, SocketAddr},
     str::FromStr,
-    sync::{Arc, LazyLock, Weak},
+    sync::{Arc, LazyLock},
     time::{Duration, Instant},
-};
-
-use futures::{
-    SinkExt, StreamExt,
-    channel::{mpsc, oneshot},
-    future::Either,
 };
 
 use hickory_server::{
@@ -42,6 +36,11 @@ use hickory_server::{
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
 };
+use tokio::{
+    net::UdpSocket,
+    sync::{mpsc, oneshot},
+};
+use tokio_util::{either::Either, sync::CancellationToken};
 
 /// Types of records that are spoofed for captive portal domains.
 const ALLOWED_RECORD_TYPES: &[RecordType] = &[RecordType::A, RecordType::CNAME];
@@ -62,14 +61,6 @@ const TTL_SECONDS: u32 = 3;
 /// belongs to the documentation range so should never be reachable.
 const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
 
-/// Starts a resolver. Returns a cloneable handle, which can activate, deactivate and shut down the
-/// resolver. When all instances of a handle are dropped, the server will stop.
-pub async fn start_resolver() -> Result<ResolverHandle, Error> {
-    let (resolver, resolver_handle) = LocalResolver::new().await?;
-    tokio::spawn(resolver.run());
-    Ok(resolver_handle)
-}
-
 /// Resolver errors
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -85,10 +76,12 @@ pub enum Error {
 /// A DNS resolver that forwards queries to some other DNS server
 ///
 /// Is controlled by commands sent through [ResolverHandle]s.
-struct LocalResolver {
+pub struct LocalResolver {
     rx: mpsc::UnboundedReceiver<ResolverMessage>,
-    dns_server: Option<(tokio::task::JoinHandle<()>, oneshot::Receiver<()>)>,
+    dns_server_task: tokio::task::JoinHandle<()>,
+    bound_to: SocketAddr,
     inner_resolver: Resolver,
+    shutdown_token: CancellationToken,
 }
 
 /// A message to [LocalResolver]
@@ -130,31 +123,6 @@ enum Resolver {
 
     /// Forward DNS queries to a configured server
     Forwarding(Box<TokioResolver>),
-}
-
-impl From<Config> for Resolver {
-    fn from(mut config: Config) -> Self {
-        match &mut config {
-            Config::Blocking => Resolver::Blocking,
-            Config::Forwarding { dns_servers } => {
-                // make sure not to accidentally forward queries to ourselves
-                dns_servers.retain(|addr| !addr.is_loopback());
-
-                let forward_server_config =
-                    NameServerConfigGroup::from_ips_clear(dns_servers, 53, true);
-
-                let forward_config =
-                    ResolverConfig::from_parts(None, vec![], forward_server_config);
-                let resolver = TokioResolver::builder_with_config(
-                    forward_config,
-                    TokioConnectionProvider::default(),
-                )
-                .build();
-
-                Resolver::Forwarding(Box::new(resolver))
-            }
-        }
-    }
 }
 
 impl Resolver {
@@ -229,134 +197,209 @@ impl Resolver {
 /// When all resolver handles are dropped, the resolver will stop.
 #[derive(Clone)]
 pub struct ResolverHandle {
-    tx: Arc<mpsc::UnboundedSender<ResolverMessage>>,
-    listening_port: u16,
+    tx: mpsc::UnboundedSender<ResolverMessage>,
+    listen_addr: SocketAddr,
 }
 
 impl ResolverHandle {
-    fn new(tx: Arc<mpsc::UnboundedSender<ResolverMessage>>, listening_port: u16) -> Self {
-        Self { tx, listening_port }
+    fn new(tx: mpsc::UnboundedSender<ResolverMessage>, listen_addr: SocketAddr) -> Self {
+        Self { tx, listen_addr }
     }
 
     /// Get listening port for resolver handle
-    pub fn listening_port(&self) -> u16 {
-        self.listening_port
+    pub fn listen_addr(&self) -> SocketAddr {
+        self.listen_addr
     }
 
     /// Set the DNS server to forward queries to `dns_servers`
     pub async fn enable_forward(&self, dns_servers: Vec<IpAddr>) {
         let (response_tx, response_rx) = oneshot::channel();
-        let _ = self.tx.unbounded_send(ResolverMessage::SetConfig {
-            new_config: Config::Forwarding { dns_servers },
-            response_tx,
-        });
-
-        let _ = response_rx.await;
+        if self
+            .tx
+            .send(ResolverMessage::SetConfig {
+                new_config: Config::Forwarding { dns_servers },
+                response_tx,
+            })
+            .is_ok()
+        {
+            response_rx.await.ok();
+        };
     }
 
     // Disable forwarding
     pub async fn disable_forward(&self) {
         let (response_tx, response_rx) = oneshot::channel();
-        let _ = self.tx.unbounded_send(ResolverMessage::SetConfig {
-            new_config: Config::Blocking,
-            response_tx,
-        });
-
-        let _ = response_rx.await;
+        if self
+            .tx
+            .send(ResolverMessage::SetConfig {
+                new_config: Config::Blocking,
+                response_tx,
+            })
+            .is_ok()
+        {
+            response_rx.await.ok();
+        }
     }
 }
 
 impl LocalResolver {
-    /// Constructs a new filtering resolver and it's handle.
-    async fn new() -> Result<(Self, ResolverHandle), Error> {
-        let (tx, rx) = mpsc::unbounded();
-        let command_tx = Arc::new(tx);
+    /// Spawn new filtering resolver and it's handle.
+    pub async fn spawn(
+        listen_addr: SocketAddr,
+        shutdown_token: CancellationToken,
+    ) -> Result<(ResolverHandle, tokio::task::JoinHandle<()>), Error> {
+        let (tx, rx) = mpsc::unbounded_channel();
 
-        let weak_tx = Arc::downgrade(&command_tx);
-        let (mut server, port) = Self::new_server(0, weak_tx.clone()).await?;
+        let resolver_socket = UdpSocket::bind(listen_addr)
+            .await
+            .map_err(Error::UdpBindError)?;
+        let resolver_addr = resolver_socket
+            .local_addr()
+            .map_err(Error::GetSocketAddrError)?;
 
-        let (server_done_tx, server_done_rx) = oneshot::channel();
-        let server_handle = tokio::spawn(async move {
+        let mut server = Self::new_server(resolver_socket, tx.clone()).await?;
+
+        let cloned_shutdown_token = shutdown_token.child_token();
+        let cloned_tx = tx.clone();
+        let dns_server_task = tokio::spawn(async move {
+            tracing::info!("Running DNS resolver on {resolver_addr}");
+
             loop {
-                if let Err(err) = server.block_until_done().await {
-                    tracing::error!("DNS server unexpectedly stopped: {}", err);
-
-                    if weak_tx.strong_count() > 0 {
-                        tracing::debug!("Attempting restart server");
-                        match Self::new_server(port, weak_tx.clone()).await {
-                            Ok((new_server, _port)) => {
-                                server = new_server;
-                                continue;
+                tokio::select! {
+                    _ = cloned_shutdown_token.cancelled() => {
+                        tracing::info!("Shutting down DNS server");
+                        match server.shutdown_gracefully().await {
+                            Ok(_) => {
+                                tracing::info!("DNS server stopped gracefully");
+                            },
+                            Err(err) => {
+                                tracing::error!("Failed to gracefully shutdown DNS server: {err}");
                             }
-                            Err(error) => {
-                                tracing::error!("Failed to restart DNS server: {error}");
+                        }
+                    }
+                    result = server.block_until_done() => {
+                        match result {
+                            Ok(_) => {
+                                tracing::info!("DNS server stopped gracefully");
+                            },
+                            Err(err) => {
+                                tracing::error!("DNS server unexpectedly stopped: {err}");
                             }
                         }
                     }
                 }
-                break;
-            }
 
-            let _ = server_done_tx.send(());
+                tracing::debug!("Attempting restart server");
+
+                let socket = match UdpSocket::bind(resolver_addr).await {
+                    Ok(socket) => socket,
+                    Err(e) => {
+                        tracing::error!("Failed to bind DNS server to {resolver_addr}: {e}");
+                        break;
+                    }
+                };
+
+                match Self::new_server(socket, cloned_tx.clone()).await {
+                    Ok(new_server) => {
+                        server = new_server;
+                    }
+                    Err(error) => {
+                        tracing::error!("Failed to restart DNS server: {error}");
+                        break;
+                    }
+                }
+            }
         });
 
         let resolver = Self {
             rx,
-            dns_server: Some((server_handle, server_done_rx)),
-            inner_resolver: Resolver::from(Config::Blocking),
+            dns_server_task,
+            bound_to: resolver_addr,
+            inner_resolver: Resolver::Blocking,
+            shutdown_token,
         };
 
-        Ok((resolver, ResolverHandle::new(command_tx, port)))
+        let join_handle = tokio::spawn(resolver.run());
+
+        Ok((ResolverHandle::new(tx.clone(), listen_addr), join_handle))
     }
 
     async fn new_server(
-        port: u16,
-        command_tx: Weak<mpsc::UnboundedSender<ResolverMessage>>,
-    ) -> Result<(ServerFuture<ResolverImpl>, u16), Error> {
-        let mut server = ServerFuture::new(ResolverImpl { tx: command_tx });
-
-        let server_listening_socket =
-            tokio::net::UdpSocket::bind(SocketAddr::new(Ipv4Addr::LOCALHOST.into(), port))
-                .await
-                .map_err(Error::UdpBindError)?;
-        let port = server_listening_socket
-            .local_addr()
-            .map_err(Error::GetSocketAddrError)?
-            .port();
-        server.register_socket(server_listening_socket);
-
-        Ok((server, port))
+        server_socket: tokio::net::UdpSocket,
+        tx: mpsc::UnboundedSender<ResolverMessage>,
+    ) -> Result<ServerFuture<ResolverImpl>, Error> {
+        let mut server = ServerFuture::new(ResolverImpl { tx });
+        server.register_socket(server_socket);
+        Ok(server)
     }
 
     /// Runs the filtering resolver as an actor, listening for new queries instances.  When all
     /// related [ResolverHandle] instances are dropped, this function will return, closing the DNS
     /// server.
     async fn run(mut self) {
-        while let Some(request) = self.rx.next().await {
-            match request {
-                ResolverMessage::SetConfig {
-                    new_config,
-                    response_tx,
-                } => {
-                    tracing::debug!("Updating config: {new_config:?}");
+        loop {
+            tokio::select! {
+               Some(request) = self.rx.recv() => {
+                    match request {
+                        ResolverMessage::SetConfig {
+                            new_config,
+                            response_tx,
+                        } => {
+                            tracing::debug!("Updating config: {new_config:?}");
 
-                    self.inner_resolver = Resolver::from(new_config);
-                    flush_system_cache();
-                    let _ = response_tx.send(());
-                }
-                ResolverMessage::Query {
-                    dns_query,
-                    response_tx,
-                } => {
-                    self.inner_resolver.resolve(dns_query, response_tx);
+                            self.update_config(new_config);
+                            flush_system_cache();
+                            let _ = response_tx.send(());
+                        }
+                        ResolverMessage::Query {
+                            dns_query,
+                            response_tx,
+                        } => {
+                            self.inner_resolver.resolve(dns_query, response_tx);
+                        }
+                    }
+                },
+                _ = self.shutdown_token.cancelled() => {
+                    break;
                 }
             }
         }
 
-        if let Some((server_handle, done_rx)) = self.dns_server.take() {
-            server_handle.abort();
-            let _ = done_rx.await;
+        tracing::debug!("Waiting for dns server task to finish");
+        if let Err(e) = self.dns_server_task.await {
+            tracing::error!("DNS server task failed: {e}");
         }
+    }
+
+    /// Update the current DNS config.
+    fn update_config(&mut self, config: Config) {
+        match config {
+            Config::Blocking => {
+                self.blocking();
+            }
+            Config::Forwarding { mut dns_servers } => {
+                // make sure not to accidentally forward queries to ourselves
+                dns_servers.retain(|addr| *addr != self.bound_to.ip());
+                self.forwarding(vec![]);
+            }
+        }
+    }
+
+    /// Turn into a blocking resolver.
+    fn blocking(&mut self) {
+        self.inner_resolver = Resolver::Blocking;
+    }
+
+    /// Turn into a forwarding resolver (forward DNS queries to [dns_servers]).
+    fn forwarding(&mut self, dns_servers: Vec<IpAddr>) {
+        let forward_server_config = NameServerConfigGroup::from_ips_clear(&dns_servers, 53, true);
+
+        let forward_config = ResolverConfig::from_parts(None, vec![], forward_server_config);
+        let resolver =
+            TokioResolver::builder_with_config(forward_config, TokioConnectionProvider::default())
+                .build();
+
+        self.inner_resolver = Resolver::Forwarding(Box::new(resolver));
     }
 }
 
@@ -392,7 +435,7 @@ type LookupResponse<'a> = MessageResponse<
 /// An implementation of [hickory_server::server::RequestHandler] that forwards queries to
 /// `FilteringResolver`.
 struct ResolverImpl {
-    tx: Weak<mpsc::UnboundedSender<ResolverMessage>>,
+    tx: mpsc::UnboundedSender<ResolverMessage>,
 }
 
 impl ResolverImpl {
@@ -430,10 +473,6 @@ impl ResolverImpl {
             message.protocol(),
         );
 
-        let Some(tx_ref) = self.tx.upgrade() else {
-            return;
-        };
-
         let Some(query) = message.queries().first() else {
             tracing::error!("Received a message without query");
             return;
@@ -446,13 +485,10 @@ impl ResolverImpl {
         }
 
         let (response_tx, response_rx) = oneshot::channel();
-        let mut tx = (*tx_ref).clone();
-        let _ = tx
-            .send(ResolverMessage::Query {
-                dns_query: query.clone(),
-                response_tx,
-            })
-            .await;
+        let _ = self.tx.send(ResolverMessage::Query {
+            dns_query: query.clone(),
+            response_tx,
+        });
 
         let lookup_result = response_rx.await;
         let response_result = match lookup_result {
@@ -543,17 +579,19 @@ mod test {
         config::{NameServerConfigGroup, ResolverConfig},
         name_server::TokioConnectionProvider,
     };
-    use std::{mem, net::UdpSocket, time::Duration};
+    use std::{
+        mem,
+        net::{SocketAddrV4, UdpSocket},
+        time::Duration,
+    };
 
-    async fn start_resolver() -> ResolverHandle {
-        super::start_resolver().await.unwrap()
-    }
+    const LISTEN_ADDR: SocketAddr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0));
 
-    fn get_test_resolver(port: u16) -> TokioResolver {
+    fn get_test_resolver(listen_addr: SocketAddr) -> TokioResolver {
         let resolver_config = ResolverConfig::from_parts(
             None,
             vec![],
-            NameServerConfigGroup::from_ips_clear(&[Ipv4Addr::LOCALHOST.into()], port, true),
+            NameServerConfigGroup::from_ips_clear(&[listen_addr.ip()], listen_addr.port(), true),
         );
         TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default())
             .build()
@@ -561,8 +599,10 @@ mod test {
 
     #[tokio::test]
     async fn test_successful_lookup() {
-        let handle = start_resolver().await;
-        let test_resolver = get_test_resolver(handle.listening_port());
+        let (handle, _join_handle) = LocalResolver::spawn(LISTEN_ADDR, CancellationToken::new())
+            .await
+            .unwrap();
+        let test_resolver = get_test_resolver(handle.listen_addr());
 
         for domain in &*ALLOWED_DOMAINS {
             test_resolver
@@ -574,8 +614,10 @@ mod test {
 
     #[tokio::test]
     async fn test_failed_lookup() {
-        let handle = start_resolver().await;
-        let test_resolver = get_test_resolver(handle.listening_port());
+        let (handle, _join_handle) = LocalResolver::spawn(LISTEN_ADDR, CancellationToken::new())
+            .await
+            .unwrap();
+        let test_resolver = get_test_resolver(handle.listen_addr());
 
         let captive_portal_domain = LowerName::from(Name::from_str("apple.com").unwrap());
         assert!(
@@ -589,11 +631,13 @@ mod test {
 
     #[tokio::test]
     async fn test_shutdown() {
-        let handle = start_resolver().await;
-        let port = handle.listening_port();
+        let (handle, _join_handle) = LocalResolver::spawn(LISTEN_ADDR, CancellationToken::new())
+            .await
+            .unwrap();
+        let listen_addr = handle.listen_addr();
         mem::drop(handle);
         tokio::time::sleep(Duration::from_millis(300)).await;
-        UdpSocket::bind((Ipv4Addr::LOCALHOST, port))
+        UdpSocket::bind(listen_addr)
             .expect("Failed to bind to a port that should have been removed");
     }
 }
