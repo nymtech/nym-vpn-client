@@ -1,4 +1,5 @@
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::env;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use std::process::Command;
@@ -85,6 +86,29 @@ impl OsInfo {
                 env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn convert_to_name_string(&self) -> String {
+        let os_name = env::var("XDG_SESSION_DESKTOP").unwrap_or_else(|_| "unknown".to_string());
+        let parts = vec![
+            self.version.clone(),
+            self.kernel.clone().unwrap_or_default(),
+            self.arch.clone(),
+            sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string()),
+            os_name,
+        ];
+
+        parts.join(" ")
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn hash_identifier(&self) -> String {
+        let os_name = self.convert_to_name_string();
+        let mut hasher = Sha256::new();
+        hasher.update(os_name.as_bytes());
+
+        format!("{:x}", hasher.finalize())
     }
 }
 
