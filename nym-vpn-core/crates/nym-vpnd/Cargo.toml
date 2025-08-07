@@ -51,6 +51,7 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
+sha2.workspace = true
 
 # Local crates
 nym-ipc.workspace = true
@@ -65,7 +66,6 @@ nym-vpn-proto = { workspace = true, features = ["conversions"] }
 nym-vpn-store = { workspace = true }
 nym-vpnd-types = { workspace = true }
 nym-platform-metadata = { workspace = true }
-sha2.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
