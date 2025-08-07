@@ -31,6 +31,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
         #[cfg(target_os = "linux")]
         {
             scope.set_tag("display_server", os.display_server.as_ref());
+            scope.set_tag("gpu", os.gpu.as_ref());
         }
         scope.set_user(Some(User {
             id: Some(os.hash_identifier()), // anonymized user identifier

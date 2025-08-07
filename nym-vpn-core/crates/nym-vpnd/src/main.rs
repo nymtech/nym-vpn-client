@@ -257,7 +257,6 @@ fn init_sentry() -> Option<ClientInitGuard> {
     };
 
     let os_info = nym_vpn_lib::SysInfo::new();
-    let identifier = stringify_identifier(&os_info);
 
     println!("Sentry monitoring enabled");
     let guard = sentry::init((
@@ -277,7 +276,7 @@ fn init_sentry() -> Option<ClientInitGuard> {
         scope.set_tag("os_version", &os_info.os_version);
         scope.set_tag("extra_metadata", os_info.extra.join(", "));
         scope.set_user(Some(sentry::User {
-            id: Some(anonymize_identifier(identifier.as_ref())), // anonymized user identifier
+            id: Some(anonymize_identifier(&os_info)), // anonymized user identifier
             ip_address: None,
             ..Default::default()
         }));
@@ -286,18 +285,16 @@ fn init_sentry() -> Option<ClientInitGuard> {
     Some(guard)
 }
 
-fn anonymize_identifier(identifier: &str) -> String {
-    let hash = Sha256::digest(identifier.as_bytes());
-    format!("{hash:x}")
-}
-
-fn stringify_identifier(os_info: &nym_vpn_lib::SysInfo) -> String {
-    format!(
+fn anonymize_identifier(os_info: &nym_vpn_lib::SysInfo) -> String {
+    let identifier = format!(
         "{} {} {}",
         os_info.os_version,
         os_info.arch,
         os_info.extra.join(" ")
-    )
+    );
+
+    let hash = Sha256::digest(identifier.as_bytes());
+    format!("{hash:x}")
 }
 
 fn log_software_and_os_version() {

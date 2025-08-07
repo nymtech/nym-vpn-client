@@ -88,20 +88,15 @@ impl OsInfo {
         }
     }
 
-    pub fn stringify_identifier(&self) -> String {
+    pub fn hash_identifier(&self) -> String {
         let parts = [
             self.version.clone(),
             self.kernel.clone().unwrap_or_default(),
             self.arch.clone(),
-            self.gpu.as_ref().to_string(),
             sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string()),
         ];
 
-        parts.join(" ")
-    }
-
-    pub fn hash_identifier(&self) -> String {
-        let os_name = self.stringify_identifier();
+        let os_name = parts.join(" ");
         let hash = Sha256::digest(os_name.as_bytes());
         format!("{hash:x}")
     }
