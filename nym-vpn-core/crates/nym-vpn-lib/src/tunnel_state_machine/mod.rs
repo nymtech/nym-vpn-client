@@ -19,6 +19,8 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
+#[cfg(target_os = "macos")]
+use std::net::{SocketAddr, SocketAddrV4};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 use std::{
@@ -430,6 +432,8 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler_shutdown_token: CancellationToken,
+    #[cfg(target_os = "macos")]
+    filtering_resolver_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -451,13 +455,17 @@ impl TunnelStateMachine {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
-        #[cfg(target_os = "macos")]
-        let filtering_resolver = resolver::start_resolver()
-            .await
-            .map_err(Error::StartLocalDnsResolver)?;
-
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let dns_handler_shutdown_token = CancellationToken::new();
+
+        #[cfg(target_os = "macos")]
+        let (filtering_resolver, filtering_resolver_handle) = resolver::LocalResolver::spawn(
+            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0)),
+            dns_handler_shutdown_token.child_token(),
+        )
+        .await
+        .map_err(Error::StartLocalDnsResolver)?;
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
@@ -521,6 +529,8 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler_shutdown_token,
+            #[cfg(target_os = "macos")]
+            filtering_resolver_handle,
             shutdown_token,
         };
 
@@ -575,6 +585,13 @@ impl TunnelStateMachine {
             }
 
             self.shared_state.route_handler.stop().await;
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            if let Err(e) = self.filtering_resolver_handle.await {
+                tracing::error!("Failed to join on filtering resolver task: {}", e)
+            }
         }
     }
 }
