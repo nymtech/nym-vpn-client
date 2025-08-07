@@ -2,22 +2,39 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::net::{IpAddr, SocketAddr};
+use std::time::Duration;
 
 use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;
 
 use crate::{Config, Error, error::Result, gateway_client::ResolvedConfig};
 
+// be generous with the resolution timeout
+const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
+
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
     let resolver = HickoryDnsResolver::default();
-    let addrs = resolver.resolve_str(hostname).await.map_err(|err| {
-        trace_err_chain!(err, "Failed to resolve gateway hostname");
-        Error::FailedToDnsResolveGateway {
-            hostname: hostname.to_string(),
-            source: err,
-        }
-    })?;
+
+    let addrs =
+        match tokio::time::timeout(HOSTNAME_RESOLUTION_TIMEOUT, resolver.resolve_str(hostname))
+            .await
+        {
+            Ok(Ok(addrs)) => addrs,
+            Ok(Err(err)) => {
+                trace_err_chain!(err, "Failed to resolve hostname");
+                return Err(Error::FailedToDnsResolveGateway {
+                    hostname: hostname.to_string(),
+                    source: err,
+                });
+            }
+            Err(_timeout) => {
+                return Err(Error::HostnameResolutionTimeout {
+                    hostname: hostname.to_string(),
+                });
+            }
+        };
+
     tracing::debug!("Resolved to: {addrs:?}");
 
     let ips = addrs.iter().collect::<Vec<_>>();
