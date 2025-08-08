@@ -1,11 +1,31 @@
 use sentry::{ClientInitGuard, User};
-use std::{borrow::Cow, time::Duration};
-use tracing::{info, instrument, warn};
+use std::{
+    borrow::Cow,
+    collections::HashSet,
+    sync::{Arc, OnceLock},
+    time::Duration,
+};
+use tracing::{info, warn};
 
 use crate::env::APP_SENTRY_DSN;
 use crate::sys::OsInfo;
 
-#[instrument(skip_all)]
+static EXCLUDED_ERRORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
+
+fn get_excluded_errors() -> &'static HashSet<&'static str> {
+    EXCLUDED_ERRORS.get_or_init(|| {
+        HashSet::from([
+            "invalid mnemonic",
+            "no device stored",
+            "no account stored",
+            "AC is offline",
+            "account already exists",
+            "MaxDevicesReached",
+            "SubscriptionExpired",
+        ])
+    })
+}
+
 pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
     let Some(dsn) = APP_SENTRY_DSN.as_ref() else {
         warn!("failed to init sentry: APP_SENTRY_DSN is not set");
@@ -23,6 +43,18 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(1),
             server_name: Some(Cow::Borrowed("nym")),
+            before_send_log: Some(Arc::new(|log| {
+                if get_excluded_errors()
+                    .iter()
+                    .any(|err| log.body.contains(err))
+                {
+                    // Exclude specific errors from being sent to Sentry
+                    // The excluded log still appears in the breadcrumbs
+                    info!("Excluded log: {}", log.body);
+                    return None;
+                }
+                Some(log)
+            })),
             ..Default::default()
         },
     ));
