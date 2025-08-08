@@ -11,6 +11,7 @@ import GatewayManager
 import NetworkMonitor
 import Settings
 import SystemMessageManager
+import SystemMessageModels
 import TunnelMixnet
 import TunnelStatus
 import Tunnels
@@ -41,7 +42,7 @@ public class HomeViewModel: HomeFlowState {
     let grpcManager: GRPCManager
     let helperManager: HelperManager
 #endif
-    let systemMessageManager: SystemMessageManager
+    let messagesManager: MessagesManager
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
     let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
 
@@ -60,13 +61,13 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var isOfflineOverlayDisplayed = false
     @MainActor @Published var isUpdateAvailableOverlayDisplayed = false
     @MainActor @Published var isStatisticsOverlayDisplayed = true
-    @MainActor @Published var snackBarMessage = ""
+    @MainActor @Published var snackBarMessage: SnackBarMessage?
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
             Task {
                 try? await Task.sleep(for: .seconds(1))
                 guard !isSnackBarDisplayed else { return }
-                systemMessageManager.messageDidClose()
+                messagesManager.messageDidClose()
             }
         }
     }
@@ -133,7 +134,7 @@ public class HomeViewModel: HomeFlowState {
         helperManager: HelperManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
         gatewayManager: GatewayManager = .shared,
-        systemMessageManager: SystemMessageManager = .shared
+        messagesManager: MessagesManager = .shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -145,7 +146,7 @@ public class HomeViewModel: HomeFlowState {
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
         self.gatewayManager = gatewayManager
-        self.systemMessageManager = systemMessageManager
+        self.messagesManager = messagesManager
         super.init()
 
         setup()
@@ -271,8 +272,8 @@ private extension HomeViewModel {
     }
 
     func setupSystemMessageObservers() {
-        systemMessageManager.$currentMessage.sink { [weak self] message in
-            guard !message.isEmpty
+        messagesManager.$currentMessage.sink { [weak self] message in
+            guard let message
             else {
                 Task { @MainActor in
                     self?.isSnackBarDisplayed = false

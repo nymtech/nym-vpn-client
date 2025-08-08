@@ -79,7 +79,9 @@ let package = Package(
         ),
         .target(
             name: "SystemMessageModels",
-            dependencies: [],
+            dependencies: [
+                "Theme"
+            ],
             path: "Sources/SystemMessageModels"
         ),
         .target(

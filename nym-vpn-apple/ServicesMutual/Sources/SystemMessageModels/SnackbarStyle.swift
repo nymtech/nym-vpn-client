@@ -3,31 +3,34 @@ import Theme
 
 public enum SnackbarStyle {
     case info
+    case noIcon
 
-    var backgroundColor: Color {
+    public var backgroundColor: Color {
         switch self {
-        case .info:
+        case .info, .noIcon:
             NymColor.gray1
         }
     }
 
-    var textColor: Color {
+    public var textColor: Color {
         switch self {
-        case .info:
+        case .info, .noIcon:
             NymColor.primary
         }
     }
 
-    var systemIconName: String? {
+    public var systemIconName: String? {
         switch self {
         case .info:
             "info.circle"
+        case .noIcon:
+            nil
         }
     }
 
-    var iconColor: Color {
+    public var iconColor: Color {
         switch self {
-        case .info:
+        case .info, .noIcon:
             NymColor.primary
         }
     }
