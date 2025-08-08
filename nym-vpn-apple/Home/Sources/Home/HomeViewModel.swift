@@ -59,6 +59,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var isModeInfoOverlayDisplayed = false
     @MainActor @Published var isOfflineOverlayDisplayed = false
     @MainActor @Published var isUpdateAvailableOverlayDisplayed = false
+    @MainActor @Published var isStatisticsOverlayDisplayed = true
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {

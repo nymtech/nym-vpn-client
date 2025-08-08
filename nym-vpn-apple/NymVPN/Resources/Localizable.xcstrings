@@ -27059,6 +27059,61 @@
         }
       }
     },
+    "statisticsOverlay.enableNetworkStats" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable network stats"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.helpImprove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help improve NymVPN by sharing anonymous network stats from your region."
+          }
+        }
+      }
+    },
+    "statisticsOverlay.notNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.upgradeExperience" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade your experience"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.yourData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your data stays private and secure."
+          }
+        }
+      }
+    },
     "stop" : {
       "extractionState" : "manual",
       "localizations" : {

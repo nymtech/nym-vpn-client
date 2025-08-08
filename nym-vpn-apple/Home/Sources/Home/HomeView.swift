@@ -49,6 +49,9 @@ private extension HomeView {
         .overlay {
             updateAvailableOverlay()
         }
+        .overlay {
+            statisticsEnableOverlay()
+        }
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
             style: .info,

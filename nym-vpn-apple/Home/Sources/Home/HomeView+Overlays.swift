@@ -44,4 +44,16 @@ extension HomeView {
             .animation(.easeInOut, value: viewModel.isUpdateAvailableOverlayDisplayed)
         }
     }
+
+    @ViewBuilder
+    func statisticsEnableOverlay() -> some View {
+        if viewModel.isStatisticsOverlayDisplayed,
+           !viewModel.appSettings.isStatisticsEnabled {
+            StatisticsEnableOverlay(
+                isPresented: $viewModel.isStatisticsOverlayDisplayed
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: viewModel.isStatisticsOverlayDisplayed)
+        }
+    }
 }
