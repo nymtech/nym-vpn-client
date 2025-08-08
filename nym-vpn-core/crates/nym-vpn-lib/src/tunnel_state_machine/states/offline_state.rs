@@ -10,9 +10,9 @@ use nym_common::trace_err_chain;
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::FirewallPolicy;
-#[cfg(target_os = "macos")]
-use nym_firewall::LOCAL_DNS_RESOLVER;
 
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{Error, Result};
 #[cfg(target_os = "macos")]
