@@ -4,11 +4,13 @@ use tracing::{debug, trace};
 use ts_rs::TS;
 
 use crate::error::{BackendError, ErrorKey};
+use crate::grpc::account::AccountState;
 use crate::grpc::tunnel::ConnectingState;
 use crate::grpc::{client::VpndStatus, events::MixnetEvent, tunnel::TunnelState};
 
 pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_TUNNEL_STATE: &str = "tunnel-state";
+pub const EVENT_ACCOUNT_STATE: &str = "account-state";
 pub const EVENT_MIXNET: &str = "mixnet-event";
 pub const EVENT_CONNECTION_PROGRESS: &str = "connection-progress";
 
@@ -72,6 +74,7 @@ pub trait AppHandleEventEmitter {
     fn emit_disconnected(&self, error: Option<BackendError>);
     fn emit_mixnet_event(&self, event: MixnetEvent);
     fn emit_connection_progress(&self, key: ConnectProgressMsg);
+    fn emit_account_state_update(&self, state: &AccountState);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
@@ -120,5 +123,10 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         trace!("sending event [{}]: {:?}", EVENT_CONNECTION_PROGRESS, key);
         self.emit(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key })
             .ok();
+    }
+
+    fn emit_account_state_update(&self, state: &AccountState) {
+        debug!("sending account state event [{}]: {}", EVENT_ACCOUNT_STATE, state.as_ref());
+        self.emit(EVENT_ACCOUNT_STATE, state).ok();
     }
 }

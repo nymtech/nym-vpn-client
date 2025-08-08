@@ -1,3 +1,4 @@
+pub mod account;
 mod account_error;
 pub mod account_links;
 pub mod client;

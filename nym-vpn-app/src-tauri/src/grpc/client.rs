@@ -1,3 +1,17 @@
+pub use super::{
+    account_links::AccountLinks,
+    error::VpndError,
+    feature_flags::FeatureFlags,
+    node::NodeConnect,
+    system_message::SystemMessage,
+    vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
+};
+use super::{
+    events::MixnetEvent,
+    gateway::{Gateway, GatewayType},
+    tunnel::TunnelState,
+};
+pub use crate::grpc::network::NetworkCompatVersions;
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto::{
     ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location,
@@ -17,21 +31,7 @@ use tonic::{
 };
 use tracing::{debug, error, info, instrument, trace, warn};
 
-pub use super::{
-    account_links::AccountLinks,
-    error::VpndError,
-    feature_flags::FeatureFlags,
-    node::NodeConnect,
-    system_message::SystemMessage,
-    vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
-};
-use super::{
-    events::MixnetEvent,
-    gateway::{Gateway, GatewayType},
-    tunnel::TunnelState,
-};
-pub use crate::grpc::network::NetworkCompatVersions;
-
+use crate::grpc::account::{AccountState, log_account_state};
 use crate::{
     cli::Cli, country::Country, error::BackendError, events::AppHandleEventEmitter,
     fs::config::AppConfig, state::SharedAppState,
@@ -303,6 +303,51 @@ impl GrpcClient {
             VpndError::GrpcError(e)
         })?;
 
+        Ok(())
+    }
+
+    /// Listen to account state
+    #[instrument(skip_all)]
+    pub async fn watch_account_state(&self, app: &AppHandle) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let mut stream = vpnd
+            .listen_to_account_state(())
+            .await
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?
+            .into_inner();
+
+        let (tx, mut rx) = mpsc::channel(32);
+        tokio::spawn(async move {
+            loop {
+                match stream.message().await {
+                    Ok(Some(update)) => {
+                        tx.send(update).await.unwrap();
+                    }
+                    Ok(None) => {
+                        info!("vpnd DOWN: tunnel state stream closed");
+                        return;
+                    }
+                    Err(e) => {
+                        warn!("listen tunnel state stream get a grpc error: {}", e);
+                    }
+                }
+            }
+        });
+
+        while let Some(state) = rx.recv().await {
+            let Some(state) = state.state else {
+                warn!("no state data, ignoring…");
+                continue;
+            };
+            log_account_state(&state);
+            let account_state = AccountState::from_proto(state);
+            let s_state = app.state::<SharedAppState>();
+            let mut app_state = s_state.lock().await;
+            app_state.update_account_state(app, account_state).await?;
+        }
         Ok(())
     }
 

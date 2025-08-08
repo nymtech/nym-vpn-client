@@ -132,6 +132,11 @@ pub enum ErrorKey {
     NoAccountStored,
     NoDeviceStored,
     ExistingAccount,
+    BandwidthExceeded,
+    AccountStatusNotActive,
+    NoSubscription,
+    MaxDeviceReached,
+    DeviceTimeDesync,
     // Failure when querying countries from gRPC
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
