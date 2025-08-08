@@ -1,6 +1,6 @@
 import SwiftUI
 import AppSettings
-import SystemMessageModels
+import MessageModels
 
 public struct SnackbarView: View {
     private let appSettings: AppSettings

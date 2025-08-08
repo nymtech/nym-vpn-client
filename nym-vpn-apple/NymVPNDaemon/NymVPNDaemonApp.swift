@@ -13,9 +13,9 @@ import Home
 import HelperManager
 import NotificationsManager
 import NymLogger
+import MessagesManager
 import Migrations
 import SentryManager
-import SystemMessageManager
 import Theme
 import TunnelStatus
 import UIComponents

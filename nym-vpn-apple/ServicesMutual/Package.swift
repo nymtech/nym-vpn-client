@@ -18,7 +18,7 @@ let package = Package(
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "ErrorReason", targets: ["ErrorReason"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
-        .library(name: "SystemMessageModels", targets: ["SystemMessageModels"]),
+        .library(name: "MessageModels", targets: ["MessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     dependencies: [
@@ -78,11 +78,11 @@ let package = Package(
             path: "Sources/NymLogger"
         ),
         .target(
-            name: "SystemMessageModels",
+            name: "MessageModels",
             dependencies: [
                 "Theme"
             ],
-            path: "Sources/SystemMessageModels"
+            path: "Sources/MessageModels"
         ),
         .target(
             name: "TunnelStatus",

@@ -9,12 +9,12 @@ import GatewayManager
 import Home
 import Extensions
 import KeyboardManager
+import MessagesManager
 import Migrations
 import NymLogger
 import NotificationsManager
 import PurchasesManager
 import SentryManager
-import SystemMessageManager
 import Theme
 
 @main

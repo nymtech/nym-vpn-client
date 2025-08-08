@@ -7,14 +7,14 @@ import MixnetLibrary
 #elseif os(macOS)
 import GRPCManager
 #endif
-import SystemMessageModels
+import MessageModels
 
 public final class MessagesManager: ObservableObject {
     private let appSettings: AppSettings
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
-    private let logger = Logger(label: "SystemMessageManager")
+    private let logger = Logger(label: "MessagesManager")
 
     private var messages: [SnackBarMessage] = []
     private var timer: Timer?

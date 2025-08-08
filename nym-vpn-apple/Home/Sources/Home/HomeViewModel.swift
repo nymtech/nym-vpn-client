@@ -8,10 +8,10 @@ import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
 import GatewayManager
+import MessagesManager
+import MessageModels
 import NetworkMonitor
 import Settings
-import SystemMessageManager
-import SystemMessageModels
 import TunnelMixnet
 import TunnelStatus
 import Tunnels
@@ -60,7 +60,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var isModeInfoOverlayDisplayed = false
     @MainActor @Published var isOfflineOverlayDisplayed = false
     @MainActor @Published var isUpdateAvailableOverlayDisplayed = false
-    @MainActor @Published var isStatisticsOverlayDisplayed = true
+    @MainActor @Published var isStatisticsOverlayDisplayed = false
     @MainActor @Published var snackBarMessage: SnackBarMessage?
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {

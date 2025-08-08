@@ -1,5 +1,5 @@
 import SwiftUI
-import SystemMessageModels
+import MessageModels
 
 extension View {
     public func snackbar(

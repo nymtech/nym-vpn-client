@@ -26,7 +26,7 @@ let package = Package(
         .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "PurchasesManager", targets: ["PurchasesManager"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
-        .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
+        .library(name: "MessagesManager", targets: ["MessagesManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
@@ -187,14 +187,14 @@ let package = Package(
             path: "Sources/Services/SentryManager"
         ),
         .target(
-            name: "SystemMessageManager",
+            name: "MessagesManager",
             dependencies: [
                 "AppSettings",
-                .product(name: "SystemMessageModels", package: "ServicesMutual"),
+                .product(name: "MessageModels", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
-            path: "Sources/Services/SystemMessageManager"
+            path: "Sources/Services/MessagesManager"
         ),
         .target(
             name: "Tunnels",

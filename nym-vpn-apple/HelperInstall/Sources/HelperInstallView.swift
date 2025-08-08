@@ -1,6 +1,6 @@
 import SwiftUI
 import Theme
-import SystemMessageModels
+import MessageModels
 import UIComponents
 
 public struct HelperInstallView: View {
