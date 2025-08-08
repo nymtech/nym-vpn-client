@@ -179,6 +179,10 @@ Then
 cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 ```
 
+## Local DNS resolver (macOS only)
+
+Local DNS resolver is used to workaround issues related to captive portal detection on macOS. It can be disabled by setting `NYM_DISABLE_LOCAL_DNS_RESOLVER=1`
+
 ## Offline monitoring
 
 - Offline monitoring can be disabled by setting the environment variable `NYM_DISABLE_OFFLINE_MONITOR=0`. When set, the status is always online.

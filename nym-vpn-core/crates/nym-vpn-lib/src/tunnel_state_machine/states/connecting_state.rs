@@ -14,8 +14,6 @@ use tokio_util::sync::CancellationToken;
 use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
-#[cfg(target_os = "macos")]
-use nym_firewall::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
@@ -25,6 +23,8 @@ use nym_firewall::{
 use nym_gateway_directory::Gateway;
 use nym_gateway_directory::ResolvedConfig;
 
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
     Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,

@@ -15,8 +15,6 @@ use nym_dns::ResolvedDnsConfig;
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
 mod imp;
-#[cfg(target_os = "macos")]
-pub use imp::LOCAL_DNS_RESOLVER;
 
 #[cfg(target_os = "linux")]
 #[path = "linux.rs"]
