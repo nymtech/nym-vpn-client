@@ -287,10 +287,11 @@ fn init_sentry() -> Option<ClientInitGuard> {
 
 fn anonymize_identifier(os_info: &nym_vpn_lib::SysInfo) -> String {
     let identifier = format!(
-        "{} {} {}",
+        "{} {} {} {}",
         os_info.os_version,
         os_info.arch,
-        os_info.extra.join(" ")
+        os_info.extra.join(" "),
+        sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string())
     );
 
     let hash = Sha256::digest(identifier.as_bytes());
