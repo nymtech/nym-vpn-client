@@ -202,7 +202,7 @@ impl GrpcClient {
             })?
             .into_inner();
 
-        let (tx, mut rx) = mpsc::channel::<VpndEvent>(32);
+        let (tx, mut rx) = mpsc::channel(32);
         let c_tx = tx.clone();
         GrpcClient::listen_to_stream(tunnel_stream, tx).await;
         GrpcClient::listen_to_stream(account_stream, c_tx).await;

@@ -230,7 +230,7 @@ async fn main() -> Result<()> {
                         // and will keep the task alive as long as the grpc connection
                         // with vpnd is UP
                         c_grpc.watch_events(&handle).await.ok();
-                        // if the tunnel stream cuts off, that means vpnd is down
+                        // if the events stream cuts off, that means vpnd is down
                         AppState::vpnd_down(&handle).await;
                     } else {
                         AppState::vpnd_down(&handle).await;
