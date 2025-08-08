@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 //
-use libc::{c_void, pid_t, proc_listallpids, proc_pidpath};
+use nix::libc::{c_void, pid_t, proc_listallpids, proc_pidpath};
 use std::{
     io,
     path::{Path, PathBuf},
@@ -52,7 +52,7 @@ pub fn list_pids() -> io::Result<Vec<pid_t>> {
 
 /// Return the path of the process `pid`
 pub fn process_path(pid: pid_t) -> io::Result<PathBuf> {
-    let mut buffer = [0u8; libc::MAXPATHLEN as usize];
+    let mut buffer = [0u8; nix::libc::MAXPATHLEN as usize];
     // SAFETY: `proc_pidpath` returns at most `buffer.len()` bytes
     let buf_len = unsafe {
         proc_pidpath(
