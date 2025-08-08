@@ -8,7 +8,7 @@ use nym_sdk::mixnet::{MixnetClient, ReconstructedMessage};
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::AuthClient;
+use crate::AuthenticatorMixnetClient;
 
 pub type SharedMixnetClient = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;
 pub type MixnetMessageBroadcastSender = broadcast::Sender<Arc<ReconstructedMessage>>;
@@ -82,18 +82,16 @@ pub struct AuthClientMixnetListenerHandle {
 
 impl AuthClientMixnetListenerHandle {
     /// Returns new `AuthClient` or `None` if `MixnetClient` is already moved from shared reference.
-    pub async fn new_auth_client(&self) -> Option<AuthClient> {
+    pub async fn new_auth_client(&self) -> Option<AuthenticatorMixnetClient> {
         let mixnet_client_guard = self.mixnet_client.lock().await;
         let mixnet_client_ref = mixnet_client_guard.as_ref()?;
         let mixnet_sender = mixnet_client_ref.split_sender();
-        let stats_sender = mixnet_client_ref.stats_events_reporter();
         let nym_address = *mixnet_client_ref.nym_address();
 
         Some(
-            AuthClient::new(
+            AuthenticatorMixnetClient::new(
                 mixnet_sender,
                 self.message_broadcast.subscribe(),
-                stats_sender,
                 nym_address,
             )
             .await,

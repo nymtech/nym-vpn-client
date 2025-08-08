@@ -102,12 +102,12 @@ impl ConnectedTunnel {
         #[cfg(windows)] route_handler: RouteHandler,
         options: TunTunTunnelOptions,
     ) -> Result<TunnelHandle> {
+        let mut allowed_ips = options.initial_allowed_ips;
+        allowed_ips.push(IpNetwork::from(self.connection_data.exit.endpoint.ip()));
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
-            AllowedIps::Specific(vec![IpNetwork::from(
-                self.connection_data.exit.endpoint.ip(),
-            )]),
+            AllowedIps::Specific(allowed_ips),
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
@@ -221,12 +221,12 @@ impl ConnectedTunnel {
         #[cfg(windows)] route_handler: RouteHandler,
         options: NetstackTunnelOptions,
     ) -> Result<TunnelHandle> {
+        let mut allowed_ips = options.initial_allowed_ips;
+        allowed_ips.push(IpNetwork::from(self.connection_data.exit.endpoint.ip()));
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
-            AllowedIps::Specific(vec![IpNetwork::from(
-                self.connection_data.exit.endpoint.ip(),
-            )]),
+            AllowedIps::Specific(allowed_ips),
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
@@ -419,6 +419,9 @@ pub struct TunTunTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
+
+    /// IPs that should be tunneled by all tunnels
+    pub initial_allowed_ips: Vec<IpNetwork>,
 }
 
 /// Multihop configuration based on WireGuard/netstack.
@@ -441,6 +444,9 @@ pub struct NetstackTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
+
+    /// IPs that should be tunneled by all tunnels
+    pub initial_allowed_ips: Vec<IpNetwork>,
 }
 
 pub struct TunnelHandle {

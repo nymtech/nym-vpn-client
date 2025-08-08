@@ -6,6 +6,7 @@ use std::{collections::HashSet, fmt, net::IpAddr};
 use ipnetwork::IpNetwork;
 
 use nym_common::trace_err_chain;
+use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
 #[cfg(not(target_os = "linux"))]
 use nym_routing::NetNode;
 #[cfg(windows)]
@@ -148,6 +149,10 @@ impl RouteHandler {
                     NetNode::DefaultNode,
                 ));
 
+                routes.insert(Self::get_gateway_entry_route(
+                    entry_tun_name.clone(),
+                    entry_tun_mtu,
+                ));
                 routes.insert(Self::get_multihop_exit_route(
                     exit_gateway_address,
                     entry_tun_name,
@@ -179,6 +184,26 @@ impl RouteHandler {
         }
 
         routes
+    }
+
+    fn get_gateway_entry_route(iface: String, _mtu: u16) -> RequiredRoute {
+        #[allow(unused_mut)]
+        let mut route = RequiredRoute::new(
+            IpNetwork::from(IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4)),
+            Node::device(iface),
+        );
+
+        #[cfg(target_os = "linux")]
+        {
+            route = route.use_main_table(false);
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            route = route.mtu(_mtu);
+        }
+
+        route
     }
 
     fn get_multihop_exit_route(ip_addr: IpAddr, iface: String, _mtu: u16) -> RequiredRoute {
