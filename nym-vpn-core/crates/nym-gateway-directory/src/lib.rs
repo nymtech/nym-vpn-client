@@ -13,7 +13,7 @@ pub use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 pub use crate::{
     caching_client::CachingGatewayClient,
     entries::{
-        auth_addresses::{AuthAddress, AuthAddresses},
+        auth_addresses::AuthAddress,
         country::Country,
         entry_point::EntryPoint,
         exit_point::ExitPoint,

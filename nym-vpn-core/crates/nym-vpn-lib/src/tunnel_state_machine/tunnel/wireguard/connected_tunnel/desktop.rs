@@ -126,7 +126,7 @@ impl ConnectedTunnel {
 
         #[allow(unused_mut)]
         let mut entry_tunnel = wireguard_go::Tunnel::start(
-            wg_entry_config.into_wireguard_config(),
+            wg_entry_config.into_wireguard_config(options.inital_allowed_ips.clone()),
             #[cfg(unix)]
             options.entry_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
@@ -139,7 +139,7 @@ impl ConnectedTunnel {
         .map_err(Error::Wireguard)?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
-            wg_exit_config.into_wireguard_config(),
+            wg_exit_config.into_wireguard_config(options.inital_allowed_ips),
             #[cfg(unix)]
             options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
@@ -245,8 +245,11 @@ impl ConnectedTunnel {
 
         let two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
 
-        let mut entry_tunnel =
-            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
+        let mut entry_tunnel = netstack::Tunnel::start(
+            two_hop_config
+                .entry
+                .into_netstack_config(options.inital_allowed_ips.clone()),
+        )?;
 
         // Open connection to the exit node via entry node.
         let exit_connection = entry_tunnel.open_connection(
@@ -256,7 +259,9 @@ impl ConnectedTunnel {
         )?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
-            two_hop_config.exit.into_wireguard_config(),
+            two_hop_config
+                .exit
+                .into_wireguard_config(options.inital_allowed_ips),
             #[cfg(unix)]
             options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
@@ -419,6 +424,9 @@ pub struct TunTunTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
+
+    /// IPs that should be tunneled by all tunnels
+    pub inital_allowed_ips: Vec<IpNetwork>,
 }
 
 /// Multihop configuration based on WireGuard/netstack.
@@ -441,6 +449,9 @@ pub struct NetstackTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
+
+    /// IPs that should be tunneled by all tunnels
+    pub inital_allowed_ips: Vec<IpNetwork>,
 }
 
 pub struct TunnelHandle {

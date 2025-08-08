@@ -87,6 +87,7 @@ impl ConnectedTunnel {
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
+        inital_allowed_ips: Vec<IpNetwork>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
@@ -118,8 +119,11 @@ impl ConnectedTunnel {
         #[cfg(target_os = "ios")]
         two_hop_config.entry.peer.resolve_in_place()?;
 
-        let mut entry_tunnel =
-            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
+        let mut entry_tunnel = netstack::Tunnel::start(
+            two_hop_config
+                .entry
+                .into_netstack_config(inital_allowed_ips.clone()),
+        )?;
 
         // Configure tunnel sockets to bypass the tunnel interface.
         #[cfg(target_os = "android")]
@@ -143,7 +147,9 @@ impl ConnectedTunnel {
 
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
-            two_hop_config.exit.into_wireguard_config(),
+            two_hop_config
+                .exit
+                .into_wireguard_config(inital_allowed_ips),
             tun_device.get_ref().dup_fd().map_err(Error::DupFd)?,
         )?;
 

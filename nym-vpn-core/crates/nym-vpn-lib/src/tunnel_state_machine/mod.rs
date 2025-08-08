@@ -26,6 +26,8 @@ use std::{
     path::PathBuf,
 };
 
+use ipnetwork::IpNetwork;
+use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
@@ -117,6 +119,9 @@ pub struct TunnelSettings {
     /// DNS configuration.
     pub dns: DnsOptions,
 
+    /// IPs that should be tunneled by all tunnels
+    pub inital_allowed_ips: Vec<IpNetwork>,
+
     /// The user agent used for HTTP requests.
     pub user_agent: Option<UserAgent>,
 }
@@ -139,6 +144,11 @@ impl TunnelSettings {
             .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
             .copied()
             .collect()
+    }
+
+    /// Returns IPs that should be tunneled by all tunnels
+    pub fn default_inital_allowed_ips() -> Vec<IpNetwork> {
+        vec![IpNetwork::from(IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4))]
     }
 }
 
@@ -234,6 +244,7 @@ impl Default for TunnelSettings {
             entry_point: Box::new(EntryPoint::Random),
             exit_point: Box::new(ExitPoint::Random),
             dns: DnsOptions::default(),
+            inital_allowed_ips: Self::default_inital_allowed_ips(),
             user_agent: None,
         }
     }
@@ -640,6 +651,9 @@ pub enum Error {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     GetTunDeviceName(#[source] tun::Error),
 
+    #[error("failed to get the interface IP sender")]
+    GetInterfaceIpSender,
+
     #[error("failed to get tunnel device name")]
     #[cfg(any(target_os = "ios", target_os = "android"))]
     GetTunDeviceName(#[source] tun_name::GetTunNameError),
@@ -684,6 +698,7 @@ impl Error {
             Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::GetInterfaceIpSender => ErrorStateReason::Internal(self.to_string()),
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
@@ -728,8 +743,9 @@ impl tunnel::Error {
                 }
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::TopUpWireguard {
-                source, ..
+            Self::BandwidthController(BandwidthControllerError::RequestCredential {
+                source,
+                ..
             }) => match *source {
                 WgGatewayClientError::NoRetry { .. } => {
                     Some(ErrorStateReason::BadBandwidthIncrease)

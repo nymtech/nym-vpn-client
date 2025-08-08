@@ -94,6 +94,7 @@ pub(super) async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
+        inital_allowed_ips: TunnelSettings::default_inital_allowed_ips(),
         user_agent: Some(user_agent.clone()),
     };
 

@@ -97,8 +97,8 @@ impl WgPeer {
 }
 
 impl WgNodeConfig {
-    pub fn into_netstack_config(self) -> netstack::Config {
-        let allowed_ips = self.allowed_ips();
+    pub fn into_netstack_config(self, inital_allowed_ips: Vec<IpNetwork>) -> netstack::Config {
+        let allowed_ips = self.allowed_ips(inital_allowed_ips);
         netstack::Config {
             interface: netstack::InterfaceConfig {
                 private_key: self.interface.private_key,
@@ -125,8 +125,8 @@ impl WgNodeConfig {
         }
     }
 
-    pub fn into_wireguard_config(self) -> wireguard_go::Config {
-        let allowed_ips = self.allowed_ips();
+    pub fn into_wireguard_config(self, inital_allowed_ips: Vec<IpNetwork>) -> wireguard_go::Config {
+        let allowed_ips = self.allowed_ips(inital_allowed_ips);
         wireguard_go::Config {
             interface: wireguard_go::InterfaceConfig {
                 listen_port: self.interface.listen_port,
@@ -146,8 +146,8 @@ impl WgNodeConfig {
         }
     }
 
-    fn allowed_ips(&self) -> Vec<IpNetwork> {
-        let mut allowed_ips = vec![];
+    fn allowed_ips(&self, initial_ips: Vec<IpNetwork>) -> Vec<IpNetwork> {
+        let mut allowed_ips = initial_ips;
         match self.allowed_ips {
             AllowedIps::All => {
                 if self.interface.addresses.iter().any(|x| x.ip().is_ipv4()) {

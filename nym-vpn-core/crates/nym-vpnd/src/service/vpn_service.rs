@@ -750,6 +750,7 @@ impl NymVpnService {
             entry_point: Box::new(config.entry_point),
             exit_point: Box::new(config.exit_point),
             dns,
+            inital_allowed_ips: TunnelSettings::default_inital_allowed_ips(),
             user_agent: options.user_agent,
         };
 
