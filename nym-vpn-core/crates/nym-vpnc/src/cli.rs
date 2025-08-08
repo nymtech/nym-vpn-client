@@ -26,7 +26,7 @@ fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
 #[derive(Subcommand)]
 pub enum Command {
     /// Connect to the Nym network.
-    Connect(ConnectArgs),
+    Connect(Box<ConnectArgs>),
 
     /// Disconnect from the Nym network.
     Disconnect {
@@ -176,7 +176,7 @@ impl ConnectArgs {
             }))
         } else if let Some(ref entry_gateway_country) = self.entry.entry_country {
             Ok(Some(EntryPoint::Location {
-                location: entry_gateway_country.clone(),
+                location: entry_gateway_country.alpha2.to_string(),
             }))
         } else if self.entry.entry_random {
             Ok(Some(EntryPoint::Random))
@@ -200,7 +200,7 @@ impl ConnectArgs {
             }))
         } else if let Some(ref exit_gateway_country) = self.exit.exit_country {
             Ok(Some(ExitPoint::Location {
-                location: exit_gateway_country.clone(),
+                location: exit_gateway_country.alpha2.to_string(),
             }))
         } else if self.exit.exit_random {
             Ok(Some(ExitPoint::Random))
@@ -219,7 +219,7 @@ pub struct CliEntry {
 
     /// Auto-select entry gateway by country ISO.
     #[arg(long, alias = "entry-gateway-country")]
-    pub entry_country: Option<String>,
+    pub entry_country: Option<celes::Country>,
 
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
@@ -240,7 +240,7 @@ pub struct CliExit {
 
     /// Auto-select exit gateway by country ISO.
     #[clap(long, alias = "exit-gateway-country")]
-    pub exit_country: Option<String>,
+    pub exit_country: Option<celes::Country>,
 
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-gateway-random")]
