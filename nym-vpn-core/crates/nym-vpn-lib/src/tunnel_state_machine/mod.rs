@@ -21,8 +21,6 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(target_os = "macos")]
-use std::net::{SocketAddr, SocketAddrV4};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 use std::{
@@ -463,12 +461,10 @@ impl TunnelStateMachine {
         let dns_handler_shutdown_token = CancellationToken::new();
 
         #[cfg(target_os = "macos")]
-        let (filtering_resolver, filtering_resolver_handle) = resolver::LocalResolver::spawn(
-            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 53)),
-            dns_handler_shutdown_token.child_token(),
-        )
-        .await
-        .map_err(Error::StartLocalDnsResolver)?;
+        let (filtering_resolver, filtering_resolver_handle) =
+            resolver::LocalResolver::spawn(true, dns_handler_shutdown_token.child_token())
+                .await
+                .map_err(Error::StartLocalDnsResolver)?;
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(

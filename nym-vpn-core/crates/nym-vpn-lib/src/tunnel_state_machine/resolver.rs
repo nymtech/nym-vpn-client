@@ -12,7 +12,8 @@
 //! See [start_resolver].
 use std::{
     io,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4},
+    os::fd::AsRawFd,
     str::FromStr,
     sync::{Arc, LazyLock},
     time::{Duration, Instant},
@@ -36,11 +37,20 @@ use hickory_server::{
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
 };
+use nix::{
+    fcntl,
+    sys::socket::{self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrIn},
+};
+
 use tokio::{
     net::UdpSocket,
     sync::{mpsc, oneshot},
+    task::JoinHandle,
 };
-use tokio_util::{either::Either, sync::CancellationToken};
+use tokio_util::{
+    either::Either,
+    sync::{CancellationToken, DropGuard},
+};
 
 /// If a local DNS resolver should be used at all times.
 ///
@@ -60,6 +70,9 @@ pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
 
 /// Local DNS resolver listen port.
 const DNS_LISTEN_PORT: u16 = if cfg!(test) { 1053 } else { 53 };
+
+/// Loopback interface name.
+const LOOPBACK: &str = "lo0";
 
 /// Types of records that are spoofed for captive portal domains.
 const ALLOWED_RECORD_TYPES: &[RecordType] = &[RecordType::A, RecordType::CNAME];
@@ -85,11 +98,11 @@ const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
 pub enum Error {
     /// Failed to bind UDP socket
     #[error("failed to bind UDP socket")]
-    UdpBindError(#[source] io::Error),
+    UdpBind,
 
     /// Failed to get local address of a bound UDP socket
     #[error("failed to get local address of a bound UDP socket")]
-    GetSocketAddrError(#[source] io::Error),
+    GetSocketAddr(#[source] io::Error),
 }
 
 /// A DNS resolver that forwards queries to some other DNS server
@@ -264,17 +277,14 @@ impl ResolverHandle {
 impl LocalResolver {
     /// Spawn new filtering resolver and it's handle.
     pub async fn spawn(
-        listen_addr: SocketAddr,
+        use_random_loopback: bool,
         shutdown_token: CancellationToken,
     ) -> Result<(ResolverHandle, tokio::task::JoinHandle<()>), Error> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let resolver_socket = UdpSocket::bind(listen_addr)
-            .await
-            .map_err(Error::UdpBindError)?;
-        let resolver_addr = resolver_socket
-            .local_addr()
-            .map_err(Error::GetSocketAddrError)?;
+        let (resolver_socket, loopback_alias) =
+            Self::new_random_socket(use_random_loopback).await?;
+        let resolver_addr = resolver_socket.local_addr().map_err(Error::GetSocketAddr)?;
 
         let mut server = Self::new_server(resolver_socket, tx.clone()).await?;
 
@@ -305,7 +315,7 @@ impl LocalResolver {
                             },
                             Err(err) => {
                                 tracing::error!("DNS server unexpectedly stopped: {err}");
-                                tracing::debug!("Attempting restart server");
+                                tracing::debug!("Attempting to restart server");
 
                                 let socket = match UdpSocket::bind(resolver_addr).await {
                                     Ok(socket) => socket,
@@ -328,6 +338,10 @@ impl LocalResolver {
                         }
                     }
                 }
+            }
+
+            if let Some(loopback_alias) = loopback_alias {
+                loopback_alias.unassign().await;
             }
         });
 
@@ -391,6 +405,69 @@ impl LocalResolver {
         }
     }
 
+    /// Create a new [net::UdpSocket] bound to port 53 on loopback.
+    ///
+    /// This socket will try to bind to random ip in the range `127. 1-255. 0-255. 1-254 : 53`.
+    /// After 3 failed attempts it will attempt to bind to `127.0.0.1 : 53`
+    ///
+    /// This is done this way to avoid collisions with other DNS servers running on the same system.
+    ///
+    /// If [use_random_loopback] is `false`, it will only try to bind to `127.0.0.1`.
+    ///
+    /// Returns `UdpSocket` and `Option<RandomLoopbackAlias>` upon success, otherwise an error.
+    /// `RandomLoopbackAlias` removes the loopback alias when dropped.
+    async fn new_random_socket(
+        use_random_loopback: bool,
+    ) -> Result<(UdpSocket, Option<RandomLoopbackAlias>), Error> {
+        for attempt in 0.. {
+            let (socket_addr, on_drop) = match attempt {
+                ..3 if !use_random_loopback => continue,
+                ..3 => match RandomLoopbackAlias::assign().await {
+                    Ok(random) => (random.addr(), Some(random)),
+                    Err(_) => continue,
+                },
+                3 => (Ipv4Addr::LOCALHOST, None),
+                4.. => break,
+            };
+
+            let sock = match socket::socket(
+                AddressFamily::Inet,
+                SockType::Datagram,
+                SockFlag::empty(),
+                SockProtocol::Udp,
+            ) {
+                Ok(sock) => sock,
+                Err(error) => {
+                    log::error!("Failed to open IPv4/UDP socket: {error}");
+                    continue;
+                }
+            };
+
+            // SO_NONBLOCK is required for turning this into a tokio socket.
+            if let Err(error) = fcntl::fcntl(&sock, fcntl::F_SETFL(fcntl::OFlag::O_NONBLOCK)) {
+                tracing::warn!("Failed to set socket as nonblocking: {error}");
+                continue;
+            }
+
+            // SO_REUSEADDR allows us to bind to `127.x.y.z` even if another socket is bound to
+            // `0.0.0.0`. This can happen e.g. when macOS "Internet Sharing" is turned on.
+            if let Err(error) = socket::setsockopt(&sock, socket::sockopt::ReuseAddr, &true) {
+                tracing::warn!("Failed to set SO_REUSEADDR on resolver socket: {error}");
+            }
+
+            let sin = SockaddrIn::from(SocketAddrV4::new(socket_addr, DNS_LISTEN_PORT));
+
+            match socket::bind(sock.as_raw_fd(), &sin) {
+                Ok(()) => {
+                    let socket = UdpSocket::from_std(sock.into()).expect("socket is non-blocking");
+                    return Ok((socket, on_drop));
+                }
+                Err(err) => tracing::warn!("Failed to bind DNS server to {socket_addr}: {err}"),
+            }
+        }
+        Err(Error::UdpBind)
+    }
+
     /// Update the current DNS config.
     fn update_config(&mut self, config: Config) {
         match config {
@@ -421,6 +498,70 @@ impl LocalResolver {
                 .build();
 
         self.inner_resolver = Resolver::Forwarding(Box::new(resolver));
+    }
+}
+
+struct RandomLoopbackAlias {
+    addr: Ipv4Addr,
+    drop_guard: DropGuard,
+    unassign_task: JoinHandle<()>,
+}
+
+impl RandomLoopbackAlias {
+    /// Assign a random IPv4 alias for the loopback interface.
+    ///
+    /// The alias is automatically removed when the struct is dropped.
+    /// However it's recommended to call `unassign` to avoid race conditions.
+    pub async fn assign() -> std::io::Result<Self> {
+        let addr = Ipv4Addr::new(
+            127,
+            1u8.max(rand::random()),
+            rand::random(),
+            rand::random::<u8>().clamp(1, 254), // keep last octet in range 1-254
+        );
+
+        // TODO: this command requires root privileges and will thus not work in `cargo test`.
+        // This means that the tests will fall back to 127.0.0.1, and will not assert that the
+        // ifconfig stuff actually works. We probably do want to test this, so what do?
+        nym_macos::net::add_alias(LOOPBACK, IpAddr::from(addr))
+            .await
+            .inspect_err(|e| {
+                tracing::warn!("Failed to add loopback {LOOPBACK} alias {addr}: {e}");
+            })?;
+
+        tracing::debug!("Created loopback address {addr}");
+
+        let shutdown_token = CancellationToken::new();
+
+        let child_token = shutdown_token.child_token();
+        let unassign_task = tokio::task::spawn(async move {
+            child_token.cancelled().await;
+
+            tracing::debug!("Cleaning up loopback address {addr}");
+            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, IpAddr::from(addr)).await {
+                tracing::warn!("Failed to clean up {LOOPBACK} alias {addr}: {e}");
+            }
+        });
+
+        let drop_guard = shutdown_token.drop_guard();
+
+        Ok(Self {
+            addr,
+            drop_guard,
+            unassign_task,
+        })
+    }
+
+    /// Unassign the loopback alias.
+    pub async fn unassign(self) {
+        tracing::info!("DROP GUARD FFS!!!");
+        drop(self.drop_guard);
+        self.unassign_task.await.ok();
+    }
+
+    /// Returns loopback IPv4 alias address.
+    pub fn addr(&self) -> Ipv4Addr {
+        self.addr
     }
 }
 
@@ -521,14 +662,6 @@ impl ResolverImpl {
         let lookup_result = response_rx.await;
         let response_result = match lookup_result {
             Ok(Ok(ref lookup)) => {
-                tracing::info!(
-                    "Resolved to: {}",
-                    lookup
-                        .iter()
-                        .map(|record| format!("{record:?}"))
-                        .collect::<Vec<String>>()
-                        .join(", ")
-                );
                 let response = Self::build_response(message, lookup.as_ref());
                 response_handler.send_response(response).await
             }
@@ -549,11 +682,9 @@ impl ResolverImpl {
                         .unwrap_or(ResponseCode::NoError);
                     let response = MessageResponseBuilder::from_message_request(message)
                         .error_msg(message.header(), response_code);
-                    tracing::info!("Resolver error: no records found!");
                     response_handler.send_response(response).await
                 } else {
                     let response = Self::build_response(message, &EmptyLookup);
-                    tracing::info!("Resolver error: {resolve_err}");
                     response_handler.send_response(response).await
                 }
             }
@@ -623,8 +754,6 @@ mod test {
         time::Duration,
     };
 
-    const LISTEN_ADDR: SocketAddr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0));
-
     fn get_test_resolver(listen_addr: SocketAddr) -> TokioResolver {
         let resolver_config = ResolverConfig::from_parts(
             None,
@@ -637,7 +766,7 @@ mod test {
 
     #[tokio::test]
     async fn test_successful_lookup() {
-        let (handle, _join_handle) = LocalResolver::spawn(LISTEN_ADDR, CancellationToken::new())
+        let (handle, _join_handle) = LocalResolver::spawn(false, CancellationToken::new())
             .await
             .unwrap();
         let test_resolver = get_test_resolver(handle.listen_addr());
@@ -652,7 +781,7 @@ mod test {
 
     #[tokio::test]
     async fn test_failed_lookup() {
-        let (handle, _join_handle) = LocalResolver::spawn(LISTEN_ADDR, CancellationToken::new())
+        let (handle, _join_handle) = LocalResolver::spawn(false, CancellationToken::new())
             .await
             .unwrap();
         let test_resolver = get_test_resolver(handle.listen_addr());
@@ -669,7 +798,7 @@ mod test {
 
     #[tokio::test]
     async fn test_shutdown() {
-        let (handle, _join_handle) = LocalResolver::spawn(LISTEN_ADDR, CancellationToken::new())
+        let (handle, _join_handle) = LocalResolver::spawn(false, CancellationToken::new())
             .await
             .unwrap();
         let listen_addr = handle.listen_addr();
