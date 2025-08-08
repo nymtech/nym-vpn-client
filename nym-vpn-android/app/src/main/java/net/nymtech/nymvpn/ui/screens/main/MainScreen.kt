@@ -11,21 +11,19 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,11 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,11 +43,10 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.IconAction
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarAction
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage.Error
@@ -60,10 +54,12 @@ import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionButton
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.components.LocationField
-import net.nymtech.nymvpn.ui.screens.main.components.ModeModalBody
 import net.nymtech.nymvpn.ui.screens.main.components.ModeSelector
+import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
+import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
+import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
+import net.nymtech.nymvpn.ui.screens.main.modal.ShowInfoModal
 import net.nymtech.nymvpn.ui.screens.permission.Permission
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -103,11 +99,37 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionTime by viewModel.connectionTime.collectAsState()
 	var showBatteryDialog by remember { mutableStateOf(false) }
+	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
 			viewModel.onTunnelStateChanged(tunnelState, connectionData?.connectedAt)
+		}
+	}
+
+	fun checkBatteryOptimization() {
+		val pm = context.getSystemService(PowerManager::class.java)
+		val isIgnoringBatteryOptimizations = pm?.isIgnoringBatteryOptimizations(context.packageName) ?: true
+		if (!isIgnoringBatteryOptimizations && !appUiState.settings.batteryOptSkip) {
+			showBatteryDialog = true
+		} else {
+			viewModel.onConnect()
+		}
+	}
+
+	fun checkStatsEnabled() {
+		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsSkipped) {
+			SnackbarController.showMessage(
+				message = context.getString(R.string.notification_improve_title),
+				action = SnackbarAction(title = context.getString(R.string.notification_improve_button)) {
+					showNetworkStatsDialog = true
+				},
+				duration = SnackbarDuration.Long,
+				iconAction = IconAction(icon = Icons.Filled.Close) {
+					viewModel.onNetworkStatsSkipped()
+				},
+			)
 		}
 	}
 
@@ -118,7 +140,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			if (!accepted) {
 				navController.goFromRoot(Route.Permission(Permission.VPN))
 			} else {
-				viewModel.onConnect()
+				checkBatteryOptimization()
 			}
 		},
 	)
@@ -142,18 +164,17 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	fun onConnectPressed() {
-		val pm = context.getSystemService(PowerManager::class.java)
-		val isIgnoringBatteryOptimizations = pm?.isIgnoringBatteryOptimizations(context.packageName) ?: true
 		val intent = VpnService.prepare(context)
 		if (intent != null) {
 			vpnActivityResultState.launch(intent)
 		} else {
-			if (!isIgnoringBatteryOptimizations && !appUiState.settings.batteryOptSkip) {
-				showBatteryDialog = true
-			} else {
-				viewModel.onConnect()
-			}
+			checkBatteryOptimization()
 		}
+	}
+
+	fun onDisconnectPressed() {
+		viewModel.onDisconnect()
+		checkStatsEnabled()
 	}
 
 	LaunchedEffect(Unit) {
@@ -226,131 +247,56 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				connectionState = uiState.connectionState,
 				isMnemonicStored = appUiState.managerState.isMnemonicStored,
 				onConnect = { onConnectPressed() },
-				onDisconnect = { viewModel.onDisconnect() },
+				onDisconnect = { onDisconnectPressed() },
 				navController = navController,
 				snackbar = snackbar,
 			)
 		}
 	}
 
-	Modal(
-		show = showInfoDialog,
+	ShowInfoModal(
+		context = context,
+		showInfoDialog = showInfoDialog,
 		onDismiss = { showInfoDialog = false },
-		title = {
-			Text(
-				text = stringResource(R.string.mode_selection).uppercase(),
-				color = MaterialTheme.colorScheme.onSurface,
-				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-			)
-		},
-		text = {
-			ModeModalBody(
-				onClick = { context.openWebUrl(context.getString(R.string.mode_support_link)) },
-			)
-		},
 	)
 
-	Modal(
-		show = showCompatibilityDialog,
+	CompatibilityModal(
+		showCompatibilityDialog = showCompatibilityDialog,
 		onDismiss = { showCompatibilityDialog = false },
-		title = {
-			Text(
-				text = stringResource(R.string.update_required).uppercase(),
-				color = MaterialTheme.colorScheme.onSurface,
-				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-			)
-		},
-		text = {
-			Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
-				Row(
-					horizontalArrangement = Arrangement.spacedBy(10.dp.scaledWidth(), Alignment.CenterHorizontally),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Text(
-						text = stringResource(R.string.app_update_required),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
-					)
-				}
-			}
-		},
-		confirmButton = {
-			MainStyledButton(
-				onClick = {
-					showCompatibilityDialog = false
-					context.openWebUrl(context.getString(R.string.download_url))
-				},
-				content = { Text(stringResource(R.string.update).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono))) },
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(56.dp.scaledHeight()),
-			)
+		onConfirmClick = {
+			showCompatibilityDialog = false
+			context.openWebUrl(context.getString(R.string.download_url))
 		},
 	)
 
-	Modal(
-		show = showBatteryDialog,
-		onDismiss = { showBatteryDialog = false },
-		title = {
-			Text(
-				text = stringResource(R.string.battery_opt_title).uppercase(),
-				color = MaterialTheme.colorScheme.onSurface,
-				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-			)
-		},
-		text = {
-			Column(modifier = Modifier.fillMaxWidth()) {
-				Text(
-					text = stringResource(R.string.battery_opt_descr),
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurface,
-				)
-				Row(
-					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.Start),
-					verticalAlignment = Alignment.CenterVertically,
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(top = 24.dp),
-				) {
-					MainStyledButton(
-						onClick = {
-							val packageName = "package:${context.packageName}".toUri()
-							val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-								data = packageName
-							}
-							batteryOptResultState.launch(intent)
-							showBatteryDialog = false
-						},
-						content = { Text(stringResource(R.string.settings).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono))) },
-						modifier = Modifier
-							.weight(1f)
-							.height(46.dp),
-					)
-					OutlineStyledButton(
-						onClick = {
-							showBatteryDialog = false
-							viewModel.onBatteryOptSkipped()
-							snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
-							viewModel.onConnect()
-						},
-						content = {
-							Text(
-								stringResource(R.string.skip).uppercase(),
-								style = MaterialTheme.typography.labelLarge,
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-							)
-						},
-						backgroundColor = Color.Transparent,
-						modifier = Modifier
-							.weight(1f)
-							.height(46.dp),
-					)
-				}
+	BatteryModal(
+		showBatteryDialog = showBatteryDialog,
+		onClickSettings = {
+			val packageName = "package:${context.packageName}".toUri()
+			val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+				data = packageName
 			}
+			batteryOptResultState.launch(intent)
+			showBatteryDialog = false
 		},
-		confirmButton = {},
+		onDismiss = {
+			showBatteryDialog = false
+			viewModel.onBatteryOptSkipped()
+			snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
+			viewModel.onConnect()
+		},
+	)
+
+	NetworkStatsModal(
+		showNetworkStatsDialog = showNetworkStatsDialog,
+		onConfirm = {
+			showNetworkStatsDialog = false
+			viewModel.setNetworkStatsEnabled()
+			snackbar.showMessage(context.getString(R.string.notification_stats_enabled))
+		},
+		onDismiss = {
+			viewModel.onNetworkStatsSkipped()
+			showNetworkStatsDialog = false
+		},
 	)
 }

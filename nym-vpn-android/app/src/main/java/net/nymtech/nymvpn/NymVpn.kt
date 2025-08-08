@@ -92,7 +92,11 @@ class NymVpn : Application() {
 			}
 		}
 		requestTileServiceStateUpdate()
-		initSentry()
+		applicationScope.launch {
+			if (settingsRepository.getSentryMonitoringEnabled()) {
+				initSentry()
+			}
+		}
 	}
 
 	private fun initSentry() {

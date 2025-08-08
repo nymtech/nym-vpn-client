@@ -22,6 +22,9 @@ sealed class Route {
 	data object Appearance : Route()
 
 	@Serializable
+	data object Privacy : Route()
+
+	@Serializable
 	data object Developer : Route()
 
 	@Serializable

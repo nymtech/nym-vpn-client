@@ -59,4 +59,5 @@ object CustomColors {
 	val error = Color(0xFFE33B5A)
 	val snackBarBackgroundColor = Color(0xFF484649)
 	val snackbarTextColor = Color(0xFFE7E7E7)
+	val warning = Color(0xFFFFB400)
 }

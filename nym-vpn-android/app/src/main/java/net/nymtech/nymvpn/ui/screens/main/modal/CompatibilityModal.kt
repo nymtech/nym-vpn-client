@@ -1,13 +1,12 @@
-package net.nymtech.nymvpn.ui.screens.settings.logs.components
+package net.nymtech.nymvpn.ui.screens.main.modal
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -20,30 +19,30 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun DeleteLogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit) {
 	Modal(
-		show = show,
+		show = showCompatibilityDialog,
 		onDismiss = onDismiss,
 		title = {
 			Text(
-				stringResource(R.string.delete_logs_title),
+				text = stringResource(R.string.update_required),
+				color = MaterialTheme.colorScheme.onSurface,
 				style = CustomTypography.labelHuge,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
 			Text(
-				stringResource(R.string.delete_logs_description),
+				stringResource(R.string.app_update_required),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
-		icon = Icons.Outlined.Delete,
 		confirmButton = {
 			MainStyledButton(
-				onClick = onConfirm,
-				content = { Text(stringResource(R.string.yes), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
+				onClick = onConfirmClick,
+				content = { Text(stringResource(R.string.update), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},

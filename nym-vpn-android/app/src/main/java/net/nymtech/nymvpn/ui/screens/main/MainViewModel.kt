@@ -52,6 +52,14 @@ constructor(
 		settingsRepository.setBatteryOptSkipped(true)
 	}
 
+	fun setNetworkStatsEnabled() = viewModelScope.launch {
+		settingsRepository.setStatisticsEnabled(true)
+	}
+
+	fun onNetworkStatsSkipped() = viewModelScope.launch {
+		settingsRepository.setStatisticsSkipped(true)
+	}
+
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {
 		if (tunnelState == Tunnel.State.Up && connectedAt != null) {
 			startConnectionTimer(connectedAt)

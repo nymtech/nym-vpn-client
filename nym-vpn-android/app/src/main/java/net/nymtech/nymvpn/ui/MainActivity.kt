@@ -62,6 +62,7 @@ import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
+import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -142,12 +143,11 @@ class MainActivity : AppCompatActivity() {
 			}
 
 			CompositionLocalProvider(LocalNavController provides navController) {
-				SnackbarControllerProvider { host ->
+				SnackbarControllerProvider { host, content ->
 					NymVPNTheme(theme = appState.settings.theme ?: Theme.default()) {
 						Scaffold(
 							contentWindowInsets = WindowInsets(0.dp),
 							modifier = Modifier.semantics {
-								// Enables testTag -> UiAutomator resource id
 								@OptIn(ExperimentalComposeUiApi::class)
 								testTagsAsResourceId = true
 							},
@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity() {
 							},
 							snackbarHost = {
 								SnackbarHost(host) { snackbarData: SnackbarData ->
-									CustomSnackBar(message = snackbarData.visuals.message, paddingTop = navHeight)
+									CustomSnackBar(snackbarData, paddingTop = navHeight, content = content)
 								}
 							},
 						) { padding ->
@@ -231,6 +231,9 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Appearance> {
 									AppearanceScreen()
+								}
+								composable<Route.Privacy> {
+									PrivacyScreen(appState)
 								}
 								composable<Route.Display> {
 									DisplayScreen(appState)
