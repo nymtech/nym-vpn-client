@@ -1,4 +1,5 @@
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::env;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use std::process::Command;
@@ -85,6 +86,19 @@ impl OsInfo {
                 env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
         }
+    }
+
+    pub fn hash_identifier(&self) -> String {
+        let parts = [
+            self.version.clone(),
+            self.kernel.clone().unwrap_or_default(),
+            self.arch.clone(),
+            sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string()),
+        ];
+
+        let os_name = parts.join(" ");
+        let hash = Sha256::digest(os_name.as_bytes());
+        format!("{hash:x}")
     }
 }
 
