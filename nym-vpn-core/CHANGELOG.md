@@ -22,8 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix potential infinite loop when sending a disconnect message over mixnet. Limit disconnect timeout to 5 seconds and add 500ms delay between retries. (https://github.com/nymtech/nym-vpn-client/pull/3160)
 - Prevent gateways refresh from blocking daemon shutdown during initialization. (https://github.com/nymtech/nym-vpn-client/pull/3160)
 - Add timeout to DNS resolution fixing indefinite connecting state. (https://github.com/nymtech/nym-vpn-client/pull/3231)
-- Fix issues with DNS not being properly reset on disconnect on macOS 15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
-- Fix DNS resolution issues with command line tools such as `nslookup` and `dig` not respecting custom DNS port. (https://github.com/nymtech/nym-vpn-client/pull/3232)
+- [macOS] Fix issues with DNS not being properly reset on disconnect on macOS 15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
+- [macOS] Bind DNS resolver to random loopback IP on port 53 to fix compatibility issues with other software, notably `dig` and `nslookup`. (https://github.com/nymtech/nym-vpn-client/pull/3232)
 
 
 ## [1.13.1] - 2025-07-30
