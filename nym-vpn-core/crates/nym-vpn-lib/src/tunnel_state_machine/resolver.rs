@@ -523,7 +523,7 @@ impl RandomLoopbackAlias {
         // TODO: this command requires root privileges and will thus not work in `cargo test`.
         // This means that the tests will fall back to 127.0.0.1, and will not assert that the
         // ifconfig stuff actually works. We probably do want to test this, so what do?
-        nym_macos::net::add_alias(LOOPBACK, IpAddr::from(addr))
+        nym_macos::net::add_alias(LOOPBACK, addr)
             .await
             .inspect_err(|e| {
                 tracing::warn!("Failed to add loopback {LOOPBACK} alias {addr}: {e}");
@@ -538,7 +538,7 @@ impl RandomLoopbackAlias {
             child_token.cancelled().await;
 
             tracing::debug!("Cleaning up loopback address {addr}");
-            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, IpAddr::from(addr)).await {
+            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, addr).await {
                 tracing::warn!("Failed to clean up {LOOPBACK} alias {addr}: {e}");
             }
         });

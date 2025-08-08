@@ -4783,7 +4783,7 @@ dependencies = [
 name = "nym-macos"
 version = "1.14.0-beta"
 dependencies = [
- "libc",
+ "nix 0.30.1",
  "tokio",
  "tracing",
 ]
