@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{NodeIdentity, Recipient};
+use nym_gateway_directory::NodeIdentity;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -14,6 +14,9 @@ pub enum Error {
 
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
+
+    #[error(transparent)]
+    MetadataClientError(#[from] nym_wg_metadata_client::error::MetadataClientError),
 
     #[error("error that should stop auto retrying")]
     NoRetry {
@@ -38,16 +41,10 @@ pub enum Error {
 #[derive(Debug, thiserror::Error)]
 pub enum ErrorMessage {
     #[error("out of bandwidth for gateway: {gateway_id}")]
-    OutOfBandwidth {
-        gateway_id: Box<NodeIdentity>,
-        authenticator_address: Box<Recipient>,
-    },
+    OutOfBandwidth { gateway_id: Box<NodeIdentity> },
 
-    #[error("disconnected by gateway: {gateway_id}")]
-    DisconnectedByGateway {
-        gateway_id: Box<NodeIdentity>,
-        authenticator_address: Box<Recipient>,
-    },
+    #[error("gateway {gateway_id} is erroring out")]
+    ErrorsFromGateway { gateway_id: Box<NodeIdentity> },
 }
 
 // Result type based on our error type

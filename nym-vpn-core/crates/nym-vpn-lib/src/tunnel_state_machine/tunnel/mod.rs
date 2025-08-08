@@ -28,7 +28,7 @@ use super::route_handler;
 use super::{MixnetEvent, TunnelType};
 use crate::{
     GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
-    mixnet::SharedMixnetClient,
+    mixnet::SharedMixnetClient, tunnel_state_machine::tunnel::wireguard::connector::TunUpEvent,
 };
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
@@ -82,7 +82,7 @@ impl ConnectedMixnet {
         task_manager: &TaskManager,
         network: &Network,
         cancel_token: CancellationToken,
-    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
+    ) -> Result<(wireguard::connected_tunnel::ConnectedTunnel, TunUpEvent)> {
         let connector =
             wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
 

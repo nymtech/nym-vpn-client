@@ -7,6 +7,7 @@ use std::{
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
 use nym_wg_gateway_client::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
@@ -147,7 +148,7 @@ impl WgNodeConfig {
     }
 
     fn allowed_ips(&self) -> Vec<IpNetwork> {
-        let mut allowed_ips = vec![];
+        let mut allowed_ips = vec![IpNetwork::from(IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4))];
         match self.allowed_ips {
             AllowedIps::All => {
                 if self.interface.addresses.iter().any(|x| x.ip().is_ipv4()) {
