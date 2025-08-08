@@ -33,7 +33,7 @@ export function useTauriEvents(
     return listen<VpndStatus>(
       DaemonEvent,
       async ({ event, payload: status }) => {
-        console.info(
+        console.log(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);

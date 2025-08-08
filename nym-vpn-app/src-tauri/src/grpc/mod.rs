@@ -12,4 +12,5 @@ pub mod system_message;
 mod timestamp;
 pub mod tunnel;
 mod tunnel_error;
+mod vpnd_event;
 pub mod vpnd_status;
