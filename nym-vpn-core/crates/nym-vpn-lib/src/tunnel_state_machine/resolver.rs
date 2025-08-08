@@ -528,7 +528,7 @@ impl RandomLoopbackAlias {
         // TODO: this command requires root privileges and will thus not work in `cargo test`.
         // This means that the tests will fall back to 127.0.0.1, and will not assert that the
         // ifconfig stuff actually works. We probably do want to test this, so what do?
-        nym_macos::net::add_alias(LOOPBACK, addr)
+        nym_macos::net::add_alias(LOOPBACK, IpAddr::from(addr))
             .await
             .inspect_err(|e| {
                 tracing::warn!("Failed to add loopback {LOOPBACK} alias {addr}: {e}");
@@ -543,7 +543,7 @@ impl RandomLoopbackAlias {
             child_token.cancelled().await;
 
             tracing::debug!("Cleaning up loopback address {addr}");
-            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, addr).await {
+            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, IpAddr::from(addr)).await {
                 tracing::warn!("Failed to clean up {LOOPBACK} alias {addr}: {e}");
             }
         });
@@ -758,7 +758,7 @@ mod test {
         name_server::TokioConnectionProvider,
     };
     use nix::sys::socket::{
-        self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrIn, sockopt,
+        self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrIn, SockaddrStorage, sockopt,
     };
     use tokio_util::sync::CancellationToken;
 
@@ -897,11 +897,11 @@ mod test {
 
     #[derive(typed_builder::TypedBuilder)]
     struct BindParams {
-        bind_addr: SocketAddrV4,
+        bind_addr: SocketAddr,
         reuse_addr: bool,
         reuse_port: bool,
         #[builder(default)]
-        connect_addr: Option<SocketAddrV4>,
+        connect_addr: Option<SocketAddr>,
     }
 
     /// Helper function for creating and binding a UDP socket
@@ -916,12 +916,10 @@ mod test {
         socket::setsockopt(&sock, sockopt::ReuseAddr, &params.reuse_addr)?;
         socket::setsockopt(&sock, sockopt::ReusePort, &params.reuse_port)?;
 
-        let sa = SockaddrIn::from(params.bind_addr);
-        socket::bind(sock.as_raw_fd(), &sa)?;
+        socket::bind(sock.as_raw_fd(), &SockaddrStorage::from(params.bind_addr))?;
 
-        if let Some(addr) = params.connect_addr {
-            let sa = SockaddrIn::from(addr);
-            socket::connect(sock.as_raw_fd(), &sa)?;
+        if let Some(connect_addr) = params.connect_addr.map(SockaddrStorage::from) {
+            socket::connect(sock.as_raw_fd(), &connect_addr)?;
         }
 
         println!(
