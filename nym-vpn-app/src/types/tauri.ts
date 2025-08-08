@@ -35,7 +35,6 @@ export type DbKey =
  * backend side
  * */
 export type ErrorKey =
-  | 'unknown'
   | 'internal'
   | 'grpc'
   | 'not-connected-to-daemon'
@@ -46,10 +45,12 @@ export type ErrorKey =
   | 'exit-gw-routing-error-ipv6'
   | 'no-bandwidth'
   | 'account-invalid-mnemonic'
+  | 'no-account-stored'
+  | 'no-device-stored'
+  | 'existing-account'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
-  | 'get-wg-countries-query'
-  | 'invalid-network-name';
+  | 'get-wg-countries-query';
 
 type VpndOk = { ok: DaemonInfo | null };
 type VpndNonCompat = {

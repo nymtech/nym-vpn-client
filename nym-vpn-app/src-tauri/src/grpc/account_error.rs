@@ -40,48 +40,41 @@ impl From<AccountCommandError> for BackendError {
     fn from(error: AccountCommandError) -> Self {
         let Some(detail) = error.error_detail else {
             error!("missing error detail in AccountCommandError");
-            return BackendError::internal_with_detail(
-                "failed to run account command",
-                "failed to run account command".to_string(),
-            );
+            return BackendError::internal("failed to run account command", None);
         };
         match detail {
-            AccountError::Internal(data) => {
-                BackendError::internal_with_detail("internal error", data)
-            }
-            AccountError::StorageError(data) => BackendError::internal_with_detail(
-                "storage error",
-                format!("storage error: {data}"),
+            AccountError::Internal(e) => BackendError::internal_with_detail("AC internal error", e),
+            AccountError::StorageError(e) => BackendError::internal_with_detail(
+                "AC storage error",
+                format!("AC storage error: {e}"),
             ),
             AccountError::VpnApi(error) => error.into(),
-            AccountError::UnexpectedResponse(data) => BackendError::internal_with_detail(
-                "unexpected response",
-                format!("unexpected response: {data}"),
+            AccountError::UnexpectedResponse(e) => BackendError::internal_with_detail(
+                "AC unexpected response",
+                format!("AC unexpected response: {e}"),
             ),
-            AccountError::NoAccountStored(data) => BackendError::with_detail(
-                "no account stored",
+            AccountError::NoAccountStored(v) => BackendError::with_detail(
+                "AC no account stored",
                 ErrorKey::NoAccountStored,
-                format!("no account stored : {data}"),
+                format!("AC no account stored : {v}"),
             ),
-            AccountError::NoDeviceStored(data) => BackendError::with_detail(
-                "no device stored",
+            AccountError::NoDeviceStored(v) => BackendError::with_detail(
+                "AC no device stored",
                 ErrorKey::NoDeviceStored,
-                format!("no device stored : {data}"),
+                format!("AC no device stored : {v}"),
             ),
-            AccountError::ExistingAccount(data) => BackendError::with_detail(
-                "account already exists",
+            AccountError::ExistingAccount(v) => BackendError::with_detail(
+                "AC account already exists",
                 ErrorKey::ExistingAccount,
-                format!("account already exists : {data}"),
+                format!("AC account already exists : {v}"),
             ),
-            AccountError::Offline(data) => BackendError::with_detail(
-                "account controller is offline",
-                ErrorKey::AccountControllerOffline,
-                format!("account controller is offline : {data}"),
-            ),
-            AccountError::InvalidMnemonic(data) => BackendError::with_detail(
+            AccountError::Offline(v) => {
+                BackendError::internal_with_detail("AC is offline", format!("AC is offline : {v}"))
+            }
+            AccountError::InvalidMnemonic(e) => BackendError::with_detail(
                 "invalid mnemonic",
                 ErrorKey::AccountInvalidMnemonic,
-                format!("invalid mnemonic: {data}"),
+                format!("invalid mnemonic: {e}"),
             ),
         }
     }

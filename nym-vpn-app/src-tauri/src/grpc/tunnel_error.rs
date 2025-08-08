@@ -11,6 +11,7 @@ pub enum TunnelError {
     Internal(Option<String>),
     Dns(Option<String>),
     Api(Option<String>),
+    AccountController(Option<String>),
     Firewall(Option<String>),
     Routing(Option<String>),
     SameEntryAndExitGw(Option<String>),
@@ -21,7 +22,6 @@ pub enum TunnelError {
     InactiveSubscription(Option<String>),
     DeviceTimeOutOfSync(Option<String>),
     Ipv6Unavailable(Option<String>),
-    AccountControl(Option<String>),
 }
 
 impl From<ProtoTunnelError> for TunnelError {
@@ -31,6 +31,7 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::Firewall => TunnelError::Firewall(error.detail),
             ErrorStateReason::Routing => TunnelError::Routing(error.detail),
             ErrorStateReason::Dns => TunnelError::Dns(error.detail),
+            ErrorStateReason::AccountControl => TunnelError::AccountController(error.detail),
             ErrorStateReason::SameEntryAndExitGateway => {
                 TunnelError::SameEntryAndExitGw(error.detail)
             }
@@ -49,7 +50,6 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(error.detail),
             ErrorStateReason::CreateMixnetStorage => TunnelError::Internal(error.detail),
             ErrorStateReason::Ipv6Unavailable => TunnelError::Ipv6Unavailable(error.detail),
-            ErrorStateReason::AccountControl => TunnelError::AccountControl(error.detail),
         }
     }
 }

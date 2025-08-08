@@ -17,6 +17,7 @@ use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
 use sentry::ClientInitGuard;
+use std::borrow::Cow;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -29,6 +30,7 @@ use crate::{
     logging::LogFileRemoverHandle,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
+use sha2::{Digest, Sha256};
 
 fn main() -> anyhow::Result<()> {
     let rt = runtime::new_runtime();
@@ -254,6 +256,8 @@ fn init_sentry() -> Option<ClientInitGuard> {
         return None;
     };
 
+    let os_info = nym_vpn_lib::SysInfo::new();
+
     println!("Sentry monitoring enabled");
     let guard = sentry::init((
         dsn,
@@ -264,10 +268,34 @@ fn init_sentry() -> Option<ClientInitGuard> {
             traces_sample_rate: 1.0,
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(2),
+            server_name: Some(Cow::Borrowed("nym")),
             ..Default::default()
         },
     ));
+    sentry::configure_scope(|scope| {
+        scope.set_tag("os_version", &os_info.os_version);
+        scope.set_tag("extra_metadata", os_info.extra.join(", "));
+        scope.set_user(Some(sentry::User {
+            id: Some(anonymize_identifier(&os_info)), // anonymized user identifier
+            ip_address: None,
+            ..Default::default()
+        }));
+    });
+
     Some(guard)
+}
+
+fn anonymize_identifier(os_info: &nym_vpn_lib::SysInfo) -> String {
+    let identifier = format!(
+        "{} {} {} {}",
+        os_info.os_version,
+        os_info.arch,
+        os_info.extra.join(" "),
+        sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string())
+    );
+
+    let hash = Sha256::digest(identifier.as_bytes());
+    format!("{hash:x}")
 }
 
 fn log_software_and_os_version() {

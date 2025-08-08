@@ -10,6 +10,7 @@
   "tunnel": {
     "internal": "Internal error",
     "api": "API error",
+    "account-controller": "Account controller: internal error",
     "firewall": "Firewall error",
     "routing": "Routing error",
     "dns": "DNS error",
@@ -25,7 +26,10 @@
   "account": {
     "invalid-recovery-phrase": "Invalid access code",
     "storage": "Storage backend error",
-    "is-connected": "Unable to proceed while connected"
+    "is-connected": "Unable to proceed while connected",
+    "no-account-stored": "No account stored",
+    "no-device-stored": "No device stored",
+    "existing-account": "Account already exists"
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",

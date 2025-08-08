@@ -51,6 +51,7 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
+sha2.workspace = true
 
 # Local crates
 nym-ipc.workspace = true
