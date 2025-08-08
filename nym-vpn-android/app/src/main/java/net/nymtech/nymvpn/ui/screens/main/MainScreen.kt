@@ -263,7 +263,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	CompatibilityModal(
 		showCompatibilityDialog = showCompatibilityDialog,
 		onDismiss = { showCompatibilityDialog = false },
-		confirmClick = {
+		onConfirmClick = {
 			showCompatibilityDialog = false
 			context.openWebUrl(context.getString(R.string.download_url))
 		},

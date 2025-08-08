@@ -19,7 +19,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, confirmClick: () -> Unit) {
+fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, onConfirmClick: () -> Unit) {
 	Modal(
 		show = showCompatibilityDialog,
 		onDismiss = onDismiss,
@@ -41,7 +41,7 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 		},
 		confirmButton = {
 			MainStyledButton(
-				onClick = confirmClick,
+				onClick = onConfirmClick,
 				content = { Text(stringResource(R.string.update), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
