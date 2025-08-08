@@ -52,6 +52,7 @@ import net.nymtech.nymvpn.ui.screens.main.components.LocationField
 import net.nymtech.nymvpn.ui.screens.main.components.ModeSelector
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
+import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
 import net.nymtech.nymvpn.ui.screens.main.modal.ShowInfoModal
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -239,10 +240,10 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		confirmClick = {
 			showCompatibilityDialog = false
 			context.openWebUrl(context.getString(R.string.download_url))
-		}
+		},
 	)
 
-	BatteryModal (
+	BatteryModal(
 		showBatteryDialog = showBatteryDialog,
 		onClickSettings = {
 			val packageName = "package:${context.packageName}".toUri()
@@ -252,11 +253,17 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			batteryOptResultState.launch(intent)
 			showBatteryDialog = false
 		},
-		onClickSkip = {
+		onDismiss = {
 			showBatteryDialog = false
 			viewModel.onBatteryOptSkipped()
 			snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
 			viewModel.onConnect()
+		},
+	)
+
+	NetworkStatsModal(
+		showNetworkStatsDialog = false,
+		onConfirm = {
 		},
 		onDismiss = { showBatteryDialog = false },
 	)

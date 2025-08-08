@@ -1,54 +1,87 @@
 package net.nymtech.nymvpn.ui.screens.hop.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.Modal
+import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun ServerDetailsModalBody(onClick: () -> Unit) {
-	Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
-		Text(
-			text = stringResource(R.string.gateway_modal_description),
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onSurfaceVariant,
-			textAlign = TextAlign.Center,
-		)
-		CompositionLocalProvider(
-			LocalMinimumInteractiveComponentSize provides 0.dp,
-		) {
-			TextButton(
-				onClick = {
-					onClick()
-				},
-			) {
+fun ServerDetailsModalBody(showLocationTooltip: Boolean, onClick: () -> Unit, onDismiss: () -> Unit) {
+	Modal(
+		show = showLocationTooltip,
+		onDismiss = onDismiss,
+		title = {
+			Text(
+				text = stringResource(R.string.gateway_locations_title),
+				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
+		},
+		text = {
+			Column {
+				Text(
+					stringResource(R.string.gateway_modal_description),
+					textAlign = TextAlign.Center,
+					style = MaterialTheme.typography.bodyMedium,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				)
 				Row(
-					modifier = Modifier.fillMaxWidth(),
 					horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally),
-					verticalAlignment = Alignment.CenterVertically,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 12.dp)
+						.clickable {
+							onClick()
+						},
 				) {
-					Text(stringResource(id = R.string.continue_reading), style = MaterialTheme.typography.bodyMedium)
+					Text(
+						stringResource(id = R.string.continue_reading),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.primary,
+					)
 					val icon = Icons.AutoMirrored.Outlined.OpenInNew
-					Icon(icon, stringResource(R.string.go), Modifier.size(16.dp))
+					Icon(
+						icon,
+						stringResource(R.string.go),
+						Modifier
+							.size(16.dp)
+							.align(Alignment.CenterVertically),
+						tint = MaterialTheme.colorScheme.primary,
+					)
 				}
 			}
-		}
-	}
+		},
+		confirmButton = {
+			MainStyledButton(
+				onClick = onDismiss,
+				content = { Text(stringResource(R.string.okay), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
+			)
+		},
+	)
 }

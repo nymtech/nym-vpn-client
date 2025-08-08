@@ -26,9 +26,9 @@ fun DeleteLogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit)
 		onDismiss = onDismiss,
 		title = {
 			Text(
-				stringResource(R.string.delete_logs_title).uppercase(),
+				stringResource(R.string.delete_logs_title),
 				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
@@ -36,13 +36,14 @@ fun DeleteLogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit)
 				stringResource(R.string.delete_logs_description),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		icon = Icons.Outlined.Delete,
 		confirmButton = {
 			MainStyledButton(
 				onClick = onConfirm,
-				content = { Text(stringResource(R.string.yes).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono))) },
+				content = { Text(stringResource(R.string.yes), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},

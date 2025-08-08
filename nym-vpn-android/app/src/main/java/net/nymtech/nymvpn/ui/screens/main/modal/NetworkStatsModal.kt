@@ -2,6 +2,8 @@ package net.nymtech.nymvpn.ui.screens.main.modal
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,37 +22,53 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDismiss: () -> Unit) {
+fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 	Modal(
-		show = showBatteryDialog,
+		show = showNetworkStatsDialog,
 		onDismiss = onDismiss,
 		title = {
 			Text(
-				text = stringResource(R.string.battery_opt_title),
+				stringResource(R.string.modal_network_stats_title),
 				style = CustomTypography.labelHuge,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
 			Text(
-				stringResource(R.string.battery_opt_descr),
+				stringResource(R.string.modal_network_stats_descr),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
+		icon = Icons.Outlined.Info,
 		confirmButton = {
 			MainStyledButton(
-				onClick = onClickSettings,
-				content = { Text(stringResource(R.string.settings), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				onClick = onConfirm,
+				content = {
+					Text(
+						stringResource(R.string.modal_network_stats_enable_button),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = Color.Black,
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 		dismissButton = {
 			TransparentButton(
 				onClick = onDismiss,
-				content = { Text(stringResource(R.string.skip), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				content = {
+					Text(
+						stringResource(R.string.modal_network_stats_not_now_button),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 	)

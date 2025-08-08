@@ -281,5 +281,9 @@
 	<string name="link_error_reports_text">View Sentry Privacy Policy</string>
 	<string name="link_error_reports">https://sentry.io/privacy/</string>
 	<string name="restart_error_reports">Changes will apply after app restart.</string>
+	<string name="modal_network_stats_title">Upgrade your experience</string>
+	<string name="modal_network_stats_descr">Help improve NymVPN by sharing anonymous network stats from your region. \n\nYour data stays private and secure.</string>
+	<string name="modal_network_stats_enable_button">Enable network stats</string>
+	<string name="modal_network_stats_not_now_button">Not now</string>
 
 </resources>

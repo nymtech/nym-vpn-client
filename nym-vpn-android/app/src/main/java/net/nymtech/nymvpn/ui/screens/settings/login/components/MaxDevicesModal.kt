@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
@@ -29,6 +31,7 @@ fun MaxDevicesModal(show: Boolean, accountLinks: AccountLinks?, onDismiss: () ->
 				text = stringResource(R.string.max_devices_reached_title),
 				color = MaterialTheme.colorScheme.onSurface,
 				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				textAlign = TextAlign.Center,
 			)
 		},
@@ -49,6 +52,7 @@ fun MaxDevicesModal(show: Boolean, accountLinks: AccountLinks?, onDismiss: () ->
 							stringResource(R.string.close),
 							style = MaterialTheme.typography.labelLarge,
 							color = MaterialTheme.colorScheme.primary,
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					},
 				)

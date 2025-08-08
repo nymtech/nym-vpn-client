@@ -27,6 +27,9 @@ fun CredentialModalBody(onClick: () -> Unit) {
 			style = MaterialTheme.typography.bodyMedium,
 			color = MaterialTheme.colorScheme.onSurface,
 			textAlign = TextAlign.Center,
+			fontFamily = FontFamily(
+				Font(R.font.lab_grotesque_regular),
+			),
 		)
 		CompositionLocalProvider(
 			LocalMinimumInteractiveComponentSize provides 0.dp,
@@ -35,10 +38,10 @@ fun CredentialModalBody(onClick: () -> Unit) {
 				onClick = { onClick() },
 				content = {
 					Text(
-						stringResource(id = R.string.manage_devices).uppercase(),
+						stringResource(id = R.string.manage_devices),
 						style = MaterialTheme.typography.labelLarge,
 						fontFamily = FontFamily(
-							Font(R.font.lab_grotesque_mono),
+							Font(R.font.lab_grotesque_regular),
 						),
 						color = MaterialTheme.colorScheme.onPrimary,
 					)

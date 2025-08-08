@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,15 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
@@ -182,15 +177,11 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 		}
 	}
 
-	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
-		Text(
-			stringResource(R.string.gateway_locations_title).uppercase(),
-			style = CustomTypography.labelHuge,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-		)
-	}, text = {
-		ServerDetailsModalBody(onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) })
-	})
+	ServerDetailsModalBody(
+		showLocationTooltip = showLocationTooltip,
+		onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) },
+		onDismiss = { showLocationTooltip = false },
+	)
 
 	AnimatedVisibility(
 		visible = navBarState.show,

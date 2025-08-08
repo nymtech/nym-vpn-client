@@ -34,15 +34,17 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 				text = stringResource(R.string.log_out_title),
 				color = MaterialTheme.colorScheme.onSurface,
 				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
 			Column(modifier = Modifier.fillMaxWidth()) {
 				Text(
 					stringResource(R.string.log_out_body),
-					style = MaterialTheme.typography.bodyMedium,
 					color = MaterialTheme.colorScheme.outline,
 					textAlign = TextAlign.Center,
+					style = MaterialTheme.typography.bodyMedium,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 				Row(
 					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.Start),
@@ -53,10 +55,10 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 						onClick = onDismiss,
 						content = {
 							Text(
-								stringResource(R.string.cancel).uppercase(),
+								stringResource(R.string.cancel),
 								style = MaterialTheme.typography.labelLarge,
 								fontFamily = FontFamily(
-									Font(R.font.lab_grotesque_mono),
+									Font(R.font.lab_grotesque_regular),
 								),
 							)
 						},
@@ -66,9 +68,9 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 						onClick = onConfirm,
 						content = {
 							Text(
-								stringResource(R.string.log_out).uppercase(),
+								stringResource(R.string.log_out),
 								style = MaterialTheme.typography.labelLarge,
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 							)
 						},
 						backgroundColor = Color.Transparent,
