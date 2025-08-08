@@ -1,13 +1,16 @@
 ---
 # proto changes
-"proto/**/*.proto":
+"nym-vpn-core/crates/nym-vpn-proto/**":
   - rokas-ambrazevicius
   - neacsu
   - doums
   - pronebird
+  - mrkiwi
 
 # client app changes
 "nym-vpn-app/*":
   - doums
 "nym-vpn-apple/*":
   - rokas-ambrazevicius
+"nym-vpn-android/*":
+  - mrkiwi
