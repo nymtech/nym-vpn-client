@@ -12,7 +12,7 @@
 //! See [start_resolver].
 use std::{
     io,
-    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4},
+    net::{IpAddr, Ipv4Addr, SocketAddr},
     os::fd::AsRawFd,
     str::FromStr,
     sync::{Arc, LazyLock},
@@ -39,7 +39,7 @@ use hickory_server::{
 };
 use nix::{
     fcntl,
-    sys::socket::{self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrIn},
+    sys::socket::{self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrStorage},
 };
 
 use tokio::{
@@ -431,7 +431,7 @@ impl LocalResolver {
                     Ok(random) => (random.addr(), Some(random)),
                     Err(_) => continue,
                 },
-                3 => (Ipv4Addr::LOCALHOST, None),
+                3 => (IpAddr::from(Ipv4Addr::LOCALHOST), None),
                 4.. => break,
             };
 
@@ -460,7 +460,7 @@ impl LocalResolver {
                 tracing::warn!("Failed to set SO_REUSEADDR on resolver socket: {error}");
             }
 
-            let sin = SockaddrIn::from(SocketAddrV4::new(socket_addr, DNS_LISTEN_PORT));
+            let sin = SockaddrStorage::from(SocketAddr::new(socket_addr, DNS_LISTEN_PORT));
 
             match socket::bind(sock.as_raw_fd(), &sin) {
                 Ok(()) => {
@@ -507,7 +507,7 @@ impl LocalResolver {
 }
 
 struct RandomLoopbackAlias {
-    addr: Ipv4Addr,
+    addr: IpAddr,
     drop_guard: DropGuard,
     unassign_task: JoinHandle<()>,
 }
@@ -518,17 +518,17 @@ impl RandomLoopbackAlias {
     /// The alias is automatically removed when the struct is dropped.
     /// However it's recommended to call `unassign` to avoid race conditions.
     pub async fn assign() -> std::io::Result<Self> {
-        let addr = Ipv4Addr::new(
+        let addr = IpAddr::from(Ipv4Addr::new(
             127,
             1u8.max(rand::random()),
             rand::random(),
             rand::random::<u8>().clamp(1, 254), // keep last octet in range 1-254
-        );
+        ));
 
         // TODO: this command requires root privileges and will thus not work in `cargo test`.
         // This means that the tests will fall back to 127.0.0.1, and will not assert that the
         // ifconfig stuff actually works. We probably do want to test this, so what do?
-        nym_macos::net::add_alias(LOOPBACK, IpAddr::from(addr))
+        nym_macos::net::add_alias(LOOPBACK, addr)
             .await
             .inspect_err(|e| {
                 tracing::warn!("Failed to add loopback {LOOPBACK} alias {addr}: {e}");
@@ -543,7 +543,7 @@ impl RandomLoopbackAlias {
             child_token.cancelled().await;
 
             tracing::debug!("Cleaning up loopback address {addr}");
-            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, IpAddr::from(addr)).await {
+            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, addr).await {
                 tracing::warn!("Failed to clean up {LOOPBACK} alias {addr}: {e}");
             }
         });
@@ -559,13 +559,13 @@ impl RandomLoopbackAlias {
 
     /// Unassign the loopback alias.
     pub async fn unassign(self) {
-        tracing::info!("DROP GUARD FFS!!!");
+        // Dispose drop guard to trigger cancellation.
         drop(self.drop_guard);
         self.unassign_task.await.ok();
     }
 
-    /// Returns loopback IPv4 alias address.
-    pub fn addr(&self) -> Ipv4Addr {
+    /// Returns loopback IP address alias.
+    pub fn addr(&self) -> IpAddr {
         self.addr
     }
 }
