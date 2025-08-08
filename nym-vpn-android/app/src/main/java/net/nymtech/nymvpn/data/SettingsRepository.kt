@@ -63,5 +63,9 @@ interface SettingsRepository {
 
 	suspend fun setStatisticsEnabled(enabled: Boolean)
 
+	suspend fun setStatisticsSkipped(skip: Boolean)
+
+	suspend fun getStatisticsSkipped(): Boolean
+
 	val settingsFlow: Flow<Settings>
 }

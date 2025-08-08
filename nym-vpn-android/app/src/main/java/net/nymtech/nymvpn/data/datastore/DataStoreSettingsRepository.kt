@@ -32,6 +32,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val batteryOptSkip = booleanPreferencesKey("BATTERY_OPT_SKIP")
 	private val sentryEnabled = booleanPreferencesKey("SENTRY_ENABLED")
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
+	private val statsSkipped = booleanPreferencesKey("STATISTICS_SKIPPED")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -159,6 +160,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.statsEnabled, enabled)
 	}
 
+	override suspend fun getStatisticsSkipped(): Boolean {
+		return dataStoreManager.getFromStore(statsSkipped) ?: Settings.DEFAULT_STATS_SKIPPED
+	}
+
+	override suspend fun setStatisticsSkipped(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.statsSkipped, enabled)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -183,6 +192,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						batteryOptSkip = pref[batteryOptSkip] ?: Settings.DEFAULT_BATTERY_OPT_SKIP,
 						sentryEnabled = pref[sentryEnabled] ?: Settings.DEFAULT_SENTRY_ENABLED,
 						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
+						statsSkipped = pref[statsSkipped] ?: Settings.DEFAULT_STATS_SKIPPED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

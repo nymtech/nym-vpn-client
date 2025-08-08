@@ -285,5 +285,9 @@
 	<string name="modal_network_stats_descr">Help improve NymVPN by sharing anonymous network stats from your region. \n\nYour data stays private and secure.</string>
 	<string name="modal_network_stats_enable_button">Enable network stats</string>
 	<string name="modal_network_stats_not_now_button">Not now</string>
+	<string name="notification_improve_title">Help improve \nyour connection speed</string>
+	<string name="notification_improve_button">Improve now</string>
+	<string name="notification_stats_enabled">Stats enabled! Your anonymous data helps optimize our network.</string>
+
 
 </resources>

@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -42,6 +45,8 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.IconAction
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarAction
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage.Error
@@ -94,6 +99,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionTime by viewModel.connectionTime.collectAsState()
 	var showBatteryDialog by remember { mutableStateOf(false) }
+	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 
 	with(appUiState.managerState) {
@@ -109,6 +115,21 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			showBatteryDialog = true
 		} else {
 			viewModel.onConnect()
+		}
+	}
+
+	fun checkStatsEnabled() {
+		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsSkipped) {
+			SnackbarController.showMessage(
+				message = context.getString(R.string.notification_improve_title),
+				action = SnackbarAction(title = context.getString(R.string.notification_improve_button)) {
+					showNetworkStatsDialog = true
+				},
+				duration = SnackbarDuration.Long,
+				iconAction = IconAction(icon = Icons.Filled.Close) {
+					viewModel.onNetworkStatsSkipped()
+				},
+			)
 		}
 	}
 
@@ -149,6 +170,11 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		} else {
 			checkBatteryOptimization()
 		}
+	}
+
+	fun onDisconnectPressed() {
+		viewModel.onDisconnect()
+		checkStatsEnabled()
 	}
 
 	LaunchedEffect(Unit) {
@@ -221,7 +247,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				connectionState = uiState.connectionState,
 				isMnemonicStored = appUiState.managerState.isMnemonicStored,
 				onConnect = { onConnectPressed() },
-				onDisconnect = { viewModel.onDisconnect() },
+				onDisconnect = { onDisconnectPressed() },
 				navController = navController,
 				snackbar = snackbar,
 			)
@@ -262,9 +288,15 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	)
 
 	NetworkStatsModal(
-		showNetworkStatsDialog = false,
+		showNetworkStatsDialog = showNetworkStatsDialog,
 		onConfirm = {
+			showNetworkStatsDialog = false
+			viewModel.setNetworkStatsEnabled()
+			snackbar.showMessage(context.getString(R.string.notification_stats_enabled))
 		},
-		onDismiss = { showBatteryDialog = false },
+		onDismiss = {
+			viewModel.onNetworkStatsSkipped()
+			showNetworkStatsDialog = false
+		},
 	)
 }

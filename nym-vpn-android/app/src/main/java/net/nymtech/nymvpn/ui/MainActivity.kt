@@ -143,12 +143,11 @@ class MainActivity : AppCompatActivity() {
 			}
 
 			CompositionLocalProvider(LocalNavController provides navController) {
-				SnackbarControllerProvider { host ->
+				SnackbarControllerProvider { host, content ->
 					NymVPNTheme(theme = appState.settings.theme ?: Theme.default()) {
 						Scaffold(
 							contentWindowInsets = WindowInsets(0.dp),
 							modifier = Modifier.semantics {
-								// Enables testTag -> UiAutomator resource id
 								@OptIn(ExperimentalComposeUiApi::class)
 								testTagsAsResourceId = true
 							},
@@ -164,7 +163,7 @@ class MainActivity : AppCompatActivity() {
 							},
 							snackbarHost = {
 								SnackbarHost(host) { snackbarData: SnackbarData ->
-									CustomSnackBar(message = snackbarData.visuals.message, paddingTop = navHeight)
+									CustomSnackBar(snackbarData, paddingTop = navHeight, content = content)
 								}
 							},
 						) { padding ->
