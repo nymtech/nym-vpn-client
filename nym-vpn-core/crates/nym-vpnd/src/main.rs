@@ -5,6 +5,7 @@ mod cli;
 mod command_interface;
 mod config;
 mod environment;
+mod log_sentry;
 mod logging;
 mod runtime;
 mod service;
@@ -13,11 +14,9 @@ mod user_agent;
 #[cfg(windows)]
 mod windows_service;
 
-use std::{path::PathBuf, time::Duration};
+use std::path::PathBuf;
 
 use clap::Parser;
-use sentry::ClientInitGuard;
-use std::borrow::Cow;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -30,7 +29,6 @@ use crate::{
     logging::LogFileRemoverHandle,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
-use sha2::{Digest, Sha256};
 
 fn main() -> anyhow::Result<()> {
     let rt = runtime::new_runtime();
@@ -39,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 
 async fn async_main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let _sentry_guard = init_sentry();
+    let _sentry_guard = log_sentry::init_sentry();
     let sentry_enabled = _sentry_guard.is_some();
 
     match args.command.unwrap_or_default() {
@@ -244,58 +242,6 @@ fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFi
         global_config_file.write_to_file()?;
     }
     Ok(global_config_file)
-}
-
-fn init_sentry() -> Option<ClientInitGuard> {
-    if !GlobalConfigFile::sentry_enabled() {
-        return None;
-    }
-
-    let Some(dsn) = environment::sentry_dsn() else {
-        eprintln!("failed to init sentry: SENTRY_DSN is not set");
-        return None;
-    };
-
-    let os_info = nym_vpn_lib::SysInfo::new();
-
-    println!("Sentry monitoring enabled");
-    let guard = sentry::init((
-        dsn,
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            send_default_pii: false,
-            sample_rate: 1.0,
-            traces_sample_rate: 1.0,
-            enable_logs: true,
-            shutdown_timeout: Duration::from_secs(2),
-            server_name: Some(Cow::Borrowed("nym")),
-            ..Default::default()
-        },
-    ));
-    sentry::configure_scope(|scope| {
-        scope.set_tag("os_version", &os_info.os_version);
-        scope.set_tag("extra_metadata", os_info.extra.join(", "));
-        scope.set_user(Some(sentry::User {
-            id: Some(anonymize_identifier(&os_info)), // anonymized user identifier
-            ip_address: None,
-            ..Default::default()
-        }));
-    });
-
-    Some(guard)
-}
-
-fn anonymize_identifier(os_info: &nym_vpn_lib::SysInfo) -> String {
-    let identifier = format!(
-        "{} {} {} {}",
-        os_info.os_version,
-        os_info.arch,
-        os_info.extra.join(" "),
-        sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string())
-    );
-
-    let hash = Sha256::digest(identifier.as_bytes());
-    format!("{hash:x}")
 }
 
 fn log_software_and_os_version() {
