@@ -54,8 +54,8 @@ pub async fn add_alias(interface: &str, addr: IpAddr) -> io::Result<()> {
             let prefix_mask = SockaddrIn6::from(SocketAddrV6::new(ipv6_netmask(64), 0, 0, 0));
 
             let mut req: in6_aliasreq = unsafe { std::mem::zeroed() };
-            req.ifra_addr = alias_addr.as_ref().clone();
-            req.ifra_prefixmask = prefix_mask.as_ref().clone();
+            req.ifra_addr = *alias_addr.as_ref();
+            req.ifra_prefixmask = *prefix_mask.as_ref();
             req.ifra_lifetime.ia6t_pltime = u32::MAX;
             req.ifra_lifetime.ia6t_vltime = u32::MAX;
             req.ifra_flags = IN6_IFF_NODAD;
