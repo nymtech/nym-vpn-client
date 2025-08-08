@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Introduced more extensive entry/exit country parsing (https://github.com/nymtech/nym-vpn-client/pull/3235)
+
 ### Changed
 
 - Upgrade nym to emmental (https://github.com/nymtech/nym-vpn-client/pull/3155)
