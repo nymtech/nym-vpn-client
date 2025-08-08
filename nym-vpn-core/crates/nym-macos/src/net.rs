@@ -3,7 +3,7 @@
 
 //! Provides functionality for managing network interfaces on macOS.
 //!
-//! Heavily inspired by the `ifconfig` command-line tool.
+//! Heavily inspired by `ifconfig` command-line tool.
 //! <https://github.com/apple-oss-distributions/network_cmds/tree/main/ifconfig.tproj>
 
 use std::{
@@ -26,7 +26,7 @@ nix::ioctl_write_ptr!(siocaifaddr, 'i', 26, ifaliasreq);
 nix::ioctl_write_ptr!(siocaifaddr_in6, 'i', 26, in6_aliasreq);
 nix::ioctl_write_ptr!(siocdifaddr_in6, b'i', 25, in6_ifreq);
 
-/// Adds an IPv4 alias to a network interface.
+/// Adds an IP alias to a network interface.
 pub async fn add_alias(interface: &str, addr: IpAddr) -> io::Result<()> {
     match addr {
         IpAddr::V4(addr) => {
@@ -69,7 +69,7 @@ pub async fn add_alias(interface: &str, addr: IpAddr) -> io::Result<()> {
     }
 }
 
-/// Removes an IPv4 alias from a network interface.
+/// Removes an IP alias from a network interface.
 pub async fn remove_alias(interface: &str, addr: IpAddr) -> io::Result<()> {
     match addr {
         IpAddr::V4(addr) => {
