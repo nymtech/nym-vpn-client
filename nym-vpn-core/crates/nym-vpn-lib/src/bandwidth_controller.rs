@@ -9,18 +9,16 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::CachingGatewayClient;
-use nym_sdk::{
-    TaskClient,
-    mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
-};
+use nym_sdk::{TaskClient, mixnet::CredentialStorage as Storage};
 use nym_validator_client::{
     QueryHttpRpcNyxdClient,
     nyxd::{Config as NyxdClientConfig, NyxdClient},
 };
 use nym_vpn_network_config::Network;
 use nym_wg_gateway_client::{
-    ErrorMessage, GatewayData, TICKETS_TO_SPEND, WgGatewayClient, WgGatewayLightClient,
+    ErrorMessage, GatewayData, WgGatewayClient, deprecated::WgGatewayLightClient,
 };
+use nym_wg_metadata_client::MetadataClient;
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
@@ -29,6 +27,8 @@ const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
+// Version of gateway where we have metadata endpoint available
+pub(crate) const GATEWAY_METADATA_UPDATE_VERSION: semver::Version = semver::Version::new(1, 18, 0);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -47,13 +47,28 @@ pub enum Error {
         source: Box<nym_wg_gateway_client::Error>,
     },
 
+    #[error("failed to request wireguard credential with the gateway: {gateway_id}")]
+    RequestCredential {
+        gateway_id: String,
+        ticketbook_type: TicketType,
+        #[source]
+        source: Box<nym_wg_gateway_client::Error>,
+    },
+
+    #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
+    DeprecatedTopUpWireguard {
+        gateway_id: String,
+        ticketbook_type: TicketType,
+        #[source]
+        source: Box<nym_wg_gateway_client::Error>,
+    },
+
     #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
     TopUpWireguard {
         gateway_id: String,
         ticketbook_type: TicketType,
-        authenticator_address: Box<nym_gateway_directory::Recipient>,
         #[source]
-        source: Box<nym_wg_gateway_client::Error>,
+        source: Box<nym_wg_metadata_client::error::MetadataClientError>,
     },
 
     #[error("nyxd client error")]
@@ -159,15 +174,74 @@ impl DepletionRate {
     }
 }
 
+pub(crate) enum TemporaryBandwidthClient {
+    Deprecated(WgGatewayLightClient),
+    Latest(MetadataClient),
+}
+
+impl TemporaryBandwidthClient {
+    pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, String> {
+        match self {
+            TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
+                wg_gateway_light_client
+                    .query_bandwidth()
+                    .await
+                    .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
+                    .ok_or("No such peer on the gateway".to_string())
+            }
+            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
+                .query_bandwidth()
+                .await
+                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth")),
+        }
+    }
+
+    pub(crate) fn gateway_id(&self) -> nym_gateway_directory::NodeIdentity {
+        match self {
+            TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
+                wg_gateway_light_client.auth_recipient().gateway()
+            }
+            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client.gateway_id(),
+        }
+    }
+
+    pub(crate) async fn topup_bandwidth(
+        &mut self,
+        credential: nym_credentials_interface::CredentialSpendingData,
+        ticketbook_type: TicketType,
+    ) -> Result<i64> {
+        match self {
+            TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
+                wg_gateway_light_client
+                    .top_up(credential)
+                    .await
+                    .map_err(|source| Error::DeprecatedTopUpWireguard {
+                        gateway_id: self.gateway_id().to_string(),
+                        ticketbook_type,
+                        source: Box::new(source),
+                    })
+            }
+            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
+                .topup_bandwidth(credential)
+                .await
+                .map_err(|source| Error::TopUpWireguard {
+                    gateway_id: self.gateway_id().to_string(),
+                    ticketbook_type,
+                    source: Box::new(source),
+                }),
+        }
+    }
+}
+
 pub(crate) struct BandwidthController<St> {
     inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
-    wg_entry_gateway_client: WgGatewayLightClient,
-    wg_exit_gateway_client: WgGatewayLightClient,
+    wg_entry_gateway_client: TemporaryBandwidthClient,
+    wg_exit_gateway_client: TemporaryBandwidthClient,
     timeout_check_interval: IntervalStream,
     entry_depletion_rate: DepletionRate,
     exit_depletion_rate: DepletionRate,
-    entry_previous_empty_query: bool,
-    exit_previous_empty_query: bool,
+    entry_previous_error_query: bool,
+    exit_previous_error_query: bool,
     task_client: TaskClient,
     shutdown_token: CancellationToken,
 }
@@ -176,8 +250,8 @@ impl<St: Storage> BandwidthController<St> {
     pub(crate) fn new(
         storage: St,
         network: &Network,
-        wg_entry_gateway_client: WgGatewayLightClient,
-        wg_exit_gateway_client: WgGatewayLightClient,
+        wg_entry_gateway_client: TemporaryBandwidthClient,
+        wg_exit_gateway_client: TemporaryBandwidthClient,
         task_client: TaskClient,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
@@ -193,14 +267,14 @@ impl<St: Storage> BandwidthController<St> {
             timeout_check_interval,
             entry_depletion_rate: Default::default(),
             exit_depletion_rate: Default::default(),
-            entry_previous_empty_query: false,
-            exit_previous_empty_query: false,
+            entry_previous_error_query: false,
+            exit_previous_error_query: false,
             task_client,
             shutdown_token,
         })
     }
 
-    pub(crate) async fn get_initial_bandwidth(
+    pub(crate) async fn register(
         &self,
         ticketbook_type: TicketType,
         gateway_client: CachingGatewayClient,
@@ -235,31 +309,25 @@ impl<St: Storage> BandwidthController<St> {
     }
 
     pub(crate) async fn top_up_bandwidth(
-        &self,
+        controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
         ticketbook_type: TicketType,
-        wg_gateway_client: &mut WgGatewayLightClient,
+        wg_client: &mut TemporaryBandwidthClient,
     ) -> Result<i64>
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let authenticator_address = wg_gateway_client.auth_recipient();
-        let gateway_id = wg_gateway_client.auth_recipient().gateway();
-        let remaining_bandwidth =
-            WgGatewayClient::top_up_wireguard(wg_gateway_client, &self.inner, ticketbook_type)
+        let credential =
+            WgGatewayClient::request_bandwidth(wg_client.gateway_id(), controller, ticketbook_type)
                 .await
-                .map_err(|source| Error::TopUpWireguard {
-                    gateway_id: gateway_id.to_string(),
+                .map_err(|source| Error::RequestCredential {
+                    gateway_id: wg_client.gateway_id().to_string(),
                     ticketbook_type,
-                    authenticator_address: Box::new(authenticator_address),
                     source: Box::new(source),
-                })?;
-        wg_gateway_client.send_stats_event(
-            ConnectionStatsEvent::TicketSpent {
-                typ: ticketbook_type,
-                amount: TICKETS_TO_SPEND,
-            }
-            .into(),
-        );
+                })?
+                .data;
+        let remaining_bandwidth = wg_client
+            .topup_bandwidth(credential, ticketbook_type)
+            .await?;
         Ok(remaining_bandwidth)
     }
 
@@ -267,14 +335,14 @@ impl<St: Storage> BandwidthController<St> {
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let (mut wg_gateway_client, current_depletion_rate) = if entry {
+        let (wg_metadata_client, current_depletion_rate) = if entry {
             (
-                self.wg_entry_gateway_client.clone(),
+                &mut self.wg_entry_gateway_client,
                 &mut self.entry_depletion_rate,
             )
         } else {
             (
-                self.wg_exit_gateway_client.clone(),
+                &mut self.wg_exit_gateway_client,
                 &mut self.exit_depletion_rate,
             )
         };
@@ -286,13 +354,13 @@ impl<St: Storage> BandwidthController<St> {
             _ = self.task_client.recv() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
-            ret = wg_gateway_client.query_bandwidth() => {
+            ret = wg_metadata_client.query_bandwidth() => {
                 match ret {
-                    Ok(Some(remaining_bandwidth)) => {
+                    Ok(remaining_bandwidth) => {
                         if entry {
-                            self.entry_previous_empty_query = false;
+                            self.entry_previous_error_query = false;
                         } else {
-                            self.exit_previous_empty_query = false;
+                            self.exit_previous_error_query = false;
                         }
                         match current_depletion_rate
                             .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
@@ -309,8 +377,7 @@ impl<St: Storage> BandwidthController<St> {
                                     TicketType::V1WireguardExit
                                 };
                                 tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
-                                if let Err(e) = self
-                                    .top_up_bandwidth(ticketbook_type, &mut wg_gateway_client)
+                                if let Err(e) = Self::top_up_bandwidth(&self.inner, ticketbook_type, wg_metadata_client)
                                     .await
                                 {
                                     tracing::warn!("Error topping up with more bandwidth {:?}", e);
@@ -318,38 +385,31 @@ impl<St: Storage> BandwidthController<St> {
                                     self.task_client
                                         .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
                                             gateway_id: Box::new(
-                                                wg_gateway_client.auth_recipient().gateway(),
-                                            ),
-                                            authenticator_address: Box::new(
-                                                wg_gateway_client.auth_recipient(),
-                                            ),
+                                                wg_metadata_client.gateway_id(),
+                                            )
                                         }));
                                 }
                             }
                         }
                     }
-                    Ok(None) => {
-                        if (entry && self.entry_previous_empty_query) || (!entry && self.exit_previous_empty_query) {
+                    Err(e) => {
+                        tracing::warn!("{e}");
+                        if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query) {
                             self.task_client
-                            .send_we_stopped(Box::new(ErrorMessage::DisconnectedByGateway {
+                            .send_we_stopped(Box::new(ErrorMessage::ErrorsFromGateway {
                                 gateway_id: Box::new(
-                                    wg_gateway_client.auth_recipient().gateway(),
-                                ),
-                                authenticator_address: Box::new(
-                                    wg_gateway_client.auth_recipient(),
+                                    wg_metadata_client.gateway_id(),
                                 ),
                             }));
                         } else {
                             if entry {
-                                self.entry_previous_empty_query = true;
+                                self.entry_previous_error_query = true;
                             } else {
-                                self.exit_previous_empty_query = true;
+                                self.exit_previous_error_query = true;
                             }
                             tracing::info!("Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
                         }
-                    }
-                    Err(e) => {
-                        tracing::warn!("{}", e.display_chain_with_msg("error querying remaining bandwidth"));
+
                     }
                 }
             }

@@ -328,7 +328,7 @@ impl RequestZkNymTask {
 
         let guard = self.credential_storage.lock().await;
         if guard
-            .get_expiration_date_signatures(expiration_date)
+            .get_expiration_date_signatures(expiration_date, epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
             .is_none()
@@ -457,7 +457,7 @@ impl RequestZkNymTask {
             .credential_storage
             .lock()
             .await
-            .get_expiration_date_signatures(pending_request.expiration_date)
+            .get_expiration_date_signatures(pending_request.expiration_date, shares.epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
             .is_none()

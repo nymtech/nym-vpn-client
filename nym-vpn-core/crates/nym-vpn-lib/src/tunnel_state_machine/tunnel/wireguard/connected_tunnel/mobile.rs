@@ -33,7 +33,7 @@ use crate::{
     tunnel_state_machine::tunnel::{
         Error, Result, Tombstone,
         wireguard::{
-            connector::ConnectionData,
+            connector::{ConnectionData, InterfaceIpSender},
             fd::DupFd,
             two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
         },
@@ -51,6 +51,7 @@ pub struct ConnectedTunnel {
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    interface_ip_sender: InterfaceIpSender,
 }
 
 impl ConnectedTunnel {
@@ -60,6 +61,7 @@ impl ConnectedTunnel {
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+        interface_ip_sender: InterfaceIpSender,
     ) -> Self {
         Self {
             entry_gateway_client,
@@ -67,6 +69,7 @@ impl ConnectedTunnel {
             connection_data,
             bandwidth_controller_handle,
             auth_client_mixnet_listener_handle,
+            interface_ip_sender,
         }
     }
 
@@ -238,6 +241,7 @@ pub struct TunnelHandle {
     event_loop_handle: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    interface_ip_sender: Option<InterfaceIpSender>,
 }
 
 impl TunnelHandle {

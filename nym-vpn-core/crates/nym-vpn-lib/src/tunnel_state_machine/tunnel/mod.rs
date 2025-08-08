@@ -64,7 +64,7 @@ impl ConnectedMixnet {
     }
 
     /// Creates a tunnel over Mixnet.
-    pub async fn connect_mixnet_tunnel(
+    pub(crate) async fn connect_mixnet_tunnel(
         self,
         cancel_token: CancellationToken,
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
@@ -77,12 +77,12 @@ impl ConnectedMixnet {
     }
 
     /// Creates a tunnel over WireGuard.
-    pub async fn connect_wireguard_tunnel(
+    pub(crate) async fn connect_wireguard_tunnel(
         self,
         task_manager: &TaskManager,
         network: &Network,
         cancel_token: CancellationToken,
-    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
+    ) -> Result<wireguard::connector::ConnectResult> {
         let connector =
             wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
 

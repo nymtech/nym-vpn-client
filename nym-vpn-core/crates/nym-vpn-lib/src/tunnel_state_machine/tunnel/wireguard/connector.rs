@@ -1,22 +1,26 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{net::IpAddr, path::PathBuf};
 
+use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_vpn_network_config::Network;
-use tokio::task::JoinHandle;
 
 use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway};
-use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
+use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use nym_wg_metadata_client::MetadataClient;
+use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
+use url::Url;
 
-use super::connected_tunnel::ConnectedTunnel;
 use crate::{
-    bandwidth_controller::BandwidthController,
+    bandwidth_controller::{
+        BandwidthController, GATEWAY_METADATA_UPDATE_VERSION, TemporaryBandwidthClient,
+    },
     mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{self, Error, Result, gateway_selector::SelectedGateways},
 };
@@ -24,6 +28,11 @@ use crate::{
 pub struct ConnectionData {
     pub entry: GatewayData,
     pub exit: GatewayData,
+}
+
+pub struct InterfaceIpSender {
+    pub entry_tx: tokio::sync::oneshot::Sender<IpAddr>,
+    pub exit_tx: tokio::sync::oneshot::Sender<IpAddr>,
 }
 
 pub struct Connector {
@@ -42,15 +51,15 @@ impl Connector {
         }
     }
 
-    pub async fn connect(
+    pub(crate) async fn connect(
         self,
         task_manager: &TaskManager,
         network: &Network,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
-    ) -> Result<ConnectedTunnel> {
-        let connect_result = Box::pin(Self::connect_inner(
+    ) -> Result<ConnectResult> {
+        Box::pin(Self::connect_inner(
             task_manager,
             network,
             self.mixnet_client.clone(),
@@ -59,15 +68,7 @@ impl Connector {
             data_path,
             cancel_token,
         ))
-        .await?;
-
-        Ok(ConnectedTunnel::new(
-            connect_result.entry_gateway_client,
-            connect_result.exit_gateway_client,
-            connect_result.connection_data,
-            connect_result.bandwidth_controller_handle,
-            connect_result.auth_client_mixnet_listener_handle,
-        ))
+        .await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -87,10 +88,11 @@ impl Connector {
         else {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
-        let entry_version = selected_gateways.entry.version.clone().into();
-        tracing::debug!("Entry gateway version: {entry_version}");
-        let exit_version = selected_gateways.exit.version.clone().into();
-        tracing::debug!("Exit gateway version: {exit_version}");
+
+        let entry_auth_version = selected_gateways.entry.version.clone().into();
+        tracing::debug!("Entry gateway authenticator version: {entry_auth_version}");
+        let exit_auth_version = selected_gateways.exit.version.clone().into();
+        tracing::debug!("Exit gateway authenticator version: {exit_auth_version}");
 
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
@@ -98,23 +100,64 @@ impl Connector {
             AuthClientMixnetListener::new(mixnet_client.clone(), cancel_token.child_token())
                 .start();
 
-        let auth_client = mixnet_listener
+        let auth_mix_client = mixnet_listener
             .new_auth_client()
             .await
             .ok_or(Error::MixnetClientDisposed)?;
 
         let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
             &data_path,
-            auth_client.clone(),
+            auth_mix_client.clone(),
             entry_auth_recipient,
-            entry_version,
+            entry_auth_version,
         );
         let mut wg_exit_gateway_client = WgGatewayClient::new_exit(
             &data_path,
-            auth_client.clone(),
+            auth_mix_client.clone(),
             exit_auth_recipient,
-            exit_version,
+            exit_auth_version,
         );
+
+        // this shouldn't fail, verified by unit test as well
+        let gateway_private_url = Url::parse(&format!(
+            "http://{WG_TUN_DEVICE_IP_ADDRESS_V4}:{WG_METADATA_PORT}"
+        ))
+        .expect("invalid gateway private URL");
+
+        let (entry_tx, entry_rx) = tokio::sync::oneshot::channel();
+        let wg_entry_metadata_client = MetadataClient::new(
+            gateway_private_url.clone(),
+            selected_gateways.entry.identity(),
+            entry_rx,
+        );
+
+        let (exit_tx, exit_rx) = tokio::sync::oneshot::channel();
+        let wg_exit_metadata_client = MetadataClient::new(
+            gateway_private_url,
+            selected_gateways.exit.identity(),
+            exit_rx,
+        );
+
+        let wg_entry_client = if let Some(version) = selected_gateways.entry.version
+            && let Ok(version) = semver::Version::parse(&version)
+            && version >= GATEWAY_METADATA_UPDATE_VERSION
+        {
+            tracing::debug!("Using latest metadata client for entry bandwidth controller");
+            TemporaryBandwidthClient::Latest(wg_entry_metadata_client)
+        } else {
+            tracing::debug!("Using deprecated mixnet client for entry bandwidth controller");
+            TemporaryBandwidthClient::Deprecated(wg_entry_gateway_client.light_client())
+        };
+        let wg_exit_client = if let Some(version) = selected_gateways.exit.version
+            && let Ok(version) = semver::Version::parse(&version)
+            && version >= GATEWAY_METADATA_UPDATE_VERSION
+        {
+            tracing::debug!("Using latest metadata client for exit bandwidth controller");
+            TemporaryBandwidthClient::Latest(wg_exit_metadata_client)
+        } else {
+            tracing::debug!("Using deprecated mixnet client for exit bandwidth controller");
+            TemporaryBandwidthClient::Deprecated(wg_exit_gateway_client.light_client())
+        };
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
@@ -129,17 +172,17 @@ impl Connector {
             let bw = BandwidthController::new(
                 storage,
                 network,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
+                wg_entry_client,
+                wg_exit_client,
                 shutdown,
                 cancel_token.clone(),
             )?;
-            let entry_fut = bw.get_initial_bandwidth(
+            let entry_fut = bw.register(
                 TicketType::V1WireguardEntry,
                 gateway_directory_client.clone(),
                 &mut wg_entry_gateway_client,
             );
-            let exit_fut = bw.get_initial_bandwidth(
+            let exit_fut = bw.register(
                 TicketType::V1WireguardExit,
                 gateway_directory_client.clone(),
                 &mut wg_exit_gateway_client,
@@ -159,20 +202,20 @@ impl Connector {
             let bw = BandwidthController::new(
                 storage,
                 network,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
+                wg_entry_client,
+                wg_exit_client,
                 shutdown,
                 cancel_token.clone(),
             )?;
             let entry = bw
-                .get_initial_bandwidth(
+                .register(
                     TicketType::V1WireguardEntry,
                     gateway_directory_client.clone(),
                     &mut wg_entry_gateway_client,
                 )
                 .await?;
             let exit = bw
-                .get_initial_bandwidth(
+                .register(
                     TicketType::V1WireguardExit,
                     gateway_directory_client,
                     &mut wg_exit_gateway_client,
@@ -184,18 +227,13 @@ impl Connector {
             (ConnectionData { entry, exit }, bandwidth_controller_handle)
         };
 
-        if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
-            auth_client.send_stats_event(
-                ConnectionStatsEvent::WgCountry(exit_country_code.to_string()).into(),
-            );
-        }
-
         Ok(ConnectResult {
             entry_gateway_client: wg_entry_gateway_client,
             exit_gateway_client: wg_exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
             auth_client_mixnet_listener_handle: mixnet_listener,
+            interface_ip_sender: InterfaceIpSender { entry_tx, exit_tx },
         })
     }
 
@@ -213,10 +251,26 @@ impl Connector {
     }
 }
 
-struct ConnectResult {
-    entry_gateway_client: WgGatewayClient,
-    exit_gateway_client: WgGatewayClient,
-    connection_data: ConnectionData,
-    bandwidth_controller_handle: JoinHandle<()>,
-    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+pub(crate) struct ConnectResult {
+    pub(crate) entry_gateway_client: WgGatewayClient,
+    pub(crate) exit_gateway_client: WgGatewayClient,
+    pub(crate) connection_data: ConnectionData,
+    pub(crate) bandwidth_controller_handle: JoinHandle<()>,
+    pub(crate) auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    pub(crate) interface_ip_sender: InterfaceIpSender,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_url() {
+        assert!(
+            Url::parse(&format!(
+                "http://{WG_TUN_DEVICE_IP_ADDRESS_V4}:{WG_METADATA_PORT}"
+            ))
+            .is_ok()
+        );
+    }
 }

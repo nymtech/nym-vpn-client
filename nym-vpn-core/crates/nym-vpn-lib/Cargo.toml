@@ -26,6 +26,7 @@ itertools.workspace = true
 log.workspace = true
 rand.workspace = true
 serial_test.workspace = true
+semver = { workspace = true }
 sentry = { workspace = true, features = [
     "backtrace",
     "contexts",
@@ -79,6 +80,7 @@ nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
+nym-wg-metadata-client.workspace = true
 nym-platform-metadata.workspace = true
 
 [target.'cfg(unix)'.dependencies]
