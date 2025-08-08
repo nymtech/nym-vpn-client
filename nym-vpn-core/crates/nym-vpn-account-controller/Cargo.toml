@@ -44,7 +44,6 @@ tokio-util.workspace = true
 tokio-stream.workspace = true
 tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
-uuid.workspace = true
 zeroize.workspace = true
 
 [build-dependencies]

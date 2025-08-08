@@ -57,7 +57,6 @@ nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true }
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
-nym-vpn-store = { workspace = true }
 nym-vpnd-types = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
