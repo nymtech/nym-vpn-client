@@ -1,0 +1,23 @@
+[package]
+name = "nym-wg-metadata-client"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+nym-credentials-interface.workspace = true
+nym-gateway-directory.workspace = true
+nym-http-api-client.workspace = true
+nym-wireguard-private-metadata-client = { workspace = true }
+nym-wireguard-private-metadata-shared = { workspace = true }
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+url.workspace = true

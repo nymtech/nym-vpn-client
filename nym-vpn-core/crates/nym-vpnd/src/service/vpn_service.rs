@@ -744,6 +744,7 @@ impl NymVpnService {
                 } else {
                     WireguardMultihopMode::TunTun
                 },
+                inital_allowed_ips: WireguardTunnelOptions::default_inital_allowed_ips(),
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),

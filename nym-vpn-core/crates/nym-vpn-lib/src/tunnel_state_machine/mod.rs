@@ -26,6 +26,8 @@ use std::{
     path::PathBuf,
 };
 
+use ipnetwork::IpNetwork;
+use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
@@ -181,9 +183,25 @@ impl Default for WireguardMultihopMode {
     }
 }
 
-#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
+    pub inital_allowed_ips: Vec<IpNetwork>,
+}
+
+impl WireguardTunnelOptions {
+    pub fn default_inital_allowed_ips() -> Vec<IpNetwork> {
+        vec![IpNetwork::from(IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4))]
+    }
+}
+
+impl Default for WireguardTunnelOptions {
+    fn default() -> Self {
+        Self {
+            multihop_mode: WireguardMultihopMode::default(),
+            inital_allowed_ips: Self::default_inital_allowed_ips(),
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
@@ -640,6 +658,9 @@ pub enum Error {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     GetTunDeviceName(#[source] tun::Error),
 
+    #[error("failed to get the interface IP sender")]
+    GetInterfaceIpSender,
+
     #[error("failed to get tunnel device name")]
     #[cfg(any(target_os = "ios", target_os = "android"))]
     GetTunDeviceName(#[source] tun_name::GetTunNameError),
@@ -684,6 +705,7 @@ impl Error {
             Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::GetInterfaceIpSender => ErrorStateReason::Internal(self.to_string()),
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
@@ -728,8 +750,9 @@ impl tunnel::Error {
                 }
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::TopUpWireguard {
-                source, ..
+            Self::BandwidthController(BandwidthControllerError::RequestCredential {
+                source,
+                ..
             }) => match *source {
                 WgGatewayClientError::NoRetry { .. } => {
                     Some(ErrorStateReason::BadBandwidthIncrease)

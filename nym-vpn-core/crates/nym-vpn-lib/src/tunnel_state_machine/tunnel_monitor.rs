@@ -704,7 +704,7 @@ impl TunnelMonitor {
         task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
+        let (connected_tunnel, tun_up) = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
@@ -739,9 +739,16 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
+        let inital_allowed_ips = self
+            .tunnel_parameters
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .inital_allowed_ips
+            .clone();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             exit_tun,
             dns: dns_config.tunnel_config().to_vec(),
+            inital_allowed_ips,
         });
 
         let tunnel_metadata = TunnelMetadata {
@@ -754,12 +761,13 @@ impl TunnelMonitor {
             ipv6_gateway: Some(conn_data.entry.private_ipv6),
         };
 
-        let tunnel_handle = AnyTunnelHandle::from(
-            connected_tunnel
-                .run(tunnel_options)
-                .await
-                .map_err(Box::new)?,
-        );
+        let tunnel_handle = connected_tunnel
+            .run(tunnel_options)
+            .await
+            .map_err(Box::new)?;
+        let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        let _ = tun_up.send(());
 
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
@@ -774,7 +782,7 @@ impl TunnelMonitor {
         task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
+        let (connected_tunnel, tun_up) = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
@@ -816,11 +824,18 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
+        let inital_allowed_ips = self
+            .tunnel_parameters
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .inital_allowed_ips
+            .clone();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
             dns: dns_config.tunnel_config().to_vec(),
+            inital_allowed_ips,
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -860,6 +875,8 @@ impl TunnelMonitor {
         // Update interface name in tunnel metadata
         tunnel_metadata.interface = wintun_exit_interface.name.clone();
 
+        let _ = tun_up.send(());
+
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
@@ -873,7 +890,7 @@ impl TunnelMonitor {
         task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
+        let (connected_tunnel, tun_up) = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
@@ -901,7 +918,7 @@ impl TunnelMonitor {
             ips.push(IpAddr::V6(conn_data.entry.private_ipv6));
         }
         let entry_tunnel_metadata = TunnelMetadata {
-            interface: entry_tun_name,
+            interface: entry_tun_name.clone(),
             ips,
             ipv4_gateway: None,
             ipv6_gateway: None,
@@ -951,18 +968,26 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
+        let inital_allowed_ips = self
+            .tunnel_parameters
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .inital_allowed_ips
+            .clone();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun,
             exit_tun,
             dns: dns_config.tunnel_config().to_vec(),
+            inital_allowed_ips,
         });
 
-        let tunnel_handle = AnyTunnelHandle::from(
-            connected_tunnel
-                .run(tunnel_options)
-                .await
-                .map_err(Box::new)?,
-        );
+        let tunnel_handle = connected_tunnel
+            .run(tunnel_options)
+            .await
+            .map_err(Box::new)?;
+        let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
+
+        let _ = tun_up.send(());
 
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::Two {
@@ -980,7 +1005,7 @@ impl TunnelMonitor {
         task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
+        let (connected_tunnel, tun_up) = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
@@ -988,6 +1013,7 @@ impl TunnelMonitor {
             )
             .await
             .map_err(Box::new)?;
+
         let conn_data = connected_tunnel.connection_data();
         let entry_tun_mtu = connected_tunnel.entry_mtu();
         let exit_tun_mtu = connected_tunnel.exit_mtu();
@@ -1036,6 +1062,12 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
+        let inital_allowed_ips = self
+            .tunnel_parameters
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .inital_allowed_ips
+            .clone();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun_name: WG_ENTRY_WINTUN_NAME.to_owned(),
             entry_tun_guid: WG_ENTRY_WINTUN_GUID.to_owned(),
@@ -1043,6 +1075,7 @@ impl TunnelMonitor {
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
             dns: dns_config.tunnel_config().to_vec(),
+            inital_allowed_ips,
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -1105,6 +1138,8 @@ impl TunnelMonitor {
             return Err(err);
         }
 
+        let _ = tun_up.send(());
+
         Ok(StartTunnelResult {
             tunnel_interface,
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
@@ -1118,7 +1153,7 @@ impl TunnelMonitor {
         task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
+        let (connected_tunnel, tun_up) = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
@@ -1177,16 +1212,25 @@ impl TunnelMonitor {
             .dns
             .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
             .to_vec();
+        let inital_allowed_ips = self
+            .tunnel_parameters
+            .tunnel_settings
+            .wireguard_tunnel_options
+            .inital_allowed_ips
+            .clone();
 
         let tunnel_handle = connected_tunnel
             .run(
                 tun_device,
                 dns_servers,
+                inital_allowed_ips,
                 #[cfg(target_os = "android")]
                 self.tun_provider.clone(),
             )
             .await
             .map_err(Box::new)?;
+
+        let _ = tun_up.send(());
 
         Ok(StartTunnelResult {
             tunnel_conn_data,

@@ -442,7 +442,7 @@ impl Probe {
 
 async fn wg_probe(
     authenticator: AuthAddress,
-    mut auth_client: nym_authenticator_client::AuthClient,
+    mut auth_client: nym_authenticator_client::AuthenticatorMixnetClient,
     gateway_ip: IpAddr,
     auth_version: AuthenticatorVersion,
     awg_args: String,
