@@ -24,6 +24,18 @@ hickory-resolver = { workspace = true, features = [
 ipnetwork.workspace = true
 itertools.workspace = true
 log.workspace = true
+rand.workspace = true
+serial_test.workspace = true
+sentry = { workspace = true, features = [
+    "backtrace",
+    "contexts",
+    "panic",
+    "reqwest",
+    "rustls",
+    "tracing",
+    "logs",
+] }
+sysinfo.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -36,6 +48,8 @@ tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing.workspace = true
 tun = { workspace = true, features = ["async"] }
+typed-builder.workspace = true
+uniffi.workspace = true
 url.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true

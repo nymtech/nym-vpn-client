@@ -373,23 +373,28 @@ impl LocalResolver {
     async fn run(mut self) {
         loop {
             tokio::select! {
-               Some(request) = self.rx.recv() => {
+                request = self.rx.recv() => {
                     match request {
-                        ResolverMessage::SetConfig {
+                        Some(ResolverMessage::SetConfig {
                             new_config,
                             response_tx,
-                        } => {
+                        }) => {
                             tracing::info!("Updating config: {new_config:?}");
 
                             self.update_config(new_config);
                             flush_system_cache();
                             let _ = response_tx.send(());
                         }
-                        ResolverMessage::Query {
+                        Some(ResolverMessage::Query {
                             dns_query,
                             response_tx,
-                        } => {
+                        }) => {
                             self.inner_resolver.resolve(dns_query, response_tx);
+                        }
+                        None => {
+                            // Channel closed, cancel server task
+                            self.shutdown_token.cancel();
+                            break;
                         }
                     }
                 },
@@ -742,31 +747,88 @@ impl LookupObject for ForwardLookup {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use std::{
+        net::{SocketAddrV4, UdpSocket},
+        time::Duration,
+    };
+
     use hickory_server::resolver::{
         TokioResolver,
         config::{NameServerConfigGroup, ResolverConfig},
         name_server::TokioConnectionProvider,
     };
-    use std::{
-        mem,
-        net::{SocketAddrV4, UdpSocket},
-        time::Duration,
+    use nix::sys::socket::{
+        self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrIn, sockopt,
     };
+    use tokio_util::sync::CancellationToken;
 
-    fn get_test_resolver(listen_addr: SocketAddr) -> TokioResolver {
-        let resolver_config = ResolverConfig::from_parts(
-            None,
-            vec![],
-            NameServerConfigGroup::from_ips_clear(&[listen_addr.ip()], listen_addr.port(), true),
-        );
-        TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default())
-            .build()
+    use super::*;
+
+    /// Test whether we can successfully bind the socket even if the address is already used to
+    /// in different scenarios.
+    ///
+    /// # Note
+    ///
+    /// This test does not test aliases on lo0, as that requires root privileges.
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn test_bind() {
+        // bind() succeeds if wildcard address is bound without REUSEADDR and REUSEPORT
+        let _sock = bind_sock(
+            BindParams::builder()
+                .bind_addr(format!("0.0.0.0:{DNS_LISTEN_PORT}").parse().unwrap())
+                .reuse_addr(false)
+                .reuse_port(false)
+                .build(),
+        )
+        .unwrap();
+
+        let shutdown_token = CancellationToken::new();
+        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
+            .await
+            .unwrap();
+        let test_resolver = get_test_resolver(handle.listen_addr());
+        test_resolver
+            .lookup(&ALLOWED_DOMAINS[0], RecordType::A)
+            .await
+            .expect("lookup should succeed");
+        drop(_sock);
+        shutdown_token.cancel();
+        join_handle.await.unwrap();
+        tokio::time::sleep(Duration::from_millis(300)).await;
+
+        // bind() succeeds if wildcard address is bound with REUSEADDR and REUSEPORT
+        let _sock = bind_sock(
+            BindParams::builder()
+                .bind_addr(format!("0.0.0.0:{DNS_LISTEN_PORT}").parse().unwrap())
+                .reuse_addr(true)
+                .reuse_port(true)
+                .build(),
+        )
+        .unwrap();
+
+        let shutdown_token = CancellationToken::new();
+        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
+            .await
+            .unwrap();
+        let test_resolver = get_test_resolver(handle.listen_addr());
+        test_resolver
+            .lookup(&ALLOWED_DOMAINS[0], RecordType::A)
+            .await
+            .expect("lookup should succeed");
+        drop(_sock);
+        shutdown_token.cancel();
+        join_handle.await.unwrap();
+
+        // bind() should succeeds if 127.0.0.1 is already bound without REUSEADDR and REUSEPORT
+        // NOTE: We cannot test this as creating an alias requires root privileges.
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_successful_lookup() {
-        let (handle, _join_handle) = LocalResolver::spawn(false, CancellationToken::new())
+        let shutdown_token = CancellationToken::new();
+        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
             .await
             .unwrap();
         let test_resolver = get_test_resolver(handle.listen_addr());
@@ -777,11 +839,16 @@ mod test {
                 .await
                 .expect("domain resolution failed");
         }
+
+        shutdown_token.cancel();
+        join_handle.await.unwrap();
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_failed_lookup() {
-        let (handle, _join_handle) = LocalResolver::spawn(false, CancellationToken::new())
+        let shutdown_token = CancellationToken::new();
+        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
             .await
             .unwrap();
         let test_resolver = get_test_resolver(handle.listen_addr());
@@ -793,18 +860,74 @@ mod test {
                 .await
                 .is_err(),
             "Non-whitelisted DNS request should fail"
-        )
+        );
+        shutdown_token.cancel();
+        join_handle.await.unwrap();
     }
 
+    /// Test that we close the socket when shutting down the local resolver.
     #[tokio::test]
-    async fn test_shutdown() {
-        let (handle, _join_handle) = LocalResolver::spawn(false, CancellationToken::new())
+    #[serial_test::serial]
+    async fn test_unbind_socket_on_stop() {
+        // Bind resolver to 127.0.0.1 so that we can easily bind to the same address here.
+        let shutdown_token = CancellationToken::new();
+        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
             .await
             .unwrap();
-        let listen_addr = handle.listen_addr();
-        mem::drop(handle);
+        let addr = handle.listen_addr();
+        assert_eq!(
+            addr,
+            SocketAddr::from((Ipv4Addr::LOCALHOST, DNS_LISTEN_PORT))
+        );
+        shutdown_token.cancel();
+        join_handle.await.unwrap();
         tokio::time::sleep(Duration::from_millis(300)).await;
-        UdpSocket::bind(listen_addr)
-            .expect("Failed to bind to a port that should have been removed");
+        UdpSocket::bind(addr).expect("Failed to bind to a port that should have been removed");
+    }
+
+    fn get_test_resolver(listen_addr: SocketAddr) -> TokioResolver {
+        let resolver_config = ResolverConfig::from_parts(
+            None,
+            vec![],
+            NameServerConfigGroup::from_ips_clear(&[listen_addr.ip()], listen_addr.port(), true),
+        );
+        TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default())
+            .build()
+    }
+
+    #[derive(typed_builder::TypedBuilder)]
+    struct BindParams {
+        bind_addr: SocketAddrV4,
+        reuse_addr: bool,
+        reuse_port: bool,
+        #[builder(default)]
+        connect_addr: Option<SocketAddrV4>,
+    }
+
+    /// Helper function for creating and binding a UDP socket
+    fn bind_sock(params: BindParams) -> io::Result<UdpSocket> {
+        let sock = socket::socket(
+            AddressFamily::Inet,
+            SockType::Datagram,
+            SockFlag::empty(),
+            SockProtocol::Udp,
+        )?;
+
+        socket::setsockopt(&sock, sockopt::ReuseAddr, &params.reuse_addr)?;
+        socket::setsockopt(&sock, sockopt::ReusePort, &params.reuse_port)?;
+
+        let sa = SockaddrIn::from(params.bind_addr);
+        socket::bind(sock.as_raw_fd(), &sa)?;
+
+        if let Some(addr) = params.connect_addr {
+            let sa = SockaddrIn::from(addr);
+            socket::connect(sock.as_raw_fd(), &sa)?;
+        }
+
+        println!(
+            "Bound to {} (reuseport: {}, reuseaddr: {})",
+            params.bind_addr, params.reuse_port, params.reuse_addr
+        );
+        Ok(UdpSocket::from(sock))
     }
 }
