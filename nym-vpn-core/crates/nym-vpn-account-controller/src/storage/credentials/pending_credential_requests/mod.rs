@@ -45,7 +45,6 @@ impl PendingCredentialRequestsStorage {
 
         tracing::debug!("Connecting to the database");
         let connection_pool = SqlitePoolGuard::new(
-            database_path.as_ref().to_path_buf(),
             sqlx::sqlite::SqlitePoolOptions::new()
                 .connect_with(opts)
                 .await?,
