@@ -35,48 +35,50 @@ fun CustomSnackBar(
 	isRtl: Boolean = false,
 	containerColor: Color = CustomColors.snackBarBackgroundColor,
 	content: MutableState<CustomSnackbarContent?>,
-) = if (content.value != null) {
-	content.value?.let { info ->
-		Box(
-			modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp.scaledWidth()).padding(top = paddingTop),
-			contentAlignment = Alignment.TopCenter,
-		) {
-			Snackbar(containerColor = containerColor) {
-				CompositionLocalProvider(
-					LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
-				) {
-					Row(
-						modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-						verticalAlignment = Alignment.CenterVertically,
+) {
+	if (content.value != null) {
+		content.value?.let { info ->
+			Box(
+				modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp.scaledWidth()).padding(top = paddingTop),
+				contentAlignment = Alignment.TopCenter,
+			) {
+				Snackbar(containerColor = containerColor) {
+					CompositionLocalProvider(
+						LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
 					) {
-						Text(
-							text = info.message,
-							color = CustomColors.snackbarTextColor,
-							modifier = Modifier.weight(1f).padding(end = 8.dp),
-						)
 						Row(
+							modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
 							verticalAlignment = Alignment.CenterVertically,
-							horizontalArrangement = Arrangement.End,
 						) {
-							info.action?.title?.let { title ->
-								TextButton(onClick = { info.action?.onActionPress?.invoke() }) {
-									Text(text = title, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+							Text(
+								text = info.message,
+								color = CustomColors.snackbarTextColor,
+								modifier = Modifier.weight(1f).padding(end = 8.dp),
+							)
+							Row(
+								verticalAlignment = Alignment.CenterVertically,
+								horizontalArrangement = Arrangement.End,
+							) {
+								info.action?.title?.let { title ->
+									TextButton(onClick = { info.action?.onActionPress?.invoke() }) {
+										Text(text = title, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+									}
 								}
-							}
-							info.iconAction?.let {
-								Box(
-									modifier = Modifier.size(24.dp).clickable {
-										data.dismiss()
-										it.onActionPress()
-									},
-									contentAlignment = Alignment.Center,
-								) {
-									Icon(
-										imageVector = it.icon,
-										contentDescription = "Dismiss",
-										modifier = Modifier.size(24.dp),
-										tint = Color.White,
-									)
+								info.iconAction?.let {
+									Box(
+										modifier = Modifier.size(24.dp).clickable {
+											data.dismiss()
+											it.onActionPress()
+										},
+										contentAlignment = Alignment.Center,
+									) {
+										Icon(
+											imageVector = it.icon,
+											contentDescription = "Dismiss",
+											modifier = Modifier.size(24.dp),
+											tint = Color.White,
+										)
+									}
 								}
 							}
 						}
@@ -84,28 +86,28 @@ fun CustomSnackBar(
 				}
 			}
 		}
-	}
-} else {
-	Box(
-		modifier = Modifier
-			.fillMaxSize()
-			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(top = paddingTop),
-		contentAlignment = Alignment.TopCenter,
-	) {
-		Snackbar(containerColor = containerColor) {
-			CompositionLocalProvider(
-				LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
-			) {
-				Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
-					Text(data.visuals.message, color = CustomColors.snackbarTextColor)
-					data.visuals.actionLabel?.let {
-						Box(
-							Modifier.clickable {
-								data.performAction()
-							},
-						) {
-							Text(it, color = CustomColors.snackbarTextColor)
+	} else {
+		Box(
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(horizontal = 24.dp.scaledWidth())
+				.padding(top = paddingTop),
+			contentAlignment = Alignment.TopCenter,
+		) {
+			Snackbar(containerColor = containerColor) {
+				CompositionLocalProvider(
+					LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+				) {
+					Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
+						Text(data.visuals.message, color = CustomColors.snackbarTextColor)
+						data.visuals.actionLabel?.let {
+							Box(
+								Modifier.clickable {
+									data.performAction()
+								},
+							) {
+								Text(it, color = CustomColors.snackbarTextColor)
+							}
 						}
 					}
 				}
