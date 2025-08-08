@@ -5,10 +5,10 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
 use nym_common::trace_err_chain;
-#[cfg(target_os = "macos")]
-use nym_firewall::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

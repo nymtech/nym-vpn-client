@@ -11,8 +11,6 @@ use std::{
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
-#[cfg(target_os = "macos")]
-use nym_firewall::LOCAL_DNS_RESOLVER;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -28,6 +26,8 @@ use nym_firewall::FirewallPolicy;
 
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

@@ -42,6 +42,25 @@ use tokio::{
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
+/// If a local DNS resolver should be used at all times.
+///
+/// This setting does not affect the error or blocked state. In those states, we will want to use
+/// the local DNS resoler to work around Apple's captive portals check. Exactly how this is done is
+/// documented elsewhere.
+pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
+    let disable_local_dns_resolver = std::env::var("NYM_DISABLE_LOCAL_DNS_RESOLVER")
+        .map(|v| v != "0")
+        // Use the local DNS resolver by default.
+        .unwrap_or(false);
+    if !disable_local_dns_resolver {
+        tracing::info!("Using local DNS resolver");
+    }
+    !disable_local_dns_resolver
+});
+
+/// Local DNS resolver listen port.
+const DNS_LISTEN_PORT: u16 = if cfg!(test) { 1053 } else { 53 };
+
 /// Types of records that are spoofed for captive portal domains.
 const ALLOWED_RECORD_TYPES: &[RecordType] = &[RecordType::A, RecordType::CNAME];
 
@@ -346,7 +365,7 @@ impl LocalResolver {
                             new_config,
                             response_tx,
                         } => {
-                            tracing::debug!("Updating config: {new_config:?}");
+                            tracing::info!("Updating config: {new_config:?}");
 
                             self.update_config(new_config);
                             flush_system_cache();
@@ -393,7 +412,8 @@ impl LocalResolver {
 
     /// Turn into a forwarding resolver (forward DNS queries to [dns_servers]).
     fn forwarding(&mut self, dns_servers: Vec<IpAddr>) {
-        let forward_server_config = NameServerConfigGroup::from_ips_clear(&dns_servers, 53, true);
+        let forward_server_config =
+            NameServerConfigGroup::from_ips_clear(&dns_servers, DNS_LISTEN_PORT, true);
 
         let forward_config = ResolverConfig::from_parts(None, vec![], forward_server_config);
         let resolver =
@@ -486,14 +506,29 @@ impl ResolverImpl {
         }
 
         let (response_tx, response_rx) = oneshot::channel();
-        let _ = self.tx.send(ResolverMessage::Query {
-            dns_query: query.clone(),
-            response_tx,
-        });
+        if self
+            .tx
+            .send(ResolverMessage::Query {
+                dns_query: query.clone(),
+                response_tx,
+            })
+            .is_err()
+        {
+            tracing::error!("Failed to send query to resolver");
+            return;
+        };
 
         let lookup_result = response_rx.await;
         let response_result = match lookup_result {
             Ok(Ok(ref lookup)) => {
+                tracing::info!(
+                    "Resolved to: {}",
+                    lookup
+                        .iter()
+                        .map(|record| format!("{record:?}"))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                );
                 let response = Self::build_response(message, lookup.as_ref());
                 response_handler.send_response(response).await
             }
@@ -514,9 +549,11 @@ impl ResolverImpl {
                         .unwrap_or(ResponseCode::NoError);
                     let response = MessageResponseBuilder::from_message_request(message)
                         .error_msg(message.header(), response_code);
+                    tracing::info!("Resolver error: no records found!");
                     response_handler.send_response(response).await
                 } else {
                     let response = Self::build_response(message, &EmptyLookup);
+                    tracing::info!("Resolver error: {resolve_err}");
                     response_handler.send_response(response).await
                 }
             }
