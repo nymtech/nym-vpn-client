@@ -1,3 +1,6 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use sentry::ClientInitGuard;
 use sha2::{Digest, Sha256};
 use std::{
@@ -8,9 +11,6 @@ use std::{
 };
 
 use crate::{config::GlobalConfigFile, environment};
-
-/// Initializes Sentry for error reporting and monitoring.
-/// Returns a `ClientInitGuard` if Sentry is enabled, otherwise returns `None`.
 
 static EXCLUDED_ERRORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
 
