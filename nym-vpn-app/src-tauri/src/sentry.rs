@@ -44,15 +44,13 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             shutdown_timeout: Duration::from_secs(1),
             server_name: Some(Cow::Borrowed("nym")),
             before_send: Some(Arc::new(|mut event| {
-                if matches!(event.level, Level::Error | Level::Warning) {
-                    if let Some(message) = &event.message {
-                        if get_excluded_errors()
-                            .iter()
-                            .any(|err| message.to_lowercase().contains(err))
-                        {
-                            event.level = Level::Debug; // Change level to Debug
-                        }
-                    }
+                if matches!(event.level, Level::Error | Level::Warning)
+                    && let Some(message) = &event.message
+                    && get_excluded_errors()
+                        .iter()
+                        .any(|err| message.to_lowercase().contains(err))
+                {
+                    event.level = Level::Debug; // Change level to Debug
                 }
                 Some(event)
             })),
