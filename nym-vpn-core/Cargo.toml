@@ -162,7 +162,7 @@ tonic-build = "0.13.1"
 tower = "0.5.2"
 tracing = "0.1"
 tracing-appender = "0.2.3"
-tracing-oslog = "0.2.0"
+tracing-oslog = "0.3.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-test = "0.2.5"
 triggered = "0.1.3"
