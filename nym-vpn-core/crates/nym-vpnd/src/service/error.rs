@@ -53,6 +53,9 @@ pub enum Error {
 
     #[error("mixnet setup error")]
     MixnetSetup(#[from] MixnetError),
+
+    #[error("cancelled during initialization")]
+    CancelledInitialization,
 }
 
 #[derive(Clone, Debug, thiserror::Error)]

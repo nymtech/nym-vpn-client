@@ -26,24 +26,15 @@ impl From<WireguardTunnelHandle> for AnyTunnelHandle {
 }
 
 impl AnyTunnelHandle {
-    pub async fn cancel(&mut self) {
+    pub fn cancel(&mut self) {
         tracing::trace!("Cancelling tunnel handle");
         match self {
             Self::Mixnet(handle) => {
-                handle.cancel().await;
+                handle.cancel();
             }
             Self::Wireguard(handle) => {
                 handle.cancel();
             }
-        }
-    }
-
-    pub async fn recv_error(
-        &mut self,
-    ) -> Option<Box<dyn std::error::Error + 'static + Send + Sync>> {
-        match self {
-            Self::Mixnet(handle) => handle.recv_error().await,
-            Self::Wireguard(handle) => handle.recv_error().await,
         }
     }
 

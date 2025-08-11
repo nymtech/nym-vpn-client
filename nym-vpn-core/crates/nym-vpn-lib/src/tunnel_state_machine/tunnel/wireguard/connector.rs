@@ -18,9 +18,7 @@ use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::BandwidthController,
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{
-        self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
-    },
+    tunnel_state_machine::tunnel::{self, Error, Result, gateway_selector::SelectedGateways},
 };
 
 pub struct ConnectionData {
@@ -29,32 +27,31 @@ pub struct ConnectionData {
 }
 
 pub struct Connector {
-    task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     gateway_directory_client: CachingGatewayClient,
 }
 
 impl Connector {
     pub fn new(
-        task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: CachingGatewayClient,
     ) -> Self {
         Self {
-            task_manager,
             mixnet_client,
             gateway_directory_client,
         }
     }
+
     pub async fn connect(
         self,
+        task_manager: &TaskManager,
         network: &Network,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
-    ) -> Result<ConnectedTunnel, ConnectorError> {
-        let result = Box::pin(Self::connect_inner(
-            &self.task_manager,
+    ) -> Result<ConnectedTunnel> {
+        let connect_result = Box::pin(Self::connect_inner(
+            task_manager,
             network,
             self.mixnet_client.clone(),
             self.gateway_directory_client.clone(),
@@ -62,26 +59,15 @@ impl Connector {
             data_path,
             cancel_token,
         ))
-        .await;
+        .await?;
 
-        match result {
-            Ok(connect_result) => Ok(ConnectedTunnel::new(
-                self.task_manager,
-                connect_result.entry_gateway_client,
-                connect_result.exit_gateway_client,
-                connect_result.connection_data,
-                connect_result.bandwidth_controller_handle,
-                connect_result.auth_client_mixnet_listener_handle,
-            )),
-            Err(e) => Err(ConnectorError::new(
-                e,
-                AnyConnector::Wireguard(Self::new(
-                    self.task_manager,
-                    self.mixnet_client,
-                    self.gateway_directory_client,
-                )),
-            )),
-        }
+        Ok(ConnectedTunnel::new(
+            connect_result.entry_gateway_client,
+            connect_result.exit_gateway_client,
+            connect_result.connection_data,
+            connect_result.bandwidth_controller_handle,
+            connect_result.auth_client_mixnet_listener_handle,
+        ))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -108,9 +94,9 @@ impl Connector {
 
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
-        let mixnet_listener = AuthClientMixnetListener::new(mixnet_client.clone())
-            .with_external_cancel_token(cancel_token.clone())
-            .start();
+        let mixnet_listener =
+            AuthClientMixnetListener::new(mixnet_client.clone(), cancel_token.child_token())
+                .start();
 
         let auth_client = mixnet_listener
             .new_auth_client()
@@ -146,6 +132,7 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
+                cancel_token.clone(),
             )?;
             let entry_fut = bw.get_initial_bandwidth(
                 TicketType::V1WireguardEntry,
@@ -175,6 +162,7 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
+                cancel_token.clone(),
             )?;
             let entry = bw
                 .get_initial_bandwidth(
@@ -222,12 +210,6 @@ impl Connector {
             entry_authenticator_address,
             exit_authenticator_address,
         ))
-    }
-
-    /// Gracefully shutdown task manager and mixnet client, and consume the struct.
-    pub async fn dispose(self) {
-        tracing::debug!("Shutting down mixnet client");
-        tunnel::shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 

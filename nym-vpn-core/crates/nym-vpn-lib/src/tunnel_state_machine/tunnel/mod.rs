@@ -8,16 +8,19 @@ mod status_listener;
 mod tombstone;
 pub mod wireguard;
 
-use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 #[cfg(unix)]
-use std::{os::fd::RawFd, sync::Arc};
+use std::os::fd::RawFd;
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
-use tokio::{sync::mpsc, task::JoinHandle};
+use tokio::{
+    sync::{Mutex, mpsc},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 
 #[cfg(windows)]
@@ -32,10 +35,8 @@ use status_listener::StatusListener;
 pub use tombstone::Tombstone;
 
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
-pub(crate) const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
-    task_manager: TaskManager,
     gateway_directory_client: CachingGatewayClient,
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
@@ -49,12 +50,13 @@ impl ConnectedMixnet {
 
     pub async fn start_event_listener(
         &mut self,
+        task_manager: &mut TaskManager,
         event_sender: mpsc::UnboundedSender<MixnetEvent>,
         cancel_token: CancellationToken,
     ) -> JoinHandle<()> {
         let (status_tx, status_rx) = futures::channel::mpsc::channel(10);
 
-        self.task_manager
+        task_manager
             .start_status_listener(status_tx, TaskStatus::Ready)
             .await;
 
@@ -66,57 +68,33 @@ impl ConnectedMixnet {
         self,
         cancel_token: CancellationToken,
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
-        let connector = mixnet::connector::Connector::new(
-            self.task_manager,
-            self.mixnet_client,
-            self.gateway_directory_client,
-        );
+        let connector =
+            mixnet::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
 
-        match connector
+        connector
             .connect(self.selected_gateways, cancel_token)
             .await
-        {
-            Ok(connected_tunnel) => Ok(connected_tunnel),
-            Err(connector_error) => {
-                connector_error.connector.dispose().await;
-                Err(connector_error.error)
-            }
-        }
     }
 
     /// Creates a tunnel over WireGuard.
     pub async fn connect_wireguard_tunnel(
         self,
+        task_manager: &TaskManager,
         network: &Network,
         cancel_token: CancellationToken,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
-        let connector = wireguard::connector::Connector::new(
-            self.task_manager,
-            self.mixnet_client,
-            self.gateway_directory_client,
-        );
+        let connector =
+            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
 
-        match connector
+        connector
             .connect(
+                task_manager,
                 network,
                 self.selected_gateways,
                 self.data_path,
                 cancel_token,
             )
             .await
-        {
-            Ok(connected_tunnel) => Ok(connected_tunnel),
-            Err(connector_error) => {
-                connector_error.connector.dispose().await;
-                Err(connector_error.error)
-            }
-        }
-    }
-
-    /// Gracefully shutdown the mixnet client and consume the struct.
-    pub async fn dispose(self) {
-        tracing::debug!("Shutting down connected mixnet");
-        shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 
@@ -154,13 +132,13 @@ pub async fn select_gateways(
 }
 
 pub async fn connect_mixnet(
+    task_manager: &TaskManager,
     options: MixnetConnectOptions,
     network_env: &Network,
     gateway_directory_client: CachingGatewayClient,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
-    let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let task_client = task_manager.subscribe_named("mixnet_client_main");
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
 
@@ -194,49 +172,21 @@ pub async fn connect_mixnet(
         ),
     );
 
-    let res = cancel_token
+    let mixnet_client = cancel_token
         .run_until_cancelled(connect_fut)
         .await
         .ok_or(Error::Cancelled)
         .and_then(|res| {
             res.map_err(|_| Error::StartMixnetClientTimeout)
                 .and_then(|x| x.map_err(Error::MixnetClient))
-        });
+        })?;
 
-    match res {
-        Ok(mixnet_client) => Ok(ConnectedMixnet {
-            task_manager,
-            selected_gateways: options.selected_gateways,
-            data_path: options.data_path,
-            gateway_directory_client,
-            mixnet_client,
-        }),
-        Err(e) => {
-            shutdown_task_manager(task_manager).await;
-            Err(e)
-        }
-    }
-}
-
-async fn shutdown_task_manager(mut task_manager: TaskManager) {
-    if task_manager.signal_shutdown().is_err() {
-        tracing::error!("Failed to signal task manager shutdown");
-    }
-
-    tracing::debug!("Waiting for task manager to shutdown");
-    task_manager.wait_for_graceful_shutdown().await;
-}
-
-async fn shutdown_mixnet_client(mut task_manager: TaskManager, mixnet_client: SharedMixnetClient) {
-    if let Err(e) = task_manager.signal_shutdown() {
-        tracing::error!("Failed to signal task manager shutdown: {}", e);
-    }
-
-    tracing::debug!("Disposing mixnet client");
-    mixnet_client.lock().await.take();
-
-    tracing::debug!("Waiting for task manager to shutdown");
-    task_manager.wait_for_graceful_shutdown().await;
+    Ok(ConnectedMixnet {
+        selected_gateways: options.selected_gateways,
+        data_path: options.data_path,
+        gateway_directory_client,
+        mixnet_client: Arc::new(Mutex::new(Some(mixnet_client))),
+    })
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -309,48 +259,4 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 pub enum AnyConnector {
     Mixnet(mixnet::connector::Connector),
     Wireguard(wireguard::connector::Connector),
-}
-
-impl AnyConnector {
-    pub async fn dispose(self) {
-        match self {
-            Self::Mixnet(connector) => connector.dispose().await,
-            Self::Wireguard(connector) => connector.dispose().await,
-        }
-    }
-}
-
-/// Error returned when connector is unable to connect the tunnel.
-pub struct ConnectorError {
-    /// The error returned during the attempt to connect the tunnel.
-    pub error: Error,
-
-    /// The source connector.
-    pub connector: AnyConnector,
-}
-
-impl ConnectorError {
-    fn new(error: Error, connector: AnyConnector) -> Self {
-        Self { error, connector }
-    }
-}
-
-impl StdError for ConnectorError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        Some(&self.error)
-    }
-}
-
-impl fmt::Debug for ConnectorError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ConnectorError")
-            .field("error", &self.error)
-            .finish_non_exhaustive()
-    }
-}
-
-impl fmt::Display for ConnectorError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.error.fmt(f)
-    }
 }

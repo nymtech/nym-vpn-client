@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, net::IpAddr};
+use std::net::IpAddr;
 
 use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
@@ -14,7 +14,6 @@ use tun::AsyncDevice;
 
 #[cfg(windows)]
 use nym_routing::{Callback, CallbackHandle, EventType};
-use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
@@ -40,7 +39,6 @@ use crate::{
 };
 
 pub struct ConnectedTunnel {
-    task_manager: TaskManager,
     entry_gateway_client: WgGatewayClient,
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
@@ -50,7 +48,6 @@ pub struct ConnectedTunnel {
 
 impl ConnectedTunnel {
     pub fn new(
-        task_manager: TaskManager,
         entry_gateway_client: WgGatewayClient,
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
@@ -58,7 +55,6 @@ impl ConnectedTunnel {
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
-            task_manager,
             entry_gateway_client,
             exit_gateway_client,
             connection_data,
@@ -209,7 +205,6 @@ impl ConnectedTunnel {
         });
 
         Ok(TunnelHandle {
-            task_manager: self.task_manager,
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
@@ -326,7 +321,6 @@ impl ConnectedTunnel {
         });
 
         Ok(TunnelHandle {
-            task_manager: self.task_manager,
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
@@ -450,7 +444,6 @@ pub struct NetstackTunnelOptions {
 }
 
 pub struct TunnelHandle {
-    task_manager: TaskManager,
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
@@ -465,18 +458,6 @@ impl TunnelHandle {
     /// Close entry and exit WireGuard tunnels and signal mixnet facilities shutdown.
     pub fn cancel(&mut self) {
         self.shutdown_token.cancel();
-
-        if let Err(e) = self.task_manager.signal_shutdown() {
-            tracing::error!("Failed to signal task manager shutdown: {}", e);
-        }
-    }
-
-    /// Wait for the next mixnet error.
-    ///
-    /// This method is cancel safe.
-    /// Returns `None` if the underlying channel has been closed.
-    pub async fn recv_error(&mut self) -> Option<Box<dyn StdError + 'static + Send + Sync>> {
-        self.task_manager.wait_for_error().await
     }
 
     /// Wait until the tunnel finished execution.
@@ -487,10 +468,7 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        // No need to call cancel on auth_clients_mixnet_listener_handle as its external
-        // cancel_token should already be cancelled by the time we reach this point.
-        // We just need to wait for the task to finish.
-        self.auth_client_mixnet_listener_handle.wait().await;
+        let _ = self.auth_client_mixnet_listener_handle.wait().await;
 
         self.event_handler_task.await
     }

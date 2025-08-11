@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use std::os::fd::RawFd;
-use std::{path::PathBuf, result::Result, sync::Arc, time::Duration};
+use std::{os::fd::RawFd, sync::Arc};
+use std::{path::PathBuf, result::Result, time::Duration};
 
 use nym_client_core::config::RememberMe;
 use nym_sdk::{
@@ -15,9 +15,8 @@ use nym_sdk::{
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
-use tokio::sync::Mutex;
 
-use super::{MixnetError, SharedMixnetClient, topology_provider::VpnTopologyProvider};
+use super::{MixnetError, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
@@ -41,7 +40,7 @@ pub async fn setup_mixnet_client(
     mixnet_client_config: MixnetClientConfig,
     setup_options: SetupMixnetClientOptions,
     mut task_client: nym_task::TaskClient,
-) -> Result<SharedMixnetClient, MixnetError> {
+) -> Result<MixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config.traffic.average_packet_delay = VPN_AVERAGE_PACKET_DELAY;
     if setup_options.two_hop_mode {
@@ -110,7 +109,7 @@ pub async fn setup_mixnet_client(
         .await?
     };
 
-    Ok(Arc::new(Mutex::new(Some(mixnet_client))))
+    Ok(mixnet_client)
 }
 
 async fn build_and_connect_mixnet_client<S>(
