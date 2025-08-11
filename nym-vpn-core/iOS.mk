@@ -6,8 +6,6 @@ include reproducible_builds.mk
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 
 RELEASE ?= true
-ANDROID_NDK_HOME ?=
-NDK_TOOLCHAIN_DIR ?=
 
 RELEASE_FLAG :=
 TARGET_DIR := debug
