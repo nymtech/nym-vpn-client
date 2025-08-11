@@ -43,17 +43,19 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(1),
             server_name: Some(Cow::Borrowed("nym")),
-            before_send_log: Some(Arc::new(|log| {
-                if get_excluded_errors()
-                    .iter()
-                    .any(|err| log.body.contains(err.to_lowercase().as_str()))
-                {
-                    // Exclude specific errors from being sent to Sentry
-                    // The excluded log still appears in the breadcrumbs
-                    info!("Excluded log: {}", log.body);
-                    return None;
+            before_send: Some(Arc::new(|event| {
+                if let Some(message) = &event.message {
+                    if get_excluded_errors()
+                        .iter()
+                        .any(|err| message.to_lowercase().contains(err))
+                    {
+                        // Exclude specific errors from being sent to Sentry
+                        // The excluded error still appears in the breadcrumbs
+                        info!("Excluded error: {}", message);
+                        return None; // Exclude this event
+                    }
                 }
-                Some(log)
+                Some(event)
             })),
             ..Default::default()
         },
