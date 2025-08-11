@@ -18,10 +18,10 @@ fn get_excluded_errors() -> &'static HashSet<&'static str> {
             "invalid mnemonic",
             "no device stored",
             "no account stored",
-            "AC is offline",
+            "ac is offline",
             "account already exists",
-            "MaxDevicesReached",
-            "SubscriptionExpired",
+            "maxdevicesreached",
+            "subscriptionexpired",
         ])
     })
 }
@@ -46,7 +46,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             before_send_log: Some(Arc::new(|log| {
                 if get_excluded_errors()
                     .iter()
-                    .any(|err| log.body.contains(err))
+                    .any(|err| log.body.contains(err.to_lowercase().as_str()))
                 {
                     // Exclude specific errors from being sent to Sentry
                     // The excluded log still appears in the breadcrumbs

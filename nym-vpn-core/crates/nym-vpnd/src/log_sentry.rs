@@ -17,9 +17,12 @@ static EXCLUDED_ERRORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
 fn get_excluded_errors() -> &'static HashSet<&'static str> {
     EXCLUDED_ERRORS.get_or_init(|| {
         HashSet::from([
-            "Failed to check zk-nyms possible to resume: Offline",
-            "Client is not authenticated",
-            "h2 connection failed: connection reset",
+            "offline",
+            "client is not authenticated",
+            "connection reset",
+            "connection refused",
+            "connection closed",
+            "connection timed out",
         ])
     })
 }
@@ -50,7 +53,7 @@ pub fn init_sentry() -> Option<ClientInitGuard> {
             before_send_log: Some(Arc::new(|log| {
                 if get_excluded_errors()
                     .iter()
-                    .any(|err| log.body.contains(err))
+                    .any(|err| log.body.contains(err.to_lowercase().as_str()))
                 {
                     tracing::info!("Excluded log: {}", log.body); // Keep excluded logs in breadcrumbs
                     return None; // Exclude this log
