@@ -32,7 +32,7 @@ export type StateAction =
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
-  | { type: 'set-error'; error: AppError }
+  | { type: 'set-error'; error: AppError | null }
   | { type: 'reset-error' }
   | { type: 'new-progress-message'; message: ConnectProgressMsg }
   | { type: 'connect' }

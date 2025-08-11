@@ -34,7 +34,7 @@ const Row = ({
         className="min-h-12 py-3!"
         key={name}
         title={`${name} ${version ? ` v${version}` : ''}`}
-        desc={Array.isArray(licenses) ? licenses.join(', ') : licenses}
+        description={Array.isArray(licenses) ? licenses.join(', ') : licenses}
         onClick={() =>
           navigate(routes.licenseDetails, { state: { license, language } })
         }

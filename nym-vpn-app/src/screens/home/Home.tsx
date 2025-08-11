@@ -21,19 +21,36 @@ const devMode = window._APP.devMode;
 let compatChecked = false;
 
 function Home() {
-  const { state, entryNode, exitNode, daemonStatus, account, networkCompat } =
-    useMainState();
+  const {
+    state,
+    accountState,
+    entryNode,
+    exitNode,
+    daemonStatus,
+    account,
+    networkCompat,
+  } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
   const hopSelectDisabled = daemonStatus === 'down' || state !== 'disconnected';
+  const needAPlan =
+    daemonStatus !== 'down' &&
+    state === 'disconnected' &&
+    account &&
+    (accountState === 'no-subscription' ||
+      accountState === 'bandwidth-exceeded');
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
       navigate(routes.login);
+      return;
+    }
+    if (needAPlan) {
+      navigate(routes.selectPlan);
       return;
     }
     dispatch({ type: 'disconnect' });
@@ -91,6 +108,9 @@ function Home() {
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
+    if (needAPlan) {
+      return t('get-started');
+    }
     switch (state) {
       case 'connected':
         return t('disconnect');
@@ -108,7 +128,7 @@ function Home() {
       case 'error':
         return cancel;
     }
-  }, [state, t]);
+  }, [state, t, needAPlan]);
 
   const getButtonColor = () => {
     switch (state) {

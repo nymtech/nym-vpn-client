@@ -1,3 +1,4 @@
+import account from '../pt-BR/account.json';
 import common from '../pt-BR/common.json';
 import home from '../pt-BR/home.json';
 import settings from '../pt-BR/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../pt-BR/glossary.json';
 import notifications from '../pt-BR/notifications.json';
 
 export const ptBR = {
+  account,
   common,
   home,
   settings,

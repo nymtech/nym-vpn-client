@@ -1,3 +1,4 @@
+import account from '../tr/account.json';
 import common from '../tr/common.json';
 import home from '../tr/home.json';
 import settings from '../tr/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../tr/glossary.json';
 import notifications from '../tr/notifications.json';
 
 export const tr = {
+  account,
   common,
   home,
   settings,

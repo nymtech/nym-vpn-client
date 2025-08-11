@@ -3,29 +3,36 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { useMainState } from '../../contexts';
 import { setToString } from '../../util';
-import { useI18nError } from '../../hooks';
+import { useI18nAccountState, useI18nError } from '../../hooks';
 import { AppError } from '../../types';
 import ConnectionBadge from './ConnectionBadge';
 import ConnectionTimer from './ConnectionTimer';
 
 function TunnelState() {
-  const state = useMainState();
+  const {
+    state,
+    error,
+    progressMessages,
+    tunnelError,
+    retryAttempt,
+    accountState,
+  } = useMainState();
   const [showBadge, setShowBadge] = useState(true);
-  const loading =
-    state.state === 'connecting' || state.state === 'disconnecting';
-  const isError = state.tunnelError || state.error;
-  const isOffline =
-    state.state === 'offline' || state.state === 'offline-auto-reconnect';
-  const showRetryAttempt =
-    state.state === 'connecting' && !state.error && state.retryAttempt > 0;
+  const loading = state === 'connecting' || state === 'disconnecting';
+  const isAccountError =
+    accountState === 'max-device-reached' ||
+    accountState === 'no-subscription' ||
+    accountState === 'bandwidth-exceeded' ||
+    accountState === 'status-not-active';
+  const isError = tunnelError || error || isAccountError;
+  const isOffline = state === 'offline' || state === 'offline-auto-reconnect';
+  const showRetryAttempt = state === 'connecting' && !error && retryAttempt > 0;
   const showProgressMsg =
-    loading &&
-    state.progressMessages.length > 0 &&
-    !state.error &&
-    !showRetryAttempt;
+    loading && progressMessages.length > 0 && !error && !showRetryAttempt;
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
+  const { tA } = useI18nAccountState();
 
   useEffect(() => {
     // Quickly hide and show badge when state changes to trigger
@@ -36,7 +43,7 @@ function TunnelState() {
     }, 1);
 
     return () => clearTimeout(timer);
-  }, [state.state]);
+  }, [state]);
 
   const generalError = (error: AppError) => (
     <>
@@ -63,6 +70,19 @@ function TunnelState() {
     </motion.div>
   );
 
+  const getError = () => {
+    // prioritize tunnel error first, then account error and finally any general error
+    if (tunnelError) {
+      return <p data-testid="tunnel-specific-error">{tE(tunnelError)}</p>;
+    }
+    if (isAccountError) {
+      return <p data-testid="account-specific-error">{tA(accountState)}</p>;
+    }
+    if (error) {
+      return generalError(error);
+    }
+  };
+
   return (
     <div
       className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2 cursor-default"
@@ -72,7 +92,7 @@ function TunnelState() {
         className="flex flex-1 items-end cursor-default select-none"
         data-testid="tunnel-badge-container"
       >
-        {showBadge && <ConnectionBadge state={state.state} />}
+        {showBadge && <ConnectionBadge state={state} />}
       </div>
       <div
         className="w-full flex flex-col flex-1 items-center overflow-hidden"
@@ -82,7 +102,7 @@ function TunnelState() {
           InfoMessage(
             t(
               `connection-progress.${
-                state.progressMessages[state.progressMessages.length - 1]
+                progressMessages[progressMessages.length - 1]
               }`,
               {
                 ns: 'backendMessages',
@@ -93,20 +113,20 @@ function TunnelState() {
           InfoMessage(
             t('connection-attempt', {
               ns: 'backendMessages',
-              count: state.retryAttempt,
+              count: retryAttempt,
             }),
           )}
         {isOffline &&
           !isError &&
           InfoMessage(
             t(
-              state.state === 'offline'
+              state === 'offline'
                 ? 'offline-message'
                 : 'offline-reconnect-message',
               { ns: 'home' },
             ),
           )}
-        {state.state === 'connected' && <ConnectionTimer />}
+        {state === 'connected' && <ConnectionTimer />}
         {isError && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, translateX: -8 }}
@@ -115,11 +135,7 @@ function TunnelState() {
             className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default text-aphrodisiac"
             data-testid="tunnel-error-container"
           >
-            {state.tunnelError ? (
-              <p data-testid="tunnel-specific-error">{tE(state.tunnelError)}</p>
-            ) : (
-              state.error && generalError(state.error)
-            )}
+            {getError()}
           </motion.div>
         )}
       </div>

@@ -73,5 +73,15 @@
       "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
       "link": "Learn exactly what's shared"
     }
+  },
+  "account": {
+    "get-started": "Get started",
+    "syncing": "Syncing…",
+    "no-plan": "No active plan",
+    "bandwidth-exceeded": "Bandwidth exceeded",
+    "max-device-reached": "Max devices reached",
+    "status-inactive": "Account is inactive",
+    "offline": "Offline",
+    "error": "Error"
   }
 }

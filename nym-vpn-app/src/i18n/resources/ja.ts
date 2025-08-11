@@ -1,3 +1,4 @@
+import account from '../ja/account.json';
 import common from '../ja/common.json';
 import home from '../ja/home.json';
 import settings from '../ja/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../ja/glossary.json';
 import notifications from '../ja/notifications.json';
 
 export const ja = {
+  account,
   common,
   home,
   settings,

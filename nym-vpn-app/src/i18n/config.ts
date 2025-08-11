@@ -63,6 +63,7 @@ i18n
     defaultNS,
     resources,
     ns: [
+      'account',
       'addCredential',
       'common',
       'home',

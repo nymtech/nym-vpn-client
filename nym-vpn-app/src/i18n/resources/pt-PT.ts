@@ -1,3 +1,4 @@
+import account from '../pt-PT/account.json';
 import common from '../pt-PT/common.json';
 import home from '../pt-PT/home.json';
 import settings from '../pt-PT/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../pt-PT/glossary.json';
 import notifications from '../pt-PT/notifications.json';
 
 export const ptPT = {
+  account,
   common,
   home,
   settings,

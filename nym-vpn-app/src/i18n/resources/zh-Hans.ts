@@ -1,3 +1,4 @@
+import account from '../zh-Hans/account.json';
 import common from '../zh-Hans/common.json';
 import home from '../zh-Hans/home.json';
 import settings from '../zh-Hans/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../zh-Hans/glossary.json';
 import notifications from '../zh-Hans/notifications.json';
 
 export const zhHans = {
+  account,
   common,
   home,
   settings,

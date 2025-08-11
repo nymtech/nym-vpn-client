@@ -55,21 +55,21 @@ function useI18nError() {
             return fmtErr(t('tunnel.ipv6-unavailable'), error.data);
         }
       }
-      // no tunnel errors
+      // not a tunnel error
       switch (error) {
         // mixnet event errors
         case 'entry-gw-down':
-          return t('entry-gateway-down');
+          return t('mixnet.entry-gateway-down');
         case 'exit-gw-down-ipv4':
-          return t('exit-gateway-down.ipv4');
+          return t('mixnet.exit-gateway-down.ipv4');
         case 'exit-gw-down-ipv6':
-          return t('exit-gateway-down.ipv6');
+          return t('mixnet.exit-gateway-down.ipv6');
         case 'exit-gw-routing-error-ipv4':
-          return t('exit-gateway-routing.ipv4');
+          return t('mixnet.exit-gateway-routing.ipv4');
         case 'exit-gw-routing-error-ipv6':
-          return t('exit-gateway-routing.ipv6');
-        case 'no-bandwidth':
-          return t('no-bandwidth');
+          return t('mixnet.exit-gateway-routing.ipv6');
+        case 'mixnet-no-bandwidth':
+          return t('mixnet.no-bandwidth');
         // general errors
         case 'internal':
           return t('internal');
@@ -85,12 +85,23 @@ function useI18nError() {
           return t('countries-request.exit');
         case 'get-wg-countries-query':
           return t('countries-request.fast-mode');
+        // account related
         case 'no-account-stored':
           return t('account.no-account-stored');
         case 'no-device-stored':
           return t('account.no-device-stored');
         case 'existing-account':
           return t('account.existing-account');
+        case 'bandwidth-exceeded':
+          return t('account.bandwidth-exceeded');
+        case 'account-status-not-active':
+          return t('account.status-not-active');
+        case 'no-subscription':
+          return t('account.no-subscription');
+        case 'max-device-reached':
+          return t('account.max-devices-reached');
+        case 'device-time-desync':
+          return t('account.device-time-out-of-sync');
       }
 
       console.warn('unhandled backend error', error);

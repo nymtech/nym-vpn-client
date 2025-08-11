@@ -1,28 +1,19 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { invoke } from '@tauri-apps/api/core';
-import { openUrl } from '@tauri-apps/plugin-opener';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
 import { kvSet } from '../../kvStore';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
-import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
-import { capFirst } from '../../util';
+import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
+import { Account } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const {
-    daemonStatus,
-    account,
-    desktopNotifications,
-    accountLinks,
-    ipv6Support,
-  } = useMainState();
+  const { desktopNotifications, ipv6Support } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -30,29 +21,9 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  const accountLoginUrl = accountLinks?.signIn;
-
-  useEffect(() => {
-    const checkAccount = async () => {
-      try {
-        const stored = await invoke<boolean | undefined>('is_account_stored');
-        dispatch({ type: 'set-account', stored: stored || false });
-      } catch {}
-    };
-
-    if (daemonStatus !== 'down') {
-      checkAccount();
-    }
-  }, [daemonStatus, dispatch]);
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
-  };
-
-  const handleGoToAccount = () => {
-    if (accountLoginUrl) {
-      openUrl(accountLoginUrl);
-    }
   };
 
   const handleIpv6Support = async () => {
@@ -63,22 +34,7 @@ function Settings() {
 
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6">
-      {account ? (
-        <SettingsMenuCard
-          title={capFirst(t('account', { ns: 'glossary' }))}
-          onClick={handleGoToAccount}
-          leadingIcon="person"
-          trailingIcon="open_in_new"
-          disabled={!accountLoginUrl}
-        />
-      ) : (
-        <Button
-          onClick={() => navigate(routes.login)}
-          disabled={daemonStatus === 'down'}
-        >
-          {t('login-button')}
-        </Button>
-      )}
+      <Account />
       <SettingsGroup
         settings={[
           {

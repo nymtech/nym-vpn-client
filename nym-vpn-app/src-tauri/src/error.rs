@@ -126,7 +126,7 @@ pub enum ErrorKey {
     ExitGwDownIpv6,
     ExitGwRoutingErrorIpv4,
     ExitGwRoutingErrorIpv6,
-    NoBandwidth,
+    MixnetNoBandwidth,
     // Some specific account management errors
     AccountInvalidMnemonic,
     NoAccountStored,

@@ -6,7 +6,8 @@ export type SettingsMenuCardProps = {
   title: string;
   leadingIcon?: string;
   leadingComponent?: ReactNode;
-  desc?: string;
+  description?: string;
+  descriptionColor?: 'normal' | 'yellow' | 'red';
   onClick?: () => void;
   trailingIcon?: string;
   trailingComponent?: ReactNode;
@@ -21,7 +22,8 @@ function SettingsMenuCard({
   title,
   leadingIcon,
   leadingComponent,
-  desc,
+  description,
+  descriptionColor = 'normal',
   onClick,
   trailingIcon,
   trailingComponent,
@@ -40,7 +42,7 @@ function SettingsMenuCard({
       className={clsx([
         'flex flex-row justify-between items-center gap-4 select-none',
         'bg-white dark:bg-charcoal px-5 rounded-lg min-h-16',
-        desc ? 'py-2' : 'py-4',
+        description ? 'py-2' : 'py-4',
         !noHoverEffect && 'hover:bg-white/60 dark:hover:bg-charcoal/85',
         'transition cursor-default',
         disabled && 'opacity-50 pointer-events-none',
@@ -84,12 +86,17 @@ function SettingsMenuCard({
           >
             {title}
           </p>
-          {desc && (
+          {description && (
             <p
-              className="truncate text-sm text-iron dark:text-bombay select-none"
+              className={clsx(
+                'truncate text-sm select-none',
+                descriptionColor === 'normal' && 'text-iron dark:text-bombay',
+                descriptionColor === 'red' && 'text-aphrodisiac',
+                descriptionColor === 'yellow' && 'text-king-nacho',
+              )}
               data-testid={`${testId}-description`}
             >
-              {desc}
+              {description}
             </p>
           )}
         </div>

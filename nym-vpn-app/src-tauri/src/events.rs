@@ -59,7 +59,7 @@ impl MixnetEventPayload {
             MixnetEvent::ExitGwRoutingErrorIpv6 => Self::Error(ErrorKey::ExitGwRoutingErrorIpv6),
             MixnetEvent::ConnectedIpv4 => Self::Event(event),
             MixnetEvent::ConnectedIpv6 => Self::Event(event),
-            MixnetEvent::NoBandwidth => Self::Error(ErrorKey::NoBandwidth),
+            MixnetEvent::NoBandwidth => Self::Error(ErrorKey::MixnetNoBandwidth),
             MixnetEvent::RemainingBandwidth(_) => Self::Event(event),
             MixnetEvent::SphinxPacketMetrics => Self::Event(event),
         }

@@ -87,26 +87,15 @@ export function useTauriEvents(
         type: 'set-account-state',
         state: payload,
       });
-      console.log(`__ACC_STATE ${JSON.stringify(payload)}`);
-      if (payload === 'max-device-reached' || payload === 'no-subscription') {
-        push({
-          id: 'account-state-update',
-          message: `account state update: ${JSON.stringify(payload)}`,
-          close: true,
-          duration: 6000,
-          type: 'warn',
-          throttle: 10,
-        });
-      }
+      console.log(`account state update: ${JSON.stringify(payload)}`);
       if (isAccountError(payload)) {
-        console.log('account error', payload.error);
         dispatch({
           type: 'set-error',
           error: payload.error,
         });
       }
     });
-  }, [dispatch, push]);
+  }, [dispatch]);
 
   const registerMixnetEventListener = useCallback(() => {
     return listen<MixnetEventPayload>(MixnetEvent, (event) => {
