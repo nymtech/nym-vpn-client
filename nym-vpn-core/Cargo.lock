@@ -3625,12 +3625,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
-name = "maplit"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
-
-[[package]]
 name = "matchers"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4028,7 +4022,6 @@ dependencies = [
  "bincode",
  "futures",
  "nym-authenticator-requests",
- "nym-common",
  "nym-credentials-interface",
  "nym-crypto",
  "nym-sdk",
@@ -5375,10 +5368,7 @@ version = "1.14.0-beta"
 dependencies = [
  "nym-http-api-client",
  "serde",
- "serde_json",
  "thiserror 2.0.12",
- "tokio",
- "tracing",
  "url",
 ]
 
@@ -5537,7 +5527,6 @@ dependencies = [
  "nym-credentials-interface",
  "nym-crypto",
  "nym-ecash-time",
- "nym-http-api-client",
  "nym-offline-monitor",
  "nym-sdk",
  "nym-vpn-api-client",
@@ -5646,7 +5635,6 @@ dependencies = [
  "nym-wireguard-types",
  "rand 0.8.5",
  "sentry",
- "serde_json",
  "sysinfo",
  "thiserror 2.0.12",
  "time",
@@ -5673,7 +5661,6 @@ dependencies = [
  "nym-gateway-directory",
  "nym-statistics-common",
  "nym-vpn-api-client",
- "nym-vpn-network-config",
  "nym-wg-gateway-client",
  "si-scale",
  "strum_macros",
@@ -5713,7 +5700,6 @@ dependencies = [
  "nym-http-api-client",
  "nym-ipc",
  "nym-sdk",
- "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
@@ -5722,7 +5708,6 @@ dependencies = [
  "prost-types",
  "thiserror 2.0.12",
  "time",
- "tokio",
  "tokio-stream",
  "tonic",
  "tonic-build",
@@ -5760,7 +5745,6 @@ dependencies = [
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-vpn-lib-types",
- "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpnd-types",
  "sysinfo",
@@ -5778,15 +5762,10 @@ dependencies = [
  "clap",
  "eventlog",
  "futures",
- "http 1.3.1",
  "log-panics",
- "maplit",
  "nym-bin-common",
- "nym-common",
- "nym-credentials-interface",
  "nym-ipc",
  "nym-offline-monitor",
- "nym-platform-metadata",
  "nym-statistics",
  "nym-task",
  "nym-validator-client",
@@ -5801,7 +5780,6 @@ dependencies = [
  "nym-windows",
  "sentry",
  "serde",
- "serde_json",
  "sha2 0.10.9",
  "strum",
  "sysinfo",
@@ -5819,7 +5797,6 @@ dependencies = [
  "vergen-gitcl",
  "windows 0.61.3",
  "windows-service",
- "zeroize",
 ]
 
 [[package]]
@@ -5833,7 +5810,6 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "serde",
- "thiserror 2.0.12",
  "time",
  "zeroize",
 ]

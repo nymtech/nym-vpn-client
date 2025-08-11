@@ -18,7 +18,6 @@ nym-type-conversions = [
     "dep:nym-gateway-directory",
     "dep:nym-statistics-common",
     "dep:nym-vpn-api-client",
-    "dep:nym-vpn-network-config",
     "dep:nym-wg-gateway-client",
 ]
 
@@ -32,6 +31,5 @@ nym-connection-monitor = { workspace = true, optional = true }
 nym-gateway-directory = { workspace = true, optional = true }
 nym-statistics-common = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
-nym-vpn-network-config = { workspace = true, optional = true }
 nym-wg-gateway-client = { workspace = true, optional = true }
 strum_macros = { workspace = true }
