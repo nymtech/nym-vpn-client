@@ -36,7 +36,7 @@ function Account() {
   }, [daemonStatus, dispatch]);
 
   const handleGoToAccount = () => {
-    if (accountState === 'no-subscription') {
+    if (needAPlan) {
       navigate(routes.selectPlan);
     } else if (accountUrl) {
       openUrl(accountUrl);
@@ -109,7 +109,7 @@ function Account() {
         description={getAccountDescription(accountState) as string | undefined}
         descriptionColor={getAccountColor(accountState)}
         leadingIcon="person"
-        trailingIcon="open_in_new"
+        trailingIcon={needAPlan ? 'arrow_right' : 'open_in_new'}
         disabled={!accountLoginUrl && !accountUrl}
       />
     </>

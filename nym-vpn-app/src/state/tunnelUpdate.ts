@@ -51,6 +51,12 @@ export function tunnelUpdate(state: TunnelStateIpc, dispatch: StateDispatch) {
   }
   if (isTunnelError(state)) {
     console.log('tunnel [error]', state.error);
+    if (state.error.key === 'inactive-subscription') {
+      dispatch({
+        type: 'set-account-state',
+        state: 'no-subscription',
+      });
+    }
     dispatch({
       type: 'set-tunnel-inerror',
       error: state.error,
