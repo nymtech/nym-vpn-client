@@ -1,11 +1,10 @@
-use sentry::{ClientInitGuard, User};
+use sentry::{ClientInitGuard, Level, User};
 use std::{
     borrow::Cow,
     collections::HashSet,
     sync::{Arc, OnceLock},
     time::Duration,
 };
-use std::sync::atomic::{AtomicU64, Ordering};
 use tracing::{info, warn};
 
 use crate::env::APP_SENTRY_DSN;
@@ -45,12 +44,14 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             shutdown_timeout: Duration::from_secs(1),
             server_name: Some(Cow::Borrowed("nym")),
             before_send: Some(Arc::new(|mut event| {
-                if let Some(message) = &event.message {
-                    if get_excluded_errors()
-                        .iter()
-                        .any(|err| message.to_lowercase().contains(err))
-                    {
-                        event.level = sentry::Level::Debug; // Change level to Debug
+                if matches!(event.level, Level::Error | Level::Warning) {
+                    if let Some(message) = &event.message {
+                        if get_excluded_errors()
+                            .iter()
+                            .any(|err| message.to_lowercase().contains(err))
+                        {
+                            event.level = Level::Debug; // Change level to Debug
+                        }
                     }
                 }
                 Some(event)
