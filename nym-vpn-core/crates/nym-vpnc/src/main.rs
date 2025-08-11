@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
     };
 
     match args.command {
-        Command::Connect(connect_args) => connect(rpc_client, connect_args, user_agent).await?,
+        Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,

@@ -5740,6 +5740,7 @@ name = "nym-vpnc"
 version = "1.14.0-beta"
 dependencies = [
  "anyhow",
+ "celes",
  "clap",
  "nym-bin-common",
  "nym-gateway-directory",
