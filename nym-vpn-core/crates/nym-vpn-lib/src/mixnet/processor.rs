@@ -198,12 +198,14 @@ impl MixnetProcessor {
                 // make sure we've fully disconnected before we return.
                 _ = self.cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
                     // Start disconnect timeout upon receiving cancellation in the very first time.
-                    if !is_disconnect_timeout_active {
+                    if is_disconnect_timeout_active {
+                        tracing::debug!("Re-sending disconnect message");
+                    } else {
                         is_disconnect_timeout_active = true;
                         ipr_disconnect_timeout.set(tokio::time::sleep(IPR_DISCONNECT_TIMEOUT).fuse());
+                        tracing::debug!("Cancel token triggered, sending disconnect message");
                     }
 
-                    tracing::debug!("MixnetProcessor: cancel token triggered, sending disconnect message");
                     let input_message = match message_creator.create_disconnect_message() {
                         Ok(input_message) => input_message,
                         Err(err) => {
@@ -217,23 +219,25 @@ impl MixnetProcessor {
                         tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
                         continue;
                     }
+
+                    tracing::info!("Sent disconnect message");
                     has_sent_ipr_disconnect = true;
                 }
                 // When the mixnet listener receives the disconnect response, it will notify us
                 // that it's done. This means we can now stop
                 _ = &mut mixnet_listener_done => {
-                    tracing::debug!("MixnetProcessor: mixnet listener has finished");
+                    tracing::debug!("Mixnet listener has finished");
                     break;
                 }
                 // Handle task manager shutdown
                 _ = task_client_mix_processor.recv() => {
-                    tracing::debug!("MixnetProcessor: Received shutdown");
+                    tracing::debug!("Received shutdown");
                     break;
                 }
                 // The backpressure monitor will notify us when the backpressure is lifted, so we
                 // can restart the select with updated preconditions
                 _ = notify_backpressure_lifted.notified(), if is_backpressure => {
-                    tracing::trace!("MixnetProcessor: backpressure lifted");
+                    tracing::trace!("Backpressure lifted");
                     continue;
                 }
                 // Read from the tun device and send the IP packet to the mixnet
@@ -248,7 +252,7 @@ impl MixnetProcessor {
                                 }
                             }
                             _ = task_client_mix_processor.recv() => {
-                                tracing::debug!("MixnetProcessor: Received shutdown while sending.");
+                                tracing::debug!("Received shutdown while sending.");
                                 break;
                             }
                         }
@@ -258,14 +262,14 @@ impl MixnetProcessor {
                         break;
                     }
                     None => {
-                        tracing::error!("Mixnet processor: tun device stream ended");
+                        tracing::error!("Tun device stream ended");
                         break;
                     }
                 },
                 // To make sure we don't wait too long before filling up the buffer, which destroys
                 // latency, cap the time waiting for the buffer to fill
                 _ = payload_topup_interval.tick() => {
-                    tracing::trace!("MixnetProcessor: Buffer timeout");
+                    tracing::trace!("Buffer timeout");
 
                     // If we already have pending packets that we are waiting to send to the
                     // mixnet, there is no point in flushing the current buffer. Instead keep
@@ -283,7 +287,7 @@ impl MixnetProcessor {
                             }
                         }
                         _ = task_client_mix_processor.recv() => {
-                            tracing::debug!("MixnetProcessor: Received shutdown while flushing");
+                            tracing::debug!("Received shutdown while flushing");
                             break;
                         }
                     }
@@ -297,7 +301,7 @@ impl MixnetProcessor {
         tracing::info!("Waiting for mixnet listener to finish");
         let tun_device_sink = mixnet_listener_handle.await.unwrap();
 
-        tracing::debug!("MixnetProcessor: Exiting");
+        tracing::debug!("Exiting");
         Ok(tun_device_sink
             .reunite(tun_device_stream)
             .expect("reunite should work because of same device split")
