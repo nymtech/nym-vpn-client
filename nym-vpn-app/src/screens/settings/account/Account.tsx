@@ -36,9 +36,7 @@ function Account() {
   }, [daemonStatus, dispatch]);
 
   const handleGoToAccount = () => {
-    if (needAPlan) {
-      navigate(routes.selectPlan);
-    } else if (accountUrl) {
+    if (accountUrl) {
       openUrl(accountUrl);
     } else if (accountLoginUrl) {
       openUrl(accountLoginUrl);
@@ -109,7 +107,7 @@ function Account() {
         description={getAccountDescription(accountState) as string | undefined}
         descriptionColor={getAccountColor(accountState)}
         leadingIcon="person"
-        trailingIcon={needAPlan ? 'arrow_right' : 'open_in_new'}
+        trailingIcon="open_in_new"
         disabled={!accountLoginUrl && !accountUrl}
       />
     </>
