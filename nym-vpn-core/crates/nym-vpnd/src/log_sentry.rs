@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use sentry::ClientInitGuard;
+use sentry::{ClientInitGuard, Level};
 use sha2::{Digest, Sha256};
 use std::{
     borrow::Cow,
@@ -50,16 +50,13 @@ pub fn init_sentry() -> Option<ClientInitGuard> {
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(2),
             server_name: Some(Cow::Borrowed("nym")),
-            before_send: Some(Arc::new(|event| {
+            before_send: Some(Arc::new(|mut event| {
                 if let Some(message) = &event.message {
                     if get_excluded_errors()
                         .iter()
                         .any(|err| message.to_lowercase().contains(err))
                     {
-                        // Exclude specific errors from being sent to Sentry
-                        // The excluded error still appears in the breadcrumbs
-                        tracing::info!("Excluded error: {}", message);
-                        return None; // Exclude this event
+                        event.level = Level::Debug; // Change level to Debug
                     }
                 }
                 Some(event)
