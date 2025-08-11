@@ -6,6 +6,7 @@ import {
 } from '../../constants';
 import {
   AccountLinks,
+  AccountState,
   AppError,
   AppState,
   CodeDependency,
@@ -65,13 +66,15 @@ export type StateAction =
   | { type: 'set-account-links'; links: AccountLinks | null }
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
   | { type: 'set-ipv6-support'; enabled: boolean }
-  | { type: 'set-network-stats'; enabled: boolean };
+  | { type: 'set-network-stats'; enabled: boolean }
+  | { type: 'set-account-state'; state: AccountState };
 
 export const initialState: AppState = {
   initialized: false,
   state: 'disconnected',
   tunnel: null,
   tunnelError: null,
+  accountState: null,
   daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
@@ -298,6 +301,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         networkStats: action.enabled,
+      };
+    case 'set-account-state':
+      return {
+        ...state,
+        accountState: action.state,
       };
 
     case 'reset':

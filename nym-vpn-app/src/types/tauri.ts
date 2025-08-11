@@ -133,3 +133,23 @@ export type OsInfo = {
   displayServer?: DisplayServer;
   gpu?: GpuType;
 };
+
+export type AccountStateError = {
+  error: BackendError;
+};
+export type AccountState =
+  | 'ready'
+  | 'logged-out'
+  | 'syncing'
+  | 'offline'
+  | 'bandwidth-exceeded'
+  | 'status-not-active'
+  | 'no-subscription'
+  | 'max-device-reached'
+  | AccountStateError;
+
+export function isAccountError(
+  state: AccountState,
+): state is AccountStateError {
+  return (state as AccountStateError).error !== undefined;
+}

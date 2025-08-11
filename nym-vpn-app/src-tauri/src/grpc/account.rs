@@ -1,11 +1,13 @@
 use crate::error::BackendError;
 
 use serde::Serialize;
-use tracing::warn;
 use tracing::{debug, instrument};
+use tracing::{info, warn};
 use ts_rs::TS;
 
-use nym_vpn_proto::proto::account_controller_state::{State as ProtoState, State};
+use nym_vpn_proto::proto::account_controller_state::{
+    ErrorStateReason, State as ProtoState, State,
+};
 
 #[derive(strum::AsRefStr, Default, Serialize, Clone, Debug, TS)]
 #[ts(export)]
@@ -16,6 +18,10 @@ pub enum AccountState {
     LoggedOut,
     Syncing,
     Offline,
+    BandwidthExceeded,
+    StatusNotActive,
+    NoSubscription,
+    MaxDeviceReached,
     Error(BackendError),
 }
 
@@ -26,7 +32,13 @@ impl AccountState {
             State::Syncing(_) => AccountState::Syncing,
             State::ReadyToConnect(_) => AccountState::Ready,
             State::Offline(_) => AccountState::Offline,
-            State::Error(error) => AccountState::Error(error.into()),
+            State::Error(error) => match error.reason() {
+                ErrorStateReason::BandwidthExceeded => AccountState::BandwidthExceeded,
+                ErrorStateReason::AccountStatusNotActive => AccountState::StatusNotActive,
+                ErrorStateReason::InactiveSubscription => AccountState::NoSubscription,
+                ErrorStateReason::MaxDeviceReached => AccountState::MaxDeviceReached,
+                _ => AccountState::Error(error.into()),
+            },
         }
     }
 }
@@ -35,12 +47,21 @@ impl AccountState {
 pub fn log_account_state(state: &ProtoState) {
     match state {
         ProtoState::Error(e) => {
-            warn!(
+            let message = format!(
                 "account state error: [{:?}] - details: {} - context: {}",
                 e.reason(),
                 e.details(),
                 e.context()
             );
+            match e.reason() {
+                ErrorStateReason::Storage
+                | ErrorStateReason::ApiFailure
+                | ErrorStateReason::Internal
+                | ErrorStateReason::DeviceTimeDesynced => {
+                    warn!(message);
+                }
+                _ => info!(message),
+            }
         }
         _ => debug!("account state: [{:?}]", state),
     }
