@@ -9588,6 +9588,17 @@
         }
       }
     },
+    "errorReason.existingAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account already exists."
+          }
+        }
+      }
+    },
     "errorReason.failedAccountRegistration" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18677,9 +18688,6 @@
           }
         }
       }
-    },
-    "Key" : {
-      "extractionState" : "manual"
     },
     "lastHopSelection" : {
       "extractionState" : "manual",

@@ -40,7 +40,7 @@ extension HomeViewModel {
 
     func isLastErrorSubscriptionExpired() -> Bool {
         guard let errorReason = lastError as? ErrorReason,
-              errorReason == .subscriptionExpired
+              errorReason == .inactiveSubscription
         else {
             return false
         }

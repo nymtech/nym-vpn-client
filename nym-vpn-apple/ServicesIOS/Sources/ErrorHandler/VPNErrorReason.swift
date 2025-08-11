@@ -16,19 +16,12 @@ public enum VPNErrorReason: LocalizedError {
     case invalidMnemonic(details: String)
     case invalidAccountStoragePath(details: String)
     case unregisterDevice(details: String)
-    case storeAccount(details: String)
-    case syncAccount(details: String)
-    case syncDevice(details: String)
-    case registerDevice(details: String)
     case requestZknym(details: String)
-    case requestZkNymBundle(successes: [String], failed: [String])
-    case forgetAccount(details: String)
     case offline
     case unexpectedVpnApiResponse(details: String)
-    case registerAccount(details: String)
     case failedAccountRegistration(details: String)
-    case getMnemonic(details: String)
-    case createAccount(details: String)
+    case existingAccount
+    case accountControllerError(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -71,103 +64,6 @@ public enum VPNErrorReason: LocalizedError {
             self = .invalidAccountStoragePath(details: details)
         case let .UnregisterDevice(details: details):
             self = .unregisterDevice(details: details)
-        case let .StoreAccount(details: details):
-            let messageString: String
-            switch details {
-            case let .Storage(message), let .UnexpectedResponse(message):
-                messageString = message
-            case let .GetAccountEndpointFailure(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
-                    self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                }
-                return
-            case let .InvalidMnemonic(message):
-                messageString = message
-            case let .Internal(message):
-                messageString = message
-            }
-            self = .storeAccount(details: messageString)
-        case let .SyncAccount(details: details):
-            let messageString: String
-            switch details {
-            case .NoAccountStored:
-                self = .noAccountStored
-                return
-            case let .ErrorResponse(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
-                    self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                }
-                return
-            case let .UnexpectedResponse(message), let .Internal(message):
-                messageString = message
-            case .Offline:
-                messageString = "errorReason.unknownTunnelState".localizedString
-            }
-            self = .syncAccount(details: messageString)
-        case let .SyncDevice(details: details):
-            let messageString: String
-            switch details {
-            case .NoAccountStored:
-                self = .noAccountStored
-                return
-            case .NoDeviceStored:
-                self = .noDeviceIdentity
-                return
-            case let .ErrorResponse(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
-                    self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                }
-                return
-            case let .UnexpectedResponse(message), let .Internal(message):
-                messageString = message
-            case .Offline:
-                self = .offline
-                return
-            }
-            self = .syncDevice(details: messageString)
-        case let .RegisterDevice(details: details):
-            let messageString: String
-            switch details {
-            case .NoAccountStored:
-                self = .noAccountStored
-                return
-            case .NoDeviceStored:
-                self = .noDeviceIdentity
-                return
-            case let .ErrorResponse(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
-                    self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                }
-                return
-            case let .UnexpectedResponse(message):
-                messageString = message
-            case let .Internal(message):
-                messageString = message
-            case .Offline:
-                self = .offline
-                return
-            }
-            self = .registerDevice(details: messageString)
         case let .RequestZkNym(details: details):
             let messageString: String
             switch details {
@@ -194,94 +90,14 @@ public enum VPNErrorReason: LocalizedError {
                 return
             }
             self = .requestZknym(details: messageString)
-        case let .RequestZkNymBundle(successes: successes, failed: failed):
-            let newFailed = failed.compactMap {
-                switch $0 {
-                case .NoAccountStored:
-                    return "errorReason.noAccountStored".localizedString
-                case .NoDeviceStored:
-                    return "errorReason.noDeviceStored".localizedString
-                case let .VpnApi(vpnApiErrorResponse):
-                    switch vpnApiErrorResponse {
-                    case .timeout:
-                        return VPNErrorReason.vpnApiTimeout.description
-                    case let .statusCode(code):
-                        return String(code)
-                    case let .response(errorResponse):
-                        return errorResponse.message
-                    }
-                case let .UnexpectedVpnApiResponse(message), let .Storage(message), let .Internal(message):
-                    return message
-                case .Offline:
-                    return "errorReason.offline".localizedString
-                }
-            }
-            self = .requestZkNymBundle(
-                successes: successes.compactMap { $0.id },
-                failed: newFailed
-            )
-        case let .ForgetAccount(details: details):
-            let messageString: String
-            switch details {
-            case .RegistrationInProgress:
-                messageString = "errorReason.registrationInProgress".localizedString
-            case let .UpdateDeviceErrorResponse(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
-                    self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                }
-                return
-            case let .UnexpectedResponse(message),
-                let .RemoveAccount(message), let .RemoveDeviceKeys(message),
-                let .ResetCredentialStorage(message), let .RemoveAccountFiles(message),
-                let .InitDeviceKeys(message):
-                messageString = message
-            case let .Internal(message):
-                messageString = message
-            }
-            self = .forgetAccount(details: messageString)
         case let .UnexpectedVpnApiResponse(details: details):
             self = .unexpectedVpnApiResponse(details: details)
-        case let .RegisterAccount(details: details):
-            switch details {
-            case .Offline:
-                self = .offline
-            case let .Storage(response):
-                self = .registerAccount(details: response)
-            case let .GetAccountEndpointFailure(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
-                    self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
-                    self = .vpnApi(details: errorResponse.message)
-                }
-            case let .UnexpectedResponse(response):
-                self = .registerAccount(details: response)
-            case let .Internal(response):
-                self = .registerAccount(details: response)
-            }
         case let .FailedAccountRegistration(details: details):
             self = .failedAccountRegistration(details: details)
-        case let .GetMnemonic(details: details):
-            switch details {
-            case let .Storage(message):
-                self = .getMnemonic(details: message)
-            case let .Internal(message):
-                self = .getMnemonic(details: message)
-            }
-        case let .CreateAccount(details: details):
-            switch details {
-            case let .Storage(message):
-                self = .createAccount(details: message)
-            case let .Internal(message):
-                self = .createAccount(details: message)
-            }
+        case .ExistingAccount:
+            self = .existingAccount
+        case let .AccountControllerError(details: details):
+            self = .accountControllerError(details: details)
         }
     }
 
@@ -320,49 +136,22 @@ public enum VPNErrorReason: LocalizedError {
             self = .invalidAccountStoragePath(details: nsError.localizedDescription)
         case .unregisterDevice:
             self = .unregisterDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .storeAccount:
-            self = .storeAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .syncAccount:
-            self = .syncAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .syncDevice:
-            self = .syncDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .registerDevice:
-            self = .registerDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .requestZknym:
             self = .requestZknym(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .requestZkNymBundle:
-            let decoder = JSONDecoder()
-            var successes = [String]()
-            var failures = [String]()
-            if let successesString = nsError.userInfo["requestZknymSuccesses"] as? String,
-               let jsonData = successesString.data(using: .utf8),
-               let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
-                successes = decodedSuccesses
-            }
-            if let failuresString = nsError.userInfo["requestZknymFailures"] as? String,
-               let jsonData = failuresString.data(using: .utf8),
-               let decodedFailures = try? decoder.decode([String].self, from: jsonData) {
-                failures = decodedFailures
-            }
-            self = .requestZkNymBundle(successes: successes, failed: failures)
-        case .forgetAccount:
-            self = .forgetAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .offline:
             self = .offline
         case .unkownTunnelState:
             self = .unkownTunnelState
         case .unexpectedVpnApiResponse:
             self = .unexpectedVpnApiResponse(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .registerAccount:
-            self = .registerAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .failedAccountRegistration:
             self = .failedAccountRegistration(
                 details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong
             )
-        case .getMnemonic:
-            self = .getMnemonic(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .createAccount:
-            self = .createAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .accountControllerError:
+            self = .accountControllerError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .existingAccount:
+            self = .existingAccount
         }
     }
 
@@ -373,22 +162,9 @@ public enum VPNErrorReason: LocalizedError {
     }
 
     public var nsError: NSError {
-        let jsonEncoder = JSONEncoder()
-        var userInfo: [String: String] = [
+        let userInfo: [String: String] = [
             "details": description
         ]
-        if let requestZknymDetails = requestZknymDetails,
-           !requestZknymDetails.successes.isEmpty,
-           let jsonData = try? jsonEncoder.encode(requestZknymDetails.successes),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            userInfo["requestZknymSuccesses"] = jsonString
-        }
-        if let requestZknymDetails = requestZknymDetails,
-           !requestZknymDetails.failures.isEmpty,
-           let jsonData = try? jsonEncoder.encode(requestZknymDetails.failures),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            userInfo["requestZknymFailures"] = jsonString
-        }
         return NSError(
             domain: VPNErrorReason.domain,
             code: errorCode,
@@ -428,19 +204,7 @@ extension VPNErrorReason {
             details
         case let .unregisterDevice(details):
             details
-        case let .storeAccount(details):
-            details
-        case let .syncAccount(details):
-            details
-        case let .syncDevice(details):
-            details
-        case let .registerDevice(details):
-            details
         case let .requestZknym(details):
-            details
-        case let .requestZkNymBundle(successes, failed):
-            "\(successes.first ?? "") \(failed.first ?? "")"
-        case let .forgetAccount(details):
             details
         case .unkownTunnelState:
             "errorReason.unknownTunnelState".localizedString
@@ -448,23 +212,12 @@ extension VPNErrorReason {
             "errorReason.offline".localizedString
         case let .unexpectedVpnApiResponse(details: details):
             details
-        case let .registerAccount(details: details):
-            details
         case let .failedAccountRegistration(details: details):
             details
-        case let .getMnemonic(details: details):
+        case .existingAccount:
+            "errorReason.existingAccount".localizedString
+        case let .accountControllerError(details: details):
             details
-        case let .createAccount(details: details):
-            details
-        }
-    }
-
-    var requestZknymDetails: (successes: [String], failures: [String])? {
-        switch self {
-        case let .requestZkNymBundle(successes: successes, failed: failed):
-            return (successes, failed)
-        default:
-            return nil
         }
     }
 }
@@ -489,20 +242,13 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case invalidMnemonic
     case invalidAccountStoragePath
     case unregisterDevice
-    case storeAccount
-    case syncAccount
-    case syncDevice
-    case registerDevice
     case requestZknym
-    case requestZkNymBundle
-    case forgetAccount
     case offline
     case unkownTunnelState
     case unexpectedVpnApiResponse
-    case registerAccount
     case failedAccountRegistration
-    case getMnemonic
-    case createAccount
+    case existingAccount
+    case accountControllerError
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -530,34 +276,20 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .invalidAccountStoragePath
         case .unregisterDevice:
             self = .unregisterDevice
-        case .storeAccount:
-            self = .storeAccount
-        case .syncAccount:
-            self = .syncAccount
-        case .syncDevice:
-            self = .syncDevice
-        case .registerDevice:
-            self = .registerDevice
         case .requestZknym:
             self = .requestZknym
-        case .requestZkNymBundle:
-            self = .requestZkNymBundle
-        case .forgetAccount:
-            self = .forgetAccount
         case .unkownTunnelState:
             self = .unkownTunnelState
         case .offline:
             self = .offline
-        case .registerAccount:
-            self = .registerAccount
         case .unexpectedVpnApiResponse:
             self = .unexpectedVpnApiResponse
         case .failedAccountRegistration:
             self = .failedAccountRegistration
-        case .getMnemonic:
-            self = .getMnemonic
-        case .createAccount:
-            self = .createAccount
+        case .existingAccount:
+            self = .existingAccount
+        case .accountControllerError:
+            self = .accountControllerError
         }
     }
 }
