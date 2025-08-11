@@ -589,11 +589,6 @@ impl TunnelMonitor {
             }
         }
 
-        // Signal task manager to shutdown to stop detached tasks
-        if task_manager.signal_shutdown().is_err() {
-            tracing::error!("Failed to signal task manager shutdown");
-        }
-
         // Trigger cancellation since many other tasks depend on shutdown token
         self.shutdown_token.cancel();
     }
