@@ -91,8 +91,6 @@ extension GRPCManager {
             ErrorReason.maxDevicesReached
         case .bandwidthExceeded:
             ErrorReason.bandwidthExceeded
-        case .subscriptionExpired:
-            ErrorReason.subscriptionExpired
         case .dns:
             ErrorReason.dns
         case .api:
@@ -107,6 +105,10 @@ extension GRPCManager {
             ErrorReason.createMixnetStorage
         case .ipv6Unavailable:
             ErrorReason.ipv6Unavailable
+        case .inactiveSubscription:
+            ErrorReason.inactiveSubscription
+        case .accountControl:
+            ErrorReason.accountControl(tunnelStateError.detail)
         }
     }
 }

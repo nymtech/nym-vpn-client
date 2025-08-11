@@ -9,9 +9,11 @@ extension GRPCManager {
                 Google_Protobuf_Empty(),
                 callOptions: CallOptions(timeLimit: .timeout(.seconds(7)))
             )
-            daemonVersion = result.version
-            networkName = result.nymNetwork.networkName
-            logger.info("🛜 \(result.nymNetwork.networkName)")
+            Task { @MainActor in
+                daemonVersion = result.version
+                networkName = result.nymNetwork.networkName
+                logger.info("🛜 \(result.nymNetwork.networkName)")
+            }
         } catch {
             Task { @MainActor in
                 daemonVersion = "noVersion"

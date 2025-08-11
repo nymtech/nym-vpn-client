@@ -5,6 +5,9 @@ import MixnetLibrary
 import Theme
 
 public enum ErrorReason: LocalizedError, Codable {
+#if os(macOS)
+    case existingAccount
+#endif
     // App
     case offline
     case noAccountStored
@@ -130,6 +133,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .inactiveSubscription
         case .accountControl:
             self = .accountControl(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+#if os(macOS)
+        case .existingAccount:
+            self = .existingAccount
+#endif
         }
     }
 
@@ -206,6 +213,10 @@ private extension ErrorReason {
             "errorReason.ipv6Unavailable".localizedString
         case let .accountControl(message):
             message
+#if os(macOS)
+        case .existingAccount:
+            "errorReason.existingAccount".localizedString
+#endif
         }
     }
 }
@@ -217,6 +228,9 @@ extension ErrorReason: Equatable {
 }
 
 enum ErrorReasonCode: Int, RawRepresentable {
+#if os(macOS)
+    case existingAccount
+#endif
     case unknown
     case offline
     case noAccountStored
@@ -292,6 +306,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .inactiveSubscription
         case .accountControl:
             self = .accountControl
+#if os(macOS)
+        case .existingAccount:
+            self = .existingAccount
+#endif
         }
     }
 }

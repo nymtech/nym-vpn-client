@@ -23,6 +23,14 @@ extension GRPCManager {
             case .none:
                 return
             }
+        case .noAccountStored:
+            throw ErrorReason.noAccountStored
+        case .noDeviceStored:
+            throw ErrorReason.noDeviceStored
+        case .existingAccount:
+            throw ErrorReason.existingAccount
+        case .offline:
+            throw ErrorReason.offline
         case .none:
             return
         }
@@ -32,14 +40,7 @@ extension GRPCManager {
         let result = try await client.forgetAccount(Google_Protobuf_Empty())
 
         switch result.error.errorDetail {
-        case .registrationInProgress:
-            throw ErrorReason.registrationInProgress
         case let .unexpectedResponse(message),
-            let .removeAccount(message),
-            let .removeDeviceKeys(message),
-            let .resetCredentialStore(message),
-            let .removeAccountFiles(message),
-            let .initDeviceKeys(message),
             let .internal(message):
             throw GeneralNymError.library(message: message)
         case let .vpnApi(apiError):
@@ -53,6 +54,18 @@ extension GRPCManager {
             case .none:
                 throw ErrorReason.unknown
             }
+        case let .storageError(message):
+            throw GeneralNymError.library(message: message)
+        case .noAccountStored:
+            throw ErrorReason.noAccountStored
+        case .noDeviceStored:
+            throw ErrorReason.noDeviceStored
+        case .existingAccount:
+            throw ErrorReason.existingAccount
+        case .offline:
+            throw ErrorReason.offline
+        case let .invalidMnemonic(message):
+            throw GeneralNymError.library(message: message)
         case .none:
             return
         }
