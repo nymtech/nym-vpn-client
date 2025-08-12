@@ -5,7 +5,7 @@ mod cli;
 mod command_interface;
 mod config;
 mod environment;
-mod log_sentry;
+mod sentry;
 mod logging;
 mod runtime;
 mod service;
@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 
 async fn async_main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let _sentry_guard = log_sentry::init_sentry();
+    let _sentry_guard = sentry::init_sentry();
     let sentry_enabled = _sentry_guard.is_some();
 
     match args.command.unwrap_or_default() {
