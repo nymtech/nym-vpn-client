@@ -11,7 +11,7 @@ jobs:
   cargo-deny:
     runs-on: arc-ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master

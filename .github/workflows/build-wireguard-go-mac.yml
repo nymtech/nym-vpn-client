@@ -15,7 +15,7 @@ jobs:
     runs-on: custom-macos-15
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Install Go
         uses: actions/setup-go@v5
