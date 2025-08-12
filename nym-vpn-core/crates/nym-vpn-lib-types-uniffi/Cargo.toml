@@ -15,28 +15,19 @@ workspace = true
 crate-type = ["cdylib", "lib", "staticlib"]
 
 [dependencies]
-async-trait.workspace = true
 ipnetwork.workspace = true
-itertools.workspace = true
 time.workspace = true
 thiserror.workspace = true
 url.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
-
-nym-bin-common.workspace = true
 nym-config.workspace = true
 nym-sdk.workspace = true
-nym-statistics.workspace = true
-nym-offline-monitor.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-account-controller.workspace = true
 nym-vpn-network-config.workspace = true
-nym-vpn-store.workspace = true
 nym-vpn-api-client.workspace = true
-nym-common.workspace = true
 nym-gateway-directory.workspace = true
-nym-validator-client.workspace = true
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

@@ -5561,7 +5561,6 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tracing",
- "uuid",
  "zeroize",
 ]
 
@@ -5610,7 +5609,6 @@ dependencies = [
  "hickory-server",
  "ipnetwork",
  "itertools 0.13.0",
- "lazy_static",
  "log",
  "nix 0.30.1",
  "nym-apple-network",
@@ -5638,7 +5636,6 @@ dependencies = [
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",
- "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
@@ -5647,8 +5644,6 @@ dependencies = [
  "nym-windows",
  "nym-wireguard-types",
  "rand 0.8.5",
- "sentry",
- "sysinfo",
  "thiserror 2.0.12",
  "time",
  "tokio",
@@ -5656,7 +5651,6 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-oslog",
- "tracing-subscriber",
  "tun",
  "url",
  "vergen-gitcl",
@@ -5668,7 +5662,6 @@ dependencies = [
 name = "nym-vpn-lib-types"
 version = "1.14.0-beta"
 dependencies = [
- "ipnetwork",
  "nym-bandwidth-controller",
  "nym-connection-monitor",
  "nym-gateway-directory",
@@ -5685,23 +5678,15 @@ dependencies = [
 name = "nym-vpn-lib-types-uniffi"
 version = "1.14.0-beta"
 dependencies = [
- "async-trait",
  "ipnetwork",
- "itertools 0.13.0",
- "nym-bin-common",
- "nym-common",
  "nym-config",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
- "nym-offline-monitor",
  "nym-sdk",
- "nym-statistics",
- "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
- "nym-vpn-store",
  "thiserror 2.0.12",
  "time",
  "uniffi",
@@ -5714,15 +5699,12 @@ version = "1.14.0-beta"
 dependencies = [
  "android_logger",
  "async-trait",
- "futures",
  "ipnetwork",
  "itertools 0.13.0",
  "lazy_static",
  "nym-bin-common",
  "nym-common",
- "nym-config",
  "nym-gateway-directory",
- "nym-ip-packet-requests",
  "nym-offline-monitor",
  "nym-sdk",
  "nym-statistics",
@@ -5746,7 +5728,6 @@ dependencies = [
  "tracing-oslog",
  "tracing-subscriber",
  "uniffi",
- "url",
  "vergen-gitcl",
 ]
 
@@ -5871,7 +5852,6 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
- "nym-vpn-store",
  "nym-vpnd-types",
  "nym-windows",
  "sentry",
@@ -5902,7 +5882,6 @@ dependencies = [
  "nym-gateway-directory",
  "nym-sdk",
  "nym-validator-client",
- "nym-vpn-account-controller",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "serde",

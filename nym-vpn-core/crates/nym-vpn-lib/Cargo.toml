@@ -23,19 +23,7 @@ hickory-resolver = { workspace = true, features = [
 ] }
 ipnetwork.workspace = true
 itertools.workspace = true
-lazy_static.workspace = true
 log.workspace = true
-rand.workspace = true
-sysinfo.workspace = true
-sentry = { workspace = true, features = [
-    "backtrace",
-    "contexts",
-    "panic",
-    "reqwest",
-    "rustls",
-    "tracing",
-    "logs",
-] }
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -46,7 +34,6 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec", "rt"] }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 tun = { workspace = true, features = ["async"] }
 url.workspace = true
@@ -73,7 +60,6 @@ nym-macos.workspace = true
 nym-offline-monitor.workspace = true
 nym-statistics.workspace = true
 nym-vpn-account-controller.workspace = true
-nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
