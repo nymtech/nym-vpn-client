@@ -407,7 +407,7 @@ impl GatewayClient {
     }
 }
 
-// Append the performance to the gateways. This is a temporary hack until the nymvpn.com endpoints
+// Append the performance to the gateways. This is a temporary hack until the nym.com endpoints
 // are updated to also include this field.
 fn append_performance(
     gateways: &mut [Gateway],
