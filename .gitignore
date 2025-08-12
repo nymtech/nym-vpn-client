@@ -31,6 +31,7 @@ wireguard/libwg/libwg.h
 # uniffi binaries
 nym-vpn-core/crates/*/generated
 nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc
+nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib
 
 # Visual Studio
 *.vcxproj.user

@@ -8,6 +8,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::types::{Platform, VpnApiAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
+use nym_vpn_lib_types_uniffi::{AccountControllerState, conversions::RegisterAccountResponse};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::device::DeviceKeyStore,
@@ -16,10 +17,7 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    ACCOUNT_CONTROLLER_HANDLE, error::VpnError, uniffi_custom_impls::RegisterAccountResponse,
-    uniffi_lib_types::AccountControllerState,
-};
+use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 use crate::offline_monitor;
 
 pub(super) async fn init_account_controller(

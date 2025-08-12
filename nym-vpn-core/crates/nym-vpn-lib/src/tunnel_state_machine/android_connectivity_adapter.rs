@@ -3,10 +3,10 @@
 
 use std::sync::Arc;
 
-use nym_offline_monitor::NativeConnectivityAdapter;
 use tokio::sync::mpsc;
 
-use crate::tunnel_provider::android::{AndroidTunProvider, ConnectivityObserver};
+use crate::tunnel_provider::{AndroidTunProvider, ConnectivityObserver};
+use nym_offline_monitor::NativeConnectivityAdapter;
 
 /// Adapter bridging offline detection with native Android Connectivity Manager via uniffi.
 pub struct AndroidConnectivityAdapter {

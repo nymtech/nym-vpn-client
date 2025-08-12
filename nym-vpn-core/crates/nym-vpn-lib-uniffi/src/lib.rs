@@ -57,33 +57,48 @@ mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
 mod stats;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+mod tunnel_provider;
 mod user_agent;
 
-use std::{env, path::PathBuf, sync::Arc};
+use std::{env, sync::Arc};
 
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use lazy_static::lazy_static;
 use nym_gateway_directory::{CachingGatewayClient, GatewayClient};
 use nym_vpn_api_client::types::ScoreThresholds;
 use sentry::ClientInitGuard;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+};
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
-use crate::{
-    offline_monitor::OfflineMonitorHandle, stats::StatisticsControllerHandle,
-    uniffi_custom_impls::NetworkCompatibility,
-};
-use state_machine::StateMachineHandle;
-use uniffi_custom_impls::{
-    AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location, NetworkEnvironment,
-    RegisterAccountResponse, SystemMessage, UserAgent,
-};
-use uniffi_lib_types::{AccountControllerState, TunnelEvent};
-
 use account::AccountControllerHandle;
+use nym_vpn_lib_types_uniffi::{
+    AccountControllerState, TunnelEvent,
+    conversions::{
+        AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
+        NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage,
+        UserAgent,
+    },
+};
+use offline_monitor::OfflineMonitorHandle;
+use state_machine::StateMachineHandle;
+use stats::StatisticsControllerHandle;
+#[cfg(target_os = "android")]
+use tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use tunnel_provider::ios::OSTunProvider;
+
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpAddr);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpNetwork);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Network);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Network);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::PathBuf);
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();

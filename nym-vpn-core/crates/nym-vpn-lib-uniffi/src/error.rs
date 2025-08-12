@@ -33,7 +33,7 @@ pub enum VpnError {
     #[error("vpn-api error: {details}")]
     VpnApi {
         #[from]
-        details: super::uniffi_lib_types::VpnApiError,
+        details: nym_vpn_lib_types_uniffi::VpnApiError,
     },
 
     #[error("unexpected response from nym-vpn-api: {details}")]
@@ -54,7 +54,7 @@ pub enum VpnError {
     #[error("failed to request zk nym")]
     RequestZkNym {
         #[from]
-        details: super::uniffi_lib_types::RequestZkNymError,
+        details: nym_vpn_lib_types_uniffi::RequestZkNymError,
     },
 
     #[error("an account is already stored")]

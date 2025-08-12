@@ -6,6 +6,7 @@
 uniffi::setup_scaffolding!();
 
 pub mod conversions;
+pub use conversions::*;
 
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 

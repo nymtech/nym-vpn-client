@@ -15,8 +15,10 @@ crate-type = ["cdylib", "lib", "staticlib"]
 workspace = true
 
 [dependencies]
+async-trait.workspace = true
 futures.workspace = true
 ipnetwork.workspace = true
+itertools.workspace = true
 lazy_static.workspace = true
 sysinfo.workspace = true
 sentry = { workspace = true, features = [
@@ -45,6 +47,7 @@ nym-offline-monitor.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-vpn-lib.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
+nym-vpn-lib-types-uniffi.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true

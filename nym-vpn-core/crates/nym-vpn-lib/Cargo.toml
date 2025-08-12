@@ -27,6 +27,15 @@ lazy_static.workspace = true
 log.workspace = true
 rand.workspace = true
 sysinfo.workspace = true
+sentry = { workspace = true, features = [
+    "backtrace",
+    "contexts",
+    "panic",
+    "reqwest",
+    "rustls",
+    "tracing",
+    "logs",
+] }
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -40,7 +49,6 @@ tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 tun = { workspace = true, features = ["async"] }
-uniffi.workspace = true
 url.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
@@ -72,15 +80,6 @@ nym-vpn-store.workspace = true
 nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
 nym-platform-metadata.workspace = true
-sentry = { workspace = true, features = [
-    "backtrace",
-    "contexts",
-    "panic",
-    "reqwest",
-    "rustls",
-    "tracing",
-    "logs",
-] }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = [

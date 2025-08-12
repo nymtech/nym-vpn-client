@@ -25,7 +25,9 @@ use nym_common::trace_err_chain;
 use nym_firewall::FirewallPolicy;
 
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::{ios::OSTunProvider, tunnel_settings::TunnelSettings};
+use crate::tunnel_provider::OSTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::TunnelSettings;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -131,7 +133,7 @@ impl ErrorState {
         };
 
         if let Err(e) = tun_provider
-            .set_tunnel_network_settings(tunnel_network_settings.into_tunnel_network_settings())
+            .set_tunnel_network_settings(tunnel_network_settings)
             .await
         {
             trace_err_chain!(e, "Failed to set tunnel network settings");

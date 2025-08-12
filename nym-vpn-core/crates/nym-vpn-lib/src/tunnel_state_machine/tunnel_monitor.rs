@@ -61,12 +61,10 @@ use nym_vpn_lib_types::{
 use super::tunnel::wireguard::connected_tunnel::{
     NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
 };
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use crate::tunnel_provider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
@@ -660,7 +658,7 @@ impl TunnelMonitor {
                     assigned_addresses.interface_addresses.ipv6,
                 )));
             }
-            let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+            let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
                 dns_servers: self
                     .tunnel_parameters
                     .tunnel_settings
@@ -1179,7 +1177,7 @@ impl TunnelMonitor {
                 conn_data.exit.private_ipv6,
             )));
         }
-        let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+        let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
             dns_servers: self
                 .tunnel_parameters
                 .tunnel_settings
@@ -1338,17 +1336,17 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn create_tun_device(
         &self,
-        packet_tunnel_settings: tunnel_provider::tunnel_settings::TunnelSettings,
+        packet_tunnel_settings: crate::tunnel_provider::TunnelSettings,
     ) -> Result<AsyncDevice> {
         #[cfg(target_os = "ios")]
         let owned_tun_fd =
-            tunnel_provider::ios::interface::get_tun_fd().map_err(Error::LocateTunDevice)?;
+            crate::tunnel_provider::ios::get_tun_fd().map_err(Error::LocateTunDevice)?;
 
         #[cfg(target_os = "android")]
         let owned_tun_fd = {
             let raw_tun_fd = self
                 .tun_provider
-                .configure_tunnel(packet_tunnel_settings.into_tunnel_network_settings())
+                .configure_tunnel(packet_tunnel_settings)
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
             unsafe { OwnedFd::from_raw_fd(raw_tun_fd) }
         };
@@ -1359,7 +1357,7 @@ impl TunnelMonitor {
         #[cfg(target_os = "ios")]
         {
             self.tun_provider
-                .set_tunnel_network_settings(packet_tunnel_settings.into_tunnel_network_settings())
+                .set_tunnel_network_settings(packet_tunnel_settings)
                 .await
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?
         }

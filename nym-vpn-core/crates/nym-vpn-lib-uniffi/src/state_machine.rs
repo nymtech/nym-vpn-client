@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
@@ -141,8 +143,14 @@ pub(super) async fn start_state_machine(
         connectivity_handle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        config.tun_provider,
+        #[cfg(target_os = "ios")]
+        Arc::new(crate::tunnel_provider::ios::OSTunProviderImpl::new(
+            config.tun_provider,
+        )),
+        #[cfg(target_os = "android")]
+        Arc::new(
+            crate::tunnel_provider::android::AndroidTunnelProviderImpl::new(config.tun_provider),
+        ),
         shutdown_token.child_token(),
     )
     .await?;
