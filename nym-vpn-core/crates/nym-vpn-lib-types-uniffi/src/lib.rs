@@ -5,13 +5,13 @@
 
 uniffi::setup_scaffolding!();
 
-pub mod conversions;
-pub use conversions::*;
-
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use nym_vpn_api_client::response::NymErrorResponse;
 use time::OffsetDateTime;
+
+pub mod conversions;
+pub use conversions::*;
 
 #[derive(uniffi::Enum)]
 pub enum TunnelEvent {
