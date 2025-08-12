@@ -1,11 +1,20 @@
-use sentry::{ClientInitGuard, User};
-use std::{borrow::Cow, time::Duration};
-use tracing::{info, instrument, warn};
+use sentry::{ClientInitGuard, Level, User};
+use std::{borrow::Cow, sync::Arc, time::Duration};
+use tracing::{info, warn};
 
 use crate::env::APP_SENTRY_DSN;
 use crate::sys::OsInfo;
 
-#[instrument(skip_all)]
+static EXCLUDED_ERRORS: [&str; 7] = [
+    "invalid mnemonic",
+    "no device stored",
+    "no account stored",
+    "ac is offline",
+    "account already exists",
+    "maxdevicesreached",
+    "subscriptionexpired",
+];
+
 pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
     let Some(dsn) = APP_SENTRY_DSN.as_ref() else {
         warn!("failed to init sentry: APP_SENTRY_DSN is not set");
@@ -23,6 +32,17 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(1),
             server_name: Some(Cow::Borrowed("nym")),
+            before_send: Some(Arc::new(|mut event| {
+                if matches!(event.level, Level::Error | Level::Warning)
+                    && let Some(message) = &event.message
+                    && EXCLUDED_ERRORS
+                        .iter()
+                        .any(|err| message.to_lowercase().contains(err))
+                {
+                    event.level = Level::Debug; // Change level to Debug
+                }
+                Some(event)
+            })),
             ..Default::default()
         },
     ));

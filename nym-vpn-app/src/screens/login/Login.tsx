@@ -62,7 +62,6 @@ function Login() {
       dispatch({ type: 'reset-error' });
     } catch (e: unknown) {
       const eT = e as BackendError;
-      console.info('backend error:', e);
       setError({
         error: tE(eT.key),
         details: eT.data?.reason,
