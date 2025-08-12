@@ -126,7 +126,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
     }
 
     fn emit_account_state_update(&self, state: &AccountState) {
-        debug!(
+        trace!(
             "sending account state event [{}]: {}",
             EVENT_ACCOUNT_STATE,
             state.as_ref()

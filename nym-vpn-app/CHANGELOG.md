@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add live update support of internal user account state from daemon (Account Controller)
+- Add a UX flow to invite the user to select a plan (new subscription or renew)
+- Show a message in UI when the user account has no active subscription
+- Show a message in UI when the user account has exceeded its bandwidth usage
+- Display the internal state of the user account in the settings
 - [Windows] Add splash animation
 
 ### Changed
