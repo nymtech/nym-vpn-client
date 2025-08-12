@@ -11,7 +11,6 @@ import {
   TAccountState,
   TunnelStateEvent as TunnelStatePayload,
   VpndStatus,
-  isAccountError,
   isMixnetEventError,
   isVpndNonCompat,
   isVpndOk,
@@ -26,7 +25,7 @@ import {
 import { Notification } from '../contexts';
 import { CCache } from '../cache';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
-import { tunnelUpdate } from './tunnelUpdate';
+import { updateAccountState, updateTunnel } from './update';
 
 export function useTauriEvents(
   dispatch: StateDispatch,
@@ -70,7 +69,7 @@ export function useTauriEvents(
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
-      tunnelUpdate(event.payload.state, dispatch);
+      updateTunnel(event.payload.state, dispatch);
       if (event.payload.error) {
         console.log('tunnel error', event.payload.error);
         dispatch({
@@ -83,28 +82,7 @@ export function useTauriEvents(
 
   const registerAccountStateListener = useCallback(() => {
     return listen<TAccountState>(AccountStateEvent, ({ payload }) => {
-      console.log(`account state update: ${JSON.stringify(payload)}`);
-      if (payload === 'syncing') {
-        dispatch({
-          type: 'set-account-syncing',
-          syncing: true,
-        });
-      } else {
-        dispatch({
-          type: 'set-account-syncing',
-          syncing: false,
-        });
-        dispatch({
-          type: 'set-account-state',
-          state: payload,
-        });
-      }
-      if (isAccountError(payload)) {
-        dispatch({
-          type: 'set-error',
-          error: payload.error,
-        });
-      }
+      updateAccountState(payload, dispatch);
     });
   }, [dispatch]);
 

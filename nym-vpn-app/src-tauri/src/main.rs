@@ -257,6 +257,7 @@ async fn main() -> Result<()> {
             cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
+            account::get_account_state,
             account::add_account,
             account::forget_account,
             account::is_account_stored,

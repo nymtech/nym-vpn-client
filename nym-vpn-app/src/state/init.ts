@@ -18,13 +18,14 @@ import {
   Gateway,
   NetworkCompat,
   StateDispatch,
+  TAccountState,
   ThemeMode,
   TunnelStateIpc,
   UiTheme,
   VpnMode,
 } from '../types';
 import { S_STATE } from '../static';
-import { tunnelUpdate } from './tunnelUpdate';
+import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
 // initialize connection state
@@ -44,7 +45,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
     onFulfilled: (state) => {
-      tunnelUpdate(state, dispatch);
+      updateTunnel(state, dispatch);
     },
   };
 
@@ -88,6 +89,17 @@ export async function initFirstBatch(dispatch: StateDispatch) {
             'no exit node saved, using default country',
             DefaultCountry,
           );
+        }
+      },
+    };
+
+  const getAccountStateRq: TauriReq<() => Promise<TAccountState | undefined>> =
+    {
+      name: 'getAccountStateRq',
+      request: () => invoke<TAccountState>('get_account_state'),
+      onFulfilled: (state) => {
+        if (state) {
+          updateAccountState(state, dispatch);
         }
       },
     };
@@ -230,7 +242,12 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   ];
 
   if (S_STATE.vpnd !== 'down') {
-    requests = [initStateRq, getStoredAccountRq, ...requests];
+    requests = [
+      initStateRq,
+      getStoredAccountRq,
+      getAccountStateRq,
+      ...requests,
+    ];
   }
 
   // fire all requests concurrently
