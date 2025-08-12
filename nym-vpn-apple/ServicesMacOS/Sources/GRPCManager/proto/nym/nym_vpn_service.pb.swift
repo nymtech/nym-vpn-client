@@ -372,6 +372,20 @@ struct NymVpnService_Url: Sendable {
   init() {}
 }
 
+struct NymVpnService_ApiUrl: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var url: String = String()
+
+  var frontHosts: [String] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 /// Inspired by
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
 /// Forward slashes '/' are not valid
@@ -483,6 +497,15 @@ struct NymVpnService_NymContracts: Sendable {
   /// Clears the value of `vestingContractAddress`. Subsequent reads from it will return its default value.
   mutating func clearVestingContractAddress() {self._vestingContractAddress = nil}
 
+  var performanceContractAddress: String {
+    get {return _performanceContractAddress ?? String()}
+    set {_performanceContractAddress = newValue}
+  }
+  /// Returns true if `performanceContractAddress` has been explicitly set.
+  var hasPerformanceContractAddress: Bool {return self._performanceContractAddress != nil}
+  /// Clears the value of `performanceContractAddress`. Subsequent reads from it will return its default value.
+  mutating func clearPerformanceContractAddress() {self._performanceContractAddress = nil}
+
   var ecashContractAddress: String {
     get {return _ecashContractAddress ?? String()}
     set {_ecashContractAddress = newValue}
@@ -525,45 +548,70 @@ struct NymVpnService_NymContracts: Sendable {
 
   fileprivate var _mixnetContractAddress: String? = nil
   fileprivate var _vestingContractAddress: String? = nil
+  fileprivate var _performanceContractAddress: String? = nil
   fileprivate var _ecashContractAddress: String? = nil
   fileprivate var _groupContractAddress: String? = nil
   fileprivate var _multisigContractAddress: String? = nil
   fileprivate var _coconutDkgContractAddress: String? = nil
 }
 
-struct NymVpnService_NymNetworkDetails: Sendable {
+struct NymVpnService_NymNetworkDetails: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var networkName: String = String()
+  var networkName: String {
+    get {return _storage._networkName}
+    set {_uniqueStorage()._networkName = newValue}
+  }
 
   var chainDetails: NymVpnService_ChainDetails {
-    get {return _chainDetails ?? NymVpnService_ChainDetails()}
-    set {_chainDetails = newValue}
+    get {return _storage._chainDetails ?? NymVpnService_ChainDetails()}
+    set {_uniqueStorage()._chainDetails = newValue}
   }
   /// Returns true if `chainDetails` has been explicitly set.
-  var hasChainDetails: Bool {return self._chainDetails != nil}
+  var hasChainDetails: Bool {return _storage._chainDetails != nil}
   /// Clears the value of `chainDetails`. Subsequent reads from it will return its default value.
-  mutating func clearChainDetails() {self._chainDetails = nil}
+  mutating func clearChainDetails() {_uniqueStorage()._chainDetails = nil}
 
-  var endpoints: [NymVpnService_ValidatorDetails] = []
+  var endpoints: [NymVpnService_ValidatorDetails] {
+    get {return _storage._endpoints}
+    set {_uniqueStorage()._endpoints = newValue}
+  }
 
   var contracts: NymVpnService_NymContracts {
-    get {return _contracts ?? NymVpnService_NymContracts()}
-    set {_contracts = newValue}
+    get {return _storage._contracts ?? NymVpnService_NymContracts()}
+    set {_uniqueStorage()._contracts = newValue}
   }
   /// Returns true if `contracts` has been explicitly set.
-  var hasContracts: Bool {return self._contracts != nil}
+  var hasContracts: Bool {return _storage._contracts != nil}
   /// Clears the value of `contracts`. Subsequent reads from it will return its default value.
-  mutating func clearContracts() {self._contracts = nil}
+  mutating func clearContracts() {_uniqueStorage()._contracts = nil}
+
+  var nymVpnApiURL: String {
+    get {return _storage._nymVpnApiURL ?? String()}
+    set {_uniqueStorage()._nymVpnApiURL = newValue}
+  }
+  /// Returns true if `nymVpnApiURL` has been explicitly set.
+  var hasNymVpnApiURL: Bool {return _storage._nymVpnApiURL != nil}
+  /// Clears the value of `nymVpnApiURL`. Subsequent reads from it will return its default value.
+  mutating func clearNymVpnApiURL() {_uniqueStorage()._nymVpnApiURL = nil}
+
+  var nymApiUrls: [NymVpnService_ApiUrl] {
+    get {return _storage._nymApiUrls}
+    set {_uniqueStorage()._nymApiUrls = newValue}
+  }
+
+  var nymVpnApiUrls: [NymVpnService_ApiUrl] {
+    get {return _storage._nymVpnApiUrls}
+    set {_uniqueStorage()._nymVpnApiUrls = newValue}
+  }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _chainDetails: NymVpnService_ChainDetails? = nil
-  fileprivate var _contracts: NymVpnService_NymContracts? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 struct NymVpnService_NymVpnNetworkDetails: Sendable {
@@ -669,63 +717,53 @@ struct NymVpnService_ValidatorDetails: Sendable {
   fileprivate var _apiURL: NymVpnService_Url? = nil
 }
 
-struct NymVpnService_InfoResponse: @unchecked Sendable {
+struct NymVpnService_InfoResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var version: String {
-    get {return _storage._version}
-    set {_uniqueStorage()._version = newValue}
-  }
+  var version: String = String()
 
   var buildTimestamp: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {return _storage._buildTimestamp ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_uniqueStorage()._buildTimestamp = newValue}
+    get {return _buildTimestamp ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+    set {_buildTimestamp = newValue}
   }
   /// Returns true if `buildTimestamp` has been explicitly set.
-  var hasBuildTimestamp: Bool {return _storage._buildTimestamp != nil}
+  var hasBuildTimestamp: Bool {return self._buildTimestamp != nil}
   /// Clears the value of `buildTimestamp`. Subsequent reads from it will return its default value.
-  mutating func clearBuildTimestamp() {_uniqueStorage()._buildTimestamp = nil}
+  mutating func clearBuildTimestamp() {self._buildTimestamp = nil}
 
-  var triple: String {
-    get {return _storage._triple}
-    set {_uniqueStorage()._triple = newValue}
-  }
+  var triple: String = String()
 
-  var platform: String {
-    get {return _storage._platform}
-    set {_uniqueStorage()._platform = newValue}
-  }
+  var platform: String = String()
 
-  var gitCommit: String {
-    get {return _storage._gitCommit}
-    set {_uniqueStorage()._gitCommit = newValue}
-  }
+  var gitCommit: String = String()
 
   var nymNetwork: NymVpnService_NymNetworkDetails {
-    get {return _storage._nymNetwork ?? NymVpnService_NymNetworkDetails()}
-    set {_uniqueStorage()._nymNetwork = newValue}
+    get {return _nymNetwork ?? NymVpnService_NymNetworkDetails()}
+    set {_nymNetwork = newValue}
   }
   /// Returns true if `nymNetwork` has been explicitly set.
-  var hasNymNetwork: Bool {return _storage._nymNetwork != nil}
+  var hasNymNetwork: Bool {return self._nymNetwork != nil}
   /// Clears the value of `nymNetwork`. Subsequent reads from it will return its default value.
-  mutating func clearNymNetwork() {_uniqueStorage()._nymNetwork = nil}
+  mutating func clearNymNetwork() {self._nymNetwork = nil}
 
   var nymVpnNetwork: NymVpnService_NymVpnNetworkDetails {
-    get {return _storage._nymVpnNetwork ?? NymVpnService_NymVpnNetworkDetails()}
-    set {_uniqueStorage()._nymVpnNetwork = newValue}
+    get {return _nymVpnNetwork ?? NymVpnService_NymVpnNetworkDetails()}
+    set {_nymVpnNetwork = newValue}
   }
   /// Returns true if `nymVpnNetwork` has been explicitly set.
-  var hasNymVpnNetwork: Bool {return _storage._nymVpnNetwork != nil}
+  var hasNymVpnNetwork: Bool {return self._nymVpnNetwork != nil}
   /// Clears the value of `nymVpnNetwork`. Subsequent reads from it will return its default value.
-  mutating func clearNymVpnNetwork() {_uniqueStorage()._nymVpnNetwork = nil}
+  mutating func clearNymVpnNetwork() {self._nymVpnNetwork = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
+  fileprivate var _buildTimestamp: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+  fileprivate var _nymNetwork: NymVpnService_NymNetworkDetails? = nil
+  fileprivate var _nymVpnNetwork: NymVpnService_NymVpnNetworkDetails? = nil
 }
 
 struct NymVpnService_SystemMessage: Sendable {
@@ -1491,13 +1529,14 @@ struct NymVpnService_TunnelState: Sendable {
     case invalidExitGatewayCountry // = 4
     case maxDevicesReached // = 5
     case bandwidthExceeded // = 6
-    case subscriptionExpired // = 7
+    case inactiveSubscription // = 7
     case dns // = 8
     case api // = 9
     case `internal` // = 10
     case deviceTimeOutOfSync // = 11
     case createMixnetStorage // = 12
     case ipv6Unavailable // = 13
+    case accountControl // = 14
     case UNRECOGNIZED(Int)
 
     init() {
@@ -1513,13 +1552,14 @@ struct NymVpnService_TunnelState: Sendable {
       case 4: self = .invalidExitGatewayCountry
       case 5: self = .maxDevicesReached
       case 6: self = .bandwidthExceeded
-      case 7: self = .subscriptionExpired
+      case 7: self = .inactiveSubscription
       case 8: self = .dns
       case 9: self = .api
       case 10: self = .internal
       case 11: self = .deviceTimeOutOfSync
       case 12: self = .createMixnetStorage
       case 13: self = .ipv6Unavailable
+      case 14: self = .accountControl
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1533,13 +1573,14 @@ struct NymVpnService_TunnelState: Sendable {
       case .invalidExitGatewayCountry: return 4
       case .maxDevicesReached: return 5
       case .bandwidthExceeded: return 6
-      case .subscriptionExpired: return 7
+      case .inactiveSubscription: return 7
       case .dns: return 8
       case .api: return 9
       case .internal: return 10
       case .deviceTimeOutOfSync: return 11
       case .createMixnetStorage: return 12
       case .ipv6Unavailable: return 13
+      case .accountControl: return 14
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1553,13 +1594,14 @@ struct NymVpnService_TunnelState: Sendable {
       .invalidExitGatewayCountry,
       .maxDevicesReached,
       .bandwidthExceeded,
-      .subscriptionExpired,
+      .inactiveSubscription,
       .dns,
       .api,
       .internal,
       .deviceTimeOutOfSync,
       .createMixnetStorage,
       .ipv6Unavailable,
+      .accountControl,
     ]
 
   }
@@ -2035,19 +2077,19 @@ struct NymVpnService_GetLogPathResponse: Sendable {
   init() {}
 }
 
-struct NymVpnService_StoreAccountError: Sendable {
+struct NymVpnService_AccountCommandError: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var errorDetail: NymVpnService_StoreAccountError.OneOf_ErrorDetail? = nil
+  var errorDetail: NymVpnService_AccountCommandError.OneOf_ErrorDetail? = nil
 
-  var invalidMnemonic: String {
+  var `internal`: String {
     get {
-      if case .invalidMnemonic(let v)? = errorDetail {return v}
+      if case .internal(let v)? = errorDetail {return v}
       return String()
     }
-    set {errorDetail = .invalidMnemonic(newValue)}
+    set {errorDetail = .internal(newValue)}
   }
 
   var storageError: String {
@@ -2074,320 +2116,58 @@ struct NymVpnService_StoreAccountError: Sendable {
     set {errorDetail = .unexpectedResponse(newValue)}
   }
 
-  var `internal`: String {
+  var noAccountStored: Bool {
     get {
-      if case .internal(let v)? = errorDetail {return v}
+      if case .noAccountStored(let v)? = errorDetail {return v}
+      return false
+    }
+    set {errorDetail = .noAccountStored(newValue)}
+  }
+
+  var noDeviceStored: Bool {
+    get {
+      if case .noDeviceStored(let v)? = errorDetail {return v}
+      return false
+    }
+    set {errorDetail = .noDeviceStored(newValue)}
+  }
+
+  var existingAccount: Bool {
+    get {
+      if case .existingAccount(let v)? = errorDetail {return v}
+      return false
+    }
+    set {errorDetail = .existingAccount(newValue)}
+  }
+
+  var offline: Bool {
+    get {
+      if case .offline(let v)? = errorDetail {return v}
+      return false
+    }
+    set {errorDetail = .offline(newValue)}
+  }
+
+  var invalidMnemonic: String {
+    get {
+      if case .invalidMnemonic(let v)? = errorDetail {return v}
       return String()
     }
-    set {errorDetail = .internal(newValue)}
+    set {errorDetail = .invalidMnemonic(newValue)}
   }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   enum OneOf_ErrorDetail: Equatable, Sendable {
-    case invalidMnemonic(String)
+    case `internal`(String)
     case storageError(String)
     case vpnApi(NymVpnService_VpnApiError)
     case unexpectedResponse(String)
-    case `internal`(String)
-
-  }
-
-  init() {}
-}
-
-struct NymVpnService_SyncAccountError: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var errorDetail: NymVpnService_SyncAccountError.OneOf_ErrorDetail? = nil
-
-  var noAccountStored: Bool {
-    get {
-      if case .noAccountStored(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .noAccountStored(newValue)}
-  }
-
-  var vpnApi: NymVpnService_VpnApiError {
-    get {
-      if case .vpnApi(let v)? = errorDetail {return v}
-      return NymVpnService_VpnApiError()
-    }
-    set {errorDetail = .vpnApi(newValue)}
-  }
-
-  var unexpectedResponse: String {
-    get {
-      if case .unexpectedResponse(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .unexpectedResponse(newValue)}
-  }
-
-  var offline: Bool {
-    get {
-      if case .offline(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .offline(newValue)}
-  }
-
-  var `internal`: String {
-    get {
-      if case .internal(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .internal(newValue)}
-  }
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum OneOf_ErrorDetail: Equatable, Sendable {
-    case noAccountStored(Bool)
-    case vpnApi(NymVpnService_VpnApiError)
-    case unexpectedResponse(String)
-    case offline(Bool)
-    case `internal`(String)
-
-  }
-
-  init() {}
-}
-
-struct NymVpnService_SyncDeviceError: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var errorDetail: NymVpnService_SyncDeviceError.OneOf_ErrorDetail? = nil
-
-  var noAccountStored: Bool {
-    get {
-      if case .noAccountStored(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .noAccountStored(newValue)}
-  }
-
-  var noDeviceStored: Bool {
-    get {
-      if case .noDeviceStored(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .noDeviceStored(newValue)}
-  }
-
-  var vpnApi: NymVpnService_VpnApiError {
-    get {
-      if case .vpnApi(let v)? = errorDetail {return v}
-      return NymVpnService_VpnApiError()
-    }
-    set {errorDetail = .vpnApi(newValue)}
-  }
-
-  var unexpectedResponse: String {
-    get {
-      if case .unexpectedResponse(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .unexpectedResponse(newValue)}
-  }
-
-  var offline: Bool {
-    get {
-      if case .offline(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .offline(newValue)}
-  }
-
-  var `internal`: String {
-    get {
-      if case .internal(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .internal(newValue)}
-  }
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum OneOf_ErrorDetail: Equatable, Sendable {
     case noAccountStored(Bool)
     case noDeviceStored(Bool)
-    case vpnApi(NymVpnService_VpnApiError)
-    case unexpectedResponse(String)
+    case existingAccount(Bool)
     case offline(Bool)
-    case `internal`(String)
-
-  }
-
-  init() {}
-}
-
-struct NymVpnService_RegisterDeviceError: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var errorDetail: NymVpnService_RegisterDeviceError.OneOf_ErrorDetail? = nil
-
-  var noAccountStored: Bool {
-    get {
-      if case .noAccountStored(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .noAccountStored(newValue)}
-  }
-
-  var noDeviceStored: Bool {
-    get {
-      if case .noDeviceStored(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .noDeviceStored(newValue)}
-  }
-
-  var vpnApi: NymVpnService_VpnApiError {
-    get {
-      if case .vpnApi(let v)? = errorDetail {return v}
-      return NymVpnService_VpnApiError()
-    }
-    set {errorDetail = .vpnApi(newValue)}
-  }
-
-  var unexpectedResponse: String {
-    get {
-      if case .unexpectedResponse(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .unexpectedResponse(newValue)}
-  }
-
-  var offline: Bool {
-    get {
-      if case .offline(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .offline(newValue)}
-  }
-
-  var `internal`: String {
-    get {
-      if case .internal(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .internal(newValue)}
-  }
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum OneOf_ErrorDetail: Equatable, Sendable {
-    case noAccountStored(Bool)
-    case noDeviceStored(Bool)
-    case vpnApi(NymVpnService_VpnApiError)
-    case unexpectedResponse(String)
-    case offline(Bool)
-    case `internal`(String)
-
-  }
-
-  init() {}
-}
-
-struct NymVpnService_ForgetAccountError: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var errorDetail: NymVpnService_ForgetAccountError.OneOf_ErrorDetail? = nil
-
-  var registrationInProgress: Bool {
-    get {
-      if case .registrationInProgress(let v)? = errorDetail {return v}
-      return false
-    }
-    set {errorDetail = .registrationInProgress(newValue)}
-  }
-
-  var vpnApi: NymVpnService_VpnApiError {
-    get {
-      if case .vpnApi(let v)? = errorDetail {return v}
-      return NymVpnService_VpnApiError()
-    }
-    set {errorDetail = .vpnApi(newValue)}
-  }
-
-  var unexpectedResponse: String {
-    get {
-      if case .unexpectedResponse(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .unexpectedResponse(newValue)}
-  }
-
-  var removeAccount: String {
-    get {
-      if case .removeAccount(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .removeAccount(newValue)}
-  }
-
-  var removeDeviceKeys: String {
-    get {
-      if case .removeDeviceKeys(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .removeDeviceKeys(newValue)}
-  }
-
-  var resetCredentialStore: String {
-    get {
-      if case .resetCredentialStore(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .resetCredentialStore(newValue)}
-  }
-
-  var removeAccountFiles: String {
-    get {
-      if case .removeAccountFiles(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .removeAccountFiles(newValue)}
-  }
-
-  var initDeviceKeys: String {
-    get {
-      if case .initDeviceKeys(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .initDeviceKeys(newValue)}
-  }
-
-  var `internal`: String {
-    get {
-      if case .internal(let v)? = errorDetail {return v}
-      return String()
-    }
-    set {errorDetail = .internal(newValue)}
-  }
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum OneOf_ErrorDetail: Equatable, Sendable {
-    case registrationInProgress(Bool)
-    case vpnApi(NymVpnService_VpnApiError)
-    case unexpectedResponse(String)
-    case removeAccount(String)
-    case removeDeviceKeys(String)
-    case resetCredentialStore(String)
-    case removeAccountFiles(String)
-    case initDeviceKeys(String)
-    case `internal`(String)
+    case invalidMnemonic(String)
 
   }
 
@@ -2482,93 +2262,194 @@ struct NymVpnService_VpnApiErrorResponse: Sendable {
   fileprivate var _codeReferenceID: String? = nil
 }
 
-struct NymVpnService_RequestZkNymSuccess: Sendable {
+struct NymVpnService_AccountControllerState: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var id: String = String()
+  var state: NymVpnService_AccountControllerState.OneOf_State? = nil
 
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-/// Mapped from `nym_vpn_lib_types::RequestZkNymErrorReason`
-struct NymVpnService_RequestZkNymError: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var outcome: NymVpnService_RequestZkNymError.OneOf_Outcome? = nil
-
-  var noAccountStored: Bool {
+  var loggedOut: NymVpnService_AccountControllerState.LoggedOut {
     get {
-      if case .noAccountStored(let v)? = outcome {return v}
-      return false
+      if case .loggedOut(let v)? = state {return v}
+      return NymVpnService_AccountControllerState.LoggedOut()
     }
-    set {outcome = .noAccountStored(newValue)}
+    set {state = .loggedOut(newValue)}
   }
 
-  var noDeviceStored: Bool {
+  var syncing: NymVpnService_AccountControllerState.Syncing {
     get {
-      if case .noDeviceStored(let v)? = outcome {return v}
-      return false
+      if case .syncing(let v)? = state {return v}
+      return NymVpnService_AccountControllerState.Syncing()
     }
-    set {outcome = .noDeviceStored(newValue)}
+    set {state = .syncing(newValue)}
   }
 
-  var vpnApi: NymVpnService_VpnApiError {
+  var readyToConnect: NymVpnService_AccountControllerState.ReadyToConnect {
     get {
-      if case .vpnApi(let v)? = outcome {return v}
-      return NymVpnService_VpnApiError()
+      if case .readyToConnect(let v)? = state {return v}
+      return NymVpnService_AccountControllerState.ReadyToConnect()
     }
-    set {outcome = .vpnApi(newValue)}
+    set {state = .readyToConnect(newValue)}
   }
 
-  var unexpectedVpnApiResponse: String {
+  var error: NymVpnService_AccountControllerState.Error {
     get {
-      if case .unexpectedVpnApiResponse(let v)? = outcome {return v}
-      return String()
+      if case .error(let v)? = state {return v}
+      return NymVpnService_AccountControllerState.Error()
     }
-    set {outcome = .unexpectedVpnApiResponse(newValue)}
+    set {state = .error(newValue)}
   }
 
-  var storage: String {
+  var offline: NymVpnService_AccountControllerState.Offline {
     get {
-      if case .storage(let v)? = outcome {return v}
-      return String()
+      if case .offline(let v)? = state {return v}
+      return NymVpnService_AccountControllerState.Offline()
     }
-    set {outcome = .storage(newValue)}
-  }
-
-  var offline: Bool {
-    get {
-      if case .offline(let v)? = outcome {return v}
-      return false
-    }
-    set {outcome = .offline(newValue)}
-  }
-
-  var `internal`: String {
-    get {
-      if case .internal(let v)? = outcome {return v}
-      return String()
-    }
-    set {outcome = .internal(newValue)}
+    set {state = .offline(newValue)}
   }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  enum OneOf_Outcome: Equatable, Sendable {
-    case noAccountStored(Bool)
-    case noDeviceStored(Bool)
-    case vpnApi(NymVpnService_VpnApiError)
-    case unexpectedVpnApiResponse(String)
-    case storage(String)
-    case offline(Bool)
-    case `internal`(String)
+  enum OneOf_State: Equatable, Sendable {
+    case loggedOut(NymVpnService_AccountControllerState.LoggedOut)
+    case syncing(NymVpnService_AccountControllerState.Syncing)
+    case readyToConnect(NymVpnService_AccountControllerState.ReadyToConnect)
+    case error(NymVpnService_AccountControllerState.Error)
+    case offline(NymVpnService_AccountControllerState.Offline)
 
+  }
+
+  enum ErrorStateReason: SwiftProtobuf.Enum, Swift.CaseIterable {
+    typealias RawValue = Int
+    case storage // = 0
+    case apiFailure // = 1
+    case `internal` // = 2
+    case bandwidthExceeded // = 3
+    case accountStatusNotActive // = 4
+    case inactiveSubscription // = 5
+    case maxDeviceReached // = 6
+    case deviceTimeDesynced // = 7
+    case UNRECOGNIZED(Int)
+
+    init() {
+      self = .storage
+    }
+
+    init?(rawValue: Int) {
+      switch rawValue {
+      case 0: self = .storage
+      case 1: self = .apiFailure
+      case 2: self = .internal
+      case 3: self = .bandwidthExceeded
+      case 4: self = .accountStatusNotActive
+      case 5: self = .inactiveSubscription
+      case 6: self = .maxDeviceReached
+      case 7: self = .deviceTimeDesynced
+      default: self = .UNRECOGNIZED(rawValue)
+      }
+    }
+
+    var rawValue: Int {
+      switch self {
+      case .storage: return 0
+      case .apiFailure: return 1
+      case .internal: return 2
+      case .bandwidthExceeded: return 3
+      case .accountStatusNotActive: return 4
+      case .inactiveSubscription: return 5
+      case .maxDeviceReached: return 6
+      case .deviceTimeDesynced: return 7
+      case .UNRECOGNIZED(let i): return i
+      }
+    }
+
+    // The compiler won't synthesize support with the UNRECOGNIZED case.
+    static let allCases: [NymVpnService_AccountControllerState.ErrorStateReason] = [
+      .storage,
+      .apiFailure,
+      .internal,
+      .bandwidthExceeded,
+      .accountStatusNotActive,
+      .inactiveSubscription,
+      .maxDeviceReached,
+      .deviceTimeDesynced,
+    ]
+
+  }
+
+  struct LoggedOut: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    init() {}
+  }
+
+  struct ReadyToConnect: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    init() {}
+  }
+
+  struct Syncing: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    init() {}
+  }
+
+  struct Error: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    var reason: NymVpnService_AccountControllerState.ErrorStateReason = .storage
+
+    /// for errors with details like Dns, Api, Internal
+    var details: String {
+      get {return _details ?? String()}
+      set {_details = newValue}
+    }
+    /// Returns true if `details` has been explicitly set.
+    var hasDetails: Bool {return self._details != nil}
+    /// Clears the value of `details`. Subsequent reads from it will return its default value.
+    mutating func clearDetails() {self._details = nil}
+
+    var context: String {
+      get {return _context ?? String()}
+      set {_context = newValue}
+    }
+    /// Returns true if `context` has been explicitly set.
+    var hasContext: Bool {return self._context != nil}
+    /// Clears the value of `context`. Subsequent reads from it will return its default value.
+    mutating func clearContext() {self._context = nil}
+
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    init() {}
+
+    fileprivate var _details: String? = nil
+    fileprivate var _context: String? = nil
+  }
+
+  struct Offline: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    init() {}
   }
 
   init() {}
@@ -2586,13 +2467,13 @@ struct NymVpnService_StoreAccountRequest: Sendable {
   init() {}
 }
 
-struct NymVpnService_StoreAccountResponse: Sendable {
+struct NymVpnService_AccountCommandResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var error: NymVpnService_StoreAccountError {
-    get {return _error ?? NymVpnService_StoreAccountError()}
+  var error: NymVpnService_AccountCommandError {
+    get {return _error ?? NymVpnService_AccountCommandError()}
     set {_error = newValue}
   }
   /// Returns true if `error` has been explicitly set.
@@ -2604,28 +2485,7 @@ struct NymVpnService_StoreAccountResponse: Sendable {
 
   init() {}
 
-  fileprivate var _error: NymVpnService_StoreAccountError? = nil
-}
-
-struct NymVpnService_ForgetAccountResponse: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var error: NymVpnService_ForgetAccountError {
-    get {return _error ?? NymVpnService_ForgetAccountError()}
-    set {_error = newValue}
-  }
-  /// Returns true if `error` has been explicitly set.
-  var hasError: Bool {return self._error != nil}
-  /// Clears the value of `error`. Subsequent reads from it will return its default value.
-  mutating func clearError() {self._error = nil}
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-
-  fileprivate var _error: NymVpnService_ForgetAccountError? = nil
+  fileprivate var _error: NymVpnService_AccountCommandError? = nil
 }
 
 struct NymVpnService_GetAccountIdentityResponse: Sendable {
@@ -2647,476 +2507,6 @@ struct NymVpnService_GetAccountIdentityResponse: Sendable {
   init() {}
 
   fileprivate var _accountIdentity: String? = nil
-}
-
-struct NymVpnService_GetAccountStateResponse: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var account: NymVpnService_GetAccountStateResponse.AccountStateSummary {
-    get {return _account ?? NymVpnService_GetAccountStateResponse.AccountStateSummary()}
-    set {_account = newValue}
-  }
-  /// Returns true if `account` has been explicitly set.
-  var hasAccount: Bool {return self._account != nil}
-  /// Clears the value of `account`. Subsequent reads from it will return its default value.
-  mutating func clearAccount() {self._account = nil}
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  struct AccountStateSummary: @unchecked Sendable {
-    // SwiftProtobuf.Message conformance is added in an extension below. See the
-    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-    // methods supported on all messages.
-
-    var mnemonic: NymVpnService_GetAccountStateResponse.AccountStateSummary.MnemonicState {
-      get {return _storage._mnemonic ?? .notStored}
-      set {_uniqueStorage()._mnemonic = newValue}
-    }
-    /// Returns true if `mnemonic` has been explicitly set.
-    var hasMnemonic: Bool {return _storage._mnemonic != nil}
-    /// Clears the value of `mnemonic`. Subsequent reads from it will return its default value.
-    mutating func clearMnemonic() {_uniqueStorage()._mnemonic = nil}
-
-    var accountRegistered: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountRegistered {
-      get {return _storage._accountRegistered ?? .accountRegistered}
-      set {_uniqueStorage()._accountRegistered = newValue}
-    }
-    /// Returns true if `accountRegistered` has been explicitly set.
-    var hasAccountRegistered: Bool {return _storage._accountRegistered != nil}
-    /// Clears the value of `accountRegistered`. Subsequent reads from it will return its default value.
-    mutating func clearAccountRegistered() {_uniqueStorage()._accountRegistered = nil}
-
-    var accountSummary: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary {
-      get {return _storage._accountSummary ?? NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary()}
-      set {_uniqueStorage()._accountSummary = newValue}
-    }
-    /// Returns true if `accountSummary` has been explicitly set.
-    var hasAccountSummary: Bool {return _storage._accountSummary != nil}
-    /// Clears the value of `accountSummary`. Subsequent reads from it will return its default value.
-    mutating func clearAccountSummary() {_uniqueStorage()._accountSummary = nil}
-
-    var device: NymVpnService_GetAccountStateResponse.AccountStateSummary.DeviceState {
-      get {return _storage._device ?? .notRegistered}
-      set {_uniqueStorage()._device = newValue}
-    }
-    /// Returns true if `device` has been explicitly set.
-    var hasDevice: Bool {return _storage._device != nil}
-    /// Clears the value of `device`. Subsequent reads from it will return its default value.
-    mutating func clearDevice() {_uniqueStorage()._device = nil}
-
-    var registerDeviceResult: NymVpnService_RegisterDeviceResult {
-      get {return _storage._registerDeviceResult ?? NymVpnService_RegisterDeviceResult()}
-      set {_uniqueStorage()._registerDeviceResult = newValue}
-    }
-    /// Returns true if `registerDeviceResult` has been explicitly set.
-    var hasRegisterDeviceResult: Bool {return _storage._registerDeviceResult != nil}
-    /// Clears the value of `registerDeviceResult`. Subsequent reads from it will return its default value.
-    mutating func clearRegisterDeviceResult() {_uniqueStorage()._registerDeviceResult = nil}
-
-    var requestZkNymResult: NymVpnService_RequestZkNymResult {
-      get {return _storage._requestZkNymResult ?? NymVpnService_RequestZkNymResult()}
-      set {_uniqueStorage()._requestZkNymResult = newValue}
-    }
-    /// Returns true if `requestZkNymResult` has been explicitly set.
-    var hasRequestZkNymResult: Bool {return _storage._requestZkNymResult != nil}
-    /// Clears the value of `requestZkNymResult`. Subsequent reads from it will return its default value.
-    mutating func clearRequestZkNymResult() {_uniqueStorage()._requestZkNymResult = nil}
-
-    var unknownFields = SwiftProtobuf.UnknownStorage()
-
-    enum MnemonicState: SwiftProtobuf.Enum, Swift.CaseIterable {
-      typealias RawValue = Int
-      case notStored // = 0
-      case stored // = 1
-      case UNRECOGNIZED(Int)
-
-      init() {
-        self = .notStored
-      }
-
-      init?(rawValue: Int) {
-        switch rawValue {
-        case 0: self = .notStored
-        case 1: self = .stored
-        default: self = .UNRECOGNIZED(rawValue)
-        }
-      }
-
-      var rawValue: Int {
-        switch self {
-        case .notStored: return 0
-        case .stored: return 1
-        case .UNRECOGNIZED(let i): return i
-        }
-      }
-
-      // The compiler won't synthesize support with the UNRECOGNIZED case.
-      static let allCases: [NymVpnService_GetAccountStateResponse.AccountStateSummary.MnemonicState] = [
-        .notStored,
-        .stored,
-      ]
-
-    }
-
-    enum AccountRegistered: SwiftProtobuf.Enum, Swift.CaseIterable {
-      typealias RawValue = Int
-      case accountRegistered // = 0
-      case accountNotRegistered // = 1
-      case UNRECOGNIZED(Int)
-
-      init() {
-        self = .accountRegistered
-      }
-
-      init?(rawValue: Int) {
-        switch rawValue {
-        case 0: self = .accountRegistered
-        case 1: self = .accountNotRegistered
-        default: self = .UNRECOGNIZED(rawValue)
-        }
-      }
-
-      var rawValue: Int {
-        switch self {
-        case .accountRegistered: return 0
-        case .accountNotRegistered: return 1
-        case .UNRECOGNIZED(let i): return i
-        }
-      }
-
-      // The compiler won't synthesize support with the UNRECOGNIZED case.
-      static let allCases: [NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountRegistered] = [
-        .accountRegistered,
-        .accountNotRegistered,
-      ]
-
-    }
-
-    enum DeviceState: SwiftProtobuf.Enum, Swift.CaseIterable {
-      typealias RawValue = Int
-      case notRegistered // = 0
-      case inactive // = 1
-      case active // = 2
-      case deleteMe // = 3
-      case UNRECOGNIZED(Int)
-
-      init() {
-        self = .notRegistered
-      }
-
-      init?(rawValue: Int) {
-        switch rawValue {
-        case 0: self = .notRegistered
-        case 1: self = .inactive
-        case 2: self = .active
-        case 3: self = .deleteMe
-        default: self = .UNRECOGNIZED(rawValue)
-        }
-      }
-
-      var rawValue: Int {
-        switch self {
-        case .notRegistered: return 0
-        case .inactive: return 1
-        case .active: return 2
-        case .deleteMe: return 3
-        case .UNRECOGNIZED(let i): return i
-        }
-      }
-
-      // The compiler won't synthesize support with the UNRECOGNIZED case.
-      static let allCases: [NymVpnService_GetAccountStateResponse.AccountStateSummary.DeviceState] = [
-        .notRegistered,
-        .inactive,
-        .active,
-        .deleteMe,
-      ]
-
-    }
-
-    struct AccountSummary: Sendable {
-      // SwiftProtobuf.Message conformance is added in an extension below. See the
-      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-      // methods supported on all messages.
-
-      var account: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.AccountState = .inactive
-
-      var subscription: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.SubscriptionState = .notRegistered
-
-      var deviceSummary: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary {
-        get {return _deviceSummary ?? NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary()}
-        set {_deviceSummary = newValue}
-      }
-      /// Returns true if `deviceSummary` has been explicitly set.
-      var hasDeviceSummary: Bool {return self._deviceSummary != nil}
-      /// Clears the value of `deviceSummary`. Subsequent reads from it will return its default value.
-      mutating func clearDeviceSummary() {self._deviceSummary = nil}
-
-      var fairUsage: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState {
-        get {return _fairUsage ?? NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState()}
-        set {_fairUsage = newValue}
-      }
-      /// Returns true if `fairUsage` has been explicitly set.
-      var hasFairUsage: Bool {return self._fairUsage != nil}
-      /// Clears the value of `fairUsage`. Subsequent reads from it will return its default value.
-      mutating func clearFairUsage() {self._fairUsage = nil}
-
-      var unknownFields = SwiftProtobuf.UnknownStorage()
-
-      enum AccountState: SwiftProtobuf.Enum, Swift.CaseIterable {
-        typealias RawValue = Int
-        case inactive // = 0
-        case active // = 1
-        case deleteMe // = 2
-        case UNRECOGNIZED(Int)
-
-        init() {
-          self = .inactive
-        }
-
-        init?(rawValue: Int) {
-          switch rawValue {
-          case 0: self = .inactive
-          case 1: self = .active
-          case 2: self = .deleteMe
-          default: self = .UNRECOGNIZED(rawValue)
-          }
-        }
-
-        var rawValue: Int {
-          switch self {
-          case .inactive: return 0
-          case .active: return 1
-          case .deleteMe: return 2
-          case .UNRECOGNIZED(let i): return i
-          }
-        }
-
-        // The compiler won't synthesize support with the UNRECOGNIZED case.
-        static let allCases: [NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.AccountState] = [
-          .inactive,
-          .active,
-          .deleteMe,
-        ]
-
-      }
-
-      enum SubscriptionState: SwiftProtobuf.Enum, Swift.CaseIterable {
-        typealias RawValue = Int
-        case notRegistered // = 0
-        case pending // = 1
-        case active // = 2
-        case complete // = 3
-        case UNRECOGNIZED(Int)
-
-        init() {
-          self = .notRegistered
-        }
-
-        init?(rawValue: Int) {
-          switch rawValue {
-          case 0: self = .notRegistered
-          case 1: self = .pending
-          case 2: self = .active
-          case 3: self = .complete
-          default: self = .UNRECOGNIZED(rawValue)
-          }
-        }
-
-        var rawValue: Int {
-          switch self {
-          case .notRegistered: return 0
-          case .pending: return 1
-          case .active: return 2
-          case .complete: return 3
-          case .UNRECOGNIZED(let i): return i
-          }
-        }
-
-        // The compiler won't synthesize support with the UNRECOGNIZED case.
-        static let allCases: [NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.SubscriptionState] = [
-          .notRegistered,
-          .pending,
-          .active,
-          .complete,
-        ]
-
-      }
-
-      struct DeviceSummary: Sendable {
-        // SwiftProtobuf.Message conformance is added in an extension below. See the
-        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-        // methods supported on all messages.
-
-        var active: UInt64 = 0
-
-        var max: UInt64 = 0
-
-        var remaining: UInt64 = 0
-
-        var unknownFields = SwiftProtobuf.UnknownStorage()
-
-        init() {}
-      }
-
-      struct FairUsageState: Sendable {
-        // SwiftProtobuf.Message conformance is added in an extension below. See the
-        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-        // methods supported on all messages.
-
-        var limitGb: UInt64 = 0
-
-        var usedGb: UInt64 = 0
-
-        var resetsOnUtc: String {
-          get {return _resetsOnUtc ?? String()}
-          set {_resetsOnUtc = newValue}
-        }
-        /// Returns true if `resetsOnUtc` has been explicitly set.
-        var hasResetsOnUtc: Bool {return self._resetsOnUtc != nil}
-        /// Clears the value of `resetsOnUtc`. Subsequent reads from it will return its default value.
-        mutating func clearResetsOnUtc() {self._resetsOnUtc = nil}
-
-        var unknownFields = SwiftProtobuf.UnknownStorage()
-
-        init() {}
-
-        fileprivate var _resetsOnUtc: String? = nil
-      }
-
-      init() {}
-
-      fileprivate var _deviceSummary: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary? = nil
-      fileprivate var _fairUsage: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState? = nil
-    }
-
-    init() {}
-
-    fileprivate var _storage = _StorageClass.defaultInstance
-  }
-
-  init() {}
-
-  fileprivate var _account: NymVpnService_GetAccountStateResponse.AccountStateSummary? = nil
-}
-
-struct NymVpnService_RegisterDeviceResult: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var kind: NymVpnService_RegisterDeviceResult.RegisterDeviceResultType = .inProgress
-
-  var error: NymVpnService_RegisterDeviceError {
-    get {return _error ?? NymVpnService_RegisterDeviceError()}
-    set {_error = newValue}
-  }
-  /// Returns true if `error` has been explicitly set.
-  var hasError: Bool {return self._error != nil}
-  /// Clears the value of `error`. Subsequent reads from it will return its default value.
-  mutating func clearError() {self._error = nil}
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum RegisterDeviceResultType: SwiftProtobuf.Enum, Swift.CaseIterable {
-    typealias RawValue = Int
-    case inProgress // = 0
-    case success // = 1
-    case failed // = 2
-    case UNRECOGNIZED(Int)
-
-    init() {
-      self = .inProgress
-    }
-
-    init?(rawValue: Int) {
-      switch rawValue {
-      case 0: self = .inProgress
-      case 1: self = .success
-      case 2: self = .failed
-      default: self = .UNRECOGNIZED(rawValue)
-      }
-    }
-
-    var rawValue: Int {
-      switch self {
-      case .inProgress: return 0
-      case .success: return 1
-      case .failed: return 2
-      case .UNRECOGNIZED(let i): return i
-      }
-    }
-
-    // The compiler won't synthesize support with the UNRECOGNIZED case.
-    static let allCases: [NymVpnService_RegisterDeviceResult.RegisterDeviceResultType] = [
-      .inProgress,
-      .success,
-      .failed,
-    ]
-
-  }
-
-  init() {}
-
-  fileprivate var _error: NymVpnService_RegisterDeviceError? = nil
-}
-
-/// The status of a zk-nym request. A request can have multiple successes
-/// and failures, depending on how many ticket types were requested.
-struct NymVpnService_RequestZkNymResult: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var kind: NymVpnService_RequestZkNymResult.RequestZkNymResultType = .inProgress
-
-  var successes: [NymVpnService_RequestZkNymSuccess] = []
-
-  var failures: [NymVpnService_RequestZkNymError] = []
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  enum RequestZkNymResultType: SwiftProtobuf.Enum, Swift.CaseIterable {
-    typealias RawValue = Int
-    case inProgress // = 0
-    case done // = 1
-    case error // = 2
-    case UNRECOGNIZED(Int)
-
-    init() {
-      self = .inProgress
-    }
-
-    init?(rawValue: Int) {
-      switch rawValue {
-      case 0: self = .inProgress
-      case 1: self = .done
-      case 2: self = .error
-      default: self = .UNRECOGNIZED(rawValue)
-      }
-    }
-
-    var rawValue: Int {
-      switch self {
-      case .inProgress: return 0
-      case .done: return 1
-      case .error: return 2
-      case .UNRECOGNIZED(let i): return i
-      }
-    }
-
-    // The compiler won't synthesize support with the UNRECOGNIZED case.
-    static let allCases: [NymVpnService_RequestZkNymResult.RequestZkNymResultType] = [
-      .inProgress,
-      .done,
-      .error,
-    ]
-
-  }
-
-  init() {}
 }
 
 struct NymVpnService_GetAccountUsageResponse: Sendable {
@@ -3299,30 +2689,6 @@ struct NymVpnService_GetDevicesResponse: Sendable {
   init() {}
 
   fileprivate var _devices: NymVpnService_GetDevicesResponse.Devices? = nil
-}
-
-struct NymVpnService_GetZkNymByIdRequest: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var id: String = String()
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
-struct NymVpnService_ConfirmZkNymDownloadedRequest: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var id: String = String()
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
 }
 
 struct NymVpnService_AvailableTickets: Sendable {
@@ -3953,6 +3319,44 @@ extension NymVpnService_Url: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 }
 
+extension NymVpnService_ApiUrl: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ApiUrl"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "url"),
+    2: .standard(proto: "front_hosts"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.url) }()
+      case 2: try { try decoder.decodeRepeatedStringField(value: &self.frontHosts) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.url.isEmpty {
+      try visitor.visitSingularStringField(value: self.url, fieldNumber: 1)
+    }
+    if !self.frontHosts.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.frontHosts, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_ApiUrl, rhs: NymVpnService_ApiUrl) -> Bool {
+    if lhs.url != rhs.url {return false}
+    if lhs.frontHosts != rhs.frontHosts {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension NymVpnService_UserAgent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".UserAgent"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -4100,10 +3504,11 @@ extension NymVpnService_NymContracts: SwiftProtobuf.Message, SwiftProtobuf._Mess
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "mixnet_contract_address"),
     2: .standard(proto: "vesting_contract_address"),
-    3: .standard(proto: "ecash_contract_address"),
-    4: .standard(proto: "group_contract_address"),
-    5: .standard(proto: "multisig_contract_address"),
-    6: .standard(proto: "coconut_dkg_contract_address"),
+    3: .standard(proto: "performance_contract_address"),
+    4: .standard(proto: "ecash_contract_address"),
+    5: .standard(proto: "group_contract_address"),
+    6: .standard(proto: "multisig_contract_address"),
+    7: .standard(proto: "coconut_dkg_contract_address"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4114,10 +3519,11 @@ extension NymVpnService_NymContracts: SwiftProtobuf.Message, SwiftProtobuf._Mess
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self._mixnetContractAddress) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self._vestingContractAddress) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self._ecashContractAddress) }()
-      case 4: try { try decoder.decodeSingularStringField(value: &self._groupContractAddress) }()
-      case 5: try { try decoder.decodeSingularStringField(value: &self._multisigContractAddress) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self._coconutDkgContractAddress) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._performanceContractAddress) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._ecashContractAddress) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self._groupContractAddress) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self._multisigContractAddress) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self._coconutDkgContractAddress) }()
       default: break
       }
     }
@@ -4134,17 +3540,20 @@ extension NymVpnService_NymContracts: SwiftProtobuf.Message, SwiftProtobuf._Mess
     try { if let v = self._vestingContractAddress {
       try visitor.visitSingularStringField(value: v, fieldNumber: 2)
     } }()
-    try { if let v = self._ecashContractAddress {
+    try { if let v = self._performanceContractAddress {
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
     } }()
-    try { if let v = self._groupContractAddress {
+    try { if let v = self._ecashContractAddress {
       try visitor.visitSingularStringField(value: v, fieldNumber: 4)
     } }()
-    try { if let v = self._multisigContractAddress {
+    try { if let v = self._groupContractAddress {
       try visitor.visitSingularStringField(value: v, fieldNumber: 5)
     } }()
-    try { if let v = self._coconutDkgContractAddress {
+    try { if let v = self._multisigContractAddress {
       try visitor.visitSingularStringField(value: v, fieldNumber: 6)
+    } }()
+    try { if let v = self._coconutDkgContractAddress {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 7)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -4152,6 +3561,7 @@ extension NymVpnService_NymContracts: SwiftProtobuf.Message, SwiftProtobuf._Mess
   static func ==(lhs: NymVpnService_NymContracts, rhs: NymVpnService_NymContracts) -> Bool {
     if lhs._mixnetContractAddress != rhs._mixnetContractAddress {return false}
     if lhs._vestingContractAddress != rhs._vestingContractAddress {return false}
+    if lhs._performanceContractAddress != rhs._performanceContractAddress {return false}
     if lhs._ecashContractAddress != rhs._ecashContractAddress {return false}
     if lhs._groupContractAddress != rhs._groupContractAddress {return false}
     if lhs._multisigContractAddress != rhs._multisigContractAddress {return false}
@@ -4168,48 +3578,118 @@ extension NymVpnService_NymNetworkDetails: SwiftProtobuf.Message, SwiftProtobuf.
     2: .standard(proto: "chain_details"),
     3: .same(proto: "endpoints"),
     4: .same(proto: "contracts"),
+    5: .standard(proto: "nym_vpn_api_url"),
+    6: .standard(proto: "nym_api_urls"),
+    7: .standard(proto: "nym_vpn_api_urls"),
   ]
 
+  fileprivate class _StorageClass {
+    var _networkName: String = String()
+    var _chainDetails: NymVpnService_ChainDetails? = nil
+    var _endpoints: [NymVpnService_ValidatorDetails] = []
+    var _contracts: NymVpnService_NymContracts? = nil
+    var _nymVpnApiURL: String? = nil
+    var _nymApiUrls: [NymVpnService_ApiUrl] = []
+    var _nymVpnApiUrls: [NymVpnService_ApiUrl] = []
+
+    #if swift(>=5.10)
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+    #else
+      static let defaultInstance = _StorageClass()
+    #endif
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _networkName = source._networkName
+      _chainDetails = source._chainDetails
+      _endpoints = source._endpoints
+      _contracts = source._contracts
+      _nymVpnApiURL = source._nymVpnApiURL
+      _nymApiUrls = source._nymApiUrls
+      _nymVpnApiUrls = source._nymVpnApiUrls
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.networkName) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._chainDetails) }()
-      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.endpoints) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._contracts) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._networkName) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._chainDetails) }()
+        case 3: try { try decoder.decodeRepeatedMessageField(value: &_storage._endpoints) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._contracts) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._nymVpnApiURL) }()
+        case 6: try { try decoder.decodeRepeatedMessageField(value: &_storage._nymApiUrls) }()
+        case 7: try { try decoder.decodeRepeatedMessageField(value: &_storage._nymVpnApiUrls) }()
+        default: break
+        }
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.networkName.isEmpty {
-      try visitor.visitSingularStringField(value: self.networkName, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._networkName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._networkName, fieldNumber: 1)
+      }
+      try { if let v = _storage._chainDetails {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+      if !_storage._endpoints.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._endpoints, fieldNumber: 3)
+      }
+      try { if let v = _storage._contracts {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      try { if let v = _storage._nymVpnApiURL {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+      } }()
+      if !_storage._nymApiUrls.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._nymApiUrls, fieldNumber: 6)
+      }
+      if !_storage._nymVpnApiUrls.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._nymVpnApiUrls, fieldNumber: 7)
+      }
     }
-    try { if let v = self._chainDetails {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    if !self.endpoints.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.endpoints, fieldNumber: 3)
-    }
-    try { if let v = self._contracts {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: NymVpnService_NymNetworkDetails, rhs: NymVpnService_NymNetworkDetails) -> Bool {
-    if lhs.networkName != rhs.networkName {return false}
-    if lhs._chainDetails != rhs._chainDetails {return false}
-    if lhs.endpoints != rhs.endpoints {return false}
-    if lhs._contracts != rhs._contracts {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._networkName != rhs_storage._networkName {return false}
+        if _storage._chainDetails != rhs_storage._chainDetails {return false}
+        if _storage._endpoints != rhs_storage._endpoints {return false}
+        if _storage._contracts != rhs_storage._contracts {return false}
+        if _storage._nymVpnApiURL != rhs_storage._nymVpnApiURL {return false}
+        if _storage._nymApiUrls != rhs_storage._nymApiUrls {return false}
+        if _storage._nymVpnApiUrls != rhs_storage._nymVpnApiUrls {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4359,113 +3839,61 @@ extension NymVpnService_InfoResponse: SwiftProtobuf.Message, SwiftProtobuf._Mess
     7: .standard(proto: "nym_vpn_network"),
   ]
 
-  fileprivate class _StorageClass {
-    var _version: String = String()
-    var _buildTimestamp: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _triple: String = String()
-    var _platform: String = String()
-    var _gitCommit: String = String()
-    var _nymNetwork: NymVpnService_NymNetworkDetails? = nil
-    var _nymVpnNetwork: NymVpnService_NymVpnNetworkDetails? = nil
-
-    #if swift(>=5.10)
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _version = source._version
-      _buildTimestamp = source._buildTimestamp
-      _triple = source._triple
-      _platform = source._platform
-      _gitCommit = source._gitCommit
-      _nymNetwork = source._nymNetwork
-      _nymVpnNetwork = source._nymVpnNetwork
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularStringField(value: &_storage._version) }()
-        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._buildTimestamp) }()
-        case 3: try { try decoder.decodeSingularStringField(value: &_storage._triple) }()
-        case 4: try { try decoder.decodeSingularStringField(value: &_storage._platform) }()
-        case 5: try { try decoder.decodeSingularStringField(value: &_storage._gitCommit) }()
-        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._nymNetwork) }()
-        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._nymVpnNetwork) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.version) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._buildTimestamp) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.triple) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.platform) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.gitCommit) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._nymNetwork) }()
+      case 7: try { try decoder.decodeSingularMessageField(value: &self._nymVpnNetwork) }()
+      default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      if !_storage._version.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._version, fieldNumber: 1)
-      }
-      try { if let v = _storage._buildTimestamp {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      } }()
-      if !_storage._triple.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._triple, fieldNumber: 3)
-      }
-      if !_storage._platform.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._platform, fieldNumber: 4)
-      }
-      if !_storage._gitCommit.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._gitCommit, fieldNumber: 5)
-      }
-      try { if let v = _storage._nymNetwork {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-      } }()
-      try { if let v = _storage._nymVpnNetwork {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-      } }()
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.version.isEmpty {
+      try visitor.visitSingularStringField(value: self.version, fieldNumber: 1)
     }
+    try { if let v = self._buildTimestamp {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    if !self.triple.isEmpty {
+      try visitor.visitSingularStringField(value: self.triple, fieldNumber: 3)
+    }
+    if !self.platform.isEmpty {
+      try visitor.visitSingularStringField(value: self.platform, fieldNumber: 4)
+    }
+    if !self.gitCommit.isEmpty {
+      try visitor.visitSingularStringField(value: self.gitCommit, fieldNumber: 5)
+    }
+    try { if let v = self._nymNetwork {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    } }()
+    try { if let v = self._nymVpnNetwork {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: NymVpnService_InfoResponse, rhs: NymVpnService_InfoResponse) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._version != rhs_storage._version {return false}
-        if _storage._buildTimestamp != rhs_storage._buildTimestamp {return false}
-        if _storage._triple != rhs_storage._triple {return false}
-        if _storage._platform != rhs_storage._platform {return false}
-        if _storage._gitCommit != rhs_storage._gitCommit {return false}
-        if _storage._nymNetwork != rhs_storage._nymNetwork {return false}
-        if _storage._nymVpnNetwork != rhs_storage._nymVpnNetwork {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
+    if lhs.version != rhs.version {return false}
+    if lhs._buildTimestamp != rhs._buildTimestamp {return false}
+    if lhs.triple != rhs.triple {return false}
+    if lhs.platform != rhs.platform {return false}
+    if lhs.gitCommit != rhs.gitCommit {return false}
+    if lhs._nymNetwork != rhs._nymNetwork {return false}
+    if lhs._nymVpnNetwork != rhs._nymVpnNetwork {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5934,13 +5362,14 @@ extension NymVpnService_TunnelState.ErrorStateReason: SwiftProtobuf._ProtoNamePr
     4: .same(proto: "INVALID_EXIT_GATEWAY_COUNTRY"),
     5: .same(proto: "MAX_DEVICES_REACHED"),
     6: .same(proto: "BANDWIDTH_EXCEEDED"),
-    7: .same(proto: "SUBSCRIPTION_EXPIRED"),
+    7: .same(proto: "INACTIVE_SUBSCRIPTION"),
     8: .same(proto: "DNS"),
     9: .same(proto: "API"),
     10: .same(proto: "INTERNAL"),
     11: .same(proto: "DEVICE_TIME_OUT_OF_SYNC"),
     12: .same(proto: "CREATE_MIXNET_STORAGE"),
     13: .same(proto: "IPV6_UNAVAILABLE"),
+    14: .same(proto: "ACCOUNT_CONTROL"),
   ]
 }
 
@@ -6724,14 +6153,18 @@ extension NymVpnService_GetLogPathResponse: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-extension NymVpnService_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".StoreAccountError"
+extension NymVpnService_AccountCommandError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AccountCommandError"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    5: .standard(proto: "invalid_mnemonic"),
-    1: .standard(proto: "storage_error"),
-    2: .standard(proto: "vpn_api"),
-    3: .standard(proto: "unexpected_response"),
-    4: .same(proto: "internal"),
+    1: .same(proto: "internal"),
+    2: .standard(proto: "storage_error"),
+    3: .standard(proto: "vpn_api"),
+    4: .standard(proto: "unexpected_response"),
+    5: .standard(proto: "no_account_stored"),
+    6: .standard(proto: "no_device_stored"),
+    7: .standard(proto: "existing_account"),
+    8: .same(proto: "offline"),
+    10: .standard(proto: "invalid_mnemonic"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -6745,10 +6178,18 @@ extension NymVpnService_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf.
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
           if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .storageError(v)
+          self.errorDetail = .internal(v)
         }
       }()
       case 2: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .storageError(v)
+        }
+      }()
+      case 3: try {
         var v: NymVpnService_VpnApiError?
         var hadOneofValue = false
         if let current = self.errorDetail {
@@ -6761,7 +6202,7 @@ extension NymVpnService_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf.
           self.errorDetail = .vpnApi(v)
         }
       }()
-      case 3: try {
+      case 4: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
@@ -6769,15 +6210,39 @@ extension NymVpnService_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf.
           self.errorDetail = .unexpectedResponse(v)
         }
       }()
-      case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
+      case 5: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
         if let v = v {
           if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .internal(v)
+          self.errorDetail = .noAccountStored(v)
         }
       }()
-      case 5: try {
+      case 6: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .noDeviceStored(v)
+        }
+      }()
+      case 7: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .existingAccount(v)
+        }
+      }()
+      case 8: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .offline(v)
+        }
+      }()
+      case 10: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
@@ -6796,526 +6261,48 @@ extension NymVpnService_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf.
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
     switch self.errorDetail {
+    case .internal?: try {
+      guard case .internal(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    }()
     case .storageError?: try {
       guard case .storageError(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
     }()
     case .vpnApi?: try {
       guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .unexpectedResponse?: try {
       guard case .unexpectedResponse(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-    }()
-    case .internal?: try {
-      guard case .internal(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    }()
+    case .noAccountStored?: try {
+      guard case .noAccountStored(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
+    }()
+    case .noDeviceStored?: try {
+      guard case .noDeviceStored(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
+    }()
+    case .existingAccount?: try {
+      guard case .existingAccount(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 7)
+    }()
+    case .offline?: try {
+      guard case .offline(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 8)
     }()
     case .invalidMnemonic?: try {
       guard case .invalidMnemonic(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+      try visitor.visitSingularStringField(value: v, fieldNumber: 10)
     }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: NymVpnService_StoreAccountError, rhs: NymVpnService_StoreAccountError) -> Bool {
-    if lhs.errorDetail != rhs.errorDetail {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_SyncAccountError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".SyncAccountError"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "no_account_stored"),
-    2: .standard(proto: "vpn_api"),
-    3: .standard(proto: "unexpected_response"),
-    5: .same(proto: "offline"),
-    4: .same(proto: "internal"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .noAccountStored(v)
-        }
-      }()
-      case 2: try {
-        var v: NymVpnService_VpnApiError?
-        var hadOneofValue = false
-        if let current = self.errorDetail {
-          hadOneofValue = true
-          if case .vpnApi(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .vpnApi(v)
-        }
-      }()
-      case 3: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .unexpectedResponse(v)
-        }
-      }()
-      case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .internal(v)
-        }
-      }()
-      case 5: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .offline(v)
-        }
-      }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.errorDetail {
-    case .noAccountStored?: try {
-      guard case .noAccountStored(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
-    }()
-    case .vpnApi?: try {
-      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case .unexpectedResponse?: try {
-      guard case .unexpectedResponse(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-    }()
-    case .internal?: try {
-      guard case .internal(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-    }()
-    case .offline?: try {
-      guard case .offline(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
-    }()
-    case nil: break
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_SyncAccountError, rhs: NymVpnService_SyncAccountError) -> Bool {
-    if lhs.errorDetail != rhs.errorDetail {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_SyncDeviceError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".SyncDeviceError"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "no_account_stored"),
-    2: .standard(proto: "no_device_stored"),
-    3: .standard(proto: "vpn_api"),
-    4: .standard(proto: "unexpected_response"),
-    6: .same(proto: "offline"),
-    5: .same(proto: "internal"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .noAccountStored(v)
-        }
-      }()
-      case 2: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .noDeviceStored(v)
-        }
-      }()
-      case 3: try {
-        var v: NymVpnService_VpnApiError?
-        var hadOneofValue = false
-        if let current = self.errorDetail {
-          hadOneofValue = true
-          if case .vpnApi(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .vpnApi(v)
-        }
-      }()
-      case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .unexpectedResponse(v)
-        }
-      }()
-      case 5: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .internal(v)
-        }
-      }()
-      case 6: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .offline(v)
-        }
-      }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.errorDetail {
-    case .noAccountStored?: try {
-      guard case .noAccountStored(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
-    }()
-    case .noDeviceStored?: try {
-      guard case .noDeviceStored(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
-    }()
-    case .vpnApi?: try {
-      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case .unexpectedResponse?: try {
-      guard case .unexpectedResponse(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-    }()
-    case .internal?: try {
-      guard case .internal(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-    }()
-    case .offline?: try {
-      guard case .offline(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
-    }()
-    case nil: break
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_SyncDeviceError, rhs: NymVpnService_SyncDeviceError) -> Bool {
-    if lhs.errorDetail != rhs.errorDetail {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_RegisterDeviceError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RegisterDeviceError"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "no_account_stored"),
-    2: .standard(proto: "no_device_stored"),
-    3: .standard(proto: "vpn_api"),
-    4: .standard(proto: "unexpected_response"),
-    6: .same(proto: "offline"),
-    5: .same(proto: "internal"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .noAccountStored(v)
-        }
-      }()
-      case 2: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .noDeviceStored(v)
-        }
-      }()
-      case 3: try {
-        var v: NymVpnService_VpnApiError?
-        var hadOneofValue = false
-        if let current = self.errorDetail {
-          hadOneofValue = true
-          if case .vpnApi(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .vpnApi(v)
-        }
-      }()
-      case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .unexpectedResponse(v)
-        }
-      }()
-      case 5: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .internal(v)
-        }
-      }()
-      case 6: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .offline(v)
-        }
-      }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.errorDetail {
-    case .noAccountStored?: try {
-      guard case .noAccountStored(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
-    }()
-    case .noDeviceStored?: try {
-      guard case .noDeviceStored(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
-    }()
-    case .vpnApi?: try {
-      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case .unexpectedResponse?: try {
-      guard case .unexpectedResponse(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-    }()
-    case .internal?: try {
-      guard case .internal(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-    }()
-    case .offline?: try {
-      guard case .offline(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
-    }()
-    case nil: break
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_RegisterDeviceError, rhs: NymVpnService_RegisterDeviceError) -> Bool {
-    if lhs.errorDetail != rhs.errorDetail {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_ForgetAccountError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ForgetAccountError"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "registration_in_progress"),
-    2: .standard(proto: "vpn_api"),
-    3: .standard(proto: "unexpected_response"),
-    4: .standard(proto: "remove_account"),
-    5: .standard(proto: "remove_device_keys"),
-    6: .standard(proto: "reset_credential_store"),
-    7: .standard(proto: "remove_account_files"),
-    8: .standard(proto: "init_device_keys"),
-    9: .same(proto: "internal"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .registrationInProgress(v)
-        }
-      }()
-      case 2: try {
-        var v: NymVpnService_VpnApiError?
-        var hadOneofValue = false
-        if let current = self.errorDetail {
-          hadOneofValue = true
-          if case .vpnApi(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .vpnApi(v)
-        }
-      }()
-      case 3: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .unexpectedResponse(v)
-        }
-      }()
-      case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .removeAccount(v)
-        }
-      }()
-      case 5: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .removeDeviceKeys(v)
-        }
-      }()
-      case 6: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .resetCredentialStore(v)
-        }
-      }()
-      case 7: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .removeAccountFiles(v)
-        }
-      }()
-      case 8: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .initDeviceKeys(v)
-        }
-      }()
-      case 9: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .internal(v)
-        }
-      }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.errorDetail {
-    case .registrationInProgress?: try {
-      guard case .registrationInProgress(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
-    }()
-    case .vpnApi?: try {
-      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case .unexpectedResponse?: try {
-      guard case .unexpectedResponse(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-    }()
-    case .removeAccount?: try {
-      guard case .removeAccount(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-    }()
-    case .removeDeviceKeys?: try {
-      guard case .removeDeviceKeys(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-    }()
-    case .resetCredentialStore?: try {
-      guard case .resetCredentialStore(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 6)
-    }()
-    case .removeAccountFiles?: try {
-      guard case .removeAccountFiles(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 7)
-    }()
-    case .initDeviceKeys?: try {
-      guard case .initDeviceKeys(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 8)
-    }()
-    case .internal?: try {
-      guard case .internal(let v)? = self.errorDetail else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 9)
-    }()
-    case nil: break
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_ForgetAccountError, rhs: NymVpnService_ForgetAccountError) -> Bool {
+  static func ==(lhs: NymVpnService_AccountCommandError, rhs: NymVpnService_AccountCommandError) -> Bool {
     if lhs.errorDetail != rhs.errorDetail {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -7480,48 +6467,14 @@ extension NymVpnService_VpnApiErrorResponse: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension NymVpnService_RequestZkNymSuccess: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RequestZkNymSuccess"
+extension NymVpnService_AccountControllerState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AccountControllerState"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "id"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_RequestZkNymSuccess, rhs: NymVpnService_RequestZkNymSuccess) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_RequestZkNymError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RequestZkNymError"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "no_account_stored"),
-    2: .standard(proto: "no_device_stored"),
-    3: .standard(proto: "vpn_api"),
-    4: .standard(proto: "unexpected_vpn_api_response"),
-    5: .same(proto: "storage"),
-    7: .same(proto: "offline"),
-    6: .same(proto: "internal"),
+    1: .standard(proto: "logged_out"),
+    2: .same(proto: "syncing"),
+    3: .standard(proto: "ready_to_connect"),
+    4: .same(proto: "error"),
+    5: .same(proto: "offline"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7531,64 +6484,68 @@ extension NymVpnService_RequestZkNymError: SwiftProtobuf.Message, SwiftProtobuf.
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.outcome != nil {try decoder.handleConflictingOneOf()}
-          self.outcome = .noAccountStored(v)
-        }
-      }()
-      case 2: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.outcome != nil {try decoder.handleConflictingOneOf()}
-          self.outcome = .noDeviceStored(v)
-        }
-      }()
-      case 3: try {
-        var v: NymVpnService_VpnApiError?
+        var v: NymVpnService_AccountControllerState.LoggedOut?
         var hadOneofValue = false
-        if let current = self.outcome {
+        if let current = self.state {
           hadOneofValue = true
-          if case .vpnApi(let m) = current {v = m}
+          if case .loggedOut(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.outcome = .vpnApi(v)
+          self.state = .loggedOut(v)
+        }
+      }()
+      case 2: try {
+        var v: NymVpnService_AccountControllerState.Syncing?
+        var hadOneofValue = false
+        if let current = self.state {
+          hadOneofValue = true
+          if case .syncing(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.state = .syncing(v)
+        }
+      }()
+      case 3: try {
+        var v: NymVpnService_AccountControllerState.ReadyToConnect?
+        var hadOneofValue = false
+        if let current = self.state {
+          hadOneofValue = true
+          if case .readyToConnect(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.state = .readyToConnect(v)
         }
       }()
       case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
+        var v: NymVpnService_AccountControllerState.Error?
+        var hadOneofValue = false
+        if let current = self.state {
+          hadOneofValue = true
+          if case .error(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
-          if self.outcome != nil {try decoder.handleConflictingOneOf()}
-          self.outcome = .unexpectedVpnApiResponse(v)
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.state = .error(v)
         }
       }()
       case 5: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.outcome != nil {try decoder.handleConflictingOneOf()}
-          self.outcome = .storage(v)
+        var v: NymVpnService_AccountControllerState.Offline?
+        var hadOneofValue = false
+        if let current = self.state {
+          hadOneofValue = true
+          if case .offline(let m) = current {v = m}
         }
-      }()
-      case 6: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
+        try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
-          if self.outcome != nil {try decoder.handleConflictingOneOf()}
-          self.outcome = .internal(v)
-        }
-      }()
-      case 7: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
-        if let v = v {
-          if self.outcome != nil {try decoder.handleConflictingOneOf()}
-          self.outcome = .offline(v)
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.state = .offline(v)
         }
       }()
       default: break
@@ -7601,42 +6558,171 @@ extension NymVpnService_RequestZkNymError: SwiftProtobuf.Message, SwiftProtobuf.
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.outcome {
-    case .noAccountStored?: try {
-      guard case .noAccountStored(let v)? = self.outcome else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
+    switch self.state {
+    case .loggedOut?: try {
+      guard case .loggedOut(let v)? = self.state else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .noDeviceStored?: try {
-      guard case .noDeviceStored(let v)? = self.outcome else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
+    case .syncing?: try {
+      guard case .syncing(let v)? = self.state else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
-    case .vpnApi?: try {
-      guard case .vpnApi(let v)? = self.outcome else { preconditionFailure() }
+    case .readyToConnect?: try {
+      guard case .readyToConnect(let v)? = self.state else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
-    case .unexpectedVpnApiResponse?: try {
-      guard case .unexpectedVpnApiResponse(let v)? = self.outcome else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-    }()
-    case .storage?: try {
-      guard case .storage(let v)? = self.outcome else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-    }()
-    case .internal?: try {
-      guard case .internal(let v)? = self.outcome else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 6)
+    case .error?: try {
+      guard case .error(let v)? = self.state else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
     case .offline?: try {
-      guard case .offline(let v)? = self.outcome else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 7)
+      guard case .offline(let v)? = self.state else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: NymVpnService_RequestZkNymError, rhs: NymVpnService_RequestZkNymError) -> Bool {
-    if lhs.outcome != rhs.outcome {return false}
+  static func ==(lhs: NymVpnService_AccountControllerState, rhs: NymVpnService_AccountControllerState) -> Bool {
+    if lhs.state != rhs.state {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_AccountControllerState.ErrorStateReason: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "STORAGE"),
+    1: .same(proto: "API_FAILURE"),
+    2: .same(proto: "INTERNAL"),
+    3: .same(proto: "BANDWIDTH_EXCEEDED"),
+    4: .same(proto: "ACCOUNT_STATUS_NOT_ACTIVE"),
+    5: .same(proto: "INACTIVE_SUBSCRIPTION"),
+    6: .same(proto: "MAX_DEVICE_REACHED"),
+    7: .same(proto: "DEVICE_TIME_DESYNCED"),
+  ]
+}
+
+extension NymVpnService_AccountControllerState.LoggedOut: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = NymVpnService_AccountControllerState.protoMessageName + ".LoggedOut"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_AccountControllerState.LoggedOut, rhs: NymVpnService_AccountControllerState.LoggedOut) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_AccountControllerState.ReadyToConnect: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = NymVpnService_AccountControllerState.protoMessageName + ".ReadyToConnect"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_AccountControllerState.ReadyToConnect, rhs: NymVpnService_AccountControllerState.ReadyToConnect) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_AccountControllerState.Syncing: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = NymVpnService_AccountControllerState.protoMessageName + ".Syncing"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_AccountControllerState.Syncing, rhs: NymVpnService_AccountControllerState.Syncing) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_AccountControllerState.Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = NymVpnService_AccountControllerState.protoMessageName + ".Error"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "reason"),
+    2: .same(proto: "details"),
+    3: .same(proto: "context"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._details) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._context) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.reason != .storage {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 1)
+    }
+    try { if let v = self._details {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._context {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_AccountControllerState.Error, rhs: NymVpnService_AccountControllerState.Error) -> Bool {
+    if lhs.reason != rhs.reason {return false}
+    if lhs._details != rhs._details {return false}
+    if lhs._context != rhs._context {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_AccountControllerState.Offline: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = NymVpnService_AccountControllerState.protoMessageName + ".Offline"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_AccountControllerState.Offline, rhs: NymVpnService_AccountControllerState.Offline) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7674,10 +6760,10 @@ extension NymVpnService_StoreAccountRequest: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension NymVpnService_StoreAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".StoreAccountResponse"
+extension NymVpnService_AccountCommandResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AccountCommandResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    2: .same(proto: "error"),
+    1: .same(proto: "error"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -7686,7 +6772,7 @@ extension NymVpnService_StoreAccountResponse: SwiftProtobuf.Message, SwiftProtob
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._error) }()
       default: break
       }
     }
@@ -7698,48 +6784,12 @@ extension NymVpnService_StoreAccountResponse: SwiftProtobuf.Message, SwiftProtob
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
     try { if let v = self._error {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: NymVpnService_StoreAccountResponse, rhs: NymVpnService_StoreAccountResponse) -> Bool {
-    if lhs._error != rhs._error {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_ForgetAccountResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ForgetAccountResponse"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    2: .same(proto: "error"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._error {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_ForgetAccountResponse, rhs: NymVpnService_ForgetAccountResponse) -> Bool {
+  static func ==(lhs: NymVpnService_AccountCommandResponse, rhs: NymVpnService_AccountCommandResponse) -> Bool {
     if lhs._error != rhs._error {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -7780,446 +6830,6 @@ extension NymVpnService_GetAccountIdentityResponse: SwiftProtobuf.Message, Swift
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
-}
-
-extension NymVpnService_GetAccountStateResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetAccountStateResponse"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "account"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._account) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._account {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_GetAccountStateResponse, rhs: NymVpnService_GetAccountStateResponse) -> Bool {
-    if lhs._account != rhs._account {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = NymVpnService_GetAccountStateResponse.protoMessageName + ".AccountStateSummary"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "mnemonic"),
-    2: .standard(proto: "account_registered"),
-    3: .standard(proto: "account_summary"),
-    4: .same(proto: "device"),
-    5: .standard(proto: "register_device_result"),
-    7: .standard(proto: "request_zk_nym_result"),
-  ]
-
-  fileprivate class _StorageClass {
-    var _mnemonic: NymVpnService_GetAccountStateResponse.AccountStateSummary.MnemonicState? = nil
-    var _accountRegistered: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountRegistered? = nil
-    var _accountSummary: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary? = nil
-    var _device: NymVpnService_GetAccountStateResponse.AccountStateSummary.DeviceState? = nil
-    var _registerDeviceResult: NymVpnService_RegisterDeviceResult? = nil
-    var _requestZkNymResult: NymVpnService_RequestZkNymResult? = nil
-
-    #if swift(>=5.10)
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _mnemonic = source._mnemonic
-      _accountRegistered = source._accountRegistered
-      _accountSummary = source._accountSummary
-      _device = source._device
-      _registerDeviceResult = source._registerDeviceResult
-      _requestZkNymResult = source._requestZkNymResult
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularEnumField(value: &_storage._mnemonic) }()
-        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._accountRegistered) }()
-        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._accountSummary) }()
-        case 4: try { try decoder.decodeSingularEnumField(value: &_storage._device) }()
-        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._registerDeviceResult) }()
-        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._requestZkNymResult) }()
-        default: break
-        }
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      try { if let v = _storage._mnemonic {
-        try visitor.visitSingularEnumField(value: v, fieldNumber: 1)
-      } }()
-      try { if let v = _storage._accountRegistered {
-        try visitor.visitSingularEnumField(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._accountSummary {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      } }()
-      try { if let v = _storage._device {
-        try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
-      } }()
-      try { if let v = _storage._registerDeviceResult {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-      } }()
-      try { if let v = _storage._requestZkNymResult {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-      } }()
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_GetAccountStateResponse.AccountStateSummary, rhs: NymVpnService_GetAccountStateResponse.AccountStateSummary) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._mnemonic != rhs_storage._mnemonic {return false}
-        if _storage._accountRegistered != rhs_storage._accountRegistered {return false}
-        if _storage._accountSummary != rhs_storage._accountSummary {return false}
-        if _storage._device != rhs_storage._device {return false}
-        if _storage._registerDeviceResult != rhs_storage._registerDeviceResult {return false}
-        if _storage._requestZkNymResult != rhs_storage._requestZkNymResult {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.MnemonicState: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "MNEMONIC_STATE_NOT_STORED"),
-    1: .same(proto: "MNEMONIC_STATE_STORED"),
-  ]
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountRegistered: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "ACCOUNT_REGISTERED"),
-    1: .same(proto: "ACCOUNT_NOT_REGISTERED"),
-  ]
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.DeviceState: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "DEVICE_STATE_NOT_REGISTERED"),
-    1: .same(proto: "DEVICE_STATE_INACTIVE"),
-    2: .same(proto: "DEVICE_STATE_ACTIVE"),
-    3: .same(proto: "DEVICE_STATE_DELETE_ME"),
-  ]
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = NymVpnService_GetAccountStateResponse.AccountStateSummary.protoMessageName + ".AccountSummary"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "account"),
-    2: .same(proto: "subscription"),
-    3: .standard(proto: "device_summary"),
-    4: .standard(proto: "fair_usage"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.account) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self.subscription) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._deviceSummary) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._fairUsage) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.account != .inactive {
-      try visitor.visitSingularEnumField(value: self.account, fieldNumber: 1)
-    }
-    if self.subscription != .notRegistered {
-      try visitor.visitSingularEnumField(value: self.subscription, fieldNumber: 2)
-    }
-    try { if let v = self._deviceSummary {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._fairUsage {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary, rhs: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary) -> Bool {
-    if lhs.account != rhs.account {return false}
-    if lhs.subscription != rhs.subscription {return false}
-    if lhs._deviceSummary != rhs._deviceSummary {return false}
-    if lhs._fairUsage != rhs._fairUsage {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.AccountState: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "ACCOUNT_STATE_INACTIVE"),
-    1: .same(proto: "ACCOUNT_STATE_ACTIVE"),
-    2: .same(proto: "ACCOUNT_STATE_DELETE_ME"),
-  ]
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.SubscriptionState: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "SUBSCRIPTION_STATE_NOT_REGISTERED"),
-    1: .same(proto: "SUBSCRIPTION_STATE_PENDING"),
-    2: .same(proto: "SUBSCRIPTION_STATE_ACTIVE"),
-    3: .same(proto: "SUBSCRIPTION_STATE_COMPLETE"),
-  ]
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.protoMessageName + ".DeviceSummary"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "active"),
-    2: .same(proto: "max"),
-    3: .same(proto: "remaining"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.active) }()
-      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.max) }()
-      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.remaining) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.active != 0 {
-      try visitor.visitSingularUInt64Field(value: self.active, fieldNumber: 1)
-    }
-    if self.max != 0 {
-      try visitor.visitSingularUInt64Field(value: self.max, fieldNumber: 2)
-    }
-    if self.remaining != 0 {
-      try visitor.visitSingularUInt64Field(value: self.remaining, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary, rhs: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary) -> Bool {
-    if lhs.active != rhs.active {return false}
-    if lhs.max != rhs.max {return false}
-    if lhs.remaining != rhs.remaining {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.protoMessageName + ".FairUsageState"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "limit_gb"),
-    2: .standard(proto: "used_gb"),
-    3: .standard(proto: "resets_on_utc"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.limitGb) }()
-      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.usedGb) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self._resetsOnUtc) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.limitGb != 0 {
-      try visitor.visitSingularUInt64Field(value: self.limitGb, fieldNumber: 1)
-    }
-    if self.usedGb != 0 {
-      try visitor.visitSingularUInt64Field(value: self.usedGb, fieldNumber: 2)
-    }
-    try { if let v = self._resetsOnUtc {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState, rhs: NymVpnService_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState) -> Bool {
-    if lhs.limitGb != rhs.limitGb {return false}
-    if lhs.usedGb != rhs.usedGb {return false}
-    if lhs._resetsOnUtc != rhs._resetsOnUtc {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_RegisterDeviceResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RegisterDeviceResult"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "kind"),
-    2: .same(proto: "error"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.kind != .inProgress {
-      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
-    }
-    try { if let v = self._error {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_RegisterDeviceResult, rhs: NymVpnService_RegisterDeviceResult) -> Bool {
-    if lhs.kind != rhs.kind {return false}
-    if lhs._error != rhs._error {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_RegisterDeviceResult.RegisterDeviceResultType: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "IN_PROGRESS"),
-    1: .same(proto: "SUCCESS"),
-    2: .same(proto: "FAILED"),
-  ]
-}
-
-extension NymVpnService_RequestZkNymResult: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".RequestZkNymResult"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "kind"),
-    2: .same(proto: "successes"),
-    3: .same(proto: "failures"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.successes) }()
-      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.failures) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.kind != .inProgress {
-      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
-    }
-    if !self.successes.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.successes, fieldNumber: 2)
-    }
-    if !self.failures.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.failures, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_RequestZkNymResult, rhs: NymVpnService_RequestZkNymResult) -> Bool {
-    if lhs.kind != rhs.kind {return false}
-    if lhs.successes != rhs.successes {return false}
-    if lhs.failures != rhs.failures {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_RequestZkNymResult.RequestZkNymResultType: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "IN_PROGRESS"),
-    1: .same(proto: "DONE"),
-    2: .same(proto: "ERROR"),
-  ]
 }
 
 extension NymVpnService_GetAccountUsageResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -8553,70 +7163,6 @@ extension NymVpnService_GetDevicesResponse.Devices: SwiftProtobuf.Message, Swift
 
   static func ==(lhs: NymVpnService_GetDevicesResponse.Devices, rhs: NymVpnService_GetDevicesResponse.Devices) -> Bool {
     if lhs.devices != rhs.devices {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_GetZkNymByIdRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".GetZkNymByIdRequest"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "id"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_GetZkNymByIdRequest, rhs: NymVpnService_GetZkNymByIdRequest) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension NymVpnService_ConfirmZkNymDownloadedRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".ConfirmZkNymDownloadedRequest"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "id"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: NymVpnService_ConfirmZkNymDownloadedRequest, rhs: NymVpnService_ConfirmZkNymDownloadedRequest) -> Bool {
-    if lhs.id != rhs.id {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
