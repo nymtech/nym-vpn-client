@@ -3,29 +3,18 @@
 
 use sentry::{ClientInitGuard, Level};
 use sha2::{Digest, Sha256};
-use std::{
-    borrow::Cow,
-    collections::HashSet,
-    sync::{Arc, OnceLock},
-    time::Duration,
-};
+use std::{borrow::Cow, sync::Arc, time::Duration};
 
 use crate::{config::GlobalConfigFile, environment};
 
-static EXCLUDED_ERRORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
-
-fn get_excluded_errors() -> &'static HashSet<&'static str> {
-    EXCLUDED_ERRORS.get_or_init(|| {
-        HashSet::from([
-            "offline",
-            "client is not authenticated",
-            "connection reset",
-            "connection refused",
-            "connection closed",
-            "connection timed out",
-        ])
-    })
-}
+static EXCLUDED_ERRORS: [&str; 6] = [
+    "offline",
+    "client is not authenticated",
+    "connection reset",
+    "connection refused",
+    "connection closed",
+    "connection timed out",
+];
 
 pub fn init_sentry() -> Option<ClientInitGuard> {
     if !GlobalConfigFile::sentry_enabled() {
@@ -53,7 +42,7 @@ pub fn init_sentry() -> Option<ClientInitGuard> {
             before_send: Some(Arc::new(|mut event| {
                 if matches!(event.level, Level::Error | Level::Warning)
                     && let Some(message) = &event.message
-                    && get_excluded_errors()
+                    && EXCLUDED_ERRORS
                         .iter()
                         .any(|err| message.to_lowercase().contains(err))
                 {

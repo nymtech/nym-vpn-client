@@ -1,30 +1,19 @@
 use sentry::{ClientInitGuard, Level, User};
-use std::{
-    borrow::Cow,
-    collections::HashSet,
-    sync::{Arc, OnceLock},
-    time::Duration,
-};
+use std::{borrow::Cow, sync::Arc, time::Duration};
 use tracing::{info, warn};
 
 use crate::env::APP_SENTRY_DSN;
 use crate::sys::OsInfo;
 
-static EXCLUDED_ERRORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
-
-fn get_excluded_errors() -> &'static HashSet<&'static str> {
-    EXCLUDED_ERRORS.get_or_init(|| {
-        HashSet::from([
-            "invalid mnemonic",
-            "no device stored",
-            "no account stored",
-            "ac is offline",
-            "account already exists",
-            "maxdevicesreached",
-            "subscriptionexpired",
-        ])
-    })
-}
+static EXCLUDED_ERRORS: [&str; 7] = [
+    "invalid mnemonic",
+    "no device stored",
+    "no account stored",
+    "ac is offline",
+    "account already exists",
+    "maxdevicesreached",
+    "subscriptionexpired",
+];
 
 pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
     let Some(dsn) = APP_SENTRY_DSN.as_ref() else {
@@ -46,7 +35,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             before_send: Some(Arc::new(|mut event| {
                 if matches!(event.level, Level::Error | Level::Warning)
                     && let Some(message) = &event.message
-                    && get_excluded_errors()
+                    && EXCLUDED_ERRORS
                         .iter()
                         .any(|err| message.to_lowercase().contains(err))
                 {
