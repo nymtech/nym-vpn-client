@@ -86,12 +86,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         isStatisticsEnabled: Bool
     ) async throws {
         do {
-            try configureLib(
+            let config = NymVpnLibConfig(
                 dataDir: credentialDataPath,
                 credentialMode: nil,
                 sentryMonitoring: isErrorReportingEnabled,
                 statisticsEnabled: isStatisticsEnabled
             )
+            try configureLib(config: config)
             try startVpn(config: vpnConfig)
         } catch {
             logger.error("Failed to start vpn: \(error)")

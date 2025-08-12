@@ -5,6 +5,9 @@ import MixnetLibrary
 import Theme
 
 public enum ErrorReason: LocalizedError, Codable {
+#if os(macOS)
+    case existingAccount
+#endif
     // App
     case offline
     case noAccountStored
@@ -19,7 +22,6 @@ public enum ErrorReason: LocalizedError, Codable {
     case invalidExitGatewayCountry
     case maxDevicesReached
     case bandwidthExceeded
-    case subscriptionExpired
     case api(String)
     case apiTimeout
     case apiStatusCode(String)
@@ -29,6 +31,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case deviceTimeOutOfSync
     case createMixnetStorage
     case ipv6Unavailable
+    case inactiveSubscription
+    case accountControl(String)
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -56,8 +60,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
-        case .subscriptionExpired:
-            self = .subscriptionExpired
         case let .api(message):
             self = .api(message ?? Self.somethingWentWrong)
         case .deviceTimeOutOfSync:
@@ -66,6 +68,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .createMixnetStorage
         case .ipv6Unavailable:
             self = .ipv6Unavailable
+        case .inactiveSubscription:
+            self = .inactiveSubscription
+        case let .accountControl(message):
+            self = .accountControl(message ?? Self.somethingWentWrong)
         }
     }
 #endif
@@ -105,8 +111,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
-        case .subscriptionExpired:
-            self = .subscriptionExpired
         case .api:
             self = .api(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .registrationInProgress:
@@ -125,6 +129,14 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .createMixnetStorage
         case .ipv6Unavailable:
             self = .ipv6Unavailable
+        case .inactiveSubscription:
+            self = .inactiveSubscription
+        case .accountControl:
+            self = .accountControl(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+#if os(macOS)
+        case .existingAccount:
+            self = .existingAccount
+#endif
         }
     }
 
@@ -179,7 +191,7 @@ private extension ErrorReason {
             "errorReason.maxDevicesReached".localizedString
         case .bandwidthExceeded:
             "errorReason.bandwidthExceeded".localizedString
-        case .subscriptionExpired:
+        case .inactiveSubscription:
             "errorReason.subscriptionExpired".localizedString
         case let .api(message):
             message
@@ -199,6 +211,12 @@ private extension ErrorReason {
             "errorReason.createMixnetStorage".localizedString
         case .ipv6Unavailable:
             "errorReason.ipv6Unavailable".localizedString
+        case let .accountControl(message):
+            message
+#if os(macOS)
+        case .existingAccount:
+            "errorReason.existingAccount".localizedString
+#endif
         }
     }
 }
@@ -210,6 +228,9 @@ extension ErrorReason: Equatable {
 }
 
 enum ErrorReasonCode: Int, RawRepresentable {
+#if os(macOS)
+    case existingAccount
+#endif
     case unknown
     case offline
     case noAccountStored
@@ -223,7 +244,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case invalidExitGatewayCountry
     case maxDevicesReached
     case bandwidthExceeded
-    case subscriptionExpired
     case api
     case apiTimeout
     case apiStatusCode
@@ -233,6 +253,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case deviceTimeOutOfSync
     case createMixnetStorage
     case ipv6Unavailable
+    case inactiveSubscription
+    case accountControl
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -262,8 +284,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
-        case .subscriptionExpired:
-            self = .subscriptionExpired
         case .api:
             self = .api
         case .registrationInProgress:
@@ -282,6 +302,14 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .createMixnetStorage
         case .ipv6Unavailable:
             self = .ipv6Unavailable
+        case .inactiveSubscription:
+            self = .inactiveSubscription
+        case .accountControl:
+            self = .accountControl
+#if os(macOS)
+        case .existingAccount:
+            self = .existingAccount
+#endif
         }
     }
 }

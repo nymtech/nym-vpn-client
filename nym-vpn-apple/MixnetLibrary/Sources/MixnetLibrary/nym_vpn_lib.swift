@@ -565,6 +565,24 @@ fileprivate struct FfiConverterString: FfiConverter {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterData: FfiConverterRustBuffer {
+    typealias SwiftType = Data
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Data {
+        let len: Int32 = try readInt(&buf)
+        return Data(try readBytes(&buf, count: Int(len)))
+    }
+
+    public static func write(_ value: Data, into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        writeBytes(&buf, value)
+    }
+}
+
 
 
 
@@ -1023,194 +1041,6 @@ public func FfiConverterTypeAccountLinks_lower(_ value: AccountLinks) -> RustBuf
 }
 
 
-public struct AccountStateSummary {
-    public var mnemonic: MnemonicState?
-    public var accountRegistered: AccountRegistered?
-    public var accountSummary: AccountSummary?
-    public var device: DeviceState?
-    public var registerDeviceResult: RegisterDeviceResult?
-    public var requestZkNymResult: RequestZkNymResult?
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(mnemonic: MnemonicState?, accountRegistered: AccountRegistered?, accountSummary: AccountSummary?, device: DeviceState?, registerDeviceResult: RegisterDeviceResult?, requestZkNymResult: RequestZkNymResult?) {
-        self.mnemonic = mnemonic
-        self.accountRegistered = accountRegistered
-        self.accountSummary = accountSummary
-        self.device = device
-        self.registerDeviceResult = registerDeviceResult
-        self.requestZkNymResult = requestZkNymResult
-    }
-}
-
-#if compiler(>=6)
-extension AccountStateSummary: Sendable {}
-#endif
-
-
-extension AccountStateSummary: Equatable, Hashable {
-    public static func ==(lhs: AccountStateSummary, rhs: AccountStateSummary) -> Bool {
-        if lhs.mnemonic != rhs.mnemonic {
-            return false
-        }
-        if lhs.accountRegistered != rhs.accountRegistered {
-            return false
-        }
-        if lhs.accountSummary != rhs.accountSummary {
-            return false
-        }
-        if lhs.device != rhs.device {
-            return false
-        }
-        if lhs.registerDeviceResult != rhs.registerDeviceResult {
-            return false
-        }
-        if lhs.requestZkNymResult != rhs.requestZkNymResult {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(mnemonic)
-        hasher.combine(accountRegistered)
-        hasher.combine(accountSummary)
-        hasher.combine(device)
-        hasher.combine(registerDeviceResult)
-        hasher.combine(requestZkNymResult)
-    }
-}
-
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountStateSummary {
-        return
-            try AccountStateSummary(
-                mnemonic: FfiConverterOptionTypeMnemonicState.read(from: &buf), 
-                accountRegistered: FfiConverterOptionTypeAccountRegistered.read(from: &buf), 
-                accountSummary: FfiConverterOptionTypeAccountSummary.read(from: &buf), 
-                device: FfiConverterOptionTypeDeviceState.read(from: &buf), 
-                registerDeviceResult: FfiConverterOptionTypeRegisterDeviceResult.read(from: &buf), 
-                requestZkNymResult: FfiConverterOptionTypeRequestZkNymResult.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: AccountStateSummary, into buf: inout [UInt8]) {
-        FfiConverterOptionTypeMnemonicState.write(value.mnemonic, into: &buf)
-        FfiConverterOptionTypeAccountRegistered.write(value.accountRegistered, into: &buf)
-        FfiConverterOptionTypeAccountSummary.write(value.accountSummary, into: &buf)
-        FfiConverterOptionTypeDeviceState.write(value.device, into: &buf)
-        FfiConverterOptionTypeRegisterDeviceResult.write(value.registerDeviceResult, into: &buf)
-        FfiConverterOptionTypeRequestZkNymResult.write(value.requestZkNymResult, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeAccountStateSummary_lift(_ buf: RustBuffer) throws -> AccountStateSummary {
-    return try FfiConverterTypeAccountStateSummary.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeAccountStateSummary_lower(_ value: AccountStateSummary) -> RustBuffer {
-    return FfiConverterTypeAccountStateSummary.lower(value)
-}
-
-
-public struct AccountSummary {
-    public var account: AccountState
-    public var subscription: SubscriptionState
-    public var deviceSummary: DeviceSummary
-    public var fairUsage: FairUsage
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(account: AccountState, subscription: SubscriptionState, deviceSummary: DeviceSummary, fairUsage: FairUsage) {
-        self.account = account
-        self.subscription = subscription
-        self.deviceSummary = deviceSummary
-        self.fairUsage = fairUsage
-    }
-}
-
-#if compiler(>=6)
-extension AccountSummary: Sendable {}
-#endif
-
-
-extension AccountSummary: Equatable, Hashable {
-    public static func ==(lhs: AccountSummary, rhs: AccountSummary) -> Bool {
-        if lhs.account != rhs.account {
-            return false
-        }
-        if lhs.subscription != rhs.subscription {
-            return false
-        }
-        if lhs.deviceSummary != rhs.deviceSummary {
-            return false
-        }
-        if lhs.fairUsage != rhs.fairUsage {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(account)
-        hasher.combine(subscription)
-        hasher.combine(deviceSummary)
-        hasher.combine(fairUsage)
-    }
-}
-
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeAccountSummary: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountSummary {
-        return
-            try AccountSummary(
-                account: FfiConverterTypeAccountState.read(from: &buf), 
-                subscription: FfiConverterTypeSubscriptionState.read(from: &buf), 
-                deviceSummary: FfiConverterTypeDeviceSummary.read(from: &buf), 
-                fairUsage: FfiConverterTypeFairUsage.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: AccountSummary, into buf: inout [UInt8]) {
-        FfiConverterTypeAccountState.write(value.account, into: &buf)
-        FfiConverterTypeSubscriptionState.write(value.subscription, into: &buf)
-        FfiConverterTypeDeviceSummary.write(value.deviceSummary, into: &buf)
-        FfiConverterTypeFairUsage.write(value.fairUsage, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeAccountSummary_lift(_ buf: RustBuffer) throws -> AccountSummary {
-    return try FfiConverterTypeAccountSummary.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeAccountSummary_lower(_ value: AccountSummary) -> RustBuffer {
-    return FfiConverterTypeAccountSummary.lower(value)
-}
-
-
 public struct ChainDetails {
     public var bech32AccountPrefix: String
     public var mixDenom: DenomDetails
@@ -1515,84 +1345,6 @@ public func FfiConverterTypeDenomDetails_lower(_ value: DenomDetails) -> RustBuf
 }
 
 
-public struct DeviceSummary {
-    public var active: UInt64
-    public var max: UInt64
-    public var remaining: UInt64
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(active: UInt64, max: UInt64, remaining: UInt64) {
-        self.active = active
-        self.max = max
-        self.remaining = remaining
-    }
-}
-
-#if compiler(>=6)
-extension DeviceSummary: Sendable {}
-#endif
-
-
-extension DeviceSummary: Equatable, Hashable {
-    public static func ==(lhs: DeviceSummary, rhs: DeviceSummary) -> Bool {
-        if lhs.active != rhs.active {
-            return false
-        }
-        if lhs.max != rhs.max {
-            return false
-        }
-        if lhs.remaining != rhs.remaining {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(active)
-        hasher.combine(max)
-        hasher.combine(remaining)
-    }
-}
-
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeDeviceSummary: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DeviceSummary {
-        return
-            try DeviceSummary(
-                active: FfiConverterUInt64.read(from: &buf), 
-                max: FfiConverterUInt64.read(from: &buf), 
-                remaining: FfiConverterUInt64.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: DeviceSummary, into buf: inout [UInt8]) {
-        FfiConverterUInt64.write(value.active, into: &buf)
-        FfiConverterUInt64.write(value.max, into: &buf)
-        FfiConverterUInt64.write(value.remaining, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeDeviceSummary_lift(_ buf: RustBuffer) throws -> DeviceSummary {
-    return try FfiConverterTypeDeviceSummary.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeDeviceSummary_lower(_ value: DeviceSummary) -> RustBuffer {
-    return FfiConverterTypeDeviceSummary.lower(value)
-}
-
-
 public struct DnsSettings {
     /**
      * DNS IP addresses.
@@ -1686,84 +1438,6 @@ public func FfiConverterTypeDnsSettings_lift(_ buf: RustBuffer) throws -> DnsSet
 #endif
 public func FfiConverterTypeDnsSettings_lower(_ value: DnsSettings) -> RustBuffer {
     return FfiConverterTypeDnsSettings.lower(value)
-}
-
-
-public struct FairUsage {
-    public var usedGb: UInt64
-    public var limitGb: UInt64
-    public var resetsOnUtc: String?
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(usedGb: UInt64, limitGb: UInt64, resetsOnUtc: String?) {
-        self.usedGb = usedGb
-        self.limitGb = limitGb
-        self.resetsOnUtc = resetsOnUtc
-    }
-}
-
-#if compiler(>=6)
-extension FairUsage: Sendable {}
-#endif
-
-
-extension FairUsage: Equatable, Hashable {
-    public static func ==(lhs: FairUsage, rhs: FairUsage) -> Bool {
-        if lhs.usedGb != rhs.usedGb {
-            return false
-        }
-        if lhs.limitGb != rhs.limitGb {
-            return false
-        }
-        if lhs.resetsOnUtc != rhs.resetsOnUtc {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(usedGb)
-        hasher.combine(limitGb)
-        hasher.combine(resetsOnUtc)
-    }
-}
-
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeFairUsage: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FairUsage {
-        return
-            try FairUsage(
-                usedGb: FfiConverterUInt64.read(from: &buf), 
-                limitGb: FfiConverterUInt64.read(from: &buf), 
-                resetsOnUtc: FfiConverterOptionString.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: FairUsage, into buf: inout [UInt8]) {
-        FfiConverterUInt64.write(value.usedGb, into: &buf)
-        FfiConverterUInt64.write(value.limitGb, into: &buf)
-        FfiConverterOptionString.write(value.resetsOnUtc, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeFairUsage_lift(_ buf: RustBuffer) throws -> FairUsage {
-    return try FfiConverterTypeFairUsage.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeFairUsage_lower(_ value: FairUsage) -> RustBuffer {
-    return FfiConverterTypeFairUsage.lower(value)
 }
 
 
@@ -2860,6 +2534,92 @@ public func FfiConverterTypeNymNetworkDetails_lower(_ value: NymNetworkDetails) 
 }
 
 
+public struct NymVpnLibConfig {
+    public var dataDir: String
+    public var credentialMode: Bool?
+    public var sentryMonitoring: Bool
+    public var statisticsEnabled: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(dataDir: String, credentialMode: Bool?, sentryMonitoring: Bool, statisticsEnabled: Bool) {
+        self.dataDir = dataDir
+        self.credentialMode = credentialMode
+        self.sentryMonitoring = sentryMonitoring
+        self.statisticsEnabled = statisticsEnabled
+    }
+}
+
+#if compiler(>=6)
+extension NymVpnLibConfig: Sendable {}
+#endif
+
+
+extension NymVpnLibConfig: Equatable, Hashable {
+    public static func ==(lhs: NymVpnLibConfig, rhs: NymVpnLibConfig) -> Bool {
+        if lhs.dataDir != rhs.dataDir {
+            return false
+        }
+        if lhs.credentialMode != rhs.credentialMode {
+            return false
+        }
+        if lhs.sentryMonitoring != rhs.sentryMonitoring {
+            return false
+        }
+        if lhs.statisticsEnabled != rhs.statisticsEnabled {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(dataDir)
+        hasher.combine(credentialMode)
+        hasher.combine(sentryMonitoring)
+        hasher.combine(statisticsEnabled)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeNymVpnLibConfig: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymVpnLibConfig {
+        return
+            try NymVpnLibConfig(
+                dataDir: FfiConverterString.read(from: &buf), 
+                credentialMode: FfiConverterOptionBool.read(from: &buf), 
+                sentryMonitoring: FfiConverterBool.read(from: &buf), 
+                statisticsEnabled: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NymVpnLibConfig, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.dataDir, into: &buf)
+        FfiConverterOptionBool.write(value.credentialMode, into: &buf)
+        FfiConverterBool.write(value.sentryMonitoring, into: &buf)
+        FfiConverterBool.write(value.statisticsEnabled, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNymVpnLibConfig_lift(_ buf: RustBuffer) throws -> NymVpnLibConfig {
+    return try FfiConverterTypeNymVpnLibConfig.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeNymVpnLibConfig_lower(_ value: NymVpnLibConfig) -> RustBuffer {
+    return FfiConverterTypeNymVpnLibConfig.lower(value)
+}
+
+
 public struct NymVpnNetwork {
     public var nymVpnApiUrl: String
 
@@ -3929,45 +3689,104 @@ public func FfiConverterTypeWireguardNode_lower(_ value: WireguardNode) -> RustB
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum AccountRegistered {
+public enum AccountControllerErrorStateReason {
     
-    case registered
-    case notRegistered
+    case storage(context: String
+    )
+    case apiFailure(context: String, details: String
+    )
+    case `internal`(context: String, details: String
+    )
+    case bandwidthExceeded(context: String
+    )
+    case accountStatusNotActive(status: String
+    )
+    case inactiveSubscription
+    case maxDeviceReached
+    case deviceTimeDesynced
 }
 
 
 #if compiler(>=6)
-extension AccountRegistered: Sendable {}
+extension AccountControllerErrorStateReason: Sendable {}
 #endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypeAccountRegistered: FfiConverterRustBuffer {
-    typealias SwiftType = AccountRegistered
+public struct FfiConverterTypeAccountControllerErrorStateReason: FfiConverterRustBuffer {
+    typealias SwiftType = AccountControllerErrorStateReason
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountRegistered {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountControllerErrorStateReason {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .registered
+        case 1: return .storage(context: try FfiConverterString.read(from: &buf)
+        )
         
-        case 2: return .notRegistered
+        case 2: return .apiFailure(context: try FfiConverterString.read(from: &buf), details: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .`internal`(context: try FfiConverterString.read(from: &buf), details: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .bandwidthExceeded(context: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .accountStatusNotActive(status: try FfiConverterString.read(from: &buf)
+        )
+        
+        case 6: return .inactiveSubscription
+        
+        case 7: return .maxDeviceReached
+        
+        case 8: return .deviceTimeDesynced
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
-    public static func write(_ value: AccountRegistered, into buf: inout [UInt8]) {
+    public static func write(_ value: AccountControllerErrorStateReason, into buf: inout [UInt8]) {
         switch value {
         
         
-        case .registered:
+        case let .storage(context):
             writeInt(&buf, Int32(1))
+            FfiConverterString.write(context, into: &buf)
+            
         
-        
-        case .notRegistered:
+        case let .apiFailure(context,details):
             writeInt(&buf, Int32(2))
+            FfiConverterString.write(context, into: &buf)
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .`internal`(context,details):
+            writeInt(&buf, Int32(3))
+            FfiConverterString.write(context, into: &buf)
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .bandwidthExceeded(context):
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(context, into: &buf)
+            
+        
+        case let .accountStatusNotActive(status):
+            writeInt(&buf, Int32(5))
+            FfiConverterString.write(status, into: &buf)
+            
+        
+        case .inactiveSubscription:
+            writeInt(&buf, Int32(6))
+        
+        
+        case .maxDeviceReached:
+            writeInt(&buf, Int32(7))
+        
+        
+        case .deviceTimeDesynced:
+            writeInt(&buf, Int32(8))
         
         }
     }
@@ -3977,19 +3796,19 @@ public struct FfiConverterTypeAccountRegistered: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeAccountRegistered_lift(_ buf: RustBuffer) throws -> AccountRegistered {
-    return try FfiConverterTypeAccountRegistered.lift(buf)
+public func FfiConverterTypeAccountControllerErrorStateReason_lift(_ buf: RustBuffer) throws -> AccountControllerErrorStateReason {
+    return try FfiConverterTypeAccountControllerErrorStateReason.lift(buf)
 }
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeAccountRegistered_lower(_ value: AccountRegistered) -> RustBuffer {
-    return FfiConverterTypeAccountRegistered.lower(value)
+public func FfiConverterTypeAccountControllerErrorStateReason_lower(_ value: AccountControllerErrorStateReason) -> RustBuffer {
+    return FfiConverterTypeAccountControllerErrorStateReason.lower(value)
 }
 
 
-extension AccountRegistered: Equatable, Hashable {}
+extension AccountControllerErrorStateReason: Equatable, Hashable {}
 
 
 
@@ -3999,53 +3818,70 @@ extension AccountRegistered: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum AccountState {
+public enum AccountControllerState {
     
-    case inactive
-    case active
-    case deleteMe
+    case offline
+    case syncing
+    case loggedOut
+    case readyToConnect
+    case error(AccountControllerErrorStateReason
+    )
 }
 
 
 #if compiler(>=6)
-extension AccountState: Sendable {}
+extension AccountControllerState: Sendable {}
 #endif
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypeAccountState: FfiConverterRustBuffer {
-    typealias SwiftType = AccountState
+public struct FfiConverterTypeAccountControllerState: FfiConverterRustBuffer {
+    typealias SwiftType = AccountControllerState
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountState {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountControllerState {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .inactive
+        case 1: return .offline
         
-        case 2: return .active
+        case 2: return .syncing
         
-        case 3: return .deleteMe
+        case 3: return .loggedOut
+        
+        case 4: return .readyToConnect
+        
+        case 5: return .error(try FfiConverterTypeAccountControllerErrorStateReason.read(from: &buf)
+        )
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
-    public static func write(_ value: AccountState, into buf: inout [UInt8]) {
+    public static func write(_ value: AccountControllerState, into buf: inout [UInt8]) {
         switch value {
         
         
-        case .inactive:
+        case .offline:
             writeInt(&buf, Int32(1))
         
         
-        case .active:
+        case .syncing:
             writeInt(&buf, Int32(2))
         
         
-        case .deleteMe:
+        case .loggedOut:
             writeInt(&buf, Int32(3))
         
+        
+        case .readyToConnect:
+            writeInt(&buf, Int32(4))
+        
+        
+        case let .error(v1):
+            writeInt(&buf, Int32(5))
+            FfiConverterTypeAccountControllerErrorStateReason.write(v1, into: &buf)
+            
         }
     }
 }
@@ -4054,19 +3890,19 @@ public struct FfiConverterTypeAccountState: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeAccountState_lift(_ buf: RustBuffer) throws -> AccountState {
-    return try FfiConverterTypeAccountState.lift(buf)
+public func FfiConverterTypeAccountControllerState_lift(_ buf: RustBuffer) throws -> AccountControllerState {
+    return try FfiConverterTypeAccountControllerState.lift(buf)
 }
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeAccountState_lower(_ value: AccountState) -> RustBuffer {
-    return FfiConverterTypeAccountState.lower(value)
+public func FfiConverterTypeAccountControllerState_lower(_ value: AccountControllerState) -> RustBuffer {
+    return FfiConverterTypeAccountControllerState.lower(value)
 }
 
 
-extension AccountState: Equatable, Hashable {}
+extension AccountControllerState: Equatable, Hashable {}
 
 
 
@@ -4335,176 +4171,6 @@ extension ConnectionEvent: Equatable, Hashable {}
 
 
 
-
-public enum CreateAccountError: Swift.Error {
-
-    
-    
-    case Storage(String
-    )
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeCreateAccountError: FfiConverterRustBuffer {
-    typealias SwiftType = CreateAccountError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CreateAccountError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .Storage(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 2: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: CreateAccountError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case let .Storage(v1):
-            writeInt(&buf, Int32(1))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(2))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeCreateAccountError_lift(_ buf: RustBuffer) throws -> CreateAccountError {
-    return try FfiConverterTypeCreateAccountError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeCreateAccountError_lower(_ value: CreateAccountError) -> RustBuffer {
-    return FfiConverterTypeCreateAccountError.lower(value)
-}
-
-
-extension CreateAccountError: Equatable, Hashable {}
-
-
-
-
-extension CreateAccountError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
-
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum DeviceState {
-    
-    case notRegistered
-    case inactive
-    case active
-    case deleteMe
-}
-
-
-#if compiler(>=6)
-extension DeviceState: Sendable {}
-#endif
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeDeviceState: FfiConverterRustBuffer {
-    typealias SwiftType = DeviceState
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DeviceState {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .notRegistered
-        
-        case 2: return .inactive
-        
-        case 3: return .active
-        
-        case 4: return .deleteMe
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: DeviceState, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .notRegistered:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .inactive:
-            writeInt(&buf, Int32(2))
-        
-        
-        case .active:
-            writeInt(&buf, Int32(3))
-        
-        
-        case .deleteMe:
-            writeInt(&buf, Int32(4))
-        
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeDeviceState_lift(_ buf: RustBuffer) throws -> DeviceState {
-    return try FfiConverterTypeDeviceState.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeDeviceState_lower(_ value: DeviceState) -> RustBuffer {
-    return FfiConverterTypeDeviceState.lower(value)
-}
-
-
-extension DeviceState: Equatable, Hashable {}
-
-
-
-
-
-
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
@@ -4600,7 +4266,7 @@ public enum ErrorStateReason {
     case invalidExitGatewayCountry
     case maxDevicesReached
     case bandwidthExceeded
-    case subscriptionExpired
+    case inactiveSubscription
     case dns(String?
     )
     case api(String?
@@ -4609,6 +4275,8 @@ public enum ErrorStateReason {
     case createMixnetStorage
     case ipv6Unavailable
     case `internal`(String?
+    )
+    case accountControl(String?
     )
 }
 
@@ -4641,7 +4309,7 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 7: return .bandwidthExceeded
         
-        case 8: return .subscriptionExpired
+        case 8: return .inactiveSubscription
         
         case 9: return .dns(try FfiConverterOptionString.read(from: &buf)
         )
@@ -4656,6 +4324,9 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         case 13: return .ipv6Unavailable
         
         case 14: return .`internal`(try FfiConverterOptionString.read(from: &buf)
+        )
+        
+        case 15: return .accountControl(try FfiConverterOptionString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4694,7 +4365,7 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(7))
         
         
-        case .subscriptionExpired:
+        case .inactiveSubscription:
             writeInt(&buf, Int32(8))
         
         
@@ -4722,6 +4393,11 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case let .`internal`(v1):
             writeInt(&buf, Int32(14))
+            FfiConverterOptionString.write(v1, into: &buf)
+            
+        
+        case let .accountControl(v1):
+            writeInt(&buf, Int32(15))
             FfiConverterOptionString.write(v1, into: &buf)
             
         }
@@ -4913,158 +4589,6 @@ extension FlagValue: Equatable, Hashable {}
 
 
 
-
-public enum ForgetAccountError: Swift.Error {
-
-    
-    
-    case RegistrationInProgress
-    case UpdateDeviceErrorResponse(VpnApiError
-    )
-    case UnexpectedResponse(String
-    )
-    case RemoveAccount(String
-    )
-    case RemoveDeviceKeys(String
-    )
-    case ResetCredentialStorage(String
-    )
-    case RemoveAccountFiles(String
-    )
-    case InitDeviceKeys(String
-    )
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
-    typealias SwiftType = ForgetAccountError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ForgetAccountError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .RegistrationInProgress
-        case 2: return .UpdateDeviceErrorResponse(
-            try FfiConverterTypeVpnApiError.read(from: &buf)
-            )
-        case 3: return .UnexpectedResponse(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 4: return .RemoveAccount(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 5: return .RemoveDeviceKeys(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 6: return .ResetCredentialStorage(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 7: return .RemoveAccountFiles(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 8: return .InitDeviceKeys(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 9: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: ForgetAccountError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case .RegistrationInProgress:
-            writeInt(&buf, Int32(1))
-        
-        
-        case let .UpdateDeviceErrorResponse(v1):
-            writeInt(&buf, Int32(2))
-            FfiConverterTypeVpnApiError.write(v1, into: &buf)
-            
-        
-        case let .UnexpectedResponse(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .RemoveAccount(v1):
-            writeInt(&buf, Int32(4))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .RemoveDeviceKeys(v1):
-            writeInt(&buf, Int32(5))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .ResetCredentialStorage(v1):
-            writeInt(&buf, Int32(6))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .RemoveAccountFiles(v1):
-            writeInt(&buf, Int32(7))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .InitDeviceKeys(v1):
-            writeInt(&buf, Int32(8))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(9))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeForgetAccountError_lift(_ buf: RustBuffer) throws -> ForgetAccountError {
-    return try FfiConverterTypeForgetAccountError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeForgetAccountError_lower(_ value: ForgetAccountError) -> RustBuffer {
-    return FfiConverterTypeForgetAccountError.lower(value)
-}
-
-
-extension ForgetAccountError: Equatable, Hashable {}
-
-
-
-
-extension ForgetAccountError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
-
-
-
-
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
@@ -5138,92 +4662,6 @@ public func FfiConverterTypeGatewayType_lower(_ value: GatewayType) -> RustBuffe
 extension GatewayType: Equatable, Hashable {}
 
 
-
-
-
-
-
-public enum GetMnemonicError: Swift.Error {
-
-    
-    
-    case Storage(String
-    )
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeGetMnemonicError: FfiConverterRustBuffer {
-    typealias SwiftType = GetMnemonicError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GetMnemonicError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .Storage(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 2: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: GetMnemonicError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case let .Storage(v1):
-            writeInt(&buf, Int32(1))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(2))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeGetMnemonicError_lift(_ buf: RustBuffer) throws -> GetMnemonicError {
-    return try FfiConverterTypeGetMnemonicError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeGetMnemonicError_lower(_ value: GetMnemonicError) -> RustBuffer {
-    return FfiConverterTypeGetMnemonicError.lower(value)
-}
-
-
-extension GetMnemonicError: Equatable, Hashable {}
-
-
-
-
-extension GetMnemonicError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
 
 
 
@@ -5476,383 +4914,6 @@ extension MixnetEvent: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum MnemonicState {
-    
-    case notStored
-    case stored
-}
-
-
-#if compiler(>=6)
-extension MnemonicState: Sendable {}
-#endif
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeMnemonicState: FfiConverterRustBuffer {
-    typealias SwiftType = MnemonicState
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MnemonicState {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .notStored
-        
-        case 2: return .stored
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: MnemonicState, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .notStored:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .stored:
-            writeInt(&buf, Int32(2))
-        
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeMnemonicState_lift(_ buf: RustBuffer) throws -> MnemonicState {
-    return try FfiConverterTypeMnemonicState.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeMnemonicState_lower(_ value: MnemonicState) -> RustBuffer {
-    return FfiConverterTypeMnemonicState.lower(value)
-}
-
-
-extension MnemonicState: Equatable, Hashable {}
-
-
-
-
-
-
-
-public enum RegisterAccountError: Swift.Error {
-
-    
-    
-    case Offline
-    case Storage(String
-    )
-    case GetAccountEndpointFailure(VpnApiError
-    )
-    case UnexpectedResponse(String
-    )
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeRegisterAccountError: FfiConverterRustBuffer {
-    typealias SwiftType = RegisterAccountError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterAccountError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .Offline
-        case 2: return .Storage(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 3: return .GetAccountEndpointFailure(
-            try FfiConverterTypeVpnApiError.read(from: &buf)
-            )
-        case 4: return .UnexpectedResponse(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 5: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: RegisterAccountError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case .Offline:
-            writeInt(&buf, Int32(1))
-        
-        
-        case let .Storage(v1):
-            writeInt(&buf, Int32(2))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .GetAccountEndpointFailure(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiError.write(v1, into: &buf)
-            
-        
-        case let .UnexpectedResponse(v1):
-            writeInt(&buf, Int32(4))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(5))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRegisterAccountError_lift(_ buf: RustBuffer) throws -> RegisterAccountError {
-    return try FfiConverterTypeRegisterAccountError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRegisterAccountError_lower(_ value: RegisterAccountError) -> RustBuffer {
-    return FfiConverterTypeRegisterAccountError.lower(value)
-}
-
-
-extension RegisterAccountError: Equatable, Hashable {}
-
-
-
-
-extension RegisterAccountError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
-
-
-
-
-
-public enum RegisterDeviceError: Swift.Error {
-
-    
-    
-    case NoAccountStored
-    case NoDeviceStored
-    case ErrorResponse(VpnApiError
-    )
-    case UnexpectedResponse(String
-    )
-    case Offline
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
-    typealias SwiftType = RegisterDeviceError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterDeviceError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .NoAccountStored
-        case 2: return .NoDeviceStored
-        case 3: return .ErrorResponse(
-            try FfiConverterTypeVpnApiError.read(from: &buf)
-            )
-        case 4: return .UnexpectedResponse(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 5: return .Offline
-        case 6: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: RegisterDeviceError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case .NoAccountStored:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .NoDeviceStored:
-            writeInt(&buf, Int32(2))
-        
-        
-        case let .ErrorResponse(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiError.write(v1, into: &buf)
-            
-        
-        case let .UnexpectedResponse(v1):
-            writeInt(&buf, Int32(4))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case .Offline:
-            writeInt(&buf, Int32(5))
-        
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(6))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRegisterDeviceError_lift(_ buf: RustBuffer) throws -> RegisterDeviceError {
-    return try FfiConverterTypeRegisterDeviceError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRegisterDeviceError_lower(_ value: RegisterDeviceError) -> RustBuffer {
-    return FfiConverterTypeRegisterDeviceError.lower(value)
-}
-
-
-extension RegisterDeviceError: Equatable, Hashable {}
-
-
-
-
-extension RegisterDeviceError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
-
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum RegisterDeviceResult {
-    
-    case inProgress
-    case success
-    case failed(message: String, messageId: String?
-    )
-}
-
-
-#if compiler(>=6)
-extension RegisterDeviceResult: Sendable {}
-#endif
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeRegisterDeviceResult: FfiConverterRustBuffer {
-    typealias SwiftType = RegisterDeviceResult
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterDeviceResult {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .inProgress
-        
-        case 2: return .success
-        
-        case 3: return .failed(message: try FfiConverterString.read(from: &buf), messageId: try FfiConverterOptionString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: RegisterDeviceResult, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .inProgress:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .success:
-            writeInt(&buf, Int32(2))
-        
-        
-        case let .failed(message,messageId):
-            writeInt(&buf, Int32(3))
-            FfiConverterString.write(message, into: &buf)
-            FfiConverterOptionString.write(messageId, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRegisterDeviceResult_lift(_ buf: RustBuffer) throws -> RegisterDeviceResult {
-    return try FfiConverterTypeRegisterDeviceResult.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRegisterDeviceResult_lower(_ value: RegisterDeviceResult) -> RustBuffer {
-    return FfiConverterTypeRegisterDeviceResult.lower(value)
-}
-
-
-extension RegisterDeviceResult: Equatable, Hashable {}
-
-
-
-
-
-
 
 public enum RequestZkNymError: Swift.Error {
 
@@ -5980,90 +5041,6 @@ extension RequestZkNymError: Foundation.LocalizedError {
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum RequestZkNymResult {
-    
-    case inProgress
-    case done(successes: [RequestZkNymSuccess], failures: [RequestZkNymError]
-    )
-    case error(RequestZkNymError
-    )
-}
-
-
-#if compiler(>=6)
-extension RequestZkNymResult: Sendable {}
-#endif
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeRequestZkNymResult: FfiConverterRustBuffer {
-    typealias SwiftType = RequestZkNymResult
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RequestZkNymResult {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .inProgress
-        
-        case 2: return .done(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failures: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
-        )
-        
-        case 3: return .error(try FfiConverterTypeRequestZkNymError.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: RequestZkNymResult, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .inProgress:
-            writeInt(&buf, Int32(1))
-        
-        
-        case let .done(successes,failures):
-            writeInt(&buf, Int32(2))
-            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
-            FfiConverterSequenceTypeRequestZkNymError.write(failures, into: &buf)
-            
-        
-        case let .error(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterTypeRequestZkNymError.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRequestZkNymResult_lift(_ buf: RustBuffer) throws -> RequestZkNymResult {
-    return try FfiConverterTypeRequestZkNymResult.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeRequestZkNymResult_lower(_ value: RequestZkNymResult) -> RustBuffer {
-    return FfiConverterTypeRequestZkNymResult.lower(value)
-}
-
-
-extension RequestZkNymResult: Equatable, Hashable {}
-
-
-
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
 public enum Score {
     
     case high
@@ -6141,428 +5118,6 @@ public func FfiConverterTypeScore_lower(_ value: Score) -> RustBuffer {
 extension Score: Equatable, Hashable {}
 
 
-
-
-
-
-
-public enum StoreAccountError: Swift.Error {
-
-    
-    
-    case InvalidMnemonic(String
-    )
-    case Storage(String
-    )
-    case GetAccountEndpointFailure(VpnApiError
-    )
-    case UnexpectedResponse(String
-    )
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
-    typealias SwiftType = StoreAccountError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> StoreAccountError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .InvalidMnemonic(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 2: return .Storage(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 3: return .GetAccountEndpointFailure(
-            try FfiConverterTypeVpnApiError.read(from: &buf)
-            )
-        case 4: return .UnexpectedResponse(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 5: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: StoreAccountError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case let .InvalidMnemonic(v1):
-            writeInt(&buf, Int32(1))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .Storage(v1):
-            writeInt(&buf, Int32(2))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .GetAccountEndpointFailure(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiError.write(v1, into: &buf)
-            
-        
-        case let .UnexpectedResponse(v1):
-            writeInt(&buf, Int32(4))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(5))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeStoreAccountError_lift(_ buf: RustBuffer) throws -> StoreAccountError {
-    return try FfiConverterTypeStoreAccountError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeStoreAccountError_lower(_ value: StoreAccountError) -> RustBuffer {
-    return FfiConverterTypeStoreAccountError.lower(value)
-}
-
-
-extension StoreAccountError: Equatable, Hashable {}
-
-
-
-
-extension StoreAccountError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
-
-
-
-
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
-
-public enum SubscriptionState {
-    
-    case notActive
-    case pending
-    case complete
-    case active
-}
-
-
-#if compiler(>=6)
-extension SubscriptionState: Sendable {}
-#endif
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeSubscriptionState: FfiConverterRustBuffer {
-    typealias SwiftType = SubscriptionState
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SubscriptionState {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-        
-        case 1: return .notActive
-        
-        case 2: return .pending
-        
-        case 3: return .complete
-        
-        case 4: return .active
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: SubscriptionState, into buf: inout [UInt8]) {
-        switch value {
-        
-        
-        case .notActive:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .pending:
-            writeInt(&buf, Int32(2))
-        
-        
-        case .complete:
-            writeInt(&buf, Int32(3))
-        
-        
-        case .active:
-            writeInt(&buf, Int32(4))
-        
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeSubscriptionState_lift(_ buf: RustBuffer) throws -> SubscriptionState {
-    return try FfiConverterTypeSubscriptionState.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeSubscriptionState_lower(_ value: SubscriptionState) -> RustBuffer {
-    return FfiConverterTypeSubscriptionState.lower(value)
-}
-
-
-extension SubscriptionState: Equatable, Hashable {}
-
-
-
-
-
-
-
-public enum SyncAccountError: Swift.Error {
-
-    
-    
-    case NoAccountStored
-    case ErrorResponse(VpnApiError
-    )
-    case UnexpectedResponse(String
-    )
-    case Offline
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
-    typealias SwiftType = SyncAccountError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SyncAccountError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .NoAccountStored
-        case 2: return .ErrorResponse(
-            try FfiConverterTypeVpnApiError.read(from: &buf)
-            )
-        case 3: return .UnexpectedResponse(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 4: return .Offline
-        case 5: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: SyncAccountError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case .NoAccountStored:
-            writeInt(&buf, Int32(1))
-        
-        
-        case let .ErrorResponse(v1):
-            writeInt(&buf, Int32(2))
-            FfiConverterTypeVpnApiError.write(v1, into: &buf)
-            
-        
-        case let .UnexpectedResponse(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case .Offline:
-            writeInt(&buf, Int32(4))
-        
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(5))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeSyncAccountError_lift(_ buf: RustBuffer) throws -> SyncAccountError {
-    return try FfiConverterTypeSyncAccountError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeSyncAccountError_lower(_ value: SyncAccountError) -> RustBuffer {
-    return FfiConverterTypeSyncAccountError.lower(value)
-}
-
-
-extension SyncAccountError: Equatable, Hashable {}
-
-
-
-
-extension SyncAccountError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
-
-
-
-
-
-public enum SyncDeviceError: Swift.Error {
-
-    
-    
-    case NoAccountStored
-    case NoDeviceStored
-    case ErrorResponse(VpnApiError
-    )
-    case UnexpectedResponse(String
-    )
-    case Offline
-    case Internal(String
-    )
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
-    typealias SwiftType = SyncDeviceError
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SyncDeviceError {
-        let variant: Int32 = try readInt(&buf)
-        switch variant {
-
-        
-
-        
-        case 1: return .NoAccountStored
-        case 2: return .NoDeviceStored
-        case 3: return .ErrorResponse(
-            try FfiConverterTypeVpnApiError.read(from: &buf)
-            )
-        case 4: return .UnexpectedResponse(
-            try FfiConverterString.read(from: &buf)
-            )
-        case 5: return .Offline
-        case 6: return .Internal(
-            try FfiConverterString.read(from: &buf)
-            )
-
-         default: throw UniffiInternalError.unexpectedEnumCase
-        }
-    }
-
-    public static func write(_ value: SyncDeviceError, into buf: inout [UInt8]) {
-        switch value {
-
-        
-
-        
-        
-        case .NoAccountStored:
-            writeInt(&buf, Int32(1))
-        
-        
-        case .NoDeviceStored:
-            writeInt(&buf, Int32(2))
-        
-        
-        case let .ErrorResponse(v1):
-            writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiError.write(v1, into: &buf)
-            
-        
-        case let .UnexpectedResponse(v1):
-            writeInt(&buf, Int32(4))
-            FfiConverterString.write(v1, into: &buf)
-            
-        
-        case .Offline:
-            writeInt(&buf, Int32(5))
-        
-        
-        case let .Internal(v1):
-            writeInt(&buf, Int32(6))
-            FfiConverterString.write(v1, into: &buf)
-            
-        }
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeSyncDeviceError_lift(_ buf: RustBuffer) throws -> SyncDeviceError {
-    return try FfiConverterTypeSyncDeviceError.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeSyncDeviceError_lower(_ value: SyncDeviceError) -> RustBuffer {
-    return FfiConverterTypeSyncDeviceError.lower(value)
-}
-
-
-extension SyncDeviceError: Equatable, Hashable {}
-
-
-
-
-extension SyncDeviceError: Foundation.LocalizedError {
-    public var errorDescription: String? {
-        String(reflecting: self)
-    }
-}
 
 
 
@@ -6945,25 +5500,10 @@ public enum VpnError: Swift.Error {
     )
     case UnregisterDevice(details: String
     )
-    case GetMnemonic(details: GetMnemonicError
-    )
-    case CreateAccount(details: CreateAccountError
-    )
-    case StoreAccount(details: StoreAccountError
-    )
-    case RegisterAccount(details: RegisterAccountError
-    )
-    case SyncAccount(details: SyncAccountError
-    )
-    case SyncDevice(details: SyncDeviceError
-    )
-    case RegisterDevice(details: RegisterDeviceError
-    )
     case RequestZkNym(details: RequestZkNymError
     )
-    case RequestZkNymBundle(successes: [RequestZkNymSuccess], failed: [RequestZkNymError]
-    )
-    case ForgetAccount(details: ForgetAccountError
+    case ExistingAccount
+    case AccountControllerError(details: String
     )
 }
 
@@ -7015,36 +5555,12 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 14: return .UnregisterDevice(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 15: return .GetMnemonic(
-            details: try FfiConverterTypeGetMnemonicError.read(from: &buf)
-            )
-        case 16: return .CreateAccount(
-            details: try FfiConverterTypeCreateAccountError.read(from: &buf)
-            )
-        case 17: return .StoreAccount(
-            details: try FfiConverterTypeStoreAccountError.read(from: &buf)
-            )
-        case 18: return .RegisterAccount(
-            details: try FfiConverterTypeRegisterAccountError.read(from: &buf)
-            )
-        case 19: return .SyncAccount(
-            details: try FfiConverterTypeSyncAccountError.read(from: &buf)
-            )
-        case 20: return .SyncDevice(
-            details: try FfiConverterTypeSyncDeviceError.read(from: &buf)
-            )
-        case 21: return .RegisterDevice(
-            details: try FfiConverterTypeRegisterDeviceError.read(from: &buf)
-            )
-        case 22: return .RequestZkNym(
+        case 15: return .RequestZkNym(
             details: try FfiConverterTypeRequestZkNymError.read(from: &buf)
             )
-        case 23: return .RequestZkNymBundle(
-            successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), 
-            failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
-            )
-        case 24: return .ForgetAccount(
-            details: try FfiConverterTypeForgetAccountError.read(from: &buf)
+        case 16: return .ExistingAccount
+        case 17: return .AccountControllerError(
+            details: try FfiConverterString.read(from: &buf)
             )
 
          default: throw UniffiInternalError.unexpectedEnumCase
@@ -7124,55 +5640,18 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .GetMnemonic(details):
-            writeInt(&buf, Int32(15))
-            FfiConverterTypeGetMnemonicError.write(details, into: &buf)
-            
-        
-        case let .CreateAccount(details):
-            writeInt(&buf, Int32(16))
-            FfiConverterTypeCreateAccountError.write(details, into: &buf)
-            
-        
-        case let .StoreAccount(details):
-            writeInt(&buf, Int32(17))
-            FfiConverterTypeStoreAccountError.write(details, into: &buf)
-            
-        
-        case let .RegisterAccount(details):
-            writeInt(&buf, Int32(18))
-            FfiConverterTypeRegisterAccountError.write(details, into: &buf)
-            
-        
-        case let .SyncAccount(details):
-            writeInt(&buf, Int32(19))
-            FfiConverterTypeSyncAccountError.write(details, into: &buf)
-            
-        
-        case let .SyncDevice(details):
-            writeInt(&buf, Int32(20))
-            FfiConverterTypeSyncDeviceError.write(details, into: &buf)
-            
-        
-        case let .RegisterDevice(details):
-            writeInt(&buf, Int32(21))
-            FfiConverterTypeRegisterDeviceError.write(details, into: &buf)
-            
-        
         case let .RequestZkNym(details):
-            writeInt(&buf, Int32(22))
+            writeInt(&buf, Int32(15))
             FfiConverterTypeRequestZkNymError.write(details, into: &buf)
             
         
-        case let .RequestZkNymBundle(successes,failed):
-            writeInt(&buf, Int32(23))
-            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
-            FfiConverterSequenceTypeRequestZkNymError.write(failed, into: &buf)
-            
+        case .ExistingAccount:
+            writeInt(&buf, Int32(16))
         
-        case let .ForgetAccount(details):
-            writeInt(&buf, Int32(24))
-            FfiConverterTypeForgetAccountError.write(details, into: &buf)
+        
+        case let .AccountControllerError(details):
+            writeInt(&buf, Int32(17))
+            FfiConverterString.write(details, into: &buf)
             
         }
     }
@@ -7299,30 +5778,6 @@ fileprivate struct FfiConverterOptionTypeTunnelStatusListener: FfiConverterRustB
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeTunnelStatusListener.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionTypeAccountSummary: FfiConverterRustBuffer {
-    typealias SwiftType = AccountSummary?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeAccountSummary.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeAccountSummary.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -7491,126 +5946,6 @@ fileprivate struct FfiConverterOptionTypeNetworkCompatibility: FfiConverterRustB
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeNetworkCompatibility.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionTypeAccountRegistered: FfiConverterRustBuffer {
-    typealias SwiftType = AccountRegistered?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeAccountRegistered.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeAccountRegistered.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionTypeDeviceState: FfiConverterRustBuffer {
-    typealias SwiftType = DeviceState?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeDeviceState.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeDeviceState.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionTypeMnemonicState: FfiConverterRustBuffer {
-    typealias SwiftType = MnemonicState?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeMnemonicState.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeMnemonicState.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionTypeRegisterDeviceResult: FfiConverterRustBuffer {
-    typealias SwiftType = RegisterDeviceResult?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeRegisterDeviceResult.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeRegisterDeviceResult.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionTypeRequestZkNymResult: FfiConverterRustBuffer {
-    typealias SwiftType = RequestZkNymResult?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeRequestZkNymResult.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeRequestZkNymResult.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -7886,31 +6221,6 @@ fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-fileprivate struct FfiConverterSequenceTypeRequestZkNymSuccess: FfiConverterRustBuffer {
-    typealias SwiftType = [RequestZkNymSuccess]
-
-    public static func write(_ value: [RequestZkNymSuccess], into buf: inout [UInt8]) {
-        let len = Int32(value.count)
-        writeInt(&buf, len)
-        for item in value {
-            FfiConverterTypeRequestZkNymSuccess.write(item, into: &buf)
-        }
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [RequestZkNymSuccess] {
-        let len: Int32 = try readInt(&buf)
-        var seq = [RequestZkNymSuccess]()
-        seq.reserveCapacity(Int(len))
-        for _ in 0 ..< len {
-            seq.append(try FfiConverterTypeRequestZkNymSuccess.read(from: &buf))
-        }
-        return seq
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
 fileprivate struct FfiConverterSequenceTypeSystemMessage: FfiConverterRustBuffer {
     typealias SwiftType = [SystemMessage]
 
@@ -8003,31 +6313,6 @@ fileprivate struct FfiConverterSequenceTypeIpv6Route: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeIpv6Route.read(from: &buf))
-        }
-        return seq
-    }
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterSequenceTypeRequestZkNymError: FfiConverterRustBuffer {
-    typealias SwiftType = [RequestZkNymError]
-
-    public static func write(_ value: [RequestZkNymError], into buf: inout [UInt8]) {
-        let len = Int32(value.count)
-        writeInt(&buf, len)
-        for item in value {
-            FfiConverterTypeRequestZkNymError.write(item, into: &buf)
-        }
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [RequestZkNymError] {
-        let len: Int32 = try readInt(&buf)
-        var seq = [RequestZkNymError]()
-        seq.reserveCapacity(Int(len))
-        for _ in 0 ..< len {
-            seq.append(try FfiConverterTypeRequestZkNymError.read(from: &buf))
         }
         return seq
     }
@@ -8341,26 +6626,26 @@ public func FfiConverterTypeIpNetwork_lower(_ value: IpNetwork) -> RustBuffer {
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
-public typealias IpPair = String
+public typealias IpPair = Data
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
 public struct FfiConverterTypeIpPair: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IpPair {
-        return try FfiConverterString.read(from: &buf)
+        return try FfiConverterData.read(from: &buf)
     }
 
     public static func write(_ value: IpPair, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
+        return FfiConverterData.write(value, into: &buf)
     }
 
     public static func lift(_ value: RustBuffer) throws -> IpPair {
-        return try FfiConverterString.lift(value)
+        return try FfiConverterData.lift(value)
     }
 
     public static func lower(_ value: IpPair) -> RustBuffer {
-        return FfiConverterString.lower(value)
+        return FfiConverterData.lower(value)
     }
 }
 
@@ -8942,12 +7227,9 @@ public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
 /**
  * Setup the library with the given data directory and optionally enable credential mode.
  */
-public func configureLib(dataDir: String, credentialMode: Bool?, sentryMonitoring: Bool, statisticsEnabled: Bool)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
+public func configureLib(config: NymVpnLibConfig)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_configurelib(
-        FfiConverterString.lower(dataDir),
-        FfiConverterOptionBool.lower(credentialMode),
-        FfiConverterBool.lower(sentryMonitoring),
-        FfiConverterBool.lower(statisticsEnabled),$0
+        FfiConverterTypeNymVpnLibConfig_lower(config),$0
     )
 }
 }
@@ -9041,8 +7323,8 @@ public func getAccountLinksRaw(accountStorePath: String, locale: String)throws  
 /**
  * Get the account state
  */
-public func getAccountState()throws  -> AccountStateSummary  {
-    return try  FfiConverterTypeAccountStateSummary_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
+public func getAccountState()throws  -> AccountControllerState  {
+    return try  FfiConverterTypeAccountControllerState_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountstate($0
     )
 })
@@ -9320,147 +7602,6 @@ public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws   
             errorHandler: FfiConverterTypeVpnError_lift
         )
 }
-/**
- * Call that blocks until the account controller reports that we have zknyms stored in the local
- * credential store. This is useful when you want to wait for the account to be ready before
- * proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForAvailableZkNyms()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
-    uniffi_nym_vpn_lib_fn_func_waitforavailablezknyms($0
-    )
-}
-}
-/**
- * Async variant of waitForAvailableZkNyms. This is useful when you want to wait for the account
- * to be ready before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForAvailableZkNymsAsync()async throws   {
-    return
-        try  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_func_waitforavailablezknymsasync(
-                )
-            },
-            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
-            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
-            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
-            liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError_lift
-        )
-}
-/**
- * Call that blocks until the device has been registered. This is useful when you want to wait
- * for the device to be registered before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForRegisterDevice()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
-    uniffi_nym_vpn_lib_fn_func_waitforregisterdevice($0
-    )
-}
-}
-/**
- * Async variant of waitForRegisterDevice. This is useful when you want to wait for the device
- * to be registered before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForRegisterDeviceAsync()async throws   {
-    return
-        try  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_func_waitforregisterdeviceasync(
-                )
-            },
-            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
-            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
-            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
-            liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError_lift
-        )
-}
-/**
- * Call that blocks until the account state has been updated/synced. This is useful when you want
- * to wait for the account state to be updated before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForUpdateAccount()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
-    uniffi_nym_vpn_lib_fn_func_waitforupdateaccount($0
-    )
-}
-}
-/**
- * Async variant of waitForUpdateAccount. This is useful when you want to wait for the account
- * state to be updated before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForUpdateAccountAsync()async throws   {
-    return
-        try  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_func_waitforupdateaccountasync(
-                )
-            },
-            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
-            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
-            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
-            liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError_lift
-        )
-}
-/**
- * Call that blocks until the device has been updated/synced. This is useful when you want to wait
- * for the device state to be updated before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForUpdateDevice()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
-    uniffi_nym_vpn_lib_fn_func_waitforupdatedevice($0
-    )
-}
-}
-/**
- * Async variant of waitForUpdateDevice. This is useful when you want to wait for the device
- * state to be updated before proceeding with other operations.
- *
- * # Errors
- *
- * This function will return an error if the account controller is not running.
- */
-public func waitForUpdateDeviceAsync()async throws   {
-    return
-        try  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_func_waitforupdatedeviceasync(
-                )
-            },
-            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
-            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
-            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
-            liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError_lift
-        )
-}
 
 private enum InitializationResult {
     case ok
@@ -9477,7 +7618,7 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 58704) {
+    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 3217) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_createaccount() != 10575) {
@@ -9507,7 +7648,7 @@ private let initializationResult: InitializationResult = {
     if (uniffi_nym_vpn_lib_checksum_func_getaccountlinksraw() != 55422) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 4507) {
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountstate() != 7058) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getdeviceidentity() != 52430) {
@@ -9580,30 +7721,6 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_waitforaccountreadytoconnectasync() != 20647) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforavailablezknyms() != 27184) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforavailablezknymsasync() != 38231) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforregisterdevice() != 59983) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforregisterdeviceasync() != 39165) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforupdateaccount() != 28166) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforupdateaccountasync() != 19300) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforupdatedevice() != 29532) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_waitforupdatedeviceasync() != 62630) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 45546) {

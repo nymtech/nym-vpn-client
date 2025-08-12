@@ -81,7 +81,7 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
   func storeAccount(
     _ request: NymVpnService_StoreAccountRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_StoreAccountResponse>
+  ) -> UnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_AccountCommandResponse>
 
   func isAccountStored(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -91,7 +91,7 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
   func forgetAccount(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_ForgetAccountResponse>
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountCommandResponse>
 
   func getAccountIdentity(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -106,7 +106,13 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
   func getAccountState(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountStateResponse>
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>
+
+  func listenToAccountState(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (NymVpnService_AccountControllerState) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>
 
   func refreshAccountState(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -128,11 +134,6 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDeviceIdentityResponse>
 
-  func registerDevice(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
   func getDevices(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
@@ -142,31 +143,6 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
   ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDevicesResponse>
-
-  func requestZkNym(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func getDeviceZkNyms(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func getZkNymsAvailableForDownload(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func getZkNymById(
-    _ request: NymVpnService_GetZkNymByIdRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<NymVpnService_GetZkNymByIdRequest, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func confirmZkNymDownloaded(
-    _ request: NymVpnService_ConfirmZkNymDownloadedRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<NymVpnService_ConfirmZkNymDownloadedRequest, SwiftProtobuf.Google_Protobuf_Empty>
 
   func getAvailableTickets(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -450,7 +426,7 @@ extension NymVpnService_NymVpnServiceClientProtocol {
   internal func storeAccount(
     _ request: NymVpnService_StoreAccountRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_StoreAccountResponse> {
+  ) -> UnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_AccountCommandResponse> {
     return self.makeUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.storeAccount.path,
       request: request,
@@ -487,7 +463,7 @@ extension NymVpnService_NymVpnServiceClientProtocol {
   internal func forgetAccount(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_ForgetAccountResponse> {
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountCommandResponse> {
     return self.makeUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.forgetAccount.path,
       request: request,
@@ -542,12 +518,33 @@ extension NymVpnService_NymVpnServiceClientProtocol {
   internal func getAccountState(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountStateResponse> {
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState> {
     return self.makeUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountState.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountStateInterceptors() ?? []
+    )
+  }
+
+  /// Listen for current account controller state and subsequent changes to it. Emits current state as the first value.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListenToAccountState.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  internal func listenToAccountState(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (NymVpnService_AccountControllerState) -> Void
+  ) -> ServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState> {
+    return self.makeServerStreamingCall(
+      path: NymVpnService_NymVpnServiceClientMetadata.Methods.listenToAccountState.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListenToAccountStateInterceptors() ?? [],
+      handler: handler
     )
   }
 
@@ -624,24 +621,6 @@ extension NymVpnService_NymVpnServiceClientProtocol {
     )
   }
 
-  /// Try to register the local device with the nym-vpn-api
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to RegisterDevice.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func registerDevice(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.registerDevice.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
-    )
-  }
-
   /// Get the list of devices associated with this account from the nym-vpn-api
   ///
   /// - Parameters:
@@ -675,96 +654,6 @@ extension NymVpnService_NymVpnServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? []
-    )
-  }
-
-  /// Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to RequestZkNym.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func requestZkNym(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.requestZkNym.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? []
-    )
-  }
-
-  /// List the zk-nyms associated with this device from the nym-vpn-api
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to GetDeviceZkNyms.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func getDeviceZkNyms(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getDeviceZkNyms.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
-    )
-  }
-
-  /// List the zk-nyms available for download from the nym-vpn-api
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to GetZkNymsAvailableForDownload.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func getZkNymsAvailableForDownload(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymsAvailableForDownload.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? []
-    )
-  }
-
-  /// Get a zk-nym by its id from the nym-vpn-api
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to GetZkNymById.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func getZkNymById(
-    _ request: NymVpnService_GetZkNymByIdRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<NymVpnService_GetZkNymByIdRequest, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymById.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? []
-    )
-  }
-
-  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to ConfirmZkNymDownloaded.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func confirmZkNymDownloaded(
-    _ request: NymVpnService_ConfirmZkNymDownloadedRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<NymVpnService_ConfirmZkNymDownloadedRequest, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.confirmZkNymDownloaded.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? []
     )
   }
 
@@ -1056,7 +945,7 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
   func makeStoreAccountCall(
     _ request: NymVpnService_StoreAccountRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_StoreAccountResponse>
+  ) -> GRPCAsyncUnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_AccountCommandResponse>
 
   func makeIsAccountStoredCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1066,7 +955,7 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
   func makeForgetAccountCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_ForgetAccountResponse>
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountCommandResponse>
 
   func makeGetAccountIdentityCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1081,7 +970,12 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
   func makeGetAccountStateCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountStateResponse>
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>
+
+  func makeListenToAccountStateCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>
 
   func makeRefreshAccountStateCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1103,11 +997,6 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDeviceIdentityResponse>
 
-  func makeRegisterDeviceCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
   func makeGetDevicesCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
@@ -1117,31 +1006,6 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDevicesResponse>
-
-  func makeRequestZkNymCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeGetDeviceZkNymsCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeGetZkNymsAvailableForDownloadCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeGetZkNymByIDCall(
-    _ request: NymVpnService_GetZkNymByIdRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<NymVpnService_GetZkNymByIdRequest, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeConfirmZkNymDownloadedCall(
-    _ request: NymVpnService_ConfirmZkNymDownloadedRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<NymVpnService_ConfirmZkNymDownloadedRequest, SwiftProtobuf.Google_Protobuf_Empty>
 
   func makeGetAvailableTicketsCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1346,7 +1210,7 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
   internal func makeStoreAccountCall(
     _ request: NymVpnService_StoreAccountRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_StoreAccountResponse> {
+  ) -> GRPCAsyncUnaryCall<NymVpnService_StoreAccountRequest, NymVpnService_AccountCommandResponse> {
     return self.makeAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.storeAccount.path,
       request: request,
@@ -1370,7 +1234,7 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
   internal func makeForgetAccountCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_ForgetAccountResponse> {
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountCommandResponse> {
     return self.makeAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.forgetAccount.path,
       request: request,
@@ -1406,12 +1270,24 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
   internal func makeGetAccountStateCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountStateResponse> {
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState> {
     return self.makeAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountState.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountStateInterceptors() ?? []
+    )
+  }
+
+  internal func makeListenToAccountStateCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncServerStreamingCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState> {
+    return self.makeAsyncServerStreamingCall(
+      path: NymVpnService_NymVpnServiceClientMetadata.Methods.listenToAccountState.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListenToAccountStateInterceptors() ?? []
     )
   }
 
@@ -1463,18 +1339,6 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeRegisterDeviceCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.registerDevice.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
-    )
-  }
-
   internal func makeGetDevicesCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
@@ -1496,66 +1360,6 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? []
-    )
-  }
-
-  internal func makeRequestZkNymCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.requestZkNym.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? []
-    )
-  }
-
-  internal func makeGetDeviceZkNymsCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getDeviceZkNyms.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
-    )
-  }
-
-  internal func makeGetZkNymsAvailableForDownloadCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymsAvailableForDownload.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? []
-    )
-  }
-
-  internal func makeGetZkNymByIDCall(
-    _ request: NymVpnService_GetZkNymByIdRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<NymVpnService_GetZkNymByIdRequest, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymById.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? []
-    )
-  }
-
-  internal func makeConfirmZkNymDownloadedCall(
-    _ request: NymVpnService_ConfirmZkNymDownloadedRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<NymVpnService_ConfirmZkNymDownloadedRequest, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.confirmZkNymDownloaded.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? []
     )
   }
 
@@ -1817,7 +1621,7 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
   internal func storeAccount(
     _ request: NymVpnService_StoreAccountRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> NymVpnService_StoreAccountResponse {
+  ) async throws -> NymVpnService_AccountCommandResponse {
     return try await self.performAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.storeAccount.path,
       request: request,
@@ -1841,7 +1645,7 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
   internal func forgetAccount(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) async throws -> NymVpnService_ForgetAccountResponse {
+  ) async throws -> NymVpnService_AccountCommandResponse {
     return try await self.performAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.forgetAccount.path,
       request: request,
@@ -1877,12 +1681,24 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
   internal func getAccountState(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) async throws -> NymVpnService_GetAccountStateResponse {
+  ) async throws -> NymVpnService_AccountControllerState {
     return try await self.performAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountState.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAccountStateInterceptors() ?? []
+    )
+  }
+
+  internal func listenToAccountState(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<NymVpnService_AccountControllerState> {
+    return self.performAsyncServerStreamingCall(
+      path: NymVpnService_NymVpnServiceClientMetadata.Methods.listenToAccountState.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListenToAccountStateInterceptors() ?? []
     )
   }
 
@@ -1934,18 +1750,6 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
     )
   }
 
-  internal func registerDevice(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.registerDevice.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? []
-    )
-  }
-
   internal func getDevices(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
@@ -1967,66 +1771,6 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? []
-    )
-  }
-
-  internal func requestZkNym(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.requestZkNym.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? []
-    )
-  }
-
-  internal func getDeviceZkNyms(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getDeviceZkNyms.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? []
-    )
-  }
-
-  internal func getZkNymsAvailableForDownload(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymsAvailableForDownload.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? []
-    )
-  }
-
-  internal func getZkNymById(
-    _ request: NymVpnService_GetZkNymByIdRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymById.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? []
-    )
-  }
-
-  internal func confirmZkNymDownloaded(
-    _ request: NymVpnService_ConfirmZkNymDownloadedRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.confirmZkNymDownloaded.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? []
     )
   }
 
@@ -2195,13 +1939,13 @@ internal protocol NymVpnService_NymVpnServiceClientInterceptorFactoryProtocol: S
   func makeListCountriesInterceptors() -> [ClientInterceptor<NymVpnService_ListCountriesRequest, NymVpnService_ListCountriesResponse>]
 
   /// - Returns: Interceptors to use when invoking 'storeAccount'.
-  func makeStoreAccountInterceptors() -> [ClientInterceptor<NymVpnService_StoreAccountRequest, NymVpnService_StoreAccountResponse>]
+  func makeStoreAccountInterceptors() -> [ClientInterceptor<NymVpnService_StoreAccountRequest, NymVpnService_AccountCommandResponse>]
 
   /// - Returns: Interceptors to use when invoking 'isAccountStored'.
   func makeIsAccountStoredInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
 
   /// - Returns: Interceptors to use when invoking 'forgetAccount'.
-  func makeForgetAccountInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_ForgetAccountResponse>]
+  func makeForgetAccountInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountCommandResponse>]
 
   /// - Returns: Interceptors to use when invoking 'getAccountIdentity'.
   func makeGetAccountIdentityInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountIdentityResponse>]
@@ -2210,7 +1954,10 @@ internal protocol NymVpnService_NymVpnServiceClientInterceptorFactoryProtocol: S
   func makeGetAccountLinksInterceptors() -> [ClientInterceptor<NymVpnService_GetAccountLinksRequest, NymVpnService_AccountManagement>]
 
   /// - Returns: Interceptors to use when invoking 'getAccountState'.
-  func makeGetAccountStateInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountStateResponse>]
+  func makeGetAccountStateInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>]
+
+  /// - Returns: Interceptors to use when invoking 'listenToAccountState'.
+  func makeListenToAccountStateInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>]
 
   /// - Returns: Interceptors to use when invoking 'refreshAccountState'.
   func makeRefreshAccountStateInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
@@ -2224,29 +1971,11 @@ internal protocol NymVpnService_NymVpnServiceClientInterceptorFactoryProtocol: S
   /// - Returns: Interceptors to use when invoking 'getDeviceIdentity'.
   func makeGetDeviceIdentityInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDeviceIdentityResponse>]
 
-  /// - Returns: Interceptors to use when invoking 'registerDevice'.
-  func makeRegisterDeviceInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
   /// - Returns: Interceptors to use when invoking 'getDevices'.
   func makeGetDevicesInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDevicesResponse>]
 
   /// - Returns: Interceptors to use when invoking 'getActiveDevices'.
   func makeGetActiveDevicesInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDevicesResponse>]
-
-  /// - Returns: Interceptors to use when invoking 'requestZkNym'.
-  func makeRequestZkNymInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'getDeviceZkNyms'.
-  func makeGetDeviceZkNymsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'getZkNymsAvailableForDownload'.
-  func makeGetZkNymsAvailableForDownloadInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'getZkNymById'.
-  func makeGetZkNymByIdInterceptors() -> [ClientInterceptor<NymVpnService_GetZkNymByIdRequest, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'confirmZkNymDownloaded'.
-  func makeConfirmZkNymDownloadedInterceptors() -> [ClientInterceptor<NymVpnService_ConfirmZkNymDownloadedRequest, SwiftProtobuf.Google_Protobuf_Empty>]
 
   /// - Returns: Interceptors to use when invoking 'getAvailableTickets'.
   func makeGetAvailableTicketsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AvailableTickets>]
@@ -2299,18 +2028,13 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
       NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountIdentity,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountLinks,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountState,
+      NymVpnService_NymVpnServiceClientMetadata.Methods.listenToAccountState,
       NymVpnService_NymVpnServiceClientMetadata.Methods.refreshAccountState,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getAccountUsage,
       NymVpnService_NymVpnServiceClientMetadata.Methods.resetDeviceIdentity,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getDeviceIdentity,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.registerDevice,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getDevices,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getActiveDevices,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.requestZkNym,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.getDeviceZkNyms,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymsAvailableForDownload,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.getZkNymById,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.confirmZkNymDownloaded,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getAvailableTickets,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getLogPath,
       NymVpnService_NymVpnServiceClientMetadata.Methods.deleteLogFile,
@@ -2432,6 +2156,12 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let listenToAccountState = GRPCMethodDescriptor(
+      name: "ListenToAccountState",
+      path: "/nym_vpn_service.NymVpnService/ListenToAccountState",
+      type: GRPCCallType.serverStreaming
+    )
+
     internal static let refreshAccountState = GRPCMethodDescriptor(
       name: "RefreshAccountState",
       path: "/nym_vpn_service.NymVpnService/RefreshAccountState",
@@ -2456,12 +2186,6 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    internal static let registerDevice = GRPCMethodDescriptor(
-      name: "RegisterDevice",
-      path: "/nym_vpn_service.NymVpnService/RegisterDevice",
-      type: GRPCCallType.unary
-    )
-
     internal static let getDevices = GRPCMethodDescriptor(
       name: "GetDevices",
       path: "/nym_vpn_service.NymVpnService/GetDevices",
@@ -2471,36 +2195,6 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
     internal static let getActiveDevices = GRPCMethodDescriptor(
       name: "GetActiveDevices",
       path: "/nym_vpn_service.NymVpnService/GetActiveDevices",
-      type: GRPCCallType.unary
-    )
-
-    internal static let requestZkNym = GRPCMethodDescriptor(
-      name: "RequestZkNym",
-      path: "/nym_vpn_service.NymVpnService/RequestZkNym",
-      type: GRPCCallType.unary
-    )
-
-    internal static let getDeviceZkNyms = GRPCMethodDescriptor(
-      name: "GetDeviceZkNyms",
-      path: "/nym_vpn_service.NymVpnService/GetDeviceZkNyms",
-      type: GRPCCallType.unary
-    )
-
-    internal static let getZkNymsAvailableForDownload = GRPCMethodDescriptor(
-      name: "GetZkNymsAvailableForDownload",
-      path: "/nym_vpn_service.NymVpnService/GetZkNymsAvailableForDownload",
-      type: GRPCCallType.unary
-    )
-
-    internal static let getZkNymById = GRPCMethodDescriptor(
-      name: "GetZkNymById",
-      path: "/nym_vpn_service.NymVpnService/GetZkNymById",
-      type: GRPCCallType.unary
-    )
-
-    internal static let confirmZkNymDownloaded = GRPCMethodDescriptor(
-      name: "ConfirmZkNymDownloaded",
-      path: "/nym_vpn_service.NymVpnService/ConfirmZkNymDownloaded",
       type: GRPCCallType.unary
     )
 
@@ -2601,14 +2295,14 @@ internal protocol NymVpnService_NymVpnServiceProvider: CallHandlerProvider {
   func listCountries(request: NymVpnService_ListCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_ListCountriesResponse>
 
   /// Store the recovery phrase, which is also the account identity and authentication
-  func storeAccount(request: NymVpnService_StoreAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_StoreAccountResponse>
+  func storeAccount(request: NymVpnService_StoreAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_AccountCommandResponse>
 
   /// Check if the recovery phrase is stored
   func isAccountStored(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_BoolValue>
 
   /// Removes everything related to the account, including the device identity,
   /// credential storage, mixnet keys, gateway registrations.
-  func forgetAccount(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_ForgetAccountResponse>
+  func forgetAccount(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_AccountCommandResponse>
 
   /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetAccountIdentityResponse>
@@ -2618,7 +2312,10 @@ internal protocol NymVpnService_NymVpnServiceProvider: CallHandlerProvider {
 
   /// Query the account state, which is synced from the nym-vpn-api account, as it
   /// is known and interpreted by nym-vpnd
-  func getAccountState(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetAccountStateResponse>
+  func getAccountState(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_AccountControllerState>
+
+  /// Listen for current account controller state and subsequent changes to it. Emits current state as the first value.
+  func listenToAccountState(request: SwiftProtobuf.Google_Protobuf_Empty, context: StreamingResponseCallContext<NymVpnService_AccountControllerState>) -> EventLoopFuture<GRPCStatus>
 
   /// The vpn client will periodically refresh the account state in the
   /// background. This command triggers a manual refresh.
@@ -2633,29 +2330,11 @@ internal protocol NymVpnService_NymVpnServiceProvider: CallHandlerProvider {
   /// Get the device identity
   func getDeviceIdentity(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetDeviceIdentityResponse>
 
-  /// Try to register the local device with the nym-vpn-api
-  func registerDevice(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
   /// Get the list of devices associated with this account from the nym-vpn-api
   func getDevices(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetDevicesResponse>
 
   /// Get the list of active devices associated with this account from the nym-vpn-api
   func getActiveDevices(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetDevicesResponse>
-
-  /// Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  func requestZkNym(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  /// List the zk-nyms associated with this device from the nym-vpn-api
-  func getDeviceZkNyms(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  /// List the zk-nyms available for download from the nym-vpn-api
-  func getZkNymsAvailableForDownload(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  /// Get a zk-nym by its id from the nym-vpn-api
-  func getZkNymById(request: NymVpnService_GetZkNymByIdRequest, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
-  func confirmZkNymDownloaded(request: NymVpnService_ConfirmZkNymDownloadedRequest, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 
   /// Get the available tickets in the local credential store
   func getAvailableTickets(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_AvailableTickets>
@@ -2809,7 +2488,7 @@ extension NymVpnService_NymVpnServiceProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<NymVpnService_StoreAccountRequest>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_StoreAccountResponse>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountCommandResponse>(),
         interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? [],
         userFunction: self.storeAccount(request:context:)
       )
@@ -2827,7 +2506,7 @@ extension NymVpnService_NymVpnServiceProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_ForgetAccountResponse>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountCommandResponse>(),
         interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? [],
         userFunction: self.forgetAccount(request:context:)
       )
@@ -2854,9 +2533,18 @@ extension NymVpnService_NymVpnServiceProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_GetAccountStateResponse>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountControllerState>(),
         interceptors: self.interceptors?.makeGetAccountStateInterceptors() ?? [],
         userFunction: self.getAccountState(request:context:)
+      )
+
+    case "ListenToAccountState":
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountControllerState>(),
+        interceptors: self.interceptors?.makeListenToAccountStateInterceptors() ?? [],
+        userFunction: self.listenToAccountState(request:context:)
       )
 
     case "RefreshAccountState":
@@ -2895,15 +2583,6 @@ extension NymVpnService_NymVpnServiceProvider {
         userFunction: self.getDeviceIdentity(request:context:)
       )
 
-    case "RegisterDevice":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? [],
-        userFunction: self.registerDevice(request:context:)
-      )
-
     case "GetDevices":
       return UnaryServerHandler(
         context: context,
@@ -2920,51 +2599,6 @@ extension NymVpnService_NymVpnServiceProvider {
         responseSerializer: ProtobufSerializer<NymVpnService_GetDevicesResponse>(),
         interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? [],
         userFunction: self.getActiveDevices(request:context:)
-      )
-
-    case "RequestZkNym":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? [],
-        userFunction: self.requestZkNym(request:context:)
-      )
-
-    case "GetDeviceZkNyms":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? [],
-        userFunction: self.getDeviceZkNyms(request:context:)
-      )
-
-    case "GetZkNymsAvailableForDownload":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? [],
-        userFunction: self.getZkNymsAvailableForDownload(request:context:)
-      )
-
-    case "GetZkNymById":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_GetZkNymByIdRequest>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? [],
-        userFunction: self.getZkNymById(request:context:)
-      )
-
-    case "ConfirmZkNymDownloaded":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_ConfirmZkNymDownloadedRequest>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? [],
-        userFunction: self.confirmZkNymDownloaded(request:context:)
       )
 
     case "GetAvailableTickets":
@@ -3138,7 +2772,7 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
   func storeAccount(
     request: NymVpnService_StoreAccountRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> NymVpnService_StoreAccountResponse
+  ) async throws -> NymVpnService_AccountCommandResponse
 
   /// Check if the recovery phrase is stored
   func isAccountStored(
@@ -3151,7 +2785,7 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
   func forgetAccount(
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
-  ) async throws -> NymVpnService_ForgetAccountResponse
+  ) async throws -> NymVpnService_AccountCommandResponse
 
   /// Get the account identity of the locally stored recovery phrase
   func getAccountIdentity(
@@ -3170,7 +2804,14 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
   func getAccountState(
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
-  ) async throws -> NymVpnService_GetAccountStateResponse
+  ) async throws -> NymVpnService_AccountControllerState
+
+  /// Listen for current account controller state and subsequent changes to it. Emits current state as the first value.
+  func listenToAccountState(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    responseStream: GRPCAsyncResponseStreamWriter<NymVpnService_AccountControllerState>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
 
   /// The vpn client will periodically refresh the account state in the
   /// background. This command triggers a manual refresh.
@@ -3197,12 +2838,6 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
     context: GRPCAsyncServerCallContext
   ) async throws -> NymVpnService_GetDeviceIdentityResponse
 
-  /// Try to register the local device with the nym-vpn-api
-  func registerDevice(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
   /// Get the list of devices associated with this account from the nym-vpn-api
   func getDevices(
     request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -3214,36 +2849,6 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> NymVpnService_GetDevicesResponse
-
-  /// Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  func requestZkNym(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  /// List the zk-nyms associated with this device from the nym-vpn-api
-  func getDeviceZkNyms(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  /// List the zk-nyms available for download from the nym-vpn-api
-  func getZkNymsAvailableForDownload(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  /// Get a zk-nym by its id from the nym-vpn-api
-  func getZkNymById(
-    request: NymVpnService_GetZkNymByIdRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  /// Confirm that a zk-nym has been downloaded from the nym-vpn-api
-  func confirmZkNymDownloaded(
-    request: NymVpnService_ConfirmZkNymDownloadedRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
 
   /// Get the available tickets in the local credential store
   func getAvailableTickets(
@@ -3431,7 +3036,7 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<NymVpnService_StoreAccountRequest>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_StoreAccountResponse>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountCommandResponse>(),
         interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? [],
         wrapping: { try await self.storeAccount(request: $0, context: $1) }
       )
@@ -3449,7 +3054,7 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_ForgetAccountResponse>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountCommandResponse>(),
         interceptors: self.interceptors?.makeForgetAccountInterceptors() ?? [],
         wrapping: { try await self.forgetAccount(request: $0, context: $1) }
       )
@@ -3476,9 +3081,18 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_GetAccountStateResponse>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountControllerState>(),
         interceptors: self.interceptors?.makeGetAccountStateInterceptors() ?? [],
         wrapping: { try await self.getAccountState(request: $0, context: $1) }
+      )
+
+    case "ListenToAccountState":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<NymVpnService_AccountControllerState>(),
+        interceptors: self.interceptors?.makeListenToAccountStateInterceptors() ?? [],
+        wrapping: { try await self.listenToAccountState(request: $0, responseStream: $1, context: $2) }
       )
 
     case "RefreshAccountState":
@@ -3517,15 +3131,6 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
         wrapping: { try await self.getDeviceIdentity(request: $0, context: $1) }
       )
 
-    case "RegisterDevice":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeRegisterDeviceInterceptors() ?? [],
-        wrapping: { try await self.registerDevice(request: $0, context: $1) }
-      )
-
     case "GetDevices":
       return GRPCAsyncServerHandler(
         context: context,
@@ -3542,51 +3147,6 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<NymVpnService_GetDevicesResponse>(),
         interceptors: self.interceptors?.makeGetActiveDevicesInterceptors() ?? [],
         wrapping: { try await self.getActiveDevices(request: $0, context: $1) }
-      )
-
-    case "RequestZkNym":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeRequestZkNymInterceptors() ?? [],
-        wrapping: { try await self.requestZkNym(request: $0, context: $1) }
-      )
-
-    case "GetDeviceZkNyms":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeGetDeviceZkNymsInterceptors() ?? [],
-        wrapping: { try await self.getDeviceZkNyms(request: $0, context: $1) }
-      )
-
-    case "GetZkNymsAvailableForDownload":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeGetZkNymsAvailableForDownloadInterceptors() ?? [],
-        wrapping: { try await self.getZkNymsAvailableForDownload(request: $0, context: $1) }
-      )
-
-    case "GetZkNymById":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_GetZkNymByIdRequest>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeGetZkNymByIdInterceptors() ?? [],
-        wrapping: { try await self.getZkNymById(request: $0, context: $1) }
-      )
-
-    case "ConfirmZkNymDownloaded":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_ConfirmZkNymDownloadedRequest>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeConfirmZkNymDownloadedInterceptors() ?? [],
-        wrapping: { try await self.confirmZkNymDownloaded(request: $0, context: $1) }
       )
 
     case "GetAvailableTickets":
@@ -3728,7 +3288,7 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
 
   /// - Returns: Interceptors to use when handling 'storeAccount'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStoreAccountInterceptors() -> [ServerInterceptor<NymVpnService_StoreAccountRequest, NymVpnService_StoreAccountResponse>]
+  func makeStoreAccountInterceptors() -> [ServerInterceptor<NymVpnService_StoreAccountRequest, NymVpnService_AccountCommandResponse>]
 
   /// - Returns: Interceptors to use when handling 'isAccountStored'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3736,7 +3296,7 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
 
   /// - Returns: Interceptors to use when handling 'forgetAccount'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeForgetAccountInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_ForgetAccountResponse>]
+  func makeForgetAccountInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountCommandResponse>]
 
   /// - Returns: Interceptors to use when handling 'getAccountIdentity'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3748,7 +3308,11 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
 
   /// - Returns: Interceptors to use when handling 'getAccountState'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetAccountStateInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetAccountStateResponse>]
+  func makeGetAccountStateInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>]
+
+  /// - Returns: Interceptors to use when handling 'listenToAccountState'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListenToAccountStateInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_AccountControllerState>]
 
   /// - Returns: Interceptors to use when handling 'refreshAccountState'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3766,10 +3330,6 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetDeviceIdentityInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDeviceIdentityResponse>]
 
-  /// - Returns: Interceptors to use when handling 'registerDevice'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRegisterDeviceInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
   /// - Returns: Interceptors to use when handling 'getDevices'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetDevicesInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDevicesResponse>]
@@ -3777,26 +3337,6 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
   /// - Returns: Interceptors to use when handling 'getActiveDevices'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetActiveDevicesInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetDevicesResponse>]
-
-  /// - Returns: Interceptors to use when handling 'requestZkNym'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRequestZkNymInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'getDeviceZkNyms'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetDeviceZkNymsInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'getZkNymsAvailableForDownload'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetZkNymsAvailableForDownloadInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'getZkNymById'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetZkNymByIdInterceptors() -> [ServerInterceptor<NymVpnService_GetZkNymByIdRequest, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'confirmZkNymDownloaded'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeConfirmZkNymDownloadedInterceptors() -> [ServerInterceptor<NymVpnService_ConfirmZkNymDownloadedRequest, SwiftProtobuf.Google_Protobuf_Empty>]
 
   /// - Returns: Interceptors to use when handling 'getAvailableTickets'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3858,18 +3398,13 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
       NymVpnService_NymVpnServiceServerMetadata.Methods.getAccountIdentity,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getAccountLinks,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getAccountState,
+      NymVpnService_NymVpnServiceServerMetadata.Methods.listenToAccountState,
       NymVpnService_NymVpnServiceServerMetadata.Methods.refreshAccountState,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getAccountUsage,
       NymVpnService_NymVpnServiceServerMetadata.Methods.resetDeviceIdentity,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getDeviceIdentity,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.registerDevice,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getDevices,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getActiveDevices,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.requestZkNym,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.getDeviceZkNyms,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.getZkNymsAvailableForDownload,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.getZkNymById,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.confirmZkNymDownloaded,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getAvailableTickets,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getLogPath,
       NymVpnService_NymVpnServiceServerMetadata.Methods.deleteLogFile,
@@ -3991,6 +3526,12 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let listenToAccountState = GRPCMethodDescriptor(
+      name: "ListenToAccountState",
+      path: "/nym_vpn_service.NymVpnService/ListenToAccountState",
+      type: GRPCCallType.serverStreaming
+    )
+
     internal static let refreshAccountState = GRPCMethodDescriptor(
       name: "RefreshAccountState",
       path: "/nym_vpn_service.NymVpnService/RefreshAccountState",
@@ -4015,12 +3556,6 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    internal static let registerDevice = GRPCMethodDescriptor(
-      name: "RegisterDevice",
-      path: "/nym_vpn_service.NymVpnService/RegisterDevice",
-      type: GRPCCallType.unary
-    )
-
     internal static let getDevices = GRPCMethodDescriptor(
       name: "GetDevices",
       path: "/nym_vpn_service.NymVpnService/GetDevices",
@@ -4030,36 +3565,6 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
     internal static let getActiveDevices = GRPCMethodDescriptor(
       name: "GetActiveDevices",
       path: "/nym_vpn_service.NymVpnService/GetActiveDevices",
-      type: GRPCCallType.unary
-    )
-
-    internal static let requestZkNym = GRPCMethodDescriptor(
-      name: "RequestZkNym",
-      path: "/nym_vpn_service.NymVpnService/RequestZkNym",
-      type: GRPCCallType.unary
-    )
-
-    internal static let getDeviceZkNyms = GRPCMethodDescriptor(
-      name: "GetDeviceZkNyms",
-      path: "/nym_vpn_service.NymVpnService/GetDeviceZkNyms",
-      type: GRPCCallType.unary
-    )
-
-    internal static let getZkNymsAvailableForDownload = GRPCMethodDescriptor(
-      name: "GetZkNymsAvailableForDownload",
-      path: "/nym_vpn_service.NymVpnService/GetZkNymsAvailableForDownload",
-      type: GRPCCallType.unary
-    )
-
-    internal static let getZkNymById = GRPCMethodDescriptor(
-      name: "GetZkNymById",
-      path: "/nym_vpn_service.NymVpnService/GetZkNymById",
-      type: GRPCCallType.unary
-    )
-
-    internal static let confirmZkNymDownloaded = GRPCMethodDescriptor(
-      name: "ConfirmZkNymDownloaded",
-      path: "/nym_vpn_service.NymVpnService/ConfirmZkNymDownloaded",
       type: GRPCCallType.unary
     )
 
