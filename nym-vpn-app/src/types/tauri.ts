@@ -142,7 +142,7 @@ export type OsInfo = {
 export type AccountStateError = {
   error: BackendError;
 };
-export type AccountState =
+export type TAccountState =
   | 'ready'
   | 'logged-out'
   | 'syncing'
@@ -152,9 +152,10 @@ export type AccountState =
   | 'no-subscription'
   | 'max-device-reached'
   | AccountStateError;
+export type AccountState = Exclude<TAccountState, 'syncing'>;
 
 export function isAccountError(
-  state: AccountState,
+  state: TAccountState | AccountState,
 ): state is AccountStateError {
   return (state as AccountStateError).error !== undefined;
 }

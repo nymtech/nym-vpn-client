@@ -10,7 +10,8 @@ import { Button, SettingsMenuCard } from '../../../ui';
 import { capFirst } from '../../../util';
 
 function Account() {
-  const { daemonStatus, account, accountState, accountLinks } = useMainState();
+  const { daemonStatus, account, accountState, accountSyncing, accountLinks } =
+    useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -44,6 +45,12 @@ function Account() {
   };
 
   const getAccountDescription = (state?: AccountState | null) => {
+    if (!state) {
+      return null;
+    }
+    if (accountSyncing) {
+      return t('account.syncing');
+    }
     if (state && isAccountError(state)) {
       return t('account.error');
     }
@@ -56,8 +63,6 @@ function Account() {
         return t('account.status-inactive');
       case 'bandwidth-exceeded':
         return t('account.bandwidth-exceeded');
-      case 'syncing':
-        return t('account.syncing');
       case 'offline':
         return t('account.offline');
       default:
@@ -66,6 +71,9 @@ function Account() {
   };
 
   const getAccountColor = (state?: AccountState | null) => {
+    if (accountSyncing) {
+      return 'normal';
+    }
     if (
       state === 'no-subscription' ||
       state === 'bandwidth-exceeded' ||
@@ -96,7 +104,7 @@ function Account() {
       {needAPlan && (
         <Button
           onClick={() => navigate(routes.selectPlan)}
-          disabled={daemonStatus === 'down'}
+          disabled={daemonStatus === 'down' || accountSyncing}
         >
           {t('account.get-started')}
         </Button>

@@ -5,10 +5,10 @@ import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
-  AccountState,
   MixnetEventPayload,
   ProgressEventPayload,
   StateDispatch,
+  TAccountState,
   TunnelStateEvent as TunnelStatePayload,
   VpndStatus,
   isAccountError,
@@ -82,12 +82,23 @@ export function useTauriEvents(
   }, [dispatch]);
 
   const registerAccountStateListener = useCallback(() => {
-    return listen<AccountState>(AccountStateEvent, ({ payload }) => {
-      dispatch({
-        type: 'set-account-state',
-        state: payload,
-      });
+    return listen<TAccountState>(AccountStateEvent, ({ payload }) => {
       console.log(`account state update: ${JSON.stringify(payload)}`);
+      if (payload === 'syncing') {
+        dispatch({
+          type: 'set-account-syncing',
+          syncing: true,
+        });
+      } else {
+        dispatch({
+          type: 'set-account-syncing',
+          syncing: false,
+        });
+        dispatch({
+          type: 'set-account-state',
+          state: payload,
+        });
+      }
       if (isAccountError(payload)) {
         dispatch({
           type: 'set-error',

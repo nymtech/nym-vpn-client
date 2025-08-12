@@ -43,6 +43,7 @@ export type AppState = {
   tunnel?: Tunnel | null;
   tunnelError?: TunnelError | null;
   accountState?: AccountState | null;
+  accountSyncing: boolean;
   retryAttempt: number;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
