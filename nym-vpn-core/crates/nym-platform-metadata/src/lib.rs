@@ -29,7 +29,8 @@ pub use imp::{extra_metadata, AppleVersion};
 pub use imp::{extra_metadata, AndroidVersion};
 #[cfg(windows)]
 pub use imp::{extra_metadata, WindowsVersion};
-pub use imp::{extra_metadata, short_version, version};
+// pub use imp::{extra_metadata, short_version, version};
+pub use imp::{extra_metadata, version};
 
 #[derive(Debug, Clone)]
 pub struct SysInfo {
