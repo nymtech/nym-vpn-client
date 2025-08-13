@@ -1,22 +1,3 @@
-use anyhow::{Result, anyhow};
-use nym_vpn_proto::proto::{
-    ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location,
-    StoreAccountRequest, UserAgent, nym_vpn_service_client::NymVpnServiceClient,
-    tunnel_event::Event,
-};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::{
-    env::consts::{ARCH, OS},
-    path::PathBuf,
-};
-use tauri::{AppHandle, Manager, PackageInfo};
-use tokio::sync::mpsc;
-use tonic::{
-    Request,
-    transport::{Channel, Endpoint as TonicEndpoint},
-};
-use tracing::{debug, error, info, instrument, trace, warn};
-
 pub use super::{
     account_links::AccountLinks,
     error::VpndError,
@@ -30,8 +11,30 @@ use super::{
     gateway::{Gateway, GatewayType},
     tunnel::TunnelState,
 };
-pub use crate::grpc::network::NetworkCompatVersions;
 
+use anyhow::{Result, anyhow};
+use nym_vpn_proto::proto::{
+    AccountControllerState, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
+    Location, StoreAccountRequest, TunnelState as PTunnelState, UserAgent,
+    nym_vpn_service_client::NymVpnServiceClient, tunnel_event::Event,
+};
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
+use std::{
+    env::consts::{ARCH, OS},
+    path::PathBuf,
+};
+use tauri::{AppHandle, Manager, PackageInfo};
+use tokio::sync::mpsc::{self, Sender};
+use tonic::{
+    Request, Streaming,
+    transport::{Channel, Endpoint as TonicEndpoint},
+};
+use tracing::{debug, error, info, instrument, trace, warn};
+
+use crate::grpc::account::{AccountState, log_account_state};
+pub use crate::grpc::network::NetworkCompatVersions;
+use crate::grpc::vpnd_event::VpndEvent;
 use crate::{
     cli::Cli, country::Country, error::BackendError, events::AppHandleEventEmitter,
     fs::config::AppConfig, state::SharedAppState,
@@ -47,7 +50,7 @@ const DUMMY_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 
 // simple flag to save that "failed to connect to daemon"
 // warning has been logged once when vpnd is down
-static VPND_DOWN_LOGGED: AtomicBool = AtomicBool::new(false);
+static VPND_DOWN_LOGGED: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 #[derive(Debug, Clone)]
 pub struct GrpcClient {
@@ -97,17 +100,16 @@ impl GrpcClient {
     /// Get the Vpnd service client
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<NymVpnServiceClient<Channel>, VpndError> {
-        let channel = get_channel(self.socket.clone()).await.map_err(|e| {
-            let logged = VPND_DOWN_LOGGED.load(Ordering::Relaxed);
-            if !logged {
+        let channel = connect(self.socket.clone()).await.map_err(|e| {
+            let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
+            if !*logged {
                 warn!("failed to connect to the daemon: {}", e);
-                VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
+                *logged = true;
             } else {
-                debug!("failed to connect to the daemon: {}", e);
+                trace!("failed to connect to the daemon: {}", e);
             }
             VpndError::FailedToConnectIpc(e)
         })?;
-        VPND_DOWN_LOGGED.store(false, Ordering::Relaxed);
         Ok(NymVpnServiceClient::new(channel))
     }
 
@@ -179,67 +181,71 @@ impl GrpcClient {
         Ok(tunnel)
     }
 
-    /// Watch tunnel state updates and mixnet events
+    /// Watch tunnel state and account state updates
     #[instrument(skip_all)]
-    pub async fn watch_tunnel_events(&self, app: &AppHandle) -> Result<()> {
+    pub async fn watch_events(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
-        let mut stream = vpnd
+        let tunnel_stream = vpnd
             .listen_to_events(())
             .await
             .inspect_err(|e| {
-                error!("listen_to_tunnel_state_changes failed: {}", e);
+                error!("listen to events failed: {}", e);
+            })?
+            .into_inner();
+
+        let account_stream = vpnd
+            .listen_to_account_state(())
+            .await
+            .inspect_err(|e| {
+                error!("listen to account state failed: {}", e);
             })?
             .into_inner();
 
         let (tx, mut rx) = mpsc::channel(32);
-        tokio::spawn(async move {
-            loop {
-                match stream.message().await {
-                    Ok(Some(update)) => {
-                        tx.send(update).await.unwrap();
-                    }
-                    Ok(None) => {
-                        warn!("vpnd DOWN: tunnel state stream closed");
-                        VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
-                        return;
-                    }
-                    Err(e) => {
-                        warn!("listen tunnel state stream get a grpc error: {}", e);
-                    }
-                }
-            }
-        });
+        let c_tx = tx.clone();
+        GrpcClient::listen_to_stream(tunnel_stream, tx).await;
+        GrpcClient::listen_to_stream(account_stream, c_tx).await;
 
-        while let Some(state) = rx.recv().await {
-            let Some(event) = state.event else {
-                warn!("no event data, ignoring…");
-                continue;
-            };
-            match event {
-                Event::TunnelState(state) => {
-                    debug!("tunnel state event {:?}", state);
-                    GrpcClient::handle_tunnel_update(app, state).await.ok();
-                }
-                Event::MixnetEvent(event) => {
-                    if let Some(e) = MixnetEvent::from_proto(event) {
-                        trace!("mixnet event [{}]", e.as_ref());
-                        app.emit_mixnet_event(e);
-                    } else {
-                        warn!("failed to parse mixnet event");
-                    }
-                }
-            }
+        while let Some(event) = rx.recv().await {
+            self.handle_event(app, event).await.ok();
         }
 
         Ok(())
     }
 
     #[instrument(skip_all)]
-    async fn handle_tunnel_update(
-        app: &AppHandle,
-        tun_state: nym_vpn_proto::proto::TunnelState,
-    ) -> Result<()> {
+    async fn handle_event(&self, app: &AppHandle, event: VpndEvent) -> Result<()> {
+        match event {
+            VpndEvent::Tunnel(state) => {
+                let Some(event) = state.event else {
+                    warn!("no event data, ignoring…");
+                    return Ok(());
+                };
+                match event {
+                    Event::TunnelState(state) => {
+                        debug!("tunnel state event {:?}", state);
+                        GrpcClient::handle_tunnel_update(app, state).await.ok();
+                    }
+                    Event::MixnetEvent(event) => {
+                        if let Some(e) = MixnetEvent::from_proto(event) {
+                            trace!("mixnet event [{}]", e.as_ref());
+                            app.emit_mixnet_event(e);
+                        } else {
+                            warn!("failed to parse mixnet event");
+                        }
+                    }
+                }
+            }
+            VpndEvent::Account(update) => {
+                GrpcClient::handle_account_update(app, update).await.ok();
+            }
+        }
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_tunnel_update(app: &AppHandle, tun_state: PTunnelState) -> Result<()> {
         if let Some(s) = tun_state.state {
             let tunnel = TunnelState::from_proto(s).map_err(|e| {
                 error!("failed to parse tunnel state: {}", e);
@@ -256,6 +262,20 @@ impl GrpcClient {
             // this should never happen, right?
             warn!("no tunnel state data, ignoring…");
         }
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_account_update(app: &AppHandle, update: AccountControllerState) -> Result<()> {
+        let Some(state) = update.state else {
+            warn!("no state data, ignoring…");
+            return Ok(());
+        };
+        log_account_state(&state);
+        let account_state = AccountState::from_proto(state);
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_account_state(app, account_state).await?;
         Ok(())
     }
 
@@ -622,9 +642,40 @@ impl GrpcClient {
         info!("restart vpnd (service) required for the change to take effect");
         Ok(())
     }
+
+    async fn listen_to_stream<S>(mut stream: Streaming<S>, tx: Sender<VpndEvent>)
+    where
+        S: Into<VpndEvent> + Send + 'static,
+    {
+        tokio::spawn(async move {
+            loop {
+                match stream.message().await {
+                    Ok(Some(message)) => {
+                        tx.send(message.into()).await.unwrap();
+                    }
+                    Ok(None) => {
+                        let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
+                        if !*logged {
+                            warn!("vpnd DOWN: stream closed");
+                            *logged = true;
+                        }
+                        return;
+                    }
+                    Err(e) => {
+                        warn!("grpc error: {}", e);
+                    }
+                }
+            }
+        });
+    }
+
+    pub fn reset_log_flag() {
+        let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
+        *logged = false;
+    }
 }
 
-async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
+async fn connect(socket_path: PathBuf) -> Result<Channel> {
     // NOTE the uri here is ignored
     Ok(TonicEndpoint::from_static(DUMMY_HTTP_ENDPOINT)
         .connect_with_connector(tower::service_fn(move |_| {

@@ -6,6 +6,7 @@ import {
 } from '../../constants';
 import {
   AccountLinks,
+  AccountState,
   AppError,
   AppState,
   CodeDependency,
@@ -31,7 +32,7 @@ export type StateAction =
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
-  | { type: 'set-error'; error: AppError }
+  | { type: 'set-error'; error: AppError | null }
   | { type: 'reset-error' }
   | { type: 'new-progress-message'; message: ConnectProgressMsg }
   | { type: 'connect' }
@@ -65,13 +66,17 @@ export type StateAction =
   | { type: 'set-account-links'; links: AccountLinks | null }
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
   | { type: 'set-ipv6-support'; enabled: boolean }
-  | { type: 'set-network-stats'; enabled: boolean };
+  | { type: 'set-network-stats'; enabled: boolean }
+  | { type: 'set-account-state'; state: AccountState }
+  | { type: 'set-account-syncing'; syncing: boolean };
 
 export const initialState: AppState = {
   initialized: false,
   state: 'disconnected',
   tunnel: null,
   tunnelError: null,
+  accountState: null,
+  accountSyncing: false,
   daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
@@ -298,6 +303,16 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         networkStats: action.enabled,
+      };
+    case 'set-account-state':
+      return {
+        ...state,
+        accountState: action.state,
+      };
+    case 'set-account-syncing':
+      return {
+        ...state,
+        accountSyncing: action.syncing,
       };
 
     case 'reset':

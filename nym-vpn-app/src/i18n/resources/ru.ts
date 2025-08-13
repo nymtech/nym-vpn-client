@@ -1,3 +1,4 @@
+import account from '../ru/account.json';
 import common from '../ru/common.json';
 import home from '../ru/home.json';
 import settings from '../ru/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../ru/glossary.json';
 import notifications from '../ru/notifications.json';
 
 export const ru = {
+  account,
   common,
   home,
   settings,

@@ -218,23 +218,24 @@ async fn main() -> Result<()> {
                 loop {
                     if let Ok(info) = c_grpc.vpnd_info().await {
                         // connected to the daemon
+                        GrpcClient::reset_log_flag();
 
                         c_grpc.update_vpnd_state(info, &handle).await.ok();
                         // initialize tunnel state
                         c_grpc.tunnel_state(&handle).await.ok();
                         vpnd::sentry_check(sentry_enabled, &c_grpc).await.ok();
                         vpnd::netstats_check(&db, &c_grpc).await.ok();
-                        info!("watching vpn tunnel events");
-                        // start watching tunnel events, this is a blocking call
-                        // and will keep the task alive as long as vpnd is running
-                        c_grpc.watch_tunnel_events(&handle).await.ok();
-                        // if the tunnel stream cuts off, that means vpnd is down
+                        info!("watching vpnd events");
+                        // start watching vpnd events, this is a blocking call
+                        // and will keep the task alive as long as the grpc connection
+                        // with vpnd is UP
+                        c_grpc.watch_events(&handle).await.ok();
+                        // if the events stream cuts off, that means vpnd is down
                         AppState::vpnd_down(&handle).await;
                     } else {
                         AppState::vpnd_down(&handle).await;
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
-                    trace!("vpnd spy retry");
                 }
             });
 
@@ -256,6 +257,7 @@ async fn main() -> Result<()> {
             cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
+            account::get_account_state,
             account::add_account,
             account::forget_account,
             account::is_account_stored,

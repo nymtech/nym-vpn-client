@@ -1,10 +1,20 @@
 use tauri::State;
 use tracing::{error, info, instrument, warn};
 
+use crate::grpc::account::AccountState;
 use crate::grpc::account_links::AccountLinks;
 use crate::grpc::tunnel::TunnelState;
 use crate::state::SharedAppState;
 use crate::{error::BackendError, grpc::client::GrpcClient};
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_account_state(
+    app: State<'_, SharedAppState>,
+) -> Result<AccountState, BackendError> {
+    let state = app.lock().await;
+    Ok(state.account_state.clone())
+}
 
 #[instrument(skip_all)]
 #[tauri::command]

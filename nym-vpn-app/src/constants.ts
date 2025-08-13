@@ -5,6 +5,7 @@ export const AppName = 'NymVPN';
 // src-tauri/src/state/app.rs
 export const DefaultVpnMode = 'wg';
 export const TunnelStateEvent = 'tunnel-state';
+export const AccountStateEvent = 'account-state';
 export const ProgressEvent = 'connection-progress';
 export const DaemonEvent = 'vpnd-status';
 export const MixnetEvent = 'mixnet-event';

@@ -2,6 +2,7 @@ use crate::error::{BackendError, ErrorKey};
 use nym_vpn_proto::proto::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
     account_command_error::ErrorDetail as AccountError,
+    account_controller_state::Error as StateError, account_controller_state::ErrorStateReason,
     vpn_api_error::ErrorDetail as VpnApiErrorDetail,
 };
 use tracing::error;
@@ -76,6 +77,31 @@ impl From<AccountCommandError> for BackendError {
                 ErrorKey::AccountInvalidMnemonic,
                 format!("invalid mnemonic: {e}"),
             ),
+        }
+    }
+}
+
+impl From<StateError> for BackendError {
+    fn from(error: StateError) -> Self {
+        match error.reason() {
+            ErrorStateReason::Internal => BackendError::internal("AC internal", None),
+            ErrorStateReason::Storage => BackendError::internal("AC storage", None),
+            ErrorStateReason::ApiFailure => BackendError::internal("AC api failure", None),
+            ErrorStateReason::BandwidthExceeded => {
+                BackendError::new("AC bandwidth exceeded", ErrorKey::BandwidthExceeded)
+            }
+            ErrorStateReason::AccountStatusNotActive => {
+                BackendError::new("AC status not active", ErrorKey::AccountStatusNotActive)
+            }
+            ErrorStateReason::InactiveSubscription => {
+                BackendError::new("AC inactive subscription", ErrorKey::NoSubscription)
+            }
+            ErrorStateReason::MaxDeviceReached => {
+                BackendError::new("AC max device reached", ErrorKey::MaxDeviceReached)
+            }
+            ErrorStateReason::DeviceTimeDesynced => {
+                BackendError::new("AC device time desynced", ErrorKey::DeviceTimeDesync)
+            }
         }
     }
 }

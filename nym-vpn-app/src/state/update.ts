@@ -1,6 +1,8 @@
 import {
   StateDispatch,
+  TAccountState,
   TunnelStateIpc,
+  isAccountError,
   isTunnelConnected,
   isTunnelConnecting,
   isTunnelDisconnecting,
@@ -8,7 +10,7 @@ import {
   isTunnelOffline,
 } from '../types';
 
-export function tunnelUpdate(state: TunnelStateIpc, dispatch: StateDispatch) {
+export function updateTunnel(state: TunnelStateIpc, dispatch: StateDispatch) {
   if (state === 'disconnected') {
     console.log('tunnel [disconnected]');
     dispatch({ type: 'set-tunnel-disconnected' });
@@ -51,10 +53,44 @@ export function tunnelUpdate(state: TunnelStateIpc, dispatch: StateDispatch) {
   }
   if (isTunnelError(state)) {
     console.log('tunnel [error]', state.error);
+    if (state.error.key === 'inactive-subscription') {
+      dispatch({
+        type: 'set-account-state',
+        state: 'no-subscription',
+      });
+    }
     dispatch({
       type: 'set-tunnel-inerror',
       error: state.error,
     });
     return;
+  }
+}
+
+export function updateAccountState(
+  state: TAccountState,
+  dispatch: StateDispatch,
+) {
+  console.log(`account state update: ${JSON.stringify(state)}`);
+  if (state === 'syncing') {
+    dispatch({
+      type: 'set-account-syncing',
+      syncing: true,
+    });
+  } else {
+    dispatch({
+      type: 'set-account-syncing',
+      syncing: false,
+    });
+    dispatch({
+      type: 'set-account-state',
+      state: state,
+    });
+  }
+  if (isAccountError(state)) {
+    dispatch({
+      type: 'set-error',
+      error: state.error,
+    });
   }
 }

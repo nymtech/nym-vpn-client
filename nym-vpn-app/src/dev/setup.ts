@@ -200,6 +200,7 @@ export function mockTauriIPC() {
         resolve({
           signUp: 'https://xyz.xyz/signup',
           signIn: 'https://xyz.xyz/signin',
+          account: 'https://xyz.xyz/account/1234abcd',
         }),
       );
     }

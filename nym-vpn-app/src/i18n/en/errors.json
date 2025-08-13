@@ -19,31 +19,38 @@
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
     "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
-    "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
+    "subscription-expired": "Subscription has expired. Kill switch protects you. Tap Stop and renew your plan.",
     "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
+    "max-devices-reached": "Account device limit exceeded.",
+    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
     "invalid-recovery-phrase": "Invalid access code",
     "storage": "Storage backend error",
     "is-connected": "Unable to proceed while connected",
     "no-account-stored": "No account stored",
     "no-device-stored": "No device stored",
-    "existing-account": "Account already exists"
+    "existing-account": "Account already exists",
+    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
+    "status-not-active": "Your account is inactive",
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
     "exit": "Failed to fetch the available exit node countries",
     "fast-mode": "Failed to fetch the available countries"
   },
-  "no-bandwidth": "No data allowance remaining",
-  "entry-gateway-down": "Entry gateway is down",
-  "exit-gateway-down": {
-    "ipv4": "Exit gateway is down (IPv4)",
-    "ipv6": "Exit gateway is down (IPv6)"
-  },
-  "exit-gateway-routing": {
-    "ipv4": "Exit gateway routing error (IPv4)",
-    "ipv6": "Exit gateway routing error (IPv6)"
+  "mixnet": {
+    "no-bandwidth": "No data allowance remaining",
+    "entry-gateway-down": "Entry gateway is down",
+    "exit-gateway-down": {
+      "ipv4": "Exit gateway is down (IPv4)",
+      "ipv6": "Exit gateway is down (IPv6)"
+    },
+    "exit-gateway-routing": {
+      "ipv4": "Exit gateway routing error (IPv4)",
+      "ipv6": "Exit gateway routing error (IPv6)"
+    }
   }
 }

@@ -43,11 +43,16 @@ export type ErrorKey =
   | 'exit-gw-down-ipv6'
   | 'exit-gw-routing-error-ipv4'
   | 'exit-gw-routing-error-ipv6'
-  | 'no-bandwidth'
+  | 'mixnet-no-bandwidth'
   | 'account-invalid-mnemonic'
   | 'no-account-stored'
   | 'no-device-stored'
   | 'existing-account'
+  | 'bandwidth-exceeded'
+  | 'account-status-not-active'
+  | 'no-subscription'
+  | 'max-device-reached'
+  | 'device-time-desync'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query';
@@ -133,3 +138,24 @@ export type OsInfo = {
   displayServer?: DisplayServer;
   gpu?: GpuType;
 };
+
+export type AccountStateError = {
+  error: BackendError;
+};
+export type TAccountState =
+  | 'ready'
+  | 'logged-out'
+  | 'syncing'
+  | 'offline'
+  | 'bandwidth-exceeded'
+  | 'status-not-active'
+  | 'no-subscription'
+  | 'max-device-reached'
+  | AccountStateError;
+export type AccountState = Exclude<TAccountState, 'syncing'>;
+
+export function isAccountError(
+  state: TAccountState | AccountState,
+): state is AccountStateError {
+  return (state as AccountStateError).error !== undefined;
+}

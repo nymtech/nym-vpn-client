@@ -18,7 +18,7 @@
     "invalid-exit-gw-country": "Pays de noeud de sortie non valide, veuillez changer l'emplacement du noeud de sortie",
     "max-devices-reached": "Le nombre maximum d'appareils ajoutés a été atteint. Veuillez Supprimer un appareil de votre compte et réessayez.",
     "bandwidth-exceeded": "La bande passante mensuelle a été dépassée. Veuillez mettre à niveau l'abonnement de votre compte.",
-    "subscription-expired": "Votre abonnement a expiré. Veuillez souscrire à un nouvel abonnement dans votre compte.",
+    "subscription-expired": "Votre abonnement a expiré. Le kill-switch vous protège, cliquez \"Stop\" et souscrivez à un nouvel abonnement dans votre compte.",
     "device-time-out-of-sync": "L'heure de votre appareil n'est pas synchronisée. Veuillez synchroniser l'heure de votre appareil avec celle d'Internet.",
     "ipv6-unavailable": "L'IPv6 n'est pas disponible sur ce système. Désactiver l'option dans les réglages pour basculer en IPv4"
   },

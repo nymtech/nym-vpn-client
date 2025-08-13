@@ -8,6 +8,7 @@ import {
   MixnetEventPayload,
   ProgressEventPayload,
   StateDispatch,
+  TAccountState,
   TunnelStateEvent as TunnelStatePayload,
   VpndStatus,
   isMixnetEventError,
@@ -15,6 +16,7 @@ import {
   isVpndOk,
 } from '../types';
 import {
+  AccountStateEvent,
   DaemonEvent,
   MixnetEvent,
   ProgressEvent,
@@ -23,7 +25,7 @@ import {
 import { Notification } from '../contexts';
 import { CCache } from '../cache';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
-import { tunnelUpdate } from './tunnelUpdate';
+import { updateAccountState, updateTunnel } from './update';
 
 export function useTauriEvents(
   dispatch: StateDispatch,
@@ -33,7 +35,7 @@ export function useTauriEvents(
     return listen<VpndStatus>(
       DaemonEvent,
       async ({ event, payload: status }) => {
-        console.info(
+        console.log(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);
@@ -65,9 +67,9 @@ export function useTauriEvents(
     );
   }, [dispatch, push]);
 
-  const registerStateListener = useCallback(() => {
+  const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
-      tunnelUpdate(event.payload.state, dispatch);
+      updateTunnel(event.payload.state, dispatch);
       if (event.payload.error) {
         console.log('tunnel error', event.payload.error);
         dispatch({
@@ -75,6 +77,12 @@ export function useTauriEvents(
           error: event.payload.error,
         });
       }
+    });
+  }, [dispatch]);
+
+  const registerAccountStateListener = useCallback(() => {
+    return listen<TAccountState>(AccountStateEvent, ({ payload }) => {
+      updateAccountState(payload, dispatch);
     });
   }, [dispatch]);
 
@@ -117,21 +125,24 @@ export function useTauriEvents(
   // register/unregister event listener
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
-    const unlistenState = registerStateListener();
+    const unlistenTunnelState = registerTunnelStateListener();
+    const unlistenAccountState = registerAccountStateListener();
     const unlistenMixnetEvent = registerMixnetEventListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
-      unlistenState.then((f) => f());
+      unlistenTunnelState.then((f) => f());
+      unlistenAccountState.then((f) => f());
       unlistenMixnetEvent.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
     };
   }, [
     registerDaemonListener,
-    registerStateListener,
+    registerTunnelStateListener,
+    registerAccountStateListener,
     registerMixnetEventListener,
     registerProgressListener,
     registerThemeChangedListener,

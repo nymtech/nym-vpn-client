@@ -1,3 +1,4 @@
+import account from '../fr/account.json';
 import common from '../fr/common.json';
 import home from '../fr/home.json';
 import settings from '../fr/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../fr/glossary.json';
 import notifications from '../fr/notifications.json';
 
 export const fr = {
+  account,
   common,
   home,
   settings,

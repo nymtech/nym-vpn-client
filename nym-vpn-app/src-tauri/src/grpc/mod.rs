@@ -1,3 +1,4 @@
+pub mod account;
 mod account_error;
 pub mod account_links;
 pub mod client;
@@ -11,4 +12,5 @@ pub mod system_message;
 mod timestamp;
 pub mod tunnel;
 mod tunnel_error;
+mod vpnd_event;
 pub mod vpnd_status;

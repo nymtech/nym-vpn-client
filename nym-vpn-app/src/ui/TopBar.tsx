@@ -203,9 +203,18 @@ export default function TopBar() {
           show('location-info');
         },
       },
+      '/account/select-a-plan': {
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        noBackground: true,
+      },
       // these screens do not use the TopBar
       '/hideout': {},
       '/hideout/welcome': {},
+      // TODO
+      '/account': {},
     };
   }, [t, navigate, getMainScreenTitle, show]);
 

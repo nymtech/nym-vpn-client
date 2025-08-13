@@ -4,6 +4,7 @@ import { StateAction } from '../contexts';
 import { Country, ThemeMode, UiTheme } from './common';
 import {
   AccountLinks,
+  AccountState,
   ErrorKey,
   Gateway,
   NetworkCompat,
@@ -41,6 +42,8 @@ export type AppState = {
   state: TunnelState;
   tunnel?: Tunnel | null;
   tunnelError?: TunnelError | null;
+  accountState?: AccountState | null;
+  accountSyncing: boolean;
   retryAttempt: number;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;

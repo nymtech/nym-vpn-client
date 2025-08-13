@@ -1,3 +1,4 @@
+import account from '../en/account.json';
 import common from '../en/common.json';
 import home from '../en/home.json';
 import settings from '../en/settings.json';
@@ -12,6 +13,7 @@ import glossary from '../en/glossary.json';
 import notifications from '../en/notifications.json';
 
 export const en = {
+  account,
   common,
   home,
   settings,

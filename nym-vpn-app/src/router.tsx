@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
 import {
+  AccountRouteIndex,
   Appearance,
   AppearanceRouteIndex,
   DataAndPrivacy,
@@ -16,6 +17,7 @@ import {
   Logs,
   MainLayout,
   NodeEntry,
+  SelectPlan,
   Settings,
   SettingsRouteIndex,
   Support,
@@ -28,6 +30,8 @@ const Home = lazy(() => import('./screens/home/Home'));
 export const routes = {
   root: '/',
   login: '/login',
+  account: '/account',
+  selectPlan: '/account/select-a-plan',
   settings: '/settings',
   appearance: '/settings/appearance',
   display: '/settings/appearance/display',
@@ -62,6 +66,18 @@ const router = createBrowserRouter([
         path: routes.login,
         element: <Login />,
         errorElement: <Error />,
+      },
+      {
+        path: routes.account,
+        element: <AccountRouteIndex />,
+        errorElement: <Error />,
+        children: [
+          {
+            path: routes.selectPlan,
+            element: <SelectPlan />,
+            errorElement: <Error />,
+          },
+        ],
       },
       {
         path: routes.settings,

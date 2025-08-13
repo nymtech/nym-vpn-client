@@ -8,6 +8,7 @@ use ts_rs::TS;
 
 use crate::env::{DEV_MODE, VPND_COMPAT_REQ};
 use crate::events::AppHandleEventEmitter;
+use crate::grpc::account::AccountState;
 use crate::grpc::client::{NetworkCompatVersions, VersionCheck};
 use crate::grpc::tunnel::TunnelState;
 use crate::state::SharedAppState;
@@ -48,6 +49,7 @@ pub struct AppState {
     pub vpnd_status: VpndStatus,
     pub vpnd_info: Option<VpndInfo>,
     pub tunnel: TunnelState,
+    pub account_state: AccountState,
     pub vpn_mode: VpnMode,
     pub dns_server: Option<String>,
     pub credentials_mode: bool,
@@ -83,13 +85,20 @@ impl AppState {
     }
 
     #[instrument(skip(self, app))]
-    pub async fn update_tunnel(
-        &mut self,
-        app: &tauri::AppHandle,
-        state: TunnelState,
-    ) -> Result<()> {
+    pub async fn update_tunnel(&mut self, app: &AppHandle, state: TunnelState) -> Result<()> {
         self.tunnel = state;
         app.emit_tunnel_update(&self.tunnel);
+        Ok(())
+    }
+
+    #[instrument(skip(self, app))]
+    pub async fn update_account_state(
+        &mut self,
+        app: &AppHandle,
+        state: AccountState,
+    ) -> Result<()> {
+        self.account_state = state;
+        app.emit_account_state_update(&self.account_state);
         Ok(())
     }
 
