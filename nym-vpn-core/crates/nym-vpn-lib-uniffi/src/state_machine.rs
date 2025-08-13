@@ -148,9 +148,7 @@ pub(super) async fn start_state_machine(
             config.tun_provider,
         )),
         #[cfg(target_os = "android")]
-        Arc::new(
-            crate::tunnel_provider::android::AndroidTunnelProviderImpl::new(config.tun_provider),
-        ),
+        Arc::new(crate::tunnel_provider::android::AndroidTunProviderImpl::new(config.tun_provider)),
         shutdown_token.child_token(),
     )
     .await?;

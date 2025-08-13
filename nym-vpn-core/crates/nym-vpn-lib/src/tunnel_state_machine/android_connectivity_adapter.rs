@@ -34,9 +34,9 @@ impl AndroidConnectivityAdapter {
 
 impl Drop for AndroidConnectivityAdapter {
     fn drop(&mut self) {
-        self.inner
-            .take()
-            .map(|observer| self.tun_provider.remove_connectivity_observer(observer));
+        if let Some(observer) = self.inner.take() {
+            self.tun_provider.remove_connectivity_observer(observer);
+        }
     }
 }
 

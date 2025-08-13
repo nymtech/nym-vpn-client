@@ -86,7 +86,7 @@ use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;
 use stats::StatisticsControllerHandle;
 #[cfg(target_os = "android")]
-use tunnel_provider::AndroidTunProvider;
+use tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use tunnel_provider::ios::OSTunProvider;
 
