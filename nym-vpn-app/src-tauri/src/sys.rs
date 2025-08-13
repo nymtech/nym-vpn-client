@@ -1,8 +1,7 @@
 use nym_platform_metadata::SysInfo;
 use serde::Serialize;
-use std::env;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-use std::process::Command;
+use std::{env, process::Command};
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use tracing::{error, info, warn};
 use ts_rs::TS;
