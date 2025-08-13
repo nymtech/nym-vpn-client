@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Download button for Logs Screen (https://github.com/nymtech/nym-vpn-client/pull/3197)
 - Privacy & Data Screen (https://github.com/nymtech/nym-vpn-client/pull/3237)
 - Network Monitoring flow (https://github.com/nymtech/nym-vpn-client/pull/3237)
+- Welcome screen (https://github.com/nymtech/nym-vpn-client/pull/3256)
 
 ### Changed
 - Updated UI for Modals (https://github.com/nymtech/nym-vpn-client/pull/3237)
 - Changes and updates for SnackBar (https://github.com/nymtech/nym-vpn-client/pull/3237)
+- Updates for Data Store (https://github.com/nymtech/nym-vpn-client/pull/3256)
 
 ## [1.8.0] - 2025-07-31
 

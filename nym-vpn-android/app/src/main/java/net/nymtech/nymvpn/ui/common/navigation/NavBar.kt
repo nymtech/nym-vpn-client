@@ -49,6 +49,9 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(
 				show = false,
 			)
+			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
+				show = false,
+			)
 			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> {
 				NavBarState(
 					title = { MainTitle() },

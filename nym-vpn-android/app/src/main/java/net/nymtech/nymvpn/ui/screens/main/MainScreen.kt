@@ -111,7 +111,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	fun checkBatteryOptimization() {
 		val pm = context.getSystemService(PowerManager::class.java)
 		val isIgnoringBatteryOptimizations = pm?.isIgnoringBatteryOptimizations(context.packageName) ?: true
-		if (!isIgnoringBatteryOptimizations && !appUiState.settings.batteryOptSkip) {
+		if (!isIgnoringBatteryOptimizations && !appUiState.settings.batteryDialogSkip) {
 			showBatteryDialog = true
 		} else {
 			viewModel.onConnect()
@@ -119,7 +119,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	fun checkStatsEnabled() {
-		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsSkipped) {
+		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsDialogSkip) {
 			SnackbarController.showMessage(
 				message = context.getString(R.string.notification_improve_title),
 				action = SnackbarAction(title = context.getString(R.string.notification_improve_button)) {
