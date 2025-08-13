@@ -1,16 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use common::account_summary::*;
-use common::endpoints;
+use crate::common::{TestBench, account_summary::*, endpoints};
 
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::AccountControllerErrorStateReason;
 use nym_vpn_lib_types::AccountControllerState;
-
-use crate::common::TestBench;
-
-mod common;
 
 /// How to use these tests :
 ///
@@ -25,12 +20,12 @@ mod common;
 #[tokio::test]
 async fn offline_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = TestBench::new().await?;
+    let mut test_bench = TestBench::new_no_credentials().await?;
 
     // Adding behavior to the VPN API
     let mocks = vec![
         endpoints::synced_health(),
-        endpoints::account_summary_with_device_200(account_with_inactive_sub()),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
     test_bench.register_mocks(mocks).await;
 
@@ -49,6 +44,9 @@ async fn offline_test() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::Syncing)
         .await;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
 
     test_bench.go_offline()?;
     test_bench
@@ -58,6 +56,9 @@ async fn offline_test() -> anyhow::Result<()> {
     test_bench.go_online()?;
     test_bench
         .assert_state(AccountControllerState::Syncing)
+        .await;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
         .await;
 
     test_bench.forget_account().await?;
@@ -158,6 +159,28 @@ async fn inactive_account_test() -> anyhow::Result<()> {
             AccountControllerErrorStateReason::AccountStatusNotActive {
                 status: "Inactive".into(),
             },
+        ))
+        .await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn account_with_inactive_sub_test() -> anyhow::Result<()> {
+    // Get the test_bench
+    let mut test_bench = TestBench::new().await?;
+
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_with_inactive_sub()),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::InactiveSubscription,
         ))
         .await;
     Ok(())

@@ -11,7 +11,10 @@ use wiremock::{
     matchers::{method, path, path_regex},
 };
 
-use crate::common::credential_proxy::MockCredentialProxy;
+use crate::common::{
+    account_summary::{mock_active_devices_response, mock_devices_response, mock_usage_response},
+    credential_proxy::MockCredentialProxy,
+};
 
 const ACCOUNT_REGEX: &str = r"n1\w*";
 const DEVICE_REGEX: &str = r"\w*";
@@ -111,4 +114,30 @@ pub fn confirm_zk_nym_download_by_id_200(credential_proxy: MockCredentialProxy) 
             "^/public/v1/account/{ACCOUNT_REGEX}/device/{DEVICE_REGEX}/zknym/{ZK_NYM_REGEX}$",
         )))
         .respond_with(credential_proxy.confirm_zk_nym_download_by_id_200())
+}
+
+// Other
+
+pub fn get_usage_200() -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/usage$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_json(mock_usage_response()))
+}
+
+pub fn get_devices_200() -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/device$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_json(mock_devices_response()))
+}
+
+pub fn get_active_devices_200() -> Mock {
+    Mock::given(method("GET"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/device/active$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_json(mock_active_devices_response()))
 }
