@@ -52,8 +52,11 @@ sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
 [dev-dependencies]
-httpmock.workspace = true
-serde_json.workspace = true
-rand_chacha.workspace = true
+anyhow.workspace = true
 nym-crypto.workspace = true
 nym-vpn-lib.workspace = true
+rand_chacha.workspace = true
+rand.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+wiremock.workspace = true
