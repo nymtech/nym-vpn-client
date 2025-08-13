@@ -21,6 +21,7 @@ pub trait AndroidTunProvider: Send + Sync + Debug {
 
 /// Adapter type for `AndroidTunProvider` defined by `nym_vpn_lib`
 #[derive(Debug, Clone)]
+#[repr(transparent)]
 pub struct AndroidTunProviderImpl {
     inner: Arc<dyn AndroidTunProvider>,
 }
@@ -50,7 +51,7 @@ impl nym_vpn_lib::tunnel_provider::AndroidTunProvider for AndroidTunProviderImpl
         observer: Arc<dyn nym_vpn_lib::tunnel_provider::ConnectivityObserver>,
     ) {
         self.inner
-            .add_connectivity_observer(ConnectivityObserverImpl::new(observer));
+            .add_connectivity_observer(Arc::new(ConnectivityObserverImpl::new(observer)));
     }
 
     fn remove_connectivity_observer(
@@ -58,23 +59,24 @@ impl nym_vpn_lib::tunnel_provider::AndroidTunProvider for AndroidTunProviderImpl
         observer: Arc<dyn nym_vpn_lib::tunnel_provider::ConnectivityObserver>,
     ) {
         self.inner
-            .remove_connectivity_observer(ConnectivityObserverImpl::new(observer));
+            .remove_connectivity_observer(Arc::new(ConnectivityObserverImpl::new(observer)));
     }
 }
 
 #[derive(Debug, Clone)]
+#[repr(transparent)]
 pub struct ConnectivityObserverImpl {
-    inner: Arc<dyn ConnectivityObserver>,
+    inner: Arc<dyn nym_vpn_lib::tunnel_provider::ConnectivityObserver>,
 }
 
 impl ConnectivityObserverImpl {
-    pub fn new(inner: Arc<dyn ConnectivityObserver>) -> Self {
+    pub fn new(inner: Arc<dyn nym_vpn_lib::tunnel_provider::ConnectivityObserver>) -> Self {
         Self { inner }
     }
 }
 
 #[async_trait::async_trait]
-impl nym_vpn_lib::tunnel_provider::ConnectivityObserver for ConnectivityObserverImpl {
+impl ConnectivityObserver for ConnectivityObserverImpl {
     fn on_network_change(&self, is_online: bool) {
         self.inner.on_network_change(is_online);
     }

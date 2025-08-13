@@ -6,9 +6,9 @@ use std::sync::Arc;
 
 use crate::{OFFLINE_MONITOR_HANDLE, error::VpnError};
 
-use nym_offline_monitor::ConnectivityHandle;
 #[cfg(target_os = "android")]
-use nym_vpn_lib::tunnel_provider::AndroidTunProvider;
+use crate::tunnel_provider::android::{AndroidTunProvider, AndroidTunProviderImpl};
+use nym_offline_monitor::ConnectivityHandle;
 #[cfg(target_os = "android")]
 use nym_vpn_lib::tunnel_state_machine::AndroidConnectivityAdapter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -46,7 +46,7 @@ pub(super) async fn start_offline_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler.inner_handle(),
         #[cfg(target_os = "android")]
-        AndroidConnectivityAdapter::new(tun_provider),
+        AndroidConnectivityAdapter::new(Arc::new(AndroidTunProviderImpl::new(tun_provider))),
         #[cfg(target_os = "linux")]
         Some(tunnel_state_machine::TUNNEL_FWMARK),
     )

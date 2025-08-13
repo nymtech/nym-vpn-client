@@ -255,7 +255,7 @@ impl From<nym_vpn_lib_types::RequestZkNymSuccess> for RequestZkNymSuccess {
     }
 }
 
-#[derive(uniffi::Error, thiserror::Error, Clone, Debug, PartialEq, Eq)]
+#[derive(uniffi::Enum, thiserror::Error, Clone, Debug, PartialEq, Eq)]
 pub enum RequestZkNymError {
     #[error("no account stored")]
     NoAccountStored,
@@ -292,7 +292,7 @@ impl From<nym_vpn_lib_types::RequestZkNymError> for RequestZkNymError {
     }
 }
 
-#[derive(uniffi::Error, thiserror::Error, Debug, Clone, PartialEq, Eq)]
+#[derive(uniffi::Enum, thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum VpnApiError {
     #[error("timeout")]
     Timeout,

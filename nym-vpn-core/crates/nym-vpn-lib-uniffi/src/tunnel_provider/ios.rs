@@ -18,6 +18,7 @@ pub trait OSTunProvider: Send + Sync + std::fmt::Debug {
 
 /// Adapter type for `OSTunProvider` defined by `nym_vpn_lib`
 #[derive(Debug, Clone)]
+#[repr(transparent)]
 pub struct OSTunProviderImpl {
     inner: Arc<dyn OSTunProvider>,
 }
