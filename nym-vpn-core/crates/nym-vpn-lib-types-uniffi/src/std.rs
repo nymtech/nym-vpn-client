@@ -4,6 +4,7 @@
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
+    str::FromStr,
 };
 
 uniffi::custom_type!(PathBuf, String, {
