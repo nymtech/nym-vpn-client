@@ -23,12 +23,10 @@ mod imp;
 #[path = "android.rs"]
 mod imp;
 
-#[cfg(target_os = "android")]
-pub use imp::{AndroidVersion, extra_metadata};
 #[cfg(any(target_os = "macos", target_os = "ios"))]
-pub use imp::{AppleVersion, extra_metadata};
+pub use imp::AppleVersion;
 #[cfg(windows)]
-pub use imp::{WindowsVersion, extra_metadata};
+pub use imp::WindowsVersion;
 pub use imp::{extra_metadata, short_version, version};
 
 #[derive(Debug, Clone)]
