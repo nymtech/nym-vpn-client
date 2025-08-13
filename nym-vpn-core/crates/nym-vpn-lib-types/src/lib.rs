@@ -9,7 +9,7 @@ mod tunnel_event;
 mod tunnel_state;
 
 pub use account::{
-    AccountCommandError, VpnApiError, VpnApiErrorResponse,
+    AccountCommandError, RegisterAccountResponse, VpnApiError, VpnApiErrorResponse,
     controller_error::AccountControllerError,
     controller_error::ErrorStateReason as AccountControllerErrorStateReason,
     controller_event::AccountControllerEvent,

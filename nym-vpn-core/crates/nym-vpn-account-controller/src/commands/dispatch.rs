@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::mnemonic::Mnemonic;
 
 use std::net::SocketAddr;
@@ -12,7 +12,7 @@ use nym_vpn_api_client::{
 };
 use tokio::sync::oneshot;
 
-use crate::{AvailableTicketbooks, RegisterAccountResponse};
+use crate::AvailableTicketbooks;
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {

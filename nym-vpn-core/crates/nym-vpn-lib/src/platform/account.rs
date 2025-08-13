@@ -17,8 +17,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::platform::offline_monitor;
 
-use super::uniffi_custom_impls::RegisterAccountResponse;
-use super::uniffi_lib_types::AccountControllerState;
+use super::uniffi_lib_types::{AccountControllerState, RegisterAccountResponse};
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 

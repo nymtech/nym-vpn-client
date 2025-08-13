@@ -14,7 +14,8 @@ use nym_vpn_lib_types::{
     ConnectionEvent as CoreConnectionEvent,
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent, Gateway as CoreGateway,
     MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
-    NymAddress as CoreNymAddress, RequestZkNymError as CoreRequestZkNymError,
+    NymAddress as CoreNymAddress, RegisterAccountResponse as CoreRegisterAccountResponse,
+    RequestZkNymError as CoreRequestZkNymError,
     RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
     RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
     TunnelConnectionData as CoreTunnelConnectionData, TunnelEvent as CoreTunnelEvent,
@@ -537,6 +538,19 @@ impl From<CoreAccountControllerErrorStateReason> for AccountControllerErrorState
             }
             CoreAccountControllerErrorStateReason::MaxDeviceReached => Self::MaxDeviceReached,
             CoreAccountControllerErrorStateReason::DeviceTimeDesynced => Self::DeviceTimeDesynced,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, Default, PartialEq)]
+pub struct RegisterAccountResponse {
+    pub account_token: String,
+}
+
+impl From<CoreRegisterAccountResponse> for RegisterAccountResponse {
+    fn from(value: CoreRegisterAccountResponse) -> Self {
+        RegisterAccountResponse {
+            account_token: value.account_token,
         }
     }
 }

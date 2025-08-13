@@ -82,9 +82,9 @@ use crate::{
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
     AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location, NetworkEnvironment,
-    RegisterAccountResponse, SystemMessage, UserAgent,
+    SystemMessage, UserAgent,
 };
-use uniffi_lib_types::{AccountControllerState, TunnelEvent};
+use uniffi_lib_types::{AccountControllerState, RegisterAccountResponse, TunnelEvent};
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
