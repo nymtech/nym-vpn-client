@@ -49,7 +49,7 @@ constructor(
 	}
 
 	fun onBatteryOptSkipped() = viewModelScope.launch {
-		settingsRepository.setBatteryOptSkipped(true)
+		settingsRepository.setBatteryDialogSkipped(true)
 	}
 
 	fun setNetworkStatsEnabled() = viewModelScope.launch {
@@ -57,7 +57,7 @@ constructor(
 	}
 
 	fun onNetworkStatsSkipped() = viewModelScope.launch {
-		settingsRepository.setStatisticsSkipped(true)
+		settingsRepository.setStatsDialogSkipped(true)
 	}
 
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {
