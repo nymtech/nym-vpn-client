@@ -23,12 +23,12 @@ mod imp;
 #[path = "android.rs"]
 mod imp;
 
-#[cfg(any(target_os = "macos", target_os = "ios"))]
-pub use imp::{extra_metadata, AppleVersion};
 #[cfg(target_os = "android")]
-pub use imp::{extra_metadata, AndroidVersion};
+pub use imp::{AndroidVersion, extra_metadata};
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub use imp::{AppleVersion, extra_metadata};
 #[cfg(windows)]
-pub use imp::{extra_metadata, WindowsVersion};
+pub use imp::{WindowsVersion, extra_metadata};
 pub use imp::{extra_metadata, short_version, version};
 
 #[derive(Debug, Clone)]
@@ -80,14 +80,14 @@ impl SysInfo {
         let parts = [
             self.os_version.clone(),
             self.arch.clone(),
-            self.extra.iter().cloned().collect::<Vec<_>>().join(" "),
+            self.extra.to_vec().join(" "),
             sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string()),
         ];
 
         let os_name = parts.join(" ");
         let hash = Sha256::digest(os_name.as_bytes());
         format!("{hash:x}")
-    } 
+    }
 }
 
 impl Default for SysInfo {

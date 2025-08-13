@@ -87,7 +87,6 @@ pub fn extra_metadata() -> impl Iterator<Item = (String, String)> {
     let version_cmds = [kernel_version, wg_version, systemd_version];
     #[cfg(feature = "network-manager")]
     let version_cmds = [kernel_version, nm_version, wg_version, systemd_version];
-    
     version_cmds.into_iter().filter_map(|f| f())
 }
 
