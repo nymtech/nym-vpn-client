@@ -30,6 +30,18 @@ use crate::{
 const ZK_NYM_MAX_FAILS: u32 = 10;
 const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 
+/// RequestingZkNyms State
+/// That state gets ZK-nyms if needed.
+/// This is a substate of the Syncing State, it will disappear into the future Bandwidth Controller
+///
+/// A retry mechanism is in place, if the error is in the API requests. Other errors lead a single retry, then to the ErrorState since they are not recoverable.  
+///
+/// Possible next state :
+/// - ReadyState : We have enough tickets already, or we managed to get enough tickets
+/// - ErrorState : An error happened, preventing us to proceed.
+/// - OfflineState : the connectivity monitor is telling we're not connected
+/// - SyncingState : We handled a refresh account command
+/// - LoggedOutState : A successful forget account command was handled
 pub(super) struct RequestingZkNymsState {
     zk_nym_fetching_handle: JoinHandle<Result<(), ZkNymError>>,
     attempts: u32,

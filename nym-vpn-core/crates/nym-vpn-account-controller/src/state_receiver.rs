@@ -15,6 +15,7 @@ impl AccountStateReceiver {
         Self { inner }
     }
 
+    /// Returns Ok() when the AC is ready to connect, returns an Error if it can't reach that state
     pub async fn wait_for_account_ready_to_connect(
         &mut self,
     ) -> Result<(), AccountControllerError> {

@@ -27,6 +27,23 @@ mod requesting_zknym_state;
 const MAX_SYNCING_ATTEMPTS: u32 = 10;
 const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 
+/// Syncing State
+/// This is the heart of the Account Controller.
+/// That state has to determine where we are at :
+/// - Is an account stored?
+/// - Is the stored account registered ?
+/// - Is the subscription active ?
+/// - Is the current device registered ?
+/// - Do we have fair usage left ?
+///
+/// A retry mechanism is in place, if the error is in the API requests. Other errors lead to the ErrorState since they are not recoverable.  
+///
+/// Possible next state :
+/// - LoggedOutState : No account is stored
+/// - RequestingZkNymState : Everything is fine on the account front, we just to check on our ZK-nyms storage before being ready to connect
+/// - SyncingState : We try again if there was an error while making an API request
+/// - ErrorState : An actual error happened, or one of the above questions has a negative answers, preventing us to proceed.
+/// - OfflineState : the connectivity monitor is telling we're not connected
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
     attempts: u32,

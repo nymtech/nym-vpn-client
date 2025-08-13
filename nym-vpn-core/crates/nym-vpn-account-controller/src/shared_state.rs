@@ -12,21 +12,29 @@ use crate::{
     storage::{AccountStorageOp, VpnCredentialStorage},
 };
 
+/// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
+/// Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
 pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
-    // Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
+    /// Offline monitoring
     pub connectivity_handle: C,
 
+    /// Config for the account controller
     pub config: AccountControllerConfig,
 
     // This is bound to live in the bandwidth controller in a near future
+    /// Zk-nym storage
     pub(crate) credential_storage: VpnCredentialStorage,
 
+    /// VPN API client
     pub(crate) vpn_api_client: VpnApiClient,
 
+    /// Stored account
     pub(crate) vpn_api_account: Option<VpnApiAccount>,
 
+    /// Registered device
     pub(crate) device: Option<Device>,
 
+    /// Channel to send storage operation to the AccountController
     pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
 }
 
