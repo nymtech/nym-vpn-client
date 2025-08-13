@@ -15,6 +15,19 @@ use crate::{
     },
 };
 
+/// LoggedOut state
+/// We are logged out
+/// - We are online
+/// - No account is stored
+/// - This device does not have an identity
+///
+/// Our actions are limited, because most commands require an account.
+///
+///
+/// Possible next state :
+/// - SyncingState : A successful store_account command handling leads us into SyncingState, to determine where we are at
+/// - OfflineState : the connectivity monitor is telling we're not connected
+///
 pub struct LoggedOutState;
 
 impl LoggedOutState {

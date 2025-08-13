@@ -38,6 +38,7 @@ pub fn mock_mnemonic() -> Mnemonic {
     Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap()
 }
 
+/// Mock connectivity monitor to simulate offline mode
 #[derive(Clone)]
 pub struct MockConnectivityHandle {
     current_state: Connectivity,
@@ -70,6 +71,7 @@ impl ConnectivityMonitor for MockConnectivityHandle {
     }
 }
 
+/// Mock storage for device keys and mnemonic
 #[derive(Default)]
 pub struct MockEphemeralStorage {
     key_store: nym_vpn_store::keys::device::InMemEphemeralKeys,
@@ -120,18 +122,35 @@ impl MnemonicStorage for MockEphemeralStorage {
     }
 }
 
+/// Test Bench with everything needed to run an account controller
 pub struct TestBench {
-    pub _account_controller_handle: JoinHandle<()>,
-    pub _tempdir: tempfile::TempDir, // so the directory isn't deleted before the tests
+    /// AC handle so we don't detach the task
+    _account_controller_handle: JoinHandle<()>,
+
+    /// Temporary storage directory reference, otherwise it gets deleted
+    _tempdir: tempfile::TempDir,
+
+    /// Channel to send command to the AC
     pub command_sender: AccountCommandSender,
+
+    /// Channel to keep track of its state
     pub state_receiver: AccountStateReceiver,
+
+    /// Connectivity monitor to mock offline/online switch
     pub connectivity: MockConnectivityHandle,
+
+    /// Mock VPN API server
     pub vpn_api_server: MockServer,
+
+    /// Mock credential proxy to issue valid zk-nyms
     pub credential_proxy: MockCredentialProxy,
-    pub _drop_guard: DropGuard,
+
+    /// DropGuard to stop the account controller when the testbench is dropped
+    _drop_guard: DropGuard,
 }
 
 impl TestBench {
+    /// Sets up a new testbench. The VPN API has no route
     pub async fn new() -> anyhow::Result<TestBench> {
         // Setup storage
         let storage = MockEphemeralStorage::default();
@@ -181,8 +200,9 @@ impl TestBench {
         })
     }
 
-    // This is needed to avoid tokio::sleep and yield_now everywhere
-    /// Wait 5 seconds for the given state. Returns True if is was reached, False otherwise
+    /// Assert that we are in a given state within 5 seconds.
+    /// This is needed to avoid tokio::sleep and yield_now everywhere
+    /// If after the 5sec delay, the expected state is not reached, the `assert_eq` call will fail, with a normal failure
     pub async fn assert_state(&mut self, expected_state: AccountControllerState) {
         // Make sure we're not running right away
         tokio::task::yield_now().await;
@@ -197,6 +217,7 @@ impl TestBench {
         assert_eq!(self.state_receiver.get_state(), expected_state);
     }
 
+    /// Tell the mock connectivity monitor to go offline
     pub fn go_offline(&self) -> anyhow::Result<()> {
         self.connectivity
             .connectivity_channel
@@ -208,6 +229,7 @@ impl TestBench {
         Ok(())
     }
 
+    /// Tell the mock connectivity monitor to go online
     pub fn go_online(&self) -> anyhow::Result<()> {
         self.connectivity
             .connectivity_channel
@@ -229,6 +251,7 @@ impl TestBench {
         Ok(())
     }
 
+    /// Register a list of mocks with the VPN API mock server
     pub async fn register_mocks(&self, mocks: Vec<Mock>) {
         for mock in mocks {
             self.vpn_api_server.register(mock).await

@@ -223,6 +223,7 @@ impl Connectivity {
     }
 }
 
+/// This is a trait to allow mocking in integration tests
 #[async_trait::async_trait]
 pub trait ConnectivityMonitor: Send + Sync {
     /// Returns current connectivity status.

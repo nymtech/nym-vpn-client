@@ -17,6 +17,17 @@ use crate::{
     },
 };
 
+/// ReadyState :
+/// We are ready to connect to the tunnel which means
+/// - An account is stored
+/// - It has an active subscription
+/// - The device is registered
+/// - We have tickets in storage
+///
+/// Possible next state :
+/// - SyncingState : We go into that state on a timer, to make sure the above still holds. The refresh account commands allows for manually go there
+/// - OfflineState : the connectivity monitor is telling we're not connected
+/// - LoggedOutState : We successfully handled a forget_account command
 pub struct ReadyState {
     refresh_timer: Pin<Box<Sleep>>,
 }

@@ -25,8 +25,6 @@ use time::Date;
 
 use crate::{AvailableTicketbooks, error::Error};
 
-//pub type SharedVpnCredentialStorage = Arc<tokio::sync::Mutex<VpnCredentialStorage>>;
-
 #[derive(Clone)]
 pub(crate) struct VpnCredentialStorage {
     data_dir: PathBuf,

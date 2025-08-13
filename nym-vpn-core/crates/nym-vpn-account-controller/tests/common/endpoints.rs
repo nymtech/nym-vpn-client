@@ -17,8 +17,11 @@ const ACCOUNT_REGEX: &str = r"n1\w*";
 const DEVICE_REGEX: &str = r"\w*";
 const ZK_NYM_REGEX: &str = r"\w*";
 
+// We use Wiremock to allow dynamic response
+
 // Health endpoints
 
+/// Mock the health endpoint, with the current timestamp
 pub fn synced_health() -> Mock {
     Mock::given(method("GET"))
         .and(path("/public/v1/health"))
@@ -30,6 +33,7 @@ pub fn synced_health() -> Mock {
         )
 }
 
+/// Mock the health endpoint, with an out of sync timestamp
 pub fn desynced_health() -> Mock {
     Mock::given(method("GET"))
         .and(path("/public/v1/health"))

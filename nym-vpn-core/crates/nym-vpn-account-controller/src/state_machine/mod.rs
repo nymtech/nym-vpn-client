@@ -17,10 +17,21 @@ mod offline_state;
 mod ready_state;
 mod syncing_state;
 
+// Account Controller state machine available states
+
+/// Account stored, online, can't proceed without user action and/or temporary failure somewhere
 pub(crate) use error_state::ErrorState;
+
+/// No account stored, online
 pub use logged_out_state::LoggedOutState;
+
+/// Maybe account stored, offline,
 pub use offline_state::OfflineState;
+
+/// Account stored, online, ready to connect
 pub(crate) use ready_state::ReadyState;
+
+/// Account stored, online, determining if we can't connect or not
 pub(crate) use syncing_state::SyncingState;
 
 // The interval at which we update the account state
