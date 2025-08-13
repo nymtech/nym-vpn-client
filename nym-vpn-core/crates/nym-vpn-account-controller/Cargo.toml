@@ -16,7 +16,6 @@ async-trait.workspace = true
 bincode.workspace = true
 futures.workspace = true
 nym-common.workspace = true
-nym-compact-ecash.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credential-storage.workspace = true
 nym-credentials-interface.workspace = true
@@ -24,11 +23,11 @@ nym-credentials.workspace = true
 nym-ecash-time.workspace = true
 nym-offline-monitor.workspace = true
 nym-sdk.workspace = true
-nym-vpn-api-client = { workspace = true }
+nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
-nym-vpn-network-config = { workspace = true }
-nym-vpn-store = { workspace = true }
-nym-wg-gateway-client = { workspace = true }
+nym-vpn-network-config.workspace = true
+nym-vpn-store.workspace = true
+nym-wg-gateway-client.workspace = true
 sqlx-pool-guard.workspace = true
 serde.workspace = true
 si-scale.workspace = true
@@ -53,5 +52,6 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 [dev-dependencies]
 anyhow.workspace = true
 rand.workspace = true
+nym-compact-ecash.workspace = true
 tempfile.workspace = true
 wiremock.workspace = true

@@ -6,25 +6,23 @@
 // 2. register the device
 // 3. request ticketbooks and top up the local credential store
 
-pub mod shared_state;
-
 mod command_sender;
 mod commands;
 mod config;
 mod controller;
 mod error;
-mod register_account;
+mod shared_state;
 mod state_machine;
 mod state_receiver;
 mod storage;
 mod ticketbooks;
 
+pub(crate) use shared_state::SharedAccountState;
+
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;
 pub use controller::AccountController;
 pub use error::Error;
-pub use register_account::RegisterAccountResponse;
-pub(crate) use shared_state::SharedAccountState;
 pub use state_receiver::AccountStateReceiver;
 pub use storage::remove_files_for_account;
-pub use ticketbooks::{AvailableTicketbook, AvailableTicketbooks};
+pub use ticketbooks::AvailableTicketbooks;

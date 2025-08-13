@@ -12,14 +12,13 @@ use pending_credential_requests::PendingCredentialRequestsStorage;
 use std::path::{Path, PathBuf};
 
 use nym_common::trace_err_chain;
-use nym_compact_ecash::VerificationKeyAuth;
 use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
     IssuedTicketBook,
 };
 use nym_credentials_interface::{
-    AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, TicketType,
+    AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, TicketType, VerificationKeyAuth,
 };
 use nym_sdk::mixnet::{CredentialStorage, StoragePaths};
 use time::Date;

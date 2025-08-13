@@ -9,6 +9,11 @@ pub mod controller_state;
 pub mod request_zknym;
 pub mod ticketbooks;
 
+#[derive(Clone, Debug)]
+pub struct RegisterAccountResponse {
+    pub account_token: String,
+}
+
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AccountCommandError {
     // Internal error that should not happen

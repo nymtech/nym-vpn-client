@@ -7,12 +7,12 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    AvailableTicketbooks, RegisterAccountResponse,
+    AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender},
 };
 
