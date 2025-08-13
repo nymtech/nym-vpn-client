@@ -14,6 +14,7 @@ mod network_config;
 mod std;
 mod time;
 mod tunnel_state_machine;
+mod url;
 mod user_agent;
 mod vpn_api_client;
 
@@ -27,5 +28,6 @@ pub use network_config::*;
 pub use std::*;
 pub use time::*;
 pub use tunnel_state_machine::*;
+pub use url::*;
 pub use user_agent::*;
 pub use vpn_api_client::*;
