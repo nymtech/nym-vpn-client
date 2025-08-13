@@ -32,12 +32,18 @@ fun ContinueButtonSection(navController: NavController, viewModel: WelcomeViewMo
 		onClick = {
 			viewModel.onContinueClicked()
 			navController.navigateAndForget(Route.Main())
-				  },
+		},
 		content = {
-			Text(stringResource(R.string.welcome_continue), style = CustomTypography.labelHuge, fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)))
+			Text(
+				stringResource(R.string.welcome_continue),
+				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
 		},
 		color = MaterialTheme.colorScheme.primary,
-		modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+		modifier = Modifier
+			.fillMaxWidth()
+			.height(56.dp.scaledHeight()),
 	)
 	Text(
 		text = buildAnnotatedString {
@@ -46,8 +52,8 @@ fun ContinueButtonSection(navController: NavController, viewModel: WelcomeViewMo
 			withStyle(
 				style = SpanStyle(
 					color = MaterialTheme.colorScheme.primary,
-					textDecoration = TextDecoration.Underline
-				)
+					textDecoration = TextDecoration.Underline,
+				),
 			) {
 				withLink(LinkAnnotation.Url(stringResource(R.string.terms_link))) {
 					append(stringResource(R.string.terms_of_use))
@@ -59,8 +65,8 @@ fun ContinueButtonSection(navController: NavController, viewModel: WelcomeViewMo
 			withStyle(
 				style = SpanStyle(
 					color = MaterialTheme.colorScheme.primary,
-					textDecoration = TextDecoration.Underline
-				)
+					textDecoration = TextDecoration.Underline,
+				),
 			) {
 				withLink(LinkAnnotation.Url(stringResource(R.string.privacy_link))) {
 					append(stringResource(R.string.privacy_policy))

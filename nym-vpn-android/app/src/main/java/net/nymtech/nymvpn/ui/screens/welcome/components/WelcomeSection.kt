@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 
 @Composable
-fun WelcomeSection(modifier: Modifier) {
+fun WelcomeSection(modifier: Modifier = Modifier) {
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
@@ -40,8 +40,8 @@ fun WelcomeSection(modifier: Modifier) {
 				withStyle(
 					style = SpanStyle(
 						color = MaterialTheme.colorScheme.primary,
-						textDecoration = TextDecoration.Underline
-					)
+						textDecoration = TextDecoration.Underline,
+					),
 				) {
 					withLink(LinkAnnotation.Url(stringResource(R.string.welcome_descr_sentry_link))) {
 						append(stringResource(R.string.welcome_descr_sentry_link_text))

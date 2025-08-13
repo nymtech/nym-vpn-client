@@ -23,7 +23,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun WelcomeScreen(appUiState: AppUiState, viewModel: WelcomeViewModel = hiltViewModel()) {
-
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val navController = LocalNavController.current
 
@@ -35,9 +34,11 @@ fun WelcomeScreen(appUiState: AppUiState, viewModel: WelcomeViewModel = hiltView
 			.padding(horizontal = 24.dp.scaledWidth())
 			.padding(padding),
 	) {
-		WelcomeSection(modifier = Modifier
-			.padding(vertical = 24.dp.scaledHeight())
-			.weight(1f))
+		WelcomeSection(
+			modifier = Modifier
+				.padding(vertical = 24.dp.scaledHeight())
+				.weight(1f),
+		)
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),

@@ -23,7 +23,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun SettingsSection(appUiState: AppUiState, viewModel: WelcomeViewModel) {
-
 	SettingsGroup(
 		modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
 		items = listOf(
