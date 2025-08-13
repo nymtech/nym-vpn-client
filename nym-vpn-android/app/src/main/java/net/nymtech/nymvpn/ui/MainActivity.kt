@@ -247,6 +247,9 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.LoginScanner> {
 									ScannerScreen()
 								}
+								composable<Route.Welcome> {
+									DeveloperScreen(appState, appViewModel)
+								}
 							}
 						}
 					}
