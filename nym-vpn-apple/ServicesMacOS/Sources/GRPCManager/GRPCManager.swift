@@ -39,9 +39,6 @@ public final class GRPCManager: ObservableObject {
                 }
                 return
             }
-            Task {
-                try? await version()
-            }
         }
     }
     @Published public var tunnelStatus: TunnelStatus = .unknown
@@ -80,9 +77,7 @@ public final class GRPCManager: ObservableObject {
 
     func setup() {
         setupListenToTunnelStateChangesObserver()
-        Task {
-            try? await version()
-        }
+        pingDaemonInitialStatus()
     }
 }
 

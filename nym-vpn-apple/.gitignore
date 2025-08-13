@@ -60,6 +60,8 @@ Envs/canary.env
 Envs/sandbox.env
 Envs/mainnet.env
 
+Daemon/net.nymtech.vpn.helper
+
 fastlane/report.xml
 fastlane/README.md
 
