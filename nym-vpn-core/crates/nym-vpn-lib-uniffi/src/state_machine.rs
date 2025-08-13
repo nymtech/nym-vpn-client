@@ -9,7 +9,6 @@ use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::TunnelEvent as PlatformTunnelEvent;
 use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -104,7 +103,7 @@ pub(super) async fn start_state_machine(
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
-                let platform_event = PlatformTunnelEvent::from(event);
+                let platform_event = nym_vpn_lib_types_uniffi::TunnelEvent::from(event);
                 (*state_listener).on_event(platform_event);
             }
         }
