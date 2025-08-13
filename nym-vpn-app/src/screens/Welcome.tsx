@@ -61,14 +61,14 @@ function Welcome() {
 
   return (
     <PageAnim
-      className="xs:max-w-lg h-full flex flex-col justify-end items-center gap-14 select-none cursor-default"
+      className="xs:max-w-lg h-full flex flex-col justify-end items-center gap-4 select-none cursor-default"
       data-testid="welcome-page"
     >
       <div
-        className="flex flex-col items-center gap-4 px-4 mt-4"
+        className="grow flex flex-col justify-center items-center gap-4 px-4"
         data-testid="welcome-header"
       >
-        <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">
+        <div className="flex flex-col gap-2 text-2xl text-center dark:text-white hsm:mt-24">
           <h1 className="truncate" data-testid="welcome-title">
             {t('title')}
           </h1>

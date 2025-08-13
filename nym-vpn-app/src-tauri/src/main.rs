@@ -85,7 +85,8 @@ async fn main() -> Result<()> {
     }
     let sentry_enabled = AppConfig::read()
         .ok()
-        .is_some_and(|cfg| cfg.sentry_monitoring);
+        .map(|cfg| cfg.sentry_monitoring)
+        .unwrap_or(DEFAULT_SENTRY_ENABLED);
     let _guard = log::setup_tracing(&cli, sentry_enabled).await?;
     trace!("cli args: {:#?}", cli);
 

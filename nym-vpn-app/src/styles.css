@@ -163,3 +163,6 @@
     }
   }
 }
+
+/* custom breakpoint for height */
+@custom-variant hsm (@media (height >= 30rem));

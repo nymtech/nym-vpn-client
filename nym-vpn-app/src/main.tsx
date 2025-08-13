@@ -25,12 +25,12 @@ import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/zh-cn';
 
+console.log('env', window._APP);
+
 const devMode = window._APP.devMode;
 const startupError = window._APP.startupError;
 const defaultVpnMode = window._APP.defaultVpnMode;
 const ErrorWindowLabel = 'error';
-
-console.log(window._APP);
 
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
