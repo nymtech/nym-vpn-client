@@ -20,7 +20,7 @@ pub struct UserAgent {
 
 impl From<UserAgent> for nym_sdk::UserAgent {
     fn from(value: UserAgent) -> Self {
-        NymUserAgent {
+        nym_sdk::UserAgent {
             application: value.application,
             version: value.version,
             platform: value.platform,

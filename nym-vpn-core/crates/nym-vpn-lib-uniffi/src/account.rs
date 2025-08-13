@@ -8,7 +8,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::types::{Platform, VpnApiAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
-use nym_vpn_lib_types_uniffi::{AccountControllerState, conversions::RegisterAccountResponse};
+use nym_vpn_lib_types_uniffi::{AccountControllerState, RegisterAccountResponse};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::device::DeviceKeyStore,

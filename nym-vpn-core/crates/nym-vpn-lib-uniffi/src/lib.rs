@@ -78,12 +78,9 @@ use tokio::{runtime::Runtime, sync::Mutex};
 use self::error::VpnError;
 use account::AccountControllerHandle;
 use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, TunnelEvent,
-    conversions::{
-        AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
-        NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage,
-        UserAgent,
-    },
+    AccountControllerState, AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType,
+    Location, NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage,
+    TunnelEvent, UserAgent,
 };
 use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;

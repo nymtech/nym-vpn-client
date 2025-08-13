@@ -9,6 +9,7 @@ mod account_controller;
 mod error;
 mod gateway_directory;
 mod ip_pair;
+mod ipnetwork;
 mod network_config;
 mod std;
 mod time;
@@ -16,11 +17,12 @@ mod tunnel_state_machine;
 mod user_agent;
 mod vpn_api_client;
 
-// Uses wildcard imports to pick up generated uniffi constants
+// Uses wildcard imports to pick up generated uniffi constants that need to be made visible for use in the library.
 pub use account_controller::*;
 pub use error::*;
 pub use gateway_directory::*;
 pub use ip_pair::*;
+pub use ipnetwork::*;
 pub use network_config::*;
 pub use std::*;
 pub use time::*;

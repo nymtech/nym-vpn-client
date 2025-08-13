@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 use nym_ip_packet_requests::IpPair;
 
 uniffi::custom_type!(

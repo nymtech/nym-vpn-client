@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::str::FromStr;
+
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 
 uniffi::custom_type!(IpNetwork, String, {
