@@ -29,8 +29,7 @@ pub use imp::{extra_metadata, AppleVersion};
 pub use imp::{extra_metadata, AndroidVersion};
 #[cfg(windows)]
 pub use imp::{extra_metadata, WindowsVersion};
-// pub use imp::{extra_metadata, short_version, version};
-pub use imp::{extra_metadata, version};
+pub use imp::{extra_metadata, short_version, version};
 
 #[derive(Debug, Clone)]
 pub struct SysInfo {
@@ -45,11 +44,6 @@ impl SysInfo {
         let os_version = System::long_os_version().unwrap_or_else(|| env::consts::OS.into());
         let kernel_version = System::kernel_version().unwrap_or_else(|| "unknown".to_string());
         let arch = std::env::consts::ARCH.to_string();
-        #[cfg(target_os = "linux")]
-        let extra_metadata = extra_metadata(kernel_version.clone())
-            .map(|(k, v)| format!("{k}: {v}"))
-            .collect::<Vec<_>>();
-        #[cfg(not(target_os = "linux"))]
         let extra_metadata = extra_metadata()
             .map(|(k, v)| format!("{k}: {v}"))
             .collect::<Vec<_>>();
