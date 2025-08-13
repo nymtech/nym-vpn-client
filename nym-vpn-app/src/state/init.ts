@@ -7,7 +7,6 @@ import {
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
-  DefaultVpnMode,
 } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
@@ -27,6 +26,8 @@ import {
 import { S_STATE } from '../static';
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
+
+const defaultVpnMode = window._APP.defaultVpnMode;
 
 // initialize connection state
 const getInitialTunnelState = async () => {
@@ -144,7 +145,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => kvGet<VpnMode>('vpn-mode'),
     onFulfilled: (vpnMode) => {
       S_STATE.vpnModeInit = true;
-      dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
+      dispatch({ type: 'set-vpn-mode', mode: vpnMode || defaultVpnMode });
     },
   };
 
@@ -180,7 +181,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'getMonitoring',
     request: () => invoke<boolean>('sentry_enabled'),
     onFulfilled: (enabled) => {
-      dispatch({ type: 'set-monitoring', monitoring: enabled || false });
+      dispatch({ type: 'set-monitoring', enabled: enabled || false });
     },
   };
 

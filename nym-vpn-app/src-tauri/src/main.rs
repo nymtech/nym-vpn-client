@@ -64,6 +64,8 @@ pub const ERROR_WINDOW_LABEL: &str = "error";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
+const DEFAULT_SENTRY_ENABLED: bool = false;
+const DEFAULT_NETSTATS_ENABLED: bool = true;
 
 // build time pkg data
 build_info::build_info!(fn build_info);
@@ -83,7 +85,8 @@ async fn main() -> Result<()> {
     }
     let sentry_enabled = AppConfig::read()
         .ok()
-        .is_some_and(|cfg| cfg.sentry_monitoring);
+        .map(|cfg| cfg.sentry_monitoring)
+        .unwrap_or(DEFAULT_SENTRY_ENABLED);
     let _guard = log::setup_tracing(&cli, sentry_enabled).await?;
     trace!("cli args: {:#?}", cli);
 
@@ -171,6 +174,9 @@ async fn main() -> Result<()> {
                     return Ok(());
                 }
             };
+            db.set_defaults()
+                .inspect_err(|_| error!("failed to set defaults"))
+                .ok();
             app.manage(db.clone());
 
             let app_window = AppWindow::create_main_window(app.handle(), &cli)?;

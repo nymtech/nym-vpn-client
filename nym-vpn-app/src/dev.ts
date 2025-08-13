@@ -1,5 +1,8 @@
 if (import.meta.env.MODE === 'dev-browser') {
   window._APP = {
+    defaultNetstatsEnabled: true,
+    defaultSentryEnabled: false,
+    defaultVpnMode: 'wg',
     devMode: true,
     updaterEnabled: true,
     noSplash: true,

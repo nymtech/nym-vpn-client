@@ -25,8 +25,6 @@ use crate::{
 #[serde(rename_all = "kebab-case")]
 pub enum VpnMode {
     Mixnet,
-    // ⚠ keep this default in sync with the one declared in
-    // src/constants.ts
     #[default]
     Wg,
 }

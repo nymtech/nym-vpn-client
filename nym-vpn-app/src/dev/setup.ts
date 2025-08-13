@@ -29,7 +29,7 @@ type ArgsObj<T> = Record<string, T>;
 const appVersion = '0.0.0';
 const uiTheme: UiTheme = 'dark';
 const lang = 'en';
-const showWelcome = false;
+const showWelcome = true;
 // const daemon: VpndStatus = 'down';
 const daemon: VpndStatus = {
   ok: {

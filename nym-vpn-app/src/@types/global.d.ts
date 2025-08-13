@@ -3,11 +3,15 @@ type StartupError = {
   detail: string | null;
 };
 
+// binding to WindowInitEnv Rust struct
 type JsEnv = {
   devMode: boolean;
+  updaterEnabled: boolean;
+  noSplash: boolean;
+  defaultVpnMode: 'wg' | 'mixnet';
+  defaultSentryEnabled: boolean;
+  defaultNetstatsEnabled: boolean;
   startupError?: StartupError | null;
-  updaterEnabled?: boolean;
-  noSplash?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

@@ -11,42 +11,64 @@ import { Button, Link, PageAnim, Switch } from '../ui';
 import { S_STATE } from '../static';
 import SettingsGroup from './settings/SettingsGroup';
 
+const defaultSentry = window._APP.defaultSentryEnabled;
+const defaultNetstats = window._APP.defaultNetstatsEnabled;
+
 function Welcome() {
-  const [monitoring, setMonitoring] = useState<boolean>(false);
+  const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
+  const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
 
   const handleContinue = () => {
+    initMonitoring();
+    initNetworkStats();
     kvSet('welcome-screen-seen', true).then(() => {
       S_STATE.welcomeScreenSeen = true;
       navigate(routes.root);
     });
   };
 
-  const handleMonitoringChanged = async () => {
-    const isChecked = !monitoring;
-    setMonitoring(isChecked);
-    dispatch({ type: 'set-monitoring', monitoring: isChecked });
-    try {
-      if (isChecked) {
+  const toggleMonitoring = () => {
+    setMonitoring(!monitoring);
+  };
+
+  const toggleNetstats = () => {
+    setNetstats(!netstats);
+  };
+
+  const initMonitoring = async () => {
+    dispatch({ type: 'set-monitoring', enabled: monitoring });
+    // sentry is disabled by default
+    if (monitoring) {
+      try {
         await invoke('enable_sentry');
+      } catch {}
+    }
+  };
+
+  const initNetworkStats = async () => {
+    dispatch({ type: 'set-network-stats', enabled: netstats });
+    try {
+      if (netstats) {
+        await invoke('enable_netstats');
       } else {
-        await invoke('disable_sentry');
+        await invoke('disable_netstats');
       }
     } catch {}
   };
 
   return (
     <PageAnim
-      className="xs:max-w-lg h-full flex flex-col justify-end items-center gap-14 select-none cursor-default"
+      className="xs:max-w-lg h-full flex flex-col justify-end items-center gap-4 select-none cursor-default"
       data-testid="welcome-page"
     >
       <div
-        className="flex flex-col items-center gap-4 px-4 mt-4"
+        className="grow flex flex-col justify-center items-center gap-4 px-4"
         data-testid="welcome-header"
       >
-        <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">
+        <div className="flex flex-col gap-2 text-2xl text-center dark:text-white hsm:mt-24">
           <h1 className="truncate" data-testid="welcome-title">
             {t('title')}
           </h1>
@@ -81,18 +103,31 @@ function Welcome() {
               title: t('error-monitoring-label'),
               desc: t('anon-toggle-desc'),
               leadingIcon: 'bug_report',
-              onClick: handleMonitoringChanged,
+              onClick: toggleMonitoring,
               trailing: (
                 <Switch
                   checked={monitoring}
-                  onChange={handleMonitoringChanged}
+                  onChange={toggleMonitoring}
                   data-testid="welcome-monitoring-switch"
                 />
               ),
               'data-testid': 'welcome-monitoring-option',
             },
+            {
+              title: t('network-statistic'),
+              leadingIcon: 'analytics',
+              onClick: toggleNetstats,
+              trailing: (
+                <Switch
+                  checked={netstats}
+                  onChange={toggleNetstats}
+                  data-testid="welcome-netstats-switch"
+                />
+              ),
+              'data-testid': 'welcome-netstats-option',
+            },
           ]}
-          data-testid="welcome-settings-group"
+          data-testid="welcome-netstats-group"
         />
         <Button
           className="mt-1"
