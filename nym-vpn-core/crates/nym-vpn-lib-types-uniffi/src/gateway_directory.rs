@@ -39,7 +39,7 @@ pub enum EntryPoint {
     Random,
 }
 
-impl From<EntryPoint> for nym_gateway_directory::GwEntryPoint {
+impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
     fn from(value: EntryPoint) -> Self {
         match value {
             EntryPoint::Gateway { identity } => {
