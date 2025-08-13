@@ -32,10 +32,25 @@ extension GRPCManager {
         tunnelStatus = .unknown
         isServing = false
     }
+
+    func pingDaemonInitialStatus() {
+        guard !isServing else { return }
+        Task {
+            do {
+                try await version()
+                let tunnelState = try await client.getTunnelState(Google_Protobuf_Empty())
+                Task { @MainActor in
+                    updateTunnelStatus(with: tunnelState)
+                }
+            } catch {
+                pingDaemonInitialStatus()
+            }
+        }
+    }
 }
 
 extension GRPCManager {
-    func updateTunnelStatus(with state: NymVpnService_TunnelState) {
+    @MainActor func updateTunnelStatus(with state: NymVpnService_TunnelState) {
         switch state.state {
         case let .connected(details):
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)

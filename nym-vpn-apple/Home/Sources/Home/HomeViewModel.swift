@@ -173,11 +173,11 @@ public extension HomeViewModel {
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
-        #if os(iOS)
+#if os(iOS)
         path.append(SettingLink.createAccountWelcome)
-        #elseif os(macOS)
+#elseif os(macOS)
         path.append(SettingLink.addCredentials)
-        #endif
+#endif
     }
 
     @MainActor func navigateToPlanPurchase() {

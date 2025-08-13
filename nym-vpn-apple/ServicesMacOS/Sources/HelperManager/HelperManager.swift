@@ -106,6 +106,7 @@ private extension HelperManager {
         case .notRegistered, .notFound:
             newState = .unknown
         case .enabled:
+            guard grpcManager.isServing else { return daemonState = .unknown }
             if grpcManager.daemonVersion != "unknown" || grpcManager.daemonVersion != "noVersion" {
                 newState = isInstalledAndUpToDate ? .running : .requiresUpdate
             } else {
