@@ -17,7 +17,8 @@ endif
 
 RUST_TRIPLET := aarch64-apple-ios
 
-LIB_CRATE_DIR := $(CURDIR)/crates/nym-vpn-lib-uniffi
+LIB_CRATE_NAME := nym-vpn-lib-uniffi
+LIB_CRATE_DIR := $(CURDIR)/crates/$(LIB_CRATE_NAME)
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TRIPLET)
 
 RUST_LIB_PATH := $(CURDIR)/target/$(RUST_TRIPLET)/$(TARGET_DIR)/libnym_vpn_lib.a
@@ -31,7 +32,7 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(LIBWG_BUILD_DIR)/libwg.a swift-package
 
 build: $(LIBWG_BUILD_DIR)/libwg.a
-	$(ALL_IDEMPOTENT_FLAGS) cargo build --package nym-vpn-lib --target $(RUST_TRIPLET) $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo build --package $(LIB_CRATE_NAME) --target $(RUST_TRIPLET) $(RELEASE_FLAG)
 
 swift-package: $(LIBWG_BUILD_DIR)/libwg.a
 	cd $(LIB_CRATE_DIR); \
