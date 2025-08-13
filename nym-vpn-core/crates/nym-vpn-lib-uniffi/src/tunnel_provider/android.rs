@@ -31,7 +31,7 @@ impl AndroidTunProviderImpl {
     }
 }
 
-impl nym_vpn_lib::AndroidTunProvider for AndroidTunProviderImpl {
+impl nym_vpn_lib::tunnel_provider::AndroidTunProvider for AndroidTunProviderImpl {
     fn bypass(&self, socket: i32) {
         self.inner.bypass(socket);
     }

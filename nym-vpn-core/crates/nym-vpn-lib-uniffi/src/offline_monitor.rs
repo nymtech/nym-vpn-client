@@ -1,17 +1,18 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityHandle;
+#[cfg(target_os = "android")]
+use std::sync::Arc;
 
 use crate::{OFFLINE_MONITOR_HANDLE, error::VpnError};
 
+use nym_offline_monitor::ConnectivityHandle;
+#[cfg(target_os = "android")]
+use nym_vpn_lib::tunnel_provider::AndroidTunProvider;
+#[cfg(target_os = "android")]
+use nym_vpn_lib::tunnel_state_machine::AndroidConnectivityAdapter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib::tunnel_state_machine::{self, RouteHandler};
-
-#[cfg(target_os = "android")]
-use nym_vpn_lib::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "android")]
-use std::sync::Arc;
 
 pub(super) async fn init_offline_monitor(
     #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -45,7 +46,7 @@ pub(super) async fn start_offline_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler.inner_handle(),
         #[cfg(target_os = "android")]
-        tunnel_state_machine::AndroidConnectivityAdapter::new(tun_provider),
+        AndroidConnectivityAdapter::new(tun_provider),
         #[cfg(target_os = "linux")]
         Some(tunnel_state_machine::TUNNEL_FWMARK),
     )

@@ -60,6 +60,7 @@ tracing-oslog.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger.workspace = true
+log.workspace = true
 rand.workspace = true
 
 [build-dependencies]
