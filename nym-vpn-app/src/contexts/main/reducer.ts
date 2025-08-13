@@ -48,7 +48,7 @@ export type StateAction =
   | { type: 'set-tunnel-offline'; reconnect: boolean | null }
   | { type: 'set-tunnel-inerror'; error: TunnelError }
   | { type: 'set-auto-connect'; autoConnect: boolean }
-  | { type: 'set-monitoring'; monitoring: boolean }
+  | { type: 'set-monitoring'; enabled: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
@@ -158,7 +158,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-monitoring':
       return {
         ...state,
-        monitoring: action.monitoring,
+        monitoring: action.enabled,
       };
     case 'set-ipv6-support':
       return {

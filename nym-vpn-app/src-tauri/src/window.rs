@@ -1,7 +1,12 @@
 use crate::cli::Cli;
 use crate::db::{Db, Key};
 use crate::env::{DEV_MODE, UPDATER_ENABLED};
-use crate::{APP_NAME, ENV_APP_NOSPLASH, MAIN_WINDOW_LABEL, env};
+use crate::startup_error::StartupError;
+use crate::state::app::VpnMode;
+use crate::{
+    APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
+    MAIN_WINDOW_LABEL, env,
+};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use tauri::window::Color;
@@ -46,6 +51,10 @@ pub struct WindowInitEnv {
     pub dev_mode: bool,
     pub updater_enabled: bool,
     pub no_splash: bool,
+    pub default_vpn_mode: VpnMode,
+    pub default_sentry_enabled: bool,
+    pub default_netstats_enabled: bool,
+    pub startup_error: Option<StartupError>,
 }
 
 impl AppWindow {
@@ -281,6 +290,10 @@ impl WindowInitEnv {
             dev_mode: *DEV_MODE,
             updater_enabled: *UPDATER_ENABLED,
             no_splash: cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH),
+            default_vpn_mode: Default::default(),
+            default_sentry_enabled: DEFAULT_SENTRY_ENABLED,
+            default_netstats_enabled: DEFAULT_NETSTATS_ENABLED,
+            startup_error: None,
         }
     }
 

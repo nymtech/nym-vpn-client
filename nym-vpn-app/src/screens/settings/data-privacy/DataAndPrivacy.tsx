@@ -7,7 +7,6 @@ import {
   AnonNetworkStatsUrl,
   SentryPrivacyPolicyUrl,
 } from '../../../constants';
-import { kvSet } from '../../../kvStore';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
@@ -18,7 +17,6 @@ function DataAndPrivacy() {
 
   const onNetStatsChange = async () => {
     const isChecked = !networkStats;
-    await kvSet('network-stats-enabled', isChecked);
     dispatch({ type: 'set-network-stats', enabled: isChecked });
     try {
       if (isChecked) {
@@ -31,7 +29,7 @@ function DataAndPrivacy() {
 
   const onMonitoringChange = async () => {
     const isChecked = !monitoring;
-    dispatch({ type: 'set-monitoring', monitoring: isChecked });
+    dispatch({ type: 'set-monitoring', enabled: isChecked });
     try {
       if (isChecked) {
         await invoke('enable_sentry');

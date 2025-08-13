@@ -45,7 +45,7 @@ pub async fn disable_sentry(
         client.close(Some(Duration::from_millis(200)));
         info!("sentry client closed");
     }
-    info!("sentry monitoring disable ⚠ app restart required ⚠");
+    info!("sentry monitoring disabled ⚠ app restart required ⚠");
 
     info!("disabling vpnd sentry monitoring");
     grpc.disable_sentry().await?;

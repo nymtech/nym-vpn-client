@@ -11,7 +11,6 @@ import { kvGet } from './kvStore';
 import { VpnMode, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
-import { DefaultVpnMode } from './constants';
 import { S_STATE } from './static';
 import { getTheme } from './util';
 
@@ -28,7 +27,10 @@ import 'dayjs/locale/zh-cn';
 
 const devMode = window._APP.devMode;
 const startupError = window._APP.startupError;
+const defaultVpnMode = window._APP.defaultVpnMode;
 const ErrorWindowLabel = 'error';
+
+console.log(window._APP);
 
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
@@ -60,7 +62,7 @@ dayjs.extend(duration);
   S_STATE.uiTheme = await getTheme();
   S_STATE.vpnd =
     (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
-  S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
+  S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || defaultVpnMode;
   S_STATE.welcomeScreenSeen =
     (await kvGet<boolean>('welcome-screen-seen')) || false;
 

@@ -1,3 +1,6 @@
+use crate::DEFAULT_NETSTATS_ENABLED;
+use crate::fs::path::APP_DATA_DIR;
+
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
@@ -12,8 +15,6 @@ use strum::{AsRefStr, EnumIter};
 use thiserror::Error;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
-
-use crate::fs::path::APP_DATA_DIR;
 
 const DB_DIR: &str = "db";
 
@@ -109,6 +110,16 @@ impl Db {
             info!("new db created at {}", &path.display());
         }
         Ok(Self { db, path })
+    }
+
+    /// Init some keys if they do not exist
+    #[instrument(skip(self))]
+    pub fn set_defaults(&self) -> Result<(), DbError> {
+        let network_stats_enabled = self.get(Key::NetworkStatsEnabled.as_ref()).ok().flatten();
+        if network_stats_enabled.is_none() {
+            self.insert(Key::NetworkStatsEnabled.as_ref(), DEFAULT_NETSTATS_ENABLED)?;
+        }
+        Ok(())
     }
 
     /// Discard deserialization errors by removing the key

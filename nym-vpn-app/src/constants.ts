@@ -1,9 +1,6 @@
 import { Country } from './types';
 
 export const AppName = 'NymVPN';
-// ⚠ keep this default in sync with the one declared in
-// src-tauri/src/state/app.rs
-export const DefaultVpnMode = 'wg';
 export const TunnelStateEvent = 'tunnel-state';
 export const AccountStateEvent = 'account-state';
 export const ProgressEvent = 'connection-progress';
