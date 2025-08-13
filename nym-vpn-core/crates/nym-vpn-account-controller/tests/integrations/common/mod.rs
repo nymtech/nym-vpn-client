@@ -7,7 +7,7 @@ use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
 };
-use nym_vpn_api_client::VpnApiClient;
+use nym_vpn_api_client::{VpnApiClient, types::VpnApiAccount};
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
@@ -36,6 +36,13 @@ pub fn mock_user_agent() -> nym_http_api_client::UserAgent {
 
 pub fn mock_mnemonic() -> Mnemonic {
     Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap()
+}
+
+pub fn mock_account_id() -> String {
+    VpnApiAccount::try_from(mock_mnemonic())
+        .unwrap()
+        .id()
+        .to_string()
 }
 
 /// Mock connectivity monitor to simulate offline mode
@@ -152,6 +159,15 @@ pub struct TestBench {
 impl TestBench {
     /// Sets up a new testbench. The VPN API has no route
     pub async fn new() -> anyhow::Result<TestBench> {
+        Self::new_with_credential(true).await
+    }
+
+    /// Sets up a new testbench without credential, for easier setup. The VPN API has no route
+    pub async fn new_no_credentials() -> anyhow::Result<TestBench> {
+        Self::new_with_credential(false).await
+    }
+
+    async fn new_with_credential(credential_enabled: bool) -> anyhow::Result<TestBench> {
         // Setup storage
         let storage = MockEphemeralStorage::default();
 
@@ -166,7 +182,7 @@ impl TestBench {
         let tempdir = tempfile::tempdir()?;
         let account_controller_config = AccountControllerConfig {
             data_dir: tempdir.path().to_owned(),
-            credentials_mode: Some(true),
+            credentials_mode: Some(credential_enabled),
             network_env: Network::mainnet_default().unwrap(),
         };
 

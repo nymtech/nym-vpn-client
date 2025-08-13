@@ -5,7 +5,8 @@ use nym_vpn_api_client::response::{
     NymErrorResponse, NymVpnAccountResponse, NymVpnAccountStatusResponse,
     NymVpnAccountSummaryDevices, NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
     NymVpnAccountSummarySubscription, NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice,
-    NymVpnDeviceStatus, NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus,
+    NymVpnDeviceStatus, NymVpnDevicesResponse, NymVpnSubscription, NymVpnSubscriptionKind,
+    NymVpnSubscriptionStatus, NymVpnUsage, NymVpnUsagesResponse,
 };
 
 const MAX_DEVICE_NB: u64 = 10;
@@ -119,5 +120,44 @@ pub fn unrelated_error() -> NymErrorResponse {
         message_id: Some("nym-vpn-website.public-api.access-denied".to_string()),
         code_reference_id: Some("55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".to_string()),
         status: "access_denied".to_string(),
+    }
+}
+
+pub fn mock_usage_response() -> NymVpnUsagesResponse {
+    NymVpnUsagesResponse {
+        total_items: 1,
+        page: 1,
+        page_size: 1,
+        items: vec![NymVpnUsage {
+            created_on_utc: "whatever".into(),
+            last_updated_utc: "whatever".into(),
+            id: "whatever".into(),
+            subscription_id: "whatever".into(),
+            valid_until_utc: "whatever".into(),
+            valid_from_utc: "whatever".into(),
+            bandwidth_allowance_gb: 2000f64,
+            bandwidth_used_gb: 20f64,
+        }],
+    }
+}
+
+pub fn mock_devices_response() -> NymVpnDevicesResponse {
+    NymVpnDevicesResponse {
+        total_items: 2,
+        page: 1,
+        page_size: 2,
+        items: vec![
+            mock_api_device(NymVpnDeviceStatus::Active),
+            mock_api_device(NymVpnDeviceStatus::Inactive),
+        ],
+    }
+}
+
+pub fn mock_active_devices_response() -> NymVpnDevicesResponse {
+    NymVpnDevicesResponse {
+        total_items: 1,
+        page: 1,
+        page_size: 1,
+        items: vec![mock_api_device(NymVpnDeviceStatus::Active)],
     }
 }

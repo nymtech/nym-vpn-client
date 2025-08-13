@@ -1,0 +1,443 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use crate::common::mock_account_id;
+use crate::common::{TestBench, account_summary::*, endpoints, mock_mnemonic};
+
+use nym_vpn_account_controller::AvailableTicketbooks;
+use nym_vpn_lib_types::AccountControllerState;
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+
+#[tokio::test]
+async fn logged_out_state_command() -> anyhow::Result<()> {
+    // Get the test_bench without credential for easier testing
+    let mut test_bench = TestBench::new_no_credentials().await?;
+
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .background_refresh_account_state()
+            .await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+
+    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
+    assert_eq!(
+        test_bench.command_sender.get_stored_mnemonic().await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_device_identity().await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+
+    assert_eq!(
+        test_bench.command_sender.get_active_devices().await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_available_tickets().await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_devices().await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_usage().await,
+        Err(AccountCommandError::NoAccountStored)
+    );
+
+    assert_eq!(
+        test_bench.command_sender.reset_device_identity(None).await,
+        Ok(())
+    );
+    assert_eq!(
+        test_bench
+            .command_sender
+            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .await,
+        Ok(())
+    );
+
+    assert!(
+        test_bench
+            .command_sender
+            .create_account_command()
+            .await
+            .is_ok()
+    );
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    test_bench.forget_account().await?; // Resetting back to logged out
+
+    assert!(
+        test_bench
+            .command_sender
+            .store_account(mock_mnemonic())
+            .await
+            .is_ok()
+    );
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn offline_state_command() -> anyhow::Result<()> {
+    // Get the test_bench without credential for easier testing
+    let mut test_bench = TestBench::new_no_credentials().await?;
+
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    // Straight up go offline
+    test_bench.go_offline()?;
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .background_refresh_account_state()
+            .await,
+        Err(AccountCommandError::Offline)
+    );
+
+    assert_eq!(
+        test_bench.command_sender.forget_account().await,
+        Err(AccountCommandError::Offline)
+    );
+
+    assert_eq!(
+        test_bench.command_sender.get_active_devices().await,
+        Err(AccountCommandError::Offline)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_available_tickets().await,
+        Err(AccountCommandError::Offline)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_devices().await,
+        Err(AccountCommandError::Offline)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_usage().await,
+        Err(AccountCommandError::Offline)
+    );
+
+    assert_eq!(
+        test_bench.command_sender.reset_device_identity(None).await,
+        Err(AccountCommandError::Offline)
+    );
+    assert_eq!(
+        test_bench
+            .command_sender
+            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .await,
+        Ok(())
+    );
+
+    // Offline, no account stored
+    assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
+    assert_eq!(
+        test_bench.command_sender.get_stored_mnemonic().await,
+        Ok(None)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_device_identity().await,
+        Err(AccountCommandError::NoDeviceStored)
+    );
+
+    // Offline, but storing an account
+    assert!(
+        test_bench
+            .command_sender
+            .store_account(mock_mnemonic())
+            .await
+            .is_ok()
+    );
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    assert_eq!(
+        test_bench.command_sender.get_account_id().await,
+        Ok(Some(mock_account_id()))
+    );
+    assert_eq!(
+        test_bench.command_sender.get_stored_mnemonic().await,
+        Ok(Some(mock_mnemonic()))
+    );
+    assert!(
+        test_bench
+            .command_sender
+            .get_device_identity()
+            .await
+            .is_ok(),
+    ); // Device ID is random so we can only test that there exists one
+
+    // Forget accoung to reset back to no account
+    test_bench.go_online()?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    test_bench.forget_account().await?;
+    test_bench.go_offline()?;
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    assert!(
+        test_bench
+            .command_sender
+            .create_account_command()
+            .await
+            .is_ok()
+    );
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn ready_state_command() -> anyhow::Result<()> {
+    // Get the test_bench without credential for easier testing
+    let mut test_bench = TestBench::new_no_credentials().await?;
+
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::get_usage_200(),
+        endpoints::get_devices_200(),
+        endpoints::get_active_devices_200(),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .background_refresh_account_state()
+            .await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    assert_eq!(
+        test_bench.command_sender.get_account_id().await,
+        Ok(Some(mock_account_id()))
+    );
+    assert_eq!(
+        test_bench.command_sender.get_stored_mnemonic().await,
+        Ok(Some(mock_mnemonic()))
+    );
+    assert!(
+        test_bench
+            .command_sender
+            .get_device_identity()
+            .await
+            .is_ok()
+    );
+
+    assert_eq!(
+        test_bench.command_sender.get_active_devices().await,
+        Ok(mock_active_devices_response().items)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_devices().await,
+        Ok(mock_devices_response().items)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_usage().await,
+        Ok(mock_usage_response().items)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_available_tickets().await,
+        Ok(AvailableTicketbooks {
+            ticketbooks: Vec::new()
+        })
+    );
+
+    assert_eq!(
+        test_bench.command_sender.reset_device_identity(None).await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .await,
+        Ok(())
+    );
+
+    assert_eq!(
+        test_bench.command_sender.create_account_command().await,
+        Err(AccountCommandError::ExistingAccount)
+    );
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .store_account(mock_mnemonic())
+            .await,
+        Err(AccountCommandError::ExistingAccount)
+    );
+
+    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    test_bench
+        .assert_state(AccountControllerState::LoggedOut)
+        .await;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn error_state_command() -> anyhow::Result<()> {
+    // Get the test_bench without credential for easier testing
+    let mut test_bench = TestBench::new_no_credentials().await?;
+
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_max_devices()), // Get one that leads to error state
+        endpoints::get_usage_200(),
+        endpoints::get_devices_200(),
+        endpoints::get_active_devices_200(),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::MaxDeviceReached,
+        ))
+        .await;
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .background_refresh_account_state()
+            .await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::MaxDeviceReached,
+        ))
+        .await;
+
+    assert_eq!(
+        test_bench.command_sender.get_account_id().await,
+        Ok(Some(mock_account_id()))
+    );
+    assert_eq!(
+        test_bench.command_sender.get_stored_mnemonic().await,
+        Ok(Some(mock_mnemonic()))
+    );
+    assert!(
+        test_bench
+            .command_sender
+            .get_device_identity()
+            .await
+            .is_ok()
+    );
+
+    assert_eq!(
+        test_bench.command_sender.get_active_devices().await,
+        Ok(mock_active_devices_response().items)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_devices().await,
+        Ok(mock_devices_response().items)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_usage().await,
+        Ok(mock_usage_response().items)
+    );
+    assert_eq!(
+        test_bench.command_sender.get_available_tickets().await,
+        Ok(AvailableTicketbooks {
+            ticketbooks: Vec::new()
+        })
+    );
+
+    assert_eq!(
+        test_bench.command_sender.reset_device_identity(None).await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::MaxDeviceReached,
+        ))
+        .await;
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .await,
+        Ok(())
+    );
+
+    assert_eq!(
+        test_bench.command_sender.create_account_command().await,
+        Err(AccountCommandError::ExistingAccount)
+    );
+
+    assert_eq!(
+        test_bench
+            .command_sender
+            .store_account(mock_mnemonic())
+            .await,
+        Err(AccountCommandError::ExistingAccount)
+    );
+
+    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    test_bench
+        .assert_state(AccountControllerState::LoggedOut)
+        .await;
+
+    Ok(())
+}
