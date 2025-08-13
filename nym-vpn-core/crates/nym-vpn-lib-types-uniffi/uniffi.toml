@@ -8,8 +8,8 @@ into_custom = "URL(string: {})!"
 from_custom = "String(describing: {})"
 
 [bindings.kotlin]
-cdylib_name = "nym_vpn_lib"
-package_name = "nym_vpn_lib"
+cdylib_name = "nym_vpn_lib_types"
+package_name = "nym_vpn_lib_types"
 
 [bindings.kotlin.custom_types.Url]
 # Name of the type in the Kotlin code
