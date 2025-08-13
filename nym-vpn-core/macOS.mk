@@ -23,5 +23,7 @@ rpc-swift-package:
 	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
 
 clean:
+	cargo clean --target x86_64-apple-darwin
+	cargo clean --target aarch64-apple-darwin
 	rm -rf $(RPC_CRATE_DIR)/NymVPNRpc
 	rm -rf $(RPC_CRATE_DIR)/generated
