@@ -82,21 +82,34 @@ fn parse_lsb_release() -> Option<String> {
         })
 }
 
-pub fn extra_metadata() -> impl Iterator<Item = (String, String)> {
+pub fn extra_metadata(kernel: String) -> impl Iterator<Item = (String, String)> {
+    let kernel_version = Some(("kernel_version".to_string(), kernel));
     #[cfg(not(feature = "network-manager"))]
-    let version_cmds = [kernel_version, wg_version, systemd_version];
+    let version_cmds = [wg_version, systemd_version];
     #[cfg(feature = "network-manager")]
-    let version_cmds = [kernel_version, nm_version, wg_version, systemd_version];
+    let version_cmds = [nm_version, wg_version, systemd_version];
+    
 
-    version_cmds.into_iter().filter_map(|f| f())
+    kernel_version.into_iter().chain(
+         version_cmds.into_iter().filter_map(|f| f())
+    ) 
 }
+
+// pub fn extra_metadata() -> impl Iterator<Item = (String, String)> {
+    // #[cfg(not(feature = "network-manager"))]
+    // let version_cmds = [kernel_version, wg_version, systemd_version];
+    // #[cfg(feature = "network-manager")]
+    // let version_cmds = [kernel_version, nm_version, wg_version, systemd_version];
+    
+    // version_cmds.into_iter().filter_map(|f| f())
+// }
 
 /// `uname -r` outputs a single line containing only the kernel version:
 /// > 5.9.15
-fn kernel_version() -> Option<(String, String)> {
-    let kernel = command_stdout_lossy("uname", &["-r"]).ok()?;
-    Some(("kernel".to_string(), kernel))
-}
+// fn kernel_version() -> Option<(String, String)> {
+//     let kernel = command_stdout_lossy("uname", &["-r"]).ok()?;
+//     Some(("kernel".to_string(), kernel))
+// }
 
 /// NetworkManager's version is returned as a numeric version string
 /// > 1.26.0

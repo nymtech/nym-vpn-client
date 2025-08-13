@@ -253,6 +253,6 @@ fn log_software_and_os_version() {
         build_info.commit_sha
     );
 
-    let os = nym_vpn_lib::SysInfo::new();
+    let os = nym_platform_metadata::SysInfo::new();
     os.display(true);
 }

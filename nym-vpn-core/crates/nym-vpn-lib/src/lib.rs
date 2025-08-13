@@ -19,8 +19,6 @@ use std::{net::IpAddr, sync::LazyLock};
 
 use hickory_resolver::config::NameServerConfigGroup;
 use itertools::Itertools;
-use nym_platform_metadata::version;
-use tracing::info;
 
 // Re-export some our nym dependencies
 pub use nym_authenticator_client::Error as AuthenticatorClientError;
@@ -91,50 +89,50 @@ pub struct MixnetExitConnectionInfo {
     pub ips: IpPair,
 }
 
-pub struct SysInfo {
-    pub os_version: String,
-    pub arch: String,
-    pub extra: Vec<String>,
-}
+// pub struct SysInfo {
+//     pub os_version: String,
+//     pub arch: String,
+//     pub extra: Vec<String>,
+// }
 
-impl SysInfo {
-    pub fn new() -> Self {
-        let os_version = version();
-        let arch = std::env::consts::ARCH.to_string();
-        let extra_metadata = nym_platform_metadata::extra_metadata()
-            .map(|(k, v)| format!("{k}: {v}"))
-            .collect::<Vec<_>>();
+// impl SysInfo {
+//     pub fn new() -> Self {
+//         let os_version = version();
+//         let arch = std::env::consts::ARCH.to_string();
+//         let extra_metadata = nym_platform_metadata::extra_metadata()
+//             .map(|(k, v)| format!("{k}: {v}"))
+//             .collect::<Vec<_>>();
 
-        SysInfo {
-            os_version,
-            arch,
-            extra: extra_metadata,
-        }
-    }
+//         SysInfo {
+//             os_version,
+//             arch,
+//             extra: extra_metadata,
+//         }
+//     }
 
-    pub fn display(&self, print_extra: bool) {
-        info!("os version: {}", self.os_version);
-        info!("os arch: {}", self.arch);
-        if print_extra {
-            for info in &self.extra {
-                info!("os {info}");
-            }
-        }
-    }
+//     pub fn display(&self, print_extra: bool) {
+//         info!("os version: {}", self.os_version);
+//         info!("os arch: {}", self.arch);
+//         if print_extra {
+//             for info in &self.extra {
+//                 info!("os {info}");
+//             }
+//         }
+//     }
 
-    pub fn raw_display(&self, print_extra: bool) {
-        println!("os version: {}", self.os_version);
-        println!("os arch: {}", self.arch);
-        if print_extra {
-            for info in &self.extra {
-                println!("os {info}");
-            }
-        }
-    }
-}
+//     pub fn raw_display(&self, print_extra: bool) {
+//         println!("os version: {}", self.os_version);
+//         println!("os arch: {}", self.arch);
+//         if print_extra {
+//             for info in &self.extra {
+//                 println!("os {info}");
+//             }
+//         }
+//     }
+// }
 
-impl Default for SysInfo {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// impl Default for SysInfo {
+//     fn default() -> Self {
+//         Self::new()
+//     }
+// }

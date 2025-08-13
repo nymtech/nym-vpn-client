@@ -54,7 +54,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
             scope.set_tag("gpu", os.gpu.as_ref());
         }
         scope.set_user(Some(User {
-            id: Some(os.hash_identifier()), // anonymized user identifier
+            id: Some(os.hasher.clone()), // anonymized user identifier
             ip_address: None,
             ..Default::default()
         }));
