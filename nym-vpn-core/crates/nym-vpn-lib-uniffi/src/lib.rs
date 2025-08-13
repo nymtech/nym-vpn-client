@@ -61,17 +61,18 @@ mod stats;
 mod tunnel_provider;
 mod user_agent;
 
-use std::{env, sync::Arc};
+use std::{
+    env,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    sync::Arc,
+};
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use lazy_static::lazy_static;
 use nym_gateway_directory::{CachingGatewayClient, GatewayClient};
 use nym_vpn_api_client::types::ScoreThresholds;
 use sentry::ClientInitGuard;
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    path::PathBuf,
-};
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;

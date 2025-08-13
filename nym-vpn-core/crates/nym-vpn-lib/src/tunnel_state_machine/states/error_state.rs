@@ -25,9 +25,7 @@ use nym_common::trace_err_chain;
 use nym_firewall::FirewallPolicy;
 
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::OSTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::TunnelSettings;
+use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
