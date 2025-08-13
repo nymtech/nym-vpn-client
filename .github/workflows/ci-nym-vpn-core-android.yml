@@ -72,9 +72,9 @@ jobs:
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarning
+          cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib-uniffi -- -Dwarning
 
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo ndk -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+          cargo ndk -t aarch64-linux-android -o ./build build -p nym-vpn-lib-uniffi
