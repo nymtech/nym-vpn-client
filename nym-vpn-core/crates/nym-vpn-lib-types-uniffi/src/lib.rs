@@ -16,6 +16,7 @@ mod tunnel_state_machine;
 mod user_agent;
 mod vpn_api_client;
 
+// Uses wildcard imports to pick up generated uniffi constants
 pub use account_controller::*;
 pub use error::*;
 pub use gateway_directory::*;
