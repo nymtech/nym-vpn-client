@@ -4,7 +4,9 @@
 #[cfg(target_os = "ios")]
 pub mod ios;
 
-use std::{net::IpAddr, sync::Arc};
+use std::net::IpAddr;
+#[cfg(target_os = "android")]
+use std::sync::Arc;
 
 use ipnetwork::IpNetwork;
 
