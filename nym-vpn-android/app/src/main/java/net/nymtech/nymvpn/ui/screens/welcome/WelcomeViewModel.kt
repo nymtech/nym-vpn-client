@@ -21,4 +21,8 @@ constructor(
 	fun onMonitoringEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setSentryMonitoring(enabled)
 	}
+
+	fun onContinueClicked() = viewModelScope.launch {
+		settingsRepository.setWelcomeScreenCompleted()
+	}
 }

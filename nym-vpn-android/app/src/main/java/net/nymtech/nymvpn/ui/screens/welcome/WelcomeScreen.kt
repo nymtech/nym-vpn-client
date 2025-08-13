@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.welcome
 
-import android.Manifest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -15,6 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.welcome.components.ContinueButtonSection
+import net.nymtech.nymvpn.ui.screens.welcome.components.SettingsSection
+import net.nymtech.nymvpn.ui.screens.welcome.components.WelcomeSection
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -22,16 +25,26 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun WelcomeScreen(appUiState: AppUiState, viewModel: WelcomeViewModel = hiltViewModel()) {
 
 	val padding = WindowInsets.systemBars.asPaddingValues()
+	val navController = LocalNavController.current
 
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.spacedBy(40.dp.scaledHeight(), Alignment.Bottom),
 		modifier = Modifier
 			.fillMaxSize()
 			.imePadding()
 			.padding(horizontal = 24.dp.scaledWidth())
 			.padding(padding),
 	) {
-
+		WelcomeSection(modifier = Modifier
+			.padding(vertical = 24.dp.scaledHeight())
+			.weight(1f))
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
+			modifier = Modifier.padding(vertical = 24.dp.scaledHeight()),
+		) {
+			SettingsSection(appUiState, viewModel)
+			ContinueButtonSection(navController, viewModel)
+		}
 	}
 }

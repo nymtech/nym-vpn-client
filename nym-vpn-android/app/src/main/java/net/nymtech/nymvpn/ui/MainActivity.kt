@@ -65,6 +65,7 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
+import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -248,7 +249,7 @@ class MainActivity : AppCompatActivity() {
 									ScannerScreen()
 								}
 								composable<Route.Welcome> {
-									DeveloperScreen(appState, appViewModel)
+									WelcomeScreen(appState)
 								}
 							}
 						}
