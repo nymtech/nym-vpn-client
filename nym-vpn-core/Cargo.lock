@@ -5173,6 +5173,7 @@ dependencies = [
  "nym-credentials",
  "nym-credentials-interface",
  "nym-ecash-time",
+ "nym-http-api-client",
  "nym-offline-monitor",
  "nym-sdk",
  "nym-vpn-api-client",
