@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 
 interface SettingsRepository {
 

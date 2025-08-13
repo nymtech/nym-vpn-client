@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.service.gateway
 
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import nym_vpn_lib.GatewayType
+import nym_vpn_lib_types.GatewayType
 import timber.log.Timber
 import javax.inject.Inject
 

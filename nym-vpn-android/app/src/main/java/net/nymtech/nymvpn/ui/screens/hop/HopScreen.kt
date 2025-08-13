@@ -69,7 +69,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib.GatewayType
+import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)

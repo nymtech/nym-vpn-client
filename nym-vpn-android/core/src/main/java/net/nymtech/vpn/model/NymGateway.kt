@@ -2,11 +2,11 @@ package net.nymtech.vpn.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.GatewayInfo
-import nym_vpn_lib.NodeIdentity
-import nym_vpn_lib.Score
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewayInfo
+import nym_vpn_lib_types.NodeIdentity
+import nym_vpn_lib_types.Score
 
 @Serializable
 data class NymGateway(

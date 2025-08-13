@@ -13,8 +13,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import nym_vpn_lib.ConnectionData
-import nym_vpn_lib.TunnelConnectionData
+import nym_vpn_lib_types.ConnectionData
+import nym_vpn_lib_types.TunnelConnectionData
 
 @Composable
 fun ConnectionDataDisplay(connectionData: ConnectionData) {

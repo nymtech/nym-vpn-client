@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.manager.backend.model
 
-import nym_vpn_lib.ConnectionEvent
+import nym_vpn_lib_types.ConnectionEvent
 
 data class MixnetConnectionState(
 	val ipv6State: ConnectionEvent = ConnectionEvent.ENTRY_GATEWAY_DOWN,

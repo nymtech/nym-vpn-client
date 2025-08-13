@@ -14,7 +14,7 @@ import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
-import nym_vpn_lib.GatewayType
+import nym_vpn_lib_types.GatewayType
 import timber.log.Timber
 import java.text.Collator
 import javax.inject.Inject

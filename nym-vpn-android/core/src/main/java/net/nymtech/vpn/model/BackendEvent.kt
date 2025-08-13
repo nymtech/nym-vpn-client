@@ -1,7 +1,7 @@
 package net.nymtech.vpn.model
 
-import nym_vpn_lib.MixnetEvent
-import nym_vpn_lib.TunnelState
+import nym_vpn_lib_types.MixnetEvent
+import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib.VpnException
 
 sealed class BackendEvent {
