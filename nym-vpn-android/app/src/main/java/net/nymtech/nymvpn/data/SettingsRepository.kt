@@ -51,9 +51,9 @@ interface SettingsRepository {
 
 	suspend fun setLocale(locale: String)
 
-	suspend fun setBatteryOptSkipped(skip: Boolean)
+	suspend fun setBatteryDialogSkipped(skip: Boolean)
 
-	suspend fun getBatteryOptSkipped(): Boolean
+	suspend fun isBatteryDialogSkipped(): Boolean
 
 	suspend fun getSentryMonitoringEnabled(): Boolean
 
@@ -63,9 +63,13 @@ interface SettingsRepository {
 
 	suspend fun setStatisticsEnabled(enabled: Boolean)
 
-	suspend fun setStatisticsSkipped(skip: Boolean)
+	suspend fun setStatsDialogSkipped(skip: Boolean)
 
-	suspend fun getStatisticsSkipped(): Boolean
+	suspend fun isStatsDialogSkipped(): Boolean
+
+	suspend fun setWelcomeScreenCompleted()
+
+	suspend fun isWelcomeScreenCompleted(): Boolean
 
 	val settingsFlow: Flow<Settings>
 }

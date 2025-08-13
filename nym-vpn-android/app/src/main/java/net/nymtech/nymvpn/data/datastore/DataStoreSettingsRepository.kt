@@ -29,10 +29,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val locale = stringPreferencesKey("LOCALE")
-	private val batteryOptSkip = booleanPreferencesKey("BATTERY_OPT_SKIP")
+	private val batteryDialogSkip = booleanPreferencesKey("BATTERY_DIALOG_SKIP")
 	private val sentryEnabled = booleanPreferencesKey("SENTRY_ENABLED")
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
-	private val statsSkipped = booleanPreferencesKey("STATISTICS_SKIPPED")
+	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
+	private val welcomeScreenCompleted = booleanPreferencesKey("WELCOME_SCREEN_COMPLETE")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -136,12 +137,12 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.locale, locale)
 	}
 
-	override suspend fun setBatteryOptSkipped(skip: Boolean) {
-		dataStoreManager.saveToDataStore(this.batteryOptSkip, skip)
+	override suspend fun setBatteryDialogSkipped(skip: Boolean) {
+		dataStoreManager.saveToDataStore(this.batteryDialogSkip, skip)
 	}
 
-	override suspend fun getBatteryOptSkipped(): Boolean {
-		return dataStoreManager.getFromStore(batteryOptSkip) ?: Settings.DEFAULT_BATTERY_OPT_SKIP
+	override suspend fun isBatteryDialogSkipped(): Boolean {
+		return dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
 	}
 
 	override suspend fun getSentryMonitoringEnabled(): Boolean {
@@ -160,12 +161,20 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.statsEnabled, enabled)
 	}
 
-	override suspend fun getStatisticsSkipped(): Boolean {
-		return dataStoreManager.getFromStore(statsSkipped) ?: Settings.DEFAULT_STATS_SKIPPED
+	override suspend fun isStatsDialogSkipped(): Boolean {
+		return dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
 	}
 
-	override suspend fun setStatisticsSkipped(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.statsSkipped, enabled)
+	override suspend fun setStatsDialogSkipped(skip: Boolean) {
+		dataStoreManager.saveToDataStore(this.statsDialogSkip, skip)
+	}
+
+	override suspend fun setWelcomeScreenCompleted() {
+		dataStoreManager.saveToDataStore(this.welcomeScreenCompleted, true)
+	}
+
+	override suspend fun isWelcomeScreenCompleted(): Boolean {
+		return dataStoreManager.getFromStore(welcomeScreenCompleted) ?: Settings.FLAG_WELCOME_SCREEN_COMPLETED
 	}
 
 	override val settingsFlow: Flow<Settings> =
@@ -189,10 +198,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 						isCredentialMode = pref[credentialMode],
 						locale = pref[locale],
-						batteryOptSkip = pref[batteryOptSkip] ?: Settings.DEFAULT_BATTERY_OPT_SKIP,
+						batteryDialogSkip = pref[batteryDialogSkip] ?: Settings.FLAG_BATTERY_DIALOG_SKIP,
 						sentryEnabled = pref[sentryEnabled] ?: Settings.DEFAULT_SENTRY_ENABLED,
 						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
-						statsSkipped = pref[statsSkipped] ?: Settings.DEFAULT_STATS_SKIPPED,
+						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
+						welcomeScreenCompleted = pref[welcomeScreenCompleted] ?: Settings.FLAG_WELCOME_SCREEN_COMPLETED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)
