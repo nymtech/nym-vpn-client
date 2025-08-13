@@ -203,5 +203,5 @@
 	<string name="notification_stats_enabled">Stats enabled! Your anonymous data helps optimize our network.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_descr">Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via <a href="https://sentry.io/welcome/">Sentry</a>) and analytics, you can opt out anytime. \n\nThanks for your support!</string>
-	<string name="welcome_terms_privacy_text">By continuing, you agree to NymVPN's <a href="https://nym.com/vpn-terms">Terms of use</a> and acknowledge NymVPN's <a href="https://nym.com/vpn-privacy-statement">Privacy policy</a>.</string>
+	<string name="welcome_terms_privacy_text">By continuing, you agree to NymVPN\'s <a href="https://nym.com/vpn-terms">Terms of use</a> and acknowledge NymVPN\'s <a href="https://nym.com/vpn-privacy-statement">Privacy policy</a>.</string>
 </resources>
