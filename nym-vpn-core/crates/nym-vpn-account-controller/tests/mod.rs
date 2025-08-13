@@ -1,36 +1,46 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
-
 use common::account_summary::*;
 use common::endpoints;
+
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::AccountControllerErrorStateReason;
 use nym_vpn_lib_types::AccountControllerState;
 
+use crate::common::TestBench;
+
 mod common;
+
+/// How to use these tests :
+///
+/// 1. Create a TestBench object with TestBench::new.
+/// This will spawn an AccountController that will be stopped on drop. It has a mock API and offline monitor and everything
+/// 2. Use TestBench::register_mocks to give behaviors to the mock VPN API.
+/// Mock are in common::endpoints and some response helpers can be find in the common crate as well
+/// 3. Run your tests by giving commands to the TestBench (e.g. store_mock_account, go_offline)
+///
+/// 4. Use TestBench::assert_state to test the AC state. This takes care of yielding back to the tokio and wait a certain time for the state we're looking for
 
 #[tokio::test]
 async fn offline_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
+    let mut test_bench = TestBench::new().await?;
 
     // Adding behavior to the VPN API
-    test_bench.register_mock(endpoints::synced_health()).await;
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_200(
-            account_with_inactive_sub(),
-        ))
-        .await;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_with_inactive_sub()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
     // Simulating offline mode
-    test_bench.connectivity.go_offline()?;
+    test_bench.go_offline()?;
     test_bench
         .assert_state(AccountControllerState::Offline)
         .await;
 
-    test_bench.connectivity.go_online()?;
+    test_bench.go_online()?;
     test_bench
         .assert_state(AccountControllerState::LoggedOut)
         .await;
@@ -40,12 +50,12 @@ async fn offline_test() -> anyhow::Result<()> {
         .assert_state(AccountControllerState::Syncing)
         .await;
 
-    test_bench.connectivity.go_offline()?;
+    test_bench.go_offline()?;
     test_bench
         .assert_state(AccountControllerState::Offline)
         .await;
 
-    test_bench.connectivity.go_online()?;
+    test_bench.go_online()?;
     test_bench
         .assert_state(AccountControllerState::Syncing)
         .await;
@@ -60,14 +70,16 @@ async fn offline_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn api_error_reponse_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
-    test_bench.register_mock(endpoints::synced_health()).await;
+    let mut test_bench = TestBench::new().await?;
 
-    // Adding behavior to the VPN API
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_403(unrelated_error()))
-        .await;
+    // Adding behaviors to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_403(unrelated_error()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
+    // Commands
     test_bench.store_mock_account().await?;
 
     test_bench
@@ -84,15 +96,14 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn unregistered_account_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
-    test_bench.register_mock(endpoints::synced_health()).await;
+    let mut test_bench = TestBench::new().await?;
 
     // Adding behavior to the VPN API
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_403(
-            unregistered_account(),
-        ))
-        .await;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_403(unregistered_account()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -109,15 +120,14 @@ async fn unregistered_account_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn desynced_device_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
-    test_bench.register_mock(endpoints::desynced_health()).await;
+    let mut test_bench = TestBench::new().await?;
 
     // Adding behavior to the VPN API
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_200(
-            account_ready_to_connect(),
-        ))
-        .await;
+    let mocks = vec![
+        endpoints::desynced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -132,14 +142,14 @@ async fn desynced_device_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn inactive_account_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
-    test_bench.register_mock(endpoints::synced_health()).await;
+    let mut test_bench = TestBench::new().await?;
+
     // Adding behavior to the VPN API
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_200(
-            inactive_account(),
-        ))
-        .await;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(inactive_account()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -156,14 +166,14 @@ async fn inactive_account_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn account_with_max_device_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
-    test_bench.register_mock(endpoints::synced_health()).await;
+    let mut test_bench = TestBench::new().await?;
+
     // Adding behavior to the VPN API
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_200(
-            account_max_devices(),
-        ))
-        .await;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_max_devices()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -178,15 +188,14 @@ async fn account_with_max_device_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
-    test_bench.register_mock(endpoints::synced_health()).await;
+    let mut test_bench = TestBench::new().await?;
 
     // Adding behavior to the VPN API
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_200(
-            account_no_fair_usage(),
-        ))
-        .await;
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_no_fair_usage()),
+    ];
+    test_bench.register_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -201,22 +210,68 @@ async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn full_test() -> anyhow::Result<()> {
+async fn zk_nym_issuance_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = common::mock_account_controller().await?;
+    let mut test_bench = TestBench::new().await?;
 
-    // Adding behaviors to the VPN API
-    test_bench.register_mock(endpoints::synced_health()).await;
-    test_bench
-        .register_mock(endpoints::account_summary_with_device_200(
-            account_ready_to_connect(),
-        ))
-        .await;
-    test_bench.register_mock(endpoints::zknym_200()).await;
+    let credential_proxy = test_bench.credential_proxy.clone();
 
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    // Commands start there
     test_bench.store_mock_account().await?;
 
-    // THis shouldn't work wtf?
+    // Resulting state
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+    Ok(())
+}
+
+#[tokio::test]
+async fn e2e_new_device_test() -> anyhow::Result<()> {
+    // Get the test_bench
+    let mut test_bench = TestBench::new().await?;
+
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    // Adding behavior to the VPN API
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_with_unregistered_device()),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_mocks(mocks).await;
+
+    // Commands start there
+    test_bench.store_mock_account().await?;
+
+    test_bench.go_offline()?;
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    test_bench.go_online()?;
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+
+    // Resulting state
     test_bench
         .assert_state(AccountControllerState::ReadyToConnect)
         .await;

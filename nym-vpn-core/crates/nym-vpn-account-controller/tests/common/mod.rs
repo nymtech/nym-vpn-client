@@ -3,15 +3,11 @@
 
 use std::time::Duration;
 
-use nym_crypto::asymmetric::ed25519;
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
 };
-use nym_vpn_api_client::{
-    VpnApiClient,
-    types::{Device, VpnApiAccount},
-};
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
@@ -20,11 +16,13 @@ use nym_vpn_store::{
 };
 use wiremock::{Mock, MockServer};
 
-use rand_chacha::rand_core::SeedableRng;
 use tokio::{sync::watch, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
+use crate::common::credential_proxy::MockCredentialProxy;
+
 pub mod account_summary;
+pub mod credential_proxy;
 pub mod endpoints;
 
 pub fn mock_user_agent() -> nym_http_api_client::UserAgent {
@@ -40,19 +38,10 @@ pub fn mock_mnemonic() -> Mnemonic {
     Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap()
 }
 
-pub fn mock_vpn_account() -> anyhow::Result<VpnApiAccount> {
-    Ok(VpnApiAccount::try_from(mock_mnemonic())?)
-}
-
-pub fn mock_vpn_device() -> Device {
-    let mut rng = rand_chacha::ChaCha20Rng::from_seed([42; 32]);
-    ed25519::KeyPair::new(&mut rng).into()
-}
-
 #[derive(Clone)]
 pub struct MockConnectivityHandle {
     current_state: Connectivity,
-    connectivity_channel: (watch::Sender<Connectivity>, watch::Receiver<Connectivity>),
+    pub connectivity_channel: (watch::Sender<Connectivity>, watch::Receiver<Connectivity>),
 }
 
 impl MockConnectivityHandle {
@@ -66,22 +55,6 @@ impl MockConnectivityHandle {
             current_state,
             connectivity_channel,
         }
-    }
-
-    pub fn go_offline(&self) -> anyhow::Result<()> {
-        self.connectivity_channel.0.send(Connectivity::Status {
-            ipv4: false,
-            ipv6: false,
-        })?;
-        Ok(())
-    }
-
-    pub fn go_online(&self) -> anyhow::Result<()> {
-        self.connectivity_channel.0.send(Connectivity::Status {
-            ipv4: true,
-            ipv6: true,
-        })?;
-        Ok(())
     }
 }
 
@@ -147,62 +120,67 @@ impl MnemonicStorage for MockEphemeralStorage {
     }
 }
 
-pub async fn mock_account_controller() -> anyhow::Result<TestBench> {
-    // Setup storage
-    let storage = MockEphemeralStorage::default();
-
-    // Setup offline monitor
-    let connectivity = MockConnectivityHandle::new();
-
-    // Setup mock server. Route behavior has to be done by the actual tests
-    let vpn_api_server = MockServer::start().await;
-    let nym_vpn_api_client = VpnApiClient::new(vpn_api_server.uri().parse()?, mock_user_agent())?;
-
-    let tempdir = tempfile::tempdir()?;
-    let account_controller_config = AccountControllerConfig {
-        data_dir: tempdir.path().to_owned(),
-        credentials_mode: Some(true),
-        network_env: Network::mainnet_default().unwrap(),
-    };
-
-    let shutdown_token = CancellationToken::new();
-
-    let account_controller = AccountController::new(
-        nym_vpn_api_client,
-        account_controller_config,
-        storage,
-        connectivity.clone(),
-        shutdown_token.child_token(),
-    )
-    .await?;
-
-    let command_sender = account_controller.get_command_sender();
-    let state_receiver = account_controller.get_state_receiver();
-
-    let _account_controller_handle = tokio::task::spawn(account_controller.run());
-
-    Ok(TestBench {
-        _account_controller_handle,
-        _tempdir: tempdir,
-        command_sender,
-        state_receiver,
-        connectivity,
-        vpn_api_server,
-        _drop_guard: shutdown_token.drop_guard(),
-    })
-}
-
 pub struct TestBench {
     pub _account_controller_handle: JoinHandle<()>,
-    pub _tempdir: tempfile::TempDir, // so the directy isn't deleted before the tests
+    pub _tempdir: tempfile::TempDir, // so the directory isn't deleted before the tests
     pub command_sender: AccountCommandSender,
     pub state_receiver: AccountStateReceiver,
     pub connectivity: MockConnectivityHandle,
     pub vpn_api_server: MockServer,
+    pub credential_proxy: MockCredentialProxy,
     pub _drop_guard: DropGuard,
 }
 
 impl TestBench {
+    pub async fn new() -> anyhow::Result<TestBench> {
+        // Setup storage
+        let storage = MockEphemeralStorage::default();
+
+        // Setup offline monitor
+        let connectivity = MockConnectivityHandle::new();
+
+        // Setup mock server. Route behavior has to be done by the actual tests
+        let vpn_api_server = MockServer::start().await;
+        let nym_vpn_api_client =
+            VpnApiClient::new(vpn_api_server.uri().parse()?, mock_user_agent())?;
+
+        let tempdir = tempfile::tempdir()?;
+        let account_controller_config = AccountControllerConfig {
+            data_dir: tempdir.path().to_owned(),
+            credentials_mode: Some(true),
+            network_env: Network::mainnet_default().unwrap(),
+        };
+
+        let credential_proxy = MockCredentialProxy::new()?;
+
+        let shutdown_token = CancellationToken::new();
+
+        let account_controller = AccountController::new(
+            nym_vpn_api_client,
+            account_controller_config,
+            storage,
+            connectivity.clone(),
+            shutdown_token.child_token(),
+        )
+        .await?;
+
+        let command_sender = account_controller.get_command_sender();
+        let state_receiver = account_controller.get_state_receiver();
+
+        let _account_controller_handle = tokio::task::spawn(account_controller.run());
+
+        Ok(TestBench {
+            _account_controller_handle,
+            _tempdir: tempdir,
+            command_sender,
+            state_receiver,
+            connectivity,
+            vpn_api_server,
+            credential_proxy,
+            _drop_guard: shutdown_token.drop_guard(),
+        })
+    }
+
     // This is needed to avoid tokio::sleep and yield_now everywhere
     /// Wait 5 seconds for the given state. Returns True if is was reached, False otherwise
     pub async fn assert_state(&mut self, expected_state: AccountControllerState) {
@@ -219,6 +197,28 @@ impl TestBench {
         assert_eq!(self.state_receiver.get_state(), expected_state);
     }
 
+    pub fn go_offline(&self) -> anyhow::Result<()> {
+        self.connectivity
+            .connectivity_channel
+            .0
+            .send(Connectivity::Status {
+                ipv4: false,
+                ipv6: false,
+            })?;
+        Ok(())
+    }
+
+    pub fn go_online(&self) -> anyhow::Result<()> {
+        self.connectivity
+            .connectivity_channel
+            .0
+            .send(Connectivity::Status {
+                ipv4: true,
+                ipv6: true,
+            })?;
+        Ok(())
+    }
+
     pub async fn store_mock_account(&self) -> anyhow::Result<()> {
         self.command_sender.store_account(mock_mnemonic()).await?;
         Ok(())
@@ -229,7 +229,9 @@ impl TestBench {
         Ok(())
     }
 
-    pub async fn register_mock(&self, mock: Mock) {
-        self.vpn_api_server.register(mock).await
+    pub async fn register_mocks(&self, mocks: Vec<Mock>) {
+        for mock in mocks {
+            self.vpn_api_server.register(mock).await
+        }
     }
 }
