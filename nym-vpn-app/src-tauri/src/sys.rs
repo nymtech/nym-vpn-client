@@ -1,6 +1,5 @@
 use nym_platform_metadata::SysInfo;
 use serde::Serialize;
-use std::env;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use std::process::Command;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
