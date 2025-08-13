@@ -5,9 +5,11 @@ include reproducible_builds.mk
 # Minimum deployment targets for macOS
 export MACOSX_DEPLOYMENT_TARGET = 10.13
 
+RELEASE ?= true
+RELEASE_FLAG :=
+
 ifeq ($(RELEASE), true)
 RELEASE_FLAG := --release
-TARGET_DIR := release
 endif
 
 RPC_CRATE_DIR := $(CURDIR)/crates/nym-vpn-rpc-uniffi
@@ -18,7 +20,7 @@ all: rpc-swift-package
 
 rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
-	cargo swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi --release
+	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
 
 clean:
 	rm -rf $(RPC_CRATE_DIR)/NymVPNRpc

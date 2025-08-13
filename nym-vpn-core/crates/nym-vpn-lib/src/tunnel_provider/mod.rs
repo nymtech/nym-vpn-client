@@ -1,9 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "ios")]
 pub mod ios;
 
-use std::net::IpAddr;
+use std::{net::IpAddr, sync::Arc};
 
 use ipnetwork::IpNetwork;
 
@@ -23,9 +24,9 @@ pub trait ConnectivityObserver: Send + Sync + std::fmt::Debug {
 }
 
 #[cfg(target_os = "android")]
-pub trait AndroidTunProvider: Send + Sync + Debug {
+pub trait AndroidTunProvider: Send + Sync + std::fmt::Debug {
     fn bypass(&self, socket: i32);
-    fn configure_tunnel(&self, config: TunnelSettings) -> std::io::Result<RawFd>;
+    fn configure_tunnel(&self, config: TunnelSettings) -> std::io::Result<std::os::fd::RawFd>;
 
     fn add_connectivity_observer(&self, observer: Arc<dyn ConnectivityObserver>);
     fn remove_connectivity_observer(&self, observer: Arc<dyn ConnectivityObserver>);

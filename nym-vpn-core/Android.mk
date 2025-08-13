@@ -1,3 +1,5 @@
+# Makefile used for building `nym-vpn-lib` for Android
+
 # cargo ndk always builds for Linux/Android
 OS := Linux
 include reproducible_builds.mk
@@ -30,7 +32,7 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(JNI_LIBS_DIR)/arm64-v8a/libwg.so build uniffi $(LICENSES_FILE)
 
 build:
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 
 uniffi: build
 	cargo run --bin uniffi-bindgen generate \

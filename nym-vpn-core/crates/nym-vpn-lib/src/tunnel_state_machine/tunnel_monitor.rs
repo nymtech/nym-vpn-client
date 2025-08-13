@@ -61,10 +61,10 @@ use nym_vpn_lib_types::{
 use super::tunnel::wireguard::connected_tunnel::{
     NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
 };
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
