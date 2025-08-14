@@ -26,7 +26,7 @@ use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
 #[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
+use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 use crate::{

@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod account;
-#[cfg(target_os = "android")]
-mod android_connectivity_adapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod dns_handler;
 mod ipv6_availability;
@@ -56,15 +54,13 @@ use tunnel::SelectedGateways;
 use wintun::SetupWintunAdapterError;
 
 #[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
+use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
+use crate::tunnel_provider::OSTunProvider;
 use crate::{
     GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
     bandwidth_controller::Error as BandwidthControllerError,
 };
-#[cfg(target_os = "android")]
-pub use android_connectivity_adapter::AndroidConnectivityAdapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

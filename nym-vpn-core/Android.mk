@@ -1,3 +1,5 @@
+# Makefile used for building `nym-vpn-lib` for Android
+
 # cargo ndk always builds for Linux/Android
 OS := Linux
 include reproducible_builds.mk
@@ -18,7 +20,7 @@ ANDROID_DIR := $(CURDIR)/../nym-vpn-android
 UNIFFI_OUT_DIR := $(ANDROID_DIR)/core/src/main/java/net/nymtech/vpn
 JNI_LIBS_DIR := $(ANDROID_DIR)/core/src/main/jniLibs
 
-DYNAMIC_LIB_PATH := $(CURDIR)/target/aarch64-linux-android/$(TARGET_DIR)/libnym_vpn_lib.so
+DYNAMIC_LIB_PATH := $(CURDIR)/target/aarch64-linux-android/$(TARGET_DIR)/libnym_vpn_lib_uniffi.so
 WIREGUARD_DIR := $(CURDIR)/../wireguard
 LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 
@@ -30,7 +32,10 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(JNI_LIBS_DIR)/arm64-v8a/libwg.so build uniffi $(LICENSES_FILE)
 
 build:
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	cd $(JNI_LIBS_DIR)/arm64-v8a ; \
+	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so ; \
+	mv libnym_vpn_lib_types_uniffi.so libnym_vpn_lib_types.so
 
 uniffi: build
 	cargo run --bin uniffi-bindgen generate \

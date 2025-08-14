@@ -42,6 +42,8 @@
 //!    This will stop the account controller and clean up any resources, including make sure there
 //!    are no open DB connections.
 
+uniffi::setup_scaffolding!();
+
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
@@ -55,37 +57,47 @@ mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
 mod stats;
-mod uniffi_custom_impls;
-mod uniffi_lib_types;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+mod tunnel_provider;
+mod user_agent;
 
-use std::{env, path::PathBuf, sync::Arc};
+use std::{
+    env,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    sync::Arc,
+};
 
-use account::AccountControllerHandle;
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use lazy_static::lazy_static;
-use nym_gateway_directory::CachingGatewayClient;
+use nym_gateway_directory::{CachingGatewayClient, GatewayClient};
 use nym_platform_metadata::SysInfo;
 use nym_vpn_api_client::types::ScoreThresholds;
 use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
-use crate::{
-    gateway_directory::GatewayClient,
-    platform::{
-        offline_monitor::OfflineMonitorHandle, stats::StatisticsControllerHandle,
-        uniffi_custom_impls::NetworkCompatibility,
-    },
+use account::AccountControllerHandle;
+use nym_vpn_lib_types_uniffi::{
+    AccountControllerState, AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType,
+    Location, NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage,
+    TunnelEvent, UserAgent,
 };
+use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;
-use uniffi_custom_impls::{
-    AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location, NetworkEnvironment,
-    RegisterAccountResponse, SystemMessage, UserAgent,
-};
-use uniffi_lib_types::{AccountControllerState, TunnelEvent};
+use stats::StatisticsControllerHandle;
+#[cfg(target_os = "android")]
+use tunnel_provider::android::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use tunnel_provider::ios::OSTunProvider;
+
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpAddr);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpNetwork);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Network);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Network);
+uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::PathBuf);
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();

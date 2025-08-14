@@ -8,9 +8,6 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
-[lib]
-crate-type = ["cdylib", "lib", "staticlib"]
-
 [lints]
 workspace = true
 
@@ -26,10 +23,7 @@ hickory-resolver = { workspace = true, features = [
 ] }
 ipnetwork.workspace = true
 itertools.workspace = true
-lazy_static.workspace = true
 log.workspace = true
-rand.workspace = true
-sysinfo.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -40,10 +34,8 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec", "rt"] }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 tun = { workspace = true, features = ["async"] }
-uniffi.workspace = true
 url.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
@@ -68,22 +60,12 @@ nym-macos.workspace = true
 nym-offline-monitor.workspace = true
 nym-statistics.workspace = true
 nym-vpn-account-controller.workspace = true
-nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
 nym-platform-metadata.workspace = true
-sentry = { workspace = true, features = [
-    "backtrace",
-    "contexts",
-    "panic",
-    "reqwest",
-    "rustls",
-    "tracing",
-    "logs",
-] }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = [
@@ -120,7 +102,6 @@ debounced.workspace = true
 dispatch2.workspace = true
 
 [build-dependencies]
-uniffi = { workspace = true, features = ["build"] }
 vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",
     "cargo",

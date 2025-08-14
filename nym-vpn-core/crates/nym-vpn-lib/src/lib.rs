@@ -1,15 +1,11 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-uniffi::setup_scaffolding!();
-
 pub mod storage;
-pub mod util;
 
 mod bandwidth_controller;
 mod error;
 mod mixnet;
-mod platform;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod tunnel_provider;
 pub mod tunnel_state_machine;
@@ -36,10 +32,8 @@ pub use nym_task::{
 };
 pub use nym_wg_gateway_client as wg_gateway_client;
 
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub use crate::platform::swift;
 pub use crate::{
-    error::{Error, GatewayDirectoryError},
+    error::GatewayDirectoryError,
     mixnet::{MixnetError, VpnTopologyProvider},
 };
 

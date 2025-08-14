@@ -10,8 +10,9 @@ mod tunnel_state;
 
 pub use account::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
-    controller_error::AccountControllerError,
-    controller_error::ErrorStateReason as AccountControllerErrorStateReason,
+    controller_error::{
+        AccountControllerError, ErrorStateReason as AccountControllerErrorStateReason,
+    },
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},

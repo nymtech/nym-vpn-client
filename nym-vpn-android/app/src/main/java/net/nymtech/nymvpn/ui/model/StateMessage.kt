@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.util.StringValue
-import nym_vpn_lib.ErrorStateReason
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib.VpnException
 
 sealed class StateMessage {

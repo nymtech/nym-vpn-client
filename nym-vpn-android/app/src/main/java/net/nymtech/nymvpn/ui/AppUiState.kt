@@ -5,8 +5,8 @@ import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 
 data class AppUiState(
 	val settings: Settings = Settings(),

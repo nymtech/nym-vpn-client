@@ -4,9 +4,9 @@ import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib.AccountLinks
-import nym_vpn_lib.GatewayType
-import nym_vpn_lib.SystemMessage
+import nym_vpn_lib_types.AccountLinks
+import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.SystemMessage
 
 interface BackendManager {
 	suspend fun stopTunnel()

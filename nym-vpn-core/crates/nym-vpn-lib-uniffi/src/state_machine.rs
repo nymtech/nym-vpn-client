@@ -1,16 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use super::TunnelEvent as PlatformTunnelEvent;
-use crate::{
+use nym_vpn_lib::{
     VpnTopologyProvider,
-    platform::offline_monitor,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
@@ -103,16 +104,16 @@ pub(super) async fn start_state_machine(
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
-                let platform_event = PlatformTunnelEvent::from(event);
+                let platform_event = nym_vpn_lib_types_uniffi::TunnelEvent::from(event);
                 (*state_listener).on_event(platform_event);
             }
         }
     });
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    let route_handler = offline_monitor::get_route_handler().await?;
+    let route_handler = crate::offline_monitor::get_route_handler().await?;
 
-    let connectivity_handle = offline_monitor::get_connectivity_handle().await?;
+    let connectivity_handle = crate::offline_monitor::get_connectivity_handle().await?;
 
     gateway_directory_client
         .set_connectivity_handle(connectivity_handle.clone())
@@ -142,8 +143,12 @@ pub(super) async fn start_state_machine(
         connectivity_handle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        config.tun_provider,
+        #[cfg(target_os = "ios")]
+        Arc::new(crate::tunnel_provider::ios::OSTunProviderImpl::new(
+            config.tun_provider,
+        )),
+        #[cfg(target_os = "android")]
+        Arc::new(crate::tunnel_provider::android::AndroidTunProviderImpl::new(config.tun_provider)),
         shutdown_token.child_token(),
     )
     .await?;
