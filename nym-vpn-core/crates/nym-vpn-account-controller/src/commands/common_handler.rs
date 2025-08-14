@@ -88,13 +88,11 @@ async fn handle_get_usage<C: ConnectivityMonitor>(
 
 pub(crate) fn handle_get_device_identity<C: ConnectivityMonitor>(
     shared_state: &SharedAccountState<C>,
-) -> Result<String, AccountCommandError> {
+) -> Result<Option<String>, AccountCommandError> {
     let device = shared_state
         .device
         .as_ref()
-        .ok_or(AccountCommandError::NoDeviceStored)?
-        .identity_key()
-        .to_string();
+        .map(|device| device.identity_key().to_string());
 
     tracing::debug!("Device identity: {device:?}");
     Ok(device)

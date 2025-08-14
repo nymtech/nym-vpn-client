@@ -250,7 +250,7 @@ pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
         .to_string())
 }
 
-pub(super) async fn get_device_id() -> Result<String, VpnError> {
+pub(super) async fn get_device_id() -> Result<Option<String>, VpnError> {
     get_command_sender()
         .await?
         .get_device_identity()
