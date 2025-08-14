@@ -13,9 +13,9 @@ import Home
 import HelperManager
 import NotificationsManager
 import NymLogger
+import MessagesManager
 import Migrations
 import SentryManager
-import SystemMessageManager
 import Theme
 import TunnelStatus
 import UIComponents
@@ -137,7 +137,7 @@ private extension NymVPNDaemonApp {
             try await ConfigurationManager.shared.setup()
             CountriesManager.shared.setup()
             GatewayManager.shared.setup()
-            SystemMessageManager.shared.setup()
+            MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()

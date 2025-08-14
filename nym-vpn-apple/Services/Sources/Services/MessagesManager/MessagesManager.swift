@@ -7,21 +7,21 @@ import MixnetLibrary
 #elseif os(macOS)
 import GRPCManager
 #endif
-import SystemMessageModels
+import MessageModels
 
-public final class SystemMessageManager: ObservableObject {
+public final class MessagesManager: ObservableObject {
     private let appSettings: AppSettings
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
-    private let logger = Logger(label: "SystemMessageManager")
+    private let logger = Logger(label: "MessagesManager")
 
-    private var messages: [NymNetworkMessage] = []
+    private var messages: [SnackBarMessage] = []
     private var timer: Timer?
 
-    public static let shared = SystemMessageManager()
+    public static let shared = MessagesManager()
 
-    @Published public var currentMessage = ""
+    @Published public var currentMessage: SnackBarMessage?
 
 #if os(iOS)
     init(appSettings: AppSettings = .shared) {
@@ -38,22 +38,22 @@ public final class SystemMessageManager: ObservableObject {
 #endif
 
     nonisolated public func setup() {
-        fetchMessages()
+        fetchSystemMessages()
     }
 
     public func processMessages() {
         timer?.invalidate()
 
         guard !messages.isEmpty,
-              let text = messages.first?.message,
-              text.count > 1
+              let message = messages.first,
+              !message.text.isEmpty
         else {
             return
         }
 
-        currentMessage = text
-        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
-            self?.currentMessage = ""
+        currentMessage = message
+        timer = Timer.scheduledTimer(withTimeInterval: 20, repeats: false) { [weak self] _ in
+            self?.currentMessage = nil
         }
     }
 
@@ -63,10 +63,16 @@ public final class SystemMessageManager: ObservableObject {
 
         processMessages()
     }
+
+    public func addAndProcess(_ message: SnackBarMessage) {
+        messages.append(message)
+        processMessages()
+    }
 }
 
-private extension SystemMessageManager {
-    func fetchMessages() {
+// MARK: - System messages -
+private extension MessagesManager {
+    func fetchSystemMessages() {
         Task {
             do {
                 let newMessages: [NymNetworkMessage]
@@ -86,7 +92,10 @@ private extension SystemMessageManager {
 
     func updateMessages(with newMessages: [NymNetworkMessage]) async {
         await MainActor.run {
-            self.messages = newMessages
+            let messages = newMessages.map {
+                SnackBarMessage(text: $0.message, style: .info)
+            }
+            self.messages.append(contentsOf: messages)
         }
     }
 }

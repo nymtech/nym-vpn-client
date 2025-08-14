@@ -115,7 +115,7 @@ private extension ActionDialogView {
 
     @ViewBuilder
     func noButton(text: String) -> some View {
-        GenericButton(title: text, borderOnly: true)
+        GenericButton(title: text, style: .borderOnly)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.impact()
