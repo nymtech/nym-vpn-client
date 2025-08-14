@@ -12,23 +12,22 @@ public struct SettingsListItem: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-                .frame(height: 18)
-            HStack {
+        VStack(alignment: .center, spacing: 0) {
+            HStack(spacing: 0) {
                 iconImage()
                     .padding(.leading, 16)
                 titleSubtitle()
+                    .padding(.horizontal, 16)
                 Spacer()
-                optionalAccessoryImage()
-                optionalToggleView()
+                HStack(spacing: 0) {
+                    optionalAccessoryImage()
+                    optionalToggleView()
+                }
             }
+            .frame(height: 64)
             optionalMultilineLabel()
-            Spacer()
-                .frame(height: 18)
             optionalDivider()
         }
-
         .background {
             NymColor.elevation.opacity(isHovered ? 0.7 : 1)
         }
@@ -40,7 +39,6 @@ public struct SettingsListItem: View {
                 topTrailingRadius: viewModel.topRadius
             )
         )
-        .padding(.horizontal, 16)
         .onTapGesture {
             viewModel.action()
         }
@@ -71,22 +69,22 @@ private extension SettingsListItem {
             Image(imageName, bundle: .module)
                 .renderingMode(.template)
                 .foregroundStyle(NymColor.primary)
-                .padding(.leading, 8)
         } else if let systemImageName = viewModel.systemImageName {
             Image(systemName: systemImageName)
                 .renderingMode(.template)
                 .foregroundStyle(NymColor.primary)
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .padding(.leading, 8)
         }
     }
 
     @ViewBuilder
     func titleSubtitle() -> some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Large.regular)
+
             if let subtitle = viewModel.subtitle {
                 BouncingMarqueeTextView(
                     text: subtitle,
@@ -97,13 +95,14 @@ private extension SettingsListItem {
                 )
             }
         }
-        .padding(.leading, 16)
     }
 
     @ViewBuilder
     func optionalAccessoryImage() -> some View {
         if let imageName = viewModel.accessory.imageName {
             Image(imageName, bundle: .module)
+                .resizable()
+                .frame(width: 24, height: 24)
                 .foregroundStyle(NymColor.primary)
                 .padding(.trailing, 24)
         }

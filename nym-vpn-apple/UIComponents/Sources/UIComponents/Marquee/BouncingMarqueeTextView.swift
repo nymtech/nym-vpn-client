@@ -14,67 +14,93 @@ public struct BouncingMarqueeTextView: View {
     @State private var isReversing = false
 
     public var body: some View {
-        GeometryReader { geo in
-            HStack {
-                Text(text)
-                    .foregroundStyle(fontColor)
-                    .textStyle(textStyle)
-                    .fixedSize()
-                    .background(
-                        GeometryReader { textGeo in
-                            Color.clear
-                                .onAppear {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                        textWidth = textGeo.size.width
-                                        containerWidth = geo.size.width
+        Text(" ")
+            .textStyle(textStyle)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            containerWidth = geometry.size.width
+                            startAnimationIfNeeded()
+                        }
+                        .onChange(of: geometry.size.width) { width in
+                            containerWidth = width
+                            resetAnimationIfNeeded()
+                        }
+                }
+            )
+        // Overlay holds the moving text; overlays don't affect layout size.
+            .overlay(alignment: .leading) {
+                ZStack(alignment: .leading) {
+                    // Visible text (never truncates because it renders at intrinsic width)
+                    Text(text)
+                        .foregroundStyle(fontColor)
+                        .textStyle(textStyle)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .offset(x: offset)
+
+                    Text(text)
+                        .textStyle(textStyle)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .opacity(0.0001)
+                        .accessibilityHidden(true)
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .onAppear {
+                                        textWidth = geometry.size.width
                                         startAnimationIfNeeded()
                                     }
-                                }
-                        }
-                    )
-                    .offset(x: offset)
+                                    .onChange(of: geometry.size.width) { width in
+                                        textWidth = width
+                                        resetAnimationIfNeeded()
+                                    }
+                            }
+                        )
+                }
+                .frame(width: containerWidth, alignment: .leading)
+                .clipped()
             }
-            .clipped()
-        }
-        .onChange(of: text) { _ in
-            resetAnimationIfNeeded()
-        }
+            .onChange(of: text) { _ in
+                resetAnimationIfNeeded()
+            }
     }
 }
 
 private extension BouncingMarqueeTextView {
     func resetAnimationIfNeeded() {
-        textWidth = 0
-        offset = 0
         isReversing = false
+        offset = 0
         startAnimationIfNeeded()
     }
 
     func startAnimationIfNeeded() {
+        guard textWidth > 0, containerWidth > 0 else { return }
         guard textWidth > containerWidth
         else {
-            offset = 0
+            withAnimation() { offset = 0 }
             return
         }
-
         startAnimation()
     }
 
     func startAnimation() {
-        Task {
-            let maxOffset = containerWidth - textWidth
-            let targetOffset = isReversing ? 0 : maxOffset
-            let distance = abs(offset - targetOffset)
-            let duration = distance / speed
+        let maxOffset = containerWidth - textWidth
+        let target = isReversing ? 0 : maxOffset
+        let distance = abs(offset - target)
+        let duration = distance / max(speed, 1)
 
-            withAnimation(.linear(duration: duration)) {
-                offset = targetOffset
-            }
+        withAnimation(.linear(duration: duration)) {
+            offset = target
+        }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration + pauseDuration) {
-                isReversing.toggle()
-                startAnimationIfNeeded()
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration + pauseDuration) {
+            isReversing.toggle()
+            startAnimationIfNeeded()
         }
     }
 }
