@@ -144,6 +144,8 @@ class NymVpn : Application() {
 
 	companion object {
 
+		val isInitialized: Boolean get() = ::instance.isInitialized
+
 		lateinit var instance: NymVpn
 			private set
 
