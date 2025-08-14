@@ -53,16 +53,6 @@ impl SysInfo {
         }
     }
 
-    pub fn to_string_version(&self) -> String {
-        format!(
-            "{} {} {} {}",
-            self.os_version,
-            self.kernel_version,
-            self.arch,
-            self.extra.join(", ")
-        )
-    }
-
     /// Generates a hash identifier based on the OS version, architecture, extra metadata, and host name.
     /// Returns a hexadecimal string representation of the hash.
     /// This identifier is used to identify the system in a way that is consistent across runs,
