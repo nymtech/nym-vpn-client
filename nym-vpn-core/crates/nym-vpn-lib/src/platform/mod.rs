@@ -141,7 +141,7 @@ pub fn configureLib(config: NymVpnLibConfig) -> Result<(), VpnError> {
 async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
     let os = SysInfo::new();
-    tracing::info!("OS information: {}", os);
+    println!("OS information: {os}");
     if config.sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
