@@ -28,16 +28,22 @@ import nym_vpn_lib.Score
 import timber.log.Timber
 import java.util.*
 
-fun Dp.scaledHeight(): Dp {
-	return NymVpn.instance.resizeHeight(this)
+fun Dp.scaledHeight(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
+	NymVpn.instance.resizeHeight(this)
+} else {
+	this * previewScale
 }
 
-fun Dp.scaledWidth(): Dp {
-	return NymVpn.instance.resizeWidth(this)
+fun Dp.scaledWidth(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
+	NymVpn.instance.resizeWidth(this)
+} else {
+	this * previewScale
 }
 
-fun TextUnit.scaled(): TextUnit {
-	return NymVpn.instance.resizeHeight(this)
+fun TextUnit.scaled(previewScale: Float = 1f): TextUnit = if (NymVpn.isInitialized) {
+	NymVpn.instance.resizeHeight(this)
+} else {
+	this * previewScale
 }
 
 fun NavController.navigateAndForget(route: Route) {

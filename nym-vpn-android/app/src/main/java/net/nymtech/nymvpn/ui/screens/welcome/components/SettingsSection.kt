@@ -13,16 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
-import net.nymtech.nymvpn.ui.screens.welcome.WelcomeViewModel
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SettingsSection(appUiState: AppUiState, viewModel: WelcomeViewModel) {
+fun SettingsSection(
+	statsEnabled: Boolean,
+	sentryEnabled: Boolean,
+	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
+	onMonitoringEnable: (enabled: Boolean) -> Unit,
+) {
 	SettingsGroup(
 		modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
 		items = listOf(
@@ -36,8 +39,8 @@ fun SettingsSection(appUiState: AppUiState, viewModel: WelcomeViewModel) {
 				},
 				trailing = {
 					ScaledSwitch(
-						checked = appUiState.settings.statsEnabled,
-						onClick = { viewModel.onNetworkStatsEnabled(it) },
+						checked = statsEnabled,
+						onClick = { onNetworkStatsEnable(it) },
 					)
 				},
 				title = {
@@ -57,8 +60,8 @@ fun SettingsSection(appUiState: AppUiState, viewModel: WelcomeViewModel) {
 				},
 				trailing = {
 					ScaledSwitch(
-						checked = appUiState.settings.sentryEnabled,
-						onClick = { viewModel.onMonitoringEnabled(it) },
+						checked = sentryEnabled,
+						onClick = { onMonitoringEnable(it) },
 					)
 				},
 				title = {
