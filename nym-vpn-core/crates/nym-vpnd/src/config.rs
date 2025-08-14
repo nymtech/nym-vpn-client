@@ -8,7 +8,7 @@ pub struct GlobalConfigFile {
     pub network_name: String,
     #[serde(default)]
     pub sentry_monitoring: bool,
-    #[serde(default)]
+    #[serde(default = "default_true")]
     pub collect_network_statistics: bool,
 }
 
@@ -17,7 +17,7 @@ impl Default for GlobalConfigFile {
         Self {
             network_name: NymNetworkDetails::default().network_name,
             sentry_monitoring: false,
-            collect_network_statistics: false,
+            collect_network_statistics: true,
         }
     }
 }
@@ -51,4 +51,8 @@ impl GlobalConfigFile {
             .ok()
             .is_some_and(|cfg| cfg.sentry_monitoring)
     }
+}
+
+fn default_true() -> bool {
+    true
 }
