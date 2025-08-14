@@ -59,7 +59,7 @@ pub struct OsInfo {
     pub display_server: DisplayServer,
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub gpu: GpuType,
-    pub hasher: String,
+    pub hash: String,
 }
 
 impl OsInfo {
