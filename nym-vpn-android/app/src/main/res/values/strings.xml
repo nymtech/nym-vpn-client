@@ -203,10 +203,10 @@
 	<string name="notification_stats_enabled">Stats enabled! Your anonymous data helps optimize our network.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continue</string>
-	<string name="welcome_descr_start">Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring \n(via</string>
+	<string name="welcome_descr_start">Help NymVPN identify and fix technical issues! Consider opting-in for error monitoring (via </string>
 	<string name="welcome_descr_sentry_link" translatable="false">https://sentry.io/welcome/</string>
 	<string name="welcome_descr_sentry_link_text">Sentry</string>
-	<string name="welcome_descr_end">) and analytics, you can opt out anytime. \n\nThanks for your support!</string>
+	<string name="welcome_descr_end">) and keeping network stats on. It\'s always anonymous, opt out anytime, and your activities can never be revealed. \n\nThanks for your support!</string>
 	<string name="welcome_terms_privacy_text_start">By continuing, you agree to NymVPN\'s</string>
 	<string name="welcome_terms_privacy_text_middle">and acknowledge NymVPN\'s</string>
 	<string name="welcome_error_toggle_descr">via Sentry</string>
