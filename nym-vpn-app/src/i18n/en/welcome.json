@@ -1,6 +1,6 @@
 {
   "title": "Welcome to NymVPN",
-  "description": "Help us improve the app by identifying and resolving issues. Opt-in for anonymous error monitoring (via <sentryLink />) and analytics, you can opt out anytime. Thanks for your support!",
+  "description": "Help NymVPN identify and fix technical issues! Consider opting-in for error monitoring (via <sentryLink />) and keeping network stats on. It's always anonymous, opt out anytime, and your activities can never be revealed. Thanks for your support!",
   "anon-toggle-desc": "Applies on app restart",
   "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
   "continue-button": "Continue",
