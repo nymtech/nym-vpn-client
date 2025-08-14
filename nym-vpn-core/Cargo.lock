@@ -7042,7 +7042,7 @@ dependencies = [
 [[package]]
 name = "rust2go"
 version = "0.4.1"
-source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
+source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
 dependencies = [
  "bindgen",
  "rust2go-cli",
@@ -7054,7 +7054,7 @@ dependencies = [
 [[package]]
 name = "rust2go-cli"
 version = "0.4.1"
-source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
+source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
 dependencies = [
  "cbindgen",
  "clap",
@@ -7065,7 +7065,7 @@ dependencies = [
 [[package]]
 name = "rust2go-common"
 version = "0.4.0"
-source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
+source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7075,12 +7075,12 @@ dependencies = [
 [[package]]
 name = "rust2go-convert"
 version = "0.1.0"
-source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
+source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
 
 [[package]]
 name = "rust2go-macro"
 version = "0.4.0"
-source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
+source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
 dependencies = [
  "proc-macro2",
  "quote",

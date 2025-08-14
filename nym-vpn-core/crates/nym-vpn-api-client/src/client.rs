@@ -550,6 +550,20 @@ impl VpnApiClient {
             .map_err(crate::error::VpnApiClientError::GetHealth)
     }
 
+    pub async fn get_wellknown_envs(&self) -> Result<crate::response::RegisteredNetworksResponse> {
+        self.inner
+            .get_json(&[routes::PUBLIC, routes::V1, routes::WELLKNOWN, routes::ENVS_FILE], NO_PARAMS)
+            .await
+            .map_err(crate::error::VpnApiClientError::GetWellknownEnvs)
+    }
+
+    pub async fn get_wellknown_discovery(&self, network: &str) -> Result<crate::response::NymWellknownDiscoveryItemResponse> {
+        self.inner
+            .get_json(&[routes::PUBLIC, routes::V1, routes::WELLKNOWN, network, routes::DISCOVERY_FILE], NO_PARAMS)
+            .await
+            .map_err(crate::error::VpnApiClientError::GetWellknownDiscovery)
+    }
+
     pub async fn get_account_summary(
         &self,
         account: &VpnApiAccount,

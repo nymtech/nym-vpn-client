@@ -11,7 +11,7 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
-    BootstrapVpnApiClient, VpnApiClient,
+    VpnApiClient,
     response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
 };
 
@@ -96,7 +96,7 @@ impl Discovery {
         // allow panic because a broken bootstrap url means everything will fail anyways.
         let default_url = DEFAULT_VPN_API_URL.clone();
         let client =
-            BootstrapVpnApiClient::new(default_url).map_err(Error::CreateBootstrapApiClient)?;
+            VpnApiClient::new(default_url, empty_user_agent()).map_err(Error::CreateVpnApiClient)?;
 
         tracing::debug!("Fetching nym network discovery");
         let discovery = client
