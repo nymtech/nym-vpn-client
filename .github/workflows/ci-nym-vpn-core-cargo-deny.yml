@@ -22,6 +22,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-deny
+          tag: 0.18.3
 
       - name: Run cargo-deny
         run: cargo deny --manifest-path ./nym-vpn-core/Cargo.toml --locked --all-features check licenses bans sources
