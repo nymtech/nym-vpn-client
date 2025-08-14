@@ -1,3 +1,7 @@
+## Ticket
+
+JIRA-VPN-XXXX
+
 ## Description
 
 Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context.
@@ -6,3 +10,5 @@ Please include a summary of the change and which issue is fixed. Please also inc
 ## Checklist:
 
 - [ ] Changelog
+
+## Screenshots (optional, if UI related)
