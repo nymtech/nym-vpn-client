@@ -145,8 +145,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	}
 
 	internal fun addConnectivityObserver(observer: ConnectivityObserver) {
-		observers.add(observer)
-		updateObservers()
+		if (!observers.any { it.id() == observer.id() }) {
+			observers.add(observer)
+			updateObservers()
+		}
 	}
 
 	private fun updateObservers() {
@@ -162,7 +164,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	}
 
 	internal fun removeObserver(observer: ConnectivityObserver) {
-		observers.remove(observer)
+		observers.removeIf { it.id() == observer.id() }
 	}
 
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
