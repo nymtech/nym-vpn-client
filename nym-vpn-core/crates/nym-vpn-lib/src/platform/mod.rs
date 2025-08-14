@@ -320,7 +320,7 @@ pub fn forgetAccountRaw(path: String) -> Result<(), VpnError> {
 /// Get the device identity
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getDeviceIdentity() -> Result<String, VpnError> {
+pub fn getDeviceIdentity() -> Result<Option<String>, VpnError> {
     RUNTIME.block_on(account::get_device_id())
 }
 

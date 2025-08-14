@@ -294,7 +294,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_device_identity(&mut self) -> Result<String> {
+    pub async fn get_device_identity(&mut self) -> Result<Option<String>> {
         let response = self
             .0
             .get_device_identity(())
