@@ -111,7 +111,7 @@ pub async fn get_account_id(grpc: State<'_, GrpcClient>) -> Result<Option<String
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_device_id(grpc: State<'_, GrpcClient>) -> Result<String, BackendError> {
+pub async fn get_device_id(grpc: State<'_, GrpcClient>) -> Result<Option<String>, BackendError> {
     grpc.device_id()
         .await
         .map_err(|e| {
@@ -119,6 +119,10 @@ pub async fn get_device_id(grpc: State<'_, GrpcClient>) -> Result<String, Backen
             e.into()
         })
         .inspect(|id| {
-            info!("device id: {id}");
+            if let Some(id) = id {
+                info!("device id: {id}");
+            } else {
+                info!("no device id");
+            }
         })
 }
