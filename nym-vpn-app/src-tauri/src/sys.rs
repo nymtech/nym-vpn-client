@@ -65,7 +65,7 @@ pub struct OsInfo {
 impl OsInfo {
     pub fn new() -> Self {
         let system = SysInfo::new();
-        let hasher = system.hash_identifier();
+        let hash = system.hash_identifier();
         Self {
             version: system.os_version,
             kernel: Some(system.kernel_version),
@@ -74,7 +74,7 @@ impl OsInfo {
             display_server: get_display_server(),
             #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             gpu: gpu_info(),
-            hasher,
+            hash,
         }
     }
 
