@@ -193,7 +193,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
             .is_ok(),
     ); // Device ID is random so we can only test that there exists one
 
-    // Forget accoung to reset back to no account
+    // Forget account to reset back to no account
     test_bench.go_online()?;
     test_bench
         .assert_state(AccountControllerState::ReadyToConnect)
