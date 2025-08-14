@@ -30,3 +30,8 @@ features = [
     "Win32_System_SystemInformation",
     "Win32_System_SystemServices",
 ]
+
+[dependencies]
+sha2.workspace = true
+sysinfo.workspace = true
+tracing.workspace = true

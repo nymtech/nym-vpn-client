@@ -4994,6 +4994,9 @@ dependencies = [
  "nym-dbus",
  "objc2-foundation",
  "rs-release",
+ "sha2 0.10.9",
+ "sysinfo",
+ "tracing",
  "windows 0.61.3",
 ]
 
@@ -5767,6 +5770,7 @@ dependencies = [
  "nym-bin-common",
  "nym-ipc",
  "nym-offline-monitor",
+ "nym-platform-metadata",
  "nym-statistics",
  "nym-task",
  "nym-validator-client",
@@ -5781,7 +5785,6 @@ dependencies = [
  "nym-windows",
  "sentry",
  "serde",
- "sha2 0.10.9",
  "strum",
  "sysinfo",
  "thiserror 2.0.12",
