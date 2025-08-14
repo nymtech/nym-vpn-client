@@ -35,6 +35,7 @@ extension ConnectionManager {
             isTwoHopEnabled: config.isTwoHopEnabled,
             disableIPv6: !appSettings.isIPv6TrafficEnabled
         )
+        appSettings.statisticsConnectionCount += 1
     }
 
     /// Sends connect command to deamon if entry/exit gateways changed while connected,

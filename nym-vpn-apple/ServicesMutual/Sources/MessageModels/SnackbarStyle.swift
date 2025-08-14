@@ -4,17 +4,18 @@ import Theme
 public enum SnackbarStyle {
     case info
     case noIcon
+    case cta
 
     public var backgroundColor: Color {
         switch self {
-        case .info, .noIcon:
-            NymColor.gray1
+        case .info, .noIcon, .cta:
+            NymColor.elevation
         }
     }
 
     public var textColor: Color {
         switch self {
-        case .info, .noIcon:
+        case .info, .noIcon, .cta:
             NymColor.primary
         }
     }
@@ -23,14 +24,14 @@ public enum SnackbarStyle {
         switch self {
         case .info:
             "info.circle"
-        case .noIcon:
+        case .noIcon, .cta:
             nil
         }
     }
 
     public var iconColor: Color {
         switch self {
-        case .info, .noIcon:
+        case .info, .noIcon, .cta:
             NymColor.primary
         }
     }

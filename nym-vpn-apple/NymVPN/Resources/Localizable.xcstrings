@@ -27092,6 +27092,28 @@
         }
       }
     },
+    "statisticsOverlay.snackbar.helpImprove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help improve your connection speed"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.snackbar.improveNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improve now"
+          }
+        }
+      }
+    },
     "statisticsOverlay.upgradeExperience" : {
       "extractionState" : "manual",
       "localizations" : {

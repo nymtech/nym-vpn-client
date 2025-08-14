@@ -52,7 +52,7 @@ public final class MessagesManager: ObservableObject {
         }
 
         currentMessage = message
-        timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 20, repeats: false) { [weak self] _ in
             self?.currentMessage = nil
         }
     }
@@ -61,6 +61,11 @@ public final class MessagesManager: ObservableObject {
         guard !messages.isEmpty else { return }
         messages.removeFirst()
 
+        processMessages()
+    }
+
+    public func addAndProcess(_ message: SnackBarMessage) {
+        messages.append(message)
         processMessages()
     }
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import MessageModels
+import Theme
 
 public struct SnackbarView: View {
     private let appSettings: AppSettings
@@ -21,10 +22,10 @@ public struct SnackbarView: View {
     public var body: some View {
         VStack {
             if isDisplayed, let message {
-                HStack(alignment: .center, spacing: 12) {
+                HStack(alignment: .center, spacing: 16) {
                     messageStyleImage()
                     messageText()
-                    Spacer()
+                    ctaActionText()
                     closeButton()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -66,6 +67,24 @@ extension SnackbarView {
     }
 
     @ViewBuilder
+    func ctaActionText() -> some View {
+        if let message, let ctaText = message.ctaText {
+            Spacer()
+            Text(ctaText)
+                .foregroundColor(NymColor.accent)
+                .textStyle(.Body.Medium.regular)
+                .padding(8)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    message.ctaAction?()
+                }
+                .accessibilityAction {
+                    message.ctaAction?()
+                }
+        }
+    }
+
+    @ViewBuilder
     func closeButton() -> some View {
         if let message {
             Image(systemName: "xmark")
@@ -73,6 +92,8 @@ extension SnackbarView {
                 .foregroundStyle(message.style.iconColor)
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 14, height: 14)
+                .padding(8)
+                .contentShape(Rectangle())
                 .onTapGesture {
                     withAnimation {
                         isDisplayed = false

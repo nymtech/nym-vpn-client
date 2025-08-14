@@ -106,7 +106,7 @@ public class HomeViewModel: HomeFlowState {
         externalLinkManager: ExternalLinkManager = .shared,
         gatewayManager: GatewayManager = .shared,
         impactGenerator: ImpactGenerator = .shared,
-        systemMessageManager: SystemMessageManager = .shared
+        messagesManager: MessagesManager = .shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -117,7 +117,7 @@ public class HomeViewModel: HomeFlowState {
         self.gatewayManager = gatewayManager
         self.impactGenerator = impactGenerator
         self.networkMonitor = networkMonitor
-        self.systemMessageManager = systemMessageManager
+        self.messagesManager = messagesManager
         super.init()
 
         setup()
@@ -337,6 +337,7 @@ extension HomeViewModel {
             if newStatus == .connected {
                 resetStatusInfoState()
             }
+            displayEnableStatisticsSnackBarCTAIfNeeded()
         }
     }
 

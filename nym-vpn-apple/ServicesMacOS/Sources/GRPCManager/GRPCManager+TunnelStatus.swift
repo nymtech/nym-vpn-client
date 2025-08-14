@@ -34,8 +34,14 @@ extension GRPCManager {
     }
 
     func pingDaemonInitialStatus() {
-        guard !isServing else { return }
         Task {
+            guard !isServing
+            else {
+                try? await Task.sleep(for: .seconds(5))
+                pingDaemonInitialStatus()
+                return
+            }
+
             do {
                 try await version()
                 let tunnelState = try await client.getTunnelState(Google_Protobuf_Empty())

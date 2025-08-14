@@ -92,7 +92,7 @@ private extension NymVPNApp {
             try await ConfigurationManager.shared.setup()
             CountriesManager.shared.setup()
             GatewayManager.shared.setup()
-            SystemMessageManager.shared.setup()
+            MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
