@@ -396,7 +396,7 @@ impl GrpcClient {
 
     /// Get the device identity
     #[instrument(skip_all)]
-    pub async fn device_id(&self) -> Result<String, VpndError> {
+    pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let response = vpnd
