@@ -254,5 +254,5 @@ fn log_software_and_os_version() {
     );
 
     let os = nym_platform_metadata::SysInfo::new();
-    os.display(true);
+    tracing::info!("OS information: {}", os);
 }

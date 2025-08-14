@@ -3,9 +3,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use sha2::{Digest, Sha256};
-use std::env;
+use std::{env, fmt::Display};
 use sysinfo::System;
-use tracing::info;
 
 #[cfg(target_os = "linux")]
 #[path = "linux.rs"]
@@ -54,26 +53,20 @@ impl SysInfo {
         }
     }
 
-    pub fn display(&self, print_extra: bool) {
-        info!("os version: {}", self.os_version);
-        info!("os arch: {}", self.arch);
-        if print_extra {
-            for info in &self.extra {
-                info!("os {info}");
-            }
-        }
+    pub fn to_string_version(&self) -> String {
+        format!(
+            "{} {} {} {}",
+            self.os_version,
+            self.kernel_version,
+            self.arch,
+            self.extra.join(", ")
+        )
     }
 
-    pub fn raw_display(&self, print_extra: bool) {
-        println!("os version: {}", self.os_version);
-        println!("os arch: {}", self.arch);
-        if print_extra {
-            for info in &self.extra {
-                println!("os {info}");
-            }
-        }
-    }
-
+    /// Generates a hash identifier based on the OS version, architecture, extra metadata, and host name.
+    /// Returns a hexadecimal string representation of the hash.
+    /// This identifier is used to identify the system in a way that is consistent across runs,
+    /// without revealing sensitive information.
     pub fn hash_identifier(&self) -> String {
         let parts = [
             self.os_version.clone(),
@@ -85,6 +78,16 @@ impl SysInfo {
         let os_name = parts.join(" ");
         let hash = Sha256::digest(os_name.as_bytes());
         format!("{hash:x}")
+    }
+}
+
+impl Display for SysInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "os_version: {}, arch: {}", self.os_version, self.arch)?;
+        if !self.extra.is_empty() {
+            write!(f, ", {}", self.extra.join(", "))?;
+        }
+        Ok(())
     }
 }
 

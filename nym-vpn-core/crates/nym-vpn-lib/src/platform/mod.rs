@@ -141,7 +141,7 @@ pub fn configureLib(config: NymVpnLibConfig) -> Result<(), VpnError> {
 async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
     let os = SysInfo::new();
-    os.raw_display(true);
+    tracing::info!("OS information: {}", os);
     if config.sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
@@ -170,7 +170,7 @@ async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_
     let log_level = debug_level.unwrap_or(default_log_level);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
     let os = SysInfo::new();
-    os.display(true);
+    tracing::info!("OS information: {}", os);
     if sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
