@@ -59,6 +59,7 @@ default-members = [
 # nym-ecash-time = { path = "../../nym/common/ecash-time" }
 # nym-http-api-client = { path = "../../nym/common/http-api-client" }
 # nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
+# nym-network-defaults = { path = "../../nym/common/network-defaults" }
 # nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
 # nym-pemstore = { path = "../../nym/common/pemstore" }
 # nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
@@ -223,7 +224,8 @@ nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/20
 nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
 nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
 nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
+nym-http-api-client = { path = "../../nym/common/http-api-client" }
+nym-network-defaults = { path = "../../nym/common/network-defaults" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
 nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }

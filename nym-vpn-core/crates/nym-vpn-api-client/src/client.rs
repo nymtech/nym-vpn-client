@@ -12,6 +12,7 @@ use url::Url;
 
 use crate::{
     error::{Result, VpnApiClientError},
+    response::UnexpectedError,
     request::{
         ApplyFreepassRequestBody, CreateAccountRequestBody, CreateSubscriptionKind,
         CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
@@ -47,6 +48,61 @@ pub struct VpnApiClient {
 impl VpnApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
         Self::new_with_resolver_overrides(base_url, user_agent, None)
+    }
+
+    #[cfg(feature = "network-defaults")]
+    pub fn from_network(
+        network: &nym_network_defaults::NymNetworkDetails,
+        user_agent: UserAgent,
+    ) -> Result<Self> {
+        // Get VPN API URLs from network details
+        let vpn_urls = network
+            .nym_vpn_api_urls
+            .as_ref()
+            .ok_or_else(|| {
+                let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(
+                    "No VPN API URLs configured in network details".to_string()
+                );
+                VpnApiClientError::CreateVpnApiClient(err)
+            })?;
+        
+        // Use the first URL as base
+        let base_url = vpn_urls
+            .first()
+            .ok_or_else(|| {
+                let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(
+                    "VPN API URLs list is empty".to_string()
+                );
+                VpnApiClientError::CreateVpnApiClient(err)
+            })?
+            .url
+            .parse()
+            .map_err(|e| {
+                let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(
+                    format!("Invalid VPN API URL: {}", e)
+                );
+                VpnApiClientError::CreateVpnApiClient(err)
+            })?;
+
+        // Build client with domain fronting support from network details
+        let inner = nym_http_api_client::ClientBuilder::from_network(network)
+            .map_err(|e| {
+                let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(e.to_string());
+                VpnApiClientError::CreateVpnApiClient(err)
+            })?
+            .with_user_agent(user_agent.clone())
+            .with_timeout(NYM_VPN_API_TIMEOUT)
+            .build::<UnexpectedError>()
+            .map_err(|e| {
+                let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(e.to_string());
+                VpnApiClientError::CreateVpnApiClient(err)
+            })?;
+
+        Ok(Self {
+            inner,
+            base_url,
+            user_agent,
+        })
     }
 
     pub fn override_resolver(&mut self, static_addresses: Option<&[SocketAddr]>) -> Result<()> {

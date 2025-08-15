@@ -3986,7 +3986,7 @@ dependencies = [
  "nym-crypto",
  "nym-ecash-time",
  "nym-mixnet-contract-common",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-node-requests",
  "nym-noise-keys",
  "nym-serde-helpers",
@@ -4044,7 +4044,7 @@ dependencies = [
  "hmac",
  "nym-credentials-interface",
  "nym-crypto",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-service-provider-requests-common",
  "nym-sphinx",
  "nym-wireguard-types",
@@ -4068,13 +4068,23 @@ dependencies = [
  "nym-crypto",
  "nym-ecash-contract-common",
  "nym-ecash-time",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-task",
  "nym-validator-client",
  "rand 0.8.5",
  "thiserror 2.0.12",
  "url",
  "zeroize",
+]
+
+[[package]]
+name = "nym-bin-common"
+version = "0.6.0"
+dependencies = [
+ "const-str",
+ "log",
+ "serde",
+ "vergen 8.3.1",
 ]
 
 [[package]]
@@ -4116,10 +4126,10 @@ dependencies = [
  "nym-ecash-time",
  "nym-gateway-client",
  "nym-gateway-requests",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-id",
  "nym-mixnet-client",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-nonexhaustive-delayqueue",
  "nym-pemstore",
  "nym-sphinx",
@@ -4236,7 +4246,7 @@ dependencies = [
  "ff",
  "group",
  "itertools 0.14.0",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-pemstore",
  "rand 0.8.5",
  "serde",
@@ -4254,7 +4264,7 @@ dependencies = [
  "dirs",
  "handlebars",
  "log",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.12",
  "toml 0.8.23",
@@ -4302,7 +4312,7 @@ dependencies = [
  "async-trait",
  "nym-credentials",
  "nym-credentials-interface",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-serde-helpers",
  "reqwest 0.12.20",
  "schemars",
@@ -4365,7 +4375,7 @@ dependencies = [
  "nym-crypto",
  "nym-ecash-contract-common",
  "nym-ecash-time",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-serde-helpers",
  "nym-validator-client",
  "serde",
@@ -4382,7 +4392,7 @@ dependencies = [
  "bls12_381",
  "nym-compact-ecash",
  "nym-ecash-time",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "serde",
  "strum",
@@ -4525,8 +4535,8 @@ dependencies = [
  "nym-credentials-interface",
  "nym-crypto",
  "nym-gateway-requests",
- "nym-http-api-client",
- "nym-network-defaults",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-pemstore",
  "nym-sphinx",
  "nym-statistics-common",
@@ -4558,7 +4568,7 @@ dependencies = [
  "itertools 0.13.0",
  "nym-client-core",
  "nym-common",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0",
  "nym-offline-monitor",
  "nym-sdk",
  "nym-topology",
@@ -4587,7 +4597,7 @@ dependencies = [
  "nym-authenticator-client",
  "nym-authenticator-requests",
  "nym-bandwidth-controller",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-client-core",
  "nym-config",
  "nym-connection-monitor",
@@ -4662,11 +4672,36 @@ version = "1.14.0-beta"
 dependencies = [
  "async-trait",
  "chrono",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
  "tracing",
+]
+
+[[package]]
+name = "nym-http-api-client"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bincode",
+ "bytes",
+ "encoding_rs",
+ "hickory-resolver",
+ "http 1.3.1",
+ "itertools 0.14.0",
+ "mime",
+ "nym-bin-common 0.6.0",
+ "nym-http-api-common 0.1.0",
+ "nym-network-defaults 0.1.0",
+ "once_cell",
+ "reqwest 0.12.20",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tracing",
+ "url",
+ "wasmtimer",
 ]
 
 [[package]]
@@ -4682,8 +4717,8 @@ dependencies = [
  "http 1.3.1",
  "itertools 0.14.0",
  "mime",
- "nym-bin-common",
- "nym-http-api-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-http-api-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "once_cell",
  "reqwest 0.12.20",
  "serde",
@@ -4692,6 +4727,16 @@ dependencies = [
  "tracing",
  "url",
  "wasmtimer",
+]
+
+[[package]]
+name = "nym-http-api-common"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "serde",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]
@@ -4740,7 +4785,7 @@ source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental
 dependencies = [
  "bincode",
  "bytes",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-crypto",
  "nym-service-provider-requests-common",
  "nym-sphinx",
@@ -4839,6 +4884,19 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
+dependencies = [
+ "cargo_metadata 0.19.2",
+ "dotenvy",
+ "log",
+ "regex",
+ "schemars",
+ "serde",
+ "url",
+]
+
+[[package]]
+name = "nym-network-defaults"
+version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
 dependencies = [
  "cargo_metadata 0.19.2",
@@ -4860,10 +4918,10 @@ dependencies = [
  "celes",
  "humantime",
  "humantime-serde",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-crypto",
  "nym-exit-policy",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-noise-keys",
  "nym-wireguard-types",
  "schemars",
@@ -5042,7 +5100,7 @@ dependencies = [
  "httpcodec",
  "log",
  "nym-bandwidth-controller",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-client-core",
  "nym-credential-storage",
  "nym-credential-utils",
@@ -5050,7 +5108,7 @@ dependencies = [
  "nym-credentials-interface",
  "nym-crypto",
  "nym-gateway-requests",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-ordered-buffer",
  "nym-service-providers-common",
  "nym-socks5-client-core",
@@ -5105,7 +5163,7 @@ source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental
 dependencies = [
  "async-trait",
  "log",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-sphinx-anonymous-replies",
  "serde",
  "serde_json",
@@ -5127,7 +5185,7 @@ dependencies = [
  "nym-contracts-common",
  "nym-credential-storage",
  "nym-mixnet-contract-common",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-service-providers-common",
  "nym-socks5-proxy-helpers",
  "nym-socks5-requests",
@@ -5348,7 +5406,7 @@ name = "nym-statistics"
 version = "1.14.0-beta"
 dependencies = [
  "futures",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-sdk",
  "nym-statistics-api-client",
  "nym-statistics-common",
@@ -5369,7 +5427,7 @@ dependencies = [
 name = "nym-statistics-api-client"
 version = "1.14.0-beta"
 dependencies = [
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0",
  "serde",
  "thiserror 2.0.12",
  "url",
@@ -5479,10 +5537,10 @@ dependencies = [
  "nym-contracts-common",
  "nym-ecash-contract-common",
  "nym-group-contract-common",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-mixnet-contract-common",
  "nym-multisig-contract-common",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-performance-contract-common",
  "nym-serde-helpers",
  "nym-vesting-contract-common",
@@ -5570,7 +5628,8 @@ dependencies = [
  "nym-contracts-common",
  "nym-credential-proxy-requests",
  "nym-crypto",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0",
+ "nym-network-defaults 0.1.0",
  "nym-validator-client",
  "serde",
  "serde_json",
@@ -5606,7 +5665,7 @@ dependencies = [
  "nym-apple-network",
  "nym-authenticator-client",
  "nym-bandwidth-controller",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-client-core",
  "nym-common",
  "nym-config",
@@ -5700,7 +5759,7 @@ version = "1.14.0-beta"
 dependencies = [
  "nym-config",
  "nym-gateway-directory",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0",
  "nym-ipc",
  "nym-sdk",
  "nym-vpn-api-client",
@@ -5745,9 +5804,9 @@ dependencies = [
  "anyhow",
  "celes",
  "clap",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-gateway-directory",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "nym-vpnd-types",
@@ -5767,7 +5826,7 @@ dependencies = [
  "eventlog",
  "futures",
  "log-panics",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "nym-ipc",
  "nym-offline-monitor",
  "nym-platform-metadata",
@@ -5875,7 +5934,7 @@ dependencies = [
  "base64 0.22.1",
  "log",
  "nym-config",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.12",
  "x25519-dalek",
