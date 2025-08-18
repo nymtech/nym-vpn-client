@@ -81,7 +81,6 @@
     "bandwidth-exceeded": "Bandwidth exceeded",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
-    "offline": "Offline",
-    "error": "Error"
+    "error": "Internal error"
   }
 }

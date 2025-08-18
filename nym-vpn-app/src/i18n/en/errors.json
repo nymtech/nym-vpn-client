@@ -24,6 +24,7 @@
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
+    "internal": "Internal account error",
     "max-devices-reached": "Account device limit exceeded.",
     "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
     "invalid-recovery-phrase": "Invalid access code",

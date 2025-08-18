@@ -68,7 +68,8 @@ export type StateAction =
   | { type: 'set-ipv6-support'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
-  | { type: 'set-account-syncing'; syncing: boolean };
+  | { type: 'set-account-syncing'; syncing: boolean }
+  | { type: 'set-account-error'; error: AppError | null };
 
 export const initialState: AppState = {
   initialized: false,
@@ -77,6 +78,7 @@ export const initialState: AppState = {
   tunnelError: null,
   accountState: null,
   accountSyncing: false,
+  accountError: null,
   daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
@@ -313,6 +315,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         accountSyncing: action.syncing,
+      };
+    case 'set-account-error':
+      return {
+        ...state,
+        accountError: action.error,
       };
 
     case 'reset':

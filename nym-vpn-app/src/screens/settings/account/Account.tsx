@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { routes } from '../../../router';
 import { useMainDispatch, useMainState } from '../../../contexts';
-import { AccountState, StateDispatch, isAccountError } from '../../../types';
+import { AccountState, StateDispatch } from '../../../types';
 import { Button, SettingsMenuCard } from '../../../ui';
 import { capFirst } from '../../../util';
 
@@ -51,9 +51,6 @@ function Account() {
     if (accountSyncing) {
       return t('account.syncing');
     }
-    if (state && isAccountError(state)) {
-      return t('account.error');
-    }
     switch (state) {
       case 'no-subscription':
         return t('account.no-plan');
@@ -64,7 +61,8 @@ function Account() {
       case 'bandwidth-exceeded':
         return t('account.bandwidth-exceeded');
       case 'offline':
-        return t('account.offline');
+      case 'error':
+        return t('account.error');
       default:
         return null;
     }
@@ -78,7 +76,7 @@ function Account() {
       state === 'no-subscription' ||
       state === 'bandwidth-exceeded' ||
       state === 'max-device-reached' ||
-      (state && isAccountError(state))
+      state === 'error'
     ) {
       return 'red';
     }
