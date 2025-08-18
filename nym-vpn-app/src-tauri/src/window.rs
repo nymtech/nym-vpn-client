@@ -3,6 +3,7 @@ use crate::db::{Db, Key};
 use crate::env::{DEV_MODE, UPDATER_ENABLED};
 use crate::startup_error::StartupError;
 use crate::state::app::VpnMode;
+use crate::sys::DisplayServer;
 use crate::{
     APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
     MAIN_WINDOW_LABEL, env,
@@ -14,7 +15,7 @@ use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
     WebviewUrl, WebviewWindow, WebviewWindowBuilder,
 };
-use tracing::{debug, error, instrument, trace, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 use ts_rs::TS;
 
 const MAIN_WEBVIEW_URL: &str = "index.html";
@@ -154,12 +155,22 @@ impl AppWindow {
     }
 
     #[instrument(skip_all)]
-    pub fn set_max_size(&self) -> Result<()> {
+    pub fn set_max_size(
+        &self,
+        #[cfg(target_os = "linux")] display_server: DisplayServer,
+    ) -> Result<()> {
         let Some(monitor) = self.0.current_monitor().inspect_err(|e| {
             error!("failed to get current monitor: {e}");
         })?
         else {
-            warn!("failed to get current monitor details");
+            // On Wayland it is expected failing to detected monitor info
+            // especially when the window is not yet visible
+            if display_server == DisplayServer::Wayland {
+                info!("failed to get current monitor details");
+            } else {
+                warn!("failed to get current monitor details");
+            }
+
             return Ok(());
         };
         // in case of monitor > 1440p, increase the max allowed window size

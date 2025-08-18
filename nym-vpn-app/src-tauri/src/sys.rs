@@ -7,7 +7,7 @@ use tracing::{error, info, warn};
 use ts_rs::TS;
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-#[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr)]
+#[derive(Debug, Clone, Serialize, TS, strum::AsRefStr)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum GpuType {
@@ -16,12 +16,11 @@ pub enum GpuType {
     #[strum(serialize = "AMD")]
     Amd,
     Intel,
-    #[default]
-    Unknown,
+    Unknown(Option<String>),
 }
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-#[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr)]
+#[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr, Eq, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum DisplayServer {
@@ -55,7 +54,6 @@ pub struct OsInfo {
     pub version: String,
     pub kernel: Option<String>,
     pub arch: String,
-    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub display_server: DisplayServer,
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub gpu: GpuType,
@@ -70,7 +68,6 @@ impl OsInfo {
             version: system.os_version,
             kernel: Some(system.kernel_version),
             arch: system.arch,
-            #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             display_server: get_display_server(),
             #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             gpu: gpu_info(),
@@ -98,11 +95,11 @@ fn gpu_info() -> GpuType {
     let Ok(output) = Command::new("lspci").arg("-nn").output().inspect_err(|e| {
         error!("failed to run lspci: {}", e);
     }) else {
-        return GpuType::Unknown;
+        return GpuType::Unknown(None);
     };
     if !output.status.success() {
         error!("lspci failed: {}", String::from_utf8_lossy(&output.stderr));
-        return GpuType::Unknown;
+        return GpuType::Unknown(None);
     }
     let output = String::from_utf8_lossy(&output.stdout);
     let Some(info) = output
@@ -110,7 +107,7 @@ fn gpu_info() -> GpuType {
         .find(|line| line.to_lowercase().contains("vga compatible controller"))
     else {
         warn!("no VGA device found in lspci output");
-        return GpuType::Unknown;
+        return GpuType::Unknown(None);
     };
     debug!("GPU info: {}", info);
     if info.to_lowercase().contains("nvidia") {
@@ -120,8 +117,8 @@ fn gpu_info() -> GpuType {
     } else if info.to_lowercase().contains("intel") {
         return GpuType::Intel;
     }
-    warn!("unknown GPU type: {}", info);
-    GpuType::Unknown
+    info!("unknown GPU type: {}", info);
+    GpuType::Unknown(Some(info.to_string()))
 }
 
 impl std::fmt::Display for OsInfo {
@@ -133,5 +130,11 @@ impl std::fmt::Display for OsInfo {
             self.kernel.as_deref().unwrap_or("unknown"),
             self.arch
         )
+    }
+}
+
+impl Default for GpuType {
+    fn default() -> Self {
+        GpuType::Unknown(None)
     }
 }
