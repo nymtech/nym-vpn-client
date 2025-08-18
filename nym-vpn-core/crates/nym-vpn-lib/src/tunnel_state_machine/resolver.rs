@@ -41,7 +41,7 @@ use nix::{
     fcntl,
     sys::socket::{self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrStorage},
 };
-
+use rand::Rng;
 use tokio::{
     net::UdpSocket,
     sync::{mpsc, oneshot},
@@ -519,9 +519,10 @@ impl RandomLoopbackAlias {
     pub async fn assign() -> std::io::Result<Self> {
         let addr = IpAddr::from(Ipv4Addr::new(
             127,
-            1u8.max(rand::random()),
+            rand::thread_rng().gen_range(1..=255),
             rand::random(),
-            rand::random::<u8>().clamp(1, 254), // keep last octet in range 1-254
+            // keep last octet in the range of 1-254 to avoid special addresses
+            rand::thread_rng().gen_range(1..=254),
         ));
 
         // TODO: this command requires root privileges and will thus not work in `cargo test`.
