@@ -103,28 +103,24 @@ impl AppWindow {
         Ok(())
     }
 
-    #[instrument(skip(app))]
-    pub fn get(app: &AppHandle, label: &str) -> Result<Self> {
-        Ok(AppWindow(app.get_webview_window(label).ok_or_else(
-            || {
-                error!("failed to get window {}", label);
-                anyhow!("failed to get window {}", label)
-            },
-        )?))
-    }
-
-    /// try to get the window, if not found recreate it from its config
+    /// try to get the window, if not found create it from its config
     #[instrument(skip(app))]
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
-        let cli = app.state::<Cli>();
+        let cli = app
+            .try_state::<Cli>()
+            .map(|s| s.inner().clone())
+            .unwrap_or_default();
         let window = app
             .get_webview_window(label)
             .map(AppWindow)
             .or_else(|| {
-                debug!("main window not found, re-creating it");
+                debug!("main window not found, creating it");
                 AppWindow::create_main_window(app, &cli).ok()
             })
-            .ok_or_else(|| anyhow!("failed to get window {}", label))?;
+            .ok_or_else(|| {
+                error!("failed to get window {label}");
+                anyhow!("failed to get window {}", label)
+            })?;
         Ok(window)
     }
 
@@ -268,10 +264,8 @@ impl From<&PhysicalPosition<i32>> for WindowPosition {
 
 #[instrument(skip_all)]
 pub fn focus_main_window(app: &AppHandle) {
-    if let Ok(win) = AppWindow::get(app, MAIN_WINDOW_LABEL) {
+    if let Ok(win) = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL) {
         win.wake_up();
-    } else {
-        error!("failed to get window {}", MAIN_WINDOW_LABEL);
     }
 }
 

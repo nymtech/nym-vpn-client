@@ -98,9 +98,9 @@ pub fn setup(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
+#[instrument(skip(app))]
 fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
-    let window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)
-        .inspect_err(|e| error!("failed to get main window {e}"))?;
+    let window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)?;
     if !window.is_visible() {
         trace!("showing main window");
         window
