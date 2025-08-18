@@ -16,15 +16,19 @@ public struct WelcomeView: View {
             NymColor.background
                 .ignoresSafeArea()
 
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 titleView()
                 subtitleView()
                 sentryToggle()
+                statisticsToggle()
+                Spacer()
+                    .frame(height: 24)
                 continueButton()
                 privacyPolicy()
                     .padding(.bottom, 24)
             }
+            .padding(.horizontal, 16)
             .frame(minWidth: 375, maxWidth: Device.type == .ipad ? 450 : 500)
         }
     }
@@ -42,7 +46,7 @@ private extension WelcomeView {
 
     @ViewBuilder
     func subtitleView() -> some View {
-        Text("\(Text(viewModel.subtitle1Text)) \(Text("[\(viewModel.sentryText)](https://sentry.io)"))\(Text(viewModel.subtitle2Text)) \n\n\(Text(viewModel.disclaimerText))")
+        Text(viewModel.subtitleAttributedString() ?? "")
             .textStyle(.Body.Large.regular)
             .tint(NymColor.accent)
             .foregroundStyle(NymColor.gray1)
@@ -51,17 +55,17 @@ private extension WelcomeView {
         Spacer()
     }
 
-    @ViewBuilder
     func sentryToggle() -> some View {
         SettingsListItem(viewModel: viewModel.sentryViewModel())
-        Spacer()
-            .frame(height: 24)
+    }
+
+    func statisticsToggle() -> some View {
+        SettingsListItem(viewModel: viewModel.statisticsViewModel())
     }
 
     @ViewBuilder
     func continueButton() -> some View {
         GenericButton(title: viewModel.continueText)
-            .padding(.horizontal, 16)
             .onTapGesture {
                 viewModel.continueTapped()
             }
@@ -74,7 +78,7 @@ private extension WelcomeView {
 
     @ViewBuilder
     func privacyPolicy() -> some View {
-        Text("By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement).")
+        Text(viewModel.privacyPolicyAttributedString() ?? "")
             .tint(NymColor.primary)
             .foregroundStyle(NymColor.gray1)
             .textStyle(.Body.Small.regular)

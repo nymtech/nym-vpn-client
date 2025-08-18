@@ -72,7 +72,7 @@ public final class AppSettings: ObservableObject {
     public var isIPv6TrafficEnabled = true
 
     @AppStorage(AppSettingKey.statistics.rawValue)
-    public var isStatisticsEnabled = false
+    public var isStatisticsEnabled = true
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
 

@@ -28,6 +28,7 @@ public struct PrivacyAndDataView: View {
                 errorReportingSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
+            .padding(.horizontal, 16)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
