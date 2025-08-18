@@ -183,7 +183,7 @@ async fn main() -> Result<()> {
             app_window.set_bg_color(&db).ok();
             #[cfg(target_os = "linux")]
             app_window.set_max_size(os.display_server.clone()).ok();
-            #[cfg(windows)]
+            #[cfg(not(target_os = "linux"))]
             app_window.set_max_size().ok();
 
             let fs_config = {

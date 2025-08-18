@@ -54,6 +54,7 @@ pub struct OsInfo {
     pub version: String,
     pub kernel: Option<String>,
     pub arch: String,
+    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub display_server: DisplayServer,
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub gpu: GpuType,
@@ -68,6 +69,7 @@ impl OsInfo {
             version: system.os_version,
             kernel: Some(system.kernel_version),
             arch: system.arch,
+            #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             display_server: get_display_server(),
             #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             gpu: gpu_info(),
@@ -133,6 +135,7 @@ impl std::fmt::Display for OsInfo {
     }
 }
 
+#[cfg(any(target_os = "linux", target_os = "openbsd"))]
 impl Default for GpuType {
     fn default() -> Self {
         GpuType::Unknown(None)

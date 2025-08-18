@@ -3,6 +3,7 @@ use crate::db::{Db, Key};
 use crate::env::{DEV_MODE, UPDATER_ENABLED};
 use crate::startup_error::StartupError;
 use crate::state::app::VpnMode;
+#[cfg(target_os = "linux")]
 use crate::sys::DisplayServer;
 use crate::{
     APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
@@ -163,10 +164,14 @@ impl AppWindow {
             error!("failed to get current monitor: {e}");
         })?
         else {
-            // On Wayland it is expected failing to detected monitor info
-            // especially when the window is not yet visible
-            if display_server == DisplayServer::Wayland {
-                info!("failed to get current monitor details");
+            if cfg!(target_os = "linux") {
+                // On Wayland it is expected failing to detected monitor info
+                // especially when the window is not yet visible
+                if display_server == DisplayServer::Wayland {
+                    info!("failed to get current monitor details");
+                } else {
+                    warn!("failed to get current monitor details");
+                }
             } else {
                 warn!("failed to get current monitor details");
             }
