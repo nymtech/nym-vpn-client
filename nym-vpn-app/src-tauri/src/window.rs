@@ -16,7 +16,7 @@ use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
     WebviewUrl, WebviewWindow, WebviewWindowBuilder,
 };
-use tracing::{debug, error, info, instrument, trace, warn};
+use tracing::{debug, error, instrument, trace, warn};
 use ts_rs::TS;
 
 const MAIN_WEBVIEW_URL: &str = "index.html";
@@ -164,18 +164,18 @@ impl AppWindow {
             error!("failed to get current monitor: {e}");
         })?
         else {
-            if cfg!(target_os = "linux") {
+            #[cfg(target_os = "linux")]
+            {
                 // On Wayland it is expected failing to detected monitor info
                 // especially when the window is not yet visible
                 if display_server == DisplayServer::Wayland {
-                    info!("failed to get current monitor details");
+                    tracing::info!("failed to get current monitor details");
                 } else {
                     warn!("failed to get current monitor details");
                 }
-            } else {
-                warn!("failed to get current monitor details");
             }
-
+            #[cfg(not(target_os = "linux"))]
+            warn!("failed to get current monitor details");
             return Ok(());
         };
         // in case of monitor > 1440p, increase the max allowed window size
