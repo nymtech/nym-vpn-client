@@ -443,7 +443,7 @@ impl LocalResolver {
             ) {
                 Ok(sock) => sock,
                 Err(error) => {
-                    log::error!("Failed to open IPv4/UDP socket: {error}");
+                    tracing::error!("Failed to open IPv4/UDP socket: {error}");
                     continue;
                 }
             };
