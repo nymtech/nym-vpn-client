@@ -157,7 +157,7 @@ export type AccountState =
   | 'error';
 
 export function isAccountError(
-  state: TAccountState | AccountState,
+  state: TAccountState,
 ): state is AccountStateError {
   return (state as AccountStateError).error !== undefined;
 }
