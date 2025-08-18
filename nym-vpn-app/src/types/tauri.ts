@@ -152,7 +152,9 @@ export type TAccountState =
   | 'no-subscription'
   | 'max-device-reached'
   | AccountStateError;
-export type AccountState = Exclude<TAccountState, 'syncing'>;
+export type AccountState =
+  | Exclude<TAccountState, 'syncing' | AccountStateError>
+  | 'error';
 
 export function isAccountError(
   state: TAccountState | AccountState,

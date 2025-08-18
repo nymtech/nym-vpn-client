@@ -16,6 +16,7 @@ function TunnelState() {
     tunnelError,
     retryAttempt,
     accountState,
+    accountError,
   } = useMainState();
   const [showBadge, setShowBadge] = useState(true);
   const loading = state === 'connecting' || state === 'disconnecting';
@@ -23,7 +24,8 @@ function TunnelState() {
     accountState === 'max-device-reached' ||
     accountState === 'no-subscription' ||
     accountState === 'bandwidth-exceeded' ||
-    accountState === 'status-not-active';
+    accountState === 'status-not-active' ||
+    accountState === 'error';
   const isError = tunnelError || error || isAccountError;
   const isOffline = state === 'offline' || state === 'offline-auto-reconnect';
   const showRetryAttempt = state === 'connecting' && !error && retryAttempt > 0;
@@ -76,7 +78,8 @@ function TunnelState() {
       return <p data-testid="tunnel-specific-error">{tE(tunnelError)}</p>;
     }
     if (isAccountError) {
-      return <p data-testid="account-specific-error">{tA(accountState)}</p>;
+      const error = accountError ? tE(accountError.key) : tA(accountState);
+      return <p data-testid="account-specific-error">{error}</p>;
     }
     if (error) {
       return generalError(error);

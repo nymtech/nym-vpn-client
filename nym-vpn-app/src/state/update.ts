@@ -82,15 +82,24 @@ export function updateAccountState(
       type: 'set-account-syncing',
       syncing: false,
     });
-    dispatch({
-      type: 'set-account-state',
-      state: state,
-    });
-  }
-  if (isAccountError(state)) {
-    dispatch({
-      type: 'set-error',
-      error: state.error,
-    });
+    if (isAccountError(state)) {
+      dispatch({
+        type: 'set-account-error',
+        error: state.error,
+      });
+      dispatch({
+        type: 'set-account-state',
+        state: 'error',
+      });
+    } else {
+      dispatch({
+        type: 'set-account-state',
+        state: state,
+      });
+      dispatch({
+        type: 'set-account-error',
+        error: null,
+      });
+    }
   }
 }

@@ -23,10 +23,9 @@ function useI18nAccountState() {
           return t('account.no-subscription');
         case 'max-device-reached':
           return t('account.max-devices-reached');
+        default:
+          return t('account.internal');
       }
-
-      console.warn('unhandled account state to UI error', state);
-      return t('internal');
     },
     [t],
   );
