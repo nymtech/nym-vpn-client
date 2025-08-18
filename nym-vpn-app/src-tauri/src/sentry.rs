@@ -5,7 +5,9 @@ use tracing::{info, warn};
 use crate::env::APP_SENTRY_DSN;
 use crate::sys::OsInfo;
 
-static EXCLUDED_ERRORS: [&str; 7] = [
+static EXCLUDED_ERRORS: [&str; 9] = [
+    "failed to connect to the daemon: transport error",
+    "vpnd down",
     "invalid mnemonic",
     "no device stored",
     "no account stored",
@@ -39,7 +41,7 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
                         .iter()
                         .any(|err| message.to_lowercase().contains(err))
                 {
-                    event.level = Level::Debug; // Change level to Debug
+                    event.level = Level::Info;
                 }
                 Some(event)
             })),
