@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upgrade nym to emmental (https://github.com/nymtech/nym-vpn-client/pull/3155)
 - Enable anonymous network statistics collection by default in the daemon, only for new installations (https://github.com/nymtech/nym-vpn-client/pull/3265)
+- Reconnect on failure to resolve gateway addresses instead of entering error state (https://github.com/nymtech/nym-vpn-client/pull/3268)
 
 ### Fixed
 

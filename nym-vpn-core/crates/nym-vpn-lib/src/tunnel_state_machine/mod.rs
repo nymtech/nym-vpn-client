@@ -597,8 +597,8 @@ pub enum Error {
     #[error("failed to apply firewall policy")]
     ApplyFirewallPolicy(#[source] nym_firewall::Error),
 
-    #[error("failed to resolve gateway addresses")]
-    ResolveGatewayAddrs(#[source] nym_gateway_directory::Error),
+    #[error("failed to resolve API hostnames")]
+    ResolveApiHostnames(#[source] nym_gateway_directory::Error),
 
     #[cfg(target_os = "macos")]
     #[error("failed to start local dns resolver")]
@@ -669,7 +669,7 @@ impl Error {
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
-            Self::ResolveGatewayAddrs(_) => ErrorStateReason::ResolveGatewayAddrs,
+            Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
             Self::StartLocalDnsResolver(_) => ErrorStateReason::StartLocalDnsResolver,
             #[cfg(windows)]
