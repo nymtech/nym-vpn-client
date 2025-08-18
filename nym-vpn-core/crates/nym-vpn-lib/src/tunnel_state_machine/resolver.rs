@@ -52,11 +52,10 @@ use tokio_util::{
     sync::{CancellationToken, DropGuard},
 };
 
-/// If a local DNS resolver should be used at all times.
+/// If a local DNS resolver should be used.
 ///
-/// This setting does not affect the error or blocked state. In those states, we will want to use
-/// the local DNS resoler to work around Apple's captive portals check. Exactly how this is done is
-/// documented elsewhere.
+/// Local DNS resolver is used to work around Apple's captive portals check.
+/// More info can be found at <https://github.com/mullvad/mullvadvpn-app/blob/main/docs/allow-macos-network-check.md>
 pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
     let disable_local_dns_resolver = std::env::var("NYM_DISABLE_LOCAL_DNS_RESOLVER")
         .map(|v| v != "0")
