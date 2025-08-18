@@ -83,12 +83,12 @@ private extension SettingsListItem {
         VStack(alignment: .leading, spacing: 4) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
+                .textStyle(.Body.Medium.regular)
 
             if let subtitle = viewModel.subtitle {
                 BouncingMarqueeTextView(
                     text: subtitle,
-                    textStyle: .Body.Medium.regular,
+                    textStyle: .Body.Small.regular,
                     fontColor: NymColor.gray1,
                     speed: 70,
                     pauseDuration: 1.0
@@ -119,8 +119,6 @@ private extension SettingsListItem {
     @ViewBuilder
     func optionalMultilineLabel() -> some View {
         if let multilineText = viewModel.multilineText {
-            Spacer()
-                .frame(height: 18)
             HStack(spacing: 0) {
                 Text(multilineText)
                     .textStyle(.Body.Medium.regular)
@@ -129,6 +127,8 @@ private extension SettingsListItem {
                     .tint(NymColor.gray1)
                 Spacer()
             }
+            Spacer()
+                .frame(height: 18)
         }
     }
 }

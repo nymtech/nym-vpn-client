@@ -82,6 +82,7 @@ extension HomeViewModel {
 
     func displayEnableStatisticsSnackBarCTAIfNeeded() {
         guard lastTunnelStatus == .disconnected,
+              !appSettings.isStatisticsEnabled,
               appSettings.statisticsConnectionCount == 1 || appSettings.statisticsConnectionCount.isMultiple(of: 10)
         else {
             return

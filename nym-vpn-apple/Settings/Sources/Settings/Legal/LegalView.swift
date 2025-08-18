@@ -11,13 +11,17 @@ struct LegalView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
-            Spacer()
-                .frame(height: 24)
-            section()
-                .frame(maxWidth: MagicNumbers.maxWidth)
-            Spacer()
+
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 24)
+                section()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

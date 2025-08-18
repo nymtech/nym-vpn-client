@@ -12,7 +12,7 @@ public struct AppModeView: View {
     @Binding private var path: NavigationPath
 
     public var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
             appModeOptions()
                 .frame(maxWidth: MagicNumbers.maxWidth)

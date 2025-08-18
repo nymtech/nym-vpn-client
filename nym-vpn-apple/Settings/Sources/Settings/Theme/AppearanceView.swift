@@ -15,21 +15,25 @@ public struct AppearanceView: View {
     public var body: some View {
         VStack(spacing: 0) {
             navbar()
-            Spacer()
-                .frame(height: 24)
-            language()
-                .frame(maxWidth: MagicNumbers.maxWidth)
-            Spacer()
-                .frame(height: 24)
-            theme()
-                .frame(maxWidth: MagicNumbers.maxWidth)
+
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 24)
+                language()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+                Spacer()
+                    .frame(height: 24)
+                theme()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
 #if os(macOS)
-            Spacer()
-                .frame(height: 24)
-            appMode()
-                .frame(maxWidth: MagicNumbers.maxWidth)
+                Spacer()
+                    .frame(height: 24)
+                appMode()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
 #endif
-            Spacer()
+                Spacer()
+            }
+            .padding(.horizontal, 16)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

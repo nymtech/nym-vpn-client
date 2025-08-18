@@ -24440,30 +24440,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous error reports"
+            "value" : "Share anonymous error reports"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Informes de errores anónimos"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "گزارش خطا به صورت ناشناس"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Rapports d'erreurs anonymes"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "अनाम त्रुटि रिपोर्ट"
           }
         },
@@ -24475,7 +24475,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "匿名のエラーレポート"
           }
         },
@@ -24487,37 +24487,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Relatórios de erro anônimos"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Анонимные отчеты об ошибках"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Anonim hata raporları"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Анонімні повідомлення про помилки"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Báo cáo lỗi ẩn danh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "匿名错误报告"
           }
         }
@@ -28045,6 +28045,17 @@
         }
       }
     },
+    "welcome.analytics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share anonymous product analytics"
+          }
+        }
+      }
+    },
     "welcome.continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28146,103 +28157,35 @@
         }
       }
     },
-    "welcome.disclaimer" : {
+    "welcome.privacyPolicy" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+            "value" : "Privacy policy"
           }
-        },
-        "es" : {
+        }
+      }
+    },
+    "welcome.privacyPolicy1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía)."
+            "value" : "By continuing, you agree to NymVPN's"
           }
-        },
-        "fa" : {
+        }
+      }
+    },
+    "welcome.privacyPolicy2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "این نرم‌افزار در مرحله آزمایشی است. برای ناشناسی کامل (فعلا!) به آن اتکاء نکنید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN est un logiciel expérimental. Il ne garantit pas (encore) une anonymité forte."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "यह प्रयोगात्मक सॉफ़्टवेयर है। (फ़िलहाल) इसके लिए मजबूत गुमनामी पर भरोसा न करें।"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "これは実験的なソフトウェアです。現時点では強力な匿名性を期待しないでください。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este é um software experimental. Não confie nele para obter um anonimato forte (ainda)."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Это экспериментальное ПО. Не полагайтесь на него для обеспечения полной анонимности (пока что)."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu deneysel bir yazılımdır. Şu an için güçlü anonimlik için güvenmeyin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Це експериментальне програмне забезпечення. Не покладайтеся на нього для забезпечення повної анонімності (поки що)."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đây là phần mềm thử nghiệm. Không nên dựa vào nó để đạt được ẩn danh mạnh (ít nhất là hiện tại)."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此为实验性软件。请勿依赖其提供强匿名性服务（目前阶段）。"
+            "value" : "and acknowledge NymVPN's"
           }
         }
       }
@@ -28366,30 +28309,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+            "value" : "Help NymVPN identify and fix technical issues! Consider opting-in for error monitoring (via"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "¡Ayúdanos a mejorar nuestra aplicación! Tus comentarios son cruciales para identificar y resolver problemas. Activa el monitoreo de errores anónimo (vía"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "به ما کمک کنید تا اپلیکیشن خود را بهبود ببخشیم! بازخورد شما در شناسایی و حل مشکلات حیاتی است. برای همکاری با نظارت ما بر خطاهای ناشناس اقدام کنید (از طریق"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aidez-nous à améliorer NymVPN ! Vos retours sont très utiles. Vous pouvez activer les rapports d'erreurs anonymes (via"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "हमें हमारे एप्लिकेशन को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया मुद्दों की पहचान और समाधान के लिए महत्वपूर्ण है। गुमनाम त्रुटि निगरानी के लिए विकल्प चुनें (के माध्यम से"
           }
         },
@@ -28401,7 +28344,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "アプリの改善にご協力ください！あなたのフィードバックは問題の特定と解決に不可欠です。匿名のエラーモニタリングを選択してください。"
           }
         },
@@ -28413,37 +28356,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ajude-nos a aperfeiçoar nosso aplicativo! Seu feedback é fundamental para identificar e resolver problemas. Aceite o monitoramento anônimo de erros (via"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Помогите нам улучшить наше приложение! Ваши отзывы важны для выявления и решения проблем. Подпишитесь на анонимный мониторинг ошибок (через..."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Uygulamamızı geliştirmemize yardımcı olun! Geri bildiriminiz, sorunları tespit etmek ve çözmek için çok önemlidir. Anonim hata izleme "
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Допоможіть нам вдосконалити наш додаток! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем. Підпишіться на анонімний моніторинг помилок (через"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Giúp chúng tôi hoàn thiện ứng dụng! Phản hồi của bạn rất quan trọng để xác định và khắc phục các vấn đề. Tham gia theo dõi lỗi ẩn danh (qua"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "帮助我们改进我们的应用！您的反馈对于识别和解决问题至关重要。选择匿名错误监测 (通过"
           }
         }
@@ -28467,30 +28410,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
+            "value" : ") and keeping network stats on. It's always anonymous, opt out anytime, and your activities can never be revealed."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") y analíticas a voluntad—puedes optar cambiarlo en cualquier momento.\n¡Gracias por tu apoyo!"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") و تجزیه تحلیل و می‌توانید هر موقع از این مشارکت انصراف دهید. ممنون از حمایتتان!"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") et les rapports d'analyse. Vous pouvez changer vos préférences à tout moment. Merci de votre soutien !"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") और विश्लेषण के लिए, आप कभी भी ऑप्ट-आउट कर सकते हैं। आपके समर्थन के लिए धन्यवाद!"
           }
         },
@@ -28502,7 +28445,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "モニタリングはいつでも解除可能です。ご協力よろしくお願いします！"
           }
         },
@@ -28514,38 +28457,150 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") e análises à vontade - você pode optar por não participar a qualquer momento.\nObrigado por seu apoio!"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") и аналитику по вашему усмотрению — вы можете отказаться в любой момент. \nСпасибо за вашу поддержку!"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ve analitik verileri gönüllü olarak kabul edebilir, istediğiniz zaman reddedebilirsiniz. Desteğiniz için teşekkür ederiz!"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") та аналітику за бажанням - ви можете відмовитися будь-коли.\nДякуємо за вашу підтримку!"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : ") và phân tích theo ý muốn—bạn có thể chọn không tham gia bất kỳ lúc nào.\nCảm ơn sự hỗ trợ của bạn!"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "）及数据分析——您可以随时退出。\n感谢您的支持！"
+          }
+        }
+      }
+    },
+    "welcome.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanks for your support!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía)."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "این نرم‌افزار در مرحله آزمایشی است. برای ناشناسی کامل (فعلا!) به آن اتکاء نکنید."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NymVPN est un logiciel expérimental. Il ne garantit pas (encore) une anonymité forte."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "यह प्रयोगात्मक सॉफ़्टवेयर है। (फ़िलहाल) इसके लिए मजबूत गुमनामी पर भरोसा न करें।"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "これは実験的なソフトウェアです。現時点では強力な匿名性を期待しないでください。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Este é um software experimental. Não confie nele para obter um anonimato forte (ainda)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Это экспериментальное ПО. Не полагайтесь на него для обеспечения полной анонимности (пока что)."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bu deneysel bir yazılımdır. Şu an için güçlü anonimlik için güvenmeyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Це експериментальне програмне забезпечення. Не покладайтеся на нього для забезпечення повної анонімності (поки що)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Đây là phần mềm thử nghiệm. Không nên dựa vào nó để đạt được ẩn danh mạnh (ít nhất là hiện tại)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "此为实验性软件。请勿依赖其提供强匿名性服务（目前阶段）。"
+          }
+        }
+      }
+    },
+    "welcome.termsOfUse" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of use"
           }
         }
       }
