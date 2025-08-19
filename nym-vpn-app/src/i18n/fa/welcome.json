@@ -4,5 +4,6 @@
   "anon-toggle-desc": "بعد از راه‌اندازی مجدد برنامه اعمال می‌شود",
   "tos-notice": "با ادامه دادن، شما با <tosLink /> NymVPN و <privacyLink /> NymVPN موافقت می‌کنید.",
   "continue-button": "ادامه",
-  "error-monitoring-label": "Anonymous error reports"
+  "error-monitoring-label": "Anonymous error reports",
+  "network-statistic": "Anonymous network stats"
 }

@@ -73,5 +73,14 @@
       "desc2": "Somente dados de desempenho da rede são compartilhados - nunca sua atividade de navegação ou dados pessoais.",
       "link": "Saiba exatamente o que é compartilhado"
     }
+  },
+  "account": {
+    "get-started": "Get started",
+    "syncing": "Syncing…",
+    "no-plan": "No active plan",
+    "bandwidth-exceeded": "Bandwidth exceeded",
+    "max-device-reached": "Max devices reached",
+    "status-inactive": "Account is inactive",
+    "error": "Internal error"
   }
 }

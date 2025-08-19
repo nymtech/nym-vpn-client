@@ -62,5 +62,6 @@
     "description": "Đang cài đặt các bản cập nhật - vui lòng đừng đóng ứng dụng.",
     "restart-note": "Ứng dụng sẽ khởi động lại sau khi cập nhật.",
     "bar-label": "Tiến độ tải xuống"
-  }
+  },
+  "get-started": "Get started"
 }
