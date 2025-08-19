@@ -12,7 +12,7 @@ use std::{
 
 use ipnetwork::IpNetwork;
 use libc::{c_int, sysctlbyname};
-use pfctl::{DropAction, FilterRuleAction, Ip, RedirectRule, Uid};
+use pfctl::{DropAction, FilterRuleAction, Ip, Uid};
 
 use super::{
     DNS_TCP_PORTS, FirewallArguments, FirewallPolicy,
@@ -27,41 +27,6 @@ pub use pfctl::Error;
 type Result<T> = std::result::Result<T, Error>;
 
 const ANCHOR_NAME: &str = "nym";
-
-/// If a local DNS resolver should be used at all times.
-///
-/// This setting does not affect the error or blocked state. In those states, we will want to use
-/// the local DNS resoler to work around Apple's captive portals check. Exactly how this is done is
-/// documented elsewhere.
-pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
-    use nym_platform_metadata::AppleVersion;
-    let version = AppleVersion::current();
-    let v = |s| AppleVersion::from_str(s).unwrap();
-
-    // Apple services tried to perform DNS lookups on the physical interface on some macOS
-    // versions, so we added redirect rules to always redirect DNS to our local DNS resolver.
-    // This seems to break some apps which do not like that we redirect DNS on port 53 to our local
-    // DNS resolver running on some other, arbitrary port, and so we disable this behaviour on
-    // macOS versions that are unaffected by this naughty bug.
-    //
-    // The workaround should only be applied to the affected macOS versions because some programs
-    // set the `skip filtering` pf flag on loopback, which meant that the pf filtering would break
-    // unexpectedly. We could clear the `skip filtering` flag to force pf filtering on loopback,
-    // but apparently it is good practice to enable `skip filtering` on loopback so we decided
-    // against this. Source: https://www.openbsd.org/faq/pf/filter.html
-    //
-    // It should be noted that most programs still works fine with this workaround enabled. Notably
-    // programs that use `getaddrinfo` would behave correctly when we redirect DNS to our local
-    // resolver, while some programs always used port 53 no matter what (nslookup for example).
-    // Also, most programs don't set the `skip filtering` pf flag on loopback, but some notable
-    // ones do for some reason. Orbstack is one such example, which meant that people running
-    // containers would run into the aforementioned issue.
-    let use_local_dns_resolver = v("14.6") <= version && version < v("15.1");
-    if use_local_dns_resolver {
-        tracing::info!("Using local DNS resolver");
-    }
-    use_local_dns_resolver
-});
 
 /// If NAT firewall rules should be applied to force Apple services through the tunnel.
 ///
@@ -274,7 +239,7 @@ impl Firewall {
         let mut anchor_change = pfctl::AnchorChange::new();
         anchor_change.set_scrub_rules(Self::get_scrub_rules()?);
         anchor_change.set_filter_rules(new_filter_rules);
-        anchor_change.set_redirect_rules(self.get_dns_redirect_rules(policy)?);
+        anchor_change.set_redirect_rules(vec![]);
         if *NAT_WORKAROUND {
             anchor_change.set_nat_rules(self.get_nat_rules(policy)?);
         }
@@ -290,54 +255,6 @@ impl Firewall {
             .action(pfctl::ScrubRuleAction::Scrub)
             .build()?;
         Ok(vec![scrub_rule])
-    }
-
-    fn get_dns_redirect_rules(
-        &mut self,
-        policy: &FirewallPolicy,
-    ) -> Result<Vec<pfctl::RedirectRule>> {
-        /// Redirect DNS requests to `port`. Technically this redirects UDP on port 53 to `port`.
-        ///
-        /// For this to work as expected, please make sure a DNS resolver is running on `port`.
-        fn redirect_dns_to(port: u16) -> Result<Vec<RedirectRule>> {
-            let redirect_dns = pfctl::RedirectRuleBuilder::default()
-                .action(pfctl::RedirectRuleAction::Redirect)
-                .interface("lo0")
-                .proto(pfctl::Proto::Udp)
-                .to(pfctl::Port::from(53))
-                .redirect_to(pfctl::Port::from(port))
-                .build()?;
-            Ok(vec![redirect_dns])
-        }
-
-        let redirect_rules = if *LOCAL_DNS_RESOLVER {
-            match policy {
-                FirewallPolicy::Connected { dns_config, .. } if dns_config.is_loopback() => {
-                    vec![]
-                }
-                FirewallPolicy::Blocked {
-                    dns_redirect_port, ..
-                }
-                | FirewallPolicy::Connecting {
-                    dns_redirect_port, ..
-                }
-                | FirewallPolicy::Connected {
-                    dns_redirect_port, ..
-                } => redirect_dns_to(*dns_redirect_port)?,
-            }
-        } else {
-            // Only apply redirect rules in the blocked state if we should *not* use our local DNS
-            // resolver, since it will be running in the blocked state to work with Apple's captive
-            // portal check.
-            match policy {
-                FirewallPolicy::Blocked {
-                    dns_redirect_port, ..
-                } => redirect_dns_to(*dns_redirect_port)?,
-                FirewallPolicy::Connecting { .. } | FirewallPolicy::Connected { .. } => vec![],
-            }
-        };
-
-        Ok(redirect_rules)
     }
 
     /// Force all traffic out on the VPN interface (except LAN and some other exceptions).
@@ -466,7 +383,6 @@ impl Firewall {
                 allowed_entry_tunnel_traffic,
                 allowed_exit_tunnel_traffic,
                 redirect_interface,
-                dns_redirect_port: _,
             } => {
                 let mut rules = Vec::new();
 
@@ -534,7 +450,6 @@ impl Firewall {
                 allow_lan,
                 dns_config,
                 redirect_interface,
-                dns_redirect_port: _,
             } => {
                 let mut rules = vec![];
                 let (entry_tunnel, exit_tunnel) = match tunnel {
@@ -596,7 +511,6 @@ impl Firewall {
             FirewallPolicy::Blocked {
                 allow_lan,
                 allowed_endpoints,
-                dns_redirect_port: _,
             } => {
                 let mut rules = Vec::new();
                 for allowed_endpoint in allowed_endpoints {
