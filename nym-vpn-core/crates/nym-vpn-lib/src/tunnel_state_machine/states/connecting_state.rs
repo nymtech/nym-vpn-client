@@ -268,6 +268,21 @@ impl ConnectingState {
         shared_state.route_handler.remove_routes().await
     }
 
+    async fn reconnect(self, shared_state: &mut SharedState) -> NextTunnelState {
+        let next_attempt = self.retry_attempt.saturating_add(1);
+        let next_gateways = if next_attempt.is_multiple_of(2) {
+            None
+        } else {
+            self.selected_gateways
+        };
+
+        tracing::info!("Reconnecting, attempt {next_attempt}");
+
+        NextTunnelState::NewState(
+            ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
+        )
+    }
+
     async fn disconnect(
         after_disconnect: PrivateActionAfterDisconnect,
         tunnel_monitor_handle: TunnelMonitorHandle,
@@ -302,14 +317,8 @@ impl ConnectingState {
                 resolved_gateway_config
             }
             Err(e) => {
-                let next_attempt = self.retry_attempt.saturating_add(1);
-                tracing::info!(
-                    "Failed to resolve gateway config: {e}. Reconnecting, attempt {next_attempt}."
-                );
-                return NextTunnelState::NewState(
-                    ConnectingState::enter(next_attempt, self.selected_gateways, shared_state)
-                        .await,
-                );
+                trace_err_chain!(e, "Failed to resolve gateway config");
+                return self.reconnect(shared_state).await;
             }
         };
 
@@ -581,21 +590,14 @@ impl TunnelStateHandler for ConnectingState {
                                 shared_state
                             ))
                         } else {
-                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
                                 let tombstone = tunnel_monitor_handle.wait().await;
                                 Self::handle_tunnel_close(tombstone, shared_state).await;
                             }
 
-                            let next_attempt = self.retry_attempt.saturating_add(1);
-                            tracing::info!(
-                                "Tunnel closed. Reconnecting, attempt {}.",
-                                next_attempt
-                            );
-                            NextTunnelState::NewState(ConnectingState::enter(
-                                next_attempt,
-                                self.selected_gateways,
-                                shared_state
-                            ).await)
+                            tracing::info!("Tunnel closed");
+
+                            self.reconnect(shared_state).await
                         }
                     }
                 }
