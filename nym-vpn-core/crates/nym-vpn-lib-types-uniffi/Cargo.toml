@@ -24,7 +24,6 @@ nym-config.workspace = true
 nym-sdk.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
-nym-vpn-account-controller.workspace = true
 nym-vpn-network-config.workspace = true
 nym-vpn-api-client.workspace = true
 nym-gateway-directory.workspace = true

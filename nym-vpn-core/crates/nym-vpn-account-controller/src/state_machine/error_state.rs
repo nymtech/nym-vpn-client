@@ -17,6 +17,17 @@ use crate::{
     },
 };
 
+/// ErrorState
+/// We encountered something that doesn't allow us to make any progress.
+/// This can range from internal issue, storage failure, API failure or unregistered account, expired subsciprions etc.
+/// The full list of reason is available in the AccountControllerErrorStateReason enum
+///
+/// Crucially, we are online and an account is stored.
+///
+/// Possible next state :
+/// - SyncingState : We go into that state on a timer, to see if the problem persists. The refresh account commands allows for manually go there
+/// - OfflineState : the connectivity monitor is telling we're not connected
+/// - LoggedOutState : We successfully handled a forget_account command
 pub struct ErrorState {
     refresh_timer: Pin<Box<Sleep>>,
 }

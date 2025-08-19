@@ -6,8 +6,8 @@ pub struct RegisterAccountResponse {
     pub account_token: String,
 }
 
-impl From<nym_vpn_account_controller::RegisterAccountResponse> for RegisterAccountResponse {
-    fn from(value: nym_vpn_account_controller::RegisterAccountResponse) -> Self {
+impl From<nym_vpn_lib_types::RegisterAccountResponse> for RegisterAccountResponse {
+    fn from(value: nym_vpn_lib_types::RegisterAccountResponse) -> Self {
         RegisterAccountResponse {
             account_token: value.account_token,
         }
