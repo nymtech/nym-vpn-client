@@ -25,7 +25,10 @@ impl DisconnectedState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::reset_firewall_policy(shared_state);
 
-        let _ = shared_state.account_command_tx.set_vpn_api_firewall_down().await;
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_down()
+            .await;
 
         if let Err(e) = shared_state
             .account_command_tx
