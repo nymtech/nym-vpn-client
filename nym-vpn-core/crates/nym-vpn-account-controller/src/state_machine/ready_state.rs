@@ -56,7 +56,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
     ) -> NextAccountControllerState<C> {
         tokio::select! {
             _ = &mut self.refresh_timer => {
-                NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                if shared_state.firewall_active {
+                    tracing::debug!("VPN API is firewalled, timed account syncing skipped");
+                    return NextAccountControllerState::NewState(ReadyState::enter());
+                } else {
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                }
             },
             Some(command) = command_rx.recv() => {
                 match command {
@@ -84,7 +89,20 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        }
+                    },
+
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
+                        return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => common_handler::handle_common_command(common_command, shared_state).await,

@@ -242,15 +242,32 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
-                        self.syncing_state_handle.abort();
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state,0));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            self.syncing_state_handle.abort();
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
                         self.syncing_state_handle.abort();
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state,0));
                     },
+
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
+                    },
+
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
+                        self.syncing_state_handle.abort();
+                        return_sender.send(Ok(()));
+                    },
+
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
                     },

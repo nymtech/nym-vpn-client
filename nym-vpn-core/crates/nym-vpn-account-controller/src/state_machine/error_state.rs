@@ -30,6 +30,7 @@ use crate::{
 /// - LoggedOutState : We successfully handled a forget_account command
 pub struct ErrorState {
     refresh_timer: Pin<Box<Sleep>>,
+    reason: AccountControllerErrorStateReason,
 }
 
 impl ErrorState {
@@ -42,7 +43,10 @@ impl ErrorState {
         let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
         tracing::error!("Account Controller entering error state : {reason:#?}");
         (
-            Box::new(Self { refresh_timer }),
+            Box::new(Self {
+                refresh_timer,
+                reason: reason.clone(),
+            }),
             PrivateAccountControllerState::Error(reason),
         )
     }
@@ -58,7 +62,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
     ) -> NextAccountControllerState<C> {
         tokio::select! {
         _ = &mut self.refresh_timer => {
-                NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                if shared_state.firewall_active {
+                    tracing::debug!("VPN API is firewalled, timed account syncing skipped");
+                    return NextAccountControllerState::NewState(ErrorState::enter(self.reason));
+                } else {
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                }
             },
             Some(command) = command_rx.recv() => {
                 match command {
@@ -87,7 +96,20 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        }
+                    },
+
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
+                        return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => {

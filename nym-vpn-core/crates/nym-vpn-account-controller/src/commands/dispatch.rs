@@ -38,6 +38,12 @@ pub enum AccountCommand {
     /// Forces the AC to sync with the VPN API
     RefreshAccountState(ReturnSender<(), AccountCommandError>),
 
+    /// Tells the AC it's firewalled off the VPN API, so it should stop/pause network communication
+    VpnApiFirewallUp(ReturnSender<(), AccountCommandError>),
+
+    /// Tells the AC free to go ahead
+    VpnApiFirewallDown(ReturnSender<(), AccountCommandError>),
+
     /// Read-only commands
     Common(CommonCommand),
 }
