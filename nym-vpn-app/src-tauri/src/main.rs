@@ -181,6 +181,9 @@ async fn main() -> Result<()> {
 
             let app_window = AppWindow::create_main_window(app.handle(), &cli)?;
             app_window.set_bg_color(&db).ok();
+            #[cfg(target_os = "linux")]
+            app_window.set_max_size(os.display_server.clone()).ok();
+            #[cfg(not(target_os = "linux"))]
             app_window.set_max_size().ok();
 
             let fs_config = {
