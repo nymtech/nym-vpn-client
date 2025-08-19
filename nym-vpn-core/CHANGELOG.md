@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Introduced more extensive entry/exit country parsing (https://github.com/nymtech/nym-vpn-client/pull/3235)
+- Introduce more extensive entry/exit country parsing in nym-vpn-cli (https://github.com/nymtech/nym-vpn-client/pull/3235)
 
 ### Changed
 
-- Upgrade nym to emmental (https://github.com/nymtech/nym-vpn-client/pull/3155)
+- Upgrade Nym platform to emmental release (https://github.com/nymtech/nym-vpn-client/pull/3155)
 - Enable anonymous network statistics collection by default in the daemon, only for new installations (https://github.com/nymtech/nym-vpn-client/pull/3265)
 - Reconnect on failure to resolve gateway addresses instead of entering error state (https://github.com/nymtech/nym-vpn-client/pull/3268)
 - Reconnect to new gateways every 2 failed connection attempts (https://github.com/nymtech/nym-vpn-client/pull/3273)
