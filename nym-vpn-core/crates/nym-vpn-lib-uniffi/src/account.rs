@@ -250,12 +250,12 @@ pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
         .to_string())
 }
 
-pub(super) async fn get_device_id() -> Result<Option<String>, VpnError> {
+pub(super) async fn get_device_id() -> Result<String, VpnError> {
     get_command_sender()
         .await?
         .get_device_identity()
-        .await
-        .map_err(VpnError::from)
+        .await?
+        .ok_or(VpnError::NoAccountStored)
 }
 
 // Raw API that directly accesses storage without going through the account controller.
