@@ -242,9 +242,25 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
+                        return_sender.send(Ok(()));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            self.zk_nym_fetching_handle.abort();
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        }
+                    },
+
+                    AccountCommand::FirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                        return NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, self.fair_usage_left));
+                    },
+
+                    AccountCommand::FirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
                         self.zk_nym_fetching_handle.abort();
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     },
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await

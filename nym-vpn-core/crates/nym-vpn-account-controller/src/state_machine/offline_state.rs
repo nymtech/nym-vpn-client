@@ -66,6 +66,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
 
                     AccountCommand::RefreshAccountState(return_sender) => return_no_connectivity(return_sender),
 
+                    AccountCommand::FirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::FirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
+                        return_sender.send(Ok(()));
+                    },
+
 
                     AccountCommand::Common(common_command) => {
                         match common_command {

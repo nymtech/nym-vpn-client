@@ -34,6 +34,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Registered device
     pub(crate) device: Option<Device>,
 
+    /// Firewall status
+    pub(crate) firewall_active: bool,
+
     /// Channel to send storage operation to the AccountController
     pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
 }
@@ -55,6 +58,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             vpn_api_client,
             vpn_api_account,
             device,
+            firewall_active: false,
             storage_op_sender,
         }
     }

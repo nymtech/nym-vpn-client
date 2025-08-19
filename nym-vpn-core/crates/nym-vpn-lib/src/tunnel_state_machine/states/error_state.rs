@@ -71,7 +71,7 @@ impl ErrorState {
         if let Err(e) = Self::set_firewall_policy(_shared_state) {
             trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
-
+        let _ = _shared_state.account_command_tx.set_firewall_up().await;
         (Box::new(Self), PrivateTunnelState::Error(reason))
     }
 
