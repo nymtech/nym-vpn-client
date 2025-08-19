@@ -1,4 +1,4 @@
-# source: https://github.com/tauri-apps/tauri/blob/dev/tooling/bundler/src/bundle/linux/templates/main.desktop
+# source: https://github.com/tauri-apps/tauri/blob/dev/crates/tauri-bundler/src/bundle/linux/freedesktop/main.desktop
 
 [Desktop Entry]
 Categories={{categories}}
@@ -6,6 +6,7 @@ Categories={{categories}}
 Comment={{comment}}
 {{/if}}
 Exec=env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug {{exec}}
+StartupWMClass={{exec}}
 Icon={{icon}}
 Name={{name}}
 Terminal=false

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve UI emphasis when connection to the daemon is down
+- [Linux] Fix task-bar window icon
 
 ## [1.13.0] - 2025-07-30
 
