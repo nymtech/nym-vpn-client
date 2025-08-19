@@ -5333,7 +5333,6 @@ dependencies = [
  "nym-gateway-directory",
  "nym-ip-packet-requests",
  "nym-sdk",
- "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
