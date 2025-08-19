@@ -10,6 +10,7 @@
   "tunnel": {
     "internal": "Erreur interne",
     "api": "Erreur d'API",
+    "account-controller": "Account controller: internal error",
     "firewall": "Erreur de pare-feu",
     "routing": "Erreur de routage",
     "dns": "Erreur de DNS",
@@ -23,23 +24,34 @@
     "ipv6-unavailable": "L'IPv6 n'est pas disponible sur ce système. Désactiver l'option dans les réglages pour basculer en IPv4"
   },
   "account": {
+    "internal": "Internal account error",
+    "max-devices-reached": "Account device limit exceeded.",
+    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
     "invalid-recovery-phrase": "Code d'accès invalide",
     "storage": "Erreur de stockage backend",
-    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN"
+    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
+    "no-account-stored": "No account stored",
+    "no-device-stored": "No device stored",
+    "existing-account": "Account already exists",
+    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
+    "status-not-active": "Your account is inactive",
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
     "exit": "Échec de la recherche des pays de nœuds de sortie disponibles",
     "fast-mode": "Échec de la recherche des pays disponibles"
   },
-  "no-bandwidth": "Aucune allocation de données restante",
-  "entry-gateway-down": "La passerelle d'entrée est hors service",
-  "exit-gateway-down": {
-    "ipv4": "La passerelle de sortie est hors service (IPv4)",
-    "ipv6": "La passerelle de sortie est hors service (IPv6)"
-  },
-  "exit-gateway-routing": {
-    "ipv4": "Erreur de sortie du routage de la passerelle (IPv4)",
-    "ipv6": "Erreur lors de la sortie du routage de la passerelle (IPv6)"
+  "mixnet": {
+    "no-bandwidth": "No data allowance remaining",
+    "entry-gateway-down": "Entry gateway is down",
+    "exit-gateway-down": {
+      "ipv4": "Exit gateway is down (IPv4)",
+      "ipv6": "Exit gateway is down (IPv6)"
+    },
+    "exit-gateway-routing": {
+      "ipv4": "Exit gateway routing error (IPv4)",
+      "ipv6": "Exit gateway routing error (IPv6)"
+    }
   }
 }

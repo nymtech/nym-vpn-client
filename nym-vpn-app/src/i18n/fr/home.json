@@ -62,5 +62,6 @@
     "description": "Installation des mises à jour - veuillez ne pas fermer l'application.",
     "restart-note": "L'application redémarrera après la mise à jour.",
     "bar-label": "Téléchargement en cours"
-  }
+  },
+  "get-started": "Get started"
 }
