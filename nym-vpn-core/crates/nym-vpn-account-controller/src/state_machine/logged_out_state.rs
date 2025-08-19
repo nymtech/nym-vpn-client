@@ -72,11 +72,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender) => return_no_account(return_sender),
 
-                    AccountCommand::FirewallDown(return_sender) =>  {
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.firewall_active = false;
                         return_sender.send(Ok(()));
                     },
-                    AccountCommand::FirewallUp(return_sender) => {
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
                         shared_state.firewall_active = true;
                         return_sender.send(Ok(()));
                     },

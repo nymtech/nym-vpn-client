@@ -111,7 +111,10 @@ impl ConnectingState {
         }
 
         // If that fails, it's not really important
-        let _ = shared_state.account_command_tx.set_firewall_up().await;
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_up()
+            .await;
 
         let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
@@ -334,8 +337,6 @@ impl ConnectingState {
             }
         }
 
-        let _ = shared_state.account_command_tx.set_firewall_down().await;
-
         if resolved_gateway_config.nym_vpn_api_socket_addrs.is_none()
             || resolved_gateway_config
                 .nym_vpn_api_socket_addrs
@@ -361,6 +362,11 @@ impl ConnectingState {
                 .await,
             );
         }
+
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_down()
+            .await;
 
         let Some(tunnel_monitor_event_sender) = self.tunnel_monitor_event_sender.take() else {
             return NextTunnelState::NewState(

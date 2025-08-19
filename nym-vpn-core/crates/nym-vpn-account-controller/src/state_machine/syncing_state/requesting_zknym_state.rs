@@ -251,13 +251,13 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                         }
                     },
 
-                    AccountCommand::FirewallDown(return_sender) =>  {
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.firewall_active = false;
                         return_sender.send(Ok(()));
                         return NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, self.fair_usage_left));
                     },
 
-                    AccountCommand::FirewallUp(return_sender) => {
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
                         shared_state.firewall_active = true;
                         self.zk_nym_fetching_handle.abort();
                         return_sender.send(Ok(()));

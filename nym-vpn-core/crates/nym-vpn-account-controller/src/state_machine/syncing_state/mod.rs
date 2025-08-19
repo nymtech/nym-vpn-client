@@ -256,13 +256,13 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state,0));
                     },
 
-                    AccountCommand::FirewallDown(return_sender) =>  {
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.firewall_active = false;
                         return_sender.send(Ok(()));
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
                     },
 
-                    AccountCommand::FirewallUp(return_sender) => {
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
                         shared_state.firewall_active = true;
                         self.syncing_state_handle.abort();
                         return_sender.send(Ok(()));

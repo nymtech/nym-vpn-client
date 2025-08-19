@@ -157,18 +157,18 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn set_firewall_up(&self) -> Result<(), AccountCommandError> {
+    pub async fn set_vpn_api_firewall_up(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::FirewallUp(tx))
+            .send(AccountCommand::VpnApiFirewallUp(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn set_firewall_down(&self) -> Result<(), AccountCommandError> {
+    pub async fn set_vpn_api_firewall_down(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::FirewallDown(tx))
+            .send(AccountCommand::VpnApiFirewallDown(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
