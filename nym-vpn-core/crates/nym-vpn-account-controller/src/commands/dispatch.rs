@@ -52,7 +52,7 @@ pub enum CommonCommand {
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
 
     /// Returns Some(id) if the current device has an identity (is registered), None otherwise
-    GetDeviceIdentity(ReturnSender<String, AccountCommandError>),
+    GetDeviceIdentity(ReturnSender<Option<String>, AccountCommandError>),
 
     /// Returns the state of the account
     GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),

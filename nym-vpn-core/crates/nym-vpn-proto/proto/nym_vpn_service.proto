@@ -554,7 +554,7 @@ message ResetDeviceIdentityRequest {
 }
 
 message GetDeviceIdentityResponse {
-  string device_identity = 1;
+  optional string device_identity = 1;
 }
 
 message GetDevicesResponse {

@@ -32,11 +32,11 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
     assert_eq!(
         test_bench.command_sender.get_stored_mnemonic().await,
-        Err(AccountCommandError::NoAccountStored)
+        Ok(None)
     );
     assert_eq!(
         test_bench.command_sender.get_device_identity().await,
-        Err(AccountCommandError::NoAccountStored)
+        Ok(None)
     );
 
     assert_eq!(
@@ -162,7 +162,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_device_identity().await,
-        Err(AccountCommandError::NoDeviceStored)
+        Ok(None)
     );
 
     // Offline, but storing an account

@@ -110,7 +110,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn get_device_identity(&self) -> Result<String, AccountCommandError> {
+    pub async fn get_device_identity(&self) -> Result<Option<String>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeviceIdentity(tx)))
