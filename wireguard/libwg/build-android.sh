@@ -13,7 +13,7 @@ mkdir -p $GOPATH
 echo "GOPATH: $GOPATH"
 echo "GOROOT: $GOROOT"
 
-for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64 i686}; do
+for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64}; do
     case "$arch" in
         "aarch64")
             export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/aarch64-linux-android21-clang"
@@ -33,14 +33,8 @@ for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64 i686}; do
             export ANDROID_ABI="armeabi-v7a"
             export ANDROID_ARCH_NAME="arm"
             ;;
-        "i686")
-            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/i686-linux-android21-clang"
-            export RUST_TARGET_TRIPLE="i686-linux-android"
-            export ANDROID_ABI="x86"
-            export ANDROID_ARCH_NAME="x86"
-            ;;
     esac
-    
+
     export ANDROID_STRIP_TOOL="${NDK_TOOLCHAIN_DIR}/llvm-strip"
 
     # Build Wireguard-Go
