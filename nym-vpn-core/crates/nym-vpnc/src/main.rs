@@ -119,6 +119,7 @@ async fn connect(
             dns: connect_args.dns,
             disable_ipv6: connect_args.disable_ipv6,
             enable_two_hop: connect_args.enable_two_hop,
+            circumvention_transports: connect_args.circumvention_transports,
             netstack: connect_args.netstack,
             disable_poisson_rate: connect_args.disable_poisson_rate,
             disable_background_cover_traffic: connect_args.disable_background_cover_traffic,

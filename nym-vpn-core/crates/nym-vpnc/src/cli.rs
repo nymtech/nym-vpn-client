@@ -190,10 +190,15 @@ pub struct ConnectArgs {
     #[arg(long)]
     pub disable_ipv6: bool,
 
-    /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway using Wireguard protocol.
+    /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway
+    /// to exit gateway using Wireguard protocol.
     #[arg(long)]
     pub enable_two_hop: bool,
+
+    /// Enable Circumvention Transport (CT) wrapping for the connection to the entry gateway in two
+    /// hop wireguard mode.
+    #[arg(long="ct", requires = "enable_two_hop")]
+    pub circumvention_transports: bool,
 
     /// Blocks until the connection is established or failed
     #[arg(short, long)]
