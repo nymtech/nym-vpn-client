@@ -67,12 +67,5 @@ lint/tmp/
 # lint/reports/
 # MacOS
 .DS_Store
-# App Specific cases
-app/release/output.json
-#.idea/codeStyles/
-# where we keep our signing secrets locally
-app/signing.properties
 *.so
 !libjnidispatch.so
-core/src/main/assets/licenses_rust.json
-core/src/main/java/net/nymtech/vpn/nym_vpn_lib/nym_vpn_lib.kt

@@ -1,2 +1,4 @@
 /build
-/nym_vpn_lib/*
+/src/main/java/net/nymtech/vpn/nym_vpn_lib/*
+/src/main/java/net/nymtech/vpn/nym_vpn_lib_types/*
+/src/main/assets/licenses_rust.json

@@ -24,9 +24,14 @@ class LogFileManager(
 
 	suspend fun writeLog(line: String) = withContext(ioDispatcher) {
 		rotateIfNeeded()
-		outputStream?.write((line + System.lineSeparator()).toByteArray())
-		outputStream?.flush()
+		try {
+			outputStream?.write((line + System.lineSeparator()).toByteArray())
+			outputStream?.flush()
+		} catch (e: Exception) {
+			println("Failed to write log: ${e.message}")
+		}
 	}
+
 
 	suspend fun zipLogs(zipFilePath: String) = withContext(ioDispatcher) {
 		outputStream?.close()
@@ -58,15 +63,21 @@ class LogFileManager(
 		currentFile = null
 	}
 
+	private fun closeStream() {
+		outputStream?.close()
+		outputStream = null
+	}
+
 	private fun rotateIfNeeded() {
 		val folderSize = getFolderSize(File(logDir))
 		if (folderSize >= maxFolderSize) {
 			deleteOldestFile()
 		}
 		val fileSize = currentFile?.length() ?: 0L
-		if (currentFile == null || fileSize >= maxFileSize) {
-			outputStream?.close()
+		if (currentFile == null || fileSize >= maxFileSize || outputStream == null) {
+			closeStream()
 			currentFile = File(logDir, "logcat_${System.currentTimeMillis()}.txt")
+			File(logDir).mkdirs()
 			outputStream = FileOutputStream(currentFile!!)
 		}
 	}
