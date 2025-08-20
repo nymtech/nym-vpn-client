@@ -220,7 +220,7 @@ impl AppWindow {
 }
 
 #[instrument(skip(os, win))]
-pub fn handle_event(os: &OsInfo, win: &Window, event: &WindowEvent) {
+pub fn handle_event(#[allow(unused_variables)] os: &OsInfo, win: &Window, event: &WindowEvent) {
     // keep the app running in the background on window close request
     if let WindowEvent::CloseRequested { api, .. } = event {
         if win.label() == MAIN_WINDOW_LABEL {
