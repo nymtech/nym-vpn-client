@@ -40,11 +40,11 @@ jobs:
 
       - name: Install swift-protobuf
         run: |
-          export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-          curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/7186d42bc60247d6b5e860348db7402f12bca912/Formula/s/swift-protobuf.rb
-          brew install --formula $(pwd)/swift-protobuf.rb
-          curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/e377282a7027ed0ca583939b8fb1d52f8dcdf5a7/Formula/g/grpc-swift.rb
-          brew install --formula $(pwd)/grpc-swift.rb
+          brew extract --force --git-revision=7186d42bc60247d6b5e860348db7402f12bca912 swift-protobuf nym/local
+          brew extract --force --git-revision=e377282a7027ed0ca583939b8fb1d52f8dcdf5a7 grpc-swift nym/local
+  
+          brew install nym/local/swift-protobuf nym/local/swift-protobuf
+          brew install nym/local/swift-protobuf nym/local/grpc-swift
 
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@v3
