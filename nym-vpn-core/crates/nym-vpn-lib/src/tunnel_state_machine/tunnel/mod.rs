@@ -7,6 +7,7 @@ pub mod mixnet;
 mod status_listener;
 mod tombstone;
 pub mod wireguard;
+pub mod transports;
 
 #[cfg(unix)]
 use std::os::fd::RawFd;
@@ -149,12 +150,13 @@ pub async fn connect_mixnet(
 
     match options.tunnel_type {
         TunnelType::Mixnet => {}
-        TunnelType::Wireguard => {
+        TunnelType::Wireguard | TunnelType::WrappedWireguard => {
             // Always disable poisson process for outbound traffic in wireguard.
             mixnet_client_config.disable_poisson_rate = true;
             // Always disable background cover traffic in wireguard.
             mixnet_client_config.disable_background_cover_traffic = true;
         }
+        
     };
 
     let setup_mixnet_options = crate::mixnet::SetupMixnetClientOptions {
@@ -242,9 +244,15 @@ pub enum Error {
     #[error("failed to dup tunnel file descriptor")]
     DupFd(#[source] std::io::Error),
 
+    #[error("io error")]
+    Io(#[from] std::io::Error),
+
     #[cfg(windows)]
     #[error("failed to add default route listener")]
     AddDefaultRouteListener(#[source] route_handler::Error),
+
+    #[error("transport error")]
+    Transport(#[from] transports::TransportError),
 
     #[error("connection cancelled")]
     Cancelled,

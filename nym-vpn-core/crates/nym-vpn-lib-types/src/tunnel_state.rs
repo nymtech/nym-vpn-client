@@ -9,6 +9,7 @@ use super::connection_data::{
 pub enum TunnelType {
     Mixnet,
     Wireguard,
+    WrappedWireguard,
 }
 
 impl TunnelType {
