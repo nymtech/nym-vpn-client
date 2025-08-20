@@ -51,6 +51,7 @@ use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
         self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
+        transports,
     },
 };
 use nym_common::trace_err_chain;
@@ -364,8 +365,7 @@ impl TunnelMonitor {
                         .mix_score_thresholds,
                     self.shutdown_token.child_token(),
                 )
-                .await
-                .map_err(Box::new)?;
+                .await?;
 
                 let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
                 self.send_event(TunnelMonitorEvent::SelectedGateways {
@@ -427,8 +427,7 @@ impl TunnelMonitor {
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
         ))
-        .await
-        .map_err(Box::new)?;
+        .await?;
 
         let status_listener_handle = connected_mixnet
             .start_event_listener(
@@ -453,7 +452,7 @@ impl TunnelMonitor {
                 self.start_mixnet_tunnel(task_manager, connected_mixnet)
                     .await?
             }
-            TunnelType::Wireguard => {
+            TunnelType::Wireguard | TunnelType::WrappedWireguard => {
                 match self
                     .tunnel_parameters
                     .tunnel_settings
@@ -639,8 +638,7 @@ impl TunnelMonitor {
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_mixnet_tunnel(self.shutdown_token.child_token())
-            .await
-            .map_err(Box::new)?;
+            .await?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 
         let mtu = if let Some(mtu) = self
@@ -788,15 +786,14 @@ impl TunnelMonitor {
                 entry_metadata_rx,
                 exit_metadata_rx,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
         let conn_data = connected_tunnel.connection_data();
 
         let exit_tun_mtu = connected_tunnel.exit_mtu();
         let exit_tun = Self::create_wireguard_device(
             conn_data.exit.private_ipv4,
             self.enable_ipv6().then_some(conn_data.exit.private_ipv6),
-            Some(conn_data.entry.private_ipv4),
+            Some(conn_data.entry.private_ipv4.into()),
             exit_tun_mtu,
         )?;
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
@@ -835,8 +832,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = connected_tunnel
             .run(tunnel_options, self.tunnel_parameters.tunnel_constants)
-            .await
-            .map_err(Box::new)?;
+            .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok(StartTunnelResult {
@@ -864,8 +860,7 @@ impl TunnelMonitor {
                 entry_metadata_rx,
                 exit_metadata_rx,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
         let conn_data = connected_tunnel.connection_data();
         let entry_gateway_address = conn_data.entry.endpoint.ip();
         let exit_mtu = connected_tunnel.exit_mtu();
@@ -915,8 +910,7 @@ impl TunnelMonitor {
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         let wintun_exit_interface = tunnel_handle
             .exit_wintun_interface()
@@ -970,15 +964,31 @@ impl TunnelMonitor {
                 entry_metadata_rx,
                 exit_metadata_rx,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
         let conn_data = connected_tunnel.connection_data();
 
+        let mut entry_dest_ip = None;
+        if matches!(
+            self.tunnel_parameters.tunnel_settings.tunnel_type,
+            TunnelType::WrappedWireguard
+        ) {
+            // Attempt transport Connection returning a listening UDP connection if successful
+            // let entry_identity_pubkey = conn_data.entry.public_key;
+
+            let cancel = CancellationToken::new();
+            let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
+            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            let local_fwd =
+                transports::UdpForwarder::new(bridge_conn, None, 1500, cancel.clone()).await?;
+            entry_dest_ip = Some(local_fwd.local_addr().map_err(tunnel::Error::Io)?.ip());
+        }
+
+        // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
         let entry_tun = Self::create_wireguard_device(
             conn_data.entry.private_ipv4,
             self.enable_ipv6().then_some(conn_data.entry.private_ipv6),
-            None,
+            entry_dest_ip,
             entry_mtu,
         )?;
         let entry_tun_name = entry_tun
@@ -1003,7 +1013,7 @@ impl TunnelMonitor {
             conn_data.exit.private_ipv4,
             self.enable_ipv6().then_some(conn_data.exit.private_ipv6),
             // todo: this needs to be able to set both destinations?
-            Some(conn_data.entry.private_ipv4),
+            Some(conn_data.entry.private_ipv4.into()),
             exit_mtu,
         )?;
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
@@ -1054,8 +1064,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = connected_tunnel
             .run(tunnel_options, self.tunnel_parameters.tunnel_constants)
-            .await
-            .map_err(Box::new)?;
+            .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok(StartTunnelResult {
@@ -1085,8 +1094,7 @@ impl TunnelMonitor {
                 entry_metadata_rx,
                 exit_metadata_rx,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         let conn_data = connected_tunnel.connection_data();
         let entry_tun_mtu = connected_tunnel.entry_mtu();
@@ -1152,8 +1160,7 @@ impl TunnelMonitor {
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         let wintun_entry_interface = tunnel_handle
             .entry_wintun_interface()
@@ -1235,8 +1242,7 @@ impl TunnelMonitor {
                 entry_metadata_rx,
                 exit_metadata_rx,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         let mtu = connected_tunnel.exit_mtu();
         let conn_data = connected_tunnel.connection_data();
@@ -1302,8 +1308,7 @@ impl TunnelMonitor {
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
             )
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         Ok(StartTunnelResult {
             tunnel_conn_data,
@@ -1376,7 +1381,7 @@ impl TunnelMonitor {
     fn create_wireguard_device(
         interface_ipv4: Ipv4Addr,
         interface_ipv6: Option<Ipv6Addr>,
-        destination: Option<Ipv4Addr>,
+        destination: Option<IpAddr>,
         mtu: u16,
     ) -> Result<AsyncDevice> {
         let mut tun_config = tun::Configuration::default();
