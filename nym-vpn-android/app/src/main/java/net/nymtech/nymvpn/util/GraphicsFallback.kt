@@ -12,18 +12,19 @@ object GraphicsFallback {
 		val brand: String? = null,
 		val model: String? = null,
 		val product: String? = null,
-		val sdk: Int? = null
+		val sdk: Int? = null,
 	)
 
 	private val affectedDevices = listOf(
-		AffectedDevice(manufacturer = "hmd", model = "g22", sdk = 34),      // Nokia G22
-		AffectedDevice(manufacturer = "nokia", model = "g22", sdk = 34),   // Some report manufacturer differently
+		// Nokia G22
+		AffectedDevice(manufacturer = "hmd", model = "g22", sdk = 34),
+		AffectedDevice(manufacturer = "nokia", model = "g22", sdk = 34),
 		AffectedDevice(brand = "nokia", model = "g22", sdk = 34),
-		AffectedDevice(manufacturer = "skyegg", model = "k11", sdk = 34),  // SKYEGG K11_EEA
+		// SKYEGG K11_EEA
+		AffectedDevice(manufacturer = "skyegg", model = "k11", sdk = 34),
 		AffectedDevice(brand = "skyegg", model = "k11", sdk = 34),
-		AffectedDevice(product = "k11", model = "k11", sdk = 34)
+		AffectedDevice(product = "k11", model = "k11", sdk = 34),
 	)
-
 
 	private fun matchesDevice(entry: AffectedDevice): Boolean {
 		val manOk = entry.manufacturer?.let { Build.MANUFACTURER.norm().contains(it.norm()) } ?: true
@@ -42,7 +43,7 @@ object GraphicsFallback {
 		if (isAffectedDevice()) {
 			try {
 				System.setProperty("debug.hwui.renderer", "opengl")
-				System.setProperty("ro.hwui.use_vulkan", "false") // harmless if ignored
+				System.setProperty("ro.hwui.use_vulkan", "false")
 				Timber.d("OpenGL fallback:  ${Build.MANUFACTURER} ${Build.MODEL} (SDK ${Build.VERSION.SDK_INT})")
 			} catch (t: Throwable) {
 				Timber.d("Failed to set graphics fallback: $t ")

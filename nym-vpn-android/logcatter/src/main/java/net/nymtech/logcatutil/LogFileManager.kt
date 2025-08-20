@@ -32,7 +32,6 @@ class LogFileManager(
 		}
 	}
 
-
 	suspend fun zipLogs(zipFilePath: String) = withContext(ioDispatcher) {
 		outputStream?.close()
 		val sourceDir = File(logDir)
