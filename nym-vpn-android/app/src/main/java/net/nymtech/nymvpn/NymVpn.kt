@@ -24,6 +24,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.timber.ReleaseTree
@@ -57,6 +58,7 @@ class NymVpn : Application() {
 	lateinit var logReader: LogReader
 
 	override fun onCreate() {
+		GraphicsFallback.applyIfNeeded()
 		super.onCreate()
 		instance = this
 		AppLifecycleObserver.init()
