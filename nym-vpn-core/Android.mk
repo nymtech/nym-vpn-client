@@ -5,15 +5,21 @@ OS := Linux
 include reproducible_builds.mk
 
 RELEASE ?= true
+DOCKER ?= false
 ANDROID_NDK_HOME ?=
 NDK_TOOLCHAIN_DIR ?=
 
 RELEASE_FLAG :=
 TARGET_DIR := debug
+DOCKER_FLAG :=
 
 ifeq ($(RELEASE), true)
 RELEASE_FLAG := --release
 TARGET_DIR := release
+endif
+
+ifeq ($(DOCKER), true)
+DOCKER_FLAG := --docker
 endif
 
 ANDROID_DIR := $(CURDIR)/../nym-vpn-android
@@ -28,7 +34,7 @@ LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build uniffi
+.PHONY: build uniffi libwg
 
 all: $(ARM64_V8_BUILD_DIR)/libwg.so build uniffi $(LICENSES_FILE)
 
@@ -45,6 +51,8 @@ uniffi: build
 
 $(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh --android $(DOCKER_FLAG)
+
+libwg: $(ARM64_V8_BUILD_DIR)/libwg.so
 
 $(LICENSES_FILE): $(CURDIR)/Cargo.lock
 	cargo license -j --avoid-dev-deps --current-dir $(CURDIR)/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > $(LICENSES_FILE)
