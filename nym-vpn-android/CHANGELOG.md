@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changes and updates for SnackBar (https://github.com/nymtech/nym-vpn-client/pull/3237)
 - Updates for Data Store (https://github.com/nymtech/nym-vpn-client/pull/3256)
 
+### Fixed
+- Fix for hardware crashes for specific devices (https://github.com/nymtech/nym-vpn-client/pull/3282)
+- Fix for log reader crash (specific devices) (https://github.com/nymtech/nym-vpn-client/pull/3282)
+
 ## [1.8.0] - 2025-07-31
 
 ### Fixed
