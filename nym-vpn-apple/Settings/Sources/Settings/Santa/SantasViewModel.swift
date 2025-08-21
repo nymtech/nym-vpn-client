@@ -4,7 +4,7 @@ import AppSettings
 import AppVersionProvider
 import ConfigurationManager
 #if os(iOS)
-import MixnetLibrary
+import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
 #endif

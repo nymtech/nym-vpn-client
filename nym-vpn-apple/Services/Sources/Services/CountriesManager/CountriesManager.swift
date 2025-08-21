@@ -9,7 +9,7 @@ import GRPCManager
 import HelperManager
 #endif
 #if os(iOS)
-import MixnetLibrary
+import NymVPNLib
 #endif
 import Constants
 import Logging

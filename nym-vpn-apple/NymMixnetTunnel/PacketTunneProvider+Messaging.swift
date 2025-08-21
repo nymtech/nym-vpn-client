@@ -1,5 +1,5 @@
 import Foundation
-import MixnetLibrary
+import NymVPNLib
 import Tunnels
 import TunnelStatus
 

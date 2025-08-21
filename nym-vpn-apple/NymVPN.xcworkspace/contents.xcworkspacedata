@@ -14,7 +14,7 @@
       location = "group:Home">
    </FileRef>
    <FileRef
-      location = "group:MixnetLibrary">
+      location = "group:NymVPNLib">
    </FileRef>
    <FileRef
       location = "group:Services">

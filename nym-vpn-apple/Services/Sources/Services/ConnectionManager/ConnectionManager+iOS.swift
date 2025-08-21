@@ -2,7 +2,7 @@
 import NetworkExtension
 import AppSettings
 import Constants
-import MixnetLibrary
+import NymVPNLib
 import TunnelMixnet
 import Tunnels
 

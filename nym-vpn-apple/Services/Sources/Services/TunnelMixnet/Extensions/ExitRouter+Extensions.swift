@@ -1,6 +1,6 @@
 #if os(iOS)
 import CountriesManager
-import MixnetLibrary
+import NymVPNLib
 import ConnectionTypes
 
 extension ExitRouter {
