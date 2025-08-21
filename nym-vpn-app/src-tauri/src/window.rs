@@ -5,6 +5,7 @@ use crate::startup_error::StartupError;
 use crate::state::app::VpnMode;
 #[cfg(target_os = "linux")]
 use crate::sys::DisplayServer;
+use crate::sys::OsInfo;
 use crate::{
     APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
     MAIN_WINDOW_LABEL, env,
@@ -14,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use tauri::window::Color;
 use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
-    WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+    WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window, WindowEvent,
 };
 use tracing::{debug, error, instrument, trace, warn};
 use ts_rs::TS;
@@ -215,6 +216,40 @@ impl AppWindow {
                 .unwrap_or(Theme::Light)
                 .into(),
         })
+    }
+}
+
+#[instrument(skip(os, win))]
+pub fn handle_event(#[allow(unused_variables)] os: &OsInfo, win: &Window, event: &WindowEvent) {
+    // keep the app running in the background on window close request
+    if let WindowEvent::CloseRequested { api, .. } = event {
+        if win.label() == MAIN_WINDOW_LABEL {
+            win.hide()
+                .inspect_err(|e| error!("failed to hide main window: {e}"))
+                .ok();
+            api.prevent_close();
+        }
+    }
+    if let WindowEvent::Focused(true) = event {
+        if win.label() == MAIN_WINDOW_LABEL {
+            #[cfg(target_os = "linux")]
+            {
+                // credits @stenya
+                // https://github.com/safing/portmaster/commit/95838b510c75fa9dde6e99a4492e1c7e34f7cf18
+
+                // Workaround for KDE/Wayland environments on Linux:
+                // On KDE with Wayland, after hiding and showing the window,
+                // the title-bar buttons (close, minimize, maximize) may stop working.
+                // Toggling the resizable property appears to resolve this issue.
+                // see https://github.com/safing/portmaster/issues/1909
+                // https://github.com/tauri-apps/tauri/issues/6162#issuecomment-1423304398
+                if os.display_server == DisplayServer::Wayland {
+                    trace!("toggle resizable");
+                    win.set_resizable(false).ok();
+                    win.set_resizable(true).ok();
+                }
+            }
+        }
     }
 }
 
