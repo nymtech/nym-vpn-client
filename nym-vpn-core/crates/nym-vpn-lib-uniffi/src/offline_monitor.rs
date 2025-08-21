@@ -8,21 +8,22 @@ use crate::{OFFLINE_MONITOR_HANDLE, error::VpnError};
 
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::{
-    AndroidTunProvider, ConnectivityObserverInvalidation, ConnectivityReceiver, ConnectivitySender,
+    AndroidConnectivityMonitor, ConnectivityObserverInvalidation, ConnectivityReceiver,
+    ConnectivitySender,
 };
 use nym_offline_monitor::ConnectivityHandle;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib::tunnel_state_machine::{self, RouteHandler};
 
 pub async fn init_offline_monitor(
-    #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+    #[cfg(target_os = "android")] connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
 ) -> Result<(), VpnError> {
     let mut guard = OFFLINE_MONITOR_HANDLE.lock().await;
 
     if guard.is_none() {
         let offline_monitor_handle = start_offline_monitor(
             #[cfg(target_os = "android")]
-            tun_provider,
+            connectivity_monitor,
         )
         .await?;
         *guard = Some(offline_monitor_handle);
@@ -34,8 +35,8 @@ pub async fn init_offline_monitor(
     }
 }
 
-pub async fn start_offline_monitor(
-    #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+async fn start_offline_monitor(
+    #[cfg(target_os = "android")] connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
 ) -> Result<OfflineMonitorHandle, VpnError> {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let route_handler = tunnel_state_machine::RouteHandler::new()
@@ -43,7 +44,7 @@ pub async fn start_offline_monitor(
         .map_err(tunnel_state_machine::Error::CreateRouteHandler)?;
 
     #[cfg(target_os = "android")]
-    let connectivity_receiver = register_connectivity_observer(tun_provider);
+    let connectivity_receiver = register_connectivity_observer(connectivity_monitor);
 
     let connectivity_handle = nym_offline_monitor::spawn_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -64,18 +65,18 @@ pub async fn start_offline_monitor(
 
 #[cfg(target_os = "android")]
 fn register_connectivity_observer(
-    tun_provider: Arc<dyn AndroidTunProvider>,
+    connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
 ) -> ConnectivityReceiver {
     let (connectivity_tx, connectivity_rx) = tokio::sync::mpsc::unbounded_channel();
     let connectivity_sender = Arc::new(ConnectivitySender::new(connectivity_tx));
     let connectivity_observer_invalidation = ConnectivityObserverInvalidation::new(
-        Arc::downgrade(&tun_provider),
+        connectivity_monitor.clone(),
         Arc::downgrade(&connectivity_sender),
     );
     let connectivity_receiver =
         ConnectivityReceiver::new(connectivity_rx, connectivity_observer_invalidation);
 
-    tun_provider.add_connectivity_observer(connectivity_sender);
+    connectivity_monitor.add_connectivity_observer(connectivity_sender);
     connectivity_receiver
 }
 
