@@ -174,20 +174,13 @@ function build_android {
 
     if $IS_DOCKER_BUILD; then
         # See https://hub.docker.com/r/nymtech/android-wg-patched/tags
-        local docker_amd64_image_hash="965b2386e7387d0679498416fb39441c8ced350f1f7744df519495f4abd72405"
-        local docker_arm64_image_hash="e697125820a8143803a549f30d3fe935ee9f5955876345def8dc5277dd7e2606"
-        
-        # Pick the host system architecture for better performance
-        local arch="$(uname -m)";
-        case  "$arch" in
-            arm64*) local docker_image_hash=$docker_arm64_image_hash ;;
-                 *) local docker_image_hash=$docker_amd64_image_hash ;;
-        esac
+        local docker_image_hash=89272bbe5b74f57dedb3c1214473825b32384edfa624d640765c77a75b418730
 
         docker run --rm \
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
-            --env ANDROID_NDK_HOME="/opt/android/android-ndk-r25c" \
+            --env ANDROID_NDK_HOME="/opt/android/android-ndk-r28c" \
+            --platform linux/amd64 \
             docker.io/nymtech/android-wg-patched:latest@sha256:$docker_image_hash
     else
         patch_go_runtime
