@@ -3409,7 +3409,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.14.0-dev"
+version = "1.14.0-apricot-banana-rc-1"
 dependencies = [
  "anyhow",
  "build-info",
