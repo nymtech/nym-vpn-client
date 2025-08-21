@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0]
+
 ### Added
 - Download button for Logs Screen (https://github.com/nymtech/nym-vpn-client/pull/3197)
 - Privacy & Data Screen (https://github.com/nymtech/nym-vpn-client/pull/3237)
