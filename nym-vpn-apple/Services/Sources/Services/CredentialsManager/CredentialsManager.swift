@@ -6,7 +6,7 @@ import Constants
 import ErrorReason
 #if os(iOS)
 import ErrorHandler
-import MixnetLibrary
+import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
 import HelperManager

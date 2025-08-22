@@ -1,7 +1,7 @@
 import Logging
 import NetworkExtension
 import ErrorReason
-import MixnetLibrary
+import NymVPNLib
 import NotificationMessages
 import NymLogger
 import Tunnels

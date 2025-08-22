@@ -8,7 +8,7 @@ import CredentialsManager
 #if os(iOS)
 import AppVersionProvider
 import ConfigurationManager
-import MixnetLibrary
+import NymVPNLib
 #endif
 
 public struct MixnetConfig: Codable, Equatable {

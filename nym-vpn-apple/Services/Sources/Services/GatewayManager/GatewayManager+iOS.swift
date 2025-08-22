@@ -1,7 +1,7 @@
 #if os(iOS)
 import Foundation
 import AppVersionProvider
-import MixnetLibrary
+import NymVPNLib
 import CountriesManagerTypes
 
 extension GatewayManager {

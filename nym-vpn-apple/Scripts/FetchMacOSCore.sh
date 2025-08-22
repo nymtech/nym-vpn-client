@@ -69,7 +69,7 @@ if [[ -z "$release_page_content" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
-# 5. Process macOS asset: extract the asset filename, download and extract it.
+# 1. Process macOS asset: extract the asset filename, download and extract it.
 # -----------------------------------------------------------------------------
 macos_asset=$(echo "$release_page_content" | grep -Eo "$macos_pattern" | head -n 1)
 if [[ -z "$macos_asset" ]]; then

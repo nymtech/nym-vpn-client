@@ -3,7 +3,7 @@ import SwiftUI
 import Logging
 import AppSettings
 #if os(iOS)
-import MixnetLibrary
+import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
 #endif

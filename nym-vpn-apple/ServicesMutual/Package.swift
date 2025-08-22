@@ -22,7 +22,7 @@ let package = Package(
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     dependencies: [
-        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
+        .package(name: "NymVPNLib", path: "../NymVPNLib"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
@@ -63,7 +63,7 @@ let package = Package(
         .target(
             name: "ErrorReason",
             dependencies: [
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 "Theme"
             ],
             path: "Sources/ErrorReason"
