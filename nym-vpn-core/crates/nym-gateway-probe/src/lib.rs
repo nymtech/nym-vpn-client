@@ -7,7 +7,7 @@ use std::{
     time::Duration,
 };
 
-use crate::types::Entry;
+use crate::{netstack::NetstackResult, types::Entry};
 use anyhow::{Context, anyhow, bail};
 use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
@@ -52,10 +52,7 @@ use crate::{
     types::Exit,
 };
 
-use netstack::{
-    NetstackRequest,
-    ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo},
-};
+use netstack::{NetstackRequest, NetstackRequestGo};
 
 mod error;
 mod icmp;
@@ -519,40 +516,62 @@ async fn wg_probe(
             // Perform IPv4 ping test
             let ipv4_request = NetstackRequestGo::from_rust_v4(&netstack_request);
 
-            let netstack_response_v4 = NetstackCallImpl::ping(&ipv4_request);
-            info!(
-                "Wireguard probe response for IPv4: {:?}",
-                netstack_response_v4
-            );
-            wg_outcome.can_handshake_v4 = netstack_response_v4.can_handshake;
-            wg_outcome.can_resolve_dns_v4 = netstack_response_v4.can_resolve_dns;
-            wg_outcome.ping_hosts_performance_v4 =
-                netstack_response_v4.received_hosts as f32 / netstack_response_v4.sent_hosts as f32;
-            wg_outcome.ping_ips_performance_v4 =
-                netstack_response_v4.received_ips as f32 / netstack_response_v4.sent_ips as f32;
+            match netstack::ping(&ipv4_request) {
+                Ok(NetstackResult::Response(netstack_response_v4)) => {
+                    info!(
+                        "Wireguard probe response for IPv4: {:#?}",
+                        netstack_response_v4
+                    );
+                    wg_outcome.can_handshake_v4 = netstack_response_v4.can_handshake;
+                    wg_outcome.can_resolve_dns_v4 = netstack_response_v4.can_resolve_dns;
+                    wg_outcome.ping_hosts_performance_v4 = netstack_response_v4.received_hosts
+                        as f32
+                        / netstack_response_v4.sent_hosts as f32;
+                    wg_outcome.ping_ips_performance_v4 = netstack_response_v4.received_ips as f32
+                        / netstack_response_v4.sent_ips as f32;
 
-            wg_outcome.download_duration_sec_v4 = netstack_response_v4.download_duration_sec;
-            wg_outcome.downloaded_file_v4 = netstack_response_v4.downloaded_file;
-            wg_outcome.download_error_v4 = netstack_response_v4.download_error;
+                    wg_outcome.download_duration_sec_v4 =
+                        netstack_response_v4.download_duration_sec;
+                    wg_outcome.downloaded_file_v4 = netstack_response_v4.downloaded_file;
+                    wg_outcome.download_error_v4 = netstack_response_v4.download_error;
+                }
+                Ok(NetstackResult::Error { error }) => {
+                    error!("Netstack runtime error: {error}")
+                }
+                Err(error) => {
+                    error!("Internal error: {error}")
+                }
+            }
 
             // Perform IPv6 ping test
             let ipv6_request = NetstackRequestGo::from_rust_v6(&netstack_request);
 
-            let netstack_response_v6 = NetstackCallImpl::ping(&ipv6_request);
-            info!(
-                "Wireguard probe response for IPv6: {:?}",
-                netstack_response_v6
-            );
-            wg_outcome.can_handshake_v6 = netstack_response_v6.can_handshake;
-            wg_outcome.can_resolve_dns_v6 = netstack_response_v6.can_resolve_dns;
-            wg_outcome.ping_hosts_performance_v6 =
-                netstack_response_v6.received_hosts as f32 / netstack_response_v6.sent_hosts as f32;
-            wg_outcome.ping_ips_performance_v6 =
-                netstack_response_v6.received_ips as f32 / netstack_response_v6.sent_ips as f32;
+            match netstack::ping(&ipv6_request) {
+                Ok(NetstackResult::Response(netstack_response_v6)) => {
+                    info!(
+                        "Wireguard probe response for IPv6: {:#?}",
+                        netstack_response_v6
+                    );
+                    wg_outcome.can_handshake_v6 = netstack_response_v6.can_handshake;
+                    wg_outcome.can_resolve_dns_v6 = netstack_response_v6.can_resolve_dns;
+                    wg_outcome.ping_hosts_performance_v6 = netstack_response_v6.received_hosts
+                        as f32
+                        / netstack_response_v6.sent_hosts as f32;
+                    wg_outcome.ping_ips_performance_v6 = netstack_response_v6.received_ips as f32
+                        / netstack_response_v6.sent_ips as f32;
 
-            wg_outcome.download_duration_sec_v6 = netstack_response_v6.download_duration_sec;
-            wg_outcome.downloaded_file_v6 = netstack_response_v6.downloaded_file;
-            wg_outcome.download_error_v6 = netstack_response_v6.download_error;
+                    wg_outcome.download_duration_sec_v6 =
+                        netstack_response_v6.download_duration_sec;
+                    wg_outcome.downloaded_file_v6 = netstack_response_v6.downloaded_file;
+                    wg_outcome.download_error_v6 = netstack_response_v6.download_error;
+                }
+                Ok(NetstackResult::Error { error }) => {
+                    error!("Netstack runtime error: {error}")
+                }
+                Err(error) => {
+                    error!("Internal error: {error}")
+                }
+            }
         }
     }
 

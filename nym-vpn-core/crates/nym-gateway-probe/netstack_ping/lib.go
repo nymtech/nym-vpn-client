@@ -1,8 +1,17 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Copyright (C) 2024 Nym Technologies SA <contact@nymtech.net>. All Rights Reserved.
+ */
+
 package main
+
+// #include <stdlib.h>
+import "C"
 
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -12,6 +21,7 @@ import (
 	"net/netip"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/amnezia-vpn/amneziawg-go/conn"
 	"github.com/amnezia-vpn/amneziawg-go/device"
@@ -31,41 +41,118 @@ var fileUrlsV6 = []string{
 	"https://proof.ovh.net/files/10Mb.dat",
 }
 
-type Netstack struct{}
-
-func init() {
-	NetstackCallImpl = Netstack{}
+type NetstackRequestGo struct {
+	WgIp               string   `json:"wg_ip"`
+	PrivateKey         string   `json:"private_key"`
+	PublicKey          string   `json:"public_key"`
+	Endpoint           string   `json:"endpoint"`
+	Dns                string   `json:"dns"`
+	IpVersion          uint8    `json:"ip_version"`
+	PingHosts          []string `json:"ping_hosts"`
+	PingIps            []string `json:"ping_ips"`
+	NumPing            uint8    `json:"num_ping"`
+	SendTimeoutSec     uint64   `json:"send_timeout_sec"`
+	RecvTimeoutSec     uint64   `json:"recv_timeout_sec"`
+	DownloadTimeoutSec uint64   `json:"download_timeout_sec"`
+	AwgArgs            string   `json:"awg_args"`
 }
 
-func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
+type NetstackResponse struct {
+	CanHandshake        bool   `json:"can_handshake"`
+	SentIps             uint16 `json:"sent_ips"`
+	ReceivedIps         uint16 `json:"received_ips"`
+	SentHosts           uint16 `json:"sent_hosts"`
+	ReceivedHosts       uint16 `json:"received_hosts"`
+	CanResolveDns       bool   `json:"can_resolve_dns"`
+	DownloadedFile      string `json:"downloaded_file"`
+	DownloadDurationSec uint64 `json:"download_duration_sec"`
+	DownloadError       string `json:"download_error"`
+}
 
-	fmt.Printf("Endpoint: %s\n", req.endpoint)
-	fmt.Printf("WireGuard IP: %s\n", req.wg_ip)
-	fmt.Printf("IP version: %d\n", req.ip_version)
+type SuccessResult = struct {
+	Response NetstackResponse `json:"response"`
+}
+
+type ErrorResult = struct {
+	Error string `json:"error"`
+}
+
+func json_response(response NetstackResponse) *C.char {
+	bytes, serialize_err := json.Marshal(SuccessResult{
+		Response: response,
+	})
+	if serialize_err == nil {
+		return C.CString(string(bytes))
+	} else {
+		return C.CString("{\"error\":\"" + serialize_err.Error() + "\"}")
+	}
+}
+
+func json_error(err error) *C.char {
+	json_err := ErrorResult{
+		Error: fmt.Sprintf("failed to parse request: %s", err.Error()),
+	}
+	bytes, serialize_err := json.Marshal(json_err)
+	if serialize_err == nil {
+		return C.CString(string(bytes))
+	} else {
+		return C.CString("{\"error\":\"" + serialize_err.Error() + "\"}")
+	}
+}
+
+//export wgPing
+func wgPing(cReq *C.char) *C.char {
+	reqStr := C.GoString(cReq)
+
+	var req NetstackRequestGo
+	err := json.Unmarshal([]byte(reqStr), &req)
+	if err != nil {
+		log.Printf("Failed to parse request: %s", err)
+		return json_error(err)
+	}
+
+	response, err := ping(req)
+	if err != nil {
+		log.Printf("Failed to ping: %s", err)
+		return json_error(err)
+	}
+
+	return json_response(response)
+}
+
+//export wgFreePtr
+func wgFreePtr(ptr unsafe.Pointer) {
+	C.free(ptr)
+}
+
+func ping(req NetstackRequestGo) (NetstackResponse, error) {
+	fmt.Printf("Endpoint: %s\n", req.Endpoint)
+	fmt.Printf("WireGuard IP: %s\n", req.WgIp)
+	fmt.Printf("IP version: %d\n", req.IpVersion)
 
 	tun, tnet, err := netstack.CreateNetTUN(
-		[]netip.Addr{netip.MustParseAddr(req.wg_ip)},
-		[]netip.Addr{netip.MustParseAddr(req.dns)},
+		[]netip.Addr{netip.MustParseAddr(req.WgIp)},
+		[]netip.Addr{netip.MustParseAddr(req.Dns)},
 		1280)
 
 	if err != nil {
-		log.Panic(err)
+		return NetstackResponse{}, err
 	}
 	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelError, ""))
 
 	var ipc strings.Builder
 
 	ipc.WriteString("private_key=")
-	ipc.WriteString(req.private_key)
-	if req.awg_args != "" {
-		awg := strings.ReplaceAll(req.awg_args, "\\n", "\n")
+	ipc.WriteString(req.PrivateKey)
+	if req.AwgArgs != "" {
+		awg := strings.ReplaceAll(req.AwgArgs, "\\n", "\n")
 		ipc.WriteString(fmt.Sprintf("\n%s", awg))
 	}
 	ipc.WriteString("\npublic_key=")
-	ipc.WriteString(req.public_key)
+	ipc.WriteString(req.PublicKey)
 	ipc.WriteString("\nendpoint=")
-	ipc.WriteString(req.endpoint)
-	if req.ip_version == 4 {
+	ipc.WriteString(req.Endpoint)
+	if req.IpVersion == 4 {
 		ipc.WriteString("\nallowed_ip=0.0.0.0/0\n")
 	} else {
 		ipc.WriteString("\nallowed_ip=::/0\n")
@@ -77,44 +164,44 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 
 	config, err := dev.IpcGet()
 	if err != nil {
-		log.Panic(err)
+		return NetstackResponse{}, err
 	}
 	log.Printf("%s", config)
 
 	err = dev.Up()
 	if err != nil {
-		log.Panic(err)
+		return NetstackResponse{}, err
 	}
 
-	response.can_handshake = true
+	response.CanHandshake = true
 
-	for _, host := range req.ping_hosts {
-		for i := uint8(0); i < req.num_ping; i++ {
+	for _, host := range req.PingHosts {
+		for i := uint8(0); i < req.NumPing; i++ {
 			log.Printf("Pinging %s seq=%d", host, i)
-			response.sent_hosts += 1
-			rt, err := sendPing(host, i, req.send_timeout_sec, req.recv_timeout_sec, tnet, req.ip_version)
+			response.SentHosts += 1
+			rt, err := sendPing(host, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
 			if err != nil {
 				log.Printf("Failed to send ping: %v\n", err)
 				continue
 			}
-			response.received_hosts += 1
-			response.can_resolve_dns = true
+			response.ReceivedHosts += 1
+			response.CanResolveDns = true
 			log.Printf("Ping latency: %v\n", rt)
 		}
 	}
 
-	for _, ip := range req.ping_ips {
-		for i := uint8(0); i < req.num_ping; i++ {
+	for _, ip := range req.PingIps {
+		for i := uint8(0); i < req.NumPing; i++ {
 			func() {
 				defer time.Sleep(5 * time.Second)
 				log.Printf("Pinging %s seq=%d", ip, i)
-				response.sent_ips += 1
-				rt, err := sendPing(ip, i, req.send_timeout_sec, req.recv_timeout_sec, tnet, req.ip_version)
+				response.SentIps += 1
+				rt, err := sendPing(ip, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
 				if err != nil {
 					log.Printf("Failed to send ping: %v\n", err)
 					return
 				}
-				response.received_ips += 1
+				response.ReceivedIps += 1
 				log.Printf("Ping latency: %v\n", rt)
 			}()
 		}
@@ -122,7 +209,7 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 
 	var fileURL string
 
-	if req.ip_version == 4 {
+	if req.IpVersion == 4 {
 		randomIndex := rand.Intn(len(fileUrls))
 		fileURL = fileUrls[randomIndex]
 	} else {
@@ -131,7 +218,7 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 	}
 
 	// Download the file
-	fileContent, downloadDuration, err := downloadFile(fileURL, req.download_timeout_sec, tnet)
+	fileContent, downloadDuration, err := downloadFile(fileURL, req.DownloadTimeoutSec, tnet)
 	if err != nil {
 		log.Printf("Failed to download file: %v\n", err)
 	} else {
@@ -139,15 +226,15 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 		log.Printf("Download duration: %v\n", downloadDuration)
 	}
 
-	response.download_duration_sec = uint64(downloadDuration.Seconds())
-	response.downloaded_file = fileURL
+	response.DownloadDurationSec = uint64(downloadDuration.Seconds())
+	response.DownloadedFile = fileURL
 	if err != nil {
-		response.download_error = err.Error()
+		response.DownloadError = err.Error()
 	} else {
-		response.download_error = ""
+		response.DownloadError = ""
 	}
 
-	return response
+	return response, nil
 }
 
 func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timout_secs uint64, tnet *netstack.Net, ip_version uint8) (time.Duration, error) {
@@ -260,3 +347,5 @@ func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, t
 
 	return buf.Bytes(), duration, nil
 }
+
+func main() {}
