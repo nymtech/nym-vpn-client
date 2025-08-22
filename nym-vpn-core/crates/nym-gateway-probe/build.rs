@@ -58,6 +58,7 @@ fn build_go() -> Result<(), Box<dyn std::error::Error>> {
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
         .arg("build")
+        .arg("-ldflags=-buildid=")
         .arg("-trimpath")
         .arg("-buildvcs=false")
         .arg("-v")
