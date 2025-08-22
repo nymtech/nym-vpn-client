@@ -50,6 +50,20 @@ jobs:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
           cache: false
 
+      - name: Setup msys2
+        uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          update: false
+          msystem: MINGW64
+          install: mingw-w64-x86_64-clang
+
+      - name: Add msys2 location to path
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: |
+          Add-Content $env:GITHUB_PATH "$env:MSYS2_LOCATION"
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
