@@ -1,4 +1,4 @@
-import MixnetLibrary
+import NymVPNLib
 import TunnelStatus
 
 extension TunnelStatus {

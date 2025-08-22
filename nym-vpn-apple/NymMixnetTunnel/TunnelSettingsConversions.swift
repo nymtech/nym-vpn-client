@@ -8,7 +8,7 @@
 
 import Foundation
 import NetworkExtension
-import MixnetLibrary
+import NymVPNLib
 import TunnelMixnet
 
 extension TunnelNetworkSettings {

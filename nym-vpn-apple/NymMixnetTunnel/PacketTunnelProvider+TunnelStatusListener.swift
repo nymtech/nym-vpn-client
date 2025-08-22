@@ -1,8 +1,8 @@
 import Foundation
-import MixnetLibrary
+import NymVPNLib
 
 extension PacketTunnelProvider: TunnelStatusListener {
-    func onEvent(event: MixnetLibrary.TunnelEvent) {
+    func onEvent(event: NymVPNLib.TunnelEvent) {
         tunnelActor.onEvent(event)
     }
 }

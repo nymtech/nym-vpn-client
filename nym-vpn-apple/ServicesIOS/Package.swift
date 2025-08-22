@@ -16,7 +16,7 @@ let package = Package(
         .library(name: "KeyboardManager", targets: ["KeyboardManager"])
     ],
     dependencies: [
-        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
+        .package(name: "NymVPNLib", path: "../NymVPNLib"),
         .package(path: "../Theme")
     ],
     targets: [
@@ -28,7 +28,7 @@ let package = Package(
         .target(
             name: "ErrorHandler",
             dependencies: [
-                .product(name: "MixnetLibrary", package: "MixnetLibrary"),
+                .product(name: "NymVPNLib", package: "NymVPNLib"),
                 .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/ErrorHandler"

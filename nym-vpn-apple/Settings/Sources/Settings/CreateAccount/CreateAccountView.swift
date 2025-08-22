@@ -2,7 +2,7 @@ import SwiftUI
 import CredentialsManager
 #if os(iOS)
 import ImpactGenerator
-import MixnetLibrary
+import NymVPNLib
 import ErrorHandler
 #endif
 import UIComponents
