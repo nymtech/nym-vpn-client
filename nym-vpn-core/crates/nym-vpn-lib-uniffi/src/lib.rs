@@ -87,7 +87,7 @@ use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;
 use stats::StatisticsControllerHandle;
 #[cfg(target_os = "android")]
-use tunnel_provider::android::AndroidTunProvider;
+use tunnel_provider::android::{AndroidConnectivityMonitor, AndroidTunProvider};
 #[cfg(target_os = "ios")]
 use tunnel_provider::ios::OSTunProvider;
 
@@ -160,7 +160,7 @@ async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     }
     offline_monitor::init_offline_monitor(
         #[cfg(target_os = "android")]
-        config.tun_provider,
+        config.connectivity_monitor,
     )
     .await?;
     stats::init_statistics_controller(
@@ -585,5 +585,5 @@ pub struct NymVpnLibConfig {
     pub sentry_monitoring: bool,
     pub statistics_enabled: bool,
     #[cfg(target_os = "android")]
-    pub tun_provider: Arc<dyn AndroidTunProvider>,
+    pub connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
 }
