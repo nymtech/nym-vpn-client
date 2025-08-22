@@ -92,7 +92,7 @@ fn build_go() -> Result<(), Box<dyn std::error::Error>> {
         )));
     }
 
-    println!("cargo::rustc-link-search={}", out_dir);
+    println!("cargo::rustc-link-search={out_dir}");
 
     let link_type = match target_os.as_str() {
         "linux" | "macos" => "=static",
