@@ -19,31 +19,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn build_go() -> Result<(), Box<dyn std::error::Error>> {
     const LIB_NAME: &str = "netstack_ping";
 
-    let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").expect("target arch is not set");
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").expect("target os is not set");
-    let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR is not set"));
-
-    if target_os == "windows" {
+    // Only build on macos and linux
+    if !matches!(target_os.as_str(), "macos" | "linux") {
         return Ok(());
     }
 
+    let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").expect("target arch is not set");
+    let out_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR is not set"));
     let go_target = match target_os.as_str() {
         "macos" => "darwin".to_owned(),
         "linux" => target_os.to_owned(),
         _ => panic!("unsupported target: {target_os}"),
     };
-
     let go_arch = match target_arch.as_str() {
         "x86_64" => "amd64",
         "aarch64" => "arm64",
         _ => panic!("unsupported architecture: {target_arch}"),
     };
-
     let src_dir = PathBuf::from("netstack_ping").canonicalize()?;
+    let binary_out_path = out_dir.join(format!("lib{LIB_NAME}.a"));
 
     println!("cargo::rerun-if-changed={}", src_dir.display());
-
-    let binary_out_path = out_dir.join(format!("lib{LIB_NAME}.a"));
 
     let mut command = Command::new("go");
 
