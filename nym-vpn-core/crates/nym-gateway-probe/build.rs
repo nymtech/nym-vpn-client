@@ -31,10 +31,9 @@ fn build_go() -> Result<(), Box<dyn std::error::Error>> {
         if !build_dir.exists() {
             std::fs::create_dir_all(&build_dir).expect("failed to create build dir");
         }
-        let build_dir = build_dir
-            .canonicalize()
-            .expect("failed to canonicalize build dir path");
         build_dir
+            .canonicalize()
+            .expect("failed to canonicalize build dir path")
     } else {
         PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR is not set"))
     };
