@@ -1,6 +1,6 @@
 import Foundation
 #if os(iOS)
-import MixnetLibrary
+import NymVPNLib
 #endif
 import Theme
 

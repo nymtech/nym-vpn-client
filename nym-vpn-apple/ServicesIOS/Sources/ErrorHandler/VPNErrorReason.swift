@@ -1,6 +1,6 @@
 #if os(iOS)
 import Foundation
-import MixnetLibrary
+import NymVPNLib
 import Theme
 
 public enum VPNErrorReason: LocalizedError {
@@ -67,13 +67,13 @@ public enum VPNErrorReason: LocalizedError {
         case let .RequestZkNym(details: details):
             let messageString: String
             switch details {
-            case .NoAccountStored:
+            case .noAccountStored:
                 self = .noAccountStored
                 return
-            case .NoDeviceStored:
+            case .noDeviceStored:
                 self = .noDeviceIdentity
                 return
-            case let .VpnApi(vpnApiErrorResponse):
+            case let .vpnApi(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -83,9 +83,9 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .UnexpectedVpnApiResponse(message), let .Storage(message), let .Internal(message):
+            case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
                 messageString = message
-            case .Offline:
+            case .offline:
                 self = .offline
                 return
             }

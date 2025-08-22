@@ -1,6 +1,6 @@
 #if os(iOS)
 import CountriesManagerTypes
-import MixnetLibrary
+import NymVPNLib
 
 extension GatewayNodeScore {
     init(with score: Score) {
