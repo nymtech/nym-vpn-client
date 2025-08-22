@@ -2595,11 +2595,20 @@ struct NymVpnService_GetDeviceIdentityResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var deviceIdentity: String = String()
+  var deviceIdentity: String {
+    get {return _deviceIdentity ?? String()}
+    set {_deviceIdentity = newValue}
+  }
+  /// Returns true if `deviceIdentity` has been explicitly set.
+  var hasDeviceIdentity: Bool {return self._deviceIdentity != nil}
+  /// Clears the value of `deviceIdentity`. Subsequent reads from it will return its default value.
+  mutating func clearDeviceIdentity() {self._deviceIdentity = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+
+  fileprivate var _deviceIdentity: String? = nil
 }
 
 struct NymVpnService_GetDevicesResponse: Sendable {
@@ -7022,21 +7031,25 @@ extension NymVpnService_GetDeviceIdentityResponse: SwiftProtobuf.Message, SwiftP
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.deviceIdentity) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self._deviceIdentity) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.deviceIdentity.isEmpty {
-      try visitor.visitSingularStringField(value: self.deviceIdentity, fieldNumber: 1)
-    }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._deviceIdentity {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: NymVpnService_GetDeviceIdentityResponse, rhs: NymVpnService_GetDeviceIdentityResponse) -> Bool {
-    if lhs.deviceIdentity != rhs.deviceIdentity {return false}
+    if lhs._deviceIdentity != rhs._deviceIdentity {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
