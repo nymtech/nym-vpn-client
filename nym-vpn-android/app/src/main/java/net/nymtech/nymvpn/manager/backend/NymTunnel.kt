@@ -2,8 +2,8 @@ package net.nymtech.nymvpn.manager.backend
 
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendEvent
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 
 class NymTunnel(
 	override var entryPoint: EntryPoint,

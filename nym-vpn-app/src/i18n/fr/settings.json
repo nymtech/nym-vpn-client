@@ -73,5 +73,14 @@
       "desc2": "Seules les données de performance du réseau sont partagées — jamais de données personnelles ou liées à vos activités en ligne.",
       "link": "Apprenez en détail ce qui est partagé"
     }
+  },
+  "account": {
+    "get-started": "Démarrer",
+    "syncing": "Synchronisation…",
+    "no-plan": "Aucun abonnement actif",
+    "bandwidth-exceeded": "La bande passante est dépassée",
+    "max-device-reached": "Nombre maximum d'appareils atteint",
+    "status-inactive": "Votre compte est inactif",
+    "error": "Erreur interne"
   }
 }

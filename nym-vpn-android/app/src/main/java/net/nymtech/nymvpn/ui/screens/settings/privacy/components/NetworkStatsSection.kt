@@ -24,13 +24,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyViewModel
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun NetworkStatsSection(appUiState: AppUiState, viewModel: PrivacyViewModel, context: Context, shape: Shape = RoundedCornerShape(8.dp)) {
+fun NetworkStatsSection(
+	statsEnabled: Boolean,
+	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
+	context: Context,
+	shape: Shape = RoundedCornerShape(8.dp),
+) {
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
@@ -53,8 +56,8 @@ fun NetworkStatsSection(appUiState: AppUiState, viewModel: PrivacyViewModel, con
 					style = MaterialTheme.typography.titleMedium,
 				)
 				ScaledSwitch(
-					checked = appUiState.settings.statsEnabled,
-					onClick = { viewModel.onNetworkStatsEnabled(it) },
+					checked = statsEnabled,
+					onClick = { onNetworkStatsEnable(it) },
 				)
 			}
 

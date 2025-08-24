@@ -62,5 +62,6 @@
     "description": "Installing updates - please don't close the app.",
     "restart-note": "The app will restart after the update.",
     "bar-label": "Download progress"
-  }
+  },
+  "get-started": "Get started"
 }

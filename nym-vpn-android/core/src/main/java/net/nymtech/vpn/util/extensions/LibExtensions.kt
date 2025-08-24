@@ -2,10 +2,10 @@ package net.nymtech.vpn.util.extensions
 
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.Base58
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.TunnelEvent
-import nym_vpn_lib.TunnelState
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.TunnelEvent
+import nym_vpn_lib_types.TunnelState
 
 fun TunnelEvent.NewState.asTunnelState(): Tunnel.State {
 	return when (this.v1) {

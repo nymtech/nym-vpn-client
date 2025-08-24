@@ -72,7 +72,9 @@ public final class AppSettings: ObservableObject {
     public var isIPv6TrafficEnabled = true
 
     @AppStorage(AppSettingKey.statistics.rawValue)
-    public var isStatisticsEnabled = false
+    public var isStatisticsEnabled = true
+    @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
+    public var statisticsConnectionCount = 0
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
@@ -117,4 +119,5 @@ public enum AppSettingKey: String {
     case accountToken
     case ipv6TrafficIsEnabled
     case statistics
+    case statisticsConnectionCount
 }

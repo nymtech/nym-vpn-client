@@ -14,6 +14,47 @@ git clone --recursive https://github.com/nymtech/nym-vpn-client.git
 
 Majority of code in this repository is written in Rust which can be installed from https://rustup.rs/
 
+After installing Rust, install the following Rust targets and dependencies to enable mobile development:
+
+#### iOS development
+
+1. Either install [Xcode](https://xcodereleases.com/) or Xcode Command Line tools via:
+
+    ```sh
+    xcode-select --install
+    ```
+
+    Verify installation with:
+
+    ```sh
+    xcode-select -p
+    # /Library/Developer/CommandLineTools
+    ```
+1. Install `cargo-swift`:
+
+    ```sh
+    cargo install cargo-swift
+    ```
+1. Install iOS targets:
+
+    ```sh
+    rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+    ```
+
+#### Android development
+
+1. Install Android Studio either from official site or using [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/)
+1. Install `cargo-ndk`:
+
+    ```sh
+    cargo install cargo-ndk
+    ```
+1. Install Rust targets for Android
+
+    ```sh
+    rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+    ```
+
 ### Linux
 
 1. Install system dependencies:
@@ -114,17 +155,11 @@ If you use VSCode and automatic formatting, configure rust-analyzer to use night
 
 ### Linux and macOS
 
-1. Build wireguard-go for desktop:
+Build wireguard-go for desktop:
 
-    ```sh
-    make build-wireguard
-    ```
-
-1. Build wireguard-go for iOS (macOS host only):
-
-    ```sh
-    make build-wireguard-ios
-    ```
+```sh
+make build-wireguard
+```
 
 ### Windows
 
@@ -150,6 +185,8 @@ If you want to build for different architecture, pass one of the following param
 
 ## Build VPN libraries and executables
 
+### macOS, Linux, Windows
+
 ```sh
 cd nym-vpn-core/
 
@@ -158,6 +195,34 @@ cargo build -p nym-vpnd --release
 
 # build all
 cargo build --release
+```
+
+### iOS (macOS host)
+
+```sh
+make -C nym-vpn-core -f iOS.mk
+```
+
+### Android
+
+The easiest way to build nym-vpn-core with wireguard is by using docker (make sure you have docker installed):
+
+```sh
+make -C nym-vpn-core -f Android.mk DOCKER=true
+```
+
+Or build directly providing `ANDROID_NDK_HOME` and `NDK_TOOLCHAIN_DIR`:
+
+```sh
+# linux
+export ANDROID_NDK_HOME="/opt/android/android-ndk-r28c"
+export NDK_TOOLCHAIN_DIR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+
+# macos
+export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/28.0.12433566
+export NDK_TOOLCHAIN_DIR=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin
+
+make -C nym-vpn-core -f Android.mk
 ```
 
 ## Build for Windows from MacOS
@@ -178,6 +243,10 @@ Then
 ```sh
 cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 ```
+
+## Local DNS resolver (macOS only)
+
+Local DNS resolver is used to workaround issues related to captive portal detection on macOS. It can be disabled by setting `NYM_DISABLE_LOCAL_DNS_RESOLVER=1`
 
 ## Offline monitoring
 

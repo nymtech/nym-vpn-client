@@ -27,14 +27,14 @@ import net.nymtech.vpn.util.exceptions.BackendException
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
-import nym_vpn_lib.AccountLinks
+import nym_vpn_lib_types.AccountLinks
 import nym_vpn_lib.ConnectivityObserver
-import nym_vpn_lib.GatewayType
+import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib.NymVpnLibConfig
-import nym_vpn_lib.SystemMessage
-import nym_vpn_lib.TunnelEvent
+import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib.TunnelStatusListener
-import nym_vpn_lib.UserAgent
+import nym_vpn_lib_types.UserAgent
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.forgetAccount
@@ -145,8 +145,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	}
 
 	internal fun addConnectivityObserver(observer: ConnectivityObserver) {
-		observers.add(observer)
-		updateObservers()
+		if (!observers.any { it.id() == observer.id() }) {
+			observers.add(observer)
+			updateObservers()
+		}
 	}
 
 	private fun updateObservers() {
@@ -162,7 +164,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	}
 
 	internal fun removeObserver(observer: ConnectivityObserver) {
-		observers.remove(observer)
+		observers.removeIf { it.id() == observer.id() }
 	}
 
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {

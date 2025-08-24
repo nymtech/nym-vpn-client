@@ -3,6 +3,9 @@ use crate::db::{Db, Key};
 use crate::env::{DEV_MODE, UPDATER_ENABLED};
 use crate::startup_error::StartupError;
 use crate::state::app::VpnMode;
+#[cfg(target_os = "linux")]
+use crate::sys::DisplayServer;
+use crate::sys::OsInfo;
 use crate::{
     APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
     MAIN_WINDOW_LABEL, env,
@@ -12,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use tauri::window::Color;
 use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
-    WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+    WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window, WindowEvent,
 };
 use tracing::{debug, error, instrument, trace, warn};
 use ts_rs::TS;
@@ -103,28 +106,24 @@ impl AppWindow {
         Ok(())
     }
 
-    #[instrument(skip(app))]
-    pub fn get(app: &AppHandle, label: &str) -> Result<Self> {
-        Ok(AppWindow(app.get_webview_window(label).ok_or_else(
-            || {
-                error!("failed to get window {}", label);
-                anyhow!("failed to get window {}", label)
-            },
-        )?))
-    }
-
-    /// try to get the window, if not found recreate it from its config
+    /// try to get the window, if not found create it from its config
     #[instrument(skip(app))]
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
-        let cli = app.state::<Cli>();
+        let cli = app
+            .try_state::<Cli>()
+            .map(|s| s.inner().clone())
+            .unwrap_or_default();
         let window = app
             .get_webview_window(label)
             .map(AppWindow)
             .or_else(|| {
-                debug!("main window not found, re-creating it");
+                debug!("main window not found, creating it");
                 AppWindow::create_main_window(app, &cli).ok()
             })
-            .ok_or_else(|| anyhow!("failed to get window {}", label))?;
+            .ok_or_else(|| {
+                error!("failed to get window {label}");
+                anyhow!("failed to get window {}", label)
+            })?;
         Ok(window)
     }
 
@@ -158,11 +157,25 @@ impl AppWindow {
     }
 
     #[instrument(skip_all)]
-    pub fn set_max_size(&self) -> Result<()> {
+    pub fn set_max_size(
+        &self,
+        #[cfg(target_os = "linux")] display_server: DisplayServer,
+    ) -> Result<()> {
         let Some(monitor) = self.0.current_monitor().inspect_err(|e| {
             error!("failed to get current monitor: {e}");
         })?
         else {
+            #[cfg(target_os = "linux")]
+            {
+                // On Wayland it is expected failing to detected monitor info
+                // especially when the window is not yet visible
+                if display_server == DisplayServer::Wayland {
+                    tracing::info!("failed to get current monitor details");
+                } else {
+                    warn!("failed to get current monitor details");
+                }
+            }
+            #[cfg(not(target_os = "linux"))]
             warn!("failed to get current monitor details");
             return Ok(());
         };
@@ -203,6 +216,40 @@ impl AppWindow {
                 .unwrap_or(Theme::Light)
                 .into(),
         })
+    }
+}
+
+#[instrument(skip(os, win))]
+pub fn handle_event(#[allow(unused_variables)] os: &OsInfo, win: &Window, event: &WindowEvent) {
+    // keep the app running in the background on window close request
+    if let WindowEvent::CloseRequested { api, .. } = event {
+        if win.label() == MAIN_WINDOW_LABEL {
+            win.hide()
+                .inspect_err(|e| error!("failed to hide main window: {e}"))
+                .ok();
+            api.prevent_close();
+        }
+    }
+    if let WindowEvent::Focused(true) = event {
+        if win.label() == MAIN_WINDOW_LABEL {
+            #[cfg(target_os = "linux")]
+            {
+                // credits @stenya
+                // https://github.com/safing/portmaster/commit/95838b510c75fa9dde6e99a4492e1c7e34f7cf18
+
+                // Workaround for KDE/Wayland environments on Linux:
+                // On KDE with Wayland, after hiding and showing the window,
+                // the title-bar buttons (close, minimize, maximize) may stop working.
+                // Toggling the resizable property appears to resolve this issue.
+                // see https://github.com/safing/portmaster/issues/1909
+                // https://github.com/tauri-apps/tauri/issues/6162#issuecomment-1423304398
+                if os.display_server == DisplayServer::Wayland {
+                    trace!("toggle resizable");
+                    win.set_resizable(false).ok();
+                    win.set_resizable(true).ok();
+                }
+            }
+        }
     }
 }
 
@@ -268,10 +315,8 @@ impl From<&PhysicalPosition<i32>> for WindowPosition {
 
 #[instrument(skip_all)]
 pub fn focus_main_window(app: &AppHandle) {
-    if let Ok(win) = AppWindow::get(app, MAIN_WINDOW_LABEL) {
+    if let Ok(win) = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL) {
         win.wake_up();
-    } else {
-        error!("failed to get window {}", MAIN_WINDOW_LABEL);
     }
 }
 

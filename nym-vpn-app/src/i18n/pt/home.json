@@ -62,5 +62,6 @@
     "description": "Instalando atualizações - por favor, não feche o aplicativo.",
     "restart-note": "O aplicativo será reiniciado após a atualização.",
     "bar-label": "Progresso do download"
-  }
+  },
+  "get-started": "Get started"
 }

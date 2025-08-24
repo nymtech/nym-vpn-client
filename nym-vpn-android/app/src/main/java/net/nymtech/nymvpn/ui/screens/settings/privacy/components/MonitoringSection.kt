@@ -24,14 +24,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyViewModel
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun MonitoringSection(appUiState: AppUiState, viewModel: PrivacyViewModel, context: Context, shape: Shape = RoundedCornerShape(8.dp)) {
+fun MonitoringSection(
+	sentryEnabled: Boolean,
+	onMonitoringEnable: (enabled: Boolean) -> Unit,
+	context: Context,
+	shape: Shape = RoundedCornerShape(8.dp),
+) {
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
@@ -61,8 +64,8 @@ fun MonitoringSection(appUiState: AppUiState, viewModel: PrivacyViewModel, conte
 					)
 				}
 				ScaledSwitch(
-					checked = appUiState.settings.sentryEnabled,
-					onClick = { viewModel.onMonitoringEnabled(it) },
+					checked = sentryEnabled,
+					onClick = { onMonitoringEnable(it) },
 				)
 			}
 

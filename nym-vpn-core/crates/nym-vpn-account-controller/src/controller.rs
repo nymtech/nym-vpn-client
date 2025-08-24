@@ -144,7 +144,6 @@ where
         AccountStateReceiver::new(self.state_channel.1.clone())
     }
 
-    // SW Figure out a way to print tickets without breaking everything?
     fn print_info(&self) {
         let account_id = self
             .shared_state
@@ -170,7 +169,7 @@ where
 
         let storage = self.account_storage;
 
-        // Loop to handle storage event
+        // Loop to handle storage event. It will stop automatically when the storage_op_sender will be dropped
         tokio::spawn(async move {
             while let Some(storage_op) = self.storage_op_receiver.recv().await {
                 storage.handle_storage_op(storage_op).await
@@ -205,7 +204,7 @@ where
                 NextAccountControllerState::Finished => break,
             }
         }
-        // SW can we do that better
+
         self.shared_state.credential_storage.close().await;
         tracing::debug!("Account controller state machine is exiting...");
     }

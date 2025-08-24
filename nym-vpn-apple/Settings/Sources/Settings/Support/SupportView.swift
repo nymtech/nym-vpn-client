@@ -11,12 +11,15 @@ struct SupportView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
-            Spacer()
-                .frame(height: 24)
-            sections()
-                .frame(maxWidth: MagicNumbers.maxWidth)
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 24)
+                sections()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+            }
+            .padding(.horizontal, 16)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

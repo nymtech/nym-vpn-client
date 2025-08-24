@@ -10,6 +10,7 @@
   "tunnel": {
     "internal": "Lỗi nội bộ",
     "api": "Lỗi API",
+    "account-controller": "Account controller: internal error",
     "firewall": "Lỗi tường lửa",
     "routing": "Lỗi định tuyến",
     "dns": "Lỗi DNS",
@@ -23,23 +24,34 @@
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
+    "internal": "Internal account error",
+    "max-devices-reached": "Account device limit exceeded.",
+    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
     "invalid-recovery-phrase": "Mã truy cập không hợp lệ",
     "storage": "Lỗi hệ thống lưu trữ",
-    "is-connected": "Không thể xử lý khi đã kết nối"
+    "is-connected": "Không thể xử lý khi đã kết nối",
+    "no-account-stored": "No account stored",
+    "no-device-stored": "No device stored",
+    "existing-account": "Account already exists",
+    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
+    "status-not-active": "Your account is inactive",
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
   },
   "countries-request": {
     "entry": "Không thể tìm thấy các quốc gia có node vào khả dụng",
     "exit": "Không thể tìm thấy các quốc gia có node thoát khả dụng",
     "fast-mode": "Không thể tìm thấy các quốc gia khả dụng"
   },
-  "no-bandwidth": "Không còn băng thông",
-  "entry-gateway-down": "Cổng vào đã ngừng hoạt động",
-  "exit-gateway-down": {
-    "ipv4": "Cổng thoát đã ngừng hoạt động (IPv4)",
-    "ipv6": "Cổng thoát đã ngừng hoạt động (IPv6)"
-  },
-  "exit-gateway-routing": {
-    "ipv4": "Lỗi định tuyến cổng thoát (IPv4)",
-    "ipv6": "Lỗi định tuyến cổng thoát (IPv6)"
+  "mixnet": {
+    "no-bandwidth": "No data allowance remaining",
+    "entry-gateway-down": "Entry gateway is down",
+    "exit-gateway-down": {
+      "ipv4": "Exit gateway is down (IPv4)",
+      "ipv6": "Exit gateway is down (IPv6)"
+    },
+    "exit-gateway-routing": {
+      "ipv4": "Exit gateway routing error (IPv4)",
+      "ipv6": "Exit gateway routing error (IPv6)"
+    }
   }
 }

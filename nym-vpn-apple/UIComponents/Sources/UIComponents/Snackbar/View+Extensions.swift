@@ -1,34 +1,25 @@
 import SwiftUI
+import MessageModels
 
 extension View {
     public func snackbar(
         isDisplayed: Binding<Bool>,
-        style: SnackbarStyle,
-        message: String
+        message: SnackBarMessage?
     ) -> some View {
         self.modifier(
-            SnackbarModifier(
-                isDisplayed: isDisplayed,
-                style: style,
-                message: message
-            )
+            SnackbarModifier(isDisplayed: isDisplayed, message: message)
         )
     }
 }
 
 struct SnackbarModifier: ViewModifier {
     @Binding var isDisplayed: Bool
-    var style: SnackbarStyle
-    var message: String
+    var message: SnackBarMessage?
 
     func body(content: Content) -> some View {
         ZStack {
             content
-            SnackbarView(
-                isDisplayed: $isDisplayed,
-                style: style,
-                message: message
-            )
+            SnackbarView(isDisplayed: $isDisplayed, message: message)
         }
     }
 }

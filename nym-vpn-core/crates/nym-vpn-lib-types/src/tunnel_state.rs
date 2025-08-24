@@ -157,9 +157,6 @@ pub enum ErrorStateReason {
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
-    /// Failure to resolve API addresses.
-    ResolveGatewayAddrs,
-
     /// Failure to start local dns resolver.
     StartLocalDnsResolver,
 
@@ -239,7 +236,6 @@ impl From<ErrorStateReason> for ClientErrorReason {
             | ErrorStateReason::DuplicateTunFd => Self::Internal(Some(value.to_string())),
             ErrorStateReason::Internal(message) => Self::Internal(Some(message)),
             ErrorStateReason::Routing => Self::Routing,
-            ErrorStateReason::ResolveGatewayAddrs => Self::Dns(Some(value.to_string())),
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
             ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,

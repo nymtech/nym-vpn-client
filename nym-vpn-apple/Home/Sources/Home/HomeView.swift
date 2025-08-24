@@ -49,15 +49,17 @@ private extension HomeView {
         .overlay {
             updateAvailableOverlay()
         }
+        .overlay {
+            statisticsEnableOverlay()
+        }
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
-            style: .info,
-            message: viewModel.systemMessageManager.currentMessage
+            message: viewModel.messagesManager.currentMessage
         )
         .onAppear {
             Task {
                 try? await Task.sleep(for: .seconds(3))
-                viewModel.systemMessageManager.processMessages()
+                viewModel.messagesManager.processMessages()
             }
         }
     }

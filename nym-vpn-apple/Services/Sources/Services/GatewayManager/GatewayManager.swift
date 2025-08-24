@@ -5,7 +5,7 @@ import ConfigurationManager
 import CountriesManagerTypes
 import Logging
 #if os(iOS)
-import MixnetLibrary
+import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
 #endif

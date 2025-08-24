@@ -30,6 +30,12 @@
 		D9309AF92BC81B7600C387F4 /* TunnelMixnet in Frameworks */ = {isa = PBXBuildFile; productRef = D9309AF82BC81B7600C387F4 /* TunnelMixnet */; };
 		D93214412B84D29200FFDC5E /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = D93214402B84D29200FFDC5E /* Logging */; };
 		D93214472B84EBEA00FFDC5E /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = D93214462B84EBEA00FFDC5E /* Logging */; };
+		D93466CB2E57A1F700BEF458 /* NymVPNLib in Frameworks */ = {isa = PBXBuildFile; productRef = D93466CA2E57A1F700BEF458 /* NymVPNLib */; };
+		D93466CD2E57A1FE00BEF458 /* NymVPNLib in Frameworks */ = {isa = PBXBuildFile; productRef = D93466CC2E57A1FE00BEF458 /* NymVPNLib */; };
+		D9391F092E461E16002BE10F /* MessagesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F082E461E16002BE10F /* MessagesManager */; };
+		D9391F0B2E461E1C002BE10F /* MessagesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F0A2E461E1C002BE10F /* MessagesManager */; };
+		D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F0C2E4624CD002BE10F /* MessageModels */; };
+		D9391F0F2E4624D6002BE10F /* MessageModels in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F0E2E4624D6002BE10F /* MessageModels */; };
 		D939CB652DE0911500AA2F9C /* PurchasesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D939CB642DE0911500AA2F9C /* PurchasesManager */; };
 		D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D94866FE2BE035C300F5331B /* CredentialsManager */; };
@@ -60,7 +66,6 @@
 		D98E52312D4005ED00AE92C3 /* ErrorReason in Frameworks */ = {isa = PBXBuildFile; productRef = D98E52302D4005ED00AE92C3 /* ErrorReason */; };
 		D98E52332D40087A00AE92C3 /* ErrorReason in Frameworks */ = {isa = PBXBuildFile; productRef = D98E52322D40087A00AE92C3 /* ErrorReason */; };
 		D98E52352D40096600AE92C3 /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D98E52342D40096600AE92C3 /* NetworkMonitor */; };
-		D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = D99820972BB6E8D9000C1FEE /* MixnetLibrary */; };
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
 		D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */; };
@@ -101,11 +106,7 @@
 		D9DE89412CFE54CD006C4071 /* launchLogo@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = D9DE893D2CFE54CD006C4071 /* launchLogo@3x.png */; };
 		D9DE89422CFE54CD006C4071 /* launchLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = D9DE893B2CFE54CD006C4071 /* launchLogo.png */; };
 		D9DE89432CFE54CD006C4071 /* launchLogo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D9DE893C2CFE54CD006C4071 /* launchLogo@2x.png */; };
-		D9E552B22CE9E8F6008C74F6 /* SystemMessageManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9E552B12CE9E8F6008C74F6 /* SystemMessageManager */; };
-		D9E552B42CE9E8FB008C74F6 /* SystemMessageManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9E552B32CE9E8FB008C74F6 /* SystemMessageManager */; };
 		D9E552B82CE9E909008C74F6 /* ErrorHandler in Frameworks */ = {isa = PBXBuildFile; productRef = D9E552B72CE9E909008C74F6 /* ErrorHandler */; };
-		D9E552BA2CEA5A6E008C74F6 /* SystemMessageModels in Frameworks */ = {isa = PBXBuildFile; productRef = D9E552B92CEA5A6E008C74F6 /* SystemMessageModels */; };
-		D9E552BC2CEA5A74008C74F6 /* SystemMessageModels in Frameworks */ = {isa = PBXBuildFile; productRef = D9E552BB2CEA5A74008C74F6 /* SystemMessageModels */; };
 		D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9E6D8C82BF5FF5F009612CE /* TunnelStatus */; };
 		D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19C2C3806BB0056EB8C /* AutoUpdater */; };
 		D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19F2C3807A00056EB8C /* Sparkle */; };
@@ -260,7 +261,6 @@
 				D9309AF92BC81B7600C387F4 /* TunnelMixnet in Frameworks */,
 				D975F8042CE51097002D42C7 /* ErrorHandler in Frameworks */,
 				D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */,
-				D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */,
 				D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */,
 				D98E52332D40087A00AE92C3 /* ErrorReason in Frameworks */,
 				D9643C702CEBC90700F6B9A7 /* NotificationMessages in Frameworks */,
@@ -268,6 +268,7 @@
 				D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */,
 				D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */,
 				D9281C452B877B8800834B53 /* Keychain in Frameworks */,
+				D93466CB2E57A1F700BEF458 /* NymVPNLib in Frameworks */,
 				582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -284,13 +285,15 @@
 				D9F699E02B4C1862005576A9 /* Settings in Frameworks */,
 				D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */,
 				D9144C612CC10A860021A617 /* CountriesManager in Frameworks */,
+				D93466CD2E57A1FE00BEF458 /* NymVPNLib in Frameworks */,
 				D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */,
 				D99A148C2B35A74200F2728B /* Theme in Frameworks */,
 				D94867012BE035FB00F5331B /* Constants in Frameworks */,
 				D939CB652DE0911500AA2F9C /* PurchasesManager in Frameworks */,
 				D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */,
 				D953CFEA2C8ED73C008A942B /* NotificationsManager in Frameworks */,
-				D9E552BA2CEA5A6E008C74F6 /* SystemMessageModels in Frameworks */,
+				D9391F092E461E16002BE10F /* MessagesManager in Frameworks */,
+				D9391F0F2E4624D6002BE10F /* MessageModels in Frameworks */,
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
@@ -301,7 +304,6 @@
 				D9144C632CC10AA20021A617 /* Migrations in Frameworks */,
 				D92FBA2D2C6B6AB800D743DF /* ConfigurationManager in Frameworks */,
 				D9870CF32BE3A12800551A86 /* Home in Frameworks */,
-				D9E552B22CE9E8F6008C74F6 /* SystemMessageManager in Frameworks */,
 				D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */,
 				D9144C5B2CC1057A0021A617 /* CountriesManagerTypes in Frameworks */,
 				D9BA3B6F2D5BF65700A5B99A /* GatewayManager in Frameworks */,
@@ -316,13 +318,13 @@
 			files = (
 				D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */,
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
+				D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
 				D9144C5F2CC105B20021A617 /* CountriesManager in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
 				D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */,
 				D9FA77C82CEBB32C003362D7 /* NotificationsManager in Frameworks */,
-				D9E552B42CE9E8FB008C74F6 /* SystemMessageManager in Frameworks */,
 				D9643C6E2CEBC53A00F6B9A7 /* UserNotifications.framework in Frameworks */,
 				D9FFC1F92C40F65F00A4766C /* AutoUpdates in Frameworks */,
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
@@ -333,12 +335,12 @@
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
+				D9391F0B2E461E1C002BE10F /* MessagesManager in Frameworks */,
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
 				D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */,
 				D9C5EDE42DF0612700C0D991 /* PurchasesManager in Frameworks */,
 				D9144C5D2CC1057F0021A617 /* CountriesManagerTypes in Frameworks */,
 				D9ABF2842BF4989B009089FA /* Shell in Frameworks */,
-				D9E552BC2CEA5A74008C74F6 /* SystemMessageModels in Frameworks */,
 				D9BEF2E12BEB660D0036C566 /* GRPCManager in Frameworks */,
 				D9FB33DC2BECD473009C3419 /* SentryManager in Frameworks */,
 				D9CDF2DC2BF49909007E5DAF /* Home in Frameworks */,
@@ -525,7 +527,6 @@
 				D93214462B84EBEA00FFDC5E /* Logging */,
 				D9281C442B877B8800834B53 /* Keychain */,
 				D9BB53542BAC4AE500917C97 /* Tunnels */,
-				D99820972BB6E8D9000C1FEE /* MixnetLibrary */,
 				D9309AF82BC81B7600C387F4 /* TunnelMixnet */,
 				582C5F8D2C7654A800B678AE /* ConfigurationManager */,
 				D975F8032CE51097002D42C7 /* ErrorHandler */,
@@ -533,6 +534,7 @@
 				D98E52322D40087A00AE92C3 /* ErrorReason */,
 				D98E52342D40096600AE92C3 /* NetworkMonitor */,
 				D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */,
+				D93466CA2E57A1F700BEF458 /* NymVPNLib */,
 			);
 			productName = NymMixnetTunnel;
 			productReference = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */;
@@ -580,14 +582,15 @@
 				D9144C602CC10A860021A617 /* CountriesManager */,
 				D9144C622CC10AA20021A617 /* Migrations */,
 				D96680D02CC4FC7200267FA1 /* Device */,
-				D9E552B12CE9E8F6008C74F6 /* SystemMessageManager */,
 				D9E552B72CE9E909008C74F6 /* ErrorHandler */,
-				D9E552B92CEA5A6E008C74F6 /* SystemMessageModels */,
 				D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */,
 				D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */,
 				D98E52302D4005ED00AE92C3 /* ErrorReason */,
 				D9BA3B6E2D5BF65700A5B99A /* GatewayManager */,
 				D939CB642DE0911500AA2F9C /* PurchasesManager */,
+				D9391F082E461E16002BE10F /* MessagesManager */,
+				D9391F0E2E4624D6002BE10F /* MessageModels */,
+				D93466CC2E57A1FE00BEF458 /* NymVPNLib */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -630,13 +633,13 @@
 				D9144C5C2CC1057F0021A617 /* CountriesManagerTypes */,
 				D9144C5E2CC105B20021A617 /* CountriesManager */,
 				D96680D22CC4FC7800267FA1 /* Device */,
-				D9E552B32CE9E8FB008C74F6 /* SystemMessageManager */,
-				D9E552BB2CEA5A74008C74F6 /* SystemMessageModels */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
 				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
 				D9BF292A2D5A23F500CDFC9A /* HelperInstall */,
 				D9BA3B6C2D5BF65000A5B99A /* GatewayManager */,
 				D9C5EDE32DF0612700C0D991 /* PurchasesManager */,
+				D9391F0A2E461E1C002BE10F /* MessagesManager */,
+				D9391F0C2E4624CD002BE10F /* MessageModels */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -927,7 +930,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 406;
+				CURRENT_PROJECT_VERSION = 411;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -941,7 +944,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -963,7 +966,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 406;
+				CURRENT_PROJECT_VERSION = 411;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -977,7 +980,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1122,7 +1125,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 406;
+				CURRENT_PROJECT_VERSION = 411;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1137,7 +1140,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1162,7 +1165,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 406;
+				CURRENT_PROJECT_VERSION = 411;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1177,7 +1180,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1201,7 +1204,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 108;
+				CURRENT_PROJECT_VERSION = 113;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1218,7 +1221,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1238,7 +1241,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 108;
+				CURRENT_PROJECT_VERSION = 113;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1256,7 +1259,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.8.0;
+				MARKETING_VERSION = 2.9.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1465,6 +1468,30 @@
 			package = D932143F2B84D29200FFDC5E /* XCRemoteSwiftPackageReference "swift-log" */;
 			productName = Logging;
 		};
+		D93466CA2E57A1F700BEF458 /* NymVPNLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymVPNLib;
+		};
+		D93466CC2E57A1FE00BEF458 /* NymVPNLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymVPNLib;
+		};
+		D9391F082E461E16002BE10F /* MessagesManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MessagesManager;
+		};
+		D9391F0A2E461E1C002BE10F /* MessagesManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MessagesManager;
+		};
+		D9391F0C2E4624CD002BE10F /* MessageModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MessageModels;
+		};
+		D9391F0E2E4624D6002BE10F /* MessageModels */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MessageModels;
+		};
 		D939CB642DE0911500AA2F9C /* PurchasesManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PurchasesManager;
@@ -1532,10 +1559,6 @@
 		D98E52342D40096600AE92C3 /* NetworkMonitor */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkMonitor;
-		};
-		D99820972BB6E8D9000C1FEE /* MixnetLibrary */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MixnetLibrary;
 		};
 		D99A148B2B35A74200F2728B /* Theme */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1605,25 +1628,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = UIComponents;
 		};
-		D9E552B12CE9E8F6008C74F6 /* SystemMessageManager */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SystemMessageManager;
-		};
-		D9E552B32CE9E8FB008C74F6 /* SystemMessageManager */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SystemMessageManager;
-		};
 		D9E552B72CE9E909008C74F6 /* ErrorHandler */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ErrorHandler;
-		};
-		D9E552B92CEA5A6E008C74F6 /* SystemMessageModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SystemMessageModels;
-		};
-		D9E552BB2CEA5A74008C74F6 /* SystemMessageModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SystemMessageModels;
 		};
 		D9E6D8C82BF5FF5F009612CE /* TunnelStatus */ = {
 			isa = XCSwiftPackageProductDependency;

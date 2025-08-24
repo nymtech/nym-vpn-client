@@ -104,7 +104,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), AccountCommandError>>,
         Option<Seed>,
     ),
-    GetDeviceIdentity(oneshot::Sender<Result<String, AccountCommandError>>, ()),
+    GetDeviceIdentity(
+        oneshot::Sender<Result<Option<String>, AccountCommandError>>,
+        (),
+    ),
     GetDevices(
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
         (),
@@ -1004,7 +1007,7 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_get_device_identity(&self) -> Result<String, AccountCommandError> {
+    async fn handle_get_device_identity(&self) -> Result<Option<String>, AccountCommandError> {
         self.account_command_tx.get_device_identity().await
     }
 

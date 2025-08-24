@@ -16,12 +16,7 @@ use std::os::fd::BorrowedFd;
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
-use std::{
-    cmp,
-    net::IpAddr,
-    path::PathBuf,
-    time::{Duration, Instant},
-};
+use std::{net::IpAddr, path::PathBuf, time::Duration};
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
@@ -61,12 +56,10 @@ use nym_vpn_lib_types::{
 use super::tunnel::wireguard::connected_tunnel::{
     NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
 };
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use crate::tunnel_provider;
 #[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
+use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
+use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
@@ -111,15 +104,6 @@ const WG_EXIT_WINTUN_GUID: &str = "{AFE43773-E1F8-4EBB-8536-176AB86AFE9C}";
 pub type TunnelMonitorEventSender = mpsc::UnboundedSender<TunnelMonitorEvent>;
 pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent>;
 
-/// Initial delay between retry attempts.
-const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
-
-/// Wait delay multiplier used for each subsequent retry attempt.
-const DELAY_MULTIPLIER: u32 = 2;
-
-/// Max wait delay between retry attempts.
-const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
-
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -128,16 +112,6 @@ const TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS: u64 = 10;
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
-    /// Awaiting a cooldown period before reconnecting
-    #[allow(dead_code)]
-    ReconnectCooldown {
-        /// Cooldown begin time
-        begin_time: Instant,
-
-        /// Cooldown duration
-        duration: Duration,
-    },
-
     /// Initializing mixnet client
     InitializingClient,
 
@@ -206,7 +180,6 @@ pub struct TunnelParameters {
     pub resolved_gateway_config: ResolvedConfig,
     pub tunnel_settings: TunnelSettings,
     pub selected_gateways: Option<SelectedGateways>,
-    pub retry_attempt: u32,
 }
 
 pub struct TunnelMonitor {
@@ -291,20 +264,6 @@ impl TunnelMonitor {
     }
 
     async fn run_inner(&mut self, task_manager: &mut TaskManager) -> Result<Tombstone> {
-        if self.tunnel_parameters.retry_attempt > 0 {
-            let delay = wait_delay(self.tunnel_parameters.retry_attempt);
-            tracing::debug!("Waiting for {}s before connecting.", delay.as_secs());
-            self.send_event(TunnelMonitorEvent::ReconnectCooldown {
-                begin_time: Instant::now(),
-                duration: delay,
-            });
-
-            self.shutdown_token
-                .run_until_cancelled(tokio::time::sleep(delay))
-                .await
-                .ok_or(Error::Tunnel(Box::new(tunnel::Error::Cancelled)))?;
-        }
-
         if self.enable_ipv6() && !ipv6_availability::is_ipv6_enabled_in_os().await {
             return Err(Error::Ipv6Unavailable);
         }
@@ -660,7 +619,7 @@ impl TunnelMonitor {
                     assigned_addresses.interface_addresses.ipv6,
                 )));
             }
-            let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+            let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
                 dns_servers: self
                     .tunnel_parameters
                     .tunnel_settings
@@ -1179,7 +1138,7 @@ impl TunnelMonitor {
                 conn_data.exit.private_ipv6,
             )));
         }
-        let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
+        let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
             dns_servers: self
                 .tunnel_parameters
                 .tunnel_settings
@@ -1338,17 +1297,17 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn create_tun_device(
         &self,
-        packet_tunnel_settings: tunnel_provider::tunnel_settings::TunnelSettings,
+        packet_tunnel_settings: crate::tunnel_provider::TunnelSettings,
     ) -> Result<AsyncDevice> {
         #[cfg(target_os = "ios")]
         let owned_tun_fd =
-            tunnel_provider::ios::interface::get_tun_fd().map_err(Error::LocateTunDevice)?;
+            crate::tunnel_provider::ios::get_tun_fd().map_err(Error::LocateTunDevice)?;
 
         #[cfg(target_os = "android")]
         let owned_tun_fd = {
             let raw_tun_fd = self
                 .tun_provider
-                .configure_tunnel(packet_tunnel_settings.into_tunnel_network_settings())
+                .configure_tunnel(packet_tunnel_settings)
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?;
             unsafe { OwnedFd::from_raw_fd(raw_tun_fd) }
         };
@@ -1359,7 +1318,7 @@ impl TunnelMonitor {
         #[cfg(target_os = "ios")]
         {
             self.tun_provider
-                .set_tunnel_network_settings(packet_tunnel_settings.into_tunnel_network_settings())
+                .set_tunnel_network_settings(packet_tunnel_settings)
                 .await
                 .map_err(|e| Error::ConfigureTunnelProvider(e.to_string()))?
         }
@@ -1375,12 +1334,6 @@ impl TunnelMonitor {
     fn enable_ipv6(&self) -> bool {
         self.tunnel_parameters.tunnel_settings.enable_ipv6
     }
-}
-
-fn wait_delay(retry_attempt: u32) -> Duration {
-    let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
-    let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
-    cmp::min(delay, MAX_WAIT_DELAY)
 }
 
 pub struct StartTunnelResult {

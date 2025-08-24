@@ -11,6 +11,8 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::FirewallPolicy;
 
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{Error, Result};
 #[cfg(target_os = "macos")]
@@ -60,8 +62,6 @@ impl OfflineState {
             // todo: fetch from config
             allow_lan: true,
             allowed_endpoints: Vec::new(),
-            #[cfg(target_os = "macos")]
-            dns_redirect_port: shared_state.filtering_resolver.listening_port(),
         };
 
         shared_state
@@ -88,8 +88,8 @@ impl OfflineState {
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
         let system_dns = DnsConfig::default().resolve(
-            &[std::net::Ipv4Addr::LOCALHOST.into()],
-            shared_state.filtering_resolver.listening_port(),
+            &[shared_state.filtering_resolver.listen_addr().ip()],
+            shared_state.filtering_resolver.listen_addr().port(),
         );
         shared_state
             .dns_handler
@@ -143,7 +143,14 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
-                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                    #[cfg(target_os = "macos")]
+                    if !*LOCAL_DNS_RESOLVER {
+                        // This is probably unnecessary, since DNS is already configured on the
+                        // primary interface.
+                        Self::reset_dns(shared_state).await;
+                    }
+
+                    #[cfg(any(target_os = "linux", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {

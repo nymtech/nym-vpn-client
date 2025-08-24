@@ -16,8 +16,8 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.nymvpn.util.extensions.truncateWithEllipsis
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject

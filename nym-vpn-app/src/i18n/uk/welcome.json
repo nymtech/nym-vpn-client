@@ -4,5 +4,6 @@
   "anon-toggle-desc": "Застосовується після перезапуску програми",
   "tos-notice": "Продовжуючи, ви погоджуєтеся з <tosLink /> NymVPN і визнаєте <privacyLink /> NymVPN.",
   "continue-button": "Продовжити",
-  "error-monitoring-label": "Анонімні повідомлення про помилки"
+  "error-monitoring-label": "Анонімні повідомлення про помилки",
+  "network-statistic": "Анонімна статистика мережі"
 }

@@ -4,5 +4,6 @@
   "anon-toggle-desc": "Áp dụng khi khởi động lại ứng dụng",
   "tos-notice": "Bằng cách tiếp tục, bạn đồng ý với <tosLink /> của NymVPN và xác nhận rằng bạn đã hiểu <privacyLink /> của NymVPN.",
   "continue-button": "Tiếp tục",
-  "error-monitoring-label": "Anonymous error reports"
+  "error-monitoring-label": "Anonymous error reports",
+  "network-statistic": "Anonymous network stats"
 }

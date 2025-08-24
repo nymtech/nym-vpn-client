@@ -30,6 +30,18 @@ use crate::{
 const ZK_NYM_MAX_FAILS: u32 = 10;
 const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 
+/// RequestingZkNyms State
+/// That state gets ZK-nyms if needed.
+/// This is a substate of the Syncing State, it will disappear into the future Bandwidth Controller
+///
+/// A retry mechanism is in place, if the error is in the API requests. Other errors lead a single retry, then to the ErrorState since they are not recoverable.  
+///
+/// Possible next state :
+/// - ReadyState : We have enough tickets already, or we managed to get enough tickets
+/// - ErrorState : An error happened, preventing us to proceed.
+/// - OfflineState : the connectivity monitor is telling we're not connected
+/// - SyncingState : We handled a refresh account command
+/// - LoggedOutState : A successful forget account command was handled
 pub(super) struct RequestingZkNymsState {
     zk_nym_fetching_handle: JoinHandle<Result<(), ZkNymError>>,
     attempts: u32,
@@ -230,9 +242,25 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
+                        return_sender.send(Ok(()));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            self.zk_nym_fetching_handle.abort();
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        }
+                    },
+
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                        return NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, self.fair_usage_left));
+                    },
+
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
                         self.zk_nym_fetching_handle.abort();
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     },
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await

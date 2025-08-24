@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve UI emphasis when connection to the daemon is down
 
+### Fixed
+
+- [Linux] Fix task-bar window icon
+- [Linux] Fix window bar buttons (close, minimize, maximize) on Wayland
+
 ## [1.13.0] - 2025-07-30
 
 ### Added

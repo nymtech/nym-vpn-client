@@ -13,9 +13,12 @@ struct AcknowledgmentsView: View {
     var body: some View {
         VStack(spacing: 0) {
             navbar()
-            section()
-                .frame(maxWidth: MagicNumbers.maxWidth)
-            Spacer()
+            VStack(spacing: 0) {
+                section()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

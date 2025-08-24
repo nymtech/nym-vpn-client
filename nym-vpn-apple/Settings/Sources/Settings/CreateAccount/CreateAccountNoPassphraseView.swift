@@ -104,7 +104,7 @@ private extension CreateAccountNoPassphraseView {
         GenericButton(
             title: "createAccount.createPassphraseButtonTitle".localizedString,
             isLoading: $isLoading,
-            systemImageNamge: "key.horizontal.fill",
+            systemImageName: "key.horizontal.fill",
             isSystemImageFlipped: true
         )
         .onTapGesture {

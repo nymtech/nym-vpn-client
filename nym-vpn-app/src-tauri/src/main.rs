@@ -123,6 +123,7 @@ async fn main() -> Result<()> {
         None
     };
 
+    let c_os = os.clone();
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
@@ -146,6 +147,9 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_os::init())
+        .on_window_event(move |win, event| {
+            window::handle_event(&c_os, win, event);
+        })
         .setup(move |app| {
             info!("app setup");
 
@@ -181,6 +185,9 @@ async fn main() -> Result<()> {
 
             let app_window = AppWindow::create_main_window(app.handle(), &cli)?;
             app_window.set_bg_color(&db).ok();
+            #[cfg(target_os = "linux")]
+            app_window.set_max_size(os.display_server.clone()).ok();
+            #[cfg(not(target_os = "linux"))]
             app_window.set_max_size().ok();
 
             let fs_config = {
@@ -288,17 +295,6 @@ async fn main() -> Result<()> {
             #[cfg(windows)]
             cmd_updater::install_update,
         ])
-        // keep the app running in the background on window close request
-        .on_window_event(|win, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                if win.label() == MAIN_WINDOW_LABEL {
-                    win.hide()
-                        .inspect_err(|e| error!("failed to hide main window: {e}"))
-                        .ok();
-                    api.prevent_close();
-                }
-            }
-        })
         .run(context)
         .expect("error while running tauri application");
 

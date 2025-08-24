@@ -4,5 +4,6 @@
   "anon-toggle-desc": "Se aplica al reiniciar la aplicación",
   "tos-notice": "Al continuar, aceptas la <tosLink /> de NymVPN y reconoces la <privacyLink /> de NymVPN.",
   "continue-button": "Continuar",
-  "error-monitoring-label": "Informes de errores anónimos"
+  "error-monitoring-label": "Informes de errores anónimos",
+  "network-statistic": "Anonymous network stats"
 }

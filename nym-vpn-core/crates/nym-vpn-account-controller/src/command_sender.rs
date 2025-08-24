@@ -7,12 +7,12 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    AvailableTicketbooks, RegisterAccountResponse,
+    AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender},
 };
 
@@ -110,7 +110,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn get_device_identity(&self) -> Result<String, AccountCommandError> {
+    pub async fn get_device_identity(&self) -> Result<Option<String>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeviceIdentity(tx)))
@@ -153,6 +153,22 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(
                 CommonCommand::SetStaticApiAddresses(tx, static_addresses),
             ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn set_vpn_api_firewall_up(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::VpnApiFirewallUp(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn set_vpn_api_firewall_down(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::VpnApiFirewallDown(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

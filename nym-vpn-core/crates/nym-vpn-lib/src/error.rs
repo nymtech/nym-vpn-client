@@ -27,5 +27,3 @@ pub enum GatewayDirectoryError {
     #[error("unable to use same entry and exit gateway: {identity}")]
     SameEntryAndExitGateway { identity: String },
 }
-
-pub use super::tunnel_state_machine::Error;

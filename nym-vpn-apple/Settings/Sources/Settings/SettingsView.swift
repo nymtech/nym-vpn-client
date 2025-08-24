@@ -31,9 +31,9 @@ private extension SettingsView {
                 settingsList()
                 accountIdentifier()
             }
+            .padding(.horizontal, 16)
             .scrollIndicators(.hidden)
             .frame(maxWidth: MagicNumbers.maxWidth)
-            Spacer()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -102,11 +102,10 @@ private extension SettingsView {
                 Text("\("settings.accountID".localizedString): \(accountIdentifier)")
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Medium.regular)
-                    .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 0))
+                    .padding(.bottom, 16)
                 Spacer()
             }
             .onTapGesture {
-
                 viewModel.copyToPasteboard(text: accountIdentifier)
 
                 withAnimation {

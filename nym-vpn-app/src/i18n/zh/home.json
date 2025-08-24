@@ -62,5 +62,6 @@
     "description": "安装更新 - 请不要关闭应用程序。",
     "restart-note": "更新后应用程序将重新启动。",
     "bar-label": "下载进度"
-  }
+  },
+  "get-started": "Get started"
 }

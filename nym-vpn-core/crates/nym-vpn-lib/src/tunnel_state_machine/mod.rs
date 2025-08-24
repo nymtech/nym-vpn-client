@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod account;
-#[cfg(target_os = "android")]
-mod android_connectivity_adapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod dns_handler;
 mod ipv6_availability;
@@ -56,15 +54,13 @@ use tunnel::SelectedGateways;
 use wintun::SetupWintunAdapterError;
 
 #[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
+use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
-use crate::tunnel_provider::ios::OSTunProvider;
+use crate::tunnel_provider::OSTunProvider;
 use crate::{
     GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
     bandwidth_controller::Error as BandwidthControllerError,
 };
-#[cfg(target_os = "android")]
-pub use android_connectivity_adapter::AndroidConnectivityAdapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -434,6 +430,8 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler_shutdown_token: CancellationToken,
+    #[cfg(target_os = "macos")]
+    filtering_resolver_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -455,13 +453,15 @@ impl TunnelStateMachine {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
-        #[cfg(target_os = "macos")]
-        let filtering_resolver = resolver::start_resolver()
-            .await
-            .map_err(Error::StartLocalDnsResolver)?;
-
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let dns_handler_shutdown_token = CancellationToken::new();
+
+        #[cfg(target_os = "macos")]
+        let (filtering_resolver, filtering_resolver_handle) =
+            resolver::LocalResolver::spawn(true, dns_handler_shutdown_token.child_token())
+                .await
+                .map_err(Error::StartLocalDnsResolver)?;
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
@@ -525,6 +525,8 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler_shutdown_token,
+            #[cfg(target_os = "macos")]
+            filtering_resolver_handle,
             shutdown_token,
         };
 
@@ -580,6 +582,13 @@ impl TunnelStateMachine {
 
             self.shared_state.route_handler.stop().await;
         }
+
+        #[cfg(target_os = "macos")]
+        {
+            if let Err(e) = self.filtering_resolver_handle.await {
+                tracing::error!("Failed to join on filtering resolver task: {}", e)
+            }
+        }
     }
 }
 
@@ -601,8 +610,8 @@ pub enum Error {
     #[error("failed to apply firewall policy")]
     ApplyFirewallPolicy(#[source] nym_firewall::Error),
 
-    #[error("failed to resolve gateway addresses")]
-    ResolveGatewayAddrs(#[source] nym_gateway_directory::Error),
+    #[error("failed to resolve API hostnames")]
+    ResolveApiHostnames(#[source] nym_gateway_directory::Error),
 
     #[cfg(target_os = "macos")]
     #[error("failed to start local dns resolver")]
@@ -673,7 +682,7 @@ impl Error {
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
-            Self::ResolveGatewayAddrs(_) => ErrorStateReason::ResolveGatewayAddrs,
+            Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
             Self::StartLocalDnsResolver(_) => ErrorStateReason::StartLocalDnsResolver,
             #[cfg(windows)]

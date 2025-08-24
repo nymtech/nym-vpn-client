@@ -2,7 +2,7 @@
 import NetworkExtension
 import AppSettings
 import Constants
-import MixnetLibrary
+import NymVPNLib
 import TunnelMixnet
 import Tunnels
 
@@ -109,6 +109,7 @@ extension ConnectionManager {
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
             activeTunnel = tunnel
             try await tunnelsManager.connect(tunnel: tunnel)
+            appSettings.statisticsConnectionCount += 1
         } catch {
             throw error
         }

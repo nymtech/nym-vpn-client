@@ -34,6 +34,7 @@ let package = Package(
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "MessageModels", package: "ServicesMutual"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "Lottie", package: "lottie-spm")

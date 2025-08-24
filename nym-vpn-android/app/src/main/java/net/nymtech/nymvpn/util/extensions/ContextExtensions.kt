@@ -20,7 +20,7 @@ import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
-import nym_vpn_lib.UserAgent
+import nym_vpn_lib_types.UserAgent
 import timber.log.Timber
 
 private const val BASELINE_HEIGHT = 2201

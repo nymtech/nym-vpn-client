@@ -10,6 +10,7 @@
   "tunnel": {
     "internal": "Erreur interne",
     "api": "Erreur d'API",
+    "account-controller": "Contrôleur de compte : erreur interne",
     "firewall": "Erreur de pare-feu",
     "routing": "Erreur de routage",
     "dns": "Erreur de DNS",
@@ -23,23 +24,34 @@
     "ipv6-unavailable": "L'IPv6 n'est pas disponible sur ce système. Désactiver l'option dans les réglages pour basculer en IPv4"
   },
   "account": {
+    "internal": "Erreur interne du compte",
+    "max-devices-reached": "La limite d'appareil du compte client a été dépassée.",
+    "bandwidth-exceeded": "La bande passante est dépassée. Veuillez mettre à jour votre abonnement de compte.",
     "invalid-recovery-phrase": "Code d'accès invalide",
     "storage": "Erreur de stockage backend",
-    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN"
+    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
+    "no-account-stored": "Aucun compte enregistré",
+    "no-device-stored": "Aucun appareil enregistré",
+    "existing-account": "Ce compte existe déjà",
+    "no-subscription": "Vous n'avez pas de plan actif. Appuyez sur Démarrer pour commencer la navigation anonyme.",
+    "status-not-active": "Votre compte est inactif",
+    "device-time-out-of-sync": "L'heure de votre appareil n'est pas synchronisée. Veuillez synchroniser l'heure de votre appareil avec celle d'Internet."
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
     "exit": "Échec de la recherche des pays de nœuds de sortie disponibles",
     "fast-mode": "Échec de la recherche des pays disponibles"
   },
-  "no-bandwidth": "Aucune allocation de données restante",
-  "entry-gateway-down": "La passerelle d'entrée est hors service",
-  "exit-gateway-down": {
-    "ipv4": "La passerelle de sortie est hors service (IPv4)",
-    "ipv6": "La passerelle de sortie est hors service (IPv6)"
-  },
-  "exit-gateway-routing": {
-    "ipv4": "Erreur de sortie du routage de la passerelle (IPv4)",
-    "ipv6": "Erreur lors de la sortie du routage de la passerelle (IPv6)"
+  "mixnet": {
+    "no-bandwidth": "Aucune bande passante restante.",
+    "entry-gateway-down": "La passerelle d'entrée est hors service",
+    "exit-gateway-down": {
+      "ipv4": "La passerelle de sortie est hors service (IPv4)",
+      "ipv6": "La passerelle de sortie est hors service (IPv6)"
+    },
+    "exit-gateway-routing": {
+      "ipv4": "Erreur de sortie du routage de la passerelle (IPv4)",
+      "ipv6": "Erreur lors de la sortie du routage de la passerelle (IPv6)"
+    }
   }
 }

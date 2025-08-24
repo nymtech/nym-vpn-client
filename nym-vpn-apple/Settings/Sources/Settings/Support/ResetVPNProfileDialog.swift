@@ -84,7 +84,7 @@ private extension ResetVPNProfileDialog {
 
     @ViewBuilder
     func noButton() -> some View {
-        GenericButton(title: viewModel.noLocalizedString, borderOnly: true)
+        GenericButton(title: viewModel.noLocalizedString, style: .borderOnly)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.impact()

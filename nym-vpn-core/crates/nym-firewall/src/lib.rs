@@ -1,3 +1,6 @@
+// Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::{
     borrow::Cow,
     fmt,
@@ -12,8 +15,6 @@ use nym_dns::ResolvedDnsConfig;
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
 mod imp;
-#[cfg(target_os = "macos")]
-pub use imp::LOCAL_DNS_RESOLVER;
 
 #[cfg(target_os = "linux")]
 #[path = "linux.rs"]
@@ -123,10 +124,6 @@ pub enum FirewallPolicy {
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
-        /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
-        /// be redirected to `127.0.0.1:$dns_redirect_port`.
-        #[cfg(target_os = "macos")]
-        dns_redirect_port: u16,
     },
 
     /// Allow traffic only to server and over tunnel interface
@@ -143,10 +140,6 @@ pub enum FirewallPolicy {
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
-        /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
-        /// be redirected to `127.0.0.1:$dns_redirect_port`.
-        #[cfg(target_os = "macos")]
-        dns_redirect_port: u16,
     },
 
     /// Block all network traffic in and out from the computer.
@@ -155,10 +148,6 @@ pub enum FirewallPolicy {
         allow_lan: bool,
         /// Hosts that should be reachable while in the blocked state.
         allowed_endpoints: Vec<AllowedEndpoint>,
-        /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
-        /// be redirected to `127.0.0.1:$dns_redirect_port`.
-        #[cfg(target_os = "macos")]
-        dns_redirect_port: u16,
     },
 }
 

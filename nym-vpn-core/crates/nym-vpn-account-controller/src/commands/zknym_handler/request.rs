@@ -7,12 +7,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-use nym_compact_ecash::{Base58, BlindedSignature, VerificationKeyAuth, WithdrawalRequest};
 use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
     MasterVerificationKeyResponse, PartialVerificationKeysResponse, TicketbookWalletSharesResponse,
 };
 use nym_credentials::{EpochVerificationKey, IssuedTicketBook};
+use nym_credentials_interface::{Base58, BlindedSignature, VerificationKeyAuth, WithdrawalRequest};
 use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
@@ -128,7 +128,7 @@ impl RequestZkNymTask {
             .map_err(|err| RequestZkNymError::CreateEcashKeyPair(err.to_string()))?;
         let expiration_date = nym_ecash_time::ecash_default_expiration_date();
 
-        let (withdrawal_request, request_info) = nym_compact_ecash::withdrawal_request(
+        let (withdrawal_request, request_info) = nym_credentials_interface::withdrawal_request(
             ecash_keypair.secret_key(),
             expiration_date.ecash_unix_timestamp(),
             ticketbook_type.encode(),
@@ -534,7 +534,7 @@ impl RequestZkNymTask {
             };
 
             tracing::trace!("Calling issue_verify");
-            match nym_compact_ecash::issue_verify(
+            match nym_credentials_interface::issue_verify(
                 vk,
                 ecash_keypair.secret_key(),
                 &blinded_sig,
@@ -556,7 +556,7 @@ impl RequestZkNymTask {
         }
 
         tracing::trace!("Aggregating wallets");
-        let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
+        let aggregated_wallets = nym_credentials_interface::aggregate_wallets(
             &master_vk,
             ecash_keypair.secret_key(),
             &partial_wallets,

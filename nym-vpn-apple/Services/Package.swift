@@ -26,7 +26,7 @@ let package = Package(
         .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
         .library(name: "PurchasesManager", targets: ["PurchasesManager"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
-        .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
+        .library(name: "MessagesManager", targets: ["MessagesManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
@@ -34,7 +34,7 @@ let package = Package(
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
-        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
+        .package(name: "NymVPNLib", path: "../NymVPNLib"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
         .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.46.0")
@@ -57,7 +57,7 @@ let package = Package(
                 "CredentialsManager",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymLogger", package: "ServicesMutual"),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/ConfigurationManager"
         ),
@@ -83,7 +83,7 @@ let package = Package(
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymLogger", package: "ServicesMutual"),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/CountriesManager"
         ),
@@ -94,7 +94,7 @@ let package = Package(
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "Theme"
@@ -121,7 +121,7 @@ let package = Package(
                 "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
@@ -187,14 +187,14 @@ let package = Package(
             path: "Sources/Services/SentryManager"
         ),
         .target(
-            name: "SystemMessageManager",
+            name: "MessagesManager",
             dependencies: [
                 "AppSettings",
-                .product(name: "SystemMessageModels", package: "ServicesMutual"),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "MessageModels", package: "ServicesMutual"),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
-            path: "Sources/Services/SystemMessageManager"
+            path: "Sources/Services/MessagesManager"
         ),
         .target(
             name: "Tunnels",
@@ -204,7 +204,7 @@ let package = Package(
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/Services/Tunnels"
@@ -218,7 +218,7 @@ let package = Package(
                 "CountriesManager",
                 "CredentialsManager",
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 "Tunnels"

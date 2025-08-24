@@ -2,12 +2,55 @@ import SwiftUI
 import Theme
 
 public struct GenericButton: View {
+    public enum Style {
+        case normal
+        case borderOnly
+        case textOnly
+
+        var backgroundColor: Color {
+            switch self {
+            case .normal:
+                NymColor.accent
+            case .borderOnly, .textOnly:
+                .clear
+            }
+        }
+
+        var imageForegroundColor: Color {
+            switch self {
+            case .normal:
+                NymColor.black
+            case .borderOnly, .textOnly:
+                NymColor.accent
+            }
+        }
+
+        var textTitleColor: Color {
+            switch self {
+            case .normal:
+                NymColor.black
+            case .borderOnly:
+                NymColor.accent
+            case .textOnly:
+                NymColor.primary
+            }
+        }
+
+        var strokeLineWidth: CGFloat {
+            switch self {
+            case .normal, .textOnly:
+                0
+            case .borderOnly:
+                1
+            }
+        }
+    }
+
     private let title: String
-    private let borderOnly: Bool
-    private let mainColor: Color
+    private let style: Style
     private let height: CGFloat
     private let isWidthExpanded: Bool
-    private let systemImageNamge: String?
+    private let systemImageName: String?
     private let isSystemImageFlipped: Bool
 
     @State private var isHovered = false
@@ -15,20 +58,18 @@ public struct GenericButton: View {
 
     public init(
         title: String,
-        borderOnly: Bool = false,
-        mainColor: Color = NymColor.accent,
+        style: Style = .normal,
         height: CGFloat = 56,
         isLoading: Binding<Bool> = .constant(false),
         isWidthExpanded: Bool = true,
-        systemImageNamge: String? = nil,
+        systemImageName: String? = nil,
         isSystemImageFlipped: Bool = false
     ) {
         self.title = title
-        self.borderOnly = borderOnly
-        self.mainColor = mainColor
+        self.style = style
         self.height = height
         self.isWidthExpanded = isWidthExpanded
-        self.systemImageNamge = systemImageNamge
+        self.systemImageName = systemImageName
         self.isSystemImageFlipped = isSystemImageFlipped
         _isLoading = isLoading
     }
@@ -39,32 +80,32 @@ public struct GenericButton: View {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: NymColor.black))
             } else {
-                if let systemImageNamge {
-                    Image(systemName: systemImageNamge)
+                if let systemImageName {
+                    Image(systemName: systemImageName)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)
                         .padding(.horizontal, 8)
                         .scaleEffect(x: isSystemImageFlipped ? -1 : 1, y: 1)
-                        .foregroundStyle(borderOnly ? mainColor : NymColor.black)
+                        .foregroundStyle(style.imageForegroundColor)
                 }
 
                 Text(title)
-                    .foregroundStyle(borderOnly ? mainColor : NymColor.black)
+                    .foregroundStyle(style.textTitleColor)
                     .textStyle(.Headline.Small.regular)
             }
         }
-        .padding(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
+        .padding(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
         .accessibilityLabel(title)
         .accessibilityAddTraits([.isButton])
         .frame(maxWidth: isWidthExpanded ? .infinity : nil)
         .frame(height: height)
         .background {
-            borderOnly ? .clear : mainColor.opacity(isHovered ? 0.7 : 1)
+            style.backgroundColor.opacity(isHovered ? 0.7 : 1)
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(mainColor, lineWidth: borderOnly ? 1 : 0)
+                .stroke(style.backgroundColor, lineWidth: style.strokeLineWidth)
         )
         .contentShape(RoundedRectangle(cornerRadius: 8))
         .cornerRadius(8)

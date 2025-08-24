@@ -3,6 +3,7 @@
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use futures::{
     FutureExt,
@@ -14,8 +15,6 @@ use tokio_util::sync::CancellationToken;
 use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
-#[cfg(target_os = "macos")]
-use nym_firewall::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
@@ -25,6 +24,8 @@ use nym_firewall::{
 use nym_gateway_directory::Gateway;
 use nym_gateway_directory::ResolvedConfig;
 
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
     Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -36,11 +37,21 @@ use crate::tunnel_state_machine::{
     },
 };
 
+/// Initial delay between retry attempts.
+const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
+
+/// Wait delay multiplier used for each subsequent retry attempt.
+const DELAY_MULTIPLIER: u32 = 2;
+
+/// Max wait delay between retry attempts.
+const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
+
 /// Default websocket port used as a fallback
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 const DEFAULT_WS_PORT: u16 = 80;
 
 type ResolveConfigFuture = BoxFuture<'static, Result<ResolvedConfig>>;
+type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
 pub struct ConnectingState {
     retry_attempt: u32,
@@ -50,6 +61,7 @@ pub struct ConnectingState {
     selected_gateways: Option<SelectedGateways>,
     resolved_gateway_config: Option<ResolvedConfig>,
     resolve_config_fut: Fuse<ResolveConfigFuture>,
+    reconnect_delay_fut: Fuse<ReconnectDelayFuture>,
 }
 
 impl ConnectingState {
@@ -62,7 +74,7 @@ impl ConnectingState {
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             return ErrorState::enter(
                 e.error_state_reason()
-                    .expect("failed to map to error state reason"),
+                    .expect("failed to map to error state reason"), // todo: fix me
                 shared_state,
             )
             .await;
@@ -98,14 +110,20 @@ impl ConnectingState {
             }
         }
 
-        let gateway_config = shared_state.nym_config.gateway_config.clone();
-        let resolve_config_fut = async move {
-            nym_gateway_directory::resolve_config(&gateway_config)
-                .await
-                .map_err(Error::ResolveGatewayAddrs)
-        }
-        .boxed()
-        .fuse();
+        // If that fails, it's not really important
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_up()
+            .await;
+
+        let resolve_config_fut = Fuse::terminated();
+        let reconnect_delay_fut = if retry_attempt > 0 {
+            let wait_delay = wait_delay(retry_attempt);
+            tracing::info!("Waiting {}s before reconnect", wait_delay.as_secs());
+            tokio::time::sleep(wait_delay).boxed().fuse()
+        } else {
+            std::future::ready(()).boxed().fuse()
+        };
 
         let (monitor_event_sender, monitor_event_receiver) = mpsc::unbounded_channel();
 
@@ -118,9 +136,10 @@ impl ConnectingState {
                 selected_gateways,
                 resolved_gateway_config: None,
                 resolve_config_fut,
+                reconnect_delay_fut,
             }),
             PrivateTunnelState::Connecting {
-                retry_attempt: 0,
+                retry_attempt,
                 connection_data: None,
             },
         )
@@ -207,8 +226,6 @@ impl ConnectingState {
             // todo: split tunneling
             #[cfg(target_os = "macos")]
             redirect_interface: None,
-            #[cfg(target_os = "macos")]
-            dns_redirect_port: shared_state.filtering_resolver.listening_port(),
         };
 
         shared_state
@@ -228,16 +245,19 @@ impl ConnectingState {
         if *LOCAL_DNS_RESOLVER {
             // Set system DNS to our local DNS resolver
             let system_dns = DnsConfig::default().resolve(
-                &[std::net::Ipv4Addr::LOCALHOST.into()],
-                shared_state.filtering_resolver.listening_port(),
+                &[shared_state.filtering_resolver.listen_addr().ip()],
+                shared_state.filtering_resolver.listen_addr().port(),
             );
-            let _ = shared_state
+            if let Err(error) = shared_state
                 .dns_handler
                 .set("lo".to_owned(), system_dns)
                 .await
-                .inspect_err(|err| {
-                    trace_err_chain!(err, "Failed to configure system to use filtering resolver",);
-                });
+            {
+                trace_err_chain!(
+                    error,
+                    "Failed to configure system to use filtering resolver",
+                );
+            }
         }
 
         Ok(())
@@ -246,6 +266,21 @@ impl ConnectingState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_routes(shared_state: &mut SharedState) {
         shared_state.route_handler.remove_routes().await
+    }
+
+    async fn reconnect(self, shared_state: &mut SharedState) -> NextTunnelState {
+        let next_attempt = self.retry_attempt.saturating_add(1);
+        let next_gateways = if next_attempt.is_multiple_of(2) {
+            None
+        } else {
+            self.selected_gateways
+        };
+
+        tracing::info!("Reconnecting, attempt {next_attempt}");
+
+        NextTunnelState::NewState(
+            ConnectingState::enter(next_attempt, next_gateways, shared_state).await,
+        )
     }
 
     async fn disconnect(
@@ -282,14 +317,8 @@ impl ConnectingState {
                 resolved_gateway_config
             }
             Err(e) => {
-                return NextTunnelState::NewState(
-                    ErrorState::enter(
-                        e.error_state_reason()
-                            .expect("failed to map to error reason"),
-                        shared_state,
-                    )
-                    .await,
-                );
+                trace_err_chain!(e, "Failed to resolve gateway config");
+                return self.reconnect(shared_state).await;
             }
         };
 
@@ -343,6 +372,11 @@ impl ConnectingState {
             );
         }
 
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_down()
+            .await;
+
         let Some(tunnel_monitor_event_sender) = self.tunnel_monitor_event_sender.take() else {
             return NextTunnelState::NewState(
                 ErrorState::enter(
@@ -363,7 +397,6 @@ impl ConnectingState {
             resolved_gateway_config: resolved_gateway_config.clone(),
             tunnel_settings: shared_state.tunnel_settings.clone(),
             selected_gateways: self.selected_gateways.clone(),
-            retry_attempt: self.retry_attempt,
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
@@ -457,114 +490,117 @@ impl TunnelStateHandler for ConnectingState {
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
         tokio::select! {
+            _ = &mut self.reconnect_delay_fut => {
+                let gateway_config = shared_state.nym_config.gateway_config.clone();
+
+                self.resolve_config_fut = async move {
+                    nym_gateway_directory::resolve_config(&gateway_config)
+                        .await
+                        .map_err(Error::ResolveApiHostnames)
+                }
+                .boxed()
+                .fuse();
+
+                NextTunnelState::SameState(self)
+            },
             resolved_gateway_config = &mut self.resolve_config_fut => {
                 self.handle_resolved_gateway_config(resolved_gateway_config, shared_state).await
             }
             Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
-            match monitor_event {
-                TunnelMonitorEvent::ReconnectCooldown { .. } => {
-                    NextTunnelState::SameState(self)
-                }
-                TunnelMonitorEvent::InitializingClient => {
-                    NextTunnelState::SameState(self)
-                }
-                TunnelMonitorEvent::SelectingGateways => {
-                    NextTunnelState::SameState(self)
-                }
-                TunnelMonitorEvent::SelectedGateways {
-                    gateways, reply_tx
-                } => {
-                   let next_state = match self.handle_selected_gateways(gateways, shared_state).await {
-                        Ok(()) => {
-                            NextTunnelState::SameState(self)
-                        }
-                        Err(e) => {
-                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                NextTunnelState::NewState(DisconnectingState::enter(
-                                    // todo: fix that expect()
-                                    PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
-                                    tunnel_monitor_handle,
-                                    shared_state
-                                ))
-                            } else {
-                                NextTunnelState::NewState(ErrorState::enter(
-                                    // todo: fix that expect()
-                                    e.error_state_reason().expect("failed to obtain error state reason"),
-                                    shared_state
-                                ).await)
+                match monitor_event {
+                    TunnelMonitorEvent::InitializingClient => {
+                        NextTunnelState::SameState(self)
+                    }
+                    TunnelMonitorEvent::SelectingGateways => {
+                        NextTunnelState::SameState(self)
+                    }
+                    TunnelMonitorEvent::SelectedGateways {
+                        gateways, reply_tx
+                    } => {
+                    let next_state = match self.handle_selected_gateways(gateways, shared_state).await {
+                            Ok(()) => {
+                                NextTunnelState::SameState(self)
                             }
-                        }
-                    };
-                    _ = reply_tx.send(());
-                    next_state
-                }
-                TunnelMonitorEvent::InterfaceUp {
-                    tunnel_interface, connection_data, reply_tx
-                }  => {
-                    let next_state = match self.handle_interface_up(tunnel_interface, shared_state).await {
-                        Ok(()) => {
-                            let state = PrivateTunnelState::Connecting { retry_attempt: self.retry_attempt, connection_data: Some(*connection_data) };
-                            NextTunnelState::NewState((self, state))
-                        },
-                        Err(e) => {
-                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                NextTunnelState::NewState(DisconnectingState::enter(
-                                    // todo: fix that expect()
-                                    PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
-                                    tunnel_monitor_handle,
-                                    shared_state
-                                ))
-                            } else {
-                                NextTunnelState::NewState(ErrorState::enter(
-                                    // todo: fix that expect()
-                                    e.error_state_reason().expect("failed to obtain error state reason"),
-                                    shared_state
-                                ).await)
+                            Err(e) => {
+                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                                    NextTunnelState::NewState(DisconnectingState::enter(
+                                        // todo: fix that expect()
+                                        PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
+                                        tunnel_monitor_handle,
+                                        shared_state
+                                    ))
+                                } else {
+                                    NextTunnelState::NewState(ErrorState::enter(
+                                        // todo: fix that expect()
+                                        e.error_state_reason().expect("failed to obtain error state reason"),
+                                        shared_state
+                                    ).await)
+                                }
                             }
-                        }
-                    };
-                    _ = reply_tx.send(());
-                    next_state
-                }
-                TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
-                    NextTunnelState::NewState(ConnectedState::enter(
-                        tunnel_interface,
-                        *connection_data,
-                        self.selected_gateways.expect("selected gateways must be set"),
-                        self.tunnel_monitor_handle.expect("monitor handle must be set!"),
-                        self.tunnel_monitor_event_receiver,
-                        shared_state,
-                    ).await)
-                }
-                TunnelMonitorEvent::Down { error_state_reason, reply_tx } => {
-                    // Signal that the message was received first.
-                    _ = reply_tx.send(());
-
-                    if let Some(error_state_reason) = error_state_reason {
-                        NextTunnelState::NewState(DisconnectingState::enter(
-                            PrivateActionAfterDisconnect::Error(error_state_reason),
+                        };
+                        _ = reply_tx.send(());
+                        next_state
+                    }
+                    TunnelMonitorEvent::InterfaceUp {
+                        tunnel_interface, connection_data, reply_tx
+                    }  => {
+                        let next_state = match self.handle_interface_up(tunnel_interface, shared_state).await {
+                            Ok(()) => {
+                                let state = PrivateTunnelState::Connecting { retry_attempt: self.retry_attempt, connection_data: Some(*connection_data) };
+                                NextTunnelState::NewState((self, state))
+                            },
+                            Err(e) => {
+                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                                    NextTunnelState::NewState(DisconnectingState::enter(
+                                        // todo: fix that expect()
+                                        PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
+                                        tunnel_monitor_handle,
+                                        shared_state
+                                    ))
+                                } else {
+                                    NextTunnelState::NewState(ErrorState::enter(
+                                        // todo: fix that expect()
+                                        e.error_state_reason().expect("failed to obtain error state reason"),
+                                        shared_state
+                                    ).await)
+                                }
+                            }
+                        };
+                        _ = reply_tx.send(());
+                        next_state
+                    }
+                    TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
+                        NextTunnelState::NewState(ConnectedState::enter(
+                            tunnel_interface,
+                            *connection_data,
+                            self.selected_gateways.expect("selected gateways must be set"),
                             self.tunnel_monitor_handle.expect("monitor handle must be set!"),
-                            shared_state
-                        ))
-                    } else {
-                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                            let tombstone = tunnel_monitor_handle.wait().await;
-                            Self::handle_tunnel_close(tombstone, shared_state).await;
-                        }
-
-                        let next_attempt = self.retry_attempt.saturating_add(1);
-                        tracing::info!(
-                            "Tunnel closed. Reconnecting, attempt {}.",
-                            next_attempt
-                        );
-                        NextTunnelState::NewState(ConnectingState::enter(
-                            next_attempt,
-                            self.selected_gateways,
-                            shared_state
+                            self.tunnel_monitor_event_receiver,
+                            shared_state,
                         ).await)
                     }
+                    TunnelMonitorEvent::Down { error_state_reason, reply_tx } => {
+                        // Signal that the message was received first.
+                        _ = reply_tx.send(());
+
+                        if let Some(error_state_reason) = error_state_reason {
+                            NextTunnelState::NewState(DisconnectingState::enter(
+                                PrivateActionAfterDisconnect::Error(error_state_reason),
+                                self.tunnel_monitor_handle.expect("monitor handle must be set!"),
+                                shared_state
+                            ))
+                        } else {
+                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
+                                let tombstone = tunnel_monitor_handle.wait().await;
+                                Self::handle_tunnel_close(tombstone, shared_state).await;
+                            }
+
+                            tracing::info!("Tunnel closed");
+
+                            self.reconnect(shared_state).await
+                        }
+                    }
                 }
-            }
            }
             Some(command) = command_rx.recv() => {
                 match command {
@@ -626,4 +662,10 @@ impl TunnelStateHandler for ConnectingState {
             }
         }
     }
+}
+
+fn wait_delay(retry_attempt: u32) -> Duration {
+    let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
+    let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
+    std::cmp::min(delay, MAX_WAIT_DELAY)
 }

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod error;
+pub mod request;
 pub mod response;
 pub mod types;
 
@@ -9,7 +10,6 @@ pub(crate) mod jwt;
 
 mod client;
 mod network_compatibility;
-mod request;
 mod routes;
 
 pub use client::VpnApiClient;

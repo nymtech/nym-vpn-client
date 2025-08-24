@@ -3,7 +3,7 @@ import Logging
 import ConfigurationManager
 import NymLogger
 import ErrorHandler
-import MixnetLibrary
+import NymVPNLib
 import TunnelMixnet
 import Tunnels
 

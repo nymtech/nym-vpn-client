@@ -9,12 +9,12 @@ import GatewayManager
 import Home
 import Extensions
 import KeyboardManager
+import MessagesManager
 import Migrations
 import NymLogger
 import NotificationsManager
 import PurchasesManager
 import SentryManager
-import SystemMessageManager
 import Theme
 
 @main
@@ -92,7 +92,7 @@ private extension NymVPNApp {
             try await ConfigurationManager.shared.setup()
             CountriesManager.shared.setup()
             GatewayManager.shared.setup()
-            SystemMessageManager.shared.setup()
+            MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()

@@ -15,6 +15,19 @@ use crate::{
     },
 };
 
+/// LoggedOut state
+/// We are logged out
+/// - We are online
+/// - No account is stored
+/// - This device does not have an identity
+///
+/// Our actions are limited, because most commands require an account.
+///
+///
+/// Possible next state :
+/// - SyncingState : A successful store_account command handling leads us into SyncingState, to determine where we are at
+/// - OfflineState : the connectivity monitor is telling we're not connected
+///
 pub struct LoggedOutState;
 
 impl LoggedOutState {
@@ -52,19 +65,31 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
+
+                    // We don't even have an identity at this point, so we might as well not do anything
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
 
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender) => return_no_account(return_sender),
 
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
+                        return_sender.send(Ok(()));
+                    },
+
                     AccountCommand::Common(common_command) => {
                         match common_command {
                             CommonCommand::SetStaticApiAddresses(return_sender, socket_addrs) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state,socket_addrs)),
+
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
+                            CommonCommand::GetStoredMnemonic(return_sender) => return_sender.send(Ok(None)),
+                            CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Ok(None)),
 
                             CommonCommand::GetUsage(return_sender) => return_no_account(return_sender),
-                            CommonCommand::GetStoredMnemonic(return_sender) => return_no_account(return_sender),
-                            CommonCommand::GetDeviceIdentity(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_account(return_sender),

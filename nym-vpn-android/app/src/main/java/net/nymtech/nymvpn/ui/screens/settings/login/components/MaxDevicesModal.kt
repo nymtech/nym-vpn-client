@@ -17,7 +17,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import nym_vpn_lib.AccountLinks
+import nym_vpn_lib_types.AccountLinks
 
 @Composable
 fun MaxDevicesModal(show: Boolean, accountLinks: AccountLinks?, onDismiss: () -> Unit) {

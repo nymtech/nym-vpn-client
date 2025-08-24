@@ -49,7 +49,7 @@ pub enum LogLevel {
     Error,
 }
 
-#[derive(Parser, Serialize, Deserialize, Debug, Clone)]
+#[derive(Parser, Serialize, Deserialize, Debug, Clone, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     /// Print build information

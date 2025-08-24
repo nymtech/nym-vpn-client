@@ -38,7 +38,7 @@ class LogcatStreamReader(
 		} catch (e: IOException) {
 			Timber.e(e, "LogcatStreamReader failed, fallback to Timber")
 			fallbackToTimber = true
-			emitFallbackLogs()
+			emitFallbackLogs { emit(it) }
 		} finally {
 			stop()
 		}

@@ -1,6 +1,6 @@
 #if os(iOS)
 import CountriesManagerTypes
-import MixnetLibrary
+import NymVPNLib
 
 extension GatewayNode {
     init(with gatewayInfo: GatewayInfo) {

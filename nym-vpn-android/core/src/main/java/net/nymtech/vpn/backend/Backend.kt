@@ -1,10 +1,10 @@
 package net.nymtech.vpn.backend
 
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib.AccountLinks
-import nym_vpn_lib.GatewayType
-import nym_vpn_lib.SystemMessage
-import nym_vpn_lib.UserAgent
+import nym_vpn_lib_types.AccountLinks
+import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.UserAgent
 
 interface Backend {
 

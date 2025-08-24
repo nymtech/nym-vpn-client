@@ -549,7 +549,7 @@ impl fmt::Display for UnexpectedError {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StatusOk {
-    status: String,
+    pub status: String,
 }
 
 impl fmt::Display for StatusOk {

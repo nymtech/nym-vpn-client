@@ -15,29 +15,35 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
-import nym_vpn_lib.ErrorStateReason
-import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.GatewayType
-import nym_vpn_lib.Score
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.Score
+import nym_vpn_lib_types.ErrorStateReason
+import nym_vpn_lib.VpnException
 import timber.log.Timber
 import java.util.*
 
-fun Dp.scaledHeight(): Dp {
-	return NymVpn.instance.resizeHeight(this)
+fun Dp.scaledHeight(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
+	NymVpn.instance.resizeHeight(this)
+} else {
+	this * previewScale
 }
 
-fun Dp.scaledWidth(): Dp {
-	return NymVpn.instance.resizeWidth(this)
+fun Dp.scaledWidth(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
+	NymVpn.instance.resizeWidth(this)
+} else {
+	this * previewScale
 }
 
-fun TextUnit.scaled(): TextUnit {
-	return NymVpn.instance.resizeHeight(this)
+fun TextUnit.scaled(previewScale: Float = 1f): TextUnit = if (NymVpn.isInitialized) {
+	NymVpn.instance.resizeHeight(this)
+} else {
+	this * previewScale
 }
 
 fun NavController.navigateAndForget(route: Route) {

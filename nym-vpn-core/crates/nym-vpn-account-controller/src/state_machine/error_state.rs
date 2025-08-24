@@ -17,8 +17,20 @@ use crate::{
     },
 };
 
+/// ErrorState
+/// We encountered something that doesn't allow us to make any progress.
+/// This can range from internal issue, storage failure, API failure or unregistered account, expired subsciprions etc.
+/// The full list of reason is available in the AccountControllerErrorStateReason enum
+///
+/// Crucially, we are online and an account is stored.
+///
+/// Possible next state :
+/// - SyncingState : We go into that state on a timer, to see if the problem persists. The refresh account commands allows for manually go there
+/// - OfflineState : the connectivity monitor is telling we're not connected
+/// - LoggedOutState : We successfully handled a forget_account command
 pub struct ErrorState {
     refresh_timer: Pin<Box<Sleep>>,
+    reason: AccountControllerErrorStateReason,
 }
 
 impl ErrorState {
@@ -31,7 +43,10 @@ impl ErrorState {
         let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
         tracing::error!("Account Controller entering error state : {reason:#?}");
         (
-            Box::new(Self { refresh_timer }),
+            Box::new(Self {
+                refresh_timer,
+                reason: reason.clone(),
+            }),
             PrivateAccountControllerState::Error(reason),
         )
     }
@@ -47,7 +62,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
     ) -> NextAccountControllerState<C> {
         tokio::select! {
         _ = &mut self.refresh_timer => {
-                NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                if shared_state.firewall_active {
+                    tracing::debug!("VPN API is firewalled, timed account syncing skipped");
+                    return NextAccountControllerState::NewState(ErrorState::enter(self.reason));
+                } else {
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                }
             },
             Some(command) = command_rx.recv() => {
                 match command {
@@ -76,7 +96,20 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        }
+                    },
+
+                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
+                        shared_state.firewall_active = false;
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.firewall_active = true;
+                        return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => {

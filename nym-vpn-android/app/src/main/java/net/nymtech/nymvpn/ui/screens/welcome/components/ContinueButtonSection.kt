@@ -17,21 +17,16 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.screens.welcome.WelcomeViewModel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun ContinueButtonSection(navController: NavController, viewModel: WelcomeViewModel) {
+fun ContinueButtonSection(onContinueClick: () -> Unit) {
 	MainStyledButton(
 		onClick = {
-			viewModel.onContinueClicked()
-			navController.navigateAndForget(Route.Main())
+			onContinueClick()
 		},
 		content = {
 			Text(

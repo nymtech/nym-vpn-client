@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - macOS: window activation
+- iOS: setting item subtitles partially visible on small screens
 
 ## [2.8.0] - 2025-07-31
 

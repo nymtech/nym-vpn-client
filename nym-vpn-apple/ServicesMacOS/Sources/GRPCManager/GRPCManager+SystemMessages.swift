@@ -1,6 +1,6 @@
 import GRPC
 import SwiftProtobuf
-import SystemMessageModels
+import MessageModels
 
 extension GRPCManager {
     public func fetchSystemMessages() async throws -> [NymNetworkMessage] {

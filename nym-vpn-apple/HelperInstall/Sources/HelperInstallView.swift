@@ -1,5 +1,6 @@
 import SwiftUI
 import Theme
+import MessageModels
 import UIComponents
 
 public struct HelperInstallView: View {
@@ -38,8 +39,7 @@ public struct HelperInstallView: View {
         // Copy to clipboard success message
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
-            style: .info,
-            message: viewModel.copiedSuccesfullyMessage
+            message: SnackBarMessage(text: "viewModel.copiedSuccesfullyMessage", style: .info)
         )
     }
 }

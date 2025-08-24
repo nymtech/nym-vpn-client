@@ -73,5 +73,14 @@
       "desc2": "Paylaşılan sadece ağ performans verileridir ve asla tarama etkinliğiniz veya kişisel bilgileriniz paylaşılmaz.",
       "link": "Paylaşılan verilerin tam olarak neler olduğunu öğrenin"
     }
+  },
+  "account": {
+    "get-started": "Get started",
+    "syncing": "Syncing…",
+    "no-plan": "No active plan",
+    "bandwidth-exceeded": "Bandwidth exceeded",
+    "max-device-reached": "Max devices reached",
+    "status-inactive": "Account is inactive",
+    "error": "Internal error"
   }
 }
