@@ -1,6 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_http_api_client::HttpClientError;
+use nym_validator_client::nym_api::error::NymAPIError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("identity not formatted correctly: {identity}")]
@@ -90,7 +93,12 @@ pub enum Error {
 
     #[error("no connectivity")]
     Offline,
-}
 
+    #[error("HTTP client error: {0}")]
+    HttpClient(#[from] HttpClientError),
+
+    #[error("Nym API error: {source}")]
+    NymApi { source: NymAPIError },
+}
 // Result type based on our error type
 pub type Result<T> = std::result::Result<T, Error>;

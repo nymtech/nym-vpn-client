@@ -210,30 +210,30 @@ nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-http-api-client = { path = "../../nym/common/http-api-client" }
-nym-network-defaults = { path = "../../nym/common/network-defaults" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }

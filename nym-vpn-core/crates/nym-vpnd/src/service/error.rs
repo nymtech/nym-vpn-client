@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_http_api_client::HttpClientError;
 use nym_vpn_lib::{
     MixnetError, gateway_directory::GatewayType,
     tunnel_state_machine::Error as TunnelStateMachineError,
@@ -56,6 +57,9 @@ pub enum Error {
 
     #[error("cancelled during initialization")]
     CancelledInitialization,
+
+    #[error("HTTP Client Error: {0}")]
+    HttpClient(#[from] HttpClientError),
 }
 
 #[derive(Clone, Debug, thiserror::Error)]

@@ -45,5 +45,5 @@ tokio = { workspace = true, features = ["full"] }
 bip39 = { workspace = true, features = ["zeroize"] }
 
 [features]
-default = []
+default = ["network-defaults"]
 network-defaults = ["dep:nym-network-defaults", "nym-http-api-client/network-defaults"]

@@ -180,9 +180,10 @@ impl VpnCredentialStorage {
     pub(crate) async fn get_expiration_date_signatures(
         &self,
         expiration_date: Date,
+        epoch_id: u64,
     ) -> Result<Option<Vec<AnnotatedExpirationDateSignature>>, Error> {
         self.credential_storage
-            .get_expiration_date_signatures(expiration_date)
+            .get_expiration_date_signatures(expiration_date, epoch_id)
             .await
             .map_err(Error::from)
     }

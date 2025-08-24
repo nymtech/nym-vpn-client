@@ -297,8 +297,8 @@ impl NymVpnService {
             network_env: *parameters.network_env.clone(),
         };
 
-        let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
-            parameters.network_env.vpn_api_url(),
+        let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
+            parameters.network_env.nym_network_details(),
             parameters.user_agent.clone(),
         )
         .map_err(|err| {
@@ -398,10 +398,9 @@ impl NymVpnService {
             .await
             .ok_or(Error::CancelledInitialization)?;
 
-        let validator_client = nym_validator_client::NymApiClient::new_with_user_agent(
-            api_url,
-            parameters.user_agent.clone(),
-        );
+        let validator_client = nym_http_api_client::Client::builder(api_url)?
+            .with_user_agent(parameters.user_agent.clone())
+            .build()?;
         let topology_provider = VpnTopologyProvider::new(
             parameters.network_env.api_url(),
             validator_client,

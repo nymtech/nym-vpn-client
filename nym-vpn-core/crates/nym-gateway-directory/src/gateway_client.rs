@@ -8,7 +8,7 @@ use std::{
 
 use nym_sdk::UserAgent;
 use nym_validator_client::{
-    NymApiClient, models::NymNodeDescription, nym_nodes::SkimmedNodesWithMetadata,
+    models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent, ScoreThresholds};
 use rand::{prelude::SliceRandom, thread_rng};
@@ -111,7 +111,7 @@ impl ResolvedConfig {
 
 #[derive(Clone)]
 pub struct GatewayClient {
-    api_client: NymApiClient,
+    api_client: nym_http_api_client::Client,
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
     nyxd_url: Url,
     min_gateway_performance: Option<GatewayMinPerformance>,
@@ -129,7 +129,11 @@ impl GatewayClient {
         user_agent: UserAgent,
         static_nym_api_ip_addresses: Option<&[SocketAddr]>,
     ) -> Result<Self> {
-        let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone());
+        let api_client = nym_http_api_client::Client::builder(config.api_url.clone())
+            .map_err(|e| Error::FailedToLookupDescribedGateways(e.into()))?
+            .with_user_agent(user_agent.clone())
+            .build()
+            .map_err(|e| Error::FailedToLookupDescribedGateways(e.into()))?;
         let nym_vpn_api_client = config
             .nym_vpn_api_url
             .map(|url| {
@@ -140,6 +144,40 @@ impl GatewayClient {
                 )
             })
             .transpose()?;
+
+        Ok(GatewayClient {
+            api_client,
+            nym_vpn_api_client,
+            nyxd_url: config.nyxd_url,
+            min_gateway_performance: config.min_gateway_performance,
+            mix_score_thresholds: config.mix_score_thresholds,
+            wg_score_thresholds: config.wg_score_thresholds,
+        })
+    }
+
+    pub fn from_network_with_resolver_overrides(
+        config: Config,
+        network_details: &nym_network_defaults::NymNetworkDetails,
+        user_agent: UserAgent,
+        static_nym_api_ip_addresses: Option<&[SocketAddr]>,
+    ) -> Result<Self> {
+        // Use the new unified HTTP client with domain fronting for the main API client
+        let api_client = nym_http_api_client::ClientBuilder::from_network(network_details)?
+            .with_user_agent(user_agent.clone())
+            .build()?;
+
+        // Use domain fronting with resolver overrides for VPN API client
+        let nym_vpn_api_client = if config.nym_vpn_api_url.is_some() {
+            Some(
+                nym_vpn_api_client::VpnApiClient::from_network_with_resolver_overrides(
+                    network_details,
+                    user_agent.clone(),
+                    static_nym_api_ip_addresses,
+                )?,
+            )
+        } else {
+            None
+        };
 
         Ok(GatewayClient {
             api_client,
@@ -180,26 +218,29 @@ impl GatewayClient {
 
     async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescription>> {
         debug!("Fetching all described nodes from nym-api...");
-        self.api_client
+        self
+            .api_client
             .get_all_described_nodes()
             .await
-            .map_err(Error::FailedToLookupDescribedGateways)
+            .map_err(|e| Error::NymApi { source: e })
     }
 
     async fn lookup_skimmed_gateways(&self) -> Result<SkimmedNodesWithMetadata> {
         debug!("Fetching skimmed entry assigned nodes from nym-api...");
-        self.api_client
+        self
+            .api_client
             .get_all_basic_entry_assigned_nodes_with_metadata()
             .await
-            .map_err(Error::FailedToLookupSkimmedGateways)
+            .map_err(|e| Error::NymApi { source: e })
     }
 
     async fn lookup_skimmed_nodes(&self) -> Result<SkimmedNodesWithMetadata> {
         debug!("Fetching skimmed entry assigned nodes from nym-api...");
-        self.api_client
+        self
+            .api_client
             .get_all_basic_nodes_with_metadata()
             .await
-            .map_err(Error::FailedToLookupSkimmedNodes)
+            .map_err(|e| Error::NymApi { source: e })
     }
 
     pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
@@ -207,7 +248,8 @@ impl GatewayClient {
         let mut ips = self
             .api_client
             .get_all_described_nodes()
-            .await?
+            .await
+            .map_err(|e| Error::NymApi { source: e })?
             .iter()
             .find_map(|node| {
                 if node

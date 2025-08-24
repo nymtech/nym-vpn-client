@@ -32,7 +32,7 @@ enum FetcherCommand {
 struct Fetcher {
     topology_provider: NymApiTopologyProvider,
     nym_api_urls: Vec<Url>,
-    validator_client: nym_validator_client::NymApiClient,
+    validator_client: nym_http_api_client::Client,
     command_rx: UnboundedReceiver<FetcherCommand>,
     cancel_token: CancellationToken,
 }
@@ -47,7 +47,7 @@ impl Fetcher {
 
     fn new(
         nym_api_urls: Vec<Url>,
-        validator_client: nym_validator_client::NymApiClient,
+        validator_client: nym_http_api_client::Client,
         command_rx: UnboundedReceiver<FetcherCommand>,
         cancel_token: CancellationToken,
     ) -> Self {
@@ -135,7 +135,7 @@ pub struct VpnTopologyProvider {
 impl VpnTopologyProvider {
     pub fn new(
         nym_api_url: Url,
-        validator_client: nym_validator_client::NymApiClient,
+        validator_client: nym_http_api_client::Client,
         use_network: bool,
         cancel_token: CancellationToken,
     ) -> Self {

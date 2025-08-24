@@ -33,6 +33,7 @@ tracing-oslog.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
 tracing.workspace = true
 nym-bin-common.workspace = true
+nym-http-api-client.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 nym-windows.workspace = true
