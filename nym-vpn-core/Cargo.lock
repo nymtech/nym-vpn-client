@@ -1099,7 +1099,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -1582,13 +1582,13 @@ checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 
 [[package]]
 name = "dbus"
-version = "0.9.7"
+version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bb21987b9fb1613058ba3843121dd18b163b254d8a6e797e144cbac14d96d1b"
+checksum = "6e8d0767bcb66eb101d5ab87b9f38542691185af14fa8a7026c2490e62b45cfc"
 dependencies = [
  "libc",
  "libdbus-sys",
- "winapi",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2814,7 +2814,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.0",
  "tokio",
  "tower-service",
  "tracing",
@@ -4656,7 +4656,7 @@ dependencies = [
  "objc2-foundation",
  "rs-release",
  "sha2 0.10.9",
- "sysinfo",
+ "sysinfo 0.37.0",
  "tracing",
  "windows 0.61.3",
 ]
@@ -5018,7 +5018,7 @@ dependencies = [
  "serde",
  "sqlx",
  "sqlx-pool-guard",
- "sysinfo",
+ "sysinfo 0.37.0",
  "thiserror 2.0.16",
  "tokio",
  "tokio-util",
@@ -5053,7 +5053,7 @@ dependencies = [
  "sha2 0.10.9",
  "si-scale",
  "strum",
- "sysinfo",
+ "sysinfo 0.33.1",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5297,7 +5297,7 @@ dependencies = [
  "rand 0.8.5",
  "sentry",
  "serial_test",
- "sysinfo",
+ "sysinfo 0.37.0",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5376,7 +5376,7 @@ dependencies = [
  "nym-vpn-store",
  "rand 0.8.5",
  "sentry",
- "sysinfo",
+ "sysinfo 0.37.0",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5481,7 +5481,7 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "nym-vpnd-types",
- "sysinfo",
+ "sysinfo 0.37.0",
  "tokio",
  "tokio-stream",
  "vergen-gitcl",
@@ -5515,7 +5515,7 @@ dependencies = [
  "sentry",
  "serde",
  "strum",
- "sysinfo",
+ "sysinfo 0.37.0",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5645,6 +5645,16 @@ dependencies = [
  "block2",
  "libc",
  "objc2",
+ "objc2-core-foundation",
+]
+
+[[package]]
+name = "objc2-io-kit"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71c1c64d6120e51cd86033f67176b1cb66780c2efe34dec55176f77befd93c0a"
+dependencies = [
+ "libc",
  "objc2-core-foundation",
 ]
 
@@ -6216,7 +6226,7 @@ version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "itertools 0.14.0",
  "log",
  "multimap",
@@ -6548,7 +6558,7 @@ dependencies = [
  "pin-project-lite",
  "rustls 0.21.12",
  "rustls-native-certs",
- "rustls-pemfile",
+ "rustls-pemfile 1.0.4",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -6837,7 +6847,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9aace74cb666635c918e9c12bc0d348266037aa8eb599b5cba565709a8dff00"
 dependencies = [
  "openssl-probe",
- "rustls-pemfile",
+ "rustls-pemfile 1.0.4",
  "schannel",
  "security-framework",
 ]
@@ -6849,6 +6859,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c74cae0a4cf6ccbbf5f359f08efdf8ee7e1dc532573bf0db71968cb56b1448c"
 dependencies = [
  "base64 0.21.7",
+]
+
+[[package]]
+name = "rustls-pemfile"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dce314e5fee3f39953d46bb63bb8a46d40c2f8fb7cc5a3b6cab2bde9721d6e50"
+dependencies = [
+ "rustls-pki-types",
 ]
 
 [[package]]
@@ -7062,9 +7081,9 @@ dependencies = [
 
 [[package]]
 name = "sentry"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0eb7daabbc631b13f48e991f4d828f12ec43e2acd3fb2972b445bdc138231ee2"
+checksum = "989425268ab5c011e06400187eed6c298272f8ef913e49fcadc3fda788b45030"
 dependencies = [
  "httpdate",
  "reqwest 0.12.20",
@@ -7072,18 +7091,18 @@ dependencies = [
  "sentry-backtrace",
  "sentry-contexts",
  "sentry-core",
+ "sentry-log",
  "sentry-panic",
  "sentry-tracing",
  "tokio",
  "ureq",
- "webpki-roots 0.26.11",
 ]
 
 [[package]]
 name = "sentry-backtrace"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0cbd964934e339213e5ffe2682575ae390327945856c067408ae121d1ceae72"
+checksum = "68e299dd3f7bcf676875eee852c9941e1d08278a743c32ca528e2debf846a653"
 dependencies = [
  "backtrace",
  "regex",
@@ -7092,9 +7111,9 @@ dependencies = [
 
 [[package]]
 name = "sentry-contexts"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "356d87fef14b05475f46e8554bf26833230c92bcac106d74f0f5719dce4a7850"
+checksum = "fac0c5d6892cd4c414492fc957477b620026fb3411fca9fa12774831da561c88"
 dependencies = [
  "hostname",
  "libc",
@@ -7106,21 +7125,32 @@ dependencies = [
 
 [[package]]
 name = "sentry-core"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e73bfcabac5a7f9e2e38f898ba0afc6bed36fb96108b246213b698e00f12268c"
+checksum = "deaa38b94e70820ff3f1f9db3c8b0aef053b667be130f618e615e0ff2492cbcc"
 dependencies = [
  "rand 0.9.1",
  "sentry-types",
  "serde",
  "serde_json",
+ "url",
+]
+
+[[package]]
+name = "sentry-log"
+version = "0.42.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "670f08baf70058926b0fa60c8f10218524ef0cb1a1634b0388a4123bdec6288c"
+dependencies = [
+ "log",
+ "sentry-core",
 ]
 
 [[package]]
 name = "sentry-panic"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29abe64e33902f6fefafdb652dc0efed303cea655324e85db9fbb8d83d503c44"
+checksum = "2b7a23b13c004873de3ce7db86eb0f59fe4adfc655a31f7bbc17fd10bacc9bfe"
 dependencies = [
  "sentry-backtrace",
  "sentry-core",
@@ -7128,10 +7158,11 @@ dependencies = [
 
 [[package]]
 name = "sentry-tracing"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbfd32bfd54bd829a92ee9b32894b05c726edcdc40d9c580ce7b3f4a56f13a45"
+checksum = "fac841c7050aa73fc2bec8f7d8e9cb1159af0b3095757b99820823f3e54e5080"
 dependencies = [
+ "bitflags 2.9.2",
  "sentry-backtrace",
  "sentry-core",
  "tracing-core",
@@ -7140,9 +7171,9 @@ dependencies = [
 
 [[package]]
 name = "sentry-types"
-version = "0.39.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7205055c5bde8131c62e4f5367f4291956c331a64e1a32e737e8d81b26b3bcb"
+checksum = "e477f4d4db08ddb4ab553717a8d3a511bc9e81dde0c808c680feacbb8105c412"
 dependencies = [
  "debugid",
  "hex",
@@ -7879,6 +7910,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sysinfo"
+version = "0.37.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07cec4dc2d2e357ca1e610cfb07de2fa7a10fc3e9fe89f72545f3d244ea87753"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows 0.61.3",
+]
+
+[[package]]
 name = "system-configuration"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7934,15 +7979,15 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"
-version = "3.20.0"
+version = "3.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8a64e3985349f2441a1a9ef0b853f869006c3855f2cda6862a94d26ebb9d6a1"
+checksum = "15b61f8f20e3a6f7e0649d825294eaf317edce30f82cf6026e7e4cb9222a7d1e"
 dependencies = [
  "fastrand",
  "getrandom 0.3.3",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -8858,17 +8903,31 @@ checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
 name = "ureq"
-version = "2.12.1"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
+checksum = "00432f493971db5d8e47a65aeb3b02f8226b9b11f1450ff86bb772776ebadd70"
 dependencies = [
  "base64 0.22.1",
  "log",
- "once_cell",
+ "percent-encoding",
  "rustls 0.23.27",
+ "rustls-pemfile 2.2.0",
  "rustls-pki-types",
- "url",
- "webpki-roots 0.26.11",
+ "ureq-proto",
+ "utf-8",
+ "webpki-roots 1.0.0",
+]
+
+[[package]]
+name = "ureq-proto"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5b6cabebbecc4c45189ab06b52f956206cea7d8c8a20851c35a85cb169224cc"
+dependencies = [
+ "base64 0.22.1",
+ "http 1.3.1",
+ "httparse",
+ "log",
 ]
 
 [[package]]
@@ -9268,7 +9327,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
