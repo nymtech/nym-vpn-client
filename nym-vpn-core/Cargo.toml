@@ -177,7 +177,7 @@ triggered = "0.1.3"
 tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.29.4", features = ["cli"] }
 url = "2.5"
-uuid = "1.17"
+uuid = "1.18"
 vergen-gitcl = { version = "1.0.8", default-features = false }
 which = "8.0"
 widestring = "1.2"
