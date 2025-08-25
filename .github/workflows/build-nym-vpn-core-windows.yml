@@ -63,6 +63,11 @@ jobs:
         with:
           crate: cargo-edit
 
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
       - name: Append timestamp if it's a dev version
         shell: bash
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}

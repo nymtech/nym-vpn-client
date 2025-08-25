@@ -15,11 +15,6 @@ bin
 **/.DS_Store
 /.cargo
 /nym-vpn-core/.cargo
-nym-vpn-core/nym-vpn-lib/generated/headers/module.modulemap
-nym-vpn-core/nym-vpn-lib/uniffi/nym_vpn_libFFI.modulemap
-nym-vpn-core/nym-vpn-lib/uniffi/nym_vpn_libFFI.h
-nym-vpn-core/crates/nym-vpn-lib/NymVpnLib
-nym-vpn-core/crates/nym-vpn-lib/generated
 nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/RustFramework.xcframework
 
 # Wireguard-go artifacts
@@ -28,9 +23,14 @@ wireguard/libwg/exports.def
 wireguard/libwg/libwg.exp
 wireguard/libwg/libwg.h
 
+# Auto-generated version headers
+wireguard/libwg/version.h
+nym-vpn-windows/winfw/src/winfw/version.h
+
 # uniffi binaries
-nym-vpn-core/crates/*/generated
+nym-vpn-core/crates/nym-vpn-rpc-uniffi/generated
 nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc
+nym-vpn-core/crates/nym-vpn-lib-uniffi/generated
 nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib
 
 # Visual Studio

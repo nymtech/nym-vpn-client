@@ -26,6 +26,11 @@ jobs:
         with:
           submodules: true
 
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
