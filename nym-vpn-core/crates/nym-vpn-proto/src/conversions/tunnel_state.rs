@@ -7,8 +7,9 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ClientErrorReason, ConnectionData, Gateway, MixnetConnectionData,
-    NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
+    Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelState,
+    WireguardConnectionData, WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -24,113 +25,220 @@ impl From<proto::tunnel_state::ActionAfterDisconnect> for ActionAfterDisconnect 
     }
 }
 
-impl From<proto::tunnel_state::Error> for ClientErrorReason {
-    fn from(value: proto::tunnel_state::Error) -> Self {
-        match value.reason() {
-            proto::tunnel_state::ErrorStateReason::Firewall => ClientErrorReason::Firewall,
-            proto::tunnel_state::ErrorStateReason::Routing => ClientErrorReason::Routing,
-            proto::tunnel_state::ErrorStateReason::SameEntryAndExitGateway => {
-                ClientErrorReason::SameEntryAndExitGateway
+impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::tunnel_state::ErrorStateReason) -> Result<Self, ConversionError> {
+        use proto::tunnel_state::error_state_reason::{self, Reason};
+
+        let reason = value
+            .reason
+            .ok_or(ConversionError::NoValueSet("ErrorStateReason.reason"))?;
+
+        Ok(match reason {
+            Reason::Firewall(error_state_reason::Firewall {}) => Self::Firewall,
+            Reason::Routing(error_state_reason::Routing {}) => Self::Routing,
+            Reason::SetDns(error_state_reason::SetDns {}) => Self::SetDns,
+            Reason::TunDevice(error_state_reason::TunDevice {}) => Self::TunDevice,
+            Reason::TunnelProvider(error_state_reason::TunnelProvider {}) => Self::TunnelProvider,
+            Reason::StartLocalDnsResolver(error_state_reason::StartLocalDnsResolver {}) => {
+                Self::StartLocalDnsResolver
             }
-            proto::tunnel_state::ErrorStateReason::InvalidEntryGatewayCountry => {
-                ClientErrorReason::InvalidEntryGatewayCountry
+            Reason::SameEntryAndExitGateway(error_state_reason::SameEntryAndExitGateway {}) => {
+                Self::SameEntryAndExitGateway
             }
-            proto::tunnel_state::ErrorStateReason::InvalidExitGatewayCountry => {
-                ClientErrorReason::InvalidExitGatewayCountry
+            Reason::InvalidEntryGatewayCountry(
+                error_state_reason::InvalidEntryGatewayCountry {},
+            ) => Self::InvalidEntryGatewayCountry,
+            Reason::InvalidExitGatewayCountry(error_state_reason::InvalidExitGatewayCountry {}) => {
+                Self::InvalidExitGatewayCountry
             }
-            proto::tunnel_state::ErrorStateReason::MaxDevicesReached => {
-                ClientErrorReason::MaxDevicesReached
+            Reason::BadBandwidthIncrease(error_state_reason::BadBandwidthIncrease {}) => {
+                Self::BadBandwidthIncrease
             }
-            proto::tunnel_state::ErrorStateReason::BandwidthExceeded => {
-                ClientErrorReason::BandwidthExceeded
+            Reason::DuplicateTunFd(error_state_reason::DuplicateTunFd {}) => Self::DuplicateTunFd,
+            Reason::CreateMixnetStorage(error_state_reason::CreateMixnetStorage {}) => {
+                Self::CreateMixnetStorage
             }
-            proto::tunnel_state::ErrorStateReason::InactiveSubscription => {
-                ClientErrorReason::InactiveSubscription
+            Reason::Ipv6Unavailable(error_state_reason::Ipv6Unavailable {}) => {
+                Self::Ipv6Unavailable
             }
-            proto::tunnel_state::ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
-            proto::tunnel_state::ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
-            proto::tunnel_state::ErrorStateReason::CreateMixnetStorage => {
-                ClientErrorReason::CreateMixnetStorage
+            Reason::AccountControllerError(ac_error) => {
+                Self::AccountControllerError(AccountControllerErrorStateReason::try_from(ac_error)?)
             }
-            proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync => {
-                ClientErrorReason::DeviceTimeOutOfSync
+            Reason::AccountControllerOffline(error_state_reason::AccountControllerOffline {}) => {
+                Self::AccountControllerOffline
             }
-            proto::tunnel_state::ErrorStateReason::Ipv6Unavailable => {
-                ClientErrorReason::Ipv6Unavailable
-            }
-            proto::tunnel_state::ErrorStateReason::Internal => {
-                ClientErrorReason::Internal(value.detail)
-            }
-            proto::tunnel_state::ErrorStateReason::AccountControl => {
-                ClientErrorReason::AccountControl(value.detail)
-            }
+            Reason::AccountControllerLoggedOut(
+                error_state_reason::AccountControllerLoggedOut {},
+            ) => Self::AccountControllerLoggedOut,
+            Reason::Internal(error_state_reason::Internal { message }) => Self::Internal(message),
+        })
+    }
+}
+
+impl TryFrom<proto::tunnel_state::error_state_reason::AccountControllerError>
+    for AccountControllerErrorStateReason
+{
+    type Error = ConversionError;
+
+    fn try_from(
+        value: proto::tunnel_state::error_state_reason::AccountControllerError,
+    ) -> Result<Self, ConversionError> {
+        let reason = value
+            .reason
+            .ok_or(ConversionError::NoValueSet("AccountControllerError.reason"))?;
+
+        AccountControllerErrorStateReason::try_from(reason)
+    }
+}
+
+impl From<AccountControllerErrorStateReason>
+    for proto::tunnel_state::error_state_reason::AccountControllerError
+{
+    fn from(value: AccountControllerErrorStateReason) -> Self {
+        Self {
+            reason: Some(proto::tunnel_state::AccountControllerErrorStateReason::from(value)),
         }
     }
 }
 
-impl From<ClientErrorReason> for proto::tunnel_state::Error {
-    fn from(value: ClientErrorReason) -> Self {
-        match value {
-            ClientErrorReason::Firewall => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::Firewall.into(),
-                detail: None,
-            },
-            ClientErrorReason::Routing => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::Routing.into(),
-                detail: None,
-            },
-            ClientErrorReason::SameEntryAndExitGateway => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::SameEntryAndExitGateway.into(),
-                detail: None,
-            },
-            ClientErrorReason::InvalidEntryGatewayCountry => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::InvalidEntryGatewayCountry.into(),
-                detail: None,
-            },
-            ClientErrorReason::InvalidExitGatewayCountry => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::InvalidExitGatewayCountry.into(),
-                detail: None,
-            },
-            ClientErrorReason::MaxDevicesReached => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::MaxDevicesReached.into(),
-                detail: None,
-            },
-            ClientErrorReason::BandwidthExceeded => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::BandwidthExceeded.into(),
-                detail: None,
-            },
-            ClientErrorReason::InactiveSubscription => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::InactiveSubscription.into(),
-                detail: None,
-            },
-            ClientErrorReason::Dns(detail) => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::Dns.into(),
-                detail,
-            },
-            ClientErrorReason::Api(detail) => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::Api.into(),
-                detail,
-            },
-            ClientErrorReason::CreateMixnetStorage => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::CreateMixnetStorage.into(),
-                detail: None,
-            },
-            ClientErrorReason::Ipv6Unavailable => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::Ipv6Unavailable.into(),
-                detail: None,
-            },
-            ClientErrorReason::DeviceTimeOutOfSync => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync.into(),
-                detail: None,
-            },
-            ClientErrorReason::Internal(detail) => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::Internal.into(),
-                detail,
-            },
-            ClientErrorReason::AccountControl(detail) => proto::tunnel_state::Error {
-                reason: proto::tunnel_state::ErrorStateReason::AccountControl.into(),
-                detail,
-            },
+impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
+    fn from(value: ErrorStateReason) -> Self {
+        use proto::tunnel_state::error_state_reason::{self, Reason};
+
+        let reason = match value {
+            ErrorStateReason::Firewall => Reason::Firewall(error_state_reason::Firewall {}),
+            ErrorStateReason::Routing => Reason::Routing(error_state_reason::Routing {}),
+            ErrorStateReason::SetDns => Reason::SetDns(error_state_reason::SetDns {}),
+            ErrorStateReason::TunDevice => Reason::TunDevice(error_state_reason::TunDevice {}),
+            ErrorStateReason::TunnelProvider => {
+                Reason::TunnelProvider(error_state_reason::TunnelProvider {})
+            }
+            ErrorStateReason::StartLocalDnsResolver => {
+                Reason::StartLocalDnsResolver(error_state_reason::StartLocalDnsResolver {})
+            }
+            ErrorStateReason::SameEntryAndExitGateway => {
+                Reason::SameEntryAndExitGateway(error_state_reason::SameEntryAndExitGateway {})
+            }
+            ErrorStateReason::InvalidEntryGatewayCountry => Reason::InvalidEntryGatewayCountry(
+                error_state_reason::InvalidEntryGatewayCountry {},
+            ),
+            ErrorStateReason::InvalidExitGatewayCountry => {
+                Reason::InvalidExitGatewayCountry(error_state_reason::InvalidExitGatewayCountry {})
+            }
+            ErrorStateReason::BadBandwidthIncrease => {
+                Reason::BadBandwidthIncrease(error_state_reason::BadBandwidthIncrease {})
+            }
+            ErrorStateReason::DuplicateTunFd => {
+                Reason::DuplicateTunFd(error_state_reason::DuplicateTunFd {})
+            }
+            ErrorStateReason::CreateMixnetStorage => {
+                Reason::CreateMixnetStorage(error_state_reason::CreateMixnetStorage {})
+            }
+            ErrorStateReason::Ipv6Unavailable => {
+                Reason::Ipv6Unavailable(error_state_reason::Ipv6Unavailable {})
+            }
+            ErrorStateReason::AccountControllerError(reason) => Reason::AccountControllerError(
+                error_state_reason::AccountControllerError::from(reason),
+            ),
+            ErrorStateReason::AccountControllerOffline => {
+                Reason::AccountControllerOffline(error_state_reason::AccountControllerOffline {})
+            }
+            ErrorStateReason::AccountControllerLoggedOut => Reason::AccountControllerLoggedOut(
+                error_state_reason::AccountControllerLoggedOut {},
+            ),
+            ErrorStateReason::Internal(message) => {
+                Reason::Internal(error_state_reason::Internal { message })
+            }
+        };
+
+        Self {
+            reason: Some(reason),
+        }
+    }
+}
+
+impl TryFrom<proto::tunnel_state::AccountControllerErrorStateReason>
+    for AccountControllerErrorStateReason
+{
+    type Error = ConversionError;
+
+    fn try_from(
+        value: proto::tunnel_state::AccountControllerErrorStateReason,
+    ) -> Result<Self, ConversionError> {
+        use proto::tunnel_state::account_controller_error_state_reason::{
+            self as error_state_reason, Reason,
+        };
+
+        let reason = value.reason.ok_or(ConversionError::NoValueSet(
+            "AccountControllerErrorStateReason.reason",
+        ))?;
+
+        Ok(match reason {
+            Reason::Storage(error_state_reason::Storage { context }) => Self::Storage { context },
+            Reason::ApiFailure(error_state_reason::ApiFailure { context, details }) => {
+                Self::ApiFailure { context, details }
+            }
+            Reason::Internal(error_state_reason::Internal { context, details }) => {
+                Self::Internal { context, details }
+            }
+            Reason::BandwidthExceeded(error_state_reason::BandwidthExceeded { context }) => {
+                Self::BandwidthExceeded { context }
+            }
+            Reason::AccountStatusNotActive(error_state_reason::AccountStatusNotActive {
+                status,
+            }) => Self::AccountStatusNotActive { status },
+            Reason::InactiveSubscription(error_state_reason::InactiveSubscription {}) => {
+                Self::InactiveSubscription
+            }
+            Reason::MaxDeviceReached(error_state_reason::MaxDeviceReached {}) => {
+                Self::MaxDeviceReached
+            }
+            Reason::DeviceTimeDesynced(error_state_reason::DeviceTimeDesynced {}) => {
+                Self::DeviceTimeDesynced
+            }
+        })
+    }
+}
+
+impl From<AccountControllerErrorStateReason>
+    for proto::tunnel_state::AccountControllerErrorStateReason
+{
+    fn from(value: AccountControllerErrorStateReason) -> Self {
+        use proto::tunnel_state::account_controller_error_state_reason::{
+            self as error_state_reason, Reason,
+        };
+        let reason = match value {
+            AccountControllerErrorStateReason::Storage { context } => {
+                Reason::Storage(error_state_reason::Storage { context })
+            }
+            AccountControllerErrorStateReason::ApiFailure { context, details } => {
+                Reason::ApiFailure(error_state_reason::ApiFailure { context, details })
+            }
+            AccountControllerErrorStateReason::Internal { context, details } => {
+                Reason::Internal(error_state_reason::Internal { context, details })
+            }
+            AccountControllerErrorStateReason::BandwidthExceeded { context } => {
+                Reason::BandwidthExceeded(error_state_reason::BandwidthExceeded { context })
+            }
+            AccountControllerErrorStateReason::AccountStatusNotActive { status } => {
+                Reason::AccountStatusNotActive(error_state_reason::AccountStatusNotActive {
+                    status,
+                })
+            }
+            AccountControllerErrorStateReason::InactiveSubscription => {
+                Reason::InactiveSubscription(error_state_reason::InactiveSubscription {})
+            }
+            AccountControllerErrorStateReason::MaxDeviceReached => {
+                Reason::MaxDeviceReached(error_state_reason::MaxDeviceReached {})
+            }
+            AccountControllerErrorStateReason::DeviceTimeDesynced => {
+                Reason::DeviceTimeDesynced(error_state_reason::DeviceTimeDesynced {})
+            }
+        };
+        Self {
+            reason: Some(reason),
         }
     }
 }
@@ -178,8 +286,12 @@ impl TryFrom<proto::TunnelState> for TunnelState {
 
                 Self::Connected { connection_data }
             }
-            proto::tunnel_state::State::Error(error_state_reason) => {
-                Self::Error(error_state_reason.into())
+            proto::tunnel_state::State::Error(proto::tunnel_state::Error { reason }) => {
+                Self::Error(
+                    reason
+                        .ok_or(ConversionError::NoValueSet("TunnelState.reason"))
+                        .and_then(ErrorStateReason::try_from)?,
+                )
             }
             proto::tunnel_state::State::Offline(proto::tunnel_state::Offline { reconnect }) => {
                 Self::Offline { reconnect }
@@ -441,7 +553,9 @@ impl From<TunnelState> for proto::TunnelState {
                 proto::tunnel_state::State::Offline(proto::tunnel_state::Offline { reconnect })
             }
             TunnelState::Error(reason) => {
-                proto::tunnel_state::State::Error(proto::tunnel_state::Error::from(reason))
+                proto::tunnel_state::State::Error(proto::tunnel_state::Error {
+                    reason: Some(proto::tunnel_state::ErrorStateReason::from(reason)),
+                })
             }
         };
 

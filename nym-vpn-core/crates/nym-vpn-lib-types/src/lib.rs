@@ -26,6 +26,4 @@ pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
     TunnelEvent,
 };
-pub use tunnel_state::{
-    ActionAfterDisconnect, ClientErrorReason, ErrorStateReason, TunnelState, TunnelType,
-};
+pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};

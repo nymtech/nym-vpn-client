@@ -747,10 +747,7 @@ impl LookupObject for ForwardLookup {
 
 #[cfg(test)]
 mod test {
-    use std::{
-        net::{SocketAddrV4, UdpSocket},
-        time::Duration,
-    };
+    use std::{net::UdpSocket, time::Duration};
 
     use hickory_server::resolver::{
         TokioResolver,
@@ -758,7 +755,7 @@ mod test {
         name_server::TokioConnectionProvider,
     };
     use nix::sys::socket::{
-        self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrIn, SockaddrStorage, sockopt,
+        self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrStorage, sockopt,
     };
     use tokio_util::sync::CancellationToken;
 

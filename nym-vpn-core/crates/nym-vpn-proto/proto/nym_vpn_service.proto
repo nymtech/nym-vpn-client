@@ -324,23 +324,85 @@ message TunnelConnectionData {
   }
 }
 
+
+
 message TunnelState {
-  enum ErrorStateReason {
-    FIREWALL = 0;
-    ROUTING = 1;
-    SAME_ENTRY_AND_EXIT_GATEWAY = 2;
-    INVALID_ENTRY_GATEWAY_COUNTRY = 3;
-    INVALID_EXIT_GATEWAY_COUNTRY = 4;
-    MAX_DEVICES_REACHED = 5;
-    BANDWIDTH_EXCEEDED = 6;
-    INACTIVE_SUBSCRIPTION = 7;
-    DNS = 8;
-    API = 9;
-    INTERNAL = 10;
-    DEVICE_TIME_OUT_OF_SYNC = 11;
-    CREATE_MIXNET_STORAGE = 12;
-    IPV6_UNAVAILABLE = 13;
-    ACCOUNT_CONTROL = 14;
+  message AccountControllerErrorStateReason {
+      message Storage {
+          string context = 1;
+      }
+      message ApiFailure {
+          string context = 1;
+          string details = 2;
+      }
+      message Internal {
+          string context = 1;
+          string details = 2;
+      }
+      message BandwidthExceeded {
+          string context = 1;
+      }
+      message AccountStatusNotActive {
+          string status = 1;
+      }
+      message InactiveSubscription {}
+      message MaxDeviceReached {}
+      message DeviceTimeDesynced {}
+
+      oneof reason {
+          Storage storage = 1;
+          ApiFailure api_failure = 2;
+          Internal internal = 3;
+          BandwidthExceeded bandwidth_exceeded = 4;
+          AccountStatusNotActive account_status_not_active = 5;
+          InactiveSubscription inactive_subscription = 6;
+          MaxDeviceReached max_device_reached = 7;
+          DeviceTimeDesynced device_time_desynced = 8;
+      }
+  }
+
+  message ErrorStateReason {
+      message Firewall {}
+      message Routing {}
+      message SetDns {}
+      message TunDevice {}
+      message TunnelProvider {}
+      message StartLocalDnsResolver {}
+      message SameEntryAndExitGateway {}
+      message InvalidEntryGatewayCountry {}
+      message InvalidExitGatewayCountry {}
+      message BadBandwidthIncrease {}
+      message DuplicateTunFd {}
+      message CreateMixnetStorage {}
+      message Ipv6Unavailable {}
+      message AccountControllerError {
+          AccountControllerErrorStateReason reason = 1;
+      }
+      message AccountControllerOffline {}
+      message AccountControllerLoggedOut {}
+      message Internal {
+          string message = 1;
+      }
+
+      oneof reason {
+          Firewall firewall = 1;
+          Routing routing = 2;
+          SetDns set_dns = 3;
+          TunDevice tun_device = 4;
+          TunnelProvider tunnel_provider = 5;
+          StartLocalDnsResolver start_local_dns_resolver = 6;
+          SameEntryAndExitGateway same_entry_and_exit_gateway = 7;
+          InvalidEntryGatewayCountry invalid_entry_gateway_country = 8;
+          InvalidExitGatewayCountry invalid_exit_gateway_country = 9;
+          BadBandwidthIncrease bad_bandwidth_increase = 10;
+          DuplicateTunFd duplicate_tun_fd = 11;
+          CreateMixnetStorage create_mixnet_storage = 12;
+          Ipv6Unavailable ipv6_unavailable = 13;
+          AccountControllerError account_controller_error = 14;
+          AccountControllerOffline account_controller_offline = 15;
+          AccountControllerLoggedOut account_controller_logged_out = 16;
+          Internal internal = 17;
+      }
   }
 
   enum ActionAfterDisconnect {
@@ -363,8 +425,6 @@ message TunnelState {
   }
   message Error {
     ErrorStateReason reason = 1;
-    // for errors with details like Dns, Api, Internal
-    optional string detail = 2;
   }
   message Offline {
     bool reconnect = 1;
@@ -455,7 +515,7 @@ message AccountCommandError {
     string internal = 1;
     string storage_error = 2;
     VpnApiError vpn_api = 3;
-    string unexpected_response = 4; 
+    string unexpected_response = 4;
     bool no_account_stored = 5;
     bool no_device_stored = 6;
     bool existing_account = 7;
