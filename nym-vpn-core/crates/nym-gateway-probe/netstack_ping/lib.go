@@ -33,12 +33,10 @@ import (
 
 var fileUrls = []string{
 	"https://proof.ovh.net/files/1Mb.dat",
-	"https://proof.ovh.net/files/10Mb.dat",
 }
 
 var fileUrlsV6 = []string{
 	"https://proof.ovh.net/files/1Mb.dat",
-	"https://proof.ovh.net/files/10Mb.dat",
 }
 
 type NetstackRequestGo struct {
