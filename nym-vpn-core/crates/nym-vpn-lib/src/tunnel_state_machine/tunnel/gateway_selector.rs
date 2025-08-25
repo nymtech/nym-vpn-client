@@ -36,7 +36,7 @@ pub async fn select_gateways(
     };
 
     let (mut entry_gateways, exit_gateways) = match tunnel_type {
-        // TODO: NET-512 jmwample -- implement filter for wrapped wireguard 
+        // TODO: NET-512 jmwample -- implement filter for wrapped wireguard
         TunnelType::Wireguard | TunnelType::WrappedWireguard => {
             let all_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::Wg)
