@@ -6,8 +6,8 @@ mod gateway_selector;
 pub mod mixnet;
 mod status_listener;
 mod tombstone;
-pub mod wireguard;
 pub mod transports;
+pub mod wireguard;
 
 #[cfg(unix)]
 use std::os::fd::RawFd;
@@ -163,7 +163,6 @@ pub async fn connect_mixnet(
             // Always disable background cover traffic in wireguard.
             mixnet_client_config.disable_background_cover_traffic = true;
         }
-        
     };
 
     let setup_mixnet_options = crate::mixnet::SetupMixnetClientOptions {
