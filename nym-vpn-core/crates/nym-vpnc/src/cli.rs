@@ -197,7 +197,7 @@ pub struct ConnectArgs {
 
     /// Enable Circumvention Transport (CT) wrapping for the connection to the entry gateway in two
     /// hop wireguard mode.
-    #[arg(long="ct", requires = "enable_two_hop")]
+    #[arg(long = "enable-ct", requires = "enable_two_hop")]
     pub circumvention_transports: bool,
 
     /// Blocks until the connection is established or failed

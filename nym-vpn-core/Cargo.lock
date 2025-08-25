@@ -5468,6 +5468,7 @@ version = "1.17.0-beta"
 dependencies = [
  "android_logger",
  "async-trait",
+ "base64 0.22.1",
  "bincode",
  "bs58",
  "bytes",

@@ -85,6 +85,10 @@ impl ConnectedTunnel {
         &self.connection_data
     }
 
+    pub fn connection_data_mut(&mut self) -> &mut ConnectionData {
+        &mut self.connection_data
+    }
+
     pub fn entry_mtu(&self) -> u16 {
         ENTRY_MTU
     }

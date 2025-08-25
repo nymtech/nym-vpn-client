@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use base64::prelude::*;
 use nym_wg_gateway_client::GatewayData;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::net::UdpSocket;
@@ -38,9 +39,15 @@ pub enum BridgeParams {
 
 impl From<&GatewayData> for BridgeParams {
     fn from(value: &GatewayData) -> Self {
-
-		let address = SocketAddr::new(value.endpoint.ip(), 4443);
-		let id_pubkey = VerifyingKey::from_bytes(value.public_key.as_bytes()).unwrap();
+        let address = SocketAddr::new(value.endpoint.ip(), 4443);
+        // TODO: NET-512 jmwample - THIS CANNOT STAY AS A STATIC KEY
+        // this is meant to work for dev with node 3wqfp9
+        let id_pubkey_bs64 = "K8PEmaK/z6Xj6owLmU4c9m08OXrrXLLm16d3ZTfzd64=";
+        let mut pubkey_bytes = [0u8; 32];
+        BASE64_STANDARD
+            .decode_slice(id_pubkey_bs64, &mut pubkey_bytes)
+            .unwrap();
+        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes).unwrap();
 
         BridgeParams::Quic(ClientOptions {
             address,

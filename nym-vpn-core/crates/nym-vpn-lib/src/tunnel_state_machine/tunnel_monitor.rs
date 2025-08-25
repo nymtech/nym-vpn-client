@@ -940,7 +940,7 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
+        let mut connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
@@ -949,23 +949,30 @@ impl TunnelMonitor {
                 exit_metadata_rx,
             )
             .await?;
-        let conn_data = connected_tunnel.connection_data();
 
         let mut entry_dest_ip = None;
-        if matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        ) {
-            // Attempt transport Connection returning a listening UDP connection if successful
-            // let entry_identity_pubkey = conn_data.entry.public_key;
+        {
+            if matches!(
+                self.tunnel_parameters.tunnel_settings.tunnel_type,
+                TunnelType::WrappedWireguard
+            ) {
+                let conn_data = connected_tunnel.connection_data_mut();
 
-            let cancel = CancellationToken::new();
-            let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
-            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
-            let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, 1500, cancel.clone()).await?;
-            entry_dest_ip = Some(local_fwd.local_addr().map_err(tunnel::Error::Io)?.ip());
+                // Attempt transport Connection returning a listening UDP connection if successful
+                // let entry_identity_pubkey = conn_data.entry.public_key;
+
+                let cancel = CancellationToken::new();
+                let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
+                let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+                let local_fwd =
+                    transports::UdpForwarder::new(bridge_conn, None, cancel.clone()).await?;
+                let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
+                entry_dest_ip = Some(local_addr.ip());
+                conn_data.entry.endpoint = local_addr;
+            }
         }
+
+        let conn_data = connected_tunnel.connection_data();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
