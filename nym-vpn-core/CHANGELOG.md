@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [Windows] Embed core version into `winfw.dll` and `libwg.dll` (https://github.com/nymtech/nym-vpn-client/pull/3292)
+
+
+## [1.14.0] - 2025-08-26
+
 ### Added
 
 - Introduce more extensive entry/exit country parsing in nym-vpn-cli (https://github.com/nymtech/nym-vpn-client/pull/3235)
@@ -26,7 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add timeout to DNS resolution fixing indefinite connecting state. (https://github.com/nymtech/nym-vpn-client/pull/3231)
 - [macOS] Fix issues with DNS not being properly reset on disconnect on macOS 15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
 - [macOS] Bind DNS resolver to random loopback IP on port 53 to fix compatibility issues with other software, notably `dig` and `nslookup`. (https://github.com/nymtech/nym-vpn-client/pull/3232)
-- [Windows] Embed core version into `winfw.dll` and `libwg.dll` (https://github.com/nymtech/nym-vpn-client/pull/3292)
 
 
 ## [1.13.1] - 2025-07-30
