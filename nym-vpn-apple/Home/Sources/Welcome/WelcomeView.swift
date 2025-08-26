@@ -21,7 +21,7 @@ public struct WelcomeView: View {
                 titleView()
                 subtitleView()
                 sentryToggle()
-                statisticsToggle()
+//                statisticsToggle()
                 Spacer()
                     .frame(height: 24)
                 continueButton()
