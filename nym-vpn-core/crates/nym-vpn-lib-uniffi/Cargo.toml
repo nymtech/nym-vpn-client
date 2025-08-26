@@ -52,7 +52,6 @@ nym-http-api-client.workspace = true
 nym-common.workspace = true
 nym-gateway-directory.workspace = true
 nym-platform-metadata.workspace = true
-nym-validator-client.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
