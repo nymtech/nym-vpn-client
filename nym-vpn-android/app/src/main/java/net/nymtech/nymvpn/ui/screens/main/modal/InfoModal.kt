@@ -16,7 +16,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 fun ShowInfoModal(context: Context, showInfoDialog: Boolean, onDismiss: () -> Unit) {
 	Modal(
 		show = showInfoDialog,
-		onDismiss = { onDismiss },
+		onDismiss = { onDismiss() },
 		title = {
 			Text(
 				text = stringResource(R.string.mode_selection),
