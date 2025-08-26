@@ -52,7 +52,9 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 		dismissButton = {
 			TransparentButton(
 				onClick = onDismiss,
-				content = { Text(stringResource(R.string.skip), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface) },
+				content = {
+					Text(stringResource(R.string.skip), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
+				},
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},
