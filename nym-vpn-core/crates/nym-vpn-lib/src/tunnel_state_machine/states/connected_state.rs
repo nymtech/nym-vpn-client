@@ -103,21 +103,25 @@ impl ConnectedState {
             .or(self.selected_gateways.entry.clients_ws_port)
             .unwrap_or(DEFAULT_WS_PORT);
 
-        let mut peer_endpoints = self
-            .selected_gateways
-            .entry
-            .ips
-            .iter()
-            .map(|ip| {
-                AllowedEndpoint::new(
-                    Endpoint::new(*ip, ws_port, TransportProtocol::Tcp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
-                    AllowedClients::Root,
-                    #[cfg(target_os = "windows")]
-                    AllowedClients::current_exe(),
-                )
-            })
-            .collect::<Vec<_>>();
+        let mut peer_endpoints = Vec::new();
+        self.selected_gateways.entry.ips.iter().for_each(|ip| {
+            let ws_endpoint = AllowedEndpoint::new(
+                Endpoint::new(*ip, ws_port, TransportProtocol::Tcp),
+                #[cfg(any(target_os = "linux", target_os = "macos"))]
+                AllowedClients::Root,
+                #[cfg(target_os = "windows")]
+                AllowedClients::current_exe(),
+            );
+            peer_endpoints.push(ws_endpoint);
+            let tr_endpoint = AllowedEndpoint::new(
+                Endpoint::new(*ip, 4443, TransportProtocol::Udp),
+                #[cfg(any(target_os = "linux", target_os = "macos"))]
+                AllowedClients::All,
+                #[cfg(target_os = "windows")]
+                AllowedClients::current_exe(),
+            );
+            peer_endpoints.push(tr_endpoint);
+        });
 
         if let Some(wg_peer_endpoint) = wg_entry_endpoint {
             let allowed_endpoint = AllowedEndpoint::new(

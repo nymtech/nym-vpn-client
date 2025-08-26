@@ -156,44 +156,42 @@ impl ConnectingState {
         wg_entry_endpoint: Option<SocketAddr>,
         resolved_gateway_addresses: &[SocketAddr],
     ) -> Result<()> {
-        let mut peer_endpoints = entry_gateway
-            .map(|entry_gateway| {
-                let ws_port = entry_gateway
-                    .clients_wss_port
-                    .or(entry_gateway.clients_ws_port)
-                    .unwrap_or(DEFAULT_WS_PORT);
+        let mut peer_endpoints = Vec::new();
+        if let Some(entry_gateway) = entry_gateway {
+            let ws_port = entry_gateway
+                .clients_wss_port
+                .or(entry_gateway.clients_ws_port)
+                .unwrap_or(DEFAULT_WS_PORT);
 
-                entry_gateway
-                    .ips
-                    .iter()
-                    .filter(|ip| {
-                        ip.is_ipv4() || (shared_state.tunnel_settings.enable_ipv6 && ip.is_ipv6())
-                    })
-                    .map(|ip| {
-                        AllowedEndpoint::new(
-                            Endpoint::new(*ip, ws_port, TransportProtocol::Tcp),
-                            #[cfg(any(target_os = "linux", target_os = "macos"))]
-                            AllowedClients::Root,
-                            #[cfg(target_os = "windows")]
-                            AllowedClients::current_exe(),
-                        )
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+            entry_gateway
+                .ips
+                .iter()
+                .filter(|ip| {
+                    ip.is_ipv4() || (shared_state.tunnel_settings.enable_ipv6 && ip.is_ipv6())
+                })
+                .for_each(|ip| {
+                    let peer_ws_endpoint = AllowedEndpoint::new(
+                        Endpoint::new(*ip, ws_port, TransportProtocol::Tcp),
+                        #[cfg(any(target_os = "linux", target_os = "macos"))]
+                        AllowedClients::Root,
+                        #[cfg(target_os = "windows")]
+                        AllowedClients::current_exe(),
+                    );
+                    peer_endpoints.push(peer_ws_endpoint);
+                    let peer_tr_endpoint = AllowedEndpoint::new(
+                        Endpoint::new(*ip, 4443, TransportProtocol::Udp),
+                        #[cfg(any(target_os = "linux", target_os = "macos"))]
+                        AllowedClients::All,
+                        #[cfg(target_os = "windows")]
+                        AllowedClients::current_exe(),
+                    );
+                    peer_endpoints.push(peer_tr_endpoint);
+                });
+        }
 
         if let Some(wg_entry_endpoint) = wg_entry_endpoint {
             let allowed_endpoint = AllowedEndpoint::new(
                 Endpoint::from_socket_address(wg_entry_endpoint, TransportProtocol::Udp),
-                #[cfg(any(target_os = "linux", target_os = "macos"))]
-                AllowedClients::All,
-                #[cfg(target_os = "windows")]
-                AllowedClients::current_exe(),
-            );
-            peer_endpoints.push(allowed_endpoint);
-            let new_addr = SocketAddr::new(wg_entry_endpoint.ip(), 4443);
-            let allowed_endpoint = AllowedEndpoint::new(
-                Endpoint::from_socket_address(new_addr, TransportProtocol::Udp),
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
                 AllowedClients::All,
                 #[cfg(target_os = "windows")]
