@@ -65,7 +65,7 @@ pub enum VpnError {
     AccountControllerError { details: String },
 
     #[error("http client error: {0}")]
-    HttpClient(String)
+    HttpClient(String),
 }
 
 impl From<HttpClientError> for VpnError {

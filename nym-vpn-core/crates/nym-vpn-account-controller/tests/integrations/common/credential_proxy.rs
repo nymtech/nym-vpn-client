@@ -1,16 +1,16 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::collections::HashMap;
-use std::str::FromStr;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-
-use nym_compact_ecash::scheme::coin_indices_signatures::{
-    aggregate_annotated_indices_signatures, sign_coin_indices,
+use std::{
+    collections::HashMap,
+    str::FromStr,
+    sync::{Arc, Mutex},
+    time::Duration,
 };
-use nym_compact_ecash::scheme::expiration_date_signatures::{
-    aggregate_annotated_expiration_signatures, sign_expiration_date,
+
+use nym_compact_ecash::scheme::{
+    coin_indices_signatures::{aggregate_annotated_indices_signatures, sign_coin_indices},
+    expiration_date_signatures::{aggregate_annotated_expiration_signatures, sign_expiration_date},
 };
 use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
@@ -23,18 +23,18 @@ use nym_credentials_interface::{
     ExpirationDateSignatureShare, TicketType,
 };
 
-use nym_compact_ecash::scheme::keygen::ttp_keygen;
-use nym_compact_ecash::setup::Parameters;
 use nym_compact_ecash::{
     Base58, EncodedDate, KeyPairAuth, PublicKeyUser, SecretKeyAuth, VerificationKeyAuth,
-    WithdrawalRequest, aggregate_verification_keys, constants, issue,
+    WithdrawalRequest, aggregate_verification_keys, constants, issue, scheme::keygen::ttp_keygen,
+    setup::Parameters,
 };
 use nym_ecash_time::EcashTime;
-use nym_vpn_api_client::request::RequestZkNymRequestBody;
-use nym_vpn_api_client::response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk};
+use nym_vpn_api_client::{
+    request::RequestZkNymRequestBody,
+    response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
+};
 use rand::distributions::{Alphanumeric, DistString};
-use time::macros::format_description;
-use time::{Date, OffsetDateTime};
+use time::{Date, OffsetDateTime, macros::format_description};
 
 use wiremock::{Request, Respond, ResponseTemplate};
 

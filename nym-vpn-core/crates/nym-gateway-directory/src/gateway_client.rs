@@ -218,8 +218,7 @@ impl GatewayClient {
 
     async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescription>> {
         debug!("Fetching all described nodes from nym-api...");
-        self
-            .api_client
+        self.api_client
             .get_all_described_nodes()
             .await
             .map_err(|e| Error::NymApi { source: e })
@@ -227,8 +226,7 @@ impl GatewayClient {
 
     async fn lookup_skimmed_gateways(&self) -> Result<SkimmedNodesWithMetadata> {
         debug!("Fetching skimmed entry assigned nodes from nym-api...");
-        self
-            .api_client
+        self.api_client
             .get_all_basic_entry_assigned_nodes_with_metadata()
             .await
             .map_err(|e| Error::NymApi { source: e })
@@ -236,8 +234,7 @@ impl GatewayClient {
 
     async fn lookup_skimmed_nodes(&self) -> Result<SkimmedNodesWithMetadata> {
         debug!("Fetching skimmed entry assigned nodes from nym-api...");
-        self
-            .api_client
+        self.api_client
             .get_all_basic_nodes_with_metadata()
             .await
             .map_err(|e| Error::NymApi { source: e })

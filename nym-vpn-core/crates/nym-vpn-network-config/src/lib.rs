@@ -31,16 +31,16 @@ use nym_network_defaults::NymNetworkDetails;
 use tokio::join;
 use url::Url;
 
+use crate::{
+    discovery::DiscoveryFromNymWellknownDiscoveryError,
+    nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
+};
+use nym_http_api_client::HttpClientError;
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
     str::FromStr,
     time::Duration,
-};
-use nym_http_api_client::HttpClientError;
-use crate::{
-    discovery::DiscoveryFromNymWellknownDiscoveryError,
-    nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
 };
 
 const NETWORKS_SUBDIR: &str = "networks";

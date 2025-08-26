@@ -12,8 +12,10 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     MasterVerificationKeyResponse, PartialVerificationKeysResponse, TicketbookWalletSharesResponse,
 };
 use nym_credentials::{EpochVerificationKey, IssuedTicketBook};
-use nym_credentials_interface::{Base58, BlindedSignature, VerificationKeyAuth, WithdrawalRequest};
-use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
+use nym_credentials_interface::{
+    Base58, BlindedSignature, PublicKeyUser, RequestInfo, TicketType, VerificationKeyAuth,
+    WithdrawalRequest,
+};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
     VpnApiClient,

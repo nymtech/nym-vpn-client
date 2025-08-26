@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
+use nym_vpn_api_client::{
+    VpnApiClient,
+    types::{Device, VpnApiAccount},
+};
 
 use tokio::sync::mpsc;
 

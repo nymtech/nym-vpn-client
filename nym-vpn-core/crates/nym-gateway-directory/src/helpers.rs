@@ -1,8 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{IpAddr, SocketAddr};
-use std::time::Duration;
+use std::{
+    net::{IpAddr, SocketAddr},
+    time::Duration,
+};
 
 use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;

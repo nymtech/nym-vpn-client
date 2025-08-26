@@ -8,8 +8,7 @@ use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerStat
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use crate::SharedAccountState;
-use crate::commands::AccountCommand;
+use crate::{SharedAccountState, commands::AccountCommand};
 
 mod error_state;
 mod logged_out_state;
