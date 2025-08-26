@@ -33,6 +33,7 @@ impl TransportError {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum BridgeParams {
     Quic(ClientOptions),
 }
@@ -52,7 +53,7 @@ impl From<&GatewayData> for BridgeParams {
         BridgeParams::Quic(ClientOptions {
             address,
             host: Some("quic-test.example.com".into()),
-            bind: None,
+            bind: Some("0.0.0.0:0".parse().unwrap()),
             id_pubkey,
         })
     }
@@ -74,7 +75,7 @@ impl BridgeConn {
                 // .context("failed to connect to transport conn")?;
                 let (wr, rd) = conn.open_bi().await?;
                 // .context("failed to connect to transport stream")?;
-                debug!("quic transport connected in {:?}", start.elapsed());
+                info!("quic transport connected in {:?}", start.elapsed());
                 Ok(Self {
                     reader: Box::new(rd),
                     writer: Box::new(wr),

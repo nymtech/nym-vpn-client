@@ -637,7 +637,7 @@ impl ConnectingPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow WireGuard entry endpoint
+        // Allow WireGuard and Quic entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
@@ -649,6 +649,16 @@ impl ConnectingPolicyParameters {
                 );
 
                 peer_endpoints.push(allow_wg_endpoint);
+
+                let new_addr = SocketAddr::new(addr.ip(), 4443);
+                let allow_ct_endpoint = AllowedEndpoint::new(
+                    Endpoint::from_socket_address(new_addr, TransportProtocol::Udp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::All,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                );
+                peer_endpoints.push(allow_ct_endpoint);
             } else {
                 tracing::warn!("WireGuard endpoint contains IPv6 address, but IPv6 is disabled!");
             }
