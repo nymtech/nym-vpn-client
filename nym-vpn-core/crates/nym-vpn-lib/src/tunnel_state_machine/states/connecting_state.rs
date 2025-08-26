@@ -650,9 +650,8 @@ impl ConnectingPolicyParameters {
 
                 peer_endpoints.push(allow_wg_endpoint);
 
-                let new_addr = SocketAddr::new(addr.ip(), 4443);
                 let allow_ct_endpoint = AllowedEndpoint::new(
-                    Endpoint::from_socket_address(new_addr, TransportProtocol::Udp),
+                    Endpoint::new(addr.ip(), 4443, TransportProtocol::Udp),
                     #[cfg(any(target_os = "linux", target_os = "macos"))]
                     AllowedClients::All,
                     #[cfg(target_os = "windows")]

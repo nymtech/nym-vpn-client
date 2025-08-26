@@ -978,7 +978,7 @@ impl TunnelMonitor {
                 // Attempt transport Connection returning a listening UDP connection if successful
                 let cancel = CancellationToken::new();
                 let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
-                tracing::info!("Establishing DVPN QUIC transport tunnel {entry_bridge_params:?}");
+                tracing::info!("Establishing DVPN QUIC transport tunnel");
                 let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
                 let local_fwd =
                     transports::UdpForwarder::new(bridge_conn, None, cancel.clone()).await?;
@@ -997,7 +997,7 @@ impl TunnelMonitor {
         let entry_tun = Self::create_wireguard_device(
             conn_data.entry.private_ipv4,
             self.enable_ipv6().then_some(conn_data.entry.private_ipv6),
-            entry_dest_ip,
+            None,
             entry_mtu,
         )?;
         let entry_tun_name = entry_tun
