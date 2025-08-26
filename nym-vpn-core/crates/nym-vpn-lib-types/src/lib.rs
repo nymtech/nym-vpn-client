@@ -21,6 +21,7 @@ pub use account::{
 pub use connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, Gateway,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
+    WrappedWireguardConnectionData,
 };
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,

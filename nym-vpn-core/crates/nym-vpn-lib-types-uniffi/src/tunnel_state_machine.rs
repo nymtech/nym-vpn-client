@@ -541,6 +541,9 @@ impl From<nym_vpn_lib_types::TunnelConnectionData> for TunnelConnectionData {
             nym_vpn_lib_types::TunnelConnectionData::Wireguard(data) => {
                 TunnelConnectionData::Wireguard(WireguardConnectionData::from(data))
             }
+            nym_vpn_lib_types::TunnelConnectionData::WrappedWireguard(data) => {
+                TunnelConnectionData::Wireguard(WireguardConnectionData::from(data))
+            }
         }
     }
 }
@@ -560,6 +563,17 @@ impl From<nym_vpn_lib_types::WireguardConnectionData> for WireguardConnectionDat
     fn from(value: nym_vpn_lib_types::WireguardConnectionData) -> Self {
         Self {
             entry: WireguardNode::from(value.entry),
+            exit: WireguardNode::from(value.exit),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::WrappedWireguardConnectionData> for WireguardConnectionData {
+    fn from(value: nym_vpn_lib_types::WrappedWireguardConnectionData) -> Self {
+        let mut entry = WireguardNode::from(value.entry);
+        entry.endpoint = value.entry_bridge_addr;
+        Self {
+            entry,
             exit: WireguardNode::from(value.exit),
         }
     }

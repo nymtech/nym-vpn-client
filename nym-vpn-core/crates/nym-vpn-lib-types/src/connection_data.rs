@@ -96,6 +96,7 @@ pub struct ConnectionData {
 pub enum TunnelConnectionData {
     Mixnet(MixnetConnectionData),
     Wireguard(WireguardConnectionData),
+    WrappedWireguard(WrappedWireguardConnectionData),
 }
 
 impl TunnelConnectionData {
@@ -159,6 +160,13 @@ pub struct MixnetConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct WireguardConnectionData {
+    pub entry: WireguardNode,
+    pub exit: WireguardNode,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct WrappedWireguardConnectionData {
+    pub entry_bridge_addr: SocketAddr,
     pub entry: WireguardNode,
     pub exit: WireguardNode,
 }
