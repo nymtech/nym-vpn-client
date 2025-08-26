@@ -2266,6 +2266,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "getset"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9cf0fc11e47561d47397154977bc219f4cf809b2974facc3ccb3b89e2436f912"
+dependencies = [
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.103",
+]
+
+[[package]]
 name = "ghash"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3626,20 +3638,56 @@ dependencies = [
  "ecdsa",
  "hex",
  "humantime-serde",
- "nym-coconut-dkg-common",
- "nym-compact-ecash",
- "nym-config",
- "nym-contracts-common",
- "nym-credentials-interface",
- "nym-crypto",
+ "nym-coconut-dkg-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-ecash-signer-check-types",
- "nym-ecash-time",
- "nym-mixnet-contract-common",
- "nym-network-defaults",
- "nym-node-requests",
- "nym-noise-keys",
- "nym-serde-helpers",
- "nym-ticketbooks-merkle",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-node-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-noise-keys 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ticketbooks-merkle 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tendermint",
+ "tendermint-rpc",
+ "thiserror 2.0.16",
+ "time",
+ "tracing",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-api-requests"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bs58",
+ "cosmrs",
+ "cosmwasm-std",
+ "ecdsa",
+ "getset",
+ "hex",
+ "humantime-serde",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-node-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-noise-keys 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ticketbooks-merkle 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "schemars",
  "serde",
  "serde_json",
@@ -3671,11 +3719,11 @@ dependencies = [
  "bincode",
  "futures",
  "nym-authenticator-requests",
- "nym-credentials-interface",
- "nym-crypto",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-sdk",
  "nym-service-provider-requests-common",
- "nym-wireguard-types",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "semver",
  "thiserror 2.0.16",
  "tokio",
@@ -3691,12 +3739,12 @@ dependencies = [
  "base64 0.22.1",
  "bincode",
  "hmac",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-network-defaults",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-service-provider-requests-common",
- "nym-sphinx",
- "nym-wireguard-types",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "serde",
  "sha2 0.10.9",
@@ -3711,15 +3759,37 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "bip39",
  "log",
- "nym-credential-storage",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-ecash-contract-common",
- "nym-ecash-time",
- "nym-network-defaults",
- "nym-task",
- "nym-validator-client",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "thiserror 2.0.16",
+ "url",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-bandwidth-controller"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bip39",
+ "log",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "thiserror 2.0.16",
  "url",
@@ -3742,6 +3812,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-bin-common"
+version = "0.6.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "const-str",
+ "log",
+ "schemars",
+ "serde",
+ "utoipa",
+ "vergen 8.3.1",
+]
+
+[[package]]
 name = "nym-client-core"
 version = "1.1.15"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
@@ -3756,28 +3839,28 @@ dependencies = [
  "humantime",
  "hyper 1.6.0",
  "hyper-util",
- "nym-bandwidth-controller",
- "nym-client-core-config-types",
- "nym-client-core-gateways-storage",
- "nym-client-core-surb-storage",
- "nym-credential-storage",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-ecash-time",
- "nym-gateway-client",
- "nym-gateway-requests",
- "nym-http-api-client",
- "nym-id",
- "nym-mixnet-client",
- "nym-mixnet-contract-common",
- "nym-network-defaults",
- "nym-nonexhaustive-delayqueue",
- "nym-pemstore",
- "nym-sphinx",
- "nym-statistics-common",
- "nym-task",
- "nym-topology",
- "nym-validator-client",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core-config-types 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core-gateways-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core-surb-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-gateway-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-id 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-nonexhaustive-delayqueue 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "serde",
@@ -3794,7 +3877,63 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-utils",
+ "wasm-utils 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "wasmtimer",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-client-core"
+version = "1.1.15"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "bs58",
+ "futures",
+ "gloo-timers",
+ "http-body-util",
+ "humantime",
+ "hyper 1.6.0",
+ "hyper-util",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-client-core-config-types 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-client-core-gateways-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-client-core-surb-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-gateway-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-id 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-mixnet-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-nonexhaustive-delayqueue 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "si-scale",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite",
+ "tracing",
+ "tungstenite",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-utils 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "wasmtimer",
  "zeroize",
 ]
@@ -3805,11 +3944,27 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "humantime-serde",
- "nym-config",
- "nym-pemstore",
- "nym-sphinx-addressing",
- "nym-sphinx-params",
- "nym-statistics-common",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+ "url",
+]
+
+[[package]]
+name = "nym-client-core-config-types"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "humantime-serde",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
  "url",
@@ -3822,8 +3977,27 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "async-trait",
  "cosmrs",
- "nym-crypto",
- "nym-gateway-requests",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tracing",
+ "url",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-client-core-gateways-storage"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "cosmrs",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "sqlx",
  "thiserror 2.0.16",
@@ -3841,11 +4015,28 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "async-trait",
  "dashmap",
- "nym-crypto",
- "nym-sphinx",
- "nym-task",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "sqlx",
- "sqlx-pool-guard",
+ "sqlx-pool-guard 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nym-client-core-surb-storage"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "dashmap",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "sqlx",
+ "sqlx-pool-guard 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -3862,8 +4053,22 @@ dependencies = [
  "cw-utils",
  "cw2",
  "cw4",
- "nym-contracts-common",
- "nym-multisig-contract-common",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-multisig-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+]
+
+[[package]]
+name = "nym-coconut-dkg-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-utils",
+ "cw2",
+ "cw4",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-multisig-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
 ]
 
 [[package]]
@@ -3887,8 +4092,31 @@ dependencies = [
  "ff",
  "group",
  "itertools 0.14.0",
- "nym-network-defaults",
- "nym-pemstore",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "serde",
+ "sha2 0.10.9",
+ "subtle 2.6.1",
+ "thiserror 2.0.16",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-compact-ecash"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bincode",
+ "bls12_381",
+ "bs58",
+ "cfg-if",
+ "digest 0.10.7",
+ "ff",
+ "group",
+ "itertools 0.14.0",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "serde",
  "sha2 0.10.9",
@@ -3905,7 +4133,22 @@ dependencies = [
  "dirs",
  "handlebars",
  "log",
- "nym-network-defaults",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+ "toml 0.8.23",
+ "url",
+]
+
+[[package]]
+name = "nym-config"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "dirs",
+ "handlebars",
+ "log",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
  "toml 0.8.23",
@@ -3920,10 +4163,10 @@ dependencies = [
  "bytes",
  "futures",
  "nym-common",
- "nym-config",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-ip-packet-requests",
  "nym-sdk",
- "nym-task",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "pnet_packet",
  "thiserror 2.0.16",
  "tokio",
@@ -3946,15 +4189,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-contracts-common"
+version = "0.5.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bs58",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "schemars",
+ "serde",
+ "thiserror 2.0.16",
+ "vergen 8.3.1",
+]
+
+[[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "async-trait",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-http-api-client",
- "nym-serde-helpers",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "reqwest 0.12.20",
  "schemars",
  "serde",
@@ -3972,12 +4230,31 @@ dependencies = [
  "async-trait",
  "bincode",
  "log",
- "nym-compact-ecash",
- "nym-credentials",
- "nym-ecash-time",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "serde",
  "sqlx",
- "sqlx-pool-guard",
+ "sqlx-pool-guard 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+ "tokio",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-credential-storage"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "bincode",
+ "log",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "serde",
+ "sqlx",
+ "sqlx-pool-guard 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
  "tokio",
  "zeroize",
@@ -3989,14 +4266,33 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "log",
- "nym-bandwidth-controller",
- "nym-client-core",
- "nym-config",
- "nym-credential-storage",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-ecash-time",
- "nym-validator-client",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+]
+
+[[package]]
+name = "nym-credential-utils"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "log",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -4011,15 +4307,38 @@ dependencies = [
  "bls12_381",
  "cosmrs",
  "log",
- "nym-api-requests",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-ecash-contract-common",
- "nym-ecash-time",
- "nym-http-api-client",
- "nym-network-defaults",
- "nym-serde-helpers",
- "nym-validator-client",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+ "time",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-credentials"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bincode",
+ "bls12_381",
+ "cosmrs",
+ "log",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
  "time",
@@ -4032,9 +4351,26 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "bls12_381",
- "nym-compact-ecash",
- "nym-ecash-time",
- "nym-network-defaults",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "serde",
+ "strum",
+ "thiserror 2.0.16",
+ "time",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-credentials-interface"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bls12_381",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "serde",
  "strum",
@@ -4060,8 +4396,37 @@ dependencies = [
  "generic-array 0.14.7",
  "hkdf",
  "hmac",
- "nym-pemstore",
- "nym-sphinx-types",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "serde",
+ "serde_bytes",
+ "sha2 0.10.9",
+ "subtle-encoding",
+ "thiserror 2.0.16",
+ "x25519-dalek",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-crypto"
+version = "0.4.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "aead",
+ "aes",
+ "aes-gcm-siv",
+ "blake3",
+ "bs58",
+ "cipher",
+ "ctr",
+ "digest 0.10.7",
+ "ed25519-dalek",
+ "generic-array 0.14.7",
+ "hkdf",
+ "hmac",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "serde",
  "serde_bytes",
@@ -4117,7 +4482,21 @@ dependencies = [
  "cosmwasm-std",
  "cw-controllers",
  "cw-utils",
- "nym-multisig-contract-common",
+ "nym-multisig-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-ecash-contract-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bs58",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-controllers",
+ "cw-utils",
+ "nym-multisig-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
 ]
 
@@ -4126,8 +4505,8 @@ name = "nym-ecash-signer-check-types"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-coconut-dkg-common",
- "nym-crypto",
+ "nym-coconut-dkg-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "semver",
  "serde",
  "thiserror 2.0.16",
@@ -4142,7 +4521,16 @@ name = "nym-ecash-time"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-compact-ecash",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "time",
+]
+
+[[package]]
+name = "nym-ecash-time"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "time",
 ]
 
@@ -4150,6 +4538,18 @@ dependencies = [
 name = "nym-exit-policy"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "tracing",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-exit-policy"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
 dependencies = [
  "serde",
  "serde_json",
@@ -4187,19 +4587,19 @@ dependencies = [
  "futures",
  "getrandom 0.2.16",
  "gloo-utils",
- "nym-bandwidth-controller",
- "nym-credential-storage",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-gateway-requests",
- "nym-http-api-client",
- "nym-network-defaults",
- "nym-pemstore",
- "nym-sphinx",
- "nym-statistics-common",
- "nym-task",
- "nym-validator-client",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "serde",
  "si-scale",
@@ -4213,7 +4613,46 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-utils",
+ "wasm-utils 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "wasmtimer",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-gateway-client"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "futures",
+ "getrandom 0.2.16",
+ "gloo-utils",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "rand 0.8.5",
+ "serde",
+ "si-scale",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite",
+ "tracing",
+ "tungstenite",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-utils 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "wasmtimer",
  "zeroize",
 ]
@@ -4224,14 +4663,14 @@ version = "1.15.0-beta"
 dependencies = [
  "futures",
  "itertools 0.13.0",
- "nym-client-core",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-common",
- "nym-http-api-client",
- "nym-network-defaults",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-offline-monitor",
  "nym-sdk",
- "nym-topology",
- "nym-validator-client",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-api-client",
  "rand 0.8.5",
  "serde",
@@ -4255,20 +4694,21 @@ dependencies = [
  "hex",
  "nym-authenticator-client",
  "nym-authenticator-requests",
- "nym-bandwidth-controller",
- "nym-bin-common",
- "nym-client-core",
- "nym-config",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-connection-monitor",
- "nym-credentials-interface",
- "nym-crypto",
+ "nym-credential-utils 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-sdk",
- "nym-task",
- "nym-validator-client",
- "nym-wireguard-types",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "pnet_packet",
  "rand 0.8.5",
  "rust2go",
@@ -4291,14 +4731,44 @@ dependencies = [
  "bs58",
  "futures",
  "generic-array 0.14.7",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-pemstore",
- "nym-serde-helpers",
- "nym-sphinx",
- "nym-statistics-common",
- "nym-task",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "strum",
+ "subtle 2.6.1",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tracing",
+ "tungstenite",
+ "wasmtimer",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-gateway-requests"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bs58",
+ "futures",
+ "generic-array 0.14.7",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "serde",
  "serde_json",
@@ -4326,12 +4796,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-group-contract-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "cosmwasm-schema",
+ "cw-controllers",
+ "cw4",
+ "schemars",
+ "serde",
+]
+
+[[package]]
 name = "nym-harbour-master-client"
 version = "1.15.0-beta"
 dependencies = [
  "async-trait",
  "chrono",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "serde",
  "serde_json",
  "thiserror 2.0.16",
@@ -4351,9 +4833,34 @@ dependencies = [
  "http 1.3.1",
  "itertools 0.14.0",
  "mime",
- "nym-bin-common",
- "nym-http-api-common",
- "nym-network-defaults",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "once_cell",
+ "reqwest 0.12.20",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "tracing",
+ "url",
+ "wasmtimer",
+]
+
+[[package]]
+name = "nym-http-api-client"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "bincode",
+ "bytes",
+ "encoding_rs",
+ "hickory-resolver",
+ "http 1.3.1",
+ "itertools 0.14.0",
+ "mime",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-http-api-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "once_cell",
  "reqwest 0.12.20",
  "serde",
@@ -4376,12 +4883,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-http-api-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bincode",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "nym-id"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-credential-storage",
- "nym-credentials",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+ "time",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-id"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
  "time",
  "tracing",
@@ -4410,10 +4941,10 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "bincode",
  "bytes",
- "nym-bin-common",
- "nym-crypto",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-service-provider-requests-common",
- "nym-sphinx",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "serde",
  "thiserror 2.0.16",
@@ -4457,14 +4988,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-metrics"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "dashmap",
+ "lazy_static",
+ "prometheus",
+ "tracing",
+]
+
+[[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "dashmap",
  "futures",
- "nym-noise",
- "nym-sphinx",
+ "nym-noise 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+]
+
+[[package]]
+name = "nym-mixnet-client"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "dashmap",
+ "futures",
+ "nym-noise 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -4481,7 +5037,28 @@ dependencies = [
  "cw-controllers",
  "cw-storage-plus",
  "humantime-serde",
- "nym-contracts-common",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "schemars",
+ "semver",
+ "serde",
+ "serde_repr",
+ "thiserror 2.0.16",
+ "time",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-mixnet-contract-common"
+version = "0.6.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bs58",
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-controllers",
+ "cw-storage-plus",
+ "humantime-serde",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "schemars",
  "semver",
  "serde",
@@ -4495,6 +5072,22 @@ dependencies = [
 name = "nym-multisig-contract-common"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus",
+ "cw-utils",
+ "cw3",
+ "cw4",
+ "schemars",
+ "serde",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-multisig-contract-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4523,6 +5116,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-network-defaults"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "cargo_metadata 0.19.2",
+ "dotenvy",
+ "log",
+ "regex",
+ "schemars",
+ "serde",
+ "url",
+ "utoipa",
+]
+
+[[package]]
 name = "nym-node-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
@@ -4531,12 +5139,34 @@ dependencies = [
  "celes",
  "humantime",
  "humantime-serde",
- "nym-bin-common",
- "nym-crypto",
- "nym-exit-policy",
- "nym-http-api-client",
- "nym-noise-keys",
- "nym-wireguard-types",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-exit-policy 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-noise-keys 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "schemars",
+ "serde",
+ "serde_json",
+ "strum",
+ "thiserror 2.0.16",
+ "time",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-node-requests"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "celes",
+ "humantime",
+ "humantime-serde",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-exit-policy 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-noise-keys 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "schemars",
  "serde",
  "serde_json",
@@ -4554,8 +5184,28 @@ dependencies = [
  "arc-swap",
  "bytes",
  "futures",
- "nym-crypto",
- "nym-noise-keys",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-noise-keys 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "pin-project",
+ "sha2 0.10.9",
+ "snow",
+ "strum",
+ "thiserror 2.0.16",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "nym-noise"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "arc-swap",
+ "bytes",
+ "futures",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-noise-keys 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "pin-project",
  "sha2 0.10.9",
  "snow",
@@ -4571,7 +5221,18 @@ name = "nym-noise-keys"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-crypto",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "schemars",
+ "serde",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-noise-keys"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "schemars",
  "serde",
  "utoipa",
@@ -4581,6 +5242,17 @@ dependencies = [
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+dependencies = [
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "wasmtimer",
+]
+
+[[package]]
+name = "nym-nonexhaustive-delayqueue"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4635,9 +5307,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-outfox"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "blake3",
+ "chacha20",
+ "chacha20poly1305",
+ "getrandom 0.2.16",
+ "log",
+ "rand 0.8.5",
+ "rayon",
+ "sphinx-packet",
+ "thiserror 2.0.16",
+ "x25519-dalek",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-pemstore"
 version = "0.3.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+dependencies = [
+ "pem",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-pemstore"
+version = "0.3.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
 dependencies = [
  "pem",
  "tracing",
@@ -4652,7 +5352,21 @@ dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-controllers",
- "nym-contracts-common",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "schemars",
+ "serde",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-performance-contract-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-controllers",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "schemars",
  "serde",
  "thiserror 2.0.16",
@@ -4711,27 +5425,27 @@ dependencies = [
  "http 1.3.1",
  "httpcodec",
  "log",
- "nym-bandwidth-controller",
- "nym-bin-common",
- "nym-client-core",
- "nym-credential-storage",
- "nym-credential-utils",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-gateway-requests",
- "nym-http-api-client",
- "nym-network-defaults",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credential-utils 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-gateway-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-ordered-buffer",
  "nym-service-providers-common",
  "nym-socks5-client-core",
  "nym-socks5-requests",
- "nym-sphinx",
- "nym-sphinx-addressing",
- "nym-statistics-common",
- "nym-task",
- "nym-topology",
- "nym-validator-client",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "serde",
  "tap",
@@ -4761,6 +5475,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-serde-helpers"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "base64 0.22.1",
+ "bs58",
+ "hex",
+ "serde",
+ "time",
+]
+
+[[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
@@ -4776,8 +5502,8 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "async-trait",
  "log",
- "nym-bin-common",
- "nym-sphinx-anonymous-replies",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-anonymous-replies 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "serde",
  "serde_json",
  "thiserror 2.0.16",
@@ -4792,19 +5518,19 @@ dependencies = [
  "dirs",
  "futures",
  "log",
- "nym-bandwidth-controller",
- "nym-client-core",
- "nym-config",
- "nym-contracts-common",
- "nym-credential-storage",
- "nym-mixnet-contract-common",
- "nym-network-defaults",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-service-providers-common",
  "nym-socks5-proxy-helpers",
  "nym-socks5-requests",
- "nym-sphinx",
- "nym-task",
- "nym-validator-client",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "pin-project",
  "rand 0.8.5",
  "reqwest 0.12.20",
@@ -4826,7 +5552,7 @@ dependencies = [
  "log",
  "nym-ordered-buffer",
  "nym-socks5-requests",
- "nym-task",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "tokio",
  "tokio-util",
 ]
@@ -4838,9 +5564,9 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "bincode",
  "log",
- "nym-exit-policy",
+ "nym-exit-policy 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-service-providers-common",
- "nym-sphinx-addressing",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "serde",
  "serde_json",
  "tap",
@@ -4852,19 +5578,45 @@ name = "nym-sphinx"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-crypto",
- "nym-metrics",
- "nym-sphinx-acknowledgements",
- "nym-sphinx-addressing",
- "nym-sphinx-anonymous-replies",
- "nym-sphinx-chunking",
- "nym-sphinx-cover",
- "nym-sphinx-forwarding",
- "nym-sphinx-framing",
- "nym-sphinx-params",
- "nym-sphinx-routing",
- "nym-sphinx-types",
- "nym-topology",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-metrics 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-acknowledgements 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-anonymous-replies 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-chunking 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-cover 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-forwarding 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-framing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "rand_distr",
+ "thiserror 2.0.16",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nym-sphinx"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-metrics 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-acknowledgements 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-anonymous-replies 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-chunking 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-cover 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-forwarding 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-framing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rand_distr",
@@ -4878,13 +5630,30 @@ name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-crypto",
- "nym-pemstore",
- "nym-sphinx-addressing",
- "nym-sphinx-params",
- "nym-sphinx-routing",
- "nym-sphinx-types",
- "nym-topology",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "thiserror 2.0.16",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-sphinx-acknowledgements"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "thiserror 2.0.16",
  "zeroize",
@@ -4895,8 +5664,19 @@ name = "nym-sphinx-addressing"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-crypto",
- "nym-sphinx-types",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-sphinx-addressing"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
 ]
@@ -4907,12 +5687,30 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "bs58",
- "nym-crypto",
- "nym-sphinx-addressing",
- "nym-sphinx-params",
- "nym-sphinx-routing",
- "nym-sphinx-types",
- "nym-topology",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "thiserror 2.0.16",
+ "tracing",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "nym-sphinx-anonymous-replies"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bs58",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "thiserror 2.0.16",
  "tracing",
@@ -4926,11 +5724,29 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "dashmap",
  "log",
- "nym-crypto",
- "nym-metrics",
- "nym-sphinx-addressing",
- "nym-sphinx-params",
- "nym-sphinx-types",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-metrics 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "serde",
+ "thiserror 2.0.16",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-sphinx-chunking"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "dashmap",
+ "log",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-metrics 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "serde",
  "thiserror 2.0.16",
@@ -4942,15 +5758,33 @@ name = "nym-sphinx-cover"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-crypto",
- "nym-sphinx-acknowledgements",
- "nym-sphinx-addressing",
- "nym-sphinx-chunking",
- "nym-sphinx-forwarding",
- "nym-sphinx-params",
- "nym-sphinx-routing",
- "nym-sphinx-types",
- "nym-topology",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-acknowledgements 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-chunking 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-forwarding 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-sphinx-cover"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-acknowledgements 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-chunking 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-forwarding 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-routing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-topology 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "thiserror 2.0.16",
 ]
@@ -4960,10 +5794,22 @@ name = "nym-sphinx-forwarding"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-sphinx-addressing",
- "nym-sphinx-anonymous-replies",
- "nym-sphinx-params",
- "nym-sphinx-types",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-anonymous-replies 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-sphinx-forwarding"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-anonymous-replies 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
 ]
 
@@ -4973,11 +5819,27 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "bytes",
- "nym-sphinx-acknowledgements",
- "nym-sphinx-addressing",
- "nym-sphinx-forwarding",
- "nym-sphinx-params",
- "nym-sphinx-types",
+ "nym-sphinx-acknowledgements 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-forwarding 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "nym-sphinx-framing"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "bytes",
+ "nym-sphinx-acknowledgements 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-forwarding 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-params 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
  "tokio-util",
  "tracing",
@@ -4988,8 +5850,19 @@ name = "nym-sphinx-params"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-crypto",
- "nym-sphinx-types",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-sphinx-params"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
 ]
@@ -4999,8 +5872,18 @@ name = "nym-sphinx-routing"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-sphinx-addressing",
- "nym-sphinx-types",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-sphinx-routing"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "thiserror 2.0.16",
 ]
 
@@ -5009,7 +5892,17 @@ name = "nym-sphinx-types"
 version = "0.2.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-outfox",
+ "nym-outfox 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "sphinx-packet",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-sphinx-types"
+version = "0.2.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-outfox 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "sphinx-packet",
  "thiserror 2.0.16",
 ]
@@ -5019,15 +5912,15 @@ name = "nym-statistics"
 version = "1.15.0-beta"
 dependencies = [
  "futures",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-sdk",
  "nym-statistics-api-client",
- "nym-statistics-common",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-lib-types",
  "rand 0.8.5",
  "serde",
  "sqlx",
- "sqlx-pool-guard",
+ "sqlx-pool-guard 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "sysinfo 0.37.0",
  "thiserror 2.0.16",
  "tokio",
@@ -5040,7 +5933,7 @@ dependencies = [
 name = "nym-statistics-api-client"
 version = "1.15.0-beta"
 dependencies = [
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "serde",
  "thiserror 2.0.16",
  "url",
@@ -5053,11 +5946,35 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "futures",
  "log",
- "nym-credentials-interface",
- "nym-crypto",
- "nym-metrics",
- "nym-sphinx",
- "nym-task",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-metrics 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "si-scale",
+ "strum",
+ "sysinfo 0.33.1",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "wasmtimer",
+]
+
+[[package]]
+name = "nym-statistics-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "futures",
+ "log",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-metrics 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -5088,12 +6005,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-task"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "cfg-if",
+ "futures",
+ "log",
+ "thiserror 2.0.16",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasmtimer",
+]
+
+[[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
- "nym-credentials-interface",
- "nym-serde-helpers",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rs_merkle",
+ "schemars",
+ "serde",
+ "sha2 0.10.9",
+ "time",
+ "utoipa",
+]
+
+[[package]]
+name = "nym-ticketbooks-merkle"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rs_merkle",
  "schemars",
  "serde",
@@ -5108,11 +6057,31 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
 dependencies = [
  "async-trait",
- "nym-api-requests",
- "nym-crypto",
- "nym-mixnet-contract-common",
- "nym-sphinx-addressing",
- "nym-sphinx-types",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "rand 0.8.5",
+ "reqwest 0.12.20",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "time",
+ "tracing",
+]
+
+[[package]]
+name = "nym-topology"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-addressing 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-sphinx-types 0.2.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "rand 0.8.5",
  "reqwest 0.12.20",
  "serde",
@@ -5143,20 +6112,70 @@ dependencies = [
  "flate2",
  "futures",
  "itertools 0.14.0",
- "nym-api-requests",
- "nym-coconut-dkg-common",
- "nym-compact-ecash",
- "nym-config",
- "nym-contracts-common",
- "nym-ecash-contract-common",
- "nym-group-contract-common",
- "nym-http-api-client",
- "nym-mixnet-contract-common",
- "nym-multisig-contract-common",
- "nym-network-defaults",
- "nym-performance-contract-common",
- "nym-serde-helpers",
- "nym-vesting-contract-common",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-coconut-dkg-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-group-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-multisig-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-performance-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-vesting-contract-common 0.7.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "prost",
+ "reqwest 0.12.20",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tendermint-rpc",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tracing",
+ "url",
+ "wasmtimer",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-validator-client"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "bip32",
+ "bip39",
+ "colored",
+ "cosmrs",
+ "cosmwasm-std",
+ "cw-controllers",
+ "cw-utils",
+ "cw2",
+ "cw3",
+ "cw4",
+ "eyre",
+ "flate2",
+ "futures",
+ "itertools 0.14.0",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-coconut-dkg-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-ecash-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-group-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-multisig-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-performance-contract-common 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-serde-helpers 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-vesting-contract-common 0.7.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "prost",
  "reqwest 0.12.20",
  "serde",
@@ -5179,8 +6198,21 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
- "nym-contracts-common",
- "nym-mixnet-contract-common",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "nym-vesting-contract-common"
+version = "0.7.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-mixnet-contract-common 0.6.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
 ]
@@ -5194,13 +6226,13 @@ dependencies = [
  "bincode",
  "futures",
  "nym-common",
- "nym-compact-ecash",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-credential-proxy-requests",
- "nym-credential-storage",
- "nym-credentials",
- "nym-credentials-interface",
- "nym-ecash-time",
- "nym-http-api-client",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-ecash-time 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-offline-monitor",
  "nym-sdk",
  "nym-vpn-api-client",
@@ -5212,7 +6244,7 @@ dependencies = [
  "serde",
  "si-scale",
  "sqlx",
- "sqlx-pool-guard",
+ "sqlx-pool-guard 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "strum",
  "tempfile",
  "thiserror 2.0.16",
@@ -5235,14 +6267,14 @@ dependencies = [
  "bs58",
  "chrono",
  "itertools 0.13.0",
- "nym-compact-ecash",
- "nym-config",
- "nym-contracts-common",
+ "nym-compact-ecash 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-contracts-common 0.5.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-credential-proxy-requests",
- "nym-crypto",
- "nym-http-api-client",
- "nym-network-defaults",
- "nym-validator-client",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -5274,18 +6306,18 @@ dependencies = [
  "nix 0.30.1",
  "nym-apple-network",
  "nym-authenticator-client",
- "nym-bandwidth-controller",
- "nym-bin-common",
- "nym-client-core",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-client-core 1.1.15 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-common",
- "nym-config",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-connection-monitor",
- "nym-credentials-interface",
- "nym-crypto",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-dns",
  "nym-firewall",
  "nym-gateway-directory",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-macos",
@@ -5293,9 +6325,9 @@ dependencies = [
  "nym-routing",
  "nym-sdk",
  "nym-statistics",
- "nym-statistics-common",
- "nym-task",
- "nym-validator-client",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-account-controller",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
@@ -5303,7 +6335,7 @@ dependencies = [
  "nym-wg-gateway-client",
  "nym-wg-go",
  "nym-windows",
- "nym-wireguard-types",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "serial_test",
  "thiserror 2.0.16",
@@ -5325,10 +6357,10 @@ dependencies = [
 name = "nym-vpn-lib-types"
 version = "1.15.0-beta"
 dependencies = [
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-connection-monitor",
  "nym-gateway-directory",
- "nym-statistics-common",
+ "nym-statistics-common 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-api-client",
  "nym-wg-gateway-client",
  "si-scale",
@@ -5342,7 +6374,7 @@ name = "nym-vpn-lib-types-uniffi"
 version = "1.15.0-beta"
 dependencies = [
  "ipnetwork",
- "nym-config",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
  "nym-sdk",
@@ -5365,10 +6397,10 @@ dependencies = [
  "itertools 0.13.0",
  "lazy_static",
  "log",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-common",
  "nym-gateway-directory",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-sdk",
@@ -5401,12 +6433,12 @@ version = "1.15.0-beta"
 dependencies = [
  "futures-util",
  "itertools 0.13.0",
- "nym-api-requests",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-common",
- "nym-http-api-client",
- "nym-network-defaults",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-sdk",
- "nym-validator-client",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-api-client",
  "serde",
  "serde_json",
@@ -5423,9 +6455,9 @@ dependencies = [
 name = "nym-vpn-proto"
 version = "1.15.0-beta"
 dependencies = [
- "nym-config",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-gateway-directory",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-ipc",
  "nym-sdk",
  "nym-vpn-api-client",
@@ -5462,8 +6494,8 @@ version = "1.15.0-beta"
 dependencies = [
  "async-trait",
  "bip39",
- "nym-crypto",
- "nym-pemstore",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "serde",
@@ -5483,9 +6515,9 @@ dependencies = [
  "anyhow",
  "celes",
  "clap",
- "nym-bin-common",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-gateway-directory",
- "nym-http-api-client",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "nym-vpnd-types",
@@ -5505,13 +6537,13 @@ dependencies = [
  "eventlog",
  "futures",
  "log-panics",
- "nym-bin-common",
- "nym-http-api-client",
+ "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-http-api-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-ipc",
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-statistics",
- "nym-task",
+ "nym-task 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
@@ -5546,7 +6578,7 @@ version = "1.15.0-beta"
 dependencies = [
  "nym-gateway-directory",
  "nym-sdk",
- "nym-validator-client",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "serde",
@@ -5560,14 +6592,14 @@ version = "1.15.0-beta"
 dependencies = [
  "nym-authenticator-client",
  "nym-authenticator-requests",
- "nym-bandwidth-controller",
- "nym-credentials-interface",
- "nym-crypto",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-gateway-directory",
- "nym-node-requests",
- "nym-pemstore",
+ "nym-node-requests 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-sdk",
- "nym-validator-client",
+ "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
  "nym-wg-go",
  "rand 0.8.5",
  "thiserror 2.0.16",
@@ -5610,8 +6642,22 @@ source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#
 dependencies = [
  "base64 0.22.1",
  "log",
- "nym-config",
- "nym-network-defaults",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=domain-fronting-integration)",
+ "serde",
+ "thiserror 2.0.16",
+ "x25519-dalek",
+]
+
+[[package]]
+name = "nym-wireguard-types"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "base64 0.22.1",
+ "log",
+ "nym-config 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
+ "nym-network-defaults 0.1.0 (git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched)",
  "serde",
  "thiserror 2.0.16",
  "x25519-dalek",
@@ -6161,6 +7207,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "353e1ca18966c16d9deb1c69278edbc5f194139612772bd9537af60ac231e1e6"
 dependencies = [
  "elliptic-curve",
+]
+
+[[package]]
+name = "proc-macro-error-attr2"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96de42df36bb9bba5542fe9f1a054b8cc87e172759a1868aa05c1f3acc89dfc5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "proc-macro-error2"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11ec05c52be0a07b08061f7dd003e7d7092e0472bc731b4af7bb1ef876109802"
+dependencies = [
+ "proc-macro-error-attr2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.103",
 ]
 
 [[package]]
@@ -7693,6 +8761,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqlx-pool-guard"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
+dependencies = [
+ "proc_pidinfo",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "windows 0.61.3",
+]
+
+[[package]]
 name = "sqlx-postgres"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9176,6 +10256,22 @@ dependencies = [
 name = "wasm-utils"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+dependencies = [
+ "futures",
+ "getrandom 0.2.16",
+ "gloo-net",
+ "gloo-utils",
+ "js-sys",
+ "tungstenite",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "wasm-utils"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13.1-emmental-patched#7677c024940eb6ca86cb76149e16cac10b0a30a4"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
