@@ -955,6 +955,7 @@ impl TunnelMonitor {
             )
             .await?;
 
+        tracing::info!("Establishing DVPN tunnel");
         let mut entry_dest_ip = None;
         {
             if matches!(
@@ -964,14 +965,14 @@ impl TunnelMonitor {
                 let conn_data = connected_tunnel.connection_data_mut();
 
                 // Attempt transport Connection returning a listening UDP connection if successful
-                // let entry_identity_pubkey = conn_data.entry.public_key;
-
                 let cancel = CancellationToken::new();
                 let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
+                tracing::info!("Establishing DVPN QUIC transport tunnel {entry_bridge_params:?}");
                 let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
                 let local_fwd =
                     transports::UdpForwarder::new(bridge_conn, None, cancel.clone()).await?;
                 let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
+                tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
                 entry_dest_ip = Some(local_addr.ip());
                 conn_data.entry.endpoint = local_addr;
             }
@@ -979,6 +980,7 @@ impl TunnelMonitor {
 
         let conn_data = connected_tunnel.connection_data();
 
+        tracing::info!("XXXXXX {:?} {:?}", entry_dest_ip, conn_data.entry.endpoint);
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
         let entry_tun = Self::create_wireguard_device(
