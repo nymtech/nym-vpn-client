@@ -58,7 +58,7 @@ use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     MixnetEvent, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
-    WireguardNode,
+    WireguardNode, WrappedWireguardConnectionData,
 };
 
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
@@ -967,31 +967,31 @@ impl TunnelMonitor {
             .await?;
 
         tracing::info!("Establishing DVPN tunnel");
-        let mut entry_dest_ip = None;
-        {
-            if matches!(
-                self.tunnel_parameters.tunnel_settings.tunnel_type,
-                TunnelType::WrappedWireguard
-            ) {
-                let conn_data = connected_tunnel.connection_data_mut();
+        let mut entry_endpoint: SocketAddr = (Ipv4Addr::LOCALHOST, 0).into();
+        if matches!(
+            self.tunnel_parameters.tunnel_settings.tunnel_type,
+            TunnelType::WrappedWireguard
+        ) {
+            let conn_data = connected_tunnel.connection_data_mut();
 
-                // Attempt transport Connection returning a listening UDP connection if successful
-                let cancel = CancellationToken::new();
-                let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
-                tracing::info!("Establishing DVPN QUIC transport tunnel");
-                let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
-                let local_fwd =
-                    transports::UdpForwarder::new(bridge_conn, None, cancel.clone()).await?;
-                let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
-                tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
-                entry_dest_ip = Some(local_addr.ip());
-                conn_data.entry.endpoint = local_addr;
-            }
+            // Attempt transport Connection returning a listening UDP connection if successful
+            let cancel = CancellationToken::new();
+            let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
+            entry_endpoint = entry_bridge_params.endpoint();
+            tracing::info!("Establishing DVPN QUIC transport tunnel");
+            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            let local_fwd =
+                transports::UdpForwarder::new(bridge_conn, None, cancel.clone()).await?;
+            let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
+            tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
+            conn_data.entry.endpoint = local_addr;
+        } else {
+            entry_endpoint = connected_tunnel.connection_data().entry.endpoint;
         }
 
         let conn_data = connected_tunnel.connection_data();
 
-        tracing::info!("XXXXXX {:?} {:?}", entry_dest_ip, conn_data.entry.endpoint);
+        tracing::info!("XXXXXX {:?} {:?}", entry_endpoint, conn_data.entry.endpoint);
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
         let entry_tun = Self::create_wireguard_device(
@@ -1054,15 +1054,26 @@ impl TunnelMonitor {
                 .tunnel_constants
                 .private_entry_gateway_address,
             #[cfg(not(target_os = "linux"))]
-            entry_gateway_address: conn_data.entry.endpoint.ip(),
+            entry_gateway_address: entry_endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
         };
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
-        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
-        });
+        let tunnel_conn_data = if matches!(
+            self.tunnel_parameters.tunnel_settings.tunnel_type,
+            TunnelType::WrappedWireguard
+        ) {
+            TunnelConnectionData::WrappedWireguard(WrappedWireguardConnectionData {
+                entry_bridge_addr: entry_endpoint,
+                entry: WireguardNode::from(conn_data.entry.clone()),
+                exit: WireguardNode::from(conn_data.exit.clone()),
+            })
+        } else {
+            TunnelConnectionData::Wireguard(WireguardConnectionData {
+                entry: WireguardNode::from(conn_data.entry.clone()),
+                exit: WireguardNode::from(conn_data.exit.clone()),
+            })
+        };
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {

@@ -53,9 +53,17 @@ impl From<&GatewayData> for BridgeParams {
         BridgeParams::Quic(ClientOptions {
             address,
             host: Some("quic-test.example.com".into()),
-            bind: Some("0.0.0.0:0".parse().unwrap()),
+            bind: None,
             id_pubkey,
         })
+    }
+}
+
+impl BridgeParams {
+    pub fn endpoint(&self) -> SocketAddr {
+        match self {
+            BridgeParams::Quic(opts) => opts.address.clone(),
+        }
     }
 }
 
@@ -285,9 +293,10 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
 use crate::tunnel_state_machine::TUNNEL_FWMARK;
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use std::io;
 #[cfg(target_os = "linux")]
 use std::os::fd::AsFd;
+
+use std::io;
 
 fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {
     let addr = addr.unwrap_or((Ipv6Addr::UNSPECIFIED, 0).into());

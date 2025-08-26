@@ -107,6 +107,17 @@ impl std::fmt::Display for TunnelState {
                             retry_attempt,
                         )
                     }
+                    TunnelConnectionData::WrappedWireguard(ref data) => {
+                        write!(
+                            f,
+                            "Connecting wrapped wireguard tunnel to quic({}) → {} (entry: {} → exit: {}), attempt {}",
+                            data.entry_bridge_addr,
+                            data.exit.endpoint,
+                            connection_data.entry_gateway.id,
+                            connection_data.exit_gateway.id,
+                            retry_attempt
+                        )
+                    }
                 },
                 None => write!(
                     f,
@@ -136,6 +147,16 @@ impl std::fmt::Display for TunnelState {
                         data.entry.endpoint,
                         connection_data.entry_gateway.id,
                         data.exit.endpoint,
+                        connection_data.exit_gateway.id,
+                    )
+                }
+                TunnelConnectionData::WrappedWireguard(ref data) => {
+                    write!(
+                        f,
+                        "Connected wrapped wireguard tunnel quic({}) → {} (entry: {} → exit: {})",
+                        data.entry_bridge_addr,
+                        data.exit.endpoint,
+                        connection_data.entry_gateway.id,
                         connection_data.exit_gateway.id,
                     )
                 }
