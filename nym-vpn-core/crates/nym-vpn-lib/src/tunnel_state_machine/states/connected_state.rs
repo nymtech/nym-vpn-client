@@ -90,6 +90,7 @@ impl ConnectedState {
         connection_data: &ConnectionData,
     ) -> Result<()> {
         let wg_entry_endpoint = match connection_data.tunnel {
+            TunnelConnectionData::WrappedWireguard(ref data) => Some(data.entry_bridge_addr),
             TunnelConnectionData::Wireguard(ref wireguard_data) => {
                 Some(wireguard_data.entry.endpoint)
             }

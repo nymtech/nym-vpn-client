@@ -10,6 +10,9 @@ use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
     TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, ClientErrorReason, ConnectionData, Gateway, MixnetConnectionData,
+    NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
+    WrappedWireguardConnectionData,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -371,6 +374,13 @@ impl From<TunnelConnectionData> for proto::TunnelConnectionData {
                     },
                 )
             }
+            TunnelConnectionData::WrappedWireguard(data) => {
+                proto::tunnel_connection_data::State::Wireguard(
+                    proto::tunnel_connection_data::Wireguard {
+                        data: Some(proto::WireguardConnectionData::from(data)),
+                    },
+                )
+            }
         };
 
         proto::TunnelConnectionData { state: Some(state) }
@@ -449,6 +459,18 @@ impl From<WireguardConnectionData> for proto::WireguardConnectionData {
     fn from(value: WireguardConnectionData) -> proto::WireguardConnectionData {
         proto::WireguardConnectionData {
             entry: Some(proto::WireguardNode::from(value.entry)),
+            exit: Some(proto::WireguardNode::from(value.exit)),
+        }
+    }
+}
+
+impl From<WrappedWireguardConnectionData> for proto::WireguardConnectionData {
+    fn from(value: WrappedWireguardConnectionData) -> proto::WireguardConnectionData {
+        let mut entry = proto::WireguardNode::from(value.entry);
+        entry.endpoint = value.entry_bridge_addr.to_string();
+
+        proto::WireguardConnectionData {
+            entry: Some(entry),
             exit: Some(proto::WireguardNode::from(value.exit)),
         }
     }
