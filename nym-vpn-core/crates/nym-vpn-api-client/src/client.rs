@@ -143,17 +143,18 @@ impl VpnApiClient {
         // Add resolver overrides if provided
         if let Some(static_addresses) = static_addresses
             && !static_addresses.is_empty()
-                && let Some(domain) = base_url.domain() {
-                    tracing::info!(
-                        "Enabling DNS resolver overrides for {domain}: {}",
-                        static_addresses
-                            .iter()
-                            .map(|sockaddr| sockaddr.to_string())
-                            .collect::<Vec<String>>()
-                            .join(", ")
-                    );
-                    builder = builder.resolve_to_addrs(domain, static_addresses);
-                }
+            && let Some(domain) = base_url.domain()
+        {
+            tracing::info!(
+                "Enabling DNS resolver overrides for {domain}: {}",
+                static_addresses
+                    .iter()
+                    .map(|sockaddr| sockaddr.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            );
+            builder = builder.resolve_to_addrs(domain, static_addresses);
+        }
 
         let inner = builder
             .build::<crate::response::UnexpectedError>()
