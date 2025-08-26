@@ -11,12 +11,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
@@ -49,9 +52,19 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 		dismissButton = {
 			TransparentButton(
 				onClick = onDismiss,
-				content = { Text(stringResource(R.string.skip), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
+				content = {
+					Text(stringResource(R.string.skip), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
+				},
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},
 	)
+}
+
+@Preview
+@Composable
+private fun BatteryModalPreview() {
+	NymVPNTheme(Theme.default()) {
+		BatteryModal(true, {}, {})
+	}
 }
