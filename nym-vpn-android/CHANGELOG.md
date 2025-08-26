@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix for hardware crashes for specific devices (https://github.com/nymtech/nym-vpn-client/pull/3282)
 - Fix for log reader crash (specific devices) (https://github.com/nymtech/nym-vpn-client/pull/3282)
+- Fixes for Main Screen modals (https://github.com/nymtech/nym-vpn-client/pull/3325)
 
 ## [1.8.0] - 2025-07-31
 
