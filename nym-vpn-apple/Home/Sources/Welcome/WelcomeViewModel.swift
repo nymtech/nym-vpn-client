@@ -35,7 +35,7 @@ public final class WelcomeViewModel: ObservableObject {
             title: "settings.anonymousErrorReports.title".localizedString,
             subtitle: "settings.anonymousErrorReports.subtitle".localizedString,
             imageName: "errorReport",
-            position: .init(isFirst: true, isLast: false),
+            position: .init(isFirst: true, isLast: true),
             action: {}
         )
     }
