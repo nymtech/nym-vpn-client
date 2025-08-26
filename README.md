@@ -73,11 +73,11 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 
 ```
 ┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
-│                 │───▶│   Mixnet     │───▶│   Destination   │
+│                 │ -> │   Mixnet     │ -> │   Destination   │
 │                 │    │  (5 hops)    │    │                 │
 │    NymVPN App   │    └──────────────┘    └─────────────────┘
 │    (Rust Core)  │    ┌──────────────┐    ┌─────────────────┐
-│                 │───▶│  AmneziaWG   │───▶│   Destination   │
+│                 │ -> │  AmneziaWG   │ -> │   Destination   │
 │                 │    │  (2 hops)    │    │                 │
 └─────────────────┘    └──────────────┘    └─────────────────┘
 ```
