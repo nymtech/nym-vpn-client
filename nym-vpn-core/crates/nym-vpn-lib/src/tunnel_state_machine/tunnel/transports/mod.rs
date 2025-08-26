@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::net::{Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -96,7 +96,7 @@ impl UdpForwarder {
         bind_addr: Option<SocketAddr>,
         token: CancellationToken,
     ) -> Result<Self, TransportError> {
-        let bind_addr = bind_addr.unwrap_or(DEFAULT_CLIENT_BIND_ADDR.parse().unwrap());
+        let bind_addr = bind_addr.unwrap_or((Ipv6Addr::LOCALHOST, 0).into());
         let socket = UdpSocket::bind(&bind_addr).await?;
         let socket = Arc::new(socket);
 
@@ -238,7 +238,6 @@ pub struct ClientOptions {
     pub id_pubkey: VerifyingKey,
 }
 
-const DEFAULT_CLIENT_BIND_ADDR: &str = "[::]:0";
 pub const ALPN_QUIC_HTTP: &[&[u8]] = &[b"hq-29"];
 
 use ed25519_dalek::VerifyingKey;
@@ -261,10 +260,14 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
 
     let client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
-    let mut endpoint = quinn::Endpoint::client(
-        options
-            .bind
-            .unwrap_or(DEFAULT_CLIENT_BIND_ADDR.parse().unwrap()),
+    let socket = make_socket(options.bind)?;
+    let runtime = quinn::default_runtime()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "no async runtime found"))?;
+    let mut endpoint = quinn::Endpoint::new_with_abstract_socket(
+        Default::default(),
+        None,
+        runtime.wrap_udp_socket(socket.into())?,
+        runtime,
     )?;
     endpoint.set_default_client_config(client_config);
 
@@ -276,4 +279,26 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .connect(options.address, host)?
         .await
         .map_err(|e| TransportError::QuicProto(e))
+}
+
+#[cfg(target_os = "linux")]
+use crate::tunnel_state_machine::TUNNEL_FWMARK;
+#[cfg(target_os = "linux")]
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use std::io;
+#[cfg(target_os = "linux")]
+use std::os::fd::AsFd;
+
+fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {
+    let addr = addr.unwrap_or((Ipv6Addr::UNSPECIFIED, 0).into());
+    let socket = std::net::UdpSocket::bind(addr)?;
+    socket.set_nonblocking(true)?;
+    #[cfg(target_os = "linux")]
+    {
+        tracing::debug!("set fwmark for socket");
+        Mark.set(&socket.as_fd(), &TUNNEL_FWMARK)
+            .inspect_err(|err| tracing::error!("Could not set fwmark for websocket fd: {err}"))?;
+    }
+
+    Ok(socket)
 }
