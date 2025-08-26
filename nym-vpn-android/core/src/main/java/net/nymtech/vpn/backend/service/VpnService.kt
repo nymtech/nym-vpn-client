@@ -12,7 +12,6 @@ import net.nymtech.vpn.backend.NymBackend.Companion.vpnService
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.LifecycleVpnService
 import nym_vpn_lib.AndroidTunProvider
-import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
 
@@ -113,13 +112,5 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		vpnInterfaceFd = vpnInterface
 		val fd = vpnInterface?.detachFd() ?: return -1
 		return fd
-	}
-
-	override fun addConnectivityObserver(observer: ConnectivityObserver) {
-		owner?.addConnectivityObserver(observer)
-	}
-
-	override fun removeConnectivityObserver(observer: ConnectivityObserver) {
-		owner?.removeObserver(observer)
 	}
 }
