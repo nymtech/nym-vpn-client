@@ -4666,7 +4666,7 @@ dependencies = [
  "objc2-foundation",
  "rs-release",
  "sha2 0.10.9",
- "sysinfo",
+ "sysinfo 0.37.0",
  "windows 0.61.3",
 ]
 
