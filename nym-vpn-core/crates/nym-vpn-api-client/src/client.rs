@@ -141,9 +141,9 @@ impl VpnApiClient {
             .with_timeout(NYM_VPN_API_TIMEOUT);
 
         // Add resolver overrides if provided
-        if let Some(static_addresses) = static_addresses {
-            if !static_addresses.is_empty() {
-                if let Some(domain) = base_url.domain() {
+        if let Some(static_addresses) = static_addresses
+            && !static_addresses.is_empty()
+                && let Some(domain) = base_url.domain() {
                     tracing::info!(
                         "Enabling DNS resolver overrides for {domain}: {}",
                         static_addresses
@@ -154,12 +154,10 @@ impl VpnApiClient {
                     );
                     builder = builder.resolve_to_addrs(domain, static_addresses);
                 }
-            }
-        }
 
         let inner = builder
             .build::<crate::response::UnexpectedError>()
-            .map_err(|e| VpnApiClientError::CreateVpnApiClient(e))?;
+            .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
         Ok(Self {
             inner,
