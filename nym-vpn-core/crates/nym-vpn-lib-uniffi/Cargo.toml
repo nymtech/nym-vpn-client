@@ -48,6 +48,7 @@ nym-vpn-account-controller.workspace = true
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-vpn-api-client.workspace = true
+nym-http-api-client.workspace = true
 nym-common.workspace = true
 nym-gateway-directory.workspace = true
 nym-platform-metadata.workspace = true

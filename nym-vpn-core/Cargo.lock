@@ -5374,6 +5374,7 @@ dependencies = [
  "nym-bin-common",
  "nym-common",
  "nym-gateway-directory",
+ "nym-http-api-client",
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-sdk",
