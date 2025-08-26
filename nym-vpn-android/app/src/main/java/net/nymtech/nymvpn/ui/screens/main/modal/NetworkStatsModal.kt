@@ -67,7 +67,7 @@ fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, on
 					Text(
 						stringResource(R.string.modal_network_stats_not_now_button),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface
+						color = MaterialTheme.colorScheme.onSurface,
 					)
 				},
 				modifier = Modifier
