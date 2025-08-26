@@ -114,12 +114,4 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		val fd = vpnInterface?.detachFd() ?: return -1
 		return fd
 	}
-
-	override fun addConnectivityObserver(observer: ConnectivityObserver) {
-		owner?.addConnectivityObserver(observer)
-	}
-
-	override fun removeConnectivityObserver(observer: ConnectivityObserver) {
-		owner?.removeObserver(observer)
-	}
 }
