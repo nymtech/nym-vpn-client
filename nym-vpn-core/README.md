@@ -130,6 +130,11 @@ After installing Rust, install the following Rust targets and dependencies to en
         pacman -S mingw-w64-x86_64-clang
         pacman -S mingw-w64-clang-aarch64-clang
         ```
+1. Install `cargo-get`:
+
+    ```sh
+    cargo install cargo-get
+    ```
 
 ## Code formatting
 

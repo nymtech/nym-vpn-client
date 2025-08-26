@@ -18,7 +18,6 @@ import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.vpn.backend.service.StateMachineService
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.model.BackendEvent
-import net.nymtech.vpn.model.DeferredTunProvider
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.Constants
@@ -27,6 +26,7 @@ import net.nymtech.vpn.util.exceptions.BackendException
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
+import nym_vpn_lib.AndroidConnectivityMonitor
 import nym_vpn_lib_types.AccountLinks
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib_types.GatewayType
@@ -50,7 +50,7 @@ import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
 
-class NymBackend private constructor(private val context: Context) : Backend, TunnelStatusListener, LifecycleObserver {
+class NymBackend private constructor(private val context: Context) : Backend, TunnelStatusListener, LifecycleObserver, AndroidConnectivityMonitor {
 
 	private val initialized = CompletableDeferred<Unit>()
 
@@ -61,8 +61,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	private val storagePath = context.filesDir.absolutePath
 
 	private val notificationManager = VpnNotificationManager.getInstance(context)
-
-	private val deferredTunProvider = DeferredTunProvider(this)
 
 	private lateinit var settingConfig: NymVpnLibConfig
 
@@ -144,11 +142,15 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		updateObservers()
 	}
 
-	internal fun addConnectivityObserver(observer: ConnectivityObserver) {
+	override fun addConnectivityObserver(observer: ConnectivityObserver) {
 		if (!observers.any { it.id() == observer.id() }) {
 			observers.add(observer)
 			updateObservers()
 		}
+	}
+
+	override fun removeConnectivityObserver(observer: ConnectivityObserver) {
+		observers.removeIf { it.id() == observer.id() }
 	}
 
 	private fun updateObservers() {
@@ -161,10 +163,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		observers.forEach {
 			it.onNetworkChange(isConnected)
 		}
-	}
-
-	internal fun removeObserver(observer: ConnectivityObserver) {
-		observers.removeIf { it.id() == observer.id() }
 	}
 
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
@@ -185,7 +183,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				settings.credentialsMode,
 				settings.sentryMonitoringEnabled,
 				settings.statisticsEnabled,
-				deferredTunProvider,
+				this@NymBackend,
 			)
 			nym_vpn_lib.configureLib(settingConfig)
 		}
@@ -297,8 +295,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		val stateMachineService = stateMachineService.await()
 		vpnService.owner = this
 		stateMachineService.owner = this
-		settingConfig.tunProvider = vpnService
-		deferredTunProvider.setDelegate(vpnService)
 	}
 
 	private suspend fun startVpn(tunnel: Tunnel, userAgent: UserAgent) {

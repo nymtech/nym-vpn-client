@@ -61,6 +61,11 @@ jobs:
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
       - name: Download artifacts
         uses: actions/download-artifact@v5
         with:

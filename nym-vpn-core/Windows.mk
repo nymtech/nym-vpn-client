@@ -1,5 +1,5 @@
 # Makefile used for building Windows dependencies used by nym-vpnd
-# 
+#
 # Supported variables:
 #
 # Primary variables:
@@ -65,6 +65,9 @@ else
     TARGET_DIR ?= $(CURDIR)/target/debug
 endif
 
+LIBWG_VERSION_HEADER_PATH = $(CURDIR)/../wireguard/libwg/version.h
+WINFW_VERSION_HEADER_PATH = $(CURDIR)/../nym-vpn-windows/winfw/src/winfw/version.h
+
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TARGET)-pc-windows-msvc
 LIBWG_DLL := libwg.dll
 
@@ -76,12 +79,12 @@ WINFW_LIB := winfw.lib
 # Ensure that msys2 inherits PATH from environment
 export MSYS2_PATH_TYPE = inherit
 
-.PHONY: wintun libwg winfw create_target_dir
+.PHONY: wintun libwg winfw create_target_dir create_version_header
 
 default: wintun libwg winfw
 
 # Build libwg and copy it to build/lib
-libwg: create_target_dir
+libwg: create_target_dir create_version_header
 	$(call setup_env_path) ; #\
 	if ("$(CPU_ARCH_LOWER)" -eq "arm64") { #\
 		$$wg_arm64_flag = "--arm64" ; #\
@@ -93,11 +96,11 @@ libwg: create_target_dir
 	$(MSYS2_SHELL) -defterm -no-start -$$msystem -where "$(CURDIR)/../wireguard" -shell bash -c "./build-wireguard-go.sh $$wg_arm64_flag"
 	Copy-Item "$(LIBWG_BUILD_DIR)/$(LIBWG_DLL)" -Destination "$(TARGET_DIR)/$(LIBWG_DLL)" -Force -Verbose
 
-winfw: create_target_dir
+winfw: create_target_dir create_version_header
 # Setup environment and build winfw
 	$(call setup_env_path) ; #\
 	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
-	
+
 # Copy winfw dll and lib to distribution directory where nym-vpn-core looks for import lib
 	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)" -Verbose
 	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_DLL)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Force -Verbose
@@ -121,7 +124,7 @@ wintun: create_target_dir
 	} else { #\
 		Write-Output "Fingerprint matches!"; #\
 	}
-	
+
 # Copy wintun dll to target directory
 	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force -Verbose
 
@@ -129,6 +132,25 @@ create_target_dir:
 	if (-not (Test-Path "$(TARGET_DIR)")) { #\
 		New-Item -ItemType Directory -Path "$(TARGET_DIR)" ; #\
 	}
+
+# Create version header used by version resources of libwg and winfw DLLs
+create_version_header:
+	$$MajorVersion = $$(cargo get workspace.package.version --major) ; #\
+	$$MinorVersion = $$(cargo get workspace.package.version --minor) ; #\
+	$$PatchVersion = $$(cargo get workspace.package.version --patch) ; #\
+	$$ProductVersion = $$(cargo get workspace.package.version --major --minor --patch --delimiter ".") ; #\
+	#\
+	$$VersionHeader = @() ; #\
+	$$VersionHeader += "#ifndef VERSION_H" ; #\
+	$$VersionHeader += "#define VERSION_H" ; #\
+	$$VersionHeader += "#define MAJOR_VERSION $$MajorVersion" ; #\
+	$$VersionHeader += "#define MINOR_VERSION $$MinorVersion" ; #\
+	$$VersionHeader += "#define PATCH_VERSION $$PatchVersion" ; #\
+	$$VersionHeader += "#define PRODUCT_VERSION `"$$ProductVersion`"" ; #\
+	$$VersionHeader += "#endif" ; #\
+	#\
+	$$VersionHeader | Out-String | Out-File -Encoding utf8 -FilePath "$(LIBWG_VERSION_HEADER_PATH)" ; #\
+	$$VersionHeader | Out-String | Out-File -Encoding utf8 -FilePath "$(WINFW_VERSION_HEADER_PATH)"
 
 # Add Go, MSBuild and MSVC to PATH
 # Both Visual Studio and build tools come with the same set of tools
