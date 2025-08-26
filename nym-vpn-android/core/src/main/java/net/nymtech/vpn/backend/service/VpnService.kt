@@ -12,7 +12,6 @@ import net.nymtech.vpn.backend.NymBackend.Companion.vpnService
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.LifecycleVpnService
 import nym_vpn_lib.AndroidTunProvider
-import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
 
