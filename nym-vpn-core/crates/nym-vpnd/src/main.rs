@@ -37,6 +37,8 @@ fn main() -> anyhow::Result<()> {
 
 async fn async_main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
+
+    // TODO: Can't we initialize this later in `run_vpn_service()`?
     let _sentry_guard = sentry::init_sentry();
     let sentry_enabled = _sentry_guard.is_some();
 
@@ -145,9 +147,9 @@ async fn run_standalone(
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let global_config_file = setup_global_config(parameters.network)?;
-    
+
     // Migrate global configuration here, where we will have more information about the environment.
-    
+
     let network_env =
         environment::setup_environment(&global_config_file, parameters.config_env_file.as_deref())
             .await?;
