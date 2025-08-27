@@ -49,17 +49,34 @@ impl GlobalConfigFile {
         let config_toml_exists = config_toml_path.exists();
 
         let config = if config_json_exists {
-            crate::service::read_json_config_file::<GlobalConfigFile>(&config_json_path)?
+            crate::service::read_json_config_file::<GlobalConfigFile>(&config_json_path)
+                .map_err(|err| {
+                    tracing::error!(
+                        "Failed to read global config file {:?}: {:?}",
+                        config_json_path,
+                        err
+                    );
+                })
+                .unwrap_or_default()
         } else if config_toml_exists {
-            crate::service::read_toml_config_file::<GlobalConfigFile>(&config_toml_path)?
+            crate::service::read_toml_config_file::<GlobalConfigFile>(&config_toml_path)
+                .map_err(|err| {
+                    tracing::error!(
+                        "Failed to read global config file {:?}: {:?}",
+                        config_toml_path,
+                        err
+                    );
+                })
+                .unwrap_or_default()
         } else {
+            tracing::info!("No global configuration file exists; using default configuration");
             GlobalConfigFile::default()
         };
 
         if config_toml_exists {
             tracing::info!(
-                "Removing deprecated TOML config file at {}",
-                config_toml_path.display()
+                "Removing deprecated global config file {:?}",
+                config_toml_path
             );
             let _ = std::fs::remove_file(&config_toml_path);
         }
