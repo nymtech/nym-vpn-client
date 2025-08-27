@@ -202,7 +202,7 @@ impl Probe {
         ticketbook_type: TicketType,
     ) -> anyhow::Result<()> {
         // TODO: make it configurable
-        const MAX_RETRIES: usize = 10;
+        const MAX_RETRIES: usize = 50;
         for i in 0..MAX_RETRIES {
             debug!("attempt {i} for attempting to acquire {ticketbook_type} bandwidth");
             let bw_client = disconnected_mixnet_client
@@ -248,7 +248,9 @@ impl Probe {
                 }
             }
 
-            // no need for backoff as we're limited by block time anyway
+            // add a bit of backoff as if the rpc node is slightly out of sync,
+            // we might use our retry budget for abci queries to the simulate endpoint
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
 
         bail!("failed to acquire bandwidth after {MAX_RETRIES} attempts")
