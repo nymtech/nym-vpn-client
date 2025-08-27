@@ -5,8 +5,6 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use time::OffsetDateTime;
 
-use super::account_controller::AccountControllerErrorStateReason;
-
 #[derive(uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
@@ -270,7 +268,7 @@ pub enum ErrorStateReason {
     InactiveSubscription,
 
     /// Max device numbers reached
-    MaxDeviceReached,
+    MaxDevicesReached,
 
     /// Device time is off by too much, Zk-nyms use will fail
     DeviceTimeDesynced,
@@ -383,7 +381,7 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
 impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
     fn from(value: nym_vpn_lib_types::ErrorStateReason) -> Self {
         match value {
-            nym_vpn_lib_types::ErrorStateReason::Firewall => Self::Firewall,
+            nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::Firewall,
             nym_vpn_lib_types::ErrorStateReason::Routing => Self::Routing,
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
             nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,
@@ -400,6 +398,12 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             }
             nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             nym_vpn_lib_types::ErrorStateReason::BandwidthExceeded => Self::BandwidthExceeded,
+            nym_vpn_lib_types::ErrorStateReason::AccountStatusNotActive { status } => {
+                Self::AccountStatusNotActive { status }
+            }
+            nym_vpn_lib_types::ErrorStateReason::InactiveSubscription => Self::InactiveSubscription,
+            nym_vpn_lib_types::ErrorStateReason::MaxDevicesReached => Self::MaxDevicesReached,
+            nym_vpn_lib_types::ErrorStateReason::DeviceTimeDesynced => Self::DeviceTimeDesynced,
             nym_vpn_lib_types::ErrorStateReason::DeviceLoggedOut => Self::DeviceLoggedOut,
             nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
         }
