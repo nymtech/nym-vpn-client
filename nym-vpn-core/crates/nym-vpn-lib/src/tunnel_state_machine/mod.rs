@@ -691,7 +691,7 @@ impl Error {
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
+            Self::ConfigureTunnelProvider(_) => ErrorStateReason::SetTunnelProviderSettings,
             #[cfg(target_os = "ios")]
             Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

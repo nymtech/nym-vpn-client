@@ -147,8 +147,8 @@ pub enum ErrorStateReason {
     /// Failure to configure tunnel device.
     TunDevice,
 
-    /// Failure to configure packet tunnel provider.
-    TunnelProvider,
+    /// Failure to configure packet tunnel provider (iOS and Android only)
+    SetTunnelProviderSettings,
 
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,

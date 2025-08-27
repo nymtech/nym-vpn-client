@@ -42,7 +42,9 @@ impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
             Reason::Routing(error_state_reason::Routing {}) => Self::Routing,
             Reason::SetDns(error_state_reason::SetDns {}) => Self::SetDns,
             Reason::TunDevice(error_state_reason::TunDevice {}) => Self::TunDevice,
-            Reason::TunnelProvider(error_state_reason::TunnelProvider {}) => Self::TunnelProvider,
+            Reason::SetTunnelProviderSettings(error_state_reason::SetTunnelProviderSettings {}) => {
+                Self::SetTunnelProviderSettings
+            }
             Reason::Ipv6Unavailable(error_state_reason::Ipv6Unavailable {}) => {
                 Self::Ipv6Unavailable
             }
@@ -92,8 +94,8 @@ impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
             ErrorStateReason::Routing => Reason::Routing(error_state_reason::Routing {}),
             ErrorStateReason::SetDns => Reason::SetDns(error_state_reason::SetDns {}),
             ErrorStateReason::TunDevice => Reason::TunDevice(error_state_reason::TunDevice {}),
-            ErrorStateReason::TunnelProvider => {
-                Reason::TunnelProvider(error_state_reason::TunnelProvider {})
+            ErrorStateReason::SetTunnelProviderSettings => {
+                Reason::SetTunnelProviderSettings(error_state_reason::SetTunnelProviderSettings {})
             }
             ErrorStateReason::Ipv6Unavailable => {
                 Reason::Ipv6Unavailable(error_state_reason::Ipv6Unavailable {})

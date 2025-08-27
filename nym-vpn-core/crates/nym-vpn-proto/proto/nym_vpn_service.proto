@@ -366,7 +366,7 @@ message TunnelState {
       message Routing {}
       message SetDns {}
       message TunDevice {}
-      message TunnelProvider {}
+      message SetTunnelProviderSettings {}
       message Ipv6Unavailable {}
       message SameEntryAndExitGateway {}
       message InvalidEntryGatewayCountry {}
@@ -389,7 +389,7 @@ message TunnelState {
           Routing routing = 2;
           SetDns set_dns = 3;
           TunDevice tun_device = 4;
-          TunnelProvider tunnel_provider = 5;
+          SetTunnelProviderSettings set_tunnel_provider_settings = 5;
           Ipv6Unavailable ipv6_unavailable = 6;
           SameEntryAndExitGateway same_entry_and_exit_gateway = 7;
           InvalidEntryGatewayCountry invalid_entry_gateway_country = 8;

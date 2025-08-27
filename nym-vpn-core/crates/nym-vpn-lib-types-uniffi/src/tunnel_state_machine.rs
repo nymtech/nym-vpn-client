@@ -239,8 +239,8 @@ pub enum ErrorStateReason {
     /// Failure to configure tunnel device.
     TunDevice,
 
-    /// Failure to configure packet tunnel provider.
-    TunnelProvider,
+    /// Failure to set packet tunnel provider network settings.
+    SetTunnelProviderSettings,
 
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
@@ -385,7 +385,9 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             nym_vpn_lib_types::ErrorStateReason::Routing => Self::Routing,
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
             nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,
-            nym_vpn_lib_types::ErrorStateReason::TunnelProvider => Self::TunnelProvider,
+            nym_vpn_lib_types::ErrorStateReason::SetTunnelProviderSettings => {
+                Self::SetTunnelProviderSettings
+            }
             nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             nym_vpn_lib_types::ErrorStateReason::SameEntryAndExitGateway => {
                 Self::SameEntryAndExitGateway
