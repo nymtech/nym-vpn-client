@@ -41,7 +41,9 @@ impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
             }
             Reason::Routing(error_state_reason::Routing {}) => Self::Routing,
             Reason::SetDns(error_state_reason::SetDns {}) => Self::SetDns,
-            Reason::TunDevice(error_state_reason::TunDevice {}) => Self::TunDevice,
+            Reason::ConfigureTunnelDevice(error_state_reason::ConfigureTunnelDevice {}) => {
+                Self::ConfigureTunnelDevice
+            }
             Reason::SetTunnelProviderSettings(error_state_reason::SetTunnelProviderSettings {}) => {
                 Self::SetTunnelProviderSettings
             }
@@ -93,7 +95,9 @@ impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
             }
             ErrorStateReason::Routing => Reason::Routing(error_state_reason::Routing {}),
             ErrorStateReason::SetDns => Reason::SetDns(error_state_reason::SetDns {}),
-            ErrorStateReason::TunDevice => Reason::TunDevice(error_state_reason::TunDevice {}),
+            ErrorStateReason::ConfigureTunnelDevice => {
+                Reason::ConfigureTunnelDevice(error_state_reason::ConfigureTunnelDevice {})
+            }
             ErrorStateReason::SetTunnelProviderSettings => {
                 Reason::SetTunnelProviderSettings(error_state_reason::SetTunnelProviderSettings {})
             }

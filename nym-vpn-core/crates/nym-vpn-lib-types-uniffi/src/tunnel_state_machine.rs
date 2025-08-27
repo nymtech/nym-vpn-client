@@ -237,7 +237,7 @@ pub enum ErrorStateReason {
     SetDns,
 
     /// Failure to configure tunnel device.
-    TunDevice,
+    ConfigureTunnelDevice,
 
     /// Failure to set packet tunnel provider network settings.
     SetTunnelProviderSettings,
@@ -384,7 +384,9 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::SetFirewallPolicy,
             nym_vpn_lib_types::ErrorStateReason::Routing => Self::Routing,
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
-            nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,
+            nym_vpn_lib_types::ErrorStateReason::ConfigureTunnelDevice => {
+                Self::ConfigureTunnelDevice
+            }
             nym_vpn_lib_types::ErrorStateReason::SetTunnelProviderSettings => {
                 Self::SetTunnelProviderSettings
             }

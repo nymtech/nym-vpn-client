@@ -365,7 +365,7 @@ message TunnelState {
       message SetFirewallPolicy {}
       message Routing {}
       message SetDns {}
-      message TunDevice {}
+      message ConfigureTunnelDevice {}
       message SetTunnelProviderSettings {}
       message Ipv6Unavailable {}
       message SameEntryAndExitGateway {}
@@ -388,7 +388,7 @@ message TunnelState {
           SetFirewallPolicy set_firewall_policy = 1;
           Routing routing = 2;
           SetDns set_dns = 3;
-          TunDevice tun_device = 4;
+          ConfigureTunnelDevice configure_tunnel_device = 4;
           SetTunnelProviderSettings set_tunnel_provider_settings = 5;
           Ipv6Unavailable ipv6_unavailable = 6;
           SameEntryAndExitGateway same_entry_and_exit_gateway = 7;

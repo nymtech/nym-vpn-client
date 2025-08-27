@@ -145,7 +145,7 @@ pub enum ErrorStateReason {
     SetDns,
 
     /// Failure to configure tunnel device.
-    TunDevice,
+    ConfigureTunnelDevice,
 
     /// Failure to configure packet tunnel provider (iOS and Android only)
     SetTunnelProviderSettings,
