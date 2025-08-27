@@ -860,11 +860,3 @@ fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn foo() {}
-}
