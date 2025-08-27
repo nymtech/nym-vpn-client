@@ -607,8 +607,8 @@ pub enum Error {
     CreateFirewall(#[source] nym_firewall::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to apply firewall policy")]
-    ApplyFirewallPolicy(#[source] nym_firewall::Error),
+    #[error("failed to set firewall policy")]
+    SetFirewallPolicy(#[source] nym_firewall::Error),
 
     #[error("failed to resolve API hostnames")]
     ResolveApiHostnames(#[source] nym_gateway_directory::Error),
@@ -674,7 +674,9 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateFirewall(_) | Self::ApplyFirewallPolicy(_) => ErrorStateReason::Firewall,
+            Self::CreateFirewall(_) => None?,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::SetFirewallPolicy(_) => ErrorStateReason::SetFirewallPolicy,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,

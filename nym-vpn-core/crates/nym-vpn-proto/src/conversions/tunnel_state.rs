@@ -36,7 +36,9 @@ impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
             .ok_or(ConversionError::NoValueSet("ErrorStateReason.reason"))?;
 
         Ok(match reason {
-            Reason::Firewall(error_state_reason::Firewall {}) => Self::Firewall,
+            Reason::SetFirewallPolicy(error_state_reason::SetFirewallPolicy {}) => {
+                Self::SetFirewallPolicy
+            }
             Reason::Routing(error_state_reason::Routing {}) => Self::Routing,
             Reason::SetDns(error_state_reason::SetDns {}) => Self::SetDns,
             Reason::TunDevice(error_state_reason::TunDevice {}) => Self::TunDevice,
@@ -84,7 +86,9 @@ impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
         use proto::tunnel_state::error_state_reason::{self, Reason};
 
         let reason = match value {
-            ErrorStateReason::Firewall => Reason::Firewall(error_state_reason::Firewall {}),
+            ErrorStateReason::SetFirewallPolicy => {
+                Reason::SetFirewallPolicy(error_state_reason::SetFirewallPolicy {})
+            }
             ErrorStateReason::Routing => Reason::Routing(error_state_reason::Routing {}),
             ErrorStateReason::SetDns => Reason::SetDns(error_state_reason::SetDns {}),
             ErrorStateReason::TunDevice => Reason::TunDevice(error_state_reason::TunDevice {}),

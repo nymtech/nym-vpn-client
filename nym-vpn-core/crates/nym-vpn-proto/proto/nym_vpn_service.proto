@@ -362,7 +362,7 @@ message TunnelState {
   }
 
   message ErrorStateReason {
-      message Firewall {}
+      message SetFirewallPolicy {}
       message Routing {}
       message SetDns {}
       message TunDevice {}
@@ -385,7 +385,7 @@ message TunnelState {
       }
 
       oneof reason {
-          Firewall firewall = 1;
+          SetFirewallPolicy set_firewall_policy = 1;
           Routing routing = 2;
           SetDns set_dns = 3;
           TunDevice tun_device = 4;
