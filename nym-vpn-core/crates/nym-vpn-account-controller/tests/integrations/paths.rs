@@ -17,7 +17,7 @@ use nym_vpn_lib_types::AccountControllerState;
 ///
 /// 4. Use TestBench::assert_state to test the AC state. This takes care of yielding back to the tokio and wait a certain time for the state we're looking for
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn offline_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new_no_credentials().await?;
@@ -68,7 +68,7 @@ async fn offline_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn api_error_reponse_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -94,7 +94,7 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn unregistered_account_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -118,7 +118,7 @@ async fn unregistered_account_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn desynced_device_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -140,7 +140,7 @@ async fn desynced_device_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn inactive_account_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -164,7 +164,7 @@ async fn inactive_account_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn account_with_inactive_sub_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -186,7 +186,7 @@ async fn account_with_inactive_sub_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn account_with_max_device_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -208,7 +208,7 @@ async fn account_with_max_device_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -232,7 +232,7 @@ async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn zk_nym_issuance_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -261,7 +261,7 @@ async fn zk_nym_issuance_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn e2e_new_device_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
