@@ -670,11 +670,13 @@ impl Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         Some(match self {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::SetRouting,
+            Self::CreateRouteHandler(_) | Self::CreateDnsHandler(_) | Self::CreateFirewall(_) => {
+                None?
+            }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
+            Self::AddRoutes(_) => ErrorStateReason::SetRouting,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateFirewall(_) => None?,
+            Self::SetDns(_) => ErrorStateReason::SetDns,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetFirewallPolicy(_) => ErrorStateReason::SetFirewallPolicy,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
