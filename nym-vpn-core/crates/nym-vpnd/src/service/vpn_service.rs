@@ -669,11 +669,12 @@ impl NymVpnService {
         let toml_config_exists = self.config_file_toml.exists();
 
         let config = if json_config_exists {
-            let mut config: NymVpnServiceConfig =
-                super::config::read_json_config_file(&self.config_file_json)
+            let mut config =
+                super::config::read_json_config_file::<NymVpnServiceConfig>(&self.config_file_json)
                     .map_err(|err| {
                         tracing::error!(
-                            "Failed to read JSON config file, resetting to defaults: {:?}",
+                            "Failed to read config file {:?}: {:?}",
+                            self.config_file_json,
                             err
                         );
                     })
@@ -682,11 +683,12 @@ impl NymVpnService {
             config.exit_point = exit.unwrap_or(config.exit_point);
             config
         } else if toml_config_exists {
-            let mut config: NymVpnServiceConfig =
-                super::config::read_toml_config_file(&self.config_file_toml)
+            let mut config =
+                super::config::read_toml_config_file::<NymVpnServiceConfig>(&self.config_file_toml)
                     .map_err(|err| {
                         tracing::error!(
-                            "Failed to read TOML config file, resetting to defaults: {:?}",
+                            "Failed to read config file {:?}: {:?}",
+                            self.config_file_toml,
                             err
                         );
                     })
@@ -695,6 +697,7 @@ impl NymVpnService {
             config.exit_point = exit.unwrap_or(config.exit_point);
             config
         } else {
+            tracing::info!("No configuration file exists; using default configuration");
             NymVpnServiceConfig {
                 version: CURRENT_SERVICE_CONFIG_VERSION,
                 entry_point: entry.unwrap_or(EntryPoint::Random),
@@ -704,8 +707,8 @@ impl NymVpnService {
 
         if toml_config_exists {
             tracing::info!(
-                "Removing deprecated TOML config file {}",
-                self.config_file_toml.display()
+                "Removing deprecated config file {:?}",
+                self.config_file_toml
             );
             let _ = std::fs::remove_file(&self.config_file_toml);
         }
