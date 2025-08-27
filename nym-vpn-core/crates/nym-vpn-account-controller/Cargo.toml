@@ -41,7 +41,7 @@ thiserror.workspace = true
 time.workspace = true
 tokio-util.workspace = true
 tokio-stream.workspace = true
-tokio = { workspace = true, features = ["fs"] }
+tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros"] }
 tracing.workspace = true
 zeroize.workspace = true
 

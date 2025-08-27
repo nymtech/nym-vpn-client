@@ -8,7 +8,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
 };
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn logged_out_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
     let mut test_bench = TestBench::new_no_credentials().await?;
@@ -94,7 +94,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn offline_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
     let mut test_bench = TestBench::new_no_credentials().await?;
@@ -218,7 +218,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn ready_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
     let mut test_bench = TestBench::new_no_credentials().await?;
@@ -327,7 +327,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 async fn error_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
     let mut test_bench = TestBench::new_no_credentials().await?;
