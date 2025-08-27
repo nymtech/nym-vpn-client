@@ -46,7 +46,10 @@ use nym_vpnd_types::{
 use std::time::Duration;
 
 use super::{
-    config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
+    config::{
+        CURRENT_SERVICE_CONFIG_VERSION, DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML,
+        NetworkEnvironments, NymVpnServiceConfig,
+    },
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
@@ -157,8 +160,11 @@ pub struct NymVpnService {
     // Receive state from account controller,
     account_state_rx: AccountStateReceiver,
 
+    // Path to the main config file (deprecated TOML version)
+    config_file_toml: PathBuf,
+
     // Path to the main config file
-    config_file: PathBuf,
+    config_file_json: PathBuf,
 
     // Path to the data directory
     data_dir: PathBuf,
@@ -264,7 +270,8 @@ impl NymVpnService {
             .clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
-        let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
+        let config_file_toml = config_dir.join(DEFAULT_CONFIG_FILE_TOML);
+        let config_file_json = config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let data_dir = super::config::data_dir();
         let network_data_dir = data_dir.join(&network_name);
 
@@ -438,7 +445,8 @@ impl NymVpnService {
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
-            config_file,
+            config_file_toml,
+            config_file_json,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             tunnel_state: TunnelState::Disconnected,
@@ -654,33 +662,53 @@ impl NymVpnService {
 
     fn try_setup_config(
         &self,
-        entry: Option<gateway_directory::EntryPoint>,
-        exit: Option<gateway_directory::ExitPoint>,
+        entry: Option<EntryPoint>,
+        exit: Option<ExitPoint>,
     ) -> Result<NymVpnServiceConfig> {
-        // If the config file does not exit, create it
-        let config = if self.config_file.exists() {
-            let mut read_config: NymVpnServiceConfig =
-                super::config::read_config_file(&self.config_file)
+        let json_config_exists = self.config_file_json.exists();
+        let toml_config_exists = self.config_file_toml.exists();
+
+        let config = if json_config_exists {
+            let mut config: NymVpnServiceConfig =
+                super::config::read_json_config_file(&self.config_file_json)
                     .map_err(|err| {
                         tracing::error!(
-                            "Failed to read config file, resetting to defaults: {:?}",
+                            "Failed to read JSON config file, resetting to defaults: {:?}",
                             err
                         );
                     })
                     .unwrap_or_default();
-            read_config.entry_point = entry.unwrap_or(read_config.entry_point);
-            read_config.exit_point = exit.unwrap_or(read_config.exit_point);
-            super::config::write_config_file(&self.config_file, &read_config)
-                .map_err(Error::ConfigSetup)?;
-            read_config
+            config.entry_point = entry.unwrap_or(config.entry_point);
+            config.exit_point = exit.unwrap_or(config.exit_point);
+            config
+        } else if toml_config_exists {
+            let mut config: NymVpnServiceConfig =
+                super::config::read_toml_config_file(&self.config_file_toml)
+                    .map_err(|err| {
+                        tracing::error!(
+                            "Failed to read TOML config file, resetting to defaults: {:?}",
+                            err
+                        );
+                    })
+                    .unwrap_or_default();
+            config.entry_point = entry.unwrap_or(config.entry_point);
+            config.exit_point = exit.unwrap_or(config.exit_point);
+            config
         } else {
-            let config = NymVpnServiceConfig {
+            NymVpnServiceConfig {
+                version: CURRENT_SERVICE_CONFIG_VERSION,
                 entry_point: entry.unwrap_or(EntryPoint::Random),
                 exit_point: exit.unwrap_or(ExitPoint::Random),
-            };
-            super::config::create_config_file(&self.config_file, config)
-                .map_err(Error::ConfigSetup)?
+            }
         };
+
+        if toml_config_exists {
+            tracing::info!(
+                "Removing deprecated TOML config file {}",
+                self.config_file_toml.display()
+            );
+            let _ = std::fs::remove_file(&self.config_file_toml);
+        }
         Ok(config)
     }
 
@@ -720,6 +748,9 @@ impl NymVpnService {
         tracing::debug!("Using options: {:?}", options);
 
         let config = self.try_setup_config(entry, exit)?;
+
+        // Migrate configuration here, where we will have more information about the environment.
+
         tracing::info!("Using config: {}", config);
 
         let gateway_options = GatewayPerformanceOptions {

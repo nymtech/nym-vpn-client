@@ -16,11 +16,13 @@ const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
 const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 #[cfg(not(windows))]
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
-pub const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
+pub const DEFAULT_CONFIG_FILE_TOML: &str = "nym-vpnd.toml";
+pub const DEFAULT_CONFIG_FILE_JSON: &str = "nym-vpnd.json";
 pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
 pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
-pub const DEFAULT_GLOBAL_CONFIG_FILE: &str = "config.toml";
+pub const DEFAULT_GLOBAL_CONFIG_FILE_TOML: &str = "config.toml";
+pub const DEFAULT_GLOBAL_CONFIG_FILE_JSON: &str = "config.json";
 
 #[derive(Debug, Clone)]
 pub enum NetworkEnvironments {
@@ -104,11 +106,25 @@ pub fn config_dir() -> PathBuf {
 
 #[derive(thiserror::Error, Debug)]
 pub enum ConfigSetupError {
-    #[error("failed to parse config file {file}")]
-    Parse {
+    #[error("failed to serialize JSON config file {file}")]
+    SerializeJson {
+        file: PathBuf,
+        #[source]
+        error: Box<serde_json::Error>,
+    },
+
+    #[error("failed to parse TOML config file {file}")]
+    ParseToml {
         file: PathBuf,
         #[source]
         error: Box<toml::de::Error>,
+    },
+
+    #[error("failed to parse JSON config file {file}")]
+    ParseJson {
+        file: PathBuf,
+        #[source]
+        error: Box<serde_json::Error>,
     },
 
     #[error("failed to read config file {file}")]
@@ -151,8 +167,21 @@ pub enum ConfigSetupError {
     },
 }
 
+pub const CURRENT_SERVICE_CONFIG_VERSION: u32 = 1; 
+
+//
+// In order to allow migrations to work in the future:
+//
+// - Do not remove any fields; instead use `Option<T>`.
+// - Do not remove any enum variants; instead just ignore them.
+//
+// Migration must be performed at a higher level where more knowledge
+// of the environment is available.
+//
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymVpnServiceConfig {
+    #[serde(default = "default_one")]
+    pub(super) version: u32,
     pub(super) entry_point: gateway_directory::EntryPoint,
     pub(super) exit_point: gateway_directory::ExitPoint,
 }
@@ -170,19 +199,52 @@ impl fmt::Display for NymVpnServiceConfig {
 impl Default for NymVpnServiceConfig {
     fn default() -> Self {
         Self {
+            version: CURRENT_SERVICE_CONFIG_VERSION,
             entry_point: gateway_directory::EntryPoint::Random,
             exit_point: gateway_directory::ExitPoint::Random,
         }
     }
 }
 
-// Create the TOML representation of the provided config, only if it doesn't already exists
-pub fn create_config_file<C>(file_path: &PathBuf, config: C) -> Result<C, ConfigSetupError>
+pub fn read_toml_config_file<C>(file_path: &PathBuf) -> Result<C, ConfigSetupError>
+where
+    C: DeserializeOwned,
+{
+    let file_content =
+        fs::read_to_string(file_path).map_err(|error| ConfigSetupError::ReadConfig {
+            file: file_path.clone(),
+            error,
+        })?;
+    toml::from_str(&file_content).map_err(|error| ConfigSetupError::ParseToml {
+        file: file_path.clone(),
+        error: Box::new(error),
+    })
+}
+
+pub fn read_json_config_file<C>(file_path: &PathBuf) -> Result<C, ConfigSetupError>
+where
+    C: DeserializeOwned,
+{
+    let file_content =
+        fs::read_to_string(file_path).map_err(|error| ConfigSetupError::ReadConfig {
+            file: file_path.clone(),
+            error,
+        })?;
+    serde_json::from_str(&file_content).map_err(|error| ConfigSetupError::ParseJson {
+        file: file_path.clone(),
+        error: Box::new(error),
+    })
+}
+
+pub fn write_json_config_file<C>(file_path: &PathBuf, config: &C) -> Result<(), ConfigSetupError>
 where
     C: Serialize,
 {
-    let config_str = toml::to_string(&config).unwrap();
-    tracing::info!("Config file: {}", file_path.display());
+    let config_str =
+        serde_json::to_string(&config).map_err(|error| ConfigSetupError::SerializeJson {
+            file: file_path.clone(),
+            error: Box::new(error),
+        })?;
 
     // Create path
     let config_dir = file_path
@@ -195,42 +257,12 @@ where
         error,
     })?;
 
-    if !file_path.exists() {
-        fs::write(file_path, config_str).map_err(|error| ConfigSetupError::WriteFile {
-            file: file_path.clone(),
-            error,
-        })?;
-        tracing::info!("Config file created at {}", file_path.display());
-    }
-    Ok(config)
-}
-
-pub fn read_config_file<C>(file_path: &PathBuf) -> Result<C, ConfigSetupError>
-where
-    C: DeserializeOwned,
-{
-    let file_content =
-        fs::read_to_string(file_path).map_err(|error| ConfigSetupError::ReadConfig {
-            file: file_path.clone(),
-            error,
-        })?;
-    toml::from_str(&file_content).map_err(|error| ConfigSetupError::Parse {
-        file: file_path.clone(),
-        error: Box::new(error),
-    })
-}
-
-pub fn write_config_file<C>(file_path: &PathBuf, config: C) -> Result<C, ConfigSetupError>
-where
-    C: Serialize,
-{
-    let config_str = toml::to_string(&config).unwrap();
     fs::write(file_path, config_str).map_err(|error| ConfigSetupError::WriteFile {
         file: file_path.clone(),
         error,
     })?;
     tracing::info!("Config file updated at {:?}", file_path);
-    Ok(config)
+    Ok(())
 }
 
 pub(super) fn create_data_dir(
@@ -305,4 +337,12 @@ fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security
     )?;
 
     Ok(())
+}
+
+pub fn default_true() -> bool {
+    true
+}
+
+pub fn default_one() -> u32 {
+    1
 }

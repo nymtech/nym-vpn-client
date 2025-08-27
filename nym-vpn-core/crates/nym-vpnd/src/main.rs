@@ -145,6 +145,9 @@ async fn run_standalone(
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let global_config_file = setup_global_config(parameters.network)?;
+    
+    // Migrate global configuration here, where we will have more information about the environment.
+    
     let network_env =
         environment::setup_environment(&global_config_file, parameters.config_env_file.as_deref())
             .await?;

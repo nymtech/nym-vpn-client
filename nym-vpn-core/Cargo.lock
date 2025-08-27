@@ -5458,6 +5458,7 @@ dependencies = [
  "nym-windows",
  "sentry",
  "serde",
+ "serde_json",
  "strum",
  "sysinfo 0.37.0",
  "thiserror 2.0.16",
