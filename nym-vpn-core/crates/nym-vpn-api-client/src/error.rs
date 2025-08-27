@@ -104,6 +104,12 @@ pub enum VpnApiClientError {
     #[error("failed to get health")]
     GetHealth(#[source] HttpClientError<UnexpectedError>),
 
+    #[error("failed to get wellknown environments")]
+    GetWellknownEnvs(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get wellknown discovery")]
+    GetWellknownDiscovery(#[source] HttpClientError<UnexpectedError>),
+
     #[error("failed to get usage")]
     GetUsage(#[source] HttpClientError<UnexpectedError>),
 

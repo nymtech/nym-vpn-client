@@ -69,12 +69,13 @@ async fn start_account_controller(
     let user_agent = crate::user_agent::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
-    let nym_vpn_api_client =
-        nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(
-            |err| VpnError::InternalError {
-                details: err.to_string(),
-            },
-        )?;
+    let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
+        network_env.nym_network_details(),
+        user_agent,
+    )
+    .map_err(|err| VpnError::InternalError {
+        details: err.to_string(),
+    })?;
 
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
@@ -390,7 +391,8 @@ pub(crate) mod raw {
         let network_env = environment::current_environment_details().await?;
         let user_agent = crate::user_agent::construct_user_agent();
         let vpn_api_client =
-            VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(VpnError::internal)?;
+            VpnApiClient::from_network(network_env.nym_network_details(), user_agent)
+                .map_err(VpnError::internal)?;
         Ok(vpn_api_client)
     }
 

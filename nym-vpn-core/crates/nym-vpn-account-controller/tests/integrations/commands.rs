@@ -1,12 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::common::mock_account_id;
-use crate::common::{TestBench, account_summary::*, endpoints, mock_mnemonic};
+use crate::common::{TestBench, account_summary::*, endpoints, mock_account_id, mock_mnemonic};
 
 use nym_vpn_account_controller::AvailableTicketbooks;
-use nym_vpn_lib_types::AccountControllerState;
-use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
+};
 
 #[tokio::test]
 async fn logged_out_state_command() -> anyhow::Result<()> {

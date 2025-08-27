@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use nym_common::trace_err_chain;
-use nym_config::defaults::NymNetworkDetails;
+use nym_network_defaults::NymNetworkDetails;
 
 use crate::MAX_FILE_AGE;
 

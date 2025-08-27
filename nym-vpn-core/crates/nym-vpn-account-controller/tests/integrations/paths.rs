@@ -4,8 +4,7 @@
 use crate::common::{TestBench, account_summary::*, endpoints};
 
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
-use nym_vpn_lib_types::AccountControllerErrorStateReason;
-use nym_vpn_lib_types::AccountControllerState;
+use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
 
 /// How to use these tests :
 ///

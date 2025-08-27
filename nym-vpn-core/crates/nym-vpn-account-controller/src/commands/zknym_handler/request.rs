@@ -12,8 +12,10 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     MasterVerificationKeyResponse, PartialVerificationKeysResponse, TicketbookWalletSharesResponse,
 };
 use nym_credentials::{EpochVerificationKey, IssuedTicketBook};
-use nym_credentials_interface::{Base58, BlindedSignature, VerificationKeyAuth, WithdrawalRequest};
-use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
+use nym_credentials_interface::{
+    Base58, BlindedSignature, PublicKeyUser, RequestInfo, TicketType, VerificationKeyAuth,
+    WithdrawalRequest,
+};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -328,7 +330,7 @@ impl RequestZkNymTask {
 
         let guard = self.credential_storage.lock().await;
         if guard
-            .get_expiration_date_signatures(expiration_date)
+            .get_expiration_date_signatures(expiration_date, epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
             .is_none()
@@ -457,7 +459,7 @@ impl RequestZkNymTask {
             .credential_storage
             .lock()
             .await
-            .get_expiration_date_signatures(pending_request.expiration_date)
+            .get_expiration_date_signatures(pending_request.expiration_date, shares.epoch_id)
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
             .is_none()

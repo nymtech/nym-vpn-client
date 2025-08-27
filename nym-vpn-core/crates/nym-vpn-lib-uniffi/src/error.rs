@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_http_api_client::HttpClientError;
 use nym_vpn_lib::tunnel_state_machine;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerError};
 
@@ -62,6 +63,15 @@ pub enum VpnError {
 
     #[error("account controller error")]
     AccountControllerError { details: String },
+
+    #[error("http client error: {0}")]
+    HttpClient(String),
+}
+
+impl From<HttpClientError> for VpnError {
+    fn from(value: HttpClientError) -> Self {
+        Self::HttpClient(value.to_string())
+    }
 }
 
 impl VpnError {

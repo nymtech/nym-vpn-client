@@ -3,7 +3,7 @@
 
 use std::env;
 
-use nym_config::defaults::{NymNetworkDetails, var_names};
+use nym_network_defaults::{NymNetworkDetails, var_names};
 use url::Url;
 
 use crate::{

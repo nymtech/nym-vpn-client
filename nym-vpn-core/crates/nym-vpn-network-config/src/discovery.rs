@@ -11,12 +11,12 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
-    BootstrapVpnApiClient, VpnApiClient,
+    VpnApiClient,
     response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
 };
 
 use nym_api_requests::NymNetworkDetailsResponse;
-use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
+use nym_validator_client::nym_api::NymApiClientExt;
 
 use crate::{
     AccountManagement, Error, FeatureFlags, Result, SystemMessages,
@@ -95,8 +95,8 @@ impl Discovery {
     pub async fn fetch(network_name: &str) -> Result<Self> {
         // allow panic because a broken bootstrap url means everything will fail anyways.
         let default_url = DEFAULT_VPN_API_URL.clone();
-        let client =
-            BootstrapVpnApiClient::new(default_url).map_err(Error::CreateBootstrapApiClient)?;
+        let client = VpnApiClient::new(default_url, empty_user_agent())
+            .map_err(Error::CreateVpnApiClient)?;
 
         tracing::debug!("Fetching nym network discovery");
         let discovery = client
@@ -172,7 +172,7 @@ impl Discovery {
 
     pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
-        let client = NymApiClient::new(self.nym_api_url.clone(), None);
+        let client = nym_http_api_client::Client::builder(self.nym_api_url.clone())?.build()?;
         let network_details = client
             .get_network_details()
             .await
@@ -284,7 +284,7 @@ pub(crate) async fn fetch_nym_network_details(
     nym_api_url: Url,
 ) -> Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
-    let client = NymApiClient::new(nym_api_url, None);
+    let client = nym_http_api_client::Client::builder(nym_api_url)?.build()?;
 
     client
         .get_network_details()
