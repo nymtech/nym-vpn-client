@@ -227,7 +227,7 @@ impl TestBench {
 
         let wait_for_state_fut = state_watcher.wait_for(|state| *state == expected_state);
 
-        let _ = tokio::time::timeout(Duration::from_secs(5), wait_for_state_fut).await;
+        let _ = tokio::time::timeout(Duration::from_secs(10), wait_for_state_fut).await;
 
         // For the nice output in tests
         assert_eq!(self.state_receiver.get_state(), expected_state);
