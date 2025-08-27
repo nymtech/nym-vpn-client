@@ -44,8 +44,8 @@ use nym_gateway_directory::{
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetEvent, TunnelEvent, TunnelState,
-    TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
+    MixnetEvent, TunnelEvent, TunnelState, TunnelType,
 };
 use nym_wg_gateway_client::Error as WgGatewayClientError;
 
@@ -765,12 +765,41 @@ impl account::Error {
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
             Self::Cancelled => None,
             Self::ControllerState(e) => match e {
-                AcError::Offline => Some(ErrorStateReason::AccountControllerOffline),
-                AcError::NoAccountStored => Some(ErrorStateReason::AccountControllerLoggedOut),
+                AcError::Offline => None,
+                AcError::NoAccountStored => Some(ErrorStateReason::DeviceLoggedOut),
                 AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
-                AcError::ErrorState(reason) => {
-                    Some(ErrorStateReason::AccountControllerError(reason))
+                AcError::ErrorState(
+                    AccountControllerErrorStateReason::AccountStatusNotActive { status },
+                ) => Some(ErrorStateReason::AccountStatusNotActive { status }),
+                AcError::ErrorState(AccountControllerErrorStateReason::BandwidthExceeded {
+                    ..
+                }) => Some(ErrorStateReason::BandwidthExceeded),
+                AcError::ErrorState(AccountControllerErrorStateReason::InactiveSubscription) => {
+                    Some(ErrorStateReason::InactiveSubscription)
                 }
+                AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
+                    Some(ErrorStateReason::MaxDevicesReached)
+                }
+                AcError::ErrorState(AccountControllerErrorStateReason::DeviceTimeDesynced) => {
+                    Some(ErrorStateReason::DeviceTimeDesynced)
+                }
+                AcError::ErrorState(AccountControllerErrorStateReason::Internal {
+                    context,
+                    details,
+                }) => Some(ErrorStateReason::Internal(format!("{context} {details}"))),
+                AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
+                    Some(ErrorStateReason::Internal(format!(
+                        "Failed to initialize account storage: {}",
+                        context
+                    )))
+                }
+                AcError::ErrorState(AccountControllerErrorStateReason::ApiFailure {
+                    context,
+                    details,
+                }) => Some(ErrorStateReason::Internal(format!(
+                    "Account API failure: {} {}",
+                    context, details
+                ))),
             },
         }
     }

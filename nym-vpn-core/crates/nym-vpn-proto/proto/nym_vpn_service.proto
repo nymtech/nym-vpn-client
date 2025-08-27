@@ -367,16 +367,19 @@ message TunnelState {
       message SetDns {}
       message TunDevice {}
       message TunnelProvider {}
+      message Ipv6Unavailable {}
       message SameEntryAndExitGateway {}
       message InvalidEntryGatewayCountry {}
       message InvalidExitGatewayCountry {}
       message BadBandwidthIncrease {}
-      message Ipv6Unavailable {}
-      message AccountControllerError {
-          AccountControllerErrorStateReason reason = 1;
+      message BandwidthExceeded {}
+      message AccountStatusNotActive {
+          string status = 1;
       }
-      message AccountControllerOffline {}
-      message AccountControllerLoggedOut {}
+      message InactiveSubscription {}
+      message MaxDevicesReached {}
+      message DeviceTimeDesynced {}
+      message DeviceLoggedOut {}
       message Internal {
           string message = 1;
       }
@@ -387,15 +390,18 @@ message TunnelState {
           SetDns set_dns = 3;
           TunDevice tun_device = 4;
           TunnelProvider tunnel_provider = 5;
-          SameEntryAndExitGateway same_entry_and_exit_gateway = 6;
-          InvalidEntryGatewayCountry invalid_entry_gateway_country = 7;
-          InvalidExitGatewayCountry invalid_exit_gateway_country = 8;
-          BadBandwidthIncrease bad_bandwidth_increase = 9;
-          Ipv6Unavailable ipv6_unavailable = 10;
-          AccountControllerError account_controller_error = 11;
-          AccountControllerOffline account_controller_offline = 12;
-          AccountControllerLoggedOut account_controller_logged_out = 13;
-          Internal internal = 14;
+          Ipv6Unavailable ipv6_unavailable = 6;
+          SameEntryAndExitGateway same_entry_and_exit_gateway = 7;
+          InvalidEntryGatewayCountry invalid_entry_gateway_country = 8;
+          InvalidExitGatewayCountry invalid_exit_gateway_country = 9;
+          BadBandwidthIncrease bad_bandwidth_increase = 10;
+          BandwidthExceeded bandwidth_exceeded = 11;
+          AccountStatusNotActive account_state_not_active = 12;
+          InactiveSubscription inactive_subscription = 13;
+          MaxDevicesReached max_devices_reached = 14;
+          DeviceTimeDesynced device_time_desynced = 15;
+          DeviceLoggedOut device_logged_out = 16;
+          Internal internal = 17;
       }
   }
 

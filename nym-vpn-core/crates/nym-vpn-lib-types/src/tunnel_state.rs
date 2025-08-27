@@ -1,10 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-
-use crate::AccountControllerErrorStateReason;
-
 use super::connection_data::{ConnectionData, TunnelConnectionData};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -43,8 +39,8 @@ pub enum TunnelState {
     },
 }
 
-impl fmt::Display for TunnelState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for TunnelState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Disconnected => f.write_str("Disconnected"),
             Self::Connecting {
@@ -154,6 +150,9 @@ pub enum ErrorStateReason {
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
+    /// IPv6 is disabled in the system.
+    Ipv6Unavailable,
+
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
@@ -167,17 +166,23 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// IPv6 is disabled in the system.
-    Ipv6Unavailable,
+    /// Bandwidth Exceeded
+    BandwidthExceeded,
 
-    /// Account controller is in error state.
-    AccountControllerError(AccountControllerErrorStateReason),
+    /// Account status is not "Active"
+    AccountStatusNotActive { status: String },
 
-    /// Account controller is offline
-    AccountControllerOffline,
+    /// Inactive Subscription
+    InactiveSubscription,
 
-    /// Account controller is logged out
-    AccountControllerLoggedOut,
+    /// Max device numbers reached
+    MaxDevicesReached,
+
+    /// Device time is off by too much, Zk-nyms use will fail
+    DeviceTimeDesynced,
+
+    /// Device is logged out
+    DeviceLoggedOut,
 
     /// Program errors that must not happen.
     Internal(String),

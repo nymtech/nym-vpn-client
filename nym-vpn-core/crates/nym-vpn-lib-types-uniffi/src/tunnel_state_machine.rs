@@ -244,6 +244,9 @@ pub enum ErrorStateReason {
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
+    /// IPv6 is disabled in the system.
+    Ipv6Unavailable,
+
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
@@ -257,20 +260,26 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// IPv6 is disabled in the system.
-    Ipv6Unavailable,
+    /// Bandwidth Exceeded
+    BandwidthExceeded,
+
+    /// Account status is not "Active"
+    AccountStatusNotActive { status: String },
+
+    /// Inactive Subscription
+    InactiveSubscription,
+
+    /// Max device numbers reached
+    MaxDeviceReached,
+
+    /// Device time is off by too much, Zk-nyms use will fail
+    DeviceTimeDesynced,
+
+    /// Device is logged out
+    DeviceLoggedOut,
 
     /// Program errors that must not happen.
     Internal(String),
-
-    /// Account controller is in error state.
-    AccountControllerError(AccountControllerErrorStateReason),
-
-    /// Account controller is offline
-    AccountControllerOffline,
-
-    /// Account controller is logged out
-    AccountControllerLoggedOut,
 }
 
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
@@ -379,9 +388,7 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
             nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,
             nym_vpn_lib_types::ErrorStateReason::TunnelProvider => Self::TunnelProvider,
-            nym_vpn_lib_types::ErrorStateReason::StartLocalDnsResolver => {
-                Self::StartLocalDnsResolver
-            }
+            nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             nym_vpn_lib_types::ErrorStateReason::SameEntryAndExitGateway => {
                 Self::SameEntryAndExitGateway
             }
@@ -392,17 +399,9 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
                 Self::InvalidExitGatewayCountry
             }
             nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
-            nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
+            nym_vpn_lib_types::ErrorStateReason::BandwidthExceeded => Self::BandwidthExceeded,
+            nym_vpn_lib_types::ErrorStateReason::DeviceLoggedOut => Self::DeviceLoggedOut,
             nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
-            nym_vpn_lib_types::ErrorStateReason::AccountControllerError(reason) => {
-                Self::AccountControllerError(AccountControllerErrorStateReason::from(reason))
-            }
-            nym_vpn_lib_types::ErrorStateReason::AccountControllerOffline => {
-                Self::AccountControllerOffline
-            }
-            nym_vpn_lib_types::ErrorStateReason::AccountControllerLoggedOut => {
-                Self::AccountControllerLoggedOut
-            }
         }
     }
 }
