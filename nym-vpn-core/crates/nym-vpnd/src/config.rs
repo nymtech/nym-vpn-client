@@ -93,16 +93,9 @@ impl GlobalConfigFile {
         crate::service::write_json_config_file(&global_config_file_path, self).map_err(Into::into)
     }
 
-    // TODO: Use the value in `&self`!
+    // Calling this means the global configuration file is read twice 😒
     pub fn sentry_enabled() -> bool {
-        let global_config_file_path =
-            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
-
-        crate::service::read_toml_config_file::<GlobalConfigFile>(&global_config_file_path)
-            .inspect_err(|e| {
-                eprintln!("failed to read global config file: {e}");
-            })
-            .ok()
-            .is_some_and(|cfg| cfg.sentry_monitoring)
+        let config = Self::read_from_file().unwrap_or_default();
+        config.sentry_monitoring
     }
 }
