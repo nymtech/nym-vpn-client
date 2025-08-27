@@ -505,6 +505,7 @@ impl TunnelStateHandler for ConnectingState {
                                 NextTunnelState::SameState(self)
                             }
                             Err(e) => {
+                                trace_err_chain!(e, "Failed to set firewall policy");
                                 if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                                     NextTunnelState::NewState(DisconnectingState::enter(
                                         PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
@@ -528,6 +529,7 @@ impl TunnelStateHandler for ConnectingState {
                                 NextTunnelState::NewState((self, state))
                             },
                             Err(e) => {
+                                trace_err_chain!(e, "Failed to set firewall policy");
                                 if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                                     NextTunnelState::NewState(DisconnectingState::enter(
                                         PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
