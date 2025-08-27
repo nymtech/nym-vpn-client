@@ -34,10 +34,10 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
 
         Ok(match reason {
             Reason::SetFirewallPolicy => Self::SetFirewallPolicy,
-            Reason::Routing => Self::Routing,
+            Reason::SetRouting => Self::SetRouting,
             Reason::SetDns => Self::SetDns,
-            Reason::ConfigureTunnelDevice => Self::ConfigureTunnelDevice,
-            Reason::SetTunnelProviderSettings => Self::SetTunnelProviderSettings,
+            Reason::TunDevice => Self::TunDevice,
+            Reason::TunnelProvider => Self::TunnelProvider,
             Reason::Ipv6Unavailable => Self::Ipv6Unavailable,
             Reason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             Reason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
@@ -63,20 +63,20 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
                 reason: Reason::SetFirewallPolicy.into(),
                 message: None,
             },
-            ErrorStateReason::Routing => Self {
-                reason: Reason::Routing.into(),
+            ErrorStateReason::SetRouting => Self {
+                reason: Reason::SetRouting.into(),
                 message: None,
             },
             ErrorStateReason::SetDns => Self {
                 reason: Reason::SetDns.into(),
                 message: None,
             },
-            ErrorStateReason::ConfigureTunnelDevice => Self {
-                reason: Reason::ConfigureTunnelDevice.into(),
+            ErrorStateReason::TunDevice => Self {
+                reason: Reason::TunDevice.into(),
                 message: None,
             },
-            ErrorStateReason::SetTunnelProviderSettings => Self {
-                reason: Reason::SetTunnelProviderSettings.into(),
+            ErrorStateReason::TunnelProvider => Self {
+                reason: Reason::TunnelProvider.into(),
                 message: None,
             },
             ErrorStateReason::Ipv6Unavailable => Self {

@@ -231,16 +231,16 @@ pub enum ErrorStateReason {
     SetFirewallPolicy,
 
     /// Failure to configure routing.
-    Routing,
+    SetRouting,
 
     /// Failure to configure dns.
     SetDns,
 
     /// Failure to configure tunnel device.
-    ConfigureTunnelDevice,
+    TunDevice,
 
-    /// Failure to set packet tunnel provider network settings.
-    SetTunnelProviderSettings,
+    /// Failure to configure tunnel provider.
+    TunnelProvider,
 
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
@@ -382,14 +382,10 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
     fn from(value: nym_vpn_lib_types::ErrorStateReason) -> Self {
         match value {
             nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::SetFirewallPolicy,
-            nym_vpn_lib_types::ErrorStateReason::Routing => Self::Routing,
+            nym_vpn_lib_types::ErrorStateReason::Routing => Self::SetRouting,
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
-            nym_vpn_lib_types::ErrorStateReason::ConfigureTunnelDevice => {
-                Self::ConfigureTunnelDevice
-            }
-            nym_vpn_lib_types::ErrorStateReason::SetTunnelProviderSettings => {
-                Self::SetTunnelProviderSettings
-            }
+            nym_vpn_lib_types::ErrorStateReason::ConfigureTunnelDevice => Self::TunDevice,
+            nym_vpn_lib_types::ErrorStateReason::ConfigureTunnelProvider => Self::TunnelProvider,
             nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             nym_vpn_lib_types::ErrorStateReason::SameEntryAndExitGateway => {
                 Self::SameEntryAndExitGateway

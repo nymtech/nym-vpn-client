@@ -670,30 +670,30 @@ impl Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         Some(match self {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
+            Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::SetRouting,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateFirewall(_) => None?,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetFirewallPolicy(_) => ErrorStateReason::SetFirewallPolicy,
-            Self::CreateTunDevice(_) => ErrorStateReason::ConfigureTunnelDevice,
+            Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::ConfigureTunnelDevice,
+            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::GetTunDeviceName(_) => ErrorStateReason::ConfigureTunnelDevice,
+            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            Self::GetTunDeviceName(_) => ErrorStateReason::ConfigureTunnelDevice,
+            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(windows)]
-            Self::SetupWintunAdapter(_) => ErrorStateReason::ConfigureTunnelDevice,
+            Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            Self::ConfigureTunnelProvider(_) => ErrorStateReason::SetTunnelProviderSettings,
+            Self::TunnelProvider(_) => ErrorStateReason::TunnelProvider,
             #[cfg(target_os = "ios")]
-            Self::LocateTunDevice(_) => ErrorStateReason::ConfigureTunnelDevice,
+            Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,

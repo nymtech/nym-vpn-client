@@ -329,10 +329,10 @@ message TunnelConnectionData {
 message TunnelState {
   enum ErrorStateReason {
     SET_FIREWALL_POLICY = 0;
-    ROUTING = 1;
+    SET_ROUTING = 1;
     SET_DNS = 2;
-    CONFIGURE_TUNNEL_DEVICE = 3;
-    SET_TUNNEL_PROVIDER_SETTINGS = 4;
+    TUN_DEVICE = 3;
+    TUNNEL_PROVIDER = 4;
     IPV6_UNAVAILABLE = 5;
     SAME_ENTRY_AND_EXIT_GATEWAY = 6;
     INVALID_ENTRY_GATEWAY_COUNTRY = 7;

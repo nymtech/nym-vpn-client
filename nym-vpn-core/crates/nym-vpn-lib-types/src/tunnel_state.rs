@@ -139,16 +139,16 @@ pub enum ErrorStateReason {
     SetFirewallPolicy,
 
     /// Failure to configure routing.
-    Routing,
+    SetRouting,
 
     /// Failure to configure dns.
     SetDns,
 
     /// Failure to configure tunnel device.
-    ConfigureTunnelDevice,
+    TunDevice,
 
     /// Failure to configure packet tunnel provider (iOS and Android only)
-    SetTunnelProviderSettings,
+    TunnelProvider,
 
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
