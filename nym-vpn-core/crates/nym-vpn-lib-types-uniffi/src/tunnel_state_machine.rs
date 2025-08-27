@@ -257,12 +257,6 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// Failure to duplicate tunnel file descriptor.
-    DuplicateTunFd,
-
-    /// Failure to create mixnet storage.
-    CreateMixnetStorage,
-
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
 
@@ -398,8 +392,6 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
                 Self::InvalidExitGatewayCountry
             }
             nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
-            nym_vpn_lib_types::ErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
-            nym_vpn_lib_types::ErrorStateReason::CreateMixnetStorage => Self::CreateMixnetStorage,
             nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
             nym_vpn_lib_types::ErrorStateReason::AccountControllerError(reason) => {

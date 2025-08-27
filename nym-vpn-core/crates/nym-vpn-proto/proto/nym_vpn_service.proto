@@ -371,8 +371,6 @@ message TunnelState {
       message InvalidEntryGatewayCountry {}
       message InvalidExitGatewayCountry {}
       message BadBandwidthIncrease {}
-      message DuplicateTunFd {}
-      message CreateMixnetStorage {}
       message Ipv6Unavailable {}
       message AccountControllerError {
           AccountControllerErrorStateReason reason = 1;
@@ -393,13 +391,11 @@ message TunnelState {
           InvalidEntryGatewayCountry invalid_entry_gateway_country = 7;
           InvalidExitGatewayCountry invalid_exit_gateway_country = 8;
           BadBandwidthIncrease bad_bandwidth_increase = 9;
-          DuplicateTunFd duplicate_tun_fd = 10;
-          CreateMixnetStorage create_mixnet_storage = 11;
-          Ipv6Unavailable ipv6_unavailable = 12;
-          AccountControllerError account_controller_error = 13;
-          AccountControllerOffline account_controller_offline = 14;
-          AccountControllerLoggedOut account_controller_logged_out = 15;
-          Internal internal = 16;
+          Ipv6Unavailable ipv6_unavailable = 10;
+          AccountControllerError account_controller_error = 11;
+          AccountControllerOffline account_controller_offline = 12;
+          AccountControllerLoggedOut account_controller_logged_out = 13;
+          Internal internal = 14;
       }
   }
 

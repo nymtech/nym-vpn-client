@@ -167,12 +167,6 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// Failure to duplicate tunnel file descriptor.
-    DuplicateTunFd,
-
-    /// Failure to create mixnet storage.
-    CreateMixnetStorage,
-
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
 

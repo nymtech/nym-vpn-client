@@ -732,10 +732,12 @@ impl tunnel::Error {
                 }
                 _ => None,
             },
-            Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
-            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => {
-                Some(ErrorStateReason::CreateMixnetStorage)
-            }
+            Self::DupFd(_) => Some(ErrorStateReason::Internal(
+                "Failed to dup tunnel fd".to_owned(),
+            )),
+            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => Some(
+                ErrorStateReason::Internal("Failed to create mixnet storage".to_owned()),
+            ),
             Self::AuthenticationNotPossible(_)
             | Self::AuthenticatorAddressNotFound
             | Self::ConnectToIpPacketRouter(_)

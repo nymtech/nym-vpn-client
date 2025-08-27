@@ -53,10 +53,6 @@ impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
             Reason::BadBandwidthIncrease(error_state_reason::BadBandwidthIncrease {}) => {
                 Self::BadBandwidthIncrease
             }
-            Reason::DuplicateTunFd(error_state_reason::DuplicateTunFd {}) => Self::DuplicateTunFd,
-            Reason::CreateMixnetStorage(error_state_reason::CreateMixnetStorage {}) => {
-                Self::CreateMixnetStorage
-            }
             Reason::Ipv6Unavailable(error_state_reason::Ipv6Unavailable {}) => {
                 Self::Ipv6Unavailable
             }
@@ -123,12 +119,6 @@ impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
             }
             ErrorStateReason::BadBandwidthIncrease => {
                 Reason::BadBandwidthIncrease(error_state_reason::BadBandwidthIncrease {})
-            }
-            ErrorStateReason::DuplicateTunFd => {
-                Reason::DuplicateTunFd(error_state_reason::DuplicateTunFd {})
-            }
-            ErrorStateReason::CreateMixnetStorage => {
-                Reason::CreateMixnetStorage(error_state_reason::CreateMixnetStorage {})
             }
             ErrorStateReason::Ipv6Unavailable => {
                 Reason::Ipv6Unavailable(error_state_reason::Ipv6Unavailable {})
