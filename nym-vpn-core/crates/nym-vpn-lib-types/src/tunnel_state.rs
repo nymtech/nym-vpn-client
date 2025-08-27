@@ -1,10 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{
-    AccountControllerErrorStateReason,
-    connection_data::{ConnectionData, TunnelConnectionData},
-};
+use super::connection_data::{ConnectionData, TunnelConnectionData};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
@@ -169,8 +166,20 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// Account error
-    AccountControl(AccountControllerErrorStateReason),
+    /// Bandwidth Exceeded
+    BandwidthExceeded,
+
+    /// Account status is not "Active"
+    AccountStatusNotActive { status: String },
+
+    /// Inactive Subscription
+    InactiveSubscription,
+
+    /// Max device numbers reached
+    MaxDevicesReached,
+
+    /// Device time is off by too much, Zk-nyms use will fail
+    DeviceTimeDesynced,
 
     /// Device is logged out
     DeviceLoggedOut,

@@ -372,6 +372,13 @@ message TunnelState {
       message InvalidEntryGatewayCountry {}
       message InvalidExitGatewayCountry {}
       message BadBandwidthIncrease {}
+      message BandwidthExceeded {}
+      message AccountStatusNotActive {
+          string status = 1;
+      }
+      message InactiveSubscription {}
+      message MaxDevicesReached {}
+      message DeviceTimeDesynced {}
       message DeviceLoggedOut {}
       message Internal {
           string message = 1;
@@ -388,9 +395,13 @@ message TunnelState {
           InvalidEntryGatewayCountry invalid_entry_gateway_country = 8;
           InvalidExitGatewayCountry invalid_exit_gateway_country = 9;
           BadBandwidthIncrease bad_bandwidth_increase = 10;
-          AccountControllerErrorStateReason account_control = 11;
-          DeviceLoggedOut device_logged_out = 12;
-          Internal internal = 13;
+          BandwidthExceeded bandwidth_exceeded = 11;
+          AccountStatusNotActive account_state_not_active = 12;
+          InactiveSubscription inactive_subscription = 13;
+          MaxDevicesReached max_devices_reached = 14;
+          DeviceTimeDesynced device_time_desynced = 15;
+          DeviceLoggedOut device_logged_out = 16;
+          Internal internal = 17;
       }
   }
 

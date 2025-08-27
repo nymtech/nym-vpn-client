@@ -5,8 +5,6 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use time::OffsetDateTime;
 
-use super::AccountControllerErrorStateReason;
-
 #[derive(uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
@@ -260,8 +258,20 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// Account error
-    AccountControl(AccountControllerErrorStateReason),
+    /// Bandwidth Exceeded
+    BandwidthExceeded,
+
+    /// Account status is not "Active"
+    AccountStatusNotActive { status: String },
+
+    /// Inactive Subscription
+    InactiveSubscription,
+
+    /// Max device numbers reached
+    MaxDevicesReached,
+
+    /// Device time is off by too much, Zk-nyms use will fail
+    DeviceTimeDesynced,
 
     /// Device is logged out
     DeviceLoggedOut,
@@ -391,9 +401,13 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
                 Self::InvalidExitGatewayCountry
             }
             nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
-            nym_vpn_lib_types::ErrorStateReason::AccountControl(reason) => {
-                Self::AccountControl(AccountControllerErrorStateReason::from(reason))
+            nym_vpn_lib_types::ErrorStateReason::BandwidthExceeded => Self::BandwidthExceeded,
+            nym_vpn_lib_types::ErrorStateReason::AccountStatusNotActive { status } => {
+                Self::AccountStatusNotActive { status }
             }
+            nym_vpn_lib_types::ErrorStateReason::InactiveSubscription => Self::InactiveSubscription,
+            nym_vpn_lib_types::ErrorStateReason::MaxDevicesReached => Self::MaxDevicesReached,
+            nym_vpn_lib_types::ErrorStateReason::DeviceTimeDesynced => Self::DeviceTimeDesynced,
             nym_vpn_lib_types::ErrorStateReason::DeviceLoggedOut => Self::DeviceLoggedOut,
             nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
         }
