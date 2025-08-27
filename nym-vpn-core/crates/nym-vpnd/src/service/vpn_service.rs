@@ -47,8 +47,8 @@ use std::time::Duration;
 
 use super::{
     config::{
-        CURRENT_SERVICE_CONFIG_VERSION, DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML,
-        NetworkEnvironments, NymVpnServiceConfig,
+        DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, NetworkEnvironments,
+        NymVpnServiceConfig,
     },
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
@@ -699,7 +699,7 @@ impl NymVpnService {
         } else {
             tracing::info!("No configuration file exists; using default configuration");
             NymVpnServiceConfig {
-                version: CURRENT_SERVICE_CONFIG_VERSION,
+                version: NymVpnServiceConfig::CURRENT_VERSION,
                 entry_point: entry.unwrap_or(EntryPoint::Random),
                 exit_point: exit.unwrap_or(ExitPoint::Random),
             }
