@@ -44,8 +44,8 @@ use nym_gateway_directory::{
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
-    MixnetEvent, TunnelEvent, TunnelState, TunnelType,
+    ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetEvent, TunnelEvent, TunnelState,
+    TunnelType,
 };
 use nym_wg_gateway_client::Error as WgGatewayClientError;
 
@@ -677,23 +677,23 @@ impl Error {
             Self::CreateFirewall(_) => None?,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetFirewallPolicy(_) => ErrorStateReason::SetFirewallPolicy,
-            Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
+            Self::CreateTunDevice(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
+            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::GetTunDeviceName(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::GetTunDeviceName(_) => ErrorStateReason::ConfigureTunnelDevice,
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(windows)]
-            Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
+            Self::SetupWintunAdapter(_) => ErrorStateReason::ConfigureTunnelDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::SetTunnelProviderSettings,
             #[cfg(target_os = "ios")]
-            Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
+            Self::LocateTunDevice(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
@@ -770,40 +770,7 @@ impl account::Error {
                 AcError::Offline => None,
                 AcError::NoAccountStored => Some(ErrorStateReason::DeviceLoggedOut),
                 AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
-                AcError::ErrorState(
-                    AccountControllerErrorStateReason::AccountStatusNotActive { status },
-                ) => Some(ErrorStateReason::AccountStatusNotActive { status }),
-                AcError::ErrorState(AccountControllerErrorStateReason::BandwidthExceeded {
-                    ..
-                }) => Some(ErrorStateReason::BandwidthExceeded),
-                AcError::ErrorState(AccountControllerErrorStateReason::InactiveSubscription) => {
-                    Some(ErrorStateReason::InactiveSubscription)
-                }
-                AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
-                    Some(ErrorStateReason::MaxDevicesReached)
-                }
-                AcError::ErrorState(AccountControllerErrorStateReason::DeviceTimeDesynced) => {
-                    Some(ErrorStateReason::DeviceTimeDesynced)
-                }
-                AcError::ErrorState(AccountControllerErrorStateReason::Internal {
-                    context,
-                    details,
-                }) => Some(ErrorStateReason::Internal(format!(
-                    "Internal account controller error: {context} {details}"
-                ))),
-                AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
-                    Some(ErrorStateReason::Internal(format!(
-                        "Failed to initialize account storage: {}",
-                        context
-                    )))
-                }
-                AcError::ErrorState(AccountControllerErrorStateReason::ApiFailure {
-                    context,
-                    details,
-                }) => Some(ErrorStateReason::Internal(format!(
-                    "Account API failure: {} {}",
-                    context, details
-                ))),
+                AcError::ErrorState(reason) => Some(ErrorStateReason::AccountControl(reason)),
             },
         }
     }

@@ -62,23 +62,11 @@ impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
             Reason::BadBandwidthIncrease(error_state_reason::BadBandwidthIncrease {}) => {
                 Self::BadBandwidthIncrease
             }
-            Reason::BandwidthExceeded(error_state_reason::BandwidthExceeded {}) => {
-                Self::BandwidthExceeded
-            }
-            Reason::AccountStateNotActive(error_state_reason::AccountStatusNotActive {
-                status,
-            }) => Self::AccountStatusNotActive { status },
-            Reason::InactiveSubscription(error_state_reason::InactiveSubscription {}) => {
-                Self::InactiveSubscription
+            Reason::AccountControl(reason) => {
+                Self::AccountControl(AccountControllerErrorStateReason::try_from(reason)?)
             }
             Reason::DeviceLoggedOut(error_state_reason::DeviceLoggedOut {}) => {
                 Self::DeviceLoggedOut
-            }
-            Reason::MaxDevicesReached(error_state_reason::MaxDevicesReached {}) => {
-                Self::MaxDevicesReached
-            }
-            Reason::DeviceTimeDesynced(error_state_reason::DeviceTimeDesynced {}) => {
-                Self::DeviceTimeDesynced
             }
             Reason::Internal(error_state_reason::Internal { message }) => Self::Internal(message),
         })
@@ -116,21 +104,9 @@ impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
             ErrorStateReason::BadBandwidthIncrease => {
                 Reason::BadBandwidthIncrease(error_state_reason::BadBandwidthIncrease {})
             }
-            ErrorStateReason::BandwidthExceeded => {
-                Reason::BandwidthExceeded(error_state_reason::BandwidthExceeded {})
-            }
-            ErrorStateReason::AccountStatusNotActive { status } => {
-                Reason::AccountStateNotActive(error_state_reason::AccountStatusNotActive { status })
-            }
-            ErrorStateReason::InactiveSubscription => {
-                Reason::InactiveSubscription(error_state_reason::InactiveSubscription {})
-            }
-            ErrorStateReason::MaxDevicesReached => {
-                Reason::MaxDevicesReached(error_state_reason::MaxDevicesReached {})
-            }
-            ErrorStateReason::DeviceTimeDesynced => {
-                Reason::DeviceTimeDesynced(error_state_reason::DeviceTimeDesynced {})
-            }
+            ErrorStateReason::AccountControl(reason) => Reason::AccountControl(
+                proto::tunnel_state::AccountControllerErrorStateReason::from(reason),
+            ),
             ErrorStateReason::DeviceLoggedOut => {
                 Reason::DeviceLoggedOut(error_state_reason::DeviceLoggedOut {})
             }
