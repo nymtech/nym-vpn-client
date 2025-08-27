@@ -41,7 +41,7 @@ thiserror.workspace = true
 time.workspace = true
 tokio-util.workspace = true
 tokio-stream.workspace = true
-tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros"] }
+tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 zeroize.workspace = true
 
@@ -56,3 +56,4 @@ nym-compact-ecash.workspace = true
 nym-http-api-client.workspace = true
 tempfile.workspace = true
 wiremock.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
