@@ -788,7 +788,9 @@ impl account::Error {
                 AcError::ErrorState(AccountControllerErrorStateReason::Internal {
                     context,
                     details,
-                }) => Some(ErrorStateReason::Internal(format!("{context} {details}"))),
+                }) => Some(ErrorStateReason::Internal(format!(
+                    "Internal account controller error: {context} {details}"
+                ))),
                 AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
                     Some(ErrorStateReason::Internal(format!(
                         "Failed to initialize account storage: {}",
