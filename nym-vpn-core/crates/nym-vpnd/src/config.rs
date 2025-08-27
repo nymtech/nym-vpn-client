@@ -41,29 +41,29 @@ impl Default for GlobalConfigFile {
 
 impl GlobalConfigFile {
     pub fn read_from_file() -> anyhow::Result<Self> {
-        let config_json_path =
+        let json_config_path =
             crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
-        let config_json_exists = config_json_path.exists();
-        let config_toml_path =
+        let json_config_exists = json_config_path.exists();
+        let toml_config_path =
             crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
-        let config_toml_exists = config_toml_path.exists();
+        let toml_config_exists = toml_config_path.exists();
 
-        let config = if config_json_exists {
-            crate::service::read_json_config_file::<GlobalConfigFile>(&config_json_path)
+        let config = if json_config_exists {
+            crate::service::read_json_config_file::<GlobalConfigFile>(&json_config_path)
                 .map_err(|err| {
                     tracing::error!(
                         "Failed to read global config file {:?}: {:?}",
-                        config_json_path,
+                        json_config_path,
                         err
                     );
                 })
                 .unwrap_or_default()
-        } else if config_toml_exists {
-            crate::service::read_toml_config_file::<GlobalConfigFile>(&config_toml_path)
+        } else if toml_config_exists {
+            crate::service::read_toml_config_file::<GlobalConfigFile>(&toml_config_path)
                 .map_err(|err| {
                     tracing::error!(
                         "Failed to read global config file {:?}: {:?}",
-                        config_toml_path,
+                        toml_config_path,
                         err
                     );
                 })
@@ -73,15 +73,15 @@ impl GlobalConfigFile {
             GlobalConfigFile::default()
         };
 
-        if config_toml_exists {
+        if toml_config_exists {
             tracing::info!(
                 "Removing deprecated global config file {:?}",
-                config_toml_path
+                toml_config_path
             );
-            let _ = std::fs::remove_file(&config_toml_path);
+            let _ = std::fs::remove_file(&toml_config_path);
         }
 
-        crate::service::write_json_config_file(&config_json_path, &config)?;
+        crate::service::write_json_config_file(&json_config_path, &config)?;
 
         Ok(config)
     }

@@ -161,10 +161,10 @@ pub struct NymVpnService {
     account_state_rx: AccountStateReceiver,
 
     // Path to the main config file (deprecated TOML version)
-    config_file_toml: PathBuf,
+    toml_config_path: PathBuf,
 
     // Path to the main config file
-    config_file_json: PathBuf,
+    json_config_path: PathBuf,
 
     // Path to the data directory
     data_dir: PathBuf,
@@ -445,8 +445,8 @@ impl NymVpnService {
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
-            config_file_toml,
-            config_file_json,
+            toml_config_path: config_file_toml,
+            json_config_path: config_file_json,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             tunnel_state: TunnelState::Disconnected,
@@ -665,16 +665,16 @@ impl NymVpnService {
         entry: Option<EntryPoint>,
         exit: Option<ExitPoint>,
     ) -> Result<NymVpnServiceConfig> {
-        let json_config_exists = self.config_file_json.exists();
-        let toml_config_exists = self.config_file_toml.exists();
+        let json_config_exists = self.json_config_path.exists();
+        let toml_config_exists = self.toml_config_path.exists();
 
         let config = if json_config_exists {
             let mut config =
-                super::config::read_json_config_file::<NymVpnServiceConfig>(&self.config_file_json)
+                super::config::read_json_config_file::<NymVpnServiceConfig>(&self.json_config_path)
                     .map_err(|err| {
                         tracing::error!(
                             "Failed to read config file {:?}: {:?}",
-                            self.config_file_json,
+                            self.json_config_path,
                             err
                         );
                     })
@@ -684,11 +684,11 @@ impl NymVpnService {
             config
         } else if toml_config_exists {
             let mut config =
-                super::config::read_toml_config_file::<NymVpnServiceConfig>(&self.config_file_toml)
+                super::config::read_toml_config_file::<NymVpnServiceConfig>(&self.toml_config_path)
                     .map_err(|err| {
                         tracing::error!(
                             "Failed to read config file {:?}: {:?}",
-                            self.config_file_toml,
+                            self.toml_config_path,
                             err
                         );
                     })
@@ -708,9 +708,9 @@ impl NymVpnService {
         if toml_config_exists {
             tracing::info!(
                 "Removing deprecated config file {:?}",
-                self.config_file_toml
+                self.toml_config_path
             );
-            let _ = std::fs::remove_file(&self.config_file_toml);
+            let _ = std::fs::remove_file(&self.toml_config_path);
         }
         Ok(config)
     }
