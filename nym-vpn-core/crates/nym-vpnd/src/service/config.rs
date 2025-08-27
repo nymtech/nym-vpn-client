@@ -241,7 +241,7 @@ where
     C: Serialize,
 {
     let config_str =
-        serde_json::to_string(&config).map_err(|error| ConfigSetupError::SerializeJson {
+        serde_json::to_string_pretty(&config).map_err(|error| ConfigSetupError::SerializeJson {
             file: file_path.clone(),
             error: Box::new(error),
         })?;
