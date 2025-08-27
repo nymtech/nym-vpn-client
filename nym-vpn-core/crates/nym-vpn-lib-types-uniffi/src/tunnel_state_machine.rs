@@ -262,7 +262,7 @@ pub enum ErrorStateReason {
     BandwidthExceeded,
 
     /// Account status is not "Active"
-    AccountStatusNotActive { status: String },
+    InactiveAccount,
 
     /// Inactive Subscription
     InactiveSubscription,
@@ -402,12 +402,10 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             }
             nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             nym_vpn_lib_types::ErrorStateReason::BandwidthExceeded => Self::BandwidthExceeded,
-            nym_vpn_lib_types::ErrorStateReason::AccountStatusNotActive { status } => {
-                Self::AccountStatusNotActive { status }
-            }
+            nym_vpn_lib_types::ErrorStateReason::InactiveAccount => Self::InactiveAccount,
             nym_vpn_lib_types::ErrorStateReason::InactiveSubscription => Self::InactiveSubscription,
             nym_vpn_lib_types::ErrorStateReason::MaxDevicesReached => Self::MaxDevicesReached,
-            nym_vpn_lib_types::ErrorStateReason::DeviceTimeDesynced => Self::DeviceTimeDesynced,
+            nym_vpn_lib_types::ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeDesynced,
             nym_vpn_lib_types::ErrorStateReason::DeviceLoggedOut => Self::DeviceLoggedOut,
             nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
         }

@@ -327,82 +327,24 @@ message TunnelConnectionData {
 
 
 message TunnelState {
-  message AccountControllerErrorStateReason {
-      message Storage {
-          string context = 1;
-      }
-      message ApiFailure {
-          string context = 1;
-          string details = 2;
-      }
-      message Internal {
-          string context = 1;
-          string details = 2;
-      }
-      message BandwidthExceeded {
-          string context = 1;
-      }
-      message AccountStatusNotActive {
-          string status = 1;
-      }
-      message InactiveSubscription {}
-      message MaxDeviceReached {}
-      message DeviceTimeDesynced {}
-
-      oneof reason {
-          Storage storage = 1;
-          ApiFailure api_failure = 2;
-          Internal internal = 3;
-          BandwidthExceeded bandwidth_exceeded = 4;
-          AccountStatusNotActive account_status_not_active = 5;
-          InactiveSubscription inactive_subscription = 6;
-          MaxDeviceReached max_device_reached = 7;
-          DeviceTimeDesynced device_time_desynced = 8;
-      }
-  }
-
-  message ErrorStateReason {
-      message SetFirewallPolicy {}
-      message Routing {}
-      message SetDns {}
-      message ConfigureTunnelDevice {}
-      message SetTunnelProviderSettings {}
-      message Ipv6Unavailable {}
-      message SameEntryAndExitGateway {}
-      message InvalidEntryGatewayCountry {}
-      message InvalidExitGatewayCountry {}
-      message BadBandwidthIncrease {}
-      message BandwidthExceeded {}
-      message AccountStatusNotActive {
-          string status = 1;
-      }
-      message InactiveSubscription {}
-      message MaxDevicesReached {}
-      message DeviceTimeDesynced {}
-      message DeviceLoggedOut {}
-      message Internal {
-          string message = 1;
-      }
-
-      oneof reason {
-          SetFirewallPolicy set_firewall_policy = 1;
-          Routing routing = 2;
-          SetDns set_dns = 3;
-          ConfigureTunnelDevice configure_tunnel_device = 4;
-          SetTunnelProviderSettings set_tunnel_provider_settings = 5;
-          Ipv6Unavailable ipv6_unavailable = 6;
-          SameEntryAndExitGateway same_entry_and_exit_gateway = 7;
-          InvalidEntryGatewayCountry invalid_entry_gateway_country = 8;
-          InvalidExitGatewayCountry invalid_exit_gateway_country = 9;
-          BadBandwidthIncrease bad_bandwidth_increase = 10;
-          BandwidthExceeded bandwidth_exceeded = 11;
-          AccountStatusNotActive account_state_not_active = 12;
-          InactiveSubscription inactive_subscription = 13;
-          MaxDevicesReached max_devices_reached = 14;
-          DeviceTimeDesynced device_time_desynced = 15;
-          DeviceLoggedOut device_logged_out = 16;
-          Internal internal = 17;
-      }
+  enum ErrorStateReason {
+    SET_FIREWALL_POLICY = 0;
+    ROUTING = 1;
+    SET_DNS = 2;
+    CONFIGURE_TUNNEL_DEVICE = 3;
+    SET_TUNNEL_PROVIDER_SETTINGS = 4;
+    IPV6_UNAVAILABLE = 5;
+    SAME_ENTRY_AND_EXIT_GATEWAY = 6;
+    INVALID_ENTRY_GATEWAY_COUNTRY = 7;
+    INVALID_EXIT_GATEWAY_COUNTRY = 8;
+    BAD_BANDWIDTH_INCREASE = 9;
+    BANDWIDTH_EXCEEDED = 10;
+    INACTIVE_SUBSCRIPTION = 11;
+    INACTIVE_ACCOUNT = 12;
+    MAX_DEVICES_REACHED = 13;
+    DEVICE_TIME_OUT_OF_SYNC = 14;
+    DEVICE_LOGGED_OUT = 15;
+    INTERNAL = 16;
   }
 
   enum ActionAfterDisconnect {
@@ -425,6 +367,7 @@ message TunnelState {
   }
   message Error {
     ErrorStateReason reason = 1;
+    optional string message = 2;
   }
   message Offline {
     bool reconnect = 1;

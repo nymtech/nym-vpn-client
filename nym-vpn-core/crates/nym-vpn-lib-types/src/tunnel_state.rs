@@ -170,7 +170,7 @@ pub enum ErrorStateReason {
     BandwidthExceeded,
 
     /// Account status is not "Active"
-    AccountStatusNotActive { status: String },
+    InactiveAccount,
 
     /// Inactive Subscription
     InactiveSubscription,
@@ -179,7 +179,7 @@ pub enum ErrorStateReason {
     MaxDevicesReached,
 
     /// Device time is off by too much, Zk-nyms use will fail
-    DeviceTimeDesynced,
+    DeviceTimeOutOfSync,
 
     /// Device is logged out
     DeviceLoggedOut,

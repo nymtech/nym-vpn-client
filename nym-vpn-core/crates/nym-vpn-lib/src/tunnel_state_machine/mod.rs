@@ -677,23 +677,23 @@ impl Error {
             Self::CreateFirewall(_) => None?,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetFirewallPolicy(_) => ErrorStateReason::SetFirewallPolicy,
-            Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
+            Self::CreateTunDevice(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
+            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::GetTunDeviceName(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "ios", target_os = "android"))]
-            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::GetTunDeviceName(_) => ErrorStateReason::ConfigureTunnelDevice,
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(windows)]
-            Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
+            Self::SetupWintunAdapter(_) => ErrorStateReason::ConfigureTunnelDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::SetTunnelProviderSettings,
             #[cfg(target_os = "ios")]
-            Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
+            Self::LocateTunDevice(_) => ErrorStateReason::ConfigureTunnelDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
@@ -771,8 +771,8 @@ impl account::Error {
                 AcError::NoAccountStored => Some(ErrorStateReason::DeviceLoggedOut),
                 AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
                 AcError::ErrorState(
-                    AccountControllerErrorStateReason::AccountStatusNotActive { status },
-                ) => Some(ErrorStateReason::AccountStatusNotActive { status }),
+                    AccountControllerErrorStateReason::AccountStatusNotActive { .. },
+                ) => Some(ErrorStateReason::InactiveAccount),
                 AcError::ErrorState(AccountControllerErrorStateReason::BandwidthExceeded {
                     ..
                 }) => Some(ErrorStateReason::BandwidthExceeded),
@@ -783,7 +783,7 @@ impl account::Error {
                     Some(ErrorStateReason::MaxDevicesReached)
                 }
                 AcError::ErrorState(AccountControllerErrorStateReason::DeviceTimeDesynced) => {
-                    Some(ErrorStateReason::DeviceTimeDesynced)
+                    Some(ErrorStateReason::DeviceTimeOutOfSync)
                 }
                 AcError::ErrorState(AccountControllerErrorStateReason::Internal {
                     context,
