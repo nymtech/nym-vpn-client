@@ -6,7 +6,6 @@ mod command_interface;
 mod config;
 mod environment;
 mod logging;
-mod runtime;
 mod sentry;
 mod service;
 mod shutdown_handler;
@@ -30,17 +29,10 @@ use crate::{
 };
 use service::{NymVpnService, NymVpnServiceParameters};
 
-fn main() -> anyhow::Result<()> {
-    let rt = runtime::new_runtime();
-    rt.block_on(async_main())
-}
-
-async fn async_main() -> anyhow::Result<()> {
+// Are we sure we need 10 worker threads?
+#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
+async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-
-    // TODO: Can't we initialize this later in `run_vpn_service()`?
-    let _sentry_guard = sentry::init_sentry();
-    let sentry_enabled = _sentry_guard.is_some();
 
     match args.command.unwrap_or_default() {
         #[cfg(windows)]
@@ -63,13 +55,17 @@ async fn async_main() -> anyhow::Result<()> {
             windows_service::installation::start_service()?;
             Ok(())
         }
-        Command::RunAsService | Command::RunStandalone => {
-            run_vpn_service(args, sentry_enabled).await
-        }
+        Command::RunAsService | Command::RunStandalone => run_vpn_service(args).await,
     }
 }
 
-async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<()> {
+async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
+    // It would be better to call `init_sentry()` much later, as it forces a double-read
+    // of the global configuration file, however there is a chicken-and-egg problem WRT
+    // logging setup and reading the config file.
+    let _sentry_guard = sentry::init_sentry();
+    let sentry_enabled = _sentry_guard.is_some();
+
     let shutdown_token = CancellationToken::new();
     let run_as_service = args.is_run_as_service();
     let options = logging::Options {
