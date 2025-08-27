@@ -205,9 +205,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                     Ok(result) => {
                         match result {
                             Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage))},
-                            Err(SyncError::ApiRequestError) => {
+                            Err(e) if e.is_retryable() => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {
-                                    NextAccountControllerState::NewState(ErrorState::enter(SyncError::ApiRequestError.into()))
+                                    NextAccountControllerState::NewState(ErrorState::enter(e.into()))
                                 } else {
                                     NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
                                 }
@@ -301,6 +301,15 @@ enum SyncError {
     DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,
+}
+
+impl SyncError {
+    fn is_retryable(&self) -> bool {
+        matches!(
+            self,
+            SyncError::ApiRequestError | SyncError::DeviceTimeDesynced
+        )
+    }
 }
 
 impl From<VpnApiClientError> for SyncError {
