@@ -227,8 +227,8 @@ impl From<nym_vpn_lib_types::ActionAfterDisconnect> for ActionAfterDisconnect {
 
 #[derive(uniffi::Enum)]
 pub enum ErrorStateReason {
-    /// Issues related to firewall configuration.
-    Firewall,
+    /// Failure to set firewall policy.
+    SetFirewallPolicy,
 
     /// Failure to configure routing.
     Routing,
@@ -381,7 +381,7 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
 impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
     fn from(value: nym_vpn_lib_types::ErrorStateReason) -> Self {
         match value {
-            nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::Firewall,
+            nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::SetFirewallPolicy,
             nym_vpn_lib_types::ErrorStateReason::Routing => Self::Routing,
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
             nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,

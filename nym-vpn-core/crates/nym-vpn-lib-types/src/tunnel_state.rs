@@ -135,7 +135,7 @@ pub enum ActionAfterDisconnect {
 
 #[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
 pub enum ErrorStateReason {
-    /// Issues related to firewall configuration.
+    /// Failure to set firewall policy.
     SetFirewallPolicy,
 
     /// Failure to configure routing.
