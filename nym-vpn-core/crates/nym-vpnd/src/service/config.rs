@@ -167,8 +167,6 @@ pub enum ConfigSetupError {
     },
 }
 
-pub const CURRENT_SERVICE_CONFIG_VERSION: u32 = 1; 
-
 //
 // In order to allow migrations to work in the future:
 //
@@ -186,6 +184,10 @@ pub struct NymVpnServiceConfig {
     pub(super) exit_point: gateway_directory::ExitPoint,
 }
 
+impl NymVpnServiceConfig {
+    pub const CURRENT_VERSION: u32 = 1;
+}
+
 impl fmt::Display for NymVpnServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -199,7 +201,7 @@ impl fmt::Display for NymVpnServiceConfig {
 impl Default for NymVpnServiceConfig {
     fn default() -> Self {
         Self {
-            version: CURRENT_SERVICE_CONFIG_VERSION,
+            version: Self::CURRENT_VERSION,
             entry_point: gateway_directory::EntryPoint::Random,
             exit_point: gateway_directory::ExitPoint::Random,
         }

@@ -3,8 +3,6 @@
 
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 
-pub const CURRENT_GLOBAL_CONFIG_VERSION: u32 = 1;
-
 //
 // In order to allow migrations to work in the future:
 //
@@ -31,7 +29,7 @@ pub struct GlobalConfigFile {
 impl Default for GlobalConfigFile {
     fn default() -> Self {
         Self {
-            version: CURRENT_GLOBAL_CONFIG_VERSION,
+            version: Self::CURRENT_VERSION,
             network_name: NymNetworkDetails::default().network_name,
             sentry_monitoring: false,
             collect_network_statistics: true,
@@ -40,6 +38,8 @@ impl Default for GlobalConfigFile {
 }
 
 impl GlobalConfigFile {
+    pub const CURRENT_VERSION: u32 = 1;
+
     pub fn read_from_file() -> anyhow::Result<Self> {
         let json_config_path =
             crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
