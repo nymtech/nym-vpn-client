@@ -684,7 +684,7 @@ impl Error {
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
-            Self::StartLocalDnsResolver(_) => ErrorStateReason::StartLocalDnsResolver,
+            Self::StartLocalDnsResolver(_) => None?,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,

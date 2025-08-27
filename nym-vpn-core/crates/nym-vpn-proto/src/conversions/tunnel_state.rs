@@ -41,9 +41,6 @@ impl TryFrom<proto::tunnel_state::ErrorStateReason> for ErrorStateReason {
             Reason::SetDns(error_state_reason::SetDns {}) => Self::SetDns,
             Reason::TunDevice(error_state_reason::TunDevice {}) => Self::TunDevice,
             Reason::TunnelProvider(error_state_reason::TunnelProvider {}) => Self::TunnelProvider,
-            Reason::StartLocalDnsResolver(error_state_reason::StartLocalDnsResolver {}) => {
-                Self::StartLocalDnsResolver
-            }
             Reason::SameEntryAndExitGateway(error_state_reason::SameEntryAndExitGateway {}) => {
                 Self::SameEntryAndExitGateway
             }
@@ -114,9 +111,6 @@ impl From<ErrorStateReason> for proto::tunnel_state::ErrorStateReason {
             ErrorStateReason::TunDevice => Reason::TunDevice(error_state_reason::TunDevice {}),
             ErrorStateReason::TunnelProvider => {
                 Reason::TunnelProvider(error_state_reason::TunnelProvider {})
-            }
-            ErrorStateReason::StartLocalDnsResolver => {
-                Reason::StartLocalDnsResolver(error_state_reason::StartLocalDnsResolver {})
             }
             ErrorStateReason::SameEntryAndExitGateway => {
                 Reason::SameEntryAndExitGateway(error_state_reason::SameEntryAndExitGateway {})
