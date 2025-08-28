@@ -251,3 +251,9 @@ fun determineVersionName(): String {
 		}
 	}
 }
+
+tasks.whenTaskAdded {
+	if (name.contains("ArtProfile")) {
+		enabled = false
+	}
+}
