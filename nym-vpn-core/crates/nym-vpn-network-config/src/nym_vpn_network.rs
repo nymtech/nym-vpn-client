@@ -21,8 +21,6 @@ pub struct NymVpnNetwork {
 
 impl NymVpnNetwork {
     pub fn new(network_details: NymNetworkDetails) -> Self {
-        tracing::info!("NymNetworkDetails!!!! {:#?}", network_details);
-
         // TODO: refactor out this junk
         #[allow(clippy::expect_used)]
         Self {
