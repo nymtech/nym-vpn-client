@@ -283,11 +283,17 @@ message GetAccountLinksRequest {
   string locale = 1;
 }
 
+message EstablishingConnectionData {
+  Gateway entry_gateway = 1;
+  Gateway exit_gateway = 2;
+  optional TunnelConnectionData tunnel = 4;
+}
+
 message ConnectionData {
   Gateway entry_gateway = 1;
   Gateway exit_gateway = 2;
   google.protobuf.Timestamp connected_at = 3;
-  TunnelConnectionData tunnel = 4;
+  optional TunnelConnectionData tunnel = 4;
 }
 
 message MixnetConnectionData {
@@ -356,7 +362,7 @@ message TunnelState {
   message Disconnected {}
   message Connecting {
     uint32 retry_attempt = 1;
-    optional ConnectionData connection_data = 2;
+    optional EstablishingConnectionData connection_data = 2;
   }
   message Connected {
     ConnectionData connection_data = 1;

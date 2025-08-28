@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::connection_data::{ConnectionData, TunnelConnectionData};
+use super::connection_data::{ConnectionData, EstablishingConnectionData, TunnelConnectionData};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
@@ -18,7 +18,7 @@ pub enum TunnelState {
     /// Tunnel connection is being established.
     Connecting {
         retry_attempt: u32,
-        connection_data: Option<ConnectionData>,
+        connection_data: Option<EstablishingConnectionData>,
     },
 
     /// Tunnel is connected.
@@ -48,7 +48,7 @@ impl std::fmt::Display for TunnelState {
                 connection_data,
             } => match connection_data {
                 Some(connection_data) => match connection_data.tunnel {
-                    TunnelConnectionData::Mixnet(ref data) => {
+                    Some(TunnelConnectionData::Mixnet(ref data)) => {
                         write!(
                             f,
                             "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
@@ -59,12 +59,21 @@ impl std::fmt::Display for TunnelState {
                             retry_attempt
                         )
                     }
-                    TunnelConnectionData::Wireguard(ref data) => {
+                    Some(TunnelConnectionData::Wireguard(ref data)) => {
                         write!(
                             f,
                             "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
                             data.entry.endpoint,
                             data.exit.endpoint,
+                            connection_data.entry_gateway.id,
+                            connection_data.exit_gateway.id,
+                            retry_attempt
+                        )
+                    }
+                    None => {
+                        write!(
+                            f,
+                            "Connecting (entry: {} → exit: {}), attempt {}",
                             connection_data.entry_gateway.id,
                             connection_data.exit_gateway.id,
                             retry_attempt

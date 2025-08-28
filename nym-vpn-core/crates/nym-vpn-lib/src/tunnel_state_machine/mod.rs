@@ -45,7 +45,7 @@ use nym_gateway_directory::{
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
-    MixnetEvent, TunnelEvent, TunnelState, TunnelType,
+    EstablishingConnectionData, MixnetEvent, TunnelEvent, TunnelState, TunnelType,
 };
 use nym_wg_gateway_client::Error as WgGatewayClientError;
 
@@ -281,7 +281,7 @@ enum PrivateTunnelState {
     Connecting {
         /// Connection attempt.
         retry_attempt: u32,
-        connection_data: Option<ConnectionData>,
+        connection_data: Option<EstablishingConnectionData>,
     },
     Connected {
         connection_data: ConnectionData,

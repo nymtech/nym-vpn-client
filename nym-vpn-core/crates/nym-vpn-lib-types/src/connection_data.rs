@@ -27,7 +27,20 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
     }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EstablishingConnectionData {
+    /// Mixnet entry gateway.
+    pub entry_gateway: Gateway,
+
+    /// Mixnet exit gateway.
+    pub exit_gateway: Gateway,
+
+    /// Tunnel connection data.
+    /// Becomes available once tunnel connection is initiated.
+    pub tunnel: Option<TunnelConnectionData>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: Gateway,
@@ -35,23 +48,11 @@ pub struct ConnectionData {
     /// Mixnet exit gateway.
     pub exit_gateway: Gateway,
 
-    /// When the tunnel was last established.
-    /// Set once the tunnel is connected.
-    pub connected_at: Option<OffsetDateTime>,
+    /// When the tunnel connection was last established.
+    pub connected_at: OffsetDateTime,
 
     /// Tunnel connection data.
     pub tunnel: TunnelConnectionData,
-}
-
-impl fmt::Debug for ConnectionData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ConnectionData")
-            .field("entry_gateway", &self.entry_gateway)
-            .field("exit_gateway", &self.exit_gateway)
-            .field("connected_at", &self.connected_at)
-            .field("tunnel", &self.tunnel)
-            .finish()
-    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

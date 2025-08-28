@@ -19,8 +19,8 @@ pub use account::{
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
-    ConnectionData, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    WireguardConnectionData, WireguardNode,
+    ConnectionData, EstablishingConnectionData, Gateway, MixnetConnectionData, NymAddress,
+    TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,

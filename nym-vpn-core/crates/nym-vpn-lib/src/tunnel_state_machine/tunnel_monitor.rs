@@ -48,8 +48,9 @@ use super::{
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
-    ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
-    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    ConnectionData, ErrorStateReason, EstablishingConnectionData, Gateway, MixnetConnectionData,
+    MixnetEvent, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
+    WireguardNode,
 };
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -130,7 +131,7 @@ pub enum TunnelMonitorEvent {
         /// Tunnel interface
         tunnel_interface: TunnelInterface,
         /// Connection data
-        connection_data: Box<ConnectionData>,
+        connection_data: Box<EstablishingConnectionData>,
         /// Back channel to acknowledge that the event has been processed
         reply_tx: tokio::sync::oneshot::Sender<()>,
     },
@@ -442,17 +443,16 @@ impl TunnelMonitor {
             }
         };
 
-        let connection_data = ConnectionData {
-            entry_gateway: Gateway::from(*selected_gateways.entry),
-            exit_gateway: Gateway::from(*selected_gateways.exit),
-            connected_at: None,
-            tunnel: tunnel_conn_data,
+        let establishing_connection_data = EstablishingConnectionData {
+            entry_gateway: Gateway::from(*selected_gateways.entry.clone()),
+            exit_gateway: Gateway::from(*selected_gateways.exit.clone()),
+            tunnel: Some(tunnel_conn_data.clone()),
         };
 
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::InterfaceUp {
             tunnel_interface: tunnel_interface.clone(),
-            connection_data: Box::new(connection_data.clone()),
+            connection_data: Box::new(establishing_connection_data),
             reply_tx,
         });
 
@@ -485,8 +485,10 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
 
         let connection_data = ConnectionData {
-            connected_at: Some(OffsetDateTime::now_utc()),
-            ..connection_data
+            entry_gateway: Gateway::from(*selected_gateways.entry),
+            exit_gateway: Gateway::from(*selected_gateways.exit),
+            connected_at: OffsetDateTime::now_utc(),
+            tunnel: tunnel_conn_data,
         };
         self.send_event(TunnelMonitorEvent::Up {
             tunnel_interface,

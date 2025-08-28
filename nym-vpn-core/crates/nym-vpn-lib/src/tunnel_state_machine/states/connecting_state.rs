@@ -20,9 +20,8 @@ use nym_firewall::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
     TransportProtocol,
 };
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use nym_gateway_directory::Gateway;
 use nym_gateway_directory::ResolvedConfig;
+use nym_vpn_lib_types::{EstablishingConnectionData, Gateway};
 
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
@@ -119,6 +118,15 @@ impl ConnectingState {
 
         let (monitor_event_sender, monitor_event_receiver) = mpsc::unbounded_channel();
 
+        let initial_connection_data =
+            selected_gateways
+                .as_ref()
+                .map(|gateways| EstablishingConnectionData {
+                    entry_gateway: Gateway::from(*gateways.entry.clone()),
+                    exit_gateway: Gateway::from(*gateways.exit.clone()),
+                    tunnel: None,
+                });
+
         (
             Box::new(Self {
                 tunnel_monitor_handle: None,
@@ -132,7 +140,7 @@ impl ConnectingState {
             }),
             PrivateTunnelState::Connecting {
                 retry_attempt,
-                connection_data: None,
+                connection_data: initial_connection_data,
             },
         )
     }
@@ -141,7 +149,7 @@ impl ConnectingState {
     async fn set_firewall_policy(
         shared_state: &mut SharedState,
         tunnel: Option<TunnelInterface>,
-        entry_gateway: Option<&Gateway>,
+        entry_gateway: Option<&nym_gateway_directory::Gateway>,
         wg_entry_endpoint: Option<SocketAddr>,
         resolved_gateway_addresses: &[SocketAddr],
     ) -> Result<()> {

@@ -7,8 +7,9 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData,
-    NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishingConnectionData, Gateway,
+    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData,
+    WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -158,7 +159,9 @@ impl TryFrom<proto::TunnelState> for TunnelState {
                 retry_attempt,
                 connection_data,
             }) => {
-                let connection_data = connection_data.map(ConnectionData::try_from).transpose()?;
+                let connection_data = connection_data
+                    .map(EstablishingConnectionData::try_from)
+                    .transpose()?;
 
                 Self::Connecting {
                     retry_attempt,
@@ -182,17 +185,50 @@ impl TryFrom<proto::TunnelState> for TunnelState {
     }
 }
 
+impl TryFrom<proto::EstablishingConnectionData> for EstablishingConnectionData {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::EstablishingConnectionData) -> Result<Self, Self::Error> {
+        let entry_gateway =
+            value
+                .entry_gateway
+                .map(Gateway::from)
+                .ok_or(ConversionError::NoValueSet(
+                    "EstablishingConnectionData.entry_gateway",
+                ))?;
+
+        let exit_gateway =
+            value
+                .exit_gateway
+                .map(Gateway::from)
+                .ok_or(ConversionError::NoValueSet(
+                    "EstablishingConnectionData.exit_gateway",
+                ))?;
+
+        let tunnel = value
+            .tunnel
+            .map(TunnelConnectionData::try_from)
+            .transpose()?;
+
+        Ok(Self {
+            entry_gateway,
+            exit_gateway,
+            tunnel,
+        })
+    }
+}
+
 impl TryFrom<proto::ConnectionData> for ConnectionData {
     type Error = ConversionError;
 
     fn try_from(value: proto::ConnectionData) -> Result<Self, Self::Error> {
         let connected_at = value
             .connected_at
-            .map(|timestamp| {
-                crate::conversions::prost::prost_timestamp_into_offset_datetime(timestamp)
-            })
-            .transpose()
-            .map_err(|e| ConversionError::ConvertTime("ConnectionData.connected_at", e))?;
+            .ok_or(ConversionError::NoValueSet("ConnectionData.connected_at"))?;
+
+        let connected_at =
+            crate::conversions::prost::prost_timestamp_into_offset_datetime(connected_at)
+                .map_err(|e| ConversionError::ConvertTime("ConnectionData.connected_at", e))?;
 
         let tunnel_connection_data = value
             .tunnel
@@ -213,14 +249,24 @@ impl TryFrom<proto::ConnectionData> for ConnectionData {
     }
 }
 
+impl From<EstablishingConnectionData> for proto::EstablishingConnectionData {
+    fn from(value: EstablishingConnectionData) -> Self {
+        proto::EstablishingConnectionData {
+            entry_gateway: Some(proto::Gateway::from(value.entry_gateway)),
+            exit_gateway: Some(proto::Gateway::from(value.exit_gateway)),
+            tunnel: value.tunnel.map(proto::TunnelConnectionData::from),
+        }
+    }
+}
+
 impl From<ConnectionData> for proto::ConnectionData {
     fn from(value: ConnectionData) -> proto::ConnectionData {
         proto::ConnectionData {
             entry_gateway: Some(proto::Gateway::from(value.entry_gateway)),
             exit_gateway: Some(proto::Gateway::from(value.exit_gateway)),
-            connected_at: value
-                .connected_at
-                .map(crate::conversions::prost::offset_datetime_into_proto_timestamp),
+            connected_at: Some(
+                crate::conversions::prost::offset_datetime_into_proto_timestamp(value.connected_at),
+            ),
             tunnel: Some(proto::TunnelConnectionData::from(value.tunnel)),
         }
     }
@@ -417,7 +463,7 @@ impl From<TunnelState> for proto::TunnelState {
                 connection_data,
             } => proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
-                connection_data: connection_data.map(proto::ConnectionData::from),
+                connection_data: connection_data.map(proto::EstablishingConnectionData::from),
             }),
             TunnelState::Connected { connection_data } => {
                 proto::tunnel_state::State::Connected(proto::tunnel_state::Connected {

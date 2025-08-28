@@ -29,7 +29,7 @@ pub enum TunnelState {
     Disconnected,
     Connecting {
         retry_attempt: u32,
-        connection_data: Option<ConnectionData>,
+        connection_data: Option<EstablishingConnectionData>,
     },
     Connected {
         connection_data: ConnectionData,
@@ -54,10 +54,13 @@ impl From<nym_vpn_lib_types::TunnelState> for TunnelState {
             nym_vpn_lib_types::TunnelState::Connecting {
                 retry_attempt,
                 connection_data,
-            } => TunnelState::Connecting {
-                retry_attempt,
-                connection_data: connection_data.map(ConnectionData::from),
-            },
+            } => {
+                let connection_data = connection_data.map(EstablishingConnectionData::from);
+                TunnelState::Connecting {
+                    retry_attempt,
+                    connection_data,
+                }
+            }
             nym_vpn_lib_types::TunnelState::Disconnecting { after_disconnect } => {
                 TunnelState::Disconnecting {
                     after_disconnect: ActionAfterDisconnect::from(after_disconnect),
@@ -448,8 +451,25 @@ impl From<nym_vpn_lib_types::ConnectionData> for ConnectionData {
         Self {
             entry_gateway: Gateway::from(value.entry_gateway),
             exit_gateway: Gateway::from(value.exit_gateway),
-            connected_at: value.connected_at,
+            connected_at: Some(value.connected_at),
             tunnel: TunnelConnectionData::from(value.tunnel),
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct EstablishingConnectionData {
+    pub entry_gateway: Gateway,
+    pub exit_gateway: Gateway,
+    pub tunnel: Option<TunnelConnectionData>,
+}
+
+impl From<nym_vpn_lib_types::EstablishingConnectionData> for EstablishingConnectionData {
+    fn from(value: nym_vpn_lib_types::EstablishingConnectionData) -> Self {
+        Self {
+            entry_gateway: Gateway::from(value.entry_gateway),
+            exit_gateway: Gateway::from(value.exit_gateway),
+            tunnel: value.tunnel.map(TunnelConnectionData::from),
         }
     }
 }
