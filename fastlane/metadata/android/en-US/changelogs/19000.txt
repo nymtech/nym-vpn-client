@@ -1,0 +1,9 @@
+What's new:
+- Download button added for Logs Screen
+- New Privacy & Data screen
+- Network Monitoring flow introduced
+- Welcome screen added
+- Updated UI for modals and SnackBar
+- Data Store improvements
+- Fixes for hardware crashes on specific devices
+- Fix for log reader crash on certain devices
