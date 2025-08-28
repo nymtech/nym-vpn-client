@@ -247,13 +247,8 @@ fun determineVersionName(): String {
 			contains(Constants.NIGHTLY) || contains(Constants.PRERELEASE) ->
 				Constants.VERSION_NAME +
 					"-${grgitService.service.get().grgit.head().abbreviatedId}"
+
 			else -> Constants.VERSION_NAME
 		}
-	}
-}
-
-tasks.whenTaskAdded {
-	if (name.contains("ArtProfile")) {
-		enabled = false
 	}
 }
