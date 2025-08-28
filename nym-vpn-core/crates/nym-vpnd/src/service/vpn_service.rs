@@ -7,10 +7,7 @@ use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
-use std::{
-    path::{Path, PathBuf},
-    time::Instant,
-};
+use std::{path::PathBuf, time::Instant};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -29,7 +26,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     MixnetClientConfig, UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
+    gateway_directory::{self, CachingGatewayClient, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -48,18 +45,13 @@ use nym_vpnd_types::{
 use std::time::Duration;
 
 use super::{
-    config::{
-        DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, NetworkEnvironments,
-        NymVpnServiceConfig,
-    },
+    config::{DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, NetworkEnvironments},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
     },
 };
-use crate::{
-    config::GlobalConfig, logging::LogFileRemoverHandle, service::config::NymVpnServiceConfigExt,
-};
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -664,52 +656,6 @@ impl NymVpnService {
         }
     }
 
-    fn try_setup_config(
-        toml_config_path: &Path,
-        json_config_path: &Path,
-        entry: Option<EntryPoint>,
-        exit: Option<ExitPoint>,
-    ) -> Result<NymVpnServiceConfig> {
-        let json_config_exists = json_config_path.exists();
-        let toml_config_exists = toml_config_path.exists();
-
-        let config = if json_config_exists {
-            let ext_config =
-                super::config::read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
-                    .map_err(Error::ConfigSetup)?;
-
-            let mut config =
-                NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
-
-            config.entry_point = entry.unwrap_or(config.entry_point);
-            config.exit_point = exit.unwrap_or(config.exit_point);
-            config
-        } else if toml_config_exists {
-            let mut config =
-                super::config::read_toml_config_file::<NymVpnServiceConfig>(toml_config_path)
-                    .map_err(Error::ConfigSetup)?;
-
-            config.entry_point = entry.unwrap_or(config.entry_point);
-            config.exit_point = exit.unwrap_or(config.exit_point);
-            config
-        } else {
-            NymVpnServiceConfig {
-                entry_point: entry.unwrap_or(EntryPoint::Random),
-                exit_point: exit.unwrap_or(ExitPoint::Random),
-            }
-        };
-
-        if toml_config_exists {
-            tracing::info!("Removing deprecated config file {:?}", toml_config_path);
-            let _ = std::fs::remove_file(toml_config_path);
-        }
-
-        // Always write back the config file back using the latest JSON version
-        config.write_to_file(json_config_path)?;
-
-        Ok(config)
-    }
-
     async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
         let ConnectArgs {
             entry,
@@ -745,8 +691,12 @@ impl NymVpnService {
         );
         tracing::debug!("Using options: {:?}", options);
 
-        let config =
-            Self::try_setup_config(&self.toml_config_path, &self.json_config_path, entry, exit)?;
+        let config = super::config::setup_service_config(
+            &self.toml_config_path,
+            &self.json_config_path,
+            entry,
+            exit,
+        )?;
 
         tracing::info!("Using config: {}", config);
 
@@ -1108,142 +1058,5 @@ impl NymVpnService {
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         self.network_statistics_enabled = enable;
         Ok(())
-    }
-}
-
-//
-// Because of the way these tests configure the config directory, then need to be run single-threaded:
-//
-// cargo test --package nym-vpnd service::vpn_service::tests -- --nocapture --test-threads=1
-//
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::{
-        env::{set_var, temp_dir},
-        fs,
-        path::PathBuf,
-    };
-
-    struct TestData {
-        config_dir: PathBuf,
-        toml_path: PathBuf,
-        json_path: PathBuf,
-    }
-
-    impl TestData {
-        fn new() -> Self {
-            let config_dir = temp_dir().join(format!(
-                "nym_vpnd_tests_{}_{}",
-                std::process::id(),
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_nanos()
-            ));
-
-            println!("Using config dir: {:?}", config_dir);
-
-            let _ = fs::create_dir_all(&config_dir);
-            unsafe { set_var("NYM_VPND_CONFIG_DIR", &config_dir) }; // See service::config::config_dir()
-
-            let service_dir = config_dir.join("tulips");
-            let _ = fs::create_dir_all(&service_dir);
-
-            let toml_path = service_dir.join(DEFAULT_CONFIG_FILE_TOML);
-            let _ = fs::remove_file(&toml_path);
-
-            let json_path = service_dir.join(DEFAULT_CONFIG_FILE_JSON);
-            let _ = fs::remove_file(&json_path);
-
-            Self {
-                config_dir,
-                toml_path,
-                json_path,
-            }
-        }
-    }
-
-    impl Drop for TestData {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.config_dir);
-        }
-    }
-
-    #[test]
-    fn test_service_config_migrate() {
-        let test_data = TestData::new();
-
-        // Write the TOML config file
-        let toml_content = r#"
-[entry_point.Location]
-location = "FR"
-
-[exit_point.Location]
-location = "BE"
-"#;
-        fs::write(&test_data.toml_path, toml_content).unwrap();
-
-        // Read the configuration
-        let config =
-            NymVpnService::try_setup_config(&test_data.toml_path, &test_data.json_path, None, None)
-                .unwrap();
-        assert_eq!(
-            config.entry_point,
-            EntryPoint::Location {
-                location: "FR".to_string()
-            }
-        );
-        assert_eq!(
-            config.exit_point,
-            ExitPoint::Location {
-                location: "BE".to_string()
-            }
-        );
-
-        // The TOML file should be deleted and replaced with a JSON version
-        assert!(!test_data.toml_path.exists());
-        assert!(test_data.json_path.exists());
-    }
-
-    #[test]
-    fn test_service_config_load() {
-        let test_data = TestData::new();
-
-        // Write the JSON config file
-        let json_content = r#"
-{
-  "version": "v1",
-  "entry_point": {
-    "Location": {
-      "location": "FR"
-    }
-  },
-  "exit_point": {
-    "Location": {
-      "location": "BE"
-    }
-  }
-}
-"#;
-        fs::write(&test_data.json_path, json_content).unwrap();
-
-        // Read the configuration
-        let config =
-            NymVpnService::try_setup_config(&test_data.toml_path, &test_data.json_path, None, None)
-                .unwrap();
-        assert_eq!(
-            config.entry_point,
-            EntryPoint::Location {
-                location: "FR".to_string()
-            }
-        );
-        assert_eq!(
-            config.exit_point,
-            ExitPoint::Location {
-                location: "BE".to_string()
-            }
-        );
     }
 }
