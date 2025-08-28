@@ -7,27 +7,39 @@ use nym_network_defaults::{NymNetworkDetails, var_names};
 use url::Url;
 
 use crate::{
-    AccountManagement, ParsedAccountLinks, Result, SystemMessages,
+    AccountManagement, ApiUrl, ParsedAccountLinks, Result, SystemMessages,
     account_management::AccountLinksConversionError, discovery::Discovery,
 };
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymVpnNetwork {
     pub nym_vpn_api_url: Url,
+    pub nym_vpn_api_urls: Vec<ApiUrl>,
     pub account_management: Option<AccountManagement>,
     pub system_messages: SystemMessages,
 }
 
 impl NymVpnNetwork {
     pub fn new(network_details: NymNetworkDetails) -> Self {
-        // These expects are safe because we are using the hardcoded mainnet defaults
+        tracing::info!("NymNetworkDetails!!!! {:#?}", network_details);
+
+        // TODO: refactor out this junk
         #[allow(clippy::expect_used)]
         Self {
             nym_vpn_api_url: network_details
                 .nym_vpn_api_url
-                .expect("mainnet default for nym_vpn_api_url is missing")
+                .expect("nym_vpn_api_url is missing")
                 .parse()
-                .expect("mainnet default for nym_vpn_api_url is invalid"),
+                .expect("nym_vpn_api_url is invalid"),
+            nym_vpn_api_urls: network_details
+                .nym_vpn_api_urls
+                .unwrap_or_default()
+                .into_iter()
+                .map(|api_url| ApiUrl {
+                    url: api_url.url,
+                    fronts: api_url.front_hosts,
+                })
+                .collect(),
             account_management: None,
             system_messages: SystemMessages::default(),
         }
@@ -65,6 +77,7 @@ impl From<Discovery> for NymVpnNetwork {
     fn from(discovery: Discovery) -> Self {
         Self {
             nym_vpn_api_url: discovery.nym_vpn_api_url,
+            nym_vpn_api_urls: discovery.nym_vpn_api_urls,
             account_management: discovery.account_management,
             system_messages: discovery.system_messages,
         }
@@ -75,6 +88,9 @@ impl From<Discovery> for NymVpnNetwork {
 pub enum NymVpnNetworkFromDetailsError {
     #[error("Nym vpn api url is missing in the network details")]
     NymVpnApiUrlMissing,
+
+    #[error("Nym vpn api urls are missing in the network details")]
+    NymVpnApiUrlsMissing,
 
     #[error("Failed to parse Nym VPN API URL")]
     ParseNymVpnApiUrlError(#[source] url::ParseError),
@@ -90,9 +106,21 @@ impl TryFrom<&NymNetworkDetails> for NymVpnNetwork {
             .ok_or(NymVpnNetworkFromDetailsError::NymVpnApiUrlMissing)?
             .parse()
             .map_err(NymVpnNetworkFromDetailsError::ParseNymVpnApiUrlError)?;
-
+        let nym_vpn_api_urls = network_details
+            .nym_vpn_api_urls
+            .clone()
+            .ok_or(NymVpnNetworkFromDetailsError::NymVpnApiUrlsMissing)?
+            .iter()
+            .map(|api_url| {
+                Ok(ApiUrl {
+                    url: api_url.url.clone(),
+                    fronts: api_url.front_hosts.clone(),
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(Self {
             nym_vpn_api_url,
+            nym_vpn_api_urls,
             account_management: None,
             system_messages: SystemMessages::default(),
         })

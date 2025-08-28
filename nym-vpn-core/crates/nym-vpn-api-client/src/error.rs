@@ -17,7 +17,7 @@ pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe2614
 
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
-    #[error("failed tp create vpn api client")]
+    #[error("failed to create vpn api client")]
     CreateVpnApiClient(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get account")]

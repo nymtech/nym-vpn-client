@@ -300,6 +300,11 @@ impl NymVpnService {
             network_env: *parameters.network_env.clone(),
         };
 
+        tracing::info!(
+            "nym_network_details(): {:#?}",
+            parameters.network_env.nym_network_details()
+        );
+
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             parameters.network_env.nym_network_details(),
             parameters.user_agent.clone(),

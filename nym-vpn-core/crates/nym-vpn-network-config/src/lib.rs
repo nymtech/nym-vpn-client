@@ -48,6 +48,8 @@ const NETWORKS_SUBDIR: &str = "networks";
 // Refresh the discovery and network details files periodically
 const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
 
+pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
+
 #[derive(Clone, Debug)]
 pub struct Network {
     pub nym_network: NymNetwork,
@@ -190,7 +192,7 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Netw
 
     // Lookup network discovery to bootstrap
     let discovery = Discovery::ensure_exists(config_path, network_name).await?;
-    tracing::trace!("Discovery: {:#?}", discovery);
+    tracing::info!("Discovery: {:#?}", discovery);
 
     tracing::trace!(
         "System messages: {}",

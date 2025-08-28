@@ -10,7 +10,7 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_gateway_directory::GatewayType;
 use nym_sdk::UserAgent;
 use nym_vpn_network_config::{
-    NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
+    ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
 };
 use nym_vpnd_types::{
     AccountCommandResponse, ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions,
@@ -249,8 +249,14 @@ impl TryFrom<proto::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
                             ConversionError::Generic(format!("failed to parse Url: {e}"))
                         })
                     })?;
+                let nym_vpn_api_urls = s
+                    .nym_vpn_api_urls
+                    .into_iter()
+                    .map(ApiUrl::from)
+                    .collect::<Vec<_>>();
                 Ok(NymVpnNetwork {
                     nym_vpn_api_url,
+                    nym_vpn_api_urls,
                     account_management: Default::default(),
                     system_messages: Default::default(),
                 })
