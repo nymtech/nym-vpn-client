@@ -59,7 +59,7 @@ impl GlobalConfig {
             let _ = std::fs::remove_file(&toml_config_path);
         }
 
-        // Always write back the config file back in the latest version
+        // Always write back the config file back using the latest JSON version
         config.write_to_file()?;
 
         Ok(config)
@@ -154,6 +154,12 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExtV1 {
     }
 }
 
+//
+// Because of the way these tests configure the config directory, then need to be run single-threaded:
+//
+// cargo test --package nym-vpnd config::tests -- --nocapture --test-threads=1
+//
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,7 +186,6 @@ mod tests {
                     .as_nanos()
             ));
 
-            // Run test with: cargo test -- --nocapture
             println!("Using config dir: {:?}", config_dir);
 
             let _ = fs::create_dir_all(&config_dir);
@@ -207,10 +212,10 @@ mod tests {
     }
 
     #[test]
-    fn test_global_config_file() {
+    fn test_global_config_migrate() {
         let test_data = TestData::new();
 
-        // Write the config using the deprecated TOML format
+        // Write the TOML config file
         let toml_content = r#"
 network_name = "tulips"
 sentry_monitoring = false
@@ -224,8 +229,30 @@ collect_network_statistics = true
         assert!(!config.sentry_monitoring);
         assert!(config.collect_network_statistics);
 
-        // The toml file should be deleted and replaced with a json one
+        // The TOML file should be deleted and replaced with a JSON version
         assert!(!test_data.toml_path.exists());
         assert!(test_data.json_path.exists());
+    }
+
+    #[test]
+    fn test_global_config_load() {
+        let test_data = TestData::new();
+
+        // Write the JSON config file
+        let json_content = r#"
+{
+  "version": "v1",
+  "network_name": "tulips",
+  "sentry_monitoring": false,
+  "collect_network_statistics": true
+}
+"#;
+        fs::write(&test_data.json_path, json_content).unwrap();
+
+        // Read the configuration
+        let config = GlobalConfig::read_from_file().unwrap();
+        assert_eq!(config.network_name, "tulips");
+        assert!(!config.sentry_monitoring);
+        assert!(config.collect_network_statistics);
     }
 }
