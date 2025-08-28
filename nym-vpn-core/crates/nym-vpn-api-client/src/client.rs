@@ -82,12 +82,25 @@ impl VpnApiClient {
             })?;
 
         // Build client with domain fronting support from network details
-        let inner = nym_http_api_client::ClientBuilder::from_network(network)
-            .map_err(|e| {
-                let err: HttpClientError<UnexpectedError> =
-                    HttpClientError::GenericRequestFailure(e.to_string());
-                VpnApiClientError::CreateVpnApiClient(err)
-            })?
+        let nym_vpn_api_urls = vpn_urls
+            .iter()
+            .map(|v| {
+                v.url.parse().map_err(|e| {
+                    let err: HttpClientError<UnexpectedError> =
+                        HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
+                    VpnApiClientError::CreateVpnApiClient(err)
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
+        // nym_http_api_client::ClientBuilder::from_network(network)
+        let inner = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
+            // .map_err(|e| {
+            //     let err: HttpClientError<UnexpectedError> =
+            //         HttpClientError::GenericRequestFailure(e.to_string());
+            //     VpnApiClientError::CreateVpnApiClient(err)
+            // })?
             .with_user_agent(user_agent.clone())
             .with_timeout(NYM_VPN_API_TIMEOUT)
             .build::<UnexpectedError>()
@@ -131,12 +144,26 @@ impl VpnApiClient {
             )))
         })?;
 
-        let mut builder = nym_http_api_client::ClientBuilder::from_network(network)
-            .map_err(|e| {
-                VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
-                    format!("Failed to create HTTP client from network: {e}"),
-                ))
-            })?
+        // Build client with domain fronting support from network details
+        let nym_vpn_api_urls = vpn_urls
+            .iter()
+            .map(|v| {
+                v.url.parse().map_err(|e| {
+                    let err: HttpClientError<UnexpectedError> =
+                        HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
+                    VpnApiClientError::CreateVpnApiClient(err)
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
+        // nym_http_api_client::ClientBuilder::from_network(network)
+        let mut builder = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
+            // .map_err(|e| {
+            //     VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
+            //         format!("Failed to create HTTP client from network: {e}"),
+            //     ))
+            // })?
             .with_user_agent(user_agent.clone())
             .with_timeout(NYM_VPN_API_TIMEOUT);
 

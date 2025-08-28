@@ -126,7 +126,7 @@ pub enum VpnApiClientError {
     PostAccount(#[source] HttpClientError<UnexpectedError>),
 }
 
-pub type Result<T> = std::result::Result<T, VpnApiClientError>;
+pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;
 
 impl TryFrom<VpnApiClientError> for NymErrorResponse {
     type Error = VpnApiClientError;
