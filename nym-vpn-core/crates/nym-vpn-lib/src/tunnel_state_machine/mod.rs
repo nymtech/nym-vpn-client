@@ -795,16 +795,14 @@ impl account::Error {
                 ))),
                 AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
                     Some(ErrorStateReason::Internal(format!(
-                        "Failed to initialize account storage: {}",
-                        context
+                        "Failed to initialize account storage: {context}",
                     )))
                 }
                 AcError::ErrorState(AccountControllerErrorStateReason::ApiFailure {
                     context,
                     details,
                 }) => Some(ErrorStateReason::Internal(format!(
-                    "Account API failure: {} {}",
-                    context, details
+                    "Account API failure: {context} {details}"
                 ))),
             },
         }
