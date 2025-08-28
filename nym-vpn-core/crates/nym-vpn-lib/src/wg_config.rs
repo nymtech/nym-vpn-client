@@ -188,7 +188,7 @@ impl WgNodeConfig {
                 #[cfg(target_os = "linux")]
                 fwmark,
                 #[cfg(feature = "amnezia")]
-                azwg_config: Some(AmneziaConfig::BASE),
+                azwg_config: Some(AmneziaConfig::OFF),
             },
             peer: WgPeer {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
