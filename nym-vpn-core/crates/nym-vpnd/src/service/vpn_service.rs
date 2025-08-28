@@ -274,8 +274,8 @@ impl NymVpnService {
             .clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
-        let config_file_toml = config_dir.join(DEFAULT_CONFIG_FILE_TOML);
-        let config_file_json = config_dir.join(DEFAULT_CONFIG_FILE_JSON);
+        let toml_config_path = config_dir.join(DEFAULT_CONFIG_FILE_TOML);
+        let json_config_path = config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let data_dir = super::config::data_dir();
         let network_data_dir = data_dir.join(&network_name);
 
@@ -449,8 +449,8 @@ impl NymVpnService {
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
-            toml_config_path: config_file_toml,
-            json_config_path: config_file_json,
+            toml_config_path,
+            json_config_path,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             tunnel_state: TunnelState::Disconnected,
@@ -693,7 +693,6 @@ impl NymVpnService {
             config.exit_point = exit.unwrap_or(config.exit_point);
             config
         } else {
-            tracing::info!("No configuration file exists; using default configuration");
             NymVpnServiceConfig {
                 entry_point: entry.unwrap_or(EntryPoint::Random),
                 exit_point: exit.unwrap_or(ExitPoint::Random),
@@ -705,7 +704,7 @@ impl NymVpnService {
             let _ = std::fs::remove_file(toml_config_path);
         }
 
-        // Always write back the config file back in the latest version
+        // Always write back the config file back using the latest JSON version
         config.write_to_file(json_config_path)?;
 
         Ok(config)
@@ -748,8 +747,6 @@ impl NymVpnService {
 
         let config =
             Self::try_setup_config(&self.toml_config_path, &self.json_config_path, entry, exit)?;
-
-        // Migrate configuration here, where we will have more information about the environment.
 
         tracing::info!("Using config: {}", config);
 
@@ -1114,6 +1111,12 @@ impl NymVpnService {
     }
 }
 
+//
+// Because of the way these tests configure the config directory, then need to be run single-threaded:
+//
+// cargo test --package nym-vpnd service::vpn_service::tests -- --nocapture --test-threads=1
+//
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1140,7 +1143,6 @@ mod tests {
                     .as_nanos()
             ));
 
-            // Run test with: cargo test -- --nocapture
             println!("Using config dir: {:?}", config_dir);
 
             let _ = fs::create_dir_all(&config_dir);
@@ -1165,15 +1167,15 @@ mod tests {
 
     impl Drop for TestData {
         fn drop(&mut self) {
-            //let _ = fs::remove_dir_all(&self.config_dir);
+            let _ = fs::remove_dir_all(&self.config_dir);
         }
     }
 
     #[test]
-    fn test_service_config_file() {
+    fn test_service_config_migrate() {
         let test_data = TestData::new();
 
-        // Write the config using the deprecated TOML format
+        // Write the TOML config file
         let toml_content = r#"
 [entry_point.Location]
 location = "FR"
@@ -1200,8 +1202,48 @@ location = "BE"
             }
         );
 
-        // The toml file should be deleted and replaced with a json one
+        // The TOML file should be deleted and replaced with a JSON version
         assert!(!test_data.toml_path.exists());
         assert!(test_data.json_path.exists());
+    }
+
+    #[test]
+    fn test_service_config_load() {
+        let test_data = TestData::new();
+
+        // Write the JSON config file
+        let json_content = r#"
+{
+  "version": "v1",
+  "entry_point": {
+    "Location": {
+      "location": "FR"
+    }
+  },
+  "exit_point": {
+    "Location": {
+      "location": "BE"
+    }
+  }
+}
+"#;
+        fs::write(&test_data.json_path, json_content).unwrap();
+
+        // Read the configuration
+        let config =
+            NymVpnService::try_setup_config(&test_data.toml_path, &test_data.json_path, None, None)
+                .unwrap();
+        assert_eq!(
+            config.entry_point,
+            EntryPoint::Location {
+                location: "FR".to_string()
+            }
+        );
+        assert_eq!(
+            config.exit_point,
+            ExitPoint::Location {
+                location: "BE".to_string()
+            }
+        );
     }
 }
