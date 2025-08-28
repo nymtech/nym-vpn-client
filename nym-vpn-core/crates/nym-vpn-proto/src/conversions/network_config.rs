@@ -305,7 +305,10 @@ impl From<nym_vpn_network_config::SystemMessage> for proto::SystemMessage {
         Self {
             name: system_message.name,
             message: system_message.message,
-            properties: system_message.properties.into_inner(),
+            properties: system_message
+                .properties
+                .map(|v| v.into_inner())
+                .unwrap_or_default(),
         }
     }
 }

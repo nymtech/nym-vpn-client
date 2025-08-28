@@ -197,7 +197,7 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
         SystemMessage {
             name: value.name,
             message: value.message,
-            properties: value.properties.into_inner(),
+            properties: value.properties.map(|v| v.into_inner()).unwrap_or_default(),
         }
     }
 }

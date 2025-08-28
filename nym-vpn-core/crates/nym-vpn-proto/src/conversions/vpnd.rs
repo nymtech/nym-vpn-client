@@ -340,7 +340,7 @@ impl From<proto::SystemMessage> for SystemMessage {
             display_until: None,
             name: value.name,
             message: value.message,
-            properties: Properties::from(value.properties),
+            properties: Some(Properties::from(value.properties)),
         }
     }
 }

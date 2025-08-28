@@ -11,9 +11,28 @@ use url::Url;
 
 use crate::system_configuration::{ScoreThresholds, SystemConfiguration};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct SystemMessages {
     pub messages: Vec<SystemMessage>,
+}
+
+impl<'de> Deserialize<'de> for SystemMessages {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let messages = Vec::<SystemMessage>::deserialize(deserializer)?;
+        Ok(SystemMessages { messages })
+    }
+}
+
+impl Serialize for SystemMessages {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.messages.serialize(serializer)
+    }
 }
 
 impl SystemMessages {
@@ -64,7 +83,7 @@ pub struct SystemMessage {
     pub display_from: Option<OffsetDateTime>,
     pub display_until: Option<OffsetDateTime>,
     pub message: String,
-    pub properties: Properties,
+    pub properties: Option<Properties>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -97,7 +116,9 @@ impl fmt::Display for SystemMessage {
         write!(
             f,
             "{{ name: \"{}\", message: \"{}\", properties: {} }}",
-            self.name, self.message, self.properties
+            self.name,
+            self.message,
+            self.properties.as_ref().unwrap_or(&Properties::default())
         )
     }
 }
@@ -148,7 +169,7 @@ impl From<SystemMessageResponse> for SystemMessage {
 
         let properties = Properties::deserialize(response.properties)
             .inspect_err(|e| tracing::warn!("Failed to parse properties: {}", e))
-            .unwrap_or(Properties::default());
+            .ok();
 
         Self {
             name: response.name,
@@ -213,10 +234,10 @@ mod tests {
                 ),
                 display_until: None,
                 message: "This is a test message, no need to panic!".to_string(),
-                properties: Properties(HashMap::from_iter(vec![(
+                properties: Some(Properties(HashMap::from_iter(vec![(
                     "modal".to_string(),
                     "true".to_string()
-                )])),
+                )]))),
             }
         );
     }
@@ -229,10 +250,10 @@ mod tests {
             display_from: Some(OffsetDateTime::now_utc() - time::Duration::days(1)),
             display_until: None,
             message: "This is a test message, no need to panic!".to_string(),
-            properties: Properties(HashMap::from_iter(vec![(
+            properties: Some(Properties(HashMap::from_iter(vec![(
                 "modal".to_string(),
                 "true".to_string(),
-            )])),
+            )]))),
         };
         assert!(message.is_current());
     }
@@ -245,10 +266,10 @@ mod tests {
             display_from: Some(OffsetDateTime::now_utc() + time::Duration::days(1)),
             display_until: None,
             message: "This is a test message, no need to panic!".to_string(),
-            properties: Properties(HashMap::from_iter(vec![(
+            properties: Some(Properties(HashMap::from_iter(vec![(
                 "modal".to_string(),
                 "true".to_string(),
-            )])),
+            )]))),
         };
         assert!(!message.is_current());
     }
@@ -262,10 +283,10 @@ mod tests {
             // Today
             display_until: Some(OffsetDateTime::now_utc()),
             message: "This is a test message, no need to panic!".to_string(),
-            properties: Properties(HashMap::from_iter(vec![(
+            properties: Some(Properties(HashMap::from_iter(vec![(
                 "modal".to_string(),
                 "true".to_string(),
-            )])),
+            )]))),
         };
         assert!(!message.is_current());
     }

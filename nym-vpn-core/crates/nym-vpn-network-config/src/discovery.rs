@@ -465,10 +465,10 @@ mod tests {
                 ),
                 display_until: None,
                 message: "This is a test message, no need to panic!".to_owned(),
-                properties: Properties::from(HashMap::from([(
+                properties: Some(Properties::from(HashMap::from([(
                     "modal".to_owned(),
                     "true".to_owned(),
-                )])),
+                )]))),
             }]),
             system_configuration: None,
         };
