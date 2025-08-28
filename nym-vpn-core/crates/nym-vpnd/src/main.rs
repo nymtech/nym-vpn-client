@@ -24,7 +24,7 @@ use nym_vpnd_types::log_path::LogPath;
 
 use crate::{
     cli::{CliArgs, Command},
-    config::GlobalConfigFile,
+    config::GlobalConfig,
     logging::LogFileRemoverHandle,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
@@ -236,8 +236,8 @@ async fn setup_vpn_service(
     ))
 }
 
-fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFile> {
-    let mut global_config_file = GlobalConfigFile::read_from_file()?;
+fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfig> {
+    let mut global_config_file = GlobalConfig::read_from_file()?;
     if let Some(network) = network {
         global_config_file.network_name = network;
         global_config_file.write_to_file()?;
