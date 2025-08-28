@@ -153,3 +153,79 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExtV1 {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        env::{set_var, temp_dir},
+        fs,
+        path::PathBuf,
+    };
+
+    struct TestData {
+        config_dir: PathBuf,
+        toml_path: PathBuf,
+        json_path: PathBuf,
+    }
+
+    impl TestData {
+        fn new() -> Self {
+            let config_dir = temp_dir().join(format!(
+                "nym_vpnd_tests_{}_{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+
+            // Run test with: cargo test -- --nocapture
+            println!("Using config dir: {:?}", config_dir);
+
+            let _ = fs::create_dir_all(&config_dir);
+            unsafe { set_var("NYM_VPND_CONFIG_DIR", &config_dir) }; // See service::config::config_dir()
+
+            let toml_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
+            let _ = fs::remove_file(&toml_path);
+
+            let json_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
+            let _ = fs::remove_file(&json_path);
+
+            Self {
+                config_dir,
+                toml_path,
+                json_path,
+            }
+        }
+    }
+
+    impl Drop for TestData {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.config_dir);
+        }
+    }
+
+    #[test]
+    fn test_global_config_file() {
+        let test_data = TestData::new();
+
+        // Write the config using the deprecated TOML format
+        let toml_content = r#"
+network_name = "tulips"
+sentry_monitoring = false
+collect_network_statistics = true
+"#;
+        fs::write(&test_data.toml_path, toml_content).unwrap();
+
+        // Read the configuration
+        let config = GlobalConfig::read_from_file().unwrap();
+        assert_eq!(config.network_name, "tulips");
+        assert!(!config.sentry_monitoring);
+        assert!(config.collect_network_statistics);
+
+        // The toml file should be deleted and replaced with a json one
+        assert!(!test_data.toml_path.exists());
+        assert!(test_data.json_path.exists());
+    }
+}
