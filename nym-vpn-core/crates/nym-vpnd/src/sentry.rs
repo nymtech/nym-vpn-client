@@ -4,7 +4,7 @@
 use sentry::{ClientInitGuard, Level};
 use std::{borrow::Cow, sync::Arc, time::Duration};
 
-use crate::{config::GlobalConfigFile, environment};
+use crate::{config::GlobalConfig, environment};
 
 static EXCLUDED_ERRORS: [&str; 6] = [
     "offline",
@@ -16,7 +16,7 @@ static EXCLUDED_ERRORS: [&str; 6] = [
 ];
 
 pub fn init_sentry() -> Option<ClientInitGuard> {
-    if !GlobalConfigFile::sentry_enabled() {
+    if !GlobalConfig::sentry_enabled() {
         return None;
     }
 

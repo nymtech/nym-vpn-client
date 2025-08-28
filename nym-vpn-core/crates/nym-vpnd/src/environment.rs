@@ -6,10 +6,10 @@ use std::path::Path;
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use nym_vpn_network_config::Network;
 
-use crate::config::GlobalConfigFile;
+use crate::config::GlobalConfig;
 
 pub async fn setup_environment(
-    global_config_file: &GlobalConfigFile,
+    global_config_file: &GlobalConfig,
     config_env_file: Option<&Path>,
 ) -> anyhow::Result<Network> {
     let network_env = if config_env_file.is_some() {
