@@ -121,7 +121,7 @@ impl UdpForwarder {
         ));
         // conn.close(0u32.into(), b"done");
         // debug!("stats: {:?}", conn.stats());
-        info!("end session");
+        // info!("end session");
 
         Ok(Self { socket })
     }
