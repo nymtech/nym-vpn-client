@@ -5442,6 +5442,7 @@ dependencies = [
  "futures",
  "log-panics",
  "nym-bin-common",
+ "nym-common",
  "nym-http-api-client",
  "nym-ipc",
  "nym-offline-monitor",
