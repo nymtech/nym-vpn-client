@@ -271,7 +271,7 @@ pub enum ErrorStateReason {
     MaxDevicesReached,
 
     /// Device time is off by too much, Zk-nyms use will fail
-    DeviceTimeDesynced,
+    DeviceTimeOutOfSync,
 
     /// Device is logged out
     DeviceLoggedOut,
@@ -382,10 +382,10 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
     fn from(value: nym_vpn_lib_types::ErrorStateReason) -> Self {
         match value {
             nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::SetFirewallPolicy,
-            nym_vpn_lib_types::ErrorStateReason::Routing => Self::SetRouting,
+            nym_vpn_lib_types::ErrorStateReason::SetRouting => Self::SetRouting,
             nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
-            nym_vpn_lib_types::ErrorStateReason::ConfigureTunnelDevice => Self::TunDevice,
-            nym_vpn_lib_types::ErrorStateReason::ConfigureTunnelProvider => Self::TunnelProvider,
+            nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,
+            nym_vpn_lib_types::ErrorStateReason::TunnelProvider => Self::TunnelProvider,
             nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             nym_vpn_lib_types::ErrorStateReason::SameEntryAndExitGateway => {
                 Self::SameEntryAndExitGateway
@@ -401,7 +401,7 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             nym_vpn_lib_types::ErrorStateReason::InactiveAccount => Self::InactiveAccount,
             nym_vpn_lib_types::ErrorStateReason::InactiveSubscription => Self::InactiveSubscription,
             nym_vpn_lib_types::ErrorStateReason::MaxDevicesReached => Self::MaxDevicesReached,
-            nym_vpn_lib_types::ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeDesynced,
+            nym_vpn_lib_types::ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             nym_vpn_lib_types::ErrorStateReason::DeviceLoggedOut => Self::DeviceLoggedOut,
             nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
         }
