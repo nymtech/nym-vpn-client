@@ -11,29 +11,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Windows] Embed core version into `winfw.dll` and `libwg.dll` (https://github.com/nymtech/nym-vpn-client/pull/3292)
 
-
 ## [1.14.0] - 2025-08-26
 
 ### Added
 
-- Introduce more extensive entry/exit country parsing in nym-vpn-cli (https://github.com/nymtech/nym-vpn-client/pull/3235)
+- Introduce more extensive entry/exit country parsing in
+  nym-vpn-cli (https://github.com/nymtech/nym-vpn-client/pull/3235)
+- Daemon global and service configuration is now stored in JSON format, allowing versioning to be
+  supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
 
 ### Changed
 
 - Upgrade Nym platform to emmental release (https://github.com/nymtech/nym-vpn-client/pull/3155)
-- Enable anonymous network statistics collection by default in the daemon, only for new installations (https://github.com/nymtech/nym-vpn-client/pull/3265)
-- Reconnect on failure to resolve gateway addresses instead of entering error state (https://github.com/nymtech/nym-vpn-client/pull/3268)
+- Enable anonymous network statistics collection by default in the daemon, only for new
+  installations (https://github.com/nymtech/nym-vpn-client/pull/3265)
+- Reconnect on failure to resolve gateway addresses instead of entering error
+  state (https://github.com/nymtech/nym-vpn-client/pull/3268)
 - Reconnect to new gateways every 2 failed connection attempts (https://github.com/nymtech/nym-vpn-client/pull/3273)
 
 ### Fixed
 
-- Improve shutdown sequence by exiting internal components in the reverse order of their creation. Drain tunnel events and deliver them to listeners before exiting the daemon. (https://github.com/nymtech/nym-vpn-client/pull/3185)
-- Fix potential infinite loop when sending a disconnect message over mixnet. Limit disconnect timeout to 5 seconds and add 500ms delay between retries. (https://github.com/nymtech/nym-vpn-client/pull/3160)
-- Prevent gateways refresh from blocking daemon shutdown during initialization. (https://github.com/nymtech/nym-vpn-client/pull/3160)
-- Add timeout to DNS resolution fixing indefinite connecting state. (https://github.com/nymtech/nym-vpn-client/pull/3231)
-- [macOS] Fix issues with DNS not being properly reset on disconnect on macOS 15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
-- [macOS] Bind DNS resolver to random loopback IP on port 53 to fix compatibility issues with other software, notably `dig` and `nslookup`. (https://github.com/nymtech/nym-vpn-client/pull/3232)
-
+- Improve shutdown sequence by exiting internal components in the reverse order of their creation. Drain tunnel events
+  and deliver them to listeners before exiting the daemon. (https://github.com/nymtech/nym-vpn-client/pull/3185)
+- Fix potential infinite loop when sending a disconnect message over mixnet. Limit disconnect timeout to 5 seconds and
+  add 500ms delay between retries. (https://github.com/nymtech/nym-vpn-client/pull/3160)
+- Prevent gateways refresh from blocking daemon shutdown during
+  initialization. (https://github.com/nymtech/nym-vpn-client/pull/3160)
+- Add timeout to DNS resolution fixing indefinite connecting
+  state. (https://github.com/nymtech/nym-vpn-client/pull/3231)
+- [macOS] Fix issues with DNS not being properly reset on disconnect on macOS
+    15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
+- [macOS] Bind DNS resolver to random loopback IP on port 53 to fix compatibility issues with other software, notably
+  `dig` and `nslookup`. (https://github.com/nymtech/nym-vpn-client/pull/3232)
 
 ## [1.13.1] - 2025-07-30
 
@@ -41,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update pre-bundled discovery to include account links (https://github.com/nymtech/nym-vpn-client/pull/3167)
 - Reduce noisiness of WireGuard logs (https://github.com/nymtech/nym-vpn-client/pull/3169)
-
 
 ## [1.13.0] - 2025-07-29
 
@@ -53,7 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Box too large futures to fix stackoverflow on Windows (https://github.com/nymtech/nym-vpn-client/pull/3139)
-
 
 ## [1.12.0] - 2025-07-18
 
@@ -76,13 +83,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix bug that prevented the database(s) from closing gracefully before being disposed (https://github.com/nymtech/nym-vpn-client/pull/2925)
+- Fix bug that prevented the database(s) from closing gracefully before being
+  disposed (https://github.com/nymtech/nym-vpn-client/pull/2925)
 - Unblock mixnet client because of a deadlock (https://github.com/nymtech/nym-vpn-client/pull/3039)
-- Apply patch to h2 crate so hickory-dns DoH connections consider server go-away close as valid preventing spurious warn logging (https://github.com/nymtech/nym-vpn-client/pull/3053)
-- Fix task manager dropping immediately on config path not being specified (https://github.com/nymtech/nym-vpn-client/pull/3054)
-- Fix tunnel connectivity issues by applying route MTU for multihop tunnel (https://github.com/nymtech/nym-vpn-client/pull/3051)
+- Apply patch to h2 crate so hickory-dns DoH connections consider server go-away close as valid preventing spurious warn
+  logging (https://github.com/nymtech/nym-vpn-client/pull/3053)
+- Fix task manager dropping immediately on config path not being
+  specified (https://github.com/nymtech/nym-vpn-client/pull/3054)
+- Fix tunnel connectivity issues by applying route MTU for multihop
+  tunnel (https://github.com/nymtech/nym-vpn-client/pull/3051)
 - Fix prefetching topology not working at no network daemon boot (https://github.com/nymtech/nym-vpn-client/pull/3072)
-
 
 ## [1.11.0] - 2025-06-18
 
