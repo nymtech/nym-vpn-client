@@ -76,8 +76,8 @@ pub struct NymVpnServiceConfig {
 
 impl NymVpnServiceConfig {
     pub(super) fn write_to_file(&self, config_path: &Path) -> Result<()> {
-        let ext_config = NymVpnServiceConfigExt::try_from(self).map_err(|e| Error::ConfigSetup(e))?;
-        write_json_config_file(config_path, &ext_config).map_err(|e| Error::ConfigSetup(e))
+        let ext_config = NymVpnServiceConfigExt::try_from(self).map_err(Error::ConfigSetup)?;
+        write_json_config_file(config_path, &ext_config).map_err(Error::ConfigSetup)
     }
 }
 
@@ -204,7 +204,7 @@ impl TryFrom<&gateway_directory::EntryPoint> for EntryPointExtV1 {
     fn try_from(value: &gateway_directory::EntryPoint) -> Result<Self, Self::Error> {
         match value {
             gateway_directory::EntryPoint::Gateway { identity } => Ok(EntryPointExtV1::Gateway {
-                identity: identity.clone(),
+                identity: *identity,
             }),
             gateway_directory::EntryPoint::Location { location } => Ok(EntryPointExtV1::Location {
                 location: location.clone(),
@@ -263,7 +263,7 @@ impl TryFrom<&gateway_directory::ExitPoint> for ExitPointExtV1 {
                 address: address.clone(),
             }),
             gateway_directory::ExitPoint::Gateway { identity } => Ok(ExitPointExtV1::Gateway {
-                identity: identity.clone(),
+                identity: *identity,
             }),
             gateway_directory::ExitPoint::Location { location } => Ok(ExitPointExtV1::Location {
                 location: location.clone(),
