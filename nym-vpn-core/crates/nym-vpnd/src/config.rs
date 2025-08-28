@@ -157,7 +157,7 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExtV1 {
 //
 // Because of the way these tests configure the config directory, then need to be run single-threaded:
 //
-// cargo test --package nym-vpnd config::tests -- --nocapture --test-threads=1
+// cargo test --package nym-vpnd config::tests -- --nocapture --test-threads=1 
 //
 
 #[cfg(test)]

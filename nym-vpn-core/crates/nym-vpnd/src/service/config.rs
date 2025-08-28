@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 #[cfg(windows)]
 use std::path::Path;
 use std::{fmt, fs, path::PathBuf};
@@ -340,6 +341,51 @@ pub enum ConfigSetupError {
     },
 }
 
+pub(super) fn setup_service_config(
+    toml_config_path: &Path,
+    json_config_path: &Path,
+    entry: Option<EntryPoint>,
+    exit: Option<ExitPoint>,
+) -> Result<NymVpnServiceConfig> {
+    let json_config_exists = json_config_path.exists();
+    let toml_config_exists = toml_config_path.exists();
+
+    let config = if json_config_exists {
+        let ext_config =
+            super::config::read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
+                .map_err(Error::ConfigSetup)?;
+
+        let mut config = NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
+
+        config.entry_point = entry.unwrap_or(config.entry_point);
+        config.exit_point = exit.unwrap_or(config.exit_point);
+        config
+    } else if toml_config_exists {
+        let mut config =
+            super::config::read_toml_config_file::<NymVpnServiceConfig>(toml_config_path)
+                .map_err(Error::ConfigSetup)?;
+
+        config.entry_point = entry.unwrap_or(config.entry_point);
+        config.exit_point = exit.unwrap_or(config.exit_point);
+        config
+    } else {
+        NymVpnServiceConfig {
+            entry_point: entry.unwrap_or(EntryPoint::Random),
+            exit_point: exit.unwrap_or(ExitPoint::Random),
+        }
+    };
+
+    if toml_config_exists {
+        tracing::info!("Removing deprecated config file {:?}", toml_config_path);
+        let _ = std::fs::remove_file(toml_config_path);
+    }
+
+    // Always write back the config file back using the latest JSON version
+    config.write_to_file(json_config_path)?;
+
+    Ok(config)
+}
+
 #[cfg(windows)]
 pub fn program_data_path() -> PathBuf {
     PathBuf::from(std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()))
@@ -519,4 +565,139 @@ fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()
 
 pub fn default_true() -> bool {
     true
+}
+
+//
+// Because of the way these tests configure the config directory, then need to be run single-threaded:
+//
+// test --package nym-vpnd config::tests -- --nocapture --test-threads=1
+//
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        env::{set_var, temp_dir},
+        fs,
+        path::PathBuf,
+    };
+
+    struct TestData {
+        config_dir: PathBuf,
+        toml_path: PathBuf,
+        json_path: PathBuf,
+    }
+
+    impl TestData {
+        fn new() -> Self {
+            let config_dir = temp_dir().join(format!(
+                "nym_vpnd_tests_{}_{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+
+            println!("Using config dir: {:?}", config_dir);
+
+            let _ = fs::create_dir_all(&config_dir);
+            unsafe { set_var("NYM_VPND_CONFIG_DIR", &config_dir) }; // See service::config::config_dir()
+
+            let service_dir = config_dir.join("tulips");
+            let _ = fs::create_dir_all(&service_dir);
+
+            let toml_path = service_dir.join(DEFAULT_CONFIG_FILE_TOML);
+            let _ = fs::remove_file(&toml_path);
+
+            let json_path = service_dir.join(DEFAULT_CONFIG_FILE_JSON);
+            let _ = fs::remove_file(&json_path);
+
+            Self {
+                config_dir,
+                toml_path,
+                json_path,
+            }
+        }
+    }
+
+    impl Drop for TestData {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.config_dir);
+        }
+    }
+
+    #[test]
+    fn test_service_config_migrate() {
+        let test_data = TestData::new();
+
+        // Write the TOML config file
+        let toml_content = r#"
+[entry_point.Location]
+location = "FR"
+
+[exit_point.Location]
+location = "BE"
+"#;
+        fs::write(&test_data.toml_path, toml_content).unwrap();
+
+        // Read the configuration
+        let config =
+            setup_service_config(&test_data.toml_path, &test_data.json_path, None, None).unwrap();
+        assert_eq!(
+            config.entry_point,
+            EntryPoint::Location {
+                location: "FR".to_string()
+            }
+        );
+        assert_eq!(
+            config.exit_point,
+            ExitPoint::Location {
+                location: "BE".to_string()
+            }
+        );
+
+        // The TOML file should be deleted and replaced with a JSON version
+        assert!(!test_data.toml_path.exists());
+        assert!(test_data.json_path.exists());
+    }
+
+    #[test]
+    fn test_service_config_load() {
+        let test_data = TestData::new();
+
+        // Write the JSON config file
+        let json_content = r#"
+{
+  "version": "v1",
+  "entry_point": {
+    "Location": {
+      "location": "FR"
+    }
+  },
+  "exit_point": {
+    "Location": {
+      "location": "BE"
+    }
+  }
+}
+"#;
+        fs::write(&test_data.json_path, json_content).unwrap();
+
+        // Read the configuration
+        let config =
+            setup_service_config(&test_data.toml_path, &test_data.json_path, None, None).unwrap();
+        assert_eq!(
+            config.entry_point,
+            EntryPoint::Location {
+                location: "FR".to_string()
+            }
+        );
+        assert_eq!(
+            config.exit_point,
+            ExitPoint::Location {
+                location: "BE".to_string()
+            }
+        );
+    }
 }
