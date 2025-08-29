@@ -289,35 +289,39 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        let skimmed_gateways = self.lookup_skimmed_gateways().await?;
+        let key_rotation_id = skimmed_gateways.metadata.rotation_id;
+
         let mut gateways = self
             .lookup_described_nodes()
             .await?
             .into_iter()
             .filter(|node| node.description.declared_role.entry)
             .filter_map(|gw| {
-                Gateway::try_from(gw)
+                Gateway::try_from_node_description(gw, key_rotation_id)
                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                     .ok()
             })
             .collect::<Vec<_>>();
-        let skimmed_gateways = self.lookup_skimmed_gateways().await?;
         append_performance(&mut gateways, skimmed_gateways.nodes);
         filter_on_mixnet_min_performance(&mut gateways, &self.min_gateway_performance);
         Ok(GatewayList::new(gateways))
     }
 
     pub async fn lookup_all_nymnodes(&self) -> Result<NymNodeList> {
+        let skimmed_nodes = self.lookup_skimmed_nodes().await?;
+        let key_rotation_id = skimmed_nodes.metadata.rotation_id;
+
         let mut nodes = self
             .lookup_described_nodes()
             .await?
             .into_iter()
             .filter_map(|gw| {
-                NymNode::try_from(gw)
+                NymNode::try_from_node_description(gw, key_rotation_id)
                     .inspect_err(|err| error!("Failed to parse node: {err}"))
                     .ok()
             })
             .collect::<Vec<_>>();
-        let skimmed_nodes = self.lookup_skimmed_nodes().await?;
         append_performance(&mut nodes, skimmed_nodes.nodes);
         filter_on_mixnet_min_performance(&mut nodes, &self.min_gateway_performance);
         Ok(GatewayList::new(nodes))

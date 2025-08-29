@@ -271,6 +271,7 @@ impl Probe {
     ) -> anyhow::Result<ProbeResult> {
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
+
         let entry_gateway = self.entrypoint.lookup_gateway(&gateways).await?;
         let tested_entry = self.tested_node.is_same_as_entry();
 

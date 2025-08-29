@@ -4,6 +4,7 @@
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
+use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
 use nym_vpn_api_client::types::{NaiveFloat, Percent, ScoreThresholds};
 use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
@@ -106,6 +107,79 @@ impl Gateway {
         if let (Some(wg_thresholds), Some(score)) = (wg_thresholds, self.wg_score.as_mut()) {
             score.update_to_new_thresholds(wg_thresholds);
         }
+    }
+
+    pub fn try_from_node_description(
+        node_description: NymNodeDescription,
+        current_key_rotation: KeyRotationId,
+    ) -> Result<Self> {
+        let identity = node_description.description.host_information.keys.ed25519;
+        let location = node_description
+            .description
+            .auxiliary_details
+            .location
+            .map(|l| Location {
+                two_letter_iso_country_code: l.alpha2.to_string(),
+                ..Default::default()
+            });
+        let ipr_address = node_description
+            .description
+            .ip_packet_router
+            .as_ref()
+            .and_then(|ipr| {
+                IpPacketRouterAddress::try_from_base58_string(&ipr.address)
+                    .inspect_err(|err| error!("Failed to parse IPR address: {err}"))
+                    .ok()
+            });
+        let authenticator_address = node_description
+            .description
+            .authenticator
+            .as_ref()
+            .and_then(|a| {
+                AuthAddress::try_from_base58_string(&a.address)
+                    .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
+                    .ok()
+            });
+        let version = Some(node_description.version().to_string());
+        let role = if node_description.description.declared_role.entry {
+            nym_validator_client::nym_nodes::NodeRole::EntryGateway
+        } else if node_description.description.declared_role.exit_ipr
+            || node_description.description.declared_role.exit_nr
+        {
+            nym_validator_client::nym_nodes::NodeRole::ExitGateway
+        } else {
+            nym_validator_client::nym_nodes::NodeRole::Inactive
+        };
+
+        let gateway = RoutingNode::try_from(&node_description.to_skimmed_node(
+            current_key_rotation,
+            role,
+            Default::default(),
+        ))
+        .map_err(|_| Error::MalformedGateway)?;
+
+        let host = gateway.ws_entry_address(false);
+        let entry_info = &gateway.entry;
+        let clients_ws_port = entry_info.as_ref().map(|g| g.clients_ws_port);
+        let clients_wss_port = entry_info.as_ref().and_then(|g| g.clients_wss_port);
+        let ips = node_description.description.host_information.ip_address;
+        Ok(Gateway {
+            identity,
+            moniker: String::new(),
+            location,
+            ipr_address,
+            authenticator_address,
+            last_probe: None,
+            ips,
+            host,
+            clients_ws_port,
+            clients_wss_port,
+            mixnet_performance: None,
+            wg_performance: None,
+            wg_score: None,
+            mixnet_score: None,
+            version,
+        })
     }
 }
 
@@ -281,79 +355,6 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             wg_performance,
             wg_score: wg_performance.map(Score::from),
             version: gateway.build_information.map(|info| info.build_version),
-        })
-    }
-}
-
-impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
-    type Error = Error;
-
-    fn try_from(
-        node_description: nym_validator_client::models::NymNodeDescription,
-    ) -> Result<Self> {
-        let identity = node_description.description.host_information.keys.ed25519;
-        let location = node_description
-            .description
-            .auxiliary_details
-            .location
-            .map(|l| Location {
-                two_letter_iso_country_code: l.alpha2.to_string(),
-                ..Default::default()
-            });
-        let ipr_address = node_description
-            .description
-            .ip_packet_router
-            .as_ref()
-            .and_then(|ipr| {
-                IpPacketRouterAddress::try_from_base58_string(&ipr.address)
-                    .inspect_err(|err| error!("Failed to parse IPR address: {err}"))
-                    .ok()
-            });
-        let authenticator_address = node_description
-            .description
-            .authenticator
-            .as_ref()
-            .and_then(|a| {
-                AuthAddress::try_from_base58_string(&a.address)
-                    .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
-                    .ok()
-            });
-        let version = Some(node_description.version().to_string());
-        let role = if node_description.description.declared_role.entry {
-            nym_validator_client::nym_nodes::NodeRole::EntryGateway
-        } else if node_description.description.declared_role.exit_ipr
-            || node_description.description.declared_role.exit_nr
-        {
-            nym_validator_client::nym_nodes::NodeRole::ExitGateway
-        } else {
-            nym_validator_client::nym_nodes::NodeRole::Inactive
-        };
-
-        let gateway =
-            RoutingNode::try_from(&node_description.to_skimmed_node(0, role, Default::default()))
-                .map_err(|_| Error::MalformedGateway)?;
-
-        let host = gateway.ws_entry_address(false);
-        let entry_info = &gateway.entry;
-        let clients_ws_port = entry_info.as_ref().map(|g| g.clients_ws_port);
-        let clients_wss_port = entry_info.as_ref().and_then(|g| g.clients_wss_port);
-        let ips = node_description.description.host_information.ip_address;
-        Ok(Gateway {
-            identity,
-            moniker: String::new(),
-            location,
-            ipr_address,
-            authenticator_address,
-            last_probe: None,
-            ips,
-            host,
-            clients_ws_port,
-            clients_wss_port,
-            mixnet_performance: None,
-            wg_performance: None,
-            wg_score: None,
-            mixnet_score: None,
-            version,
         })
     }
 }
