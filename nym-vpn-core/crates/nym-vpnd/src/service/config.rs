@@ -186,6 +186,7 @@ impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExtLatest {
 //
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 enum EntryPointExtV1 {
     Gateway { identity: String },
     Location { location: String },
@@ -230,6 +231,7 @@ impl TryFrom<&gateway_directory::EntryPoint> for EntryPointExtV1 {
 //
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 enum ExitPointExtV1 {
     Address { address: String },
     Gateway { identity: String },
@@ -301,6 +303,7 @@ impl TryFrom<&gateway_directory::ExitPoint> for ExitPointExtV1 {
 //
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
 struct LegacyNymVpnServiceConfig {
     entry_point: gateway_directory::EntryPoint,
     exit_point: gateway_directory::ExitPoint,
@@ -429,7 +432,8 @@ pub(super) fn setup_service_config(
         let _ = fs::remove_file(toml_config_path);
     }
 
-    // Always write back the config file back using the latest JSON version
+    // Always write back config file back using the latest JSON version
+    // TODO: Avoid doing this as it's double-writing the config file.
     config.write_to_file(json_config_path)?;
 
     Ok(config)
@@ -613,12 +617,6 @@ fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()
     Ok(())
 }
 
-//
-// Because of the way these tests configure the config directory, then need to be run single-threaded:
-//
-// test --package nym-vpnd config::tests -- --nocapture --test-threads=1
-//
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -644,27 +642,16 @@ mod tests {
         (temp_dir, toml_path, json_path)
     }
 
-    #[test]
-    fn test_service_config_migrate_location() {
+    fn run_test(
+        toml_content: &str,
+        json_content: &str,
+        entry_point: gateway_directory::EntryPoint,
+        exit_point: gateway_directory::ExitPoint,
+    ) {
         let (_temp_dir, toml_path, json_path) = setup();
 
         // Write the TOML config file
-        let toml_content = r#"
-[entry_point.Location]
-location = "FR"
-
-[exit_point.Location]
-location = "BE"
-"#;
         fs::write(&toml_path, toml_content).unwrap();
-
-        let entry_point = gateway_directory::EntryPoint::Location {
-            location: "FR".to_string(),
-        };
-
-        let exit_point = gateway_directory::ExitPoint::Location {
-            location: "BE".to_string(),
-        };
 
         // Read the TOML config and migrate it to JSON
         let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
@@ -679,13 +666,49 @@ location = "BE"
         let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
+
+        // Check the JSON is the right version and all snake-case
+        let read_json_content = fs::read_to_string(&json_path).unwrap();
+        assert_eq!(json_content, read_json_content);
+    }
+
+    #[test]
+    fn test_service_config_migrate_location() {
+        let toml_content = r#"
+[entry_point.Location]
+location = "FR"
+
+[exit_point.Location]
+location = "BE"
+"#;
+
+        let json_content = r#"{
+  "version": "v1",
+  "entry_point": {
+    "location": {
+      "location": "FR"
+    }
+  },
+  "exit_point": {
+    "location": {
+      "location": "BE"
+    }
+  }
+}"#;
+
+        let entry_point = gateway_directory::EntryPoint::Location {
+            location: "FR".to_string(),
+        };
+
+        let exit_point = gateway_directory::ExitPoint::Location {
+            location: "BE".to_string(),
+        };
+
+        run_test(toml_content, json_content, entry_point, exit_point);
     }
 
     #[test]
     fn test_service_config_migrate_gateway() {
-        let (_temp_dir, toml_path, json_path) = setup();
-
-        // Write the TOML config file
         let toml_content = r#"
 [entry_point.Gateway]
 identity = [ 92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107, ]
@@ -693,7 +716,20 @@ identity = [ 92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 1
 [exit_point.Gateway]
 identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136, 114, 215, 90, 236, 161, 231, 176, 140, 190, 147, 182, 64, 171, 145, 31, 245, 186, ]
 "#;
-        fs::write(&toml_path, toml_content).unwrap();
+
+        let json_content = r#"{
+  "version": "v1",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "gateway": {
+      "identity": "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj"
+    }
+  }
+}"#;
 
         let entry_point = gateway_directory::EntryPoint::Gateway {
             identity: gateway_directory::NodeIdentity::from_str(
@@ -709,27 +745,12 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
             .unwrap(),
         };
 
-        // Read the TOML config and migrate it to JSON
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
-        assert_eq!(config.entry_point, entry_point);
-        assert_eq!(config.exit_point, exit_point);
-
-        // The TOML file should be deleted and replaced with a JSON version
-        assert!(!toml_path.exists());
-        assert!(json_path.exists());
-
-        // Read the JSON config
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
-        assert_eq!(config.entry_point, entry_point);
-        assert_eq!(config.exit_point, exit_point);
+        run_test(toml_content, json_content, entry_point, exit_point);
     }
 
     #[test]
     #[ignore] // Temporarily disabled due to issues with ExitPoint::Address (de)serialisation.
     fn test_service_config_migrate_address() {
-        let (_temp_dir, toml_path, json_path) = setup();
-
-        // Write the TOML config file
         let toml_content = r#"
 [entry_point.Gateway]
 identity = [92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107]
@@ -737,7 +758,20 @@ identity = [92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 19
 [exit_point.Address]
 address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 188, 35, 50, 144, 234, 226, 114, 99, 40, 10, 102, 200, 170, 19, 162, 86, 134, 84, 20, 195, 193, 42, 194, 230, 153, 163, 90, 214, 216, 196, 166, 87, 132, 206, 215, 91, 89, 51, 98, 72, 156, 159, 248, 109, 225, 152, 204, 80, 97, 9, 62, 22, 108, 155, 95, 153, 29, 143, 48, 208, 5, 101, 231, 176, 93, 107, 229, 11, 225, 145, 1, 14, 219, 44, 88, 199, 206, 40, 185, 150, 151]
 "#;
-        fs::write(&toml_path, toml_content).unwrap();
+
+        let json_content = r#"{
+  "version": "v1",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e
+    }
+  }
+}"#;
 
         let entry_point = gateway_directory::EntryPoint::Gateway {
             identity: gateway_directory::NodeIdentity::from_str(
@@ -752,48 +786,26 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
             )
         };
 
-        // Read the TOML config and migrate it to JSON
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
-        assert_eq!(config.entry_point, entry_point);
-        assert_eq!(config.exit_point, exit_point);
-
-        // The TOML file should be deleted and replaced with a JSON version
-        assert!(!toml_path.exists());
-        assert!(json_path.exists());
-
-        // Read the JSON config
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
-        assert_eq!(config.entry_point, entry_point);
-        assert_eq!(config.exit_point, exit_point);
+        run_test(toml_content, json_content, entry_point, exit_point);
     }
 
     #[test]
     fn test_service_config_migrate_random() {
-        let (_temp_dir, toml_path, json_path) = setup();
-
-        // Write the TOML config file
         let toml_content = r#"
 entry_point = "Random"
 exit_point = "Random"
 "#;
-        fs::write(&toml_path, toml_content).unwrap();
+
+        let json_content = r#"{
+  "version": "v1",
+  "entry_point": "random",
+  "exit_point": "random"
+}"#;
 
         let entry_point = gateway_directory::EntryPoint::Random;
 
         let exit_point = gateway_directory::ExitPoint::Random;
 
-        // Read the TOML config and migrate it to JSON
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
-        assert_eq!(config.entry_point, entry_point);
-        assert_eq!(config.exit_point, exit_point);
-
-        // The TOML file should be deleted and replaced with a JSON version
-        assert!(!toml_path.exists());
-        assert!(json_path.exists());
-
-        // Read the JSON config
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
-        assert_eq!(config.entry_point, entry_point);
-        assert_eq!(config.exit_point, exit_point);
+        run_test(toml_content, json_content, entry_point, exit_point);
     }
 }

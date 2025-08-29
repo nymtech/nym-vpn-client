@@ -6,8 +6,7 @@ use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-// Derserialize is only for reading the deprecated TOML version.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct GlobalConfig {
     pub network_name: String,
     pub sentry_monitoring: bool,
@@ -70,7 +69,8 @@ impl GlobalConfig {
             let _ = std::fs::remove_file(&toml_config_path);
         }
 
-        // Always write back the config file back using the latest JSON version
+        // Always write back config file back using the latest JSON version
+        // TODO: Avoid doing this as it's double-writing the config file.
         config.write_to_config_dir(config_dir)?;
 
         Ok(config)
@@ -135,6 +135,7 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExt {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 struct GlobalConfigExtV1 {
     network_name: String,
     sentry_monitoring: bool,
@@ -185,6 +186,7 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExtLatest {
 // Legacy TOML version of the config file
 //
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 struct LegacyGlobalConfig {
     network_name: String,
     sentry_monitoring: bool,
@@ -213,12 +215,6 @@ impl TryFrom<LegacyGlobalConfig> for GlobalConfig {
     }
 }
 
-//
-// Because of the way these tests configure the config directory, then need to be run single-threaded:
-//
-// cargo test --package nym-vpnd config::tests -- --nocapture --test-threads=1
-//
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -245,12 +241,20 @@ mod tests {
     fn test_global_config_migrate() {
         let (temp_dir, toml_path, json_path) = setup();
 
-        // Write the TOML config file
         let toml_content = r#"
 network_name = "tulips"
 sentry_monitoring = false
 collect_network_statistics = true
 "#;
+
+        let json_content = r#"{
+  "version": "v1",
+  "network_name": "tulips",
+  "sentry_monitoring": false,
+  "collect_network_statistics": true
+}"#;
+
+        // Write the TOML config file
         fs::write(&toml_path, toml_content).unwrap();
 
         // Read the TOML config and migrate it to JSON
@@ -268,5 +272,9 @@ collect_network_statistics = true
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
         assert!(config.collect_network_statistics);
+
+        // Check the JSON is the right version and all snake-case
+        let read_json_content = fs::read_to_string(&json_path).unwrap();
+        assert_eq!(json_content, read_json_content);
     }
 }
