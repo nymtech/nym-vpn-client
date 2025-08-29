@@ -22,7 +22,6 @@ hex.workspace = true
 tracing.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
-rust2go.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
@@ -64,8 +63,6 @@ vergen-gitcl = { workspace = true, default-features = false, features = [
     "cargo",
     "rustc",
 ] }
-
-rust2go = { workspace = true, features = ["build"] }
 
 [package.metadata.cargo-machete]
 ignored = ["vergen"]

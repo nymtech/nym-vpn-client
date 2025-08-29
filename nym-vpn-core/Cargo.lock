@@ -606,26 +606,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bindgen"
-version = "0.71.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f58bf3d7db68cfbac37cfc485a8d711e87e064c3d0fe0435b92f7a407f9d6b3"
-dependencies = [
- "bitflags 2.9.2",
- "cexpr",
- "clang-sys",
- "itertools 0.13.0",
- "log",
- "prettyplease",
- "proc-macro2",
- "quote",
- "regex",
- "rustc-hash",
- "shlex",
- "syn 2.0.103",
-]
-
-[[package]]
 name = "bip32"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -915,24 +895,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cbindgen"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eadd868a2ce9ca38de7eeafdcec9c7065ef89b42b32f0839278d55f35c54d1ff"
-dependencies = [
- "heck 0.4.1",
- "indexmap 2.9.0",
- "log",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "syn 2.0.103",
- "tempfile",
- "toml 0.8.23",
-]
-
-[[package]]
 name = "cc"
 version = "1.2.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -951,15 +913,6 @@ checksum = "bc3ba3c5408fae183329e0d1ac8f8eed3cb7b647590fd93e6d6288f6b09db0be"
 dependencies = [
  "phf",
  "serde",
-]
-
-[[package]]
-name = "cexpr"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
-dependencies = [
- "nom",
 ]
 
 [[package]]
@@ -1035,17 +988,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "clang-sys"
-version = "1.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
-dependencies = [
- "glob",
- "libc",
- "libloading",
-]
-
-[[package]]
 name = "clap"
 version = "4.5.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1074,7 +1016,7 @@ version = "4.5.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14cb31bb0a7d536caef2639baa7fad459e15c3144efefa6dbd1c84562c4739f6"
 dependencies = [
- "heck 0.5.0",
+ "heck",
  "proc-macro2",
  "quote",
  "syn 2.0.103",
@@ -1924,7 +1866,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1e6a265c649f3f5979b601d26f1d05ada116434c87741c9493cb56218f76cbc"
 dependencies = [
- "heck 0.5.0",
+ "heck",
  "proc-macro2",
  "quote",
  "syn 2.0.103",
@@ -2451,12 +2393,6 @@ checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
 dependencies = [
  "hashbrown 0.15.4",
 ]
-
-[[package]]
-name = "heck"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "heck"
@@ -4272,7 +4208,6 @@ dependencies = [
  "nym-wireguard-types",
  "pnet_packet",
  "rand 0.8.5",
- "rust2go",
  "serde",
  "serde_json",
  "thiserror 2.0.16",
@@ -6213,7 +6148,7 @@ version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
- "heck 0.5.0",
+ "heck",
  "itertools 0.14.0",
  "log",
  "multimap",
@@ -6715,55 +6650,6 @@ dependencies = [
  "nix 0.29.0",
  "thiserror 1.0.69",
  "tokio",
-]
-
-[[package]]
-name = "rust2go"
-version = "0.4.1"
-source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
-dependencies = [
- "bindgen",
- "rust2go-cli",
- "rust2go-convert",
- "rust2go-macro",
- "syn 2.0.103",
-]
-
-[[package]]
-name = "rust2go-cli"
-version = "0.4.1"
-source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
-dependencies = [
- "cbindgen",
- "clap",
- "itertools 0.14.0",
- "rust2go-common",
-]
-
-[[package]]
-name = "rust2go-common"
-version = "0.4.0"
-source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.103",
-]
-
-[[package]]
-name = "rust2go-convert"
-version = "0.1.0"
-source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
-
-[[package]]
-name = "rust2go-macro"
-version = "0.4.0"
-source = "git+https://github.com/ihciah/rust2go.git?rev=a833a4a103e0ea77684cbf9cc84320d049394301#a833a4a103e0ea77684cbf9cc84320d049394301"
-dependencies = [
- "proc-macro2",
- "quote",
- "rust2go-common",
- "syn 2.0.103",
 ]
 
 [[package]]
@@ -7621,7 +7507,7 @@ checksum = "19a9c1841124ac5a61741f96e1d9e2ec77424bf323962dd894bdb93f37d5219b"
 dependencies = [
  "dotenvy",
  "either",
- "heck 0.5.0",
+ "heck",
  "hex",
  "once_cell",
  "proc-macro2",
@@ -7800,7 +7686,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
 dependencies = [
- "heck 0.5.0",
+ "heck",
  "proc-macro2",
  "quote",
  "rustversion",
@@ -8768,7 +8654,7 @@ dependencies = [
  "fs-err",
  "glob",
  "goblin",
- "heck 0.5.0",
+ "heck",
  "indexmap 2.9.0",
  "once_cell",
  "serde",
@@ -8854,7 +8740,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b147e133ad7824e32426b90bc41fda584363563f2ba747f590eca1fd6fd14e6"
 dependencies = [
  "anyhow",
- "heck 0.5.0",
+ "heck",
  "indexmap 2.9.0",
  "tempfile",
  "uniffi_internal_macros",
