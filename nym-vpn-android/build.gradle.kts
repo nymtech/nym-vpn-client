@@ -14,6 +14,11 @@ plugins {
 }
 
 subprojects {
+	afterEvaluate {
+		tasks.matching { it.name.contains("ArtProfile") }.configureEach {
+			enabled = false
+		}
+	}
 
 	apply {
 		plugin(rootProject.libs.plugins.detekt.get().pluginId)
