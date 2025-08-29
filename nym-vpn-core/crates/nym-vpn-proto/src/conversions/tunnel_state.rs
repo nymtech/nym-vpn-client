@@ -9,7 +9,7 @@ use std::{
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    TunnelState, WireguardConnectionData, WireguardNode,
+    TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -158,6 +158,7 @@ impl TryFrom<proto::TunnelState> for TunnelState {
             proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
                 state,
+                tunnel_type,
                 connection_data,
             }) => {
                 let connection_data = connection_data
@@ -166,10 +167,14 @@ impl TryFrom<proto::TunnelState> for TunnelState {
                 let state = proto::EstablishConnectionState::try_from(state)
                     .map_err(|e| ConversionError::Decode("EstablishConnectionState", e))
                     .map(EstablishConnectionState::from)?;
+                let tunnel_type = proto::TunnelType::try_from(tunnel_type)
+                    .map_err(|e| ConversionError::Decode("TunnelType", e))
+                    .map(TunnelType::from)?;
 
                 Self::Connecting {
                     retry_attempt,
                     state,
+                    tunnel_type,
                     connection_data,
                 }
             }
@@ -187,6 +192,24 @@ impl TryFrom<proto::TunnelState> for TunnelState {
                 Self::Offline { reconnect }
             }
         })
+    }
+}
+
+impl From<proto::TunnelType> for TunnelType {
+    fn from(value: proto::TunnelType) -> Self {
+        match value {
+            proto::TunnelType::Mixnet => Self::Mixnet,
+            proto::TunnelType::Wireguard => Self::Wireguard,
+        }
+    }
+}
+
+impl From<TunnelType> for proto::TunnelType {
+    fn from(value: TunnelType) -> Self {
+        match value {
+            TunnelType::Mixnet => Self::Mixnet,
+            TunnelType::Wireguard => Self::Wireguard,
+        }
     }
 }
 
@@ -494,10 +517,12 @@ impl From<TunnelState> for proto::TunnelState {
             TunnelState::Connecting {
                 retry_attempt,
                 state,
+                tunnel_type,
                 connection_data,
             } => proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
                 state: proto::EstablishConnectionState::from(state) as i32,
+                tunnel_type: proto::TunnelType::from(tunnel_type) as i32,
                 connection_data: connection_data.map(proto::EstablishConnectionData::from),
             }),
             TunnelState::Connected { connection_data } => {

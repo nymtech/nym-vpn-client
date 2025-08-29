@@ -140,8 +140,10 @@ impl ConnectingState {
             reconnect_delay_fut,
         };
 
-        let tunnel_state = connecting_state
-            .make_connecting_tunnel_state(EstablishConnectionState::ResolvingApiAddresses);
+        let tunnel_state = connecting_state.make_connecting_tunnel_state(
+            shared_state,
+            EstablishConnectionState::ResolvingApiAddresses,
+        );
 
         (Box::new(connecting_state), tunnel_state)
     }
@@ -475,10 +477,15 @@ impl ConnectingState {
         Ok(())
     }
 
-    fn make_connecting_tunnel_state(&self, state: EstablishConnectionState) -> PrivateTunnelState {
+    fn make_connecting_tunnel_state(
+        &self,
+        shared_state: &SharedState,
+        state: EstablishConnectionState,
+    ) -> PrivateTunnelState {
         PrivateTunnelState::Connecting {
             retry_attempt: self.retry_attempt,
             state,
+            tunnel_type: shared_state.tunnel_settings.tunnel_type,
             connection_data: self.connection_data.clone(),
         }
     }
@@ -512,23 +519,19 @@ impl TunnelStateHandler for ConnectingState {
             Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
                 match monitor_event {
                     TunnelMonitorEvent::AwaitingAccountReadiness => {
-                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::AwaitingAccountReadiness);
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingAccountReadiness);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::RefreshingGateways => {
-                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::RefreshingGateways);
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::ConnectingMixnetClient => {
-                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::ConnectingMixnetClient);
-                        NextTunnelState::NewState((self, new_state))
-                    }
-                    TunnelMonitorEvent::ConnectingTunnel => {
-                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::ConnectingTunnel);
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingMixnetClient);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectingGateways => {
-                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::SelectingGateways);
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::SelectingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectedGateways {
@@ -559,7 +562,7 @@ impl TunnelStateHandler for ConnectingState {
                     }  => {
                         let next_state = match self.handle_interface_up(tunnel_interface, connection_data, shared_state).await {
                             Ok(()) => {
-                                let state = self.make_connecting_tunnel_state(EstablishConnectionState::ConnectingTunnel);
+                                let state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
                                 NextTunnelState::NewState((self, state))
                             },
                             Err(e) => {

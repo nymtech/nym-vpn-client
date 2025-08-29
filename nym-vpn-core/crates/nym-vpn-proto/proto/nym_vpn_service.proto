@@ -283,6 +283,11 @@ message GetAccountLinksRequest {
   string locale = 1;
 }
 
+enum TunnelType {
+  MIXNET = 0;
+  WIREGUARD = 1;
+}
+
 enum EstablishConnectionState {
     RESOLVING_API_ADDRESSES = 0;
     AWAITING_ACCOUNT_READINESS = 1;
@@ -372,7 +377,8 @@ message TunnelState {
   message Connecting {
     uint32 retry_attempt = 1;
     EstablishConnectionState state = 2;
-    optional EstablishConnectionData connection_data = 3;
+    TunnelType tunnel_type = 3;
+    optional EstablishConnectionData connection_data = 4;
   }
   message Connected {
     ConnectionData connection_data = 1;

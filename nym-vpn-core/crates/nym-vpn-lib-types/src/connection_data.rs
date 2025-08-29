@@ -8,6 +8,8 @@ use std::{
 
 use time::OffsetDateTime;
 
+use crate::TunnelType;
+
 // Represents the identity of a gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Gateway {
@@ -65,12 +67,12 @@ pub enum EstablishConnectionState {
 impl fmt::Display for EstablishConnectionState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
-            EstablishConnectionState::ResolvingApiAddresses => "Resolving API addresses",
-            EstablishConnectionState::AwaitingAccountReadiness => "Awaiting account readiness",
-            EstablishConnectionState::RefreshingGateways => "Refreshing gateways",
-            EstablishConnectionState::SelectingGateways => "Selecting gateways",
-            EstablishConnectionState::ConnectingMixnetClient => "Connecting mixnet client",
-            EstablishConnectionState::ConnectingTunnel => "Connecting tunnel",
+            EstablishConnectionState::ResolvingApiAddresses => "resolving api addresses",
+            EstablishConnectionState::AwaitingAccountReadiness => "awaiting account readiness",
+            EstablishConnectionState::RefreshingGateways => "refreshing gateways",
+            EstablishConnectionState::SelectingGateways => "selecting gateways",
+            EstablishConnectionState::ConnectingMixnetClient => "connecting mixnet client",
+            EstablishConnectionState::ConnectingTunnel => "connecting tunnel",
         })
     }
 }
@@ -94,6 +96,15 @@ pub struct ConnectionData {
 pub enum TunnelConnectionData {
     Mixnet(MixnetConnectionData),
     Wireguard(WireguardConnectionData),
+}
+
+impl TunnelConnectionData {
+    pub fn tunnel_type(&self) -> TunnelType {
+        match self {
+            TunnelConnectionData::Mixnet(_) => TunnelType::Mixnet,
+            TunnelConnectionData::Wireguard(_) => TunnelType::Wireguard,
+        }
+    }
 }
 
 // Represents a nym-address of the form id.enc@gateway

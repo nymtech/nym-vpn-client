@@ -25,11 +25,27 @@ impl From<nym_vpn_lib_types::TunnelEvent> for TunnelEvent {
 }
 
 #[derive(uniffi::Enum)]
+pub enum TunnelType {
+    Mixnet,
+    Wireguard,
+}
+
+impl From<nym_vpn_lib_types::TunnelType> for TunnelType {
+    fn from(value: nym_vpn_lib_types::TunnelType) -> Self {
+        match value {
+            nym_vpn_lib_types::TunnelType::Mixnet => Self::Mixnet,
+            nym_vpn_lib_types::TunnelType::Wireguard => Self::Wireguard,
+        }
+    }
+}
+
+#[derive(uniffi::Enum)]
 pub enum TunnelState {
     Disconnected,
     Connecting {
         retry_attempt: u32,
         state: EstablishConnectionState,
+        tunnel_type: TunnelType,
         connection_data: Option<EstablishConnectionData>,
     },
     Connected {
@@ -55,13 +71,16 @@ impl From<nym_vpn_lib_types::TunnelState> for TunnelState {
             nym_vpn_lib_types::TunnelState::Connecting {
                 retry_attempt,
                 state,
+                tunnel_type,
                 connection_data,
             } => {
                 let connection_data = connection_data.map(EstablishConnectionData::from);
                 let state = EstablishConnectionState::from(state);
+                let tunnel_type = TunnelType::from(tunnel_type);
                 TunnelState::Connecting {
                     retry_attempt,
                     state,
+                    tunnel_type,
                     connection_data,
                 }
             }

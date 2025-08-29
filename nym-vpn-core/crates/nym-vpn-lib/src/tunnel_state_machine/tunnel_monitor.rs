@@ -132,9 +132,6 @@ pub enum TunnelMonitorEvent {
     /// Connecting mixnet client
     ConnectingMixnetClient,
 
-    /// Connecting tunnel
-    ConnectingTunnel,
-
     /// Tunnel interface is up.
     InterfaceUp {
         /// Tunnel interface
@@ -417,8 +414,6 @@ impl TunnelMonitor {
         ))
         .await
         .map_err(Box::new)?;
-
-        self.send_event(TunnelMonitorEvent::ConnectingTunnel);
 
         let status_listener_handle = connected_mixnet
             .start_event_listener(

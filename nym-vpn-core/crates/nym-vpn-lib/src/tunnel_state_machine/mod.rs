@@ -262,10 +262,12 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Connecting {
                 retry_attempt,
                 state,
+                tunnel_type,
                 connection_data,
             } => Self::Connecting {
                 retry_attempt,
                 state,
+                tunnel_type,
                 connection_data,
             },
             PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
@@ -285,6 +287,7 @@ enum PrivateTunnelState {
         /// Connection attempt.
         retry_attempt: u32,
         state: EstablishConnectionState,
+        tunnel_type: TunnelType,
         connection_data: Option<EstablishConnectionData>,
     },
     Connected {
