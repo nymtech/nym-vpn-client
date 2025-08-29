@@ -52,26 +52,26 @@ pub struct ErrorState;
 impl ErrorState {
     pub async fn enter(
         reason: ErrorStateReason,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if !reason.prevents_filtering_resolver() {
             // Set system DNS to our local DNS resolver
-            if Self::set_local_dns_resolver(_shared_state).await.is_err() {
-                return Box::pin(Self::enter(ErrorStateReason::SetDns, _shared_state)).await;
+            if Self::set_local_dns_resolver(shared_state).await.is_err() {
+                return Box::pin(Self::enter(ErrorStateReason::SetDns, shared_state)).await;
             }
         }
 
         #[cfg(target_os = "ios")]
         {
-            Self::set_blocking_network_settings(_shared_state.tun_provider.clone()).await;
+            Self::set_blocking_network_settings(shared_state.tun_provider.clone()).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        if let Err(e) = Self::set_firewall_policy(_shared_state) {
+        if let Err(e) = Self::set_firewall_policy(shared_state) {
             trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
-        let _ = _shared_state
+        let _ = shared_state
             .account_command_tx
             .set_vpn_api_firewall_up()
             .await;
@@ -89,7 +89,7 @@ impl ErrorState {
         shared_state
             .firewall
             .apply_policy(policy)
-            .map_err(Error::ApplyFirewallPolicy)
+            .map_err(Error::SetFirewallPolicy)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

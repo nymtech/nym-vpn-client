@@ -80,7 +80,7 @@ impl StatisticsEvent {
             TunnelState::Connecting { .. } => None, // We don't want an event from that as it can fire multiple times when connecting.
             TunnelState::Connected { .. } => Some(Self::new_connected()),
             TunnelState::Disconnecting { .. } => Some(Self::new_disconnecting()),
-            TunnelState::Error(client_error_reason) => Some(Self::new_error(client_error_reason)),
+            TunnelState::Error(reason) => Some(Self::new_error(reason)),
             TunnelState::Offline { .. } => None,
         }
     }

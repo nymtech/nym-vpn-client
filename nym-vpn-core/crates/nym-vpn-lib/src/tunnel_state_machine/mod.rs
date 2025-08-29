@@ -44,8 +44,8 @@ use nym_gateway_directory::{
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ClientErrorReason, ConnectionData, ErrorStateReason, MixnetEvent,
-    TunnelEvent, TunnelState, TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
+    MixnetEvent, TunnelEvent, TunnelState, TunnelType,
 };
 use nym_wg_gateway_client::Error as WgGatewayClientError;
 
@@ -268,7 +268,7 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
-            PrivateTunnelState::Error(reason) => Self::Error(ClientErrorReason::from(reason)),
+            PrivateTunnelState::Error(reason) => Self::Error(reason),
             PrivateTunnelState::Offline { reconnect } => Self::Offline { reconnect },
         }
     }
@@ -607,8 +607,8 @@ pub enum Error {
     CreateFirewall(#[source] nym_firewall::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to apply firewall policy")]
-    ApplyFirewallPolicy(#[source] nym_firewall::Error),
+    #[error("failed to set firewall policy")]
+    SetFirewallPolicy(#[source] nym_firewall::Error),
 
     #[error("failed to resolve API hostnames")]
     ResolveApiHostnames(#[source] nym_gateway_directory::Error),
@@ -670,11 +670,15 @@ impl Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         Some(match self {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
+            Self::CreateRouteHandler(_) | Self::CreateDnsHandler(_) | Self::CreateFirewall(_) => {
+                None?
+            }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
+            Self::AddRoutes(_) => ErrorStateReason::SetRouting,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateFirewall(_) | Self::ApplyFirewallPolicy(_) => ErrorStateReason::Firewall,
+            Self::SetDns(_) => ErrorStateReason::SetDns,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::SetFirewallPolicy(_) => ErrorStateReason::SetFirewallPolicy,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
@@ -684,7 +688,7 @@ impl Error {
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(target_os = "macos")]
-            Self::StartLocalDnsResolver(_) => ErrorStateReason::StartLocalDnsResolver,
+            Self::StartLocalDnsResolver(_) => None?,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
@@ -732,10 +736,12 @@ impl tunnel::Error {
                 }
                 _ => None,
             },
-            Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
-            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => {
-                Some(ErrorStateReason::CreateMixnetStorage)
-            }
+            Self::DupFd(_) => Some(ErrorStateReason::Internal(
+                "Failed to dup tunnel fd".to_owned(),
+            )),
+            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => Some(
+                ErrorStateReason::Internal("Failed to create mixnet storage".to_owned()),
+            ),
             Self::AuthenticationNotPossible(_)
             | Self::AuthenticatorAddressNotFound
             | Self::ConnectToIpPacketRouter(_)
@@ -763,12 +769,41 @@ impl account::Error {
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
             Self::Cancelled => None,
             Self::ControllerState(e) => match e {
-                AcError::Offline => Some(ErrorStateReason::AccountControllerOffline),
-                AcError::NoAccountStored => Some(ErrorStateReason::AccountControllerLoggedOut),
+                AcError::Offline => None,
+                AcError::NoAccountStored => Some(ErrorStateReason::DeviceLoggedOut),
                 AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
-                AcError::ErrorState(reason) => {
-                    Some(ErrorStateReason::AccountControllerError(reason))
+                AcError::ErrorState(
+                    AccountControllerErrorStateReason::AccountStatusNotActive { .. },
+                ) => Some(ErrorStateReason::InactiveAccount),
+                AcError::ErrorState(AccountControllerErrorStateReason::BandwidthExceeded {
+                    ..
+                }) => Some(ErrorStateReason::BandwidthExceeded),
+                AcError::ErrorState(AccountControllerErrorStateReason::InactiveSubscription) => {
+                    Some(ErrorStateReason::InactiveSubscription)
                 }
+                AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
+                    Some(ErrorStateReason::MaxDevicesReached)
+                }
+                AcError::ErrorState(AccountControllerErrorStateReason::DeviceTimeDesynced) => {
+                    Some(ErrorStateReason::DeviceTimeOutOfSync)
+                }
+                AcError::ErrorState(AccountControllerErrorStateReason::Internal {
+                    context,
+                    details,
+                }) => Some(ErrorStateReason::Internal(format!(
+                    "Internal account controller error: {context} {details}"
+                ))),
+                AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
+                    Some(ErrorStateReason::Internal(format!(
+                        "Failed to initialize account storage: {context}",
+                    )))
+                }
+                AcError::ErrorState(AccountControllerErrorStateReason::ApiFailure {
+                    context,
+                    details,
+                }) => Some(ErrorStateReason::Internal(format!(
+                    "Account API failure: {context} {details}"
+                ))),
             },
         }
     }

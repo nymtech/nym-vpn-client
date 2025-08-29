@@ -227,21 +227,57 @@ impl From<nym_vpn_lib_types::ActionAfterDisconnect> for ActionAfterDisconnect {
 
 #[derive(uniffi::Enum)]
 pub enum ErrorStateReason {
-    Firewall,
-    Routing,
-    SameEntryAndExitGateway,
-    InvalidEntryGatewayCountry,
-    InvalidExitGatewayCountry,
-    MaxDevicesReached,
-    BandwidthExceeded,
-    InactiveSubscription,
-    Dns(Option<String>),
-    Api(Option<String>),
-    DeviceTimeOutOfSync,
-    CreateMixnetStorage,
+    /// Failure to set firewall policy.
+    SetFirewallPolicy,
+
+    /// Failure to configure routing.
+    SetRouting,
+
+    /// Failure to configure dns.
+    SetDns,
+
+    /// Failure to configure tunnel device.
+    TunDevice,
+
+    /// Failure to configure tunnel provider.
+    TunnelProvider,
+
+    /// IPv6 is disabled in the system.
     Ipv6Unavailable,
-    Internal(Option<String>),
-    AccountControl(Option<String>),
+
+    /// Same entry and exit gateway are unsupported.
+    SameEntryAndExitGateway,
+
+    /// Invalid country set for entry gateway
+    InvalidEntryGatewayCountry,
+
+    /// Invalid country set for exit gateway
+    InvalidExitGatewayCountry,
+
+    /// Gateway is not responding or responding badly to a bandwidth
+    /// increase request, causing credential waste
+    BadBandwidthIncrease,
+
+    /// Bandwidth Exceeded
+    BandwidthExceeded,
+
+    /// Account status is not "Active"
+    InactiveAccount,
+
+    /// Inactive Subscription
+    InactiveSubscription,
+
+    /// Max device numbers reached
+    MaxDevicesReached,
+
+    /// Device time is off by too much, Zk-nyms use will fail
+    DeviceTimeOutOfSync,
+
+    /// Device is logged out
+    DeviceLoggedOut,
+
+    /// Program errors that must not happen.
+    Internal(String),
 }
 
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
@@ -342,34 +378,32 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
     }
 }
 
-impl From<nym_vpn_lib_types::ClientErrorReason> for ErrorStateReason {
-    fn from(value: nym_vpn_lib_types::ClientErrorReason) -> Self {
+impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
+    fn from(value: nym_vpn_lib_types::ErrorStateReason) -> Self {
         match value {
-            nym_vpn_lib_types::ClientErrorReason::Firewall => Self::Firewall,
-            nym_vpn_lib_types::ClientErrorReason::Routing => Self::Routing,
-            nym_vpn_lib_types::ClientErrorReason::SameEntryAndExitGateway => {
+            nym_vpn_lib_types::ErrorStateReason::SetFirewallPolicy => Self::SetFirewallPolicy,
+            nym_vpn_lib_types::ErrorStateReason::SetRouting => Self::SetRouting,
+            nym_vpn_lib_types::ErrorStateReason::SetDns => Self::SetDns,
+            nym_vpn_lib_types::ErrorStateReason::TunDevice => Self::TunDevice,
+            nym_vpn_lib_types::ErrorStateReason::TunnelProvider => Self::TunnelProvider,
+            nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
+            nym_vpn_lib_types::ErrorStateReason::SameEntryAndExitGateway => {
                 Self::SameEntryAndExitGateway
             }
-            nym_vpn_lib_types::ClientErrorReason::InvalidEntryGatewayCountry => {
+            nym_vpn_lib_types::ErrorStateReason::InvalidEntryGatewayCountry => {
                 Self::InvalidEntryGatewayCountry
             }
-            nym_vpn_lib_types::ClientErrorReason::InvalidExitGatewayCountry => {
+            nym_vpn_lib_types::ErrorStateReason::InvalidExitGatewayCountry => {
                 Self::InvalidExitGatewayCountry
             }
-            nym_vpn_lib_types::ClientErrorReason::MaxDevicesReached => Self::MaxDevicesReached,
-            nym_vpn_lib_types::ClientErrorReason::BandwidthExceeded => Self::BandwidthExceeded,
-            nym_vpn_lib_types::ClientErrorReason::InactiveSubscription => {
-                Self::InactiveSubscription
-            }
-            nym_vpn_lib_types::ClientErrorReason::Dns(message) => Self::Dns(message),
-            nym_vpn_lib_types::ClientErrorReason::Api(message) => Self::Api(message),
-            nym_vpn_lib_types::ClientErrorReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
-            nym_vpn_lib_types::ClientErrorReason::CreateMixnetStorage => Self::CreateMixnetStorage,
-            nym_vpn_lib_types::ClientErrorReason::Ipv6Unavailable => Self::Ipv6Unavailable,
-            nym_vpn_lib_types::ClientErrorReason::Internal(message) => Self::Internal(message),
-            nym_vpn_lib_types::ClientErrorReason::AccountControl(message) => {
-                Self::AccountControl(message)
-            }
+            nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
+            nym_vpn_lib_types::ErrorStateReason::BandwidthExceeded => Self::BandwidthExceeded,
+            nym_vpn_lib_types::ErrorStateReason::InactiveAccount => Self::InactiveAccount,
+            nym_vpn_lib_types::ErrorStateReason::InactiveSubscription => Self::InactiveSubscription,
+            nym_vpn_lib_types::ErrorStateReason::MaxDevicesReached => Self::MaxDevicesReached,
+            nym_vpn_lib_types::ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
+            nym_vpn_lib_types::ErrorStateReason::DeviceLoggedOut => Self::DeviceLoggedOut,
+            nym_vpn_lib_types::ErrorStateReason::Internal(msg) => Self::Internal(msg),
         }
     }
 }

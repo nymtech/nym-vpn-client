@@ -67,7 +67,7 @@ impl OfflineState {
         shared_state
             .firewall
             .apply_policy(policy)
-            .map_err(Error::ApplyFirewallPolicy)
+            .map_err(Error::SetFirewallPolicy)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

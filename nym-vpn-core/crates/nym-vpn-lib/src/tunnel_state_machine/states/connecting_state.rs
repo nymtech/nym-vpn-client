@@ -72,12 +72,8 @@ impl ConnectingState {
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
-            return ErrorState::enter(
-                e.error_state_reason()
-                    .expect("failed to map to error state reason"), // todo: fix me
-                shared_state,
-            )
-            .await;
+            trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
+            return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
         }
 
         if shared_state
@@ -101,12 +97,8 @@ impl ConnectingState {
             if let Err(e) =
                 Self::set_firewall_policy(shared_state, None, entry_gateway, None, &[]).await
             {
-                return ErrorState::enter(
-                    e.error_state_reason()
-                        .expect("failed to map to error state reason"),
-                    shared_state,
-                )
-                .await;
+                trace_err_chain!(e, "failed to set firewall policy");
+                return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
             }
         }
 
@@ -237,7 +229,7 @@ impl ConnectingState {
                     "Failed to apply firewall policy for connecting state"
                 );
             })
-            .map_err(Error::ApplyFirewallPolicy)
+            .map_err(Error::SetFirewallPolicy)
     }
 
     #[cfg(target_os = "macos")]
@@ -248,19 +240,14 @@ impl ConnectingState {
                 &[shared_state.filtering_resolver.listen_addr().ip()],
                 shared_state.filtering_resolver.listen_addr().port(),
             );
-            if let Err(error) = shared_state
+            shared_state
                 .dns_handler
                 .set("lo".to_owned(), system_dns)
                 .await
-            {
-                trace_err_chain!(
-                    error,
-                    "Failed to configure system to use filtering resolver",
-                );
-            }
+                .map_err(Error::SetDns)
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -335,13 +322,9 @@ impl ConnectingState {
             )
             .await
             {
+                trace_err_chain!(e, "failed to set firewall policy");
                 return NextTunnelState::NewState(
-                    ErrorState::enter(
-                        e.error_state_reason()
-                            .expect("failed to map to error state reason"),
-                        shared_state,
-                    )
-                    .await,
+                    ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await,
                 );
             }
         }
@@ -522,19 +505,15 @@ impl TunnelStateHandler for ConnectingState {
                                 NextTunnelState::SameState(self)
                             }
                             Err(e) => {
+                                trace_err_chain!(e, "Failed to set firewall policy");
                                 if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                                     NextTunnelState::NewState(DisconnectingState::enter(
-                                        // todo: fix that expect()
-                                        PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
+                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                                         tunnel_monitor_handle,
                                         shared_state
                                     ))
                                 } else {
-                                    NextTunnelState::NewState(ErrorState::enter(
-                                        // todo: fix that expect()
-                                        e.error_state_reason().expect("failed to obtain error state reason"),
-                                        shared_state
-                                    ).await)
+                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
                                 }
                             }
                         };
@@ -550,19 +529,15 @@ impl TunnelStateHandler for ConnectingState {
                                 NextTunnelState::NewState((self, state))
                             },
                             Err(e) => {
+                                trace_err_chain!(e, "Failed to set firewall policy");
                                 if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                                     NextTunnelState::NewState(DisconnectingState::enter(
-                                        // todo: fix that expect()
-                                        PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
+                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                                         tunnel_monitor_handle,
                                         shared_state
                                     ))
                                 } else {
-                                    NextTunnelState::NewState(ErrorState::enter(
-                                        // todo: fix that expect()
-                                        e.error_state_reason().expect("failed to obtain error state reason"),
-                                        shared_state
-                                    ).await)
+                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
                                 }
                             }
                         };

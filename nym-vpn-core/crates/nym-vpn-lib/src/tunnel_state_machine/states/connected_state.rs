@@ -59,20 +59,16 @@ impl ConnectedState {
             .set_firewall_policy(shared_state, &connection_data)
             .await
         {
+            trace_err_chain!(e, "Failed to apply firewall policy");
             return DisconnectingState::enter(
-                PrivateActionAfterDisconnect::Error(
-                    e.error_state_reason()
-                        .expect("failed to obtain error state reason"),
-                ),
+                PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                 connected_state.tunnel_monitor_handle,
                 shared_state,
             );
         } else if let Err(e) = connected_state.set_dns(shared_state).await {
+            trace_err_chain!(e, "Failed to set dns");
             return DisconnectingState::enter(
-                PrivateActionAfterDisconnect::Error(
-                    e.error_state_reason()
-                        .expect("failed to obtain error state reason"),
-                ),
+                PrivateActionAfterDisconnect::Error(ErrorStateReason::SetDns),
                 connected_state.tunnel_monitor_handle,
                 shared_state,
             );
@@ -149,7 +145,7 @@ impl ConnectedState {
         shared_state
             .firewall
             .apply_policy(policy)
-            .map_err(Error::CreateFirewall)
+            .map_err(Error::SetFirewallPolicy)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

@@ -325,23 +325,27 @@ message TunnelConnectionData {
   }
 }
 
+
+
 message TunnelState {
   enum ErrorStateReason {
-    FIREWALL = 0;
-    ROUTING = 1;
-    SAME_ENTRY_AND_EXIT_GATEWAY = 2;
-    INVALID_ENTRY_GATEWAY_COUNTRY = 3;
-    INVALID_EXIT_GATEWAY_COUNTRY = 4;
-    MAX_DEVICES_REACHED = 5;
-    BANDWIDTH_EXCEEDED = 6;
-    INACTIVE_SUBSCRIPTION = 7;
-    DNS = 8;
-    API = 9;
-    INTERNAL = 10;
-    DEVICE_TIME_OUT_OF_SYNC = 11;
-    CREATE_MIXNET_STORAGE = 12;
-    IPV6_UNAVAILABLE = 13;
-    ACCOUNT_CONTROL = 14;
+    SET_FIREWALL_POLICY = 0;
+    SET_ROUTING = 1;
+    SET_DNS = 2;
+    TUN_DEVICE = 3;
+    TUNNEL_PROVIDER = 4;
+    IPV6_UNAVAILABLE = 5;
+    SAME_ENTRY_AND_EXIT_GATEWAY = 6;
+    INVALID_ENTRY_GATEWAY_COUNTRY = 7;
+    INVALID_EXIT_GATEWAY_COUNTRY = 8;
+    BAD_BANDWIDTH_INCREASE = 9;
+    BANDWIDTH_EXCEEDED = 10;
+    INACTIVE_SUBSCRIPTION = 11;
+    INACTIVE_ACCOUNT = 12;
+    MAX_DEVICES_REACHED = 13;
+    DEVICE_TIME_OUT_OF_SYNC = 14;
+    DEVICE_LOGGED_OUT = 15;
+    INTERNAL = 16;
   }
 
   enum ActionAfterDisconnect {
@@ -364,8 +368,7 @@ message TunnelState {
   }
   message Error {
     ErrorStateReason reason = 1;
-    // for errors with details like Dns, Api, Internal
-    optional string detail = 2;
+    optional string message = 2;
   }
   message Offline {
     bool reconnect = 1;

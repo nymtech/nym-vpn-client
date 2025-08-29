@@ -1,13 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-
-use crate::{
-    AccountControllerErrorStateReason, RequestZkNymErrorReason, VpnApiErrorResponse,
-    account::VpnApiError,
-};
-
 use super::connection_data::{ConnectionData, TunnelConnectionData};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -37,7 +30,7 @@ pub enum TunnelState {
     },
 
     /// Tunnel is disconnected due to failure.
-    Error(ClientErrorReason),
+    Error(ErrorStateReason),
 
     /// Tunnel is disconnected, network connectivity is unavailable.
     Offline {
@@ -46,8 +39,8 @@ pub enum TunnelState {
     },
 }
 
-impl fmt::Display for TunnelState {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for TunnelState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Disconnected => f.write_str("Disconnected"),
             Self::Connecting {
@@ -142,11 +135,11 @@ pub enum ActionAfterDisconnect {
 
 #[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
 pub enum ErrorStateReason {
-    /// Issues related to firewall configuration.
-    Firewall,
+    /// Failure to set firewall policy.
+    SetFirewallPolicy,
 
     /// Failure to configure routing.
-    Routing,
+    SetRouting,
 
     /// Failure to configure dns.
     SetDns,
@@ -154,11 +147,11 @@ pub enum ErrorStateReason {
     /// Failure to configure tunnel device.
     TunDevice,
 
-    /// Failure to configure packet tunnel provider.
+    /// Failure to configure packet tunnel provider (iOS and Android only)
     TunnelProvider,
 
-    /// Failure to start local dns resolver.
-    StartLocalDnsResolver,
+    /// IPv6 is disabled in the system.
+    Ipv6Unavailable,
 
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
@@ -173,26 +166,26 @@ pub enum ErrorStateReason {
     /// increase request, causing credential waste
     BadBandwidthIncrease,
 
-    /// Failure to duplicate tunnel file descriptor.
-    DuplicateTunFd,
+    /// Bandwidth Exceeded
+    BandwidthExceeded,
 
-    /// Failure to create mixnet storage.
-    CreateMixnetStorage,
+    /// Account status is not "Active"
+    InactiveAccount,
 
-    /// IPv6 is disabled in the system.
-    Ipv6Unavailable,
+    /// Inactive Subscription
+    InactiveSubscription,
+
+    /// Max device numbers reached
+    MaxDevicesReached,
+
+    /// Device time is off by too much, Zk-nyms use will fail
+    DeviceTimeOutOfSync,
+
+    /// Device is logged out
+    DeviceLoggedOut,
 
     /// Program errors that must not happen.
     Internal(String),
-
-    /// Account controller is in error state.
-    AccountControllerError(AccountControllerErrorStateReason),
-
-    /// Account controller is offline
-    AccountControllerOffline,
-
-    /// Account controller is logged out
-    AccountControllerLoggedOut,
 }
 
 impl ErrorStateReason {
@@ -200,96 +193,5 @@ impl ErrorStateReason {
     #[cfg(target_os = "macos")]
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)
-    }
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
-pub enum ClientErrorReason {
-    Firewall,
-    Routing,
-    SameEntryAndExitGateway,
-    InvalidEntryGatewayCountry,
-    InvalidExitGatewayCountry,
-    MaxDevicesReached,
-    BandwidthExceeded,
-    InactiveSubscription,
-    Dns(Option<String>),
-    Api(Option<String>),
-    DeviceTimeOutOfSync,
-    CreateMixnetStorage,
-    Ipv6Unavailable,
-    Internal(Option<String>),
-    AccountControl(Option<String>),
-}
-
-impl From<ErrorStateReason> for ClientErrorReason {
-    fn from(value: ErrorStateReason) -> Self {
-        match value {
-            ErrorStateReason::CreateMixnetStorage => Self::CreateMixnetStorage,
-            ErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
-            ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
-            ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            ErrorStateReason::BadBandwidthIncrease => Self::Api(Some(value.to_string())),
-            ErrorStateReason::Firewall => Self::Firewall,
-            ErrorStateReason::TunDevice
-            | ErrorStateReason::TunnelProvider
-            | ErrorStateReason::DuplicateTunFd => Self::Internal(Some(value.to_string())),
-            ErrorStateReason::Internal(message) => Self::Internal(Some(message)),
-            ErrorStateReason::Routing => Self::Routing,
-            ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
-            ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
-            ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
-            ErrorStateReason::AccountControllerError(
-                AccountControllerErrorStateReason::BandwidthExceeded { .. },
-            ) => Self::BandwidthExceeded,
-            ErrorStateReason::AccountControllerError(
-                AccountControllerErrorStateReason::MaxDeviceReached,
-            ) => Self::MaxDevicesReached,
-            ErrorStateReason::AccountControllerError(
-                AccountControllerErrorStateReason::InactiveSubscription,
-            ) => Self::InactiveSubscription,
-            ErrorStateReason::AccountControllerError(
-                AccountControllerErrorStateReason::DeviceTimeDesynced,
-            ) => Self::DeviceTimeOutOfSync,
-            ErrorStateReason::AccountControllerError(reason) => {
-                Self::AccountControl(Some(reason.to_string()))
-            }
-            ErrorStateReason::AccountControllerOffline => {
-                Self::AccountControl(Some("offline".into()))
-            }
-            ErrorStateReason::AccountControllerLoggedOut => {
-                Self::AccountControl(Some("logged out".into()))
-            }
-        }
-    }
-}
-
-impl From<RequestZkNymErrorReason> for ClientErrorReason {
-    fn from(error: RequestZkNymErrorReason) -> Self {
-        match error {
-            RequestZkNymErrorReason::VpnApi(e) => e.into(),
-            RequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => Self::Api(Some(message)),
-            reason => Self::Internal(Some(reason.to_string())),
-        }
-    }
-}
-
-impl From<VpnApiError> for ClientErrorReason {
-    fn from(error: VpnApiError) -> Self {
-        match error {
-            VpnApiError::Response(e) => e.into(),
-            VpnApiError::StatusCode { .. } => Self::Api(Some(error.to_string())),
-            VpnApiError::Timeout(..) => Self::Api(Some(error.to_string())),
-        }
-    }
-}
-
-impl From<VpnApiErrorResponse> for ClientErrorReason {
-    fn from(error: VpnApiErrorResponse) -> Self {
-        let message = match error.message_id {
-            None => error.message,
-            Some(id) => format!("{}, ID [{}]", error.message, id),
-        };
-        Self::Api(Some(message))
     }
 }
