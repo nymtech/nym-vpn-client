@@ -68,8 +68,7 @@ impl TryFrom<&str> for NetworkEnvironments {
 // NymVpnServiceConfig
 //
 
-// Derserialize is only for reading the deprecated TOML version.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct NymVpnServiceConfig {
     pub(super) entry_point: gateway_directory::EntryPoint,
     pub(super) exit_point: gateway_directory::ExitPoint,
@@ -298,6 +297,27 @@ impl TryFrom<&gateway_directory::ExitPoint> for ExitPointExtV1 {
 }
 
 //
+// Legacy TOML version of config file.
+//
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct LegacyNymVpnServiceConfig {
+    pub(super) entry_point: gateway_directory::EntryPoint,
+    pub(super) exit_point: gateway_directory::ExitPoint,
+}
+
+impl TryFrom<LegacyNymVpnServiceConfig> for NymVpnServiceConfig {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: LegacyNymVpnServiceConfig) -> Result<Self, Self::Error> {
+        Ok(Self {
+            entry_point: value.entry_point,
+            exit_point: value.exit_point,
+        })
+    }
+}
+
+//
 // ConfigSetupError
 //
 
@@ -385,25 +405,21 @@ pub(super) fn setup_service_config(
     let json_config_exists = json_config_path.exists();
     let toml_config_exists = toml_config_path.exists();
 
-    let config = if json_config_exists {
+    let mut config = if json_config_exists {
         let ext_config = read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
             .map_err(Error::ConfigSetup)?;
 
-        let mut config = NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
-
-        config.entry_point = entry.unwrap_or(config.entry_point);
-        config.exit_point = exit.unwrap_or(config.exit_point);
-        config
+        NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?
     } else if toml_config_exists {
-        let mut config = read_toml_config_file::<NymVpnServiceConfig>(toml_config_path)
+        let legacy_config = read_toml_config_file::<LegacyNymVpnServiceConfig>(toml_config_path)
             .map_err(Error::ConfigSetup)?;
-
-        config.entry_point = entry.unwrap_or(config.entry_point);
-        config.exit_point = exit.unwrap_or(config.exit_point);
-        config
+        NymVpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?
     } else {
         NymVpnServiceConfig::default()
     };
+
+    config.entry_point = entry.unwrap_or(config.entry_point);
+    config.exit_point = exit.unwrap_or(config.exit_point);
 
     if toml_config_exists {
         tracing::info!(

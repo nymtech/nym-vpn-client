@@ -44,12 +44,16 @@ impl GlobalConfig {
                 json_config_path.display()
             ))?
         } else if toml_config_exists {
-            crate::service::read_toml_config_file::<GlobalConfig>(&toml_config_path).context(
-                anyhow!(
-                    "Failed to read global config file {}",
-                    toml_config_path.display()
-                ),
-            )?
+            let legacy_config =
+                crate::service::read_toml_config_file::<LegacyGlobalConfig>(&toml_config_path)
+                    .context(anyhow!(
+                        "Failed to read global config file {}",
+                        toml_config_path.display()
+                    ))?;
+            GlobalConfig::try_from(legacy_config).context(anyhow!(
+                "Failed to parse global config file {}",
+                toml_config_path.display()
+            ))?
         } else {
             GlobalConfig::default()
         };
@@ -163,6 +167,38 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExtLatest {
     fn try_from(value: &GlobalConfig) -> Result<Self, Self::Error> {
         Ok(GlobalConfigExtLatest {
             network_name: value.network_name.clone(),
+            sentry_monitoring: value.sentry_monitoring,
+            collect_network_statistics: value.collect_network_statistics,
+        })
+    }
+}
+
+//
+// Legacy TOML version of the config file
+//
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+struct LegacyGlobalConfig {
+    network_name: String,
+    sentry_monitoring: bool,
+    collect_network_statistics: bool,
+}
+
+impl Default for LegacyGlobalConfig {
+    fn default() -> Self {
+        Self {
+            network_name: NymNetworkDetails::default().network_name,
+            sentry_monitoring: false,
+            collect_network_statistics: true,
+        }
+    }
+}
+
+impl TryFrom<LegacyGlobalConfig> for GlobalConfig {
+    type Error = crate::service::ConfigSetupError;
+
+    fn try_from(value: LegacyGlobalConfig) -> Result<Self, Self::Error> {
+        Ok(Self {
+            network_name: value.network_name,
             sentry_monitoring: value.sentry_monitoring,
             collect_network_statistics: value.collect_network_statistics,
         })
