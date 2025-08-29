@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use anyhow::Context;
 use serde::Deserialize;
 use std::ffi::{CStr, CString};
 
@@ -175,14 +176,30 @@ pub enum NetstackResult {
 pub fn ping(req: &NetstackRequestGo) -> anyhow::Result<NetstackResult> {
     let req_json = serde_json::to_string_pretty(req)?;
     let req_json_cstr = CString::new(req_json)?;
+
+    // SAFETY: safety guarantees are upheld by CGO
     let response_str_ptr = unsafe { sys::wgPing(req_json_cstr.as_ptr()) };
+    if response_str_ptr.is_null() {
+        return Err(anyhow::anyhow!("wgPing() returned null"));
+    }
 
+    // SAFETY: safety guarantees are upheld by CGO
     let response_cstr = unsafe { CStr::from_ptr(response_str_ptr) };
-    let response_str = response_cstr.to_str()?;
+    let result = match response_cstr.to_str() {
+        Ok(response_str) => {
+            let mut de = serde_json::Deserializer::from_str(response_str);
+            let response = NetstackResult::deserialize(&mut de);
 
-    let mut de = serde_json::Deserializer::from_str(response_str);
-    let response = NetstackResult::deserialize(&mut de);
+            response.context("Failed to deserialize ffi response")
+        }
+        Err(err) => Err(anyhow::anyhow!(
+            "Failed to convert ffi response to utf8 string: {}",
+            err
+        )),
+    };
+
+    // SAFETY: freeing the pointer returned by CGO
     unsafe { sys::wgFreePtr(response_str_ptr as _) };
 
-    Ok(response?)
+    result
 }
