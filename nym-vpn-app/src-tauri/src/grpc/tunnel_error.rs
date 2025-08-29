@@ -6,14 +6,12 @@ use ts_rs::TS;
 #[derive(Serialize, Clone, Debug, strum::Display, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
-#[serde(tag = "key", content = "data")]
+#[serde(tag = "key", content = "message")]
 pub enum TunnelError {
     Internal(Option<String>),
-    Dns(Option<String>),
-    Api(Option<String>),
-    AccountController(Option<String>),
-    Firewall(Option<String>),
-    Routing(Option<String>),
+    SetFirewallPolicy(Option<String>),
+    SetDns(Option<String>),
+    SetRouting(Option<String>),
     SameEntryAndExitGw(Option<String>),
     InvalidEntryGwCountry(Option<String>),
     InvalidExitGwCountry(Option<String>),
@@ -22,34 +20,45 @@ pub enum TunnelError {
     InactiveSubscription(Option<String>),
     DeviceTimeOutOfSync(Option<String>),
     Ipv6Unavailable(Option<String>),
+    TunDevice(Option<String>),
+    TunnelProvider(Option<String>),
+    BadBandwidthIncrease(Option<String>),
+    InactiveAccount(Option<String>),
+    DeviceLoggedOut(Option<String>),
 }
 
 impl From<ProtoTunnelError> for TunnelError {
     fn from(error: ProtoTunnelError) -> Self {
         match error.reason() {
-            ErrorStateReason::Internal => TunnelError::Internal(error.detail),
-            ErrorStateReason::Firewall => TunnelError::Firewall(error.detail),
-            ErrorStateReason::Routing => TunnelError::Routing(error.detail),
-            ErrorStateReason::Dns => TunnelError::Dns(error.detail),
-            ErrorStateReason::AccountControl => TunnelError::AccountController(error.detail),
+            ErrorStateReason::Internal => TunnelError::Internal(error.message),
+            ErrorStateReason::SetFirewallPolicy => TunnelError::SetFirewallPolicy(error.message),
+            ErrorStateReason::SetDns => TunnelError::SetDns(error.message),
             ErrorStateReason::SameEntryAndExitGateway => {
-                TunnelError::SameEntryAndExitGw(error.detail)
+                TunnelError::SameEntryAndExitGw(error.message)
             }
             ErrorStateReason::InvalidEntryGatewayCountry => {
-                TunnelError::InvalidEntryGwCountry(error.detail)
+                TunnelError::InvalidEntryGwCountry(error.message)
             }
             ErrorStateReason::InvalidExitGatewayCountry => {
-                TunnelError::InvalidExitGwCountry(error.detail)
+                TunnelError::InvalidExitGwCountry(error.message)
             }
-            ErrorStateReason::MaxDevicesReached => TunnelError::MaxDevicesReached(error.detail),
-            ErrorStateReason::BandwidthExceeded => TunnelError::BandwidthExceeded(error.detail),
+            ErrorStateReason::MaxDevicesReached => TunnelError::MaxDevicesReached(error.message),
+            ErrorStateReason::BandwidthExceeded => TunnelError::BandwidthExceeded(error.message),
             ErrorStateReason::InactiveSubscription => {
-                TunnelError::InactiveSubscription(error.detail)
+                TunnelError::InactiveSubscription(error.message)
             }
-            ErrorStateReason::Api => TunnelError::Api(error.detail),
-            ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(error.detail),
-            ErrorStateReason::CreateMixnetStorage => TunnelError::Internal(error.detail),
-            ErrorStateReason::Ipv6Unavailable => TunnelError::Ipv6Unavailable(error.detail),
+            ErrorStateReason::DeviceTimeOutOfSync => {
+                TunnelError::DeviceTimeOutOfSync(error.message)
+            }
+            ErrorStateReason::Ipv6Unavailable => TunnelError::Ipv6Unavailable(error.message),
+            ErrorStateReason::SetRouting => TunnelError::SetRouting(error.message),
+            ErrorStateReason::TunDevice => TunnelError::TunDevice(error.message),
+            ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider(error.message),
+            ErrorStateReason::BadBandwidthIncrease => {
+                TunnelError::BadBandwidthIncrease(error.message)
+            }
+            ErrorStateReason::InactiveAccount => TunnelError::InactiveAccount(error.message),
+            ErrorStateReason::DeviceLoggedOut => TunnelError::DeviceLoggedOut(error.message),
         }
     }
 }

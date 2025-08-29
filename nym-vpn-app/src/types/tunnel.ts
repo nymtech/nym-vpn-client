@@ -66,41 +66,23 @@ export function isWireguardData(data: TunnelData): data is WireguardData {
 }
 
 export type TunnelError =
-  | { key: 'internal'; data: string | null }
-  | {
-      key: 'dns';
-      data: string | null;
-    }
-  | { key: 'api'; data: string | null }
-  | {
-      key: 'account-controller';
-      data: string | null;
-    }
-  | { key: 'firewall'; data: string | null }
-  | {
-      key: 'routing';
-      data: string | null;
-    }
-  | { key: 'same-entry-and-exit-gw'; data: string | null }
-  | {
-      key: 'invalid-entry-gw-country';
-      data: string | null;
-    }
-  | { key: 'invalid-exit-gw-country'; data: string | null }
-  | {
-      key: 'max-devices-reached';
-      data: string | null;
-    }
-  | { key: 'bandwidth-exceeded'; data: string | null }
-  | {
-      key: 'inactive-subscription';
-      data: string | null;
-    }
-  | { key: 'device-time-out-of-sync'; data: string | null }
-  | {
-      key: 'ipv6-unavailable';
-      data: string | null;
-    };
+  | { key: 'internal'; message: string | null }
+  | { key: 'set-firewall-policy'; message: string | null }
+  | { key: 'set-dns'; message: string | null }
+  | { key: 'set-routing'; message: string | null }
+  | { key: 'same-entry-and-exit-gw'; message: string | null }
+  | { key: 'invalid-entry-gw-country'; message: string | null }
+  | { key: 'invalid-exit-gw-country'; message: string | null }
+  | { key: 'max-devices-reached'; message: string | null }
+  | { key: 'bandwidth-exceeded'; message: string | null }
+  | { key: 'inactive-subscription'; message: string | null }
+  | { key: 'device-time-out-of-sync'; message: string | null }
+  | { key: 'ipv6-unavailable'; message: string | null }
+  | { key: 'tun-device'; message: string | null }
+  | { key: 'tunnel-provider'; message: string | null }
+  | { key: 'bad-bandwidth-increase'; message: string | null }
+  | { key: 'inactive-account'; message: string | null }
+  | { key: 'device-logged-out'; message: string | null };
 
 export type TunnelStateEvent = {
   state: TunnelState;

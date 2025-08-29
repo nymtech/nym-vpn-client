@@ -23,36 +23,43 @@ function useI18nError() {
   const translateError: Terror = useCallback(
     (error: ErrorKey | TunnelError) => {
       if (typeof error === 'object') {
+        const { message } = error;
         // tunnel state errors
         switch (error.key) {
+          case 'tun-device':
+            return fmtErr(t('tunnel.tun-device'), message);
+          case 'tunnel-provider':
+            return fmtErr(t('tunnel.tunnel-provider'), message);
+          case 'bad-bandwidth-increase':
+            return fmtErr(t('tunnel.bad-bandwidth-increase'), message);
+          case 'inactive-account':
+            return fmtErr(t('tunnel.inactive-account'), message);
+          case 'device-logged-out':
+            return fmtErr(t('tunnel.device-logged-out'), message);
           case 'internal':
-            return fmtErr(t('tunnel.internal'), error.data);
-          case 'api':
-            return fmtErr(t('tunnel.api'), error.data);
-          case 'account-controller':
-            return fmtErr(t('tunnel.account-controller'), error.data);
-          case 'firewall':
-            return fmtErr(t('tunnel.firewall'), error.data);
-          case 'routing':
-            return fmtErr(t('tunnel.routing'), error.data);
-          case 'dns':
-            return fmtErr(t('tunnel.dns'), error.data);
+            return fmtErr(t('tunnel.internal'), message);
+          case 'set-firewall-policy':
+            return fmtErr(t('tunnel.firewall'), message);
+          case 'set-routing':
+            return fmtErr(t('tunnel.routing'), message);
+          case 'set-dns':
+            return fmtErr(t('tunnel.dns'), message);
           case 'same-entry-and-exit-gw':
-            return fmtErr(t('tunnel.same-entry-exit-gw'), error.data);
+            return fmtErr(t('tunnel.same-entry-exit-gw'), message);
           case 'invalid-entry-gw-country':
-            return fmtErr(t('tunnel.invalid-entry-gw-country'), error.data);
+            return fmtErr(t('tunnel.invalid-entry-gw-country'), message);
           case 'invalid-exit-gw-country':
-            return fmtErr(t('tunnel.invalid-exit-gw-country'), error.data);
+            return fmtErr(t('tunnel.invalid-exit-gw-country'), message);
           case 'max-devices-reached':
-            return fmtErr(t('tunnel.max-devices-reached'), error.data);
+            return fmtErr(t('tunnel.max-devices-reached'), message);
           case 'bandwidth-exceeded':
-            return fmtErr(t('tunnel.bandwidth-exceeded'), error.data);
+            return fmtErr(t('tunnel.bandwidth-exceeded'), message);
           case 'inactive-subscription':
-            return fmtErr(t('tunnel.subscription-expired'), error.data);
+            return fmtErr(t('tunnel.subscription-expired'), message);
           case 'device-time-out-of-sync':
-            return fmtErr(t('tunnel.device-time-out-of-sync'), error.data);
+            return fmtErr(t('tunnel.device-time-out-of-sync'), message);
           case 'ipv6-unavailable':
-            return fmtErr(t('tunnel.ipv6-unavailable'), error.data);
+            return fmtErr(t('tunnel.ipv6-unavailable'), message);
         }
       }
       // not a tunnel error
