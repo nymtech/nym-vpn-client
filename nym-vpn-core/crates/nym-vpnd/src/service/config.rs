@@ -4,14 +4,14 @@
 use super::error::{Error, Result};
 use nym_vpn_lib::gateway_directory;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::str::FromStr;
+use std::{
+    fmt, fs,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-
-#[cfg(windows)]
-use std::path::Path;
-use std::{fmt, fs, path::PathBuf};
 
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
@@ -301,9 +301,9 @@ impl TryFrom<&gateway_directory::ExitPoint> for ExitPointExtV1 {
 //
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct LegacyNymVpnServiceConfig {
-    pub(super) entry_point: gateway_directory::EntryPoint,
-    pub(super) exit_point: gateway_directory::ExitPoint,
+struct LegacyNymVpnServiceConfig {
+    entry_point: gateway_directory::EntryPoint,
+    exit_point: gateway_directory::ExitPoint,
 }
 
 impl TryFrom<LegacyNymVpnServiceConfig> for NymVpnServiceConfig {
