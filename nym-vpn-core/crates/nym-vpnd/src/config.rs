@@ -4,6 +4,7 @@
 use anyhow::{Context, anyhow};
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 // Derserialize is only for reading the deprecated TOML version.
 #[derive(Clone, Debug, Deserialize)]
@@ -24,12 +25,15 @@ impl Default for GlobalConfig {
 }
 
 impl GlobalConfig {
-    pub fn read_from_file() -> anyhow::Result<Self> {
-        let json_config_path =
-            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
+    pub fn read_from_default_config_dir() -> anyhow::Result<Self> {
+        let config_dir = crate::service::config_dir();
+        Self::read_from_config_dir(&config_dir)
+    }
+
+    pub fn read_from_config_dir(config_dir: &Path) -> anyhow::Result<Self> {
+        let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
         let json_config_exists = json_config_path.exists();
-        let toml_config_path =
-            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
+        let toml_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
         let toml_config_exists = toml_config_path.exists();
 
         let config = if json_config_exists {
@@ -67,14 +71,18 @@ impl GlobalConfig {
         }
 
         // Always write back the config file back using the latest JSON version
-        config.write_to_file()?;
+        config.write_to_config_dir(config_dir)?;
 
         Ok(config)
     }
 
-    pub fn write_to_file(&self) -> anyhow::Result<()> {
-        let json_config_path =
-            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
+    pub fn write_to_default_config_dir(&self) -> anyhow::Result<()> {
+        let config_dir = crate::service::config_dir();
+        self.write_to_config_dir(&config_dir)
+    }
+
+    pub fn write_to_config_dir(&self, config_dir: &Path) -> anyhow::Result<()> {
+        let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
 
         let ext_config = GlobalConfigExt::try_from(self).context(anyhow!(
             "Failed to convert global config to external representation for writing"
@@ -88,7 +96,7 @@ impl GlobalConfig {
 
     // Calling this means the global configuration file is read twice 😒
     pub fn sentry_enabled() -> bool {
-        let config = Self::read_from_file().unwrap_or_default();
+        let config = Self::read_from_default_config_dir().unwrap_or_default();
         config.sentry_monitoring
     }
 }
@@ -214,7 +222,7 @@ impl TryFrom<LegacyGlobalConfig> for GlobalConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{env::set_var, fs, path::PathBuf};
+    use std::{fs, path::PathBuf};
     use tempfile::tempdir;
 
     // Config directory will be deleted on drop
@@ -223,8 +231,6 @@ mod tests {
         let config_path = temp_dir.path();
 
         println!("Using config dir: {config_path:?}");
-
-        unsafe { set_var("NYM_VPND_CONFIG_DIR", config_path) }; // See service::config::config_dir()
 
         let toml_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
         let _ = fs::remove_file(&toml_path);
@@ -237,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_global_config_migrate() {
-        let (_temp_dir, toml_path, json_path) = setup();
+        let (temp_dir, toml_path, json_path) = setup();
 
         // Write the TOML config file
         let toml_content = r#"
@@ -248,7 +254,7 @@ collect_network_statistics = true
         fs::write(&toml_path, toml_content).unwrap();
 
         // Read the TOML config and migrate it to JSON
-        let config = GlobalConfig::read_from_file().unwrap();
+        let config = GlobalConfig::read_from_config_dir(temp_dir.path()).unwrap();
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
         assert!(config.collect_network_statistics);
@@ -258,7 +264,7 @@ collect_network_statistics = true
         assert!(json_path.exists());
 
         // Read the JSON config
-        let config = GlobalConfig::read_from_file().unwrap();
+        let config = GlobalConfig::read_from_config_dir(temp_dir.path()).unwrap();
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
         assert!(config.collect_network_statistics);

@@ -622,7 +622,7 @@ fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{env::set_var, fs, path::PathBuf};
+    use std::{fs, path::PathBuf};
     use tempfile::tempdir;
 
     // Config directory will be deleted on drop
@@ -631,8 +631,6 @@ mod tests {
         let config_path = temp_dir.path();
 
         println!("Using config dir: {config_path:?}");
-
-        unsafe { set_var("NYM_VPND_CONFIG_DIR", config_path) }; // See service::config::config_dir()
 
         let service_path = config_path.join("tulips");
         let _ = fs::create_dir_all(&service_path);

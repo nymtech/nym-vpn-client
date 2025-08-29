@@ -237,10 +237,10 @@ async fn setup_vpn_service(
 }
 
 fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfig> {
-    let mut global_config_file = GlobalConfig::read_from_file()?;
+    let mut global_config_file = GlobalConfig::read_from_default_config_dir()?;
     if let Some(network) = network {
         global_config_file.network_name = network;
-        global_config_file.write_to_file()?;
+        global_config_file.write_to_default_config_dir()?;
     }
     Ok(global_config_file)
 }

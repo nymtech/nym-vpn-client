@@ -795,17 +795,18 @@ impl NymVpnService {
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
-        let mut global_config =
-            GlobalConfig::read_from_file().map_err(|source| SetNetworkError::ReadConfig {
+        let mut global_config = GlobalConfig::read_from_default_config_dir().map_err(|source| {
+            SetNetworkError::ReadConfig {
                 source: source.into(),
-            })?;
+            }
+        })?;
 
         let network_selected = NetworkEnvironments::try_from(network.as_str())
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
         global_config
-            .write_to_file()
+            .write_to_default_config_dir()
             .map_err(|source| SetNetworkError::WriteConfig {
                 source: source.into(),
             })?;
@@ -1010,7 +1011,7 @@ impl NymVpnService {
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {
-        GlobalConfig::read_from_file()
+        GlobalConfig::read_from_default_config_dir()
             .inspect_err(|e| {
                 tracing::error!("Failed to read global config file: {}", e);
             })
@@ -1021,7 +1022,7 @@ impl NymVpnService {
     }
 
     async fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
-        let mut config = GlobalConfig::read_from_file()
+        let mut config = GlobalConfig::read_from_default_config_dir()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.sentry_monitoring = enable;
         if enable {
@@ -1033,7 +1034,7 @@ impl NymVpnService {
             }
             tracing::info!("Sentry monitoring disabled, daemon needs to be restarted");
         }
-        GlobalConfig::write_to_file(&config)
+        GlobalConfig::write_to_default_config_dir(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         Ok(())
     }
@@ -1046,7 +1047,7 @@ impl NymVpnService {
         &mut self,
         enable: bool,
     ) -> Result<(), GlobalConfigError> {
-        let mut config = GlobalConfig::read_from_file()
+        let mut config = GlobalConfig::read_from_default_config_dir()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.collect_network_statistics = enable;
         if enable {
@@ -1054,7 +1055,7 @@ impl NymVpnService {
         } else {
             tracing::info!("Collect network statistics disabled, daemon needs to be restarted");
         }
-        GlobalConfig::write_to_file(&config)
+        GlobalConfig::write_to_default_config_dir(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         self.network_statistics_enabled = enable;
         Ok(())
