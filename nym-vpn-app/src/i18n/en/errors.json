@@ -9,8 +9,6 @@
   "grpc": "Internal gRPC error",
   "tunnel": {
     "internal": "Internal error",
-    "api": "API error",
-    "account-controller": "Account controller: internal error",
     "firewall": "Firewall error",
     "routing": "Routing error",
     "dns": "DNS error",
@@ -21,7 +19,12 @@
     "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
     "subscription-expired": "Subscription has expired. Kill switch protects you. Tap Stop and renew your plan.",
     "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4",
+    "tun-device": "TUN device error",
+    "tunnel-provider": "Tunnel provider error",
+    "bad-bandwidth-increase": "Invalid bandwidth increase value",
+    "inactive-account": "Your account is inactive",
+    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN."
   },
   "account": {
     "internal": "Internal account error",
