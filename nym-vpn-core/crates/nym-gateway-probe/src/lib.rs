@@ -204,12 +204,22 @@ impl Probe {
         // TODO: make it configurable
         const MAX_RETRIES: usize = 50;
         for i in 0..MAX_RETRIES {
-            debug!("attempt {i} for attempting to acquire {ticketbook_type} bandwidth");
+            let attempt = i + 1; // since humans usually don't count from 0 in this instance
+            debug!(
+                "attempt {attempt}/{MAX_RETRIES} for attempting to acquire {ticketbook_type} bandwidth"
+            );
             let bw_client = disconnected_mixnet_client
                 .create_bandwidth_client(self.credentials_args.mnemonic.clone(), ticketbook_type)
                 .await?;
             match bw_client.acquire().await {
-                Ok(_) => return Ok(()),
+                Ok(_) => {
+                    if i > 0 {
+                        info!(
+                            "managed to acquire {ticketbook_type} bandwidth after {attempt} attempts",
+                        );
+                    }
+                    return Ok(());
+                }
                 Err(nym_sdk::Error::CredentialIssuanceError { source }) => match source {
                     nym_credential_utils::errors::Error::BandwidthControllerError(
                         BandwidthControllerError::Nyxd(nyxd_error),

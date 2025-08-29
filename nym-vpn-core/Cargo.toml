@@ -247,4 +247,4 @@ nym-topology = { git = "https://github.com/nymtech/nym", branch = "domain-fronti
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration" }
