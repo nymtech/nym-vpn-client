@@ -562,7 +562,7 @@ pub(super) fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(),
             let permissions = fs::Permissions::from_mode(0o700);
             fs::set_permissions(dir_path, permissions).map_err(|error| {
                 ConfigSetupError::SetPermissions {
-                    dir: dir_path.clone(),
+                    dir: dir_path.to_path_buf(),
                     error,
                 }
             })?;
