@@ -5461,6 +5461,7 @@ dependencies = [
  "serde_json",
  "strum",
  "sysinfo 0.37.0",
+ "tempfile",
  "thiserror 2.0.16",
  "time",
  "tokio",

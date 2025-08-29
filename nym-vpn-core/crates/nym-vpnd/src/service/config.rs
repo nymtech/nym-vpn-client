@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::error::{Error, Result};
-use nym_vpn_lib::{NodeIdentity, Recipient, gateway_directory};
+use nym_vpn_lib::gateway_directory;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use std::str::FromStr;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 #[cfg(windows)]
 use std::path::Path;
 use std::{fmt, fs, path::PathBuf};
@@ -76,6 +76,7 @@ pub struct NymVpnServiceConfig {
 }
 
 impl NymVpnServiceConfig {
+    #[allow(clippy::result_large_err)]
     pub(super) fn write_to_file(&self, config_path: &Path) -> Result<()> {
         let ext_config = NymVpnServiceConfigExt::try_from(self).map_err(Error::ConfigSetup)?;
         write_json_config_file(config_path, &ext_config).map_err(Error::ConfigSetup)
@@ -105,6 +106,8 @@ impl Default for NymVpnServiceConfig {
 // External, versioned, representation of the vpn service config file.
 //
 
+type NymVpnServiceConfigExtLatest = NymVpnServiceConfigExtV1;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "version")]
 #[serde(rename_all = "snake_case")]
@@ -126,14 +129,9 @@ impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExt {
     type Error = ConfigSetupError;
 
     fn try_from(value: &NymVpnServiceConfig) -> Result<Self, Self::Error> {
-        //
-        // This is the version of the configuration that will be written to disk.
-        //
-        let v1 = NymVpnServiceConfigExtV1 {
-            entry_point: EntryPointExtV1::try_from(&value.entry_point)?,
-            exit_point: ExitPointExtV1::try_from(&value.exit_point)?,
-        };
-        Ok(NymVpnServiceConfigExt::V1(v1))
+        // Always construct the latest external representation, writing to disk
+        let latest = NymVpnServiceConfigExtLatest::try_from(value)?;
+        Ok(latest.into())
     }
 }
 
@@ -141,6 +139,21 @@ impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExt {
 pub(super) struct NymVpnServiceConfigExtV1 {
     entry_point: EntryPointExtV1,
     exit_point: ExitPointExtV1,
+}
+
+impl Default for NymVpnServiceConfigExtV1 {
+    fn default() -> Self {
+        Self {
+            entry_point: EntryPointExtV1::Random,
+            exit_point: ExitPointExtV1::Random,
+        }
+    }
+}
+
+impl From<NymVpnServiceConfigExtV1> for NymVpnServiceConfigExt {
+    fn from(v1: NymVpnServiceConfigExtV1) -> Self {
+        NymVpnServiceConfigExt::V1(v1)
+    }
 }
 
 impl TryFrom<NymVpnServiceConfigExtV1> for NymVpnServiceConfig {
@@ -156,13 +169,13 @@ impl TryFrom<NymVpnServiceConfigExtV1> for NymVpnServiceConfig {
     }
 }
 
-impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExtV1 {
+impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExtLatest {
     type Error = ConfigSetupError;
 
     fn try_from(value: &NymVpnServiceConfig) -> Result<Self, Self::Error> {
         let entry_point = EntryPointExtV1::try_from(&value.entry_point)?;
         let exit_point = ExitPointExtV1::try_from(&value.exit_point)?;
-        Ok(NymVpnServiceConfigExtV1 {
+        Ok(NymVpnServiceConfigExtLatest {
             entry_point,
             exit_point,
         })
@@ -175,11 +188,8 @@ impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExtV1 {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum EntryPointExtV1 {
-    // An explicit entry gateway identity.
-    Gateway { identity: NodeIdentity },
-    // Select a random entry gateway in a specific location.
+    Gateway { identity: String },
     Location { location: String },
-    // Select an entry gateway at random.
     Random,
 }
 
@@ -188,8 +198,9 @@ impl TryFrom<EntryPointExtV1> for gateway_directory::EntryPoint {
 
     fn try_from(value: EntryPointExtV1) -> Result<Self, Self::Error> {
         match value {
-            EntryPointExtV1::Gateway { identity } => {
-                Ok(gateway_directory::EntryPoint::Gateway { identity })
+            EntryPointExtV1::Gateway { ref identity } => {
+                gateway_directory::EntryPoint::from_base58_string(identity)
+                    .map_err(|e| ConfigSetupError::EntryPoint { error: e })
             }
             EntryPointExtV1::Location { location } => {
                 Ok(gateway_directory::EntryPoint::Location { location })
@@ -205,7 +216,7 @@ impl TryFrom<&gateway_directory::EntryPoint> for EntryPointExtV1 {
     fn try_from(value: &gateway_directory::EntryPoint) -> Result<Self, Self::Error> {
         match value {
             gateway_directory::EntryPoint::Gateway { identity } => Ok(EntryPointExtV1::Gateway {
-                identity: *identity,
+                identity: identity.to_base58_string(),
             }),
             gateway_directory::EntryPoint::Location { location } => Ok(EntryPointExtV1::Location {
                 location: location.clone(),
@@ -221,18 +232,9 @@ impl TryFrom<&gateway_directory::EntryPoint> for EntryPointExtV1 {
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 enum ExitPointExtV1 {
-    // An explicit exit address. This is useful when the exit ip-packet-router is running as a
-    // standalone entity (private).
-    Address { address: Box<Recipient> },
-
-    // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
-    // embedded on a gateway.
-    Gateway { identity: NodeIdentity },
-
-    // NOTE: Consider using a crate with strongly typed country codes instead of strings
+    Address { address: String },
+    Gateway { identity: String },
     Location { location: String },
-
-    // Select an exit gateway at random.
     Random,
 }
 
@@ -242,10 +244,31 @@ impl TryFrom<ExitPointExtV1> for gateway_directory::ExitPoint {
     fn try_from(value: ExitPointExtV1) -> Result<Self, Self::Error> {
         match value {
             ExitPointExtV1::Address { address } => {
-                Ok(gateway_directory::ExitPoint::Address { address })
+                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
+                    ConfigSetupError::ExitPoint {
+                        error: gateway_directory::Error::RecipientFormattingError {
+                            address: address.clone(),
+                            source: e,
+                        },
+                    }
+                })?;
+                Ok(gateway_directory::ExitPoint::Address {
+                    address: Box::new(recipient),
+                })
             }
             ExitPointExtV1::Gateway { identity } => {
-                Ok(gateway_directory::ExitPoint::Gateway { identity })
+                let node_identity =
+                    gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
+                        ConfigSetupError::ExitPoint {
+                            error: gateway_directory::Error::NodeIdentityFormattingError {
+                                identity: identity.clone(),
+                                source: e,
+                            },
+                        }
+                    })?;
+                Ok(gateway_directory::ExitPoint::Gateway {
+                    identity: node_identity,
+                })
             }
             ExitPointExtV1::Location { location } => {
                 Ok(gateway_directory::ExitPoint::Location { location })
@@ -261,10 +284,10 @@ impl TryFrom<&gateway_directory::ExitPoint> for ExitPointExtV1 {
     fn try_from(value: &gateway_directory::ExitPoint) -> Result<Self, Self::Error> {
         match value {
             gateway_directory::ExitPoint::Address { address } => Ok(ExitPointExtV1::Address {
-                address: address.clone(),
+                address: address.to_string(),
             }),
             gateway_directory::ExitPoint::Gateway { identity } => Ok(ExitPointExtV1::Gateway {
-                identity: *identity,
+                identity: identity.to_string(),
             }),
             gateway_directory::ExitPoint::Location { location } => Ok(ExitPointExtV1::Location {
                 location: location.clone(),
@@ -339,21 +362,32 @@ pub enum ConfigSetupError {
         #[source]
         error: nym_windows::security::Error,
     },
+
+    #[error("failed to convert entry point")]
+    EntryPoint {
+        #[source]
+        error: gateway_directory::Error,
+    },
+    #[error("failed to convert exit point")]
+    ExitPoint {
+        #[source]
+        error: gateway_directory::Error,
+    },
 }
 
+#[allow(clippy::result_large_err)]
 pub(super) fn setup_service_config(
     toml_config_path: &Path,
     json_config_path: &Path,
-    entry: Option<EntryPoint>,
-    exit: Option<ExitPoint>,
+    entry: Option<gateway_directory::EntryPoint>,
+    exit: Option<gateway_directory::ExitPoint>,
 ) -> Result<NymVpnServiceConfig> {
     let json_config_exists = json_config_path.exists();
     let toml_config_exists = toml_config_path.exists();
 
     let config = if json_config_exists {
-        let ext_config =
-            super::config::read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
-                .map_err(Error::ConfigSetup)?;
+        let ext_config = read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
+            .map_err(Error::ConfigSetup)?;
 
         let mut config = NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
 
@@ -361,23 +395,22 @@ pub(super) fn setup_service_config(
         config.exit_point = exit.unwrap_or(config.exit_point);
         config
     } else if toml_config_exists {
-        let mut config =
-            super::config::read_toml_config_file::<NymVpnServiceConfig>(toml_config_path)
-                .map_err(Error::ConfigSetup)?;
+        let mut config = read_toml_config_file::<NymVpnServiceConfig>(toml_config_path)
+            .map_err(Error::ConfigSetup)?;
 
         config.entry_point = entry.unwrap_or(config.entry_point);
         config.exit_point = exit.unwrap_or(config.exit_point);
         config
     } else {
-        NymVpnServiceConfig {
-            entry_point: entry.unwrap_or(EntryPoint::Random),
-            exit_point: exit.unwrap_or(ExitPoint::Random),
-        }
+        NymVpnServiceConfig::default()
     };
 
     if toml_config_exists {
-        tracing::info!("Removing deprecated config file {:?}", toml_config_path);
-        let _ = std::fs::remove_file(toml_config_path);
+        tracing::info!(
+            "Removing deprecated config file {}",
+            toml_config_path.display()
+        );
+        let _ = fs::remove_file(toml_config_path);
     }
 
     // Always write back the config file back using the latest JSON version
@@ -452,12 +485,12 @@ pub fn read_json_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
 where
     C: DeserializeOwned,
 {
-    let file_content =
-        fs::read_to_string(file_path).map_err(|error| ConfigSetupError::ReadConfig {
-            file: file_path.to_path_buf(),
-            error,
-        })?;
-    serde_json::from_str(&file_content).map_err(|error| ConfigSetupError::ParseJson {
+    let file = fs::File::open(file_path).map_err(|error| ConfigSetupError::ReadConfig {
+        file: file_path.to_path_buf(),
+        error,
+    })?;
+    let reader = std::io::BufReader::new(file);
+    serde_json::from_reader(reader).map_err(|error| ConfigSetupError::ParseJson {
         file: file_path.to_path_buf(),
         error: Box::new(error),
     })
@@ -467,12 +500,6 @@ pub fn write_json_config_file<C>(file_path: &Path, config: &C) -> Result<(), Con
 where
     C: Serialize,
 {
-    let config_str =
-        serde_json::to_string_pretty(&config).map_err(|error| ConfigSetupError::SerializeJson {
-            file: file_path.to_path_buf(),
-            error: Box::new(error),
-        })?;
-
     // Create path
     let config_dir = file_path
         .parent()
@@ -484,11 +511,18 @@ where
         error,
     })?;
 
-    fs::write(file_path, config_str).map_err(|error| ConfigSetupError::WriteFile {
+    let file = fs::File::create(file_path).map_err(|error| ConfigSetupError::WriteFile {
         file: file_path.to_path_buf(),
         error,
     })?;
-    tracing::info!("Wrote config file {:?}", file_path);
+    let writer = std::io::BufWriter::new(file);
+    serde_json::to_writer_pretty(writer, &config).map_err(|error| {
+        ConfigSetupError::SerializeJson {
+            file: file_path.to_path_buf(),
+            error: Box::new(error),
+        }
+    })?;
+
     Ok(())
 }
 
@@ -563,10 +597,6 @@ fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()
     Ok(())
 }
 
-pub fn default_true() -> bool {
-    true
-}
-
 //
 // Because of the way these tests configure the config directory, then need to be run single-threaded:
 //
@@ -576,60 +606,33 @@ pub fn default_true() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        env::{set_var, temp_dir},
-        fs,
-        path::PathBuf,
-    };
+    use std::{env::set_var, fs, path::PathBuf};
+    use tempfile::tempdir;
 
-    struct TestData {
-        config_dir: PathBuf,
-        toml_path: PathBuf,
-        json_path: PathBuf,
-    }
+    // Config directory will be deleted on drop
+    fn setup() -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let temp_dir = tempdir().unwrap();
+        let config_path = temp_dir.path();
 
-    impl TestData {
-        fn new() -> Self {
-            let config_dir = temp_dir().join(format!(
-                "nym_vpnd_tests_{}_{}",
-                std::process::id(),
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_nanos()
-            ));
+        println!("Using config dir: {config_path:?}");
 
-            println!("Using config dir: {:?}", config_dir);
+        unsafe { set_var("NYM_VPND_CONFIG_DIR", config_path) }; // See service::config::config_dir()
 
-            let _ = fs::create_dir_all(&config_dir);
-            unsafe { set_var("NYM_VPND_CONFIG_DIR", &config_dir) }; // See service::config::config_dir()
+        let service_path = config_path.join("tulips");
+        let _ = fs::create_dir_all(&service_path);
 
-            let service_dir = config_dir.join("tulips");
-            let _ = fs::create_dir_all(&service_dir);
+        let toml_path = service_path.join(DEFAULT_CONFIG_FILE_TOML);
+        let _ = fs::remove_file(&toml_path);
 
-            let toml_path = service_dir.join(DEFAULT_CONFIG_FILE_TOML);
-            let _ = fs::remove_file(&toml_path);
+        let json_path = service_path.join(DEFAULT_CONFIG_FILE_JSON);
+        let _ = fs::remove_file(&json_path);
 
-            let json_path = service_dir.join(DEFAULT_CONFIG_FILE_JSON);
-            let _ = fs::remove_file(&json_path);
-
-            Self {
-                config_dir,
-                toml_path,
-                json_path,
-            }
-        }
-    }
-
-    impl Drop for TestData {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.config_dir);
-        }
+        (temp_dir, toml_path, json_path)
     }
 
     #[test]
-    fn test_service_config_migrate() {
-        let test_data = TestData::new();
+    fn test_service_config_migrate_location() {
+        let (_temp_dir, toml_path, json_path) = setup();
 
         // Write the TOML config file
         let toml_content = r#"
@@ -639,65 +642,146 @@ location = "FR"
 [exit_point.Location]
 location = "BE"
 "#;
-        fs::write(&test_data.toml_path, toml_content).unwrap();
+        fs::write(&toml_path, toml_content).unwrap();
 
-        // Read the configuration
-        let config =
-            setup_service_config(&test_data.toml_path, &test_data.json_path, None, None).unwrap();
-        assert_eq!(
-            config.entry_point,
-            EntryPoint::Location {
-                location: "FR".to_string()
-            }
-        );
-        assert_eq!(
-            config.exit_point,
-            ExitPoint::Location {
-                location: "BE".to_string()
-            }
-        );
+        let entry_point = gateway_directory::EntryPoint::Location {
+            location: "FR".to_string(),
+        };
+
+        let exit_point = gateway_directory::ExitPoint::Location {
+            location: "BE".to_string(),
+        };
+
+        // Read the TOML config and migrate it to JSON
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
 
         // The TOML file should be deleted and replaced with a JSON version
-        assert!(!test_data.toml_path.exists());
-        assert!(test_data.json_path.exists());
+        assert!(!toml_path.exists());
+        assert!(json_path.exists());
+
+        // Read the JSON config
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
     }
 
     #[test]
-    fn test_service_config_load() {
-        let test_data = TestData::new();
+    fn test_service_config_migrate_gateway() {
+        let (_temp_dir, toml_path, json_path) = setup();
 
-        // Write the JSON config file
-        let json_content = r#"
-{
-  "version": "v1",
-  "entry_point": {
-    "Location": {
-      "location": "FR"
-    }
-  },
-  "exit_point": {
-    "Location": {
-      "location": "BE"
-    }
-  }
-}
+        // Write the TOML config file
+        let toml_content = r#"
+[entry_point.Gateway]
+identity = [ 92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107, ]
+
+[exit_point.Gateway]
+identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136, 114, 215, 90, 236, 161, 231, 176, 140, 190, 147, 182, 64, 171, 145, 31, 245, 186, ]
 "#;
-        fs::write(&test_data.json_path, json_content).unwrap();
+        fs::write(&toml_path, toml_content).unwrap();
 
-        // Read the configuration
-        let config =
-            setup_service_config(&test_data.toml_path, &test_data.json_path, None, None).unwrap();
-        assert_eq!(
-            config.entry_point,
-            EntryPoint::Location {
-                location: "FR".to_string()
-            }
-        );
-        assert_eq!(
-            config.exit_point,
-            ExitPoint::Location {
-                location: "BE".to_string()
-            }
-        );
+        let entry_point = gateway_directory::EntryPoint::Gateway {
+            identity: gateway_directory::NodeIdentity::from_str(
+                "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+            )
+            .unwrap(),
+        };
+
+        let exit_point = gateway_directory::ExitPoint::Gateway {
+            identity: gateway_directory::NodeIdentity::from_str(
+                "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
+            )
+            .unwrap(),
+        };
+
+        // Read the TOML config and migrate it to JSON
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
+
+        // The TOML file should be deleted and replaced with a JSON version
+        assert!(!toml_path.exists());
+        assert!(json_path.exists());
+
+        // Read the JSON config
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
+    }
+
+    #[test]
+    fn test_service_config_migrate_address() {
+        let (_temp_dir, toml_path, json_path) = setup();
+
+        // Write the TOML config file
+        let toml_content = r#"
+[entry_point.Gateway]
+identity = [ 92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107, ]
+
+[exit_point.Address]
+address = [ 5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 188, 35, 50, 144, 234, 226, 114, 99, 40, 10, 102, 200, 170, 19, 162, 86, 134,
+84, 20, 195, 193, 42, 194, 230, 153, 163, 90, 214, 216, 196, 166, 87, 132, 206, 215, 91, 89, 51, 98, 72, 156, 159, 248, 109, 225, 152, 204, 80, 97, 9,
+62, 22, 108, 155, 95, 153, 29, 143, 48, 208, 5, 101, 231, 176, 93, 107, 229, 11, 225, 145, 1, 14, 219, 44, 88, 199, 206, 40, 185, 150, 151, ]
+"#;
+        fs::write(&toml_path, toml_content).unwrap();
+
+        let entry_point = gateway_directory::EntryPoint::Gateway {
+            identity: gateway_directory::NodeIdentity::from_str(
+                "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+            )
+            .unwrap(),
+        };
+
+        let exit_point = gateway_directory::ExitPoint::Address {
+            address: Box::new(
+                gateway_directory::Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
+            )
+        };
+
+        // Read the TOML config and migrate it to JSON
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
+
+        // The TOML file should be deleted and replaced with a JSON version
+        assert!(!toml_path.exists());
+        assert!(json_path.exists());
+
+        // Read the JSON config
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
+    }
+
+    #[test]
+    fn test_service_config_migrate_random() {
+        let (_temp_dir, toml_path, json_path) = setup();
+
+        // Write the TOML config file
+        let toml_content = r#"
+[entry_point.Random]
+
+[exit_point.Random]
+"#;
+        fs::write(&toml_path, toml_content).unwrap();
+
+        let entry_point = gateway_directory::EntryPoint::Random;
+
+        let exit_point = gateway_directory::ExitPoint::Random;
+
+        // Read the TOML config and migrate it to JSON
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
+
+        // The TOML file should be deleted and replaced with a JSON version
+        assert!(!toml_path.exists());
+        assert!(json_path.exists());
+
+        // Read the JSON config
+        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        assert_eq!(config.entry_point, entry_point);
+        assert_eq!(config.exit_point, exit_point);
     }
 }
