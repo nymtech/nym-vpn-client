@@ -48,6 +48,8 @@ const NETWORKS_SUBDIR: &str = "networks";
 // Refresh the discovery and network details files periodically
 const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
 
+pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
+
 #[derive(Clone, Debug)]
 pub struct Network {
     pub nym_network: NymNetwork,
@@ -208,7 +210,50 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Netw
     }
 
     // Using discovery, fetch and setup nym network details
-    let nym_network = NymNetwork::ensure_exists(config_path, &discovery).await?;
+    let mut nym_network = NymNetwork::ensure_exists(config_path, &discovery).await?;
+
+    // Patch up the network details with domain fronting data
+    // TODO: remove once network details contain domain fronting data
+    if nym_network
+        .network
+        .nym_api_urls
+        .as_ref()
+        .is_none_or(|nym_api_urls| nym_api_urls.is_empty())
+    {
+        nym_network.network.nym_api_urls = Some(
+            discovery
+                .nym_api_urls
+                .iter()
+                .cloned()
+                .map(|api_url| nym_network_defaults::ApiUrl {
+                    url: api_url.url,
+                    front_hosts: api_url.fronts,
+                })
+                .collect(),
+        );
+    }
+
+    // Patch up the network details with domain fronting
+    // TODO: remove once network details contain domain fronting data
+    if nym_network
+        .network
+        .nym_vpn_api_urls
+        .as_ref()
+        .is_none_or(|nym_vpn_api_urls| nym_vpn_api_urls.is_empty())
+    {
+        nym_network.network.nym_vpn_api_urls = Some(
+            discovery
+                .nym_vpn_api_urls
+                .iter()
+                .cloned()
+                .map(|api_url| nym_network_defaults::ApiUrl {
+                    url: api_url.url,
+                    front_hosts: api_url.fronts,
+                })
+                .collect(),
+        );
+    }
+
     let endpoint = nym_network
         .network
         .endpoints

@@ -19,7 +19,7 @@ use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::NymApiClientExt;
 
 use crate::{
-    AccountManagement, Error, FeatureFlags, Result, SystemMessages,
+    AccountManagement, ApiUrl, Error, FeatureFlags, Result, SystemMessages,
     system_configuration::SystemConfiguration,
 };
 
@@ -41,7 +41,9 @@ pub struct Discovery {
     // Base network setup
     pub(super) network_name: String,
     pub(super) nym_api_url: Url,
+    pub(super) nym_api_urls: Vec<ApiUrl>,
     pub(super) nym_vpn_api_url: Url,
+    pub(super) nym_vpn_api_urls: Vec<ApiUrl>,
 
     // Additional context
     pub(super) account_management: Option<AccountManagement>,
@@ -252,17 +254,37 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
                 source,
             }
         })?;
+
+        let nym_api_urls = discovery
+            .nym_api_urls
+            .into_iter()
+            .map(|api_url| ApiUrl {
+                url: api_url.url,
+                fronts: api_url.fronts,
+            })
+            .collect::<Vec<_>>();
+
         let nym_vpn_api_url = discovery.nym_vpn_api_url.parse().map_err(|source| {
             DiscoveryFromNymWellknownDiscoveryError::ParseNymVpnApiUrl {
                 value: discovery.nym_vpn_api_url,
                 source,
             }
         })?;
+        let nym_vpn_api_urls = discovery
+            .nym_vpn_api_urls
+            .into_iter()
+            .map(|api_url| ApiUrl {
+                url: api_url.url,
+                fronts: api_url.fronts,
+            })
+            .collect::<Vec<_>>();
 
         Ok(Self {
             network_name: discovery.network_name,
             nym_api_url,
+            nym_api_urls,
             nym_vpn_api_url,
+            nym_vpn_api_urls,
             account_management,
             feature_flags,
             system_configuration,
@@ -349,7 +371,19 @@ mod tests {
         let json = r#"{
             "network_name": "qa",
             "nym_api_url": "https://foo.ch/api/",
+            "nym_api_urls": [
+                {
+                    "url": "https://foo.ch/api/",
+                    "fronts": ["foobar.ch", "qux.baz"]
+                }
+            ],
             "nym_vpn_api_url": "https://bar.ch/api/",
+            "nym_vpn_api_urls": [
+                {
+                    "url": "https://bar.ch/api/",
+                    "fronts": ["quxbar.ch", "qux.baz"]
+                }
+            ],
             "account_management": {
                 "url": "https://foobar.ch/",
                 "paths": {
@@ -391,7 +425,15 @@ mod tests {
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
             nym_api_url: "https://foo.ch/api/".parse().unwrap(),
+            nym_api_urls: vec![ApiUrl {
+                url: "https://foo.ch/api/".parse().unwrap(),
+                fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
+            }],
             nym_vpn_api_url: "https://bar.ch/api/".parse().unwrap(),
+            nym_vpn_api_urls: vec![ApiUrl {
+                url: "https://bar.ch/api/".parse().unwrap(),
+                fronts: Some(vec!["quxbar.ch".to_owned(), "qux.baz".to_owned()]),
+            }],
             account_management: Some(AccountManagement {
                 url: "https://foobar.ch/".parse().unwrap(),
                 paths: AccountManagementPaths {
@@ -423,10 +465,10 @@ mod tests {
                 ),
                 display_until: None,
                 message: "This is a test message, no need to panic!".to_owned(),
-                properties: Properties::from(HashMap::from([(
+                properties: Some(Properties::from(HashMap::from([(
                     "modal".to_owned(),
                     "true".to_owned(),
-                )])),
+                )]))),
             }]),
             system_configuration: None,
         };

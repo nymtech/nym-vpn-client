@@ -17,7 +17,7 @@ pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe2614
 
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
-    #[error("failed tp create vpn api client")]
+    #[error("failed to create vpn api client")]
     CreateVpnApiClient(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get account")]
@@ -126,7 +126,7 @@ pub enum VpnApiClientError {
     PostAccount(#[source] HttpClientError<UnexpectedError>),
 }
 
-pub type Result<T> = std::result::Result<T, VpnApiClientError>;
+pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;
 
 impl TryFrom<VpnApiClientError> for NymErrorResponse {
     type Error = VpnApiClientError;

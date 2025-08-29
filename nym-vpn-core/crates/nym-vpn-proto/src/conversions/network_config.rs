@@ -269,10 +269,33 @@ impl From<nym_vpn_network_config::NymNetwork> for proto::NymNetworkDetails {
     }
 }
 
+impl From<nym_vpn_network_config::ApiUrl> for proto::ApiUrl {
+    fn from(value: nym_vpn_network_config::ApiUrl) -> Self {
+        Self {
+            url: value.url.to_string(),
+            front_hosts: value.fronts.unwrap_or_default(),
+        }
+    }
+}
+
+impl From<proto::ApiUrl> for nym_vpn_network_config::ApiUrl {
+    fn from(value: proto::ApiUrl) -> Self {
+        Self {
+            url: value.url,
+            fronts: Some(value.front_hosts),
+        }
+    }
+}
+
 impl From<nym_vpn_network_config::NymVpnNetwork> for proto::NymVpnNetworkDetails {
     fn from(nym_vpn_network: nym_vpn_network_config::NymVpnNetwork) -> Self {
         proto::NymVpnNetworkDetails {
             nym_vpn_api_url: Some(proto::Url::from(nym_vpn_network.nym_vpn_api_url)),
+            nym_vpn_api_urls: nym_vpn_network
+                .nym_vpn_api_urls
+                .into_iter()
+                .map(proto::ApiUrl::from)
+                .collect(),
         }
     }
 }
@@ -282,7 +305,10 @@ impl From<nym_vpn_network_config::SystemMessage> for proto::SystemMessage {
         Self {
             name: system_message.name,
             message: system_message.message,
-            properties: system_message.properties.into_inner(),
+            properties: system_message
+                .properties
+                .map(|v| v.into_inner())
+                .unwrap_or_default(),
         }
     }
 }

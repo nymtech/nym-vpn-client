@@ -134,6 +134,7 @@ message NymNetworkDetails {
 
 message NymVpnNetworkDetails {
   Url nym_vpn_api_url = 1;
+  repeated ApiUrl nym_vpn_api_urls = 2;
 }
 
 message AccountManagement {
@@ -455,7 +456,7 @@ message AccountCommandError {
     string internal = 1;
     string storage_error = 2;
     VpnApiError vpn_api = 3;
-    string unexpected_response = 4; 
+    string unexpected_response = 4;
     bool no_account_stored = 5;
     bool no_device_stored = 6;
     bool existing_account = 7;
