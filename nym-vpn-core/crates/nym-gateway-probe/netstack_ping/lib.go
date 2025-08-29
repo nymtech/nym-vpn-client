@@ -75,26 +75,26 @@ type ErrorResult = struct {
 	Error string `json:"error"`
 }
 
-func json_response(response NetstackResponse) *C.char {
-	bytes, serialize_err := json.Marshal(SuccessResult{
+func jsonResponse(response NetstackResponse) *C.char {
+	bytes, serializeErr := json.Marshal(SuccessResult{
 		Response: response,
 	})
-	if serialize_err == nil {
+	if serializeErr == nil {
 		return C.CString(string(bytes))
 	} else {
-		return C.CString("{\"error\":\"" + serialize_err.Error() + "\"}")
+		return C.CString("{\"error\":\"" + serializeErr.Error() + "\"}")
 	}
 }
 
-func json_error(err error) *C.char {
-	json_err := ErrorResult{
+func jsonError(err error) *C.char {
+	jsonErr := ErrorResult{
 		Error: fmt.Sprintf("failed to parse request: %s", err.Error()),
 	}
-	bytes, serialize_err := json.Marshal(json_err)
-	if serialize_err == nil {
+	bytes, serializeErr := json.Marshal(jsonErr)
+	if serializeErr == nil {
 		return C.CString(string(bytes))
 	} else {
-		return C.CString("{\"error\":\"" + serialize_err.Error() + "\"}")
+		return C.CString("{\"error\":\"" + serializeErr.Error() + "\"}")
 	}
 }
 
@@ -106,16 +106,16 @@ func wgPing(cReq *C.char) *C.char {
 	err := json.Unmarshal([]byte(reqStr), &req)
 	if err != nil {
 		log.Printf("Failed to parse request: %s", err)
-		return json_error(err)
+		return jsonError(err)
 	}
 
 	response, err := ping(req)
 	if err != nil {
 		log.Printf("Failed to ping: %s", err)
-		return json_error(err)
+		return jsonError(err)
 	}
 
-	return json_response(response)
+	return jsonResponse(response)
 }
 
 //export wgFreePtr
@@ -235,10 +235,10 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	return response, nil
 }
 
-func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timout_secs uint64, tnet *netstack.Net, ip_version uint8) (time.Duration, error) {
+func sendPing(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutSecs uint64, tnet *netstack.Net, ipVersion uint8) (time.Duration, error) {
 	var socket net.Conn
 	var err error
-	if ip_version == 4 {
+	if ipVersion == 4 {
 		socket, err = tnet.Dial("ping4", address)
 	} else {
 		socket, err = tnet.Dial("ping6", address)
@@ -256,7 +256,7 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 		Data: []byte("gopher burrow"),
 	}
 
-	if ip_version == 4 {
+	if ipVersion == 4 {
 		icmpBytes, _ = (&icmp.Message{Type: ipv4.ICMPTypeEcho, Code: 0, Body: &requestPing}).Marshal(nil)
 	} else {
 		icmpBytes, _ = (&icmp.Message{Type: ipv6.ICMPTypeEchoRequest, Code: 0, Body: &requestPing}).Marshal(nil)
@@ -264,7 +264,7 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 
 	start := time.Now()
 
-	socket.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(send_timeout_secs)))
+	socket.SetWriteDeadline(time.Now().Add(time.Second * time.Duration(sendTtimeoutSecs)))
 	_, err = socket.Write(icmpBytes)
 	if err != nil {
 		return 0, err
@@ -272,14 +272,14 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 
 	// Wait until either the right reply arrives or timeout
 	for {
-		socket.SetReadDeadline(time.Now().Add(time.Second * time.Duration(recieve_timout_secs)))
+		socket.SetReadDeadline(time.Now().Add(time.Second * time.Duration(receiveTimoutSecs)))
 		n, err := socket.Read(icmpBytes[:])
 		if err != nil {
 			return 0, err
 		}
 
 		var proto int
-		if ip_version == 4 {
+		if ipVersion == 4 {
 			proto = 1
 		} else {
 			proto = 58
