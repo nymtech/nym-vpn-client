@@ -17,6 +17,7 @@ use nym_authenticator_client::{
     AuthClientMixnetListener, AuthenticatorResponse, AuthenticatorVersion, ClientMessage,
 };
 use nym_authenticator_requests::{v2, v3, v4, v5};
+use nym_bandwidth_controller::error::BandwidthControllerError;
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     NymNetworkDetails,
@@ -38,9 +39,10 @@ use nym_ip_packet_requests::{
     },
 };
 use nym_sdk::mixnet::{
-    Ephemeral, MixnetClient, MixnetClientBuilder, MixnetClientStorage, NodeIdentity,
-    ReconstructedMessage,
+    DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder, MixnetClientStorage,
+    NodeIdentity, ReconstructedMessage,
 };
+use nym_validator_client::nyxd::error::NyxdError;
 use nym_wireguard_types::PeerPublicKey;
 use tokio::sync::Mutex;
 use tokio_util::{codec::Decoder, sync::CancellationToken};
@@ -194,17 +196,85 @@ impl Probe {
         self
     }
 
+    async fn acquire_bandwidth(
+        &self,
+        disconnected_mixnet_client: &DisconnectedMixnetClient<Ephemeral>,
+        ticketbook_type: TicketType,
+    ) -> anyhow::Result<()> {
+        // TODO: make it configurable
+        const MAX_RETRIES: usize = 50;
+        for i in 0..MAX_RETRIES {
+            let attempt = i + 1; // since humans usually don't count from 0 in this instance
+            debug!(
+                "attempt {attempt}/{MAX_RETRIES} for attempting to acquire {ticketbook_type} bandwidth"
+            );
+            let bw_client = disconnected_mixnet_client
+                .create_bandwidth_client(self.credentials_args.mnemonic.clone(), ticketbook_type)
+                .await?;
+            match bw_client.acquire().await {
+                Ok(_) => {
+                    if i > 0 {
+                        info!(
+                            "managed to acquire {ticketbook_type} bandwidth after {attempt} attempts",
+                        );
+                    }
+                    return Ok(());
+                }
+                Err(nym_sdk::Error::CredentialIssuanceError { source }) => match source {
+                    nym_credential_utils::errors::Error::BandwidthControllerError(
+                        BandwidthControllerError::Nyxd(nyxd_error),
+                    ) => match nyxd_error {
+                        // happens when sequence issue occurs during tx delivery
+                        NyxdError::BroadcastTxErrorDeliverTx { hash, raw_log, .. } => {
+                            // unfortunately at this point we have to do string matching as the log
+                            // is returned from the go nyxd binary
+                            if raw_log.contains("account sequence mismatch") {
+                                error!(
+                                    "another process is using the same mnemonic. we failed to broadcast transaction {hash} due to mismatched sequence number"
+                                )
+                            }
+                        }
+                        // happens when sequence issue occurs during tx simulate
+                        NyxdError::AbciError { log, .. } => {
+                            // unfortunately at this point we have to do string matching as the log
+                            // is returned from the go nyxd binary
+                            if log.contains("account sequence mismatch") {
+                                error!(
+                                    "another process is using the same mnemonic. we failed to simulate transaction due to mismatched sequence number"
+                                )
+                            }
+                        }
+                        other => {
+                            return Err(other)
+                                .context("another nyxd failure during bandwidth acquisition");
+                        }
+                    },
+                    other => {
+                        return Err(other.into());
+                    }
+                },
+                Err(other) => {
+                    return Err(other.into());
+                }
+            }
+
+            // add a bit of backoff as if the rpc node is slightly out of sync,
+            // we might use our retry budget for abci queries to the simulate endpoint
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+
+        bail!("failed to acquire bandwidth after {MAX_RETRIES} attempts")
+    }
+
     pub async fn probe(
         self,
         gateway_config: GatewayDirectoryConfig,
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
-        let entry_point = self.entrypoint;
-
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
-        let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
+        let entry_gateway = self.entrypoint.lookup_gateway(&gateways).await?;
         let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {
@@ -246,10 +316,8 @@ impl Probe {
             TicketType::V1WireguardEntry,
             TicketType::V1WireguardExit,
         ] {
-            let bw_client = disconnected_mixnet_client
-                .create_bandwidth_client(self.credentials_args.mnemonic.clone(), ticketbook_type)
+            self.acquire_bandwidth(&disconnected_mixnet_client, ticketbook_type)
                 .await?;
-            bw_client.acquire().await?;
         }
 
         let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
