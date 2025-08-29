@@ -66,7 +66,7 @@ impl std::fmt::Display for TunnelState {
                     Some(TunnelConnectionData::Mixnet(ref data)) => {
                         write!(
                             f,
-                            "Connecting {} to {} [{}] → {} [{}], {}, #{}",
+                            "Connecting {} to {} [{}] → {} [{}], {}, try #{}",
                             tunnel_type.short_name(),
                             data.entry_ip,
                             data.nym_address.gateway_id(),
@@ -79,7 +79,7 @@ impl std::fmt::Display for TunnelState {
                     Some(TunnelConnectionData::Wireguard(ref data)) => {
                         write!(
                             f,
-                            "Connecting {} to {} [{}] → {} [{}], {}, #{}",
+                            "Connecting {} to {} [{}] → {} [{}], {}, try #{}",
                             tunnel_type.short_name(),
                             data.entry.endpoint,
                             connection_data.entry_gateway.id,
@@ -92,7 +92,7 @@ impl std::fmt::Display for TunnelState {
                     None => {
                         write!(
                             f,
-                            "Connecting {} [{}] → [{}], {}, #{}",
+                            "Connecting {} [{}] → [{}], {}, try #{}",
                             tunnel_type.short_name(),
                             connection_data.entry_gateway.id,
                             connection_data.exit_gateway.id,
@@ -103,7 +103,7 @@ impl std::fmt::Display for TunnelState {
                 },
                 None => write!(
                     f,
-                    "Connecting {}, {}, #{}",
+                    "Connecting {}, {}, try #{}",
                     tunnel_type.short_name(),
                     state,
                     retry_attempt
