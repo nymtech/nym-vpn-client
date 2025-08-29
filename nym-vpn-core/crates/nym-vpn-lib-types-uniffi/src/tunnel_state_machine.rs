@@ -29,7 +29,8 @@ pub enum TunnelState {
     Disconnected,
     Connecting {
         retry_attempt: u32,
-        connection_data: Option<EstablishingConnectionData>,
+        state: EstablishConnectionState,
+        connection_data: Option<EstablishConnectionData>,
     },
     Connected {
         connection_data: ConnectionData,
@@ -53,11 +54,14 @@ impl From<nym_vpn_lib_types::TunnelState> for TunnelState {
             }
             nym_vpn_lib_types::TunnelState::Connecting {
                 retry_attempt,
+                state,
                 connection_data,
             } => {
-                let connection_data = connection_data.map(EstablishingConnectionData::from);
+                let connection_data = connection_data.map(EstablishConnectionData::from);
+                let state = EstablishConnectionState::from(state);
                 TunnelState::Connecting {
                     retry_attempt,
+                    state,
                     connection_data,
                 }
             }
@@ -457,15 +461,50 @@ impl From<nym_vpn_lib_types::ConnectionData> for ConnectionData {
     }
 }
 
+#[derive(uniffi::Enum)]
+pub enum EstablishConnectionState {
+    ResolvingApiAddresses,
+    AwaitingAccountReadiness,
+    RefreshingGateways,
+    SelectingGateways,
+    ConnectingMixnetClient,
+    ConnectingTunnel,
+}
+
+impl From<nym_vpn_lib_types::EstablishConnectionState> for EstablishConnectionState {
+    fn from(value: nym_vpn_lib_types::EstablishConnectionState) -> Self {
+        match value {
+            nym_vpn_lib_types::EstablishConnectionState::ResolvingApiAddresses => {
+                EstablishConnectionState::ResolvingApiAddresses
+            }
+            nym_vpn_lib_types::EstablishConnectionState::AwaitingAccountReadiness => {
+                EstablishConnectionState::AwaitingAccountReadiness
+            }
+            nym_vpn_lib_types::EstablishConnectionState::RefreshingGateways => {
+                EstablishConnectionState::RefreshingGateways
+            }
+            nym_vpn_lib_types::EstablishConnectionState::SelectingGateways => {
+                EstablishConnectionState::SelectingGateways
+            }
+            nym_vpn_lib_types::EstablishConnectionState::ConnectingMixnetClient => {
+                EstablishConnectionState::ConnectingMixnetClient
+            }
+            nym_vpn_lib_types::EstablishConnectionState::ConnectingTunnel => {
+                EstablishConnectionState::ConnectingTunnel
+            }
+        }
+    }
+}
+
 #[derive(uniffi::Record)]
-pub struct EstablishingConnectionData {
+pub struct EstablishConnectionData {
     pub entry_gateway: Gateway,
     pub exit_gateway: Gateway,
     pub tunnel: Option<TunnelConnectionData>,
 }
 
-impl From<nym_vpn_lib_types::EstablishingConnectionData> for EstablishingConnectionData {
-    fn from(value: nym_vpn_lib_types::EstablishingConnectionData) -> Self {
+impl From<nym_vpn_lib_types::EstablishConnectionData> for EstablishConnectionData {
+    fn from(value: nym_vpn_lib_types::EstablishConnectionData) -> Self {
         Self {
             entry_gateway: Gateway::from(value.entry_gateway),
             exit_gateway: Gateway::from(value.exit_gateway),

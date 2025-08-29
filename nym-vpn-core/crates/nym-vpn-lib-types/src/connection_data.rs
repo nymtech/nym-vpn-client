@@ -28,7 +28,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct EstablishingConnectionData {
+pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: Gateway,
 
@@ -38,6 +38,41 @@ pub struct EstablishingConnectionData {
     /// Tunnel connection data.
     /// Becomes available once tunnel connection is initiated.
     pub tunnel: Option<TunnelConnectionData>,
+}
+
+/// Describes the current state when establishing connection.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EstablishConnectionState {
+    /// Resolving API IP addresses
+    ResolvingApiAddresses,
+
+    /// Awaiting for account to be ready for establishing connection
+    AwaitingAccountReadiness,
+
+    /// Refreshing gateways
+    RefreshingGateways,
+
+    /// Selecting gateways
+    SelectingGateways,
+
+    /// Connecting mixnet client
+    ConnectingMixnetClient,
+
+    /// Establishing tunnel connection
+    ConnectingTunnel,
+}
+
+impl fmt::Display for EstablishConnectionState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            EstablishConnectionState::ResolvingApiAddresses => "Resolving API addresses",
+            EstablishConnectionState::AwaitingAccountReadiness => "Awaiting account readiness",
+            EstablishConnectionState::RefreshingGateways => "Refreshing gateways",
+            EstablishConnectionState::SelectingGateways => "Selecting gateways",
+            EstablishConnectionState::ConnectingMixnetClient => "Connecting mixnet client",
+            EstablishConnectionState::ConnectingTunnel => "Connecting tunnel",
+        })
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

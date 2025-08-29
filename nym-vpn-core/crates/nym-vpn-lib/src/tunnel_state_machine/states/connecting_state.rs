@@ -21,7 +21,7 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
-use nym_vpn_lib_types::{EstablishingConnectionData, Gateway};
+use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, Gateway};
 
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
@@ -58,6 +58,7 @@ pub struct ConnectingState {
     tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
     tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
     selected_gateways: Option<SelectedGateways>,
+    connection_data: Option<EstablishConnectionData>,
     resolved_gateway_config: Option<ResolvedConfig>,
     resolve_config_fut: Fuse<ResolveConfigFuture>,
     reconnect_delay_fut: Fuse<ReconnectDelayFuture>,
@@ -121,28 +122,28 @@ impl ConnectingState {
         let initial_connection_data =
             selected_gateways
                 .as_ref()
-                .map(|gateways| EstablishingConnectionData {
+                .map(|gateways| EstablishConnectionData {
                     entry_gateway: Gateway::from(*gateways.entry.clone()),
                     exit_gateway: Gateway::from(*gateways.exit.clone()),
                     tunnel: None,
                 });
 
-        (
-            Box::new(Self {
-                tunnel_monitor_handle: None,
-                tunnel_monitor_event_sender: Some(monitor_event_sender),
-                tunnel_monitor_event_receiver: monitor_event_receiver,
-                retry_attempt,
-                selected_gateways,
-                resolved_gateway_config: None,
-                resolve_config_fut,
-                reconnect_delay_fut,
-            }),
-            PrivateTunnelState::Connecting {
-                retry_attempt,
-                connection_data: initial_connection_data,
-            },
-        )
+        let connecting_state = Self {
+            tunnel_monitor_handle: None,
+            tunnel_monitor_event_sender: Some(monitor_event_sender),
+            tunnel_monitor_event_receiver: monitor_event_receiver,
+            retry_attempt,
+            selected_gateways,
+            connection_data: initial_connection_data.clone(),
+            resolved_gateway_config: None,
+            resolve_config_fut,
+            reconnect_delay_fut,
+        };
+
+        let tunnel_state = connecting_state
+            .make_connecting_tunnel_state(EstablishConnectionState::ResolvingApiAddresses);
+
+        (Box::new(connecting_state), tunnel_state)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -411,8 +412,11 @@ impl ConnectingState {
     async fn handle_interface_up(
         &mut self,
         _tunnel_interface: TunnelInterface,
+        connection_data: Box<EstablishConnectionData>,
         _shared_state: &mut SharedState,
     ) -> Result<()> {
+        self.connection_data = Some(*connection_data);
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         {
             let resolved_addrs =
@@ -470,6 +474,14 @@ impl ConnectingState {
         #[cfg(any(target_os = "ios", target_os = "android"))]
         Ok(())
     }
+
+    fn make_connecting_tunnel_state(&self, state: EstablishConnectionState) -> PrivateTunnelState {
+        PrivateTunnelState::Connecting {
+            retry_attempt: self.retry_attempt,
+            state,
+            connection_data: self.connection_data.clone(),
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -499,11 +511,25 @@ impl TunnelStateHandler for ConnectingState {
             }
             Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
                 match monitor_event {
-                    TunnelMonitorEvent::InitializingClient => {
-                        NextTunnelState::SameState(self)
+                    TunnelMonitorEvent::AwaitingAccountReadiness => {
+                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::AwaitingAccountReadiness);
+                        NextTunnelState::NewState((self, new_state))
+                    }
+                    TunnelMonitorEvent::RefreshingGateways => {
+                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::RefreshingGateways);
+                        NextTunnelState::NewState((self, new_state))
+                    }
+                    TunnelMonitorEvent::ConnectingMixnetClient => {
+                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::ConnectingMixnetClient);
+                        NextTunnelState::NewState((self, new_state))
+                    }
+                    TunnelMonitorEvent::ConnectingTunnel => {
+                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::ConnectingTunnel);
+                        NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectingGateways => {
-                        NextTunnelState::SameState(self)
+                        let new_state = self.make_connecting_tunnel_state(EstablishConnectionState::SelectingGateways);
+                        NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectedGateways {
                         gateways, reply_tx
@@ -531,9 +557,9 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::InterfaceUp {
                         tunnel_interface, connection_data, reply_tx
                     }  => {
-                        let next_state = match self.handle_interface_up(tunnel_interface, shared_state).await {
+                        let next_state = match self.handle_interface_up(tunnel_interface, connection_data, shared_state).await {
                             Ok(()) => {
-                                let state = PrivateTunnelState::Connecting { retry_attempt: self.retry_attempt, connection_data: Some(*connection_data) };
+                                let state = self.make_connecting_tunnel_state(EstablishConnectionState::ConnectingTunnel);
                                 NextTunnelState::NewState((self, state))
                             },
                             Err(e) => {

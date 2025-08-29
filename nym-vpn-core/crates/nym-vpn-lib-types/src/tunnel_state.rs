@@ -1,7 +1,9 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::connection_data::{ConnectionData, EstablishingConnectionData, TunnelConnectionData};
+use super::connection_data::{
+    ConnectionData, EstablishConnectionData, EstablishConnectionState, TunnelConnectionData,
+};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
@@ -18,7 +20,8 @@ pub enum TunnelState {
     /// Tunnel connection is being established.
     Connecting {
         retry_attempt: u32,
-        connection_data: Option<EstablishingConnectionData>,
+        state: EstablishConnectionState,
+        connection_data: Option<EstablishConnectionData>,
     },
 
     /// Tunnel is connected.
@@ -45,38 +48,42 @@ impl std::fmt::Display for TunnelState {
             Self::Disconnected => f.write_str("Disconnected"),
             Self::Connecting {
                 retry_attempt,
+                state,
                 connection_data,
             } => match connection_data {
                 Some(connection_data) => match connection_data.tunnel {
                     Some(TunnelConnectionData::Mixnet(ref data)) => {
                         write!(
                             f,
-                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
+                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {}), attempt {}, {}",
                             data.entry_ip,
                             data.exit_ip,
                             data.nym_address.gateway_id(),
                             data.exit_ipr.gateway_id(),
-                            retry_attempt
+                            retry_attempt,
+                            state
                         )
                     }
                     Some(TunnelConnectionData::Wireguard(ref data)) => {
                         write!(
                             f,
-                            "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
+                            "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {}), attempt {}, {}",
                             data.entry.endpoint,
                             data.exit.endpoint,
                             connection_data.entry_gateway.id,
                             connection_data.exit_gateway.id,
-                            retry_attempt
+                            retry_attempt,
+                            state
                         )
                     }
                     None => {
                         write!(
                             f,
-                            "Connecting (entry: {} → exit: {}), attempt {}",
+                            "Connecting (entry: {} → exit: {}), attempt {}, {}",
                             connection_data.entry_gateway.id,
                             connection_data.exit_gateway.id,
-                            retry_attempt
+                            retry_attempt,
+                            state
                         )
                     }
                 },

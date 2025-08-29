@@ -7,9 +7,9 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishingConnectionData, Gateway,
-    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData,
-    WireguardNode,
+    ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
+    EstablishConnectionState, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,
+    TunnelState, WireguardConnectionData, WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -157,14 +157,19 @@ impl TryFrom<proto::TunnelState> for TunnelState {
             }
             proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
+                state,
                 connection_data,
             }) => {
                 let connection_data = connection_data
-                    .map(EstablishingConnectionData::try_from)
+                    .map(EstablishConnectionData::try_from)
                     .transpose()?;
+                let state = proto::EstablishConnectionState::try_from(state)
+                    .map_err(|e| ConversionError::Decode("EstablishConnectionState", e))
+                    .map(EstablishConnectionState::from)?;
 
                 Self::Connecting {
                     retry_attempt,
+                    state,
                     connection_data,
                 }
             }
@@ -185,10 +190,38 @@ impl TryFrom<proto::TunnelState> for TunnelState {
     }
 }
 
-impl TryFrom<proto::EstablishingConnectionData> for EstablishingConnectionData {
+impl From<proto::EstablishConnectionState> for EstablishConnectionState {
+    fn from(value: proto::EstablishConnectionState) -> Self {
+        match value {
+            proto::EstablishConnectionState::AwaitingAccountReadiness => {
+                Self::AwaitingAccountReadiness
+            }
+            proto::EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
+            proto::EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
+            proto::EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
+            proto::EstablishConnectionState::ConnectingMixnetClient => Self::ConnectingMixnetClient,
+            proto::EstablishConnectionState::ConnectingTunnel => Self::ConnectingTunnel,
+        }
+    }
+}
+
+impl From<EstablishConnectionState> for proto::EstablishConnectionState {
+    fn from(value: EstablishConnectionState) -> Self {
+        match value {
+            EstablishConnectionState::AwaitingAccountReadiness => Self::AwaitingAccountReadiness,
+            EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
+            EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
+            EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
+            EstablishConnectionState::ConnectingMixnetClient => Self::ConnectingMixnetClient,
+            EstablishConnectionState::ConnectingTunnel => Self::ConnectingTunnel,
+        }
+    }
+}
+
+impl TryFrom<proto::EstablishConnectionData> for EstablishConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: proto::EstablishingConnectionData) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::EstablishConnectionData) -> Result<Self, Self::Error> {
         let entry_gateway =
             value
                 .entry_gateway
@@ -249,9 +282,9 @@ impl TryFrom<proto::ConnectionData> for ConnectionData {
     }
 }
 
-impl From<EstablishingConnectionData> for proto::EstablishingConnectionData {
-    fn from(value: EstablishingConnectionData) -> Self {
-        proto::EstablishingConnectionData {
+impl From<EstablishConnectionData> for proto::EstablishConnectionData {
+    fn from(value: EstablishConnectionData) -> Self {
+        proto::EstablishConnectionData {
             entry_gateway: Some(proto::Gateway::from(value.entry_gateway)),
             exit_gateway: Some(proto::Gateway::from(value.exit_gateway)),
             tunnel: value.tunnel.map(proto::TunnelConnectionData::from),
@@ -460,10 +493,12 @@ impl From<TunnelState> for proto::TunnelState {
             }
             TunnelState::Connecting {
                 retry_attempt,
+                state,
                 connection_data,
             } => proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
-                connection_data: connection_data.map(proto::EstablishingConnectionData::from),
+                state: proto::EstablishConnectionState::from(state) as i32,
+                connection_data: connection_data.map(proto::EstablishConnectionData::from),
             }),
             TunnelState::Connected { connection_data } => {
                 proto::tunnel_state::State::Connected(proto::tunnel_state::Connected {
