@@ -15,7 +15,7 @@ android {
 	}
 
 	android {
-		ndkVersion = "25.2.9519653"
+		ndkVersion = "28.0.12433566"
 	}
 
 	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"

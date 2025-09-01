@@ -325,8 +325,6 @@ message TunnelConnectionData {
   }
 }
 
-
-
 message TunnelState {
   enum ErrorStateReason {
     SET_FIREWALL_POLICY = 0;
