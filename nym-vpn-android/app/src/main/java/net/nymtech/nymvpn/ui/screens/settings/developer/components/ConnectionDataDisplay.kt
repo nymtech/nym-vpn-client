@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.ConnectionInfo
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.TunnelConnectionData
 
 @Composable
@@ -83,31 +82,31 @@ fun ConnectionDataDisplay(connectionData: ConnectionInfo) {
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.entry.publicKey)) },
 
-							)
+						)
 						Text(
 							"Entry Ipv4: ${details.v1.entry.privateIpv4}",
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.entry.privateIpv4)) },
 
-							)
+						)
 						Text(
 							"Exit endpoint: ${details.v1.exit.endpoint}",
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.exit.endpoint)) },
 
-							)
+						)
 						Text(
 							"Exit pub key: ${details.v1.exit.publicKey}",
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.exit.publicKey)) },
 
-							)
+						)
 						Text(
 							"Exit Ipv4: ${details.v1.exit.privateIpv4}",
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.exit.privateIpv4)) },
 
-							)
+						)
 					}
 				}
 			}

@@ -2,8 +2,6 @@ package net.nymtech.nymvpn.manager.backend.model
 
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountLinks
-import nym_vpn_lib_types.ConnectionData
-import nym_vpn_lib_types.EstablishConnectionData
 
 data class TunnelManagerState(
 	val tunnelState: Tunnel.State = Tunnel.State.Down,

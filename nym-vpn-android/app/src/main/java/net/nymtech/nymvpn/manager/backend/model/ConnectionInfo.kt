@@ -10,10 +10,9 @@ data class ConnectionInfo(
 	var entryGateway: Gateway,
 	var exitGateway: Gateway,
 	var connectedAt: OffsetDateTime?,
-	var tunnel: TunnelConnectionData?
+	var tunnel: TunnelConnectionData?,
 )
 
 fun EstablishConnectionData.toInfo(): ConnectionInfo = ConnectionInfo(this.entryGateway, this.exitGateway, null, this.tunnel)
 
 fun ConnectionData.toInfo(): ConnectionInfo = ConnectionInfo(this.entryGateway, this.exitGateway, this.connectedAt, this.tunnel)
-
