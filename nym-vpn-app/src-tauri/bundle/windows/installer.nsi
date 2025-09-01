@@ -73,8 +73,6 @@ Var OldMainBinaryName
 Var VpndVersion
 Var VpndVersionMajor
 Var VpndVersionMinor
-Var VpndVersionPatch
-Var VpndVersionPreRel
 
 Name "${PRODUCTNAME}"
 BrandingText "${COPYRIGHT}"
@@ -158,16 +156,12 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 Function GetVpndSemVer
   ${StrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
   ${StrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
-  ${StrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
-  ${StrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
 FunctionEnd
 
 ; un. version of above, plain dup
 Function un.GetVpndSemVer
   ${UnStrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
   ${UnStrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
-  ${UnStrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
-  ${UnStrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
 FunctionEnd
 
 ; Here we use macros to avoid code dup
@@ -181,10 +175,8 @@ FunctionEnd
     StrCpy $VpndVersion "$1" "" 9
     DetailPrint "vpnd version: $VpndVersion"
     Call ${un}GetVpndSemVer
-    DetailPrint "major: $VpndVersionMajor"
-    DetailPrint "minor: $VpndVersionMinor"
-    DetailPrint "patch: $VpndVersionPatch"
-    DetailPrint "pre-rel: $VpndVersionPreRel"
+    DetailPrint "vpnd semver major: $VpndVersionMajor"
+    DetailPrint "vpnd semver minor: $VpndVersionMinor"
   FunctionEnd
 !macroend
 
