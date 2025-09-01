@@ -195,16 +195,6 @@ struct LegacyGlobalConfig {
     collect_network_statistics: bool,
 }
 
-impl Default for LegacyGlobalConfig {
-    fn default() -> Self {
-        Self {
-            network_name: NymNetworkDetails::default().network_name,
-            sentry_monitoring: false,
-            collect_network_statistics: true,
-        }
-    }
-}
-
 impl TryFrom<LegacyGlobalConfig> for GlobalConfig {
     type Error = crate::service::ConfigSetupError;
 
