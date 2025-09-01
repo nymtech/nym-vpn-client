@@ -24,6 +24,8 @@ ManifestDPIAwareness PerMonitorV2
 !include "StrFunc.nsh"
 ${StrCase}
 ${StrLoc}
+${StrTok}
+${UnStrTok}
 
 {{#if installer_hooks}}
 !include "{{installer_hooks}}"
@@ -68,6 +70,13 @@ Var UpdateMode
 Var NoShortcutMode
 Var WixMode
 Var OldMainBinaryName
+Var VpndVersion
+Var VpndVersionMajor
+Var VpndVersionMinor
+Var VpndVersionPatch
+Var VpndVersionPreRel
+; is set to "1" if vpnd version is < 1.14.*
+Var VpndPre_1_14
 
 Name "${PRODUCTNAME}"
 BrandingText "${COPYRIGHT}"
@@ -366,10 +375,6 @@ Function PageLeaveReinstall
       Abort
     ${EndIf}
   reinst_done:
-FunctionEnd
-
-Function VpndUninstall
-  ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
 FunctionEnd
 
 ; 5. Choose install directory page
@@ -780,7 +785,7 @@ Section Uninstall
   !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; vpnd cleanup
-  ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+  Call un.VpndUninstall
   Delete "$INSTDIR\nym-vpnd.exe"
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
@@ -906,6 +911,73 @@ Section Uninstall
     SetAutoClose true
   ${EndIf}
 SectionEnd
+
+Function VpndUninstall
+  Call GetVpndVersion
+  ${If} $VpndPre_1_14 == 1
+    DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
+    ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
+  ${Else}
+    ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+  ${EndIf}
+FunctionEnd
+
+; yup plain dup of above
+; Uninstall version, it's a NSIS thing that any function called from
+; the Uninstall section must be prefixed with `un.`
+; cherry on top of the cake, you also need to dup any function it calls (:
+Function un.VpndUninstall
+  Call un.GetVpndVersion
+  ${If} $VpndPre_1_14 == 1
+    DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
+    ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
+  ${Else}
+    ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+  ${EndIf}
+FunctionEnd
+
+Function GetVpndVersion
+    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
+    Pop $0
+    Pop $1
+    StrCpy $VpndVersion "$1" "" 9
+    DetailPrint "vpnd version: $VpndVersion"
+    ${StrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
+    ${StrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
+    ${StrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
+    ${StrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
+    DetailPrint "major: $VpndVersionMajor"
+    DetailPrint "minor: $VpndVersionMinor"
+    DetailPrint "patch: $VpndVersionPatch"
+    DetailPrint "pre-rel: $VpndVersionPreRel"
+    ${If} $VpndVersionMajor == 1
+    ${AndIf} $VpndVersionMinor < 14
+      DetailPrint "vpnd version is pre 1.14"
+      StrCpy $VpndPre_1_14 1
+    ${EndIf}
+FunctionEnd
+
+; un. version of above, plain dup
+Function un.GetVpndVersion
+    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
+    Pop $0
+    Pop $1
+    StrCpy $VpndVersion "$1" "" 9
+    DetailPrint "vpnd version: $VpndVersion"
+    ${UnStrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
+    ${UnStrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
+    ${UnStrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
+    ${UnStrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
+    DetailPrint "major: $VpndVersionMajor"
+    DetailPrint "minor: $VpndVersionMinor"
+    DetailPrint "patch: $VpndVersionPatch"
+    DetailPrint "pre-rel: $VpndVersionPreRel"
+    ${If} $VpndVersionMajor == 1
+    ${AndIf} $VpndVersionMinor < 14
+      DetailPrint "vpnd version is pre 1.14"
+      StrCpy $VpndPre_1_14 1
+    ${EndIf}
+FunctionEnd
 
 Function RestorePreviousInstallLocation
   ReadRegStr $4 SHCTX "${MANUPRODUCTKEY}" ""
