@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, time::Instant};
-
 use bip39::Mnemonic;
 use futures::{FutureExt, pin_mut};
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
+use std::{path::PathBuf, time::Instant};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -27,7 +26,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     MixnetClientConfig, UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
+    gateway_directory::{self, CachingGatewayClient, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -46,13 +45,13 @@ use nym_vpnd_types::{
 use std::time::Duration;
 
 use super::{
-    config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
+    config::{DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, NetworkEnvironments},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
     },
 };
-use crate::{config::GlobalConfigFile, logging::LogFileRemoverHandle};
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -157,8 +156,11 @@ pub struct NymVpnService {
     // Receive state from account controller,
     account_state_rx: AccountStateReceiver,
 
+    // Path to the main config file (deprecated TOML version)
+    toml_config_path: PathBuf,
+
     // Path to the main config file
-    config_file: PathBuf,
+    json_config_path: PathBuf,
 
     // Path to the data directory
     data_dir: PathBuf,
@@ -264,7 +266,8 @@ impl NymVpnService {
             .clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
-        let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
+        let toml_config_path = config_dir.join(DEFAULT_CONFIG_FILE_TOML);
+        let json_config_path = config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let data_dir = super::config::data_dir();
         let network_data_dir = data_dir.join(&network_name);
 
@@ -438,7 +441,8 @@ impl NymVpnService {
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
-            config_file,
+            toml_config_path,
+            json_config_path,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             tunnel_state: TunnelState::Disconnected,
@@ -652,38 +656,6 @@ impl NymVpnService {
         }
     }
 
-    fn try_setup_config(
-        &self,
-        entry: Option<gateway_directory::EntryPoint>,
-        exit: Option<gateway_directory::ExitPoint>,
-    ) -> Result<NymVpnServiceConfig> {
-        // If the config file does not exit, create it
-        let config = if self.config_file.exists() {
-            let mut read_config: NymVpnServiceConfig =
-                super::config::read_config_file(&self.config_file)
-                    .map_err(|err| {
-                        tracing::error!(
-                            "Failed to read config file, resetting to defaults: {:?}",
-                            err
-                        );
-                    })
-                    .unwrap_or_default();
-            read_config.entry_point = entry.unwrap_or(read_config.entry_point);
-            read_config.exit_point = exit.unwrap_or(read_config.exit_point);
-            super::config::write_config_file(&self.config_file, &read_config)
-                .map_err(Error::ConfigSetup)?;
-            read_config
-        } else {
-            let config = NymVpnServiceConfig {
-                entry_point: entry.unwrap_or(EntryPoint::Random),
-                exit_point: exit.unwrap_or(ExitPoint::Random),
-            };
-            super::config::create_config_file(&self.config_file, config)
-                .map_err(Error::ConfigSetup)?
-        };
-        Ok(config)
-    }
-
     async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
         let ConnectArgs {
             entry,
@@ -719,7 +691,13 @@ impl NymVpnService {
         );
         tracing::debug!("Using options: {:?}", options);
 
-        let config = self.try_setup_config(entry, exit)?;
+        let config = super::config::setup_service_config(
+            &self.toml_config_path,
+            &self.json_config_path,
+            entry,
+            exit,
+        )?;
+
         tracing::info!("Using config: {}", config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -817,17 +795,18 @@ impl NymVpnService {
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
-        let mut global_config =
-            GlobalConfigFile::read_from_file().map_err(|source| SetNetworkError::ReadConfig {
+        let mut global_config = GlobalConfig::read_from_default_config_dir().map_err(|source| {
+            SetNetworkError::ReadConfig {
                 source: source.into(),
-            })?;
+            }
+        })?;
 
         let network_selected = NetworkEnvironments::try_from(network.as_str())
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
         global_config
-            .write_to_file()
+            .write_to_default_config_dir()
             .map_err(|source| SetNetworkError::WriteConfig {
                 source: source.into(),
             })?;
@@ -1032,7 +1011,7 @@ impl NymVpnService {
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {
-        GlobalConfigFile::read_from_file()
+        GlobalConfig::read_from_default_config_dir()
             .inspect_err(|e| {
                 tracing::error!("Failed to read global config file: {}", e);
             })
@@ -1043,7 +1022,7 @@ impl NymVpnService {
     }
 
     async fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
-        let mut config = GlobalConfigFile::read_from_file()
+        let mut config = GlobalConfig::read_from_default_config_dir()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.sentry_monitoring = enable;
         if enable {
@@ -1055,7 +1034,7 @@ impl NymVpnService {
             }
             tracing::info!("Sentry monitoring disabled, daemon needs to be restarted");
         }
-        GlobalConfigFile::write_to_file(&config)
+        GlobalConfig::write_to_default_config_dir(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         Ok(())
     }
@@ -1068,7 +1047,7 @@ impl NymVpnService {
         &mut self,
         enable: bool,
     ) -> Result<(), GlobalConfigError> {
-        let mut config = GlobalConfigFile::read_from_file()
+        let mut config = GlobalConfig::read_from_default_config_dir()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.collect_network_statistics = enable;
         if enable {
@@ -1076,7 +1055,7 @@ impl NymVpnService {
         } else {
             tracing::info!("Collect network statistics disabled, daemon needs to be restarted");
         }
-        GlobalConfigFile::write_to_file(&config)
+        GlobalConfig::write_to_default_config_dir(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         self.network_statistics_enabled = enable;
         Ok(())

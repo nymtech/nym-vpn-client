@@ -6,7 +6,6 @@ mod command_interface;
 mod config;
 mod environment;
 mod logging;
-mod runtime;
 mod sentry;
 mod service;
 mod shutdown_handler;
@@ -25,20 +24,15 @@ use nym_vpnd_types::log_path::LogPath;
 
 use crate::{
     cli::{CliArgs, Command},
-    config::GlobalConfigFile,
+    config::GlobalConfig,
     logging::LogFileRemoverHandle,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
 
-fn main() -> anyhow::Result<()> {
-    let rt = runtime::new_runtime();
-    rt.block_on(async_main())
-}
-
-async fn async_main() -> anyhow::Result<()> {
+// Are we sure we need 10 worker threads?
+#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
+async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let _sentry_guard = sentry::init_sentry();
-    let sentry_enabled = _sentry_guard.is_some();
 
     match args.command.unwrap_or_default() {
         #[cfg(windows)]
@@ -61,13 +55,17 @@ async fn async_main() -> anyhow::Result<()> {
             windows_service::installation::start_service()?;
             Ok(())
         }
-        Command::RunAsService | Command::RunStandalone => {
-            run_vpn_service(args, sentry_enabled).await
-        }
+        Command::RunAsService | Command::RunStandalone => run_vpn_service(args).await,
     }
 }
 
-async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<()> {
+async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
+    // It would be better to call `init_sentry()` much later, as it forces a double-read
+    // of the global configuration file, however there is a chicken-and-egg problem WRT
+    // logging setup and reading the config file.
+    let _sentry_guard = sentry::init_sentry();
+    let sentry_enabled = _sentry_guard.is_some();
+
     let shutdown_token = CancellationToken::new();
     let run_as_service = args.is_run_as_service();
     let options = logging::Options {
@@ -145,6 +143,9 @@ async fn run_standalone(
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let global_config_file = setup_global_config(parameters.network)?;
+
+    // Migrate global configuration here, where we will have more information about the environment.
+
     let network_env =
         environment::setup_environment(&global_config_file, parameters.config_env_file.as_deref())
             .await?;
@@ -235,11 +236,11 @@ async fn setup_vpn_service(
     ))
 }
 
-fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFile> {
-    let mut global_config_file = GlobalConfigFile::read_from_file()?;
+fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfig> {
+    let mut global_config_file = GlobalConfig::read_from_default_config_dir()?;
     if let Some(network) = network {
         global_config_file.network_name = network;
-        global_config_file.write_to_file()?;
+        global_config_file.write_to_default_config_dir()?;
     }
     Ok(global_config_file)
 }
