@@ -11,7 +11,9 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib_types_uniffi::{AccountControllerState, TunnelEvent, TunnelState};
+use nym_vpn_lib_types_uniffi::{
+    AccountControllerState, Gateway, GatewayType, TunnelEvent, TunnelState,
+};
 
 #[derive(Debug, uniffi::Object)]
 pub struct RpcError {
@@ -95,13 +97,29 @@ impl RpcClient {
         })
     }
 
-    pub async fn get_tunnel_state(&self) -> Result<TunnelState> {
-        Ok(self
-            .inner
-            .clone()
-            .get_tunnel_state()
-            .await
-            .map(TunnelState::from)?)
+    pub async fn get_info(&self) -> Result<String> {
+        let service_info = self.inner.clone().get_info().await?;
+        todo!()
+    }
+
+    pub async fn set_network(&self, network: String) -> Result<()> {
+        self.inner.clone().set_network(network).await?;
+        Ok(())
+    }
+
+    pub async fn get_system_message(&self) -> Result<String> {
+        let system_messages = self.inner.clone().get_system_messages().await?;
+        todo!()
+    }
+
+    pub async fn get_network_compatibility(&self) -> Result<String> {
+        let network_compatibility = self.inner.clone().get_network_compatibility().await?;
+        todo!()
+    }
+
+    pub async fn get_feature_flags(&self) -> Result<String> {
+        let feature_flags = self.inner.clone().get_feature_flags().await?;
+        todo!()
     }
 
     pub async fn disconnect_tunnel(&self) -> Result<()> {
@@ -109,35 +127,13 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn listen_to_events(
-        &self,
-        observer: Arc<dyn TunnelEventObserver>,
-    ) -> Result<StreamObserver> {
-        let cancel_token = CancellationToken::new();
-        let child_token = cancel_token.child_token();
-        let mut event_stream = self.inner.clone().listen_to_events().await?;
-
-        tokio::spawn(async move {
-            loop {
-                match child_token
-                    .run_until_cancelled(event_stream.next())
-                    .await
-                    .flatten()
-                {
-                    Some(Ok(evt)) => {
-                        observer.on_tunnel_event(TunnelEvent::from(evt));
-                    }
-                    Some(Err(err)) => {
-                        tracing::error!("Error receiving next event: {err}");
-                        break;
-                    }
-                    None => break,
-                }
-            }
-            observer.on_close();
-        });
-
-        Ok(StreamObserver::new(cancel_token))
+    pub async fn get_tunnel_state(&self) -> Result<TunnelState> {
+        Ok(self
+            .inner
+            .clone()
+            .get_tunnel_state()
+            .await
+            .map(TunnelState::from)?)
     }
 
     pub async fn listen_to_tunnel_state(
@@ -171,12 +167,89 @@ impl RpcClient {
         Ok(StreamObserver::new(cancel_token))
     }
 
+    pub async fn listen_to_events(
+        &self,
+        observer: Arc<dyn TunnelEventObserver>,
+    ) -> Result<StreamObserver> {
+        let cancel_token = CancellationToken::new();
+        let child_token = cancel_token.child_token();
+        let mut event_stream = self.inner.clone().listen_to_events().await?;
+
+        tokio::spawn(async move {
+            loop {
+                match child_token
+                    .run_until_cancelled(event_stream.next())
+                    .await
+                    .flatten()
+                {
+                    Some(Ok(evt)) => {
+                        observer.on_tunnel_event(TunnelEvent::from(evt));
+                    }
+                    Some(Err(err)) => {
+                        tracing::error!("Error receiving next event: {err}");
+                        break;
+                    }
+                    None => break,
+                }
+            }
+            observer.on_close();
+        });
+
+        Ok(StreamObserver::new(cancel_token))
+    }
+
+    pub async fn list_gateways(&self, gw_type: GatewayType) -> Result<Vec<String>> {
+        let options = nym_vpnd_types::ListGatewaysOptions {
+            gw_type: nym_gateway_directory::GatewayType::from(gw_type),
+            user_agent: None,
+        };
+        let gateways = self
+            .inner
+            .clone()
+            .list_gateways(options)
+            .await?
+            .into_iter()
+            .map(Gateway::from)
+            .collect();
+        todo!()
+    }
+
+    pub async fn list_countries(&self, gw_type: GatewayType) -> Result<Vec<String>> {
+        let options = nym_vpnd_types::ListCountriesOptions {
+            gw_type: nym_gateway_directory::GatewayType::from(gw_type),
+            user_agent: None,
+        };
+        let countries = self.inner.clone().list_countries(options).await?;
+        todo!()
+    }
+
+    pub async fn store_account(&self, mnemonic: String) -> Result<()> {
+        let maybe_err = self
+            .inner
+            .clone()
+            .store_account(nym_vpnd_types::StoreAccountRequest { mnemonic })
+            .await?;
+
+        todo!()
+    }
+
     pub async fn is_account_stored(&self) -> Result<bool> {
         Ok(self.inner.clone().is_account_stored().await?)
     }
 
+    pub async fn forget_account(&self) -> Result<()> {
+        let maybe_err = self.inner.clone().forget_account().await?;
+
+        todo!()
+    }
+
     pub async fn get_account_identity(&self) -> Result<Option<String>> {
         Ok(self.inner.clone().get_account_identity().await?)
+    }
+
+    pub async fn get_account_links(&self, locale: String) -> Result<String> {
+        let account_links = self.inner.clone().get_account_links(locale).await?;
+        todo!()
     }
 
     pub async fn get_account_state(&self) -> Result<AccountControllerState> {
@@ -188,7 +261,7 @@ impl RpcClient {
             .map(AccountControllerState::from)?)
     }
 
-    pub async fn listen_to_account_controller_state(
+    pub async fn listen_to_account_state(
         &self,
         observer: Arc<dyn AccountEventObserver>,
     ) -> Result<StreamObserver> {
@@ -228,6 +301,11 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn get_account_usage(&self) -> Result<()> {
+        let usage = self.inner.clone().get_account_usage().await?;
+        todo!()
+    }
+
     pub async fn reset_device_identity(&self, seed: Option<Vec<u8>>) -> Result<()> {
         self.inner.clone().reset_device_identity(seed).await?;
         Ok(())
@@ -235,6 +313,21 @@ impl RpcClient {
 
     pub async fn get_device_identity(&self) -> Result<Option<String>> {
         Ok(self.inner.clone().get_device_identity().await?)
+    }
+
+    pub async fn get_devices(&self) -> Result<Vec<String>> {
+        let devices = self.inner.clone().get_devices().await?;
+        todo!()
+    }
+
+    pub async fn get_active_devices(&self) -> Result<Vec<String>> {
+        let devices = self.inner.clone().get_active_devices().await?;
+        todo!()
+    }
+
+    pub async fn get_log_path(&self) -> Result<()> {
+        let log_path = self.inner.clone().get_log_path().await?;
+        todo!()
     }
 
     pub async fn delete_log_file(&self) -> Result<()> {
@@ -253,6 +346,24 @@ impl RpcClient {
 
     pub async fn disable_sentry(&self) -> Result<()> {
         self.inner.clone().disable_sentry().await?;
+        Ok(())
+    }
+
+    pub async fn is_collect_network_stats_enabled(&self) -> Result<bool> {
+        Ok(self
+            .inner
+            .clone()
+            .is_collect_network_stats_enabled()
+            .await?)
+    }
+
+    pub async fn enable_collect_network_stats(&self) -> Result<()> {
+        self.inner.clone().enable_collect_network_stats().await?;
+        Ok(())
+    }
+
+    pub async fn disable_collect_network_stats(&self) -> Result<()> {
+        self.inner.clone().disable_collect_network_stats().await?;
         Ok(())
     }
 }

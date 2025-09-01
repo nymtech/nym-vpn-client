@@ -5384,8 +5384,11 @@ name = "nym-vpn-rpc-uniffi"
 version = "1.15.0-beta"
 dependencies = [
  "futures",
+ "nym-gateway-directory",
  "nym-vpn-lib-types-uniffi",
  "nym-vpn-proto",
+ "nym-vpnd-types",
+ "nym-vpnd-types-uniffi",
  "tokio",
  "tokio-util",
  "tracing",
@@ -5491,6 +5494,15 @@ dependencies = [
  "serde",
  "time",
  "zeroize",
+]
+
+[[package]]
+name = "nym-vpnd-types-uniffi"
+version = "1.15.0-beta"
+dependencies = [
+ "nym-gateway-directory",
+ "nym-vpnd-types",
+ "uniffi",
 ]
 
 [[package]]
