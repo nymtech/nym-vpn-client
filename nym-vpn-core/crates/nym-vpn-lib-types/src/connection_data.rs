@@ -8,6 +8,8 @@ use std::{
 
 use time::OffsetDateTime;
 
+use crate::TunnelType;
+
 // Represents the identity of a gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Gateway {
@@ -27,7 +29,55 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
     }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EstablishConnectionData {
+    /// Mixnet entry gateway.
+    pub entry_gateway: Gateway,
+
+    /// Mixnet exit gateway.
+    pub exit_gateway: Gateway,
+
+    /// Tunnel connection data.
+    /// Becomes available once tunnel connection is initiated.
+    pub tunnel: Option<TunnelConnectionData>,
+}
+
+/// Describes the current state when establishing connection.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EstablishConnectionState {
+    /// Resolving API IP addresses
+    ResolvingApiAddresses,
+
+    /// Awaiting for account to be ready for establishing connection
+    AwaitingAccountReadiness,
+
+    /// Refreshing gateways
+    RefreshingGateways,
+
+    /// Selecting gateways
+    SelectingGateways,
+
+    /// Connecting mixnet client
+    ConnectingMixnetClient,
+
+    /// Establishing tunnel connection
+    ConnectingTunnel,
+}
+
+impl fmt::Display for EstablishConnectionState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            EstablishConnectionState::ResolvingApiAddresses => "resolving api addresses",
+            EstablishConnectionState::AwaitingAccountReadiness => "awaiting account readiness",
+            EstablishConnectionState::RefreshingGateways => "refreshing gateways",
+            EstablishConnectionState::SelectingGateways => "selecting gateways",
+            EstablishConnectionState::ConnectingMixnetClient => "connecting mixnet client",
+            EstablishConnectionState::ConnectingTunnel => "connecting tunnel",
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: Gateway,
@@ -35,29 +85,26 @@ pub struct ConnectionData {
     /// Mixnet exit gateway.
     pub exit_gateway: Gateway,
 
-    /// When the tunnel was last established.
-    /// Set once the tunnel is connected.
-    pub connected_at: Option<OffsetDateTime>,
+    /// When the tunnel connection was last established.
+    pub connected_at: OffsetDateTime,
 
     /// Tunnel connection data.
     pub tunnel: TunnelConnectionData,
-}
-
-impl fmt::Debug for ConnectionData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ConnectionData")
-            .field("entry_gateway", &self.entry_gateway)
-            .field("exit_gateway", &self.exit_gateway)
-            .field("connected_at", &self.connected_at)
-            .field("tunnel", &self.tunnel)
-            .finish()
-    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum TunnelConnectionData {
     Mixnet(MixnetConnectionData),
     Wireguard(WireguardConnectionData),
+}
+
+impl TunnelConnectionData {
+    pub fn tunnel_type(&self) -> TunnelType {
+        match self {
+            TunnelConnectionData::Mixnet(_) => TunnelType::Mixnet,
+            TunnelConnectionData::Wireguard(_) => TunnelType::Wireguard,
+        }
+    }
 }
 
 // Represents a nym-address of the form id.enc@gateway

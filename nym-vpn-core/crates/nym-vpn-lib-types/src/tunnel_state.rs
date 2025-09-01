@@ -1,12 +1,23 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::connection_data::{ConnectionData, TunnelConnectionData};
+use super::connection_data::{
+    ConnectionData, EstablishConnectionData, EstablishConnectionState, TunnelConnectionData,
+};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
     Mixnet,
     Wireguard,
+}
+
+impl TunnelType {
+    pub fn short_name(&self) -> &'static str {
+        match self {
+            Self::Mixnet => "mix",
+            Self::Wireguard => "wg",
+        }
+    }
 }
 
 /// Public enum describing the tunnel state
@@ -18,7 +29,9 @@ pub enum TunnelState {
     /// Tunnel connection is being established.
     Connecting {
         retry_attempt: u32,
-        connection_data: Option<ConnectionData>,
+        state: EstablishConnectionState,
+        tunnel_type: TunnelType,
+        connection_data: Option<EstablishConnectionData>,
     },
 
     /// Tunnel is connected.
@@ -45,52 +58,77 @@ impl std::fmt::Display for TunnelState {
             Self::Disconnected => f.write_str("Disconnected"),
             Self::Connecting {
                 retry_attempt,
+                state,
+                tunnel_type,
                 connection_data,
             } => match connection_data {
                 Some(connection_data) => match connection_data.tunnel {
-                    TunnelConnectionData::Mixnet(ref data) => {
+                    Some(TunnelConnectionData::Mixnet(ref data)) => {
                         write!(
                             f,
-                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
+                            "Connecting {} to {} [{}] → {} [{}], {}, try #{}",
+                            tunnel_type.short_name(),
                             data.entry_ip,
-                            data.exit_ip,
                             data.nym_address.gateway_id(),
+                            data.exit_ip,
                             data.exit_ipr.gateway_id(),
-                            retry_attempt
+                            state,
+                            retry_attempt,
                         )
                     }
-                    TunnelConnectionData::Wireguard(ref data) => {
+                    Some(TunnelConnectionData::Wireguard(ref data)) => {
                         write!(
                             f,
-                            "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
+                            "Connecting {} to {} [{}] → {} [{}], {}, try #{}",
+                            tunnel_type.short_name(),
                             data.entry.endpoint,
+                            connection_data.entry_gateway.id,
                             data.exit.endpoint,
+                            connection_data.exit_gateway.id,
+                            state,
+                            retry_attempt,
+                        )
+                    }
+                    None => {
+                        write!(
+                            f,
+                            "Connecting {} [{}] → [{}], {}, try #{}",
+                            tunnel_type.short_name(),
                             connection_data.entry_gateway.id,
                             connection_data.exit_gateway.id,
-                            retry_attempt
+                            state,
+                            retry_attempt,
                         )
                     }
                 },
-                None => write!(f, "Connecting, attempt {retry_attempt}"),
+                None => write!(
+                    f,
+                    "Connecting {}, {}, try #{}",
+                    tunnel_type.short_name(),
+                    state,
+                    retry_attempt
+                ),
             },
             Self::Connected { connection_data } => match connection_data.tunnel {
                 TunnelConnectionData::Mixnet(ref data) => {
                     write!(
                         f,
-                        "Connected mixnet tunnel to {} → {} (entry: {} → exit: {})",
+                        "Connected {} to {} [{}] → {} [{}]",
+                        connection_data.tunnel.tunnel_type().short_name(),
                         data.entry_ip,
-                        data.exit_ip,
                         data.nym_address.gateway_id(),
+                        data.exit_ip,
                         data.exit_ipr.gateway_id(),
                     )
                 }
                 TunnelConnectionData::Wireguard(ref data) => {
                     write!(
                         f,
-                        "Connected wireguard tunnel {} → {} (entry: {} → exit: {})",
+                        "Connected {} to {} [{}] → {} [{}]",
+                        connection_data.tunnel.tunnel_type().short_name(),
                         data.entry.endpoint,
-                        data.exit.endpoint,
                         connection_data.entry_gateway.id,
+                        data.exit.endpoint,
                         connection_data.exit_gateway.id,
                     )
                 }

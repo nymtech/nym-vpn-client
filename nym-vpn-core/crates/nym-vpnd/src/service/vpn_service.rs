@@ -15,6 +15,7 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
+use nym_common::trace_err_chain;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks,
@@ -246,7 +247,7 @@ impl NymVpnService {
                     }
                 }
                 Err(err) => {
-                    tracing::error!("Failed to initialize VPN service: {err:?}");
+                    trace_err_chain!(err, "Failed to initialize VPN service");
                 }
             }
         })
@@ -308,7 +309,7 @@ impl NymVpnService {
             parameters.user_agent.clone(),
         )
         .map_err(|err| {
-            tracing::error!("Failed to create NymVPN API client");
+            trace_err_chain!(err, "Failed to create NymVPN API client");
             AccountControllerError::Initialization {
                 reason: err.to_string(),
             }

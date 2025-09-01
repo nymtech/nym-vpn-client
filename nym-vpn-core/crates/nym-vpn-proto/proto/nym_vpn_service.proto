@@ -283,6 +283,26 @@ message GetAccountLinksRequest {
   string locale = 1;
 }
 
+enum TunnelType {
+  MIXNET = 0;
+  WIREGUARD = 1;
+}
+
+enum EstablishConnectionState {
+    RESOLVING_API_ADDRESSES = 0;
+    AWAITING_ACCOUNT_READINESS = 1;
+    REFRESHING_GATEWAYS = 2;
+    SELECTING_GATEWAYS = 3;
+    CONNECTING_MIXNET_CLIENT = 4;
+    CONNECTING_TUNNEL = 5;
+}
+
+message EstablishConnectionData {
+  Gateway entry_gateway = 1;
+  Gateway exit_gateway = 2;
+  optional TunnelConnectionData tunnel = 3;
+}
+
 message ConnectionData {
   Gateway entry_gateway = 1;
   Gateway exit_gateway = 2;
@@ -356,7 +376,9 @@ message TunnelState {
   message Disconnected {}
   message Connecting {
     uint32 retry_attempt = 1;
-    optional ConnectionData connection_data = 2;
+    EstablishConnectionState state = 2;
+    TunnelType tunnel_type = 3;
+    optional EstablishConnectionData connection_data = 4;
   }
   message Connected {
     ConnectionData connection_data = 1;

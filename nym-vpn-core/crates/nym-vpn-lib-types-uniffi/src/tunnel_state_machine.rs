@@ -25,11 +25,28 @@ impl From<nym_vpn_lib_types::TunnelEvent> for TunnelEvent {
 }
 
 #[derive(uniffi::Enum)]
+pub enum TunnelType {
+    Mixnet,
+    Wireguard,
+}
+
+impl From<nym_vpn_lib_types::TunnelType> for TunnelType {
+    fn from(value: nym_vpn_lib_types::TunnelType) -> Self {
+        match value {
+            nym_vpn_lib_types::TunnelType::Mixnet => Self::Mixnet,
+            nym_vpn_lib_types::TunnelType::Wireguard => Self::Wireguard,
+        }
+    }
+}
+
+#[derive(uniffi::Enum)]
 pub enum TunnelState {
     Disconnected,
     Connecting {
         retry_attempt: u32,
-        connection_data: Option<ConnectionData>,
+        state: EstablishConnectionState,
+        tunnel_type: TunnelType,
+        connection_data: Option<EstablishConnectionData>,
     },
     Connected {
         connection_data: ConnectionData,
@@ -53,11 +70,20 @@ impl From<nym_vpn_lib_types::TunnelState> for TunnelState {
             }
             nym_vpn_lib_types::TunnelState::Connecting {
                 retry_attempt,
+                state,
+                tunnel_type,
                 connection_data,
-            } => TunnelState::Connecting {
-                retry_attempt,
-                connection_data: connection_data.map(ConnectionData::from),
-            },
+            } => {
+                let connection_data = connection_data.map(EstablishConnectionData::from);
+                let state = EstablishConnectionState::from(state);
+                let tunnel_type = TunnelType::from(tunnel_type);
+                TunnelState::Connecting {
+                    retry_attempt,
+                    state,
+                    tunnel_type,
+                    connection_data,
+                }
+            }
             nym_vpn_lib_types::TunnelState::Disconnecting { after_disconnect } => {
                 TunnelState::Disconnecting {
                     after_disconnect: ActionAfterDisconnect::from(after_disconnect),
@@ -448,8 +474,60 @@ impl From<nym_vpn_lib_types::ConnectionData> for ConnectionData {
         Self {
             entry_gateway: Gateway::from(value.entry_gateway),
             exit_gateway: Gateway::from(value.exit_gateway),
-            connected_at: value.connected_at,
+            connected_at: Some(value.connected_at),
             tunnel: TunnelConnectionData::from(value.tunnel),
+        }
+    }
+}
+
+#[derive(uniffi::Enum)]
+pub enum EstablishConnectionState {
+    ResolvingApiAddresses,
+    AwaitingAccountReadiness,
+    RefreshingGateways,
+    SelectingGateways,
+    ConnectingMixnetClient,
+    ConnectingTunnel,
+}
+
+impl From<nym_vpn_lib_types::EstablishConnectionState> for EstablishConnectionState {
+    fn from(value: nym_vpn_lib_types::EstablishConnectionState) -> Self {
+        match value {
+            nym_vpn_lib_types::EstablishConnectionState::ResolvingApiAddresses => {
+                EstablishConnectionState::ResolvingApiAddresses
+            }
+            nym_vpn_lib_types::EstablishConnectionState::AwaitingAccountReadiness => {
+                EstablishConnectionState::AwaitingAccountReadiness
+            }
+            nym_vpn_lib_types::EstablishConnectionState::RefreshingGateways => {
+                EstablishConnectionState::RefreshingGateways
+            }
+            nym_vpn_lib_types::EstablishConnectionState::SelectingGateways => {
+                EstablishConnectionState::SelectingGateways
+            }
+            nym_vpn_lib_types::EstablishConnectionState::ConnectingMixnetClient => {
+                EstablishConnectionState::ConnectingMixnetClient
+            }
+            nym_vpn_lib_types::EstablishConnectionState::ConnectingTunnel => {
+                EstablishConnectionState::ConnectingTunnel
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct EstablishConnectionData {
+    pub entry_gateway: Gateway,
+    pub exit_gateway: Gateway,
+    pub tunnel: Option<TunnelConnectionData>,
+}
+
+impl From<nym_vpn_lib_types::EstablishConnectionData> for EstablishConnectionData {
+    fn from(value: nym_vpn_lib_types::EstablishConnectionData) -> Self {
+        Self {
+            entry_gateway: Gateway::from(value.entry_gateway),
+            exit_gateway: Gateway::from(value.exit_gateway),
+            tunnel: value.tunnel.map(TunnelConnectionData::from),
         }
     }
 }
