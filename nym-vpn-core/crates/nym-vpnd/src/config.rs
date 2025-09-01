@@ -135,7 +135,6 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExt {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
 struct GlobalConfigExtV1 {
     network_name: String,
     sentry_monitoring: bool,
@@ -186,10 +185,13 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExtLatest {
 // Legacy TOML version of the config file
 //
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
 struct LegacyGlobalConfig {
     network_name: String,
+
+    #[serde(default)]
     sentry_monitoring: bool,
+
+    #[serde(default = "default_true")]
     collect_network_statistics: bool,
 }
 
@@ -213,6 +215,10 @@ impl TryFrom<LegacyGlobalConfig> for GlobalConfig {
             collect_network_statistics: value.collect_network_statistics,
         })
     }
+}
+
+fn default_true() -> bool {
+    true
 }
 
 #[cfg(test)]
