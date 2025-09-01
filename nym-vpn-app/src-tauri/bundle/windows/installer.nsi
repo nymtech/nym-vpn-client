@@ -75,8 +75,6 @@ Var VpndVersionMajor
 Var VpndVersionMinor
 Var VpndVersionPatch
 Var VpndVersionPreRel
-; is set to "1" if vpnd version is < 1.14.*
-Var VpndPre_1_14
 
 Name "${PRODUCTNAME}"
 BrandingText "${COPYRIGHT}"
@@ -152,6 +150,64 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
 !define MUI_LANGDLL_REGISTRY_KEY "${MANUPRODUCTKEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+
+; It's a NSIS thing that any function called from the Uninstall section
+; must be prefixed with `un.`. Cherry on top of the cake, any function
+; called from a `un.` func, must be `un.` too (:
+
+Function GetVpndSemVer
+  ${StrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
+  ${StrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
+  ${StrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
+  ${StrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
+FunctionEnd
+
+; un. version of above, plain dup
+Function un.GetVpndSemVer
+  ${UnStrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
+  ${UnStrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
+  ${UnStrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
+  ${UnStrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
+FunctionEnd
+
+; Here we use macros to avoid code dup
+; From install section, it can be called as `GetVpndVersionFull`
+; From uninstall section, it can be called as `un.GetVpndVersionFull`
+!macro VPND_GET_VERSION_FULL un
+  Function ${un}GetVpndVersionFull
+    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
+    Pop $0
+    Pop $1
+    StrCpy $VpndVersion "$1" "" 9
+    DetailPrint "vpnd version: $VpndVersion"
+    Call ${un}GetVpndSemVer
+    DetailPrint "major: $VpndVersionMajor"
+    DetailPrint "minor: $VpndVersionMinor"
+    DetailPrint "patch: $VpndVersionPatch"
+    DetailPrint "pre-rel: $VpndVersionPreRel"
+  FunctionEnd
+!macroend
+
+; Same here we use macros to avoid code dup
+; From install section, call it with `VpndUninstall`
+; From uninstall section, call it with `un.VpndUninstall`
+!macro VPND_UNINSTALL un
+  Function ${un}VpndUninstall
+    Call ${un}GetVpndVersionFull
+    ${If} $VpndVersionMajor == 1
+    ${AndIf} $VpndVersionMinor < 14
+      DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
+      ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
+    ${Else}
+      ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+    ${EndIf}
+  FunctionEnd
+!macroend
+
+!insertmacro VPND_GET_VERSION_FULL ""
+!insertmacro VPND_GET_VERSION_FULL "un."
+!insertmacro VPND_UNINSTALL ""
+!insertmacro VPND_UNINSTALL "un."
 
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
@@ -911,73 +967,6 @@ Section Uninstall
     SetAutoClose true
   ${EndIf}
 SectionEnd
-
-Function VpndUninstall
-  Call GetVpndVersion
-  ${If} $VpndPre_1_14 == 1
-    DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
-    ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
-  ${Else}
-    ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
-  ${EndIf}
-FunctionEnd
-
-; yup plain dup of above
-; Uninstall version, it's a NSIS thing that any function called from
-; the Uninstall section must be prefixed with `un.`
-; cherry on top of the cake, you also need to dup any function it calls (:
-Function un.VpndUninstall
-  Call un.GetVpndVersion
-  ${If} $VpndPre_1_14 == 1
-    DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
-    ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
-  ${Else}
-    ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
-  ${EndIf}
-FunctionEnd
-
-Function GetVpndVersion
-    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
-    Pop $0
-    Pop $1
-    StrCpy $VpndVersion "$1" "" 9
-    DetailPrint "vpnd version: $VpndVersion"
-    ${StrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
-    ${StrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
-    ${StrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
-    ${StrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
-    DetailPrint "major: $VpndVersionMajor"
-    DetailPrint "minor: $VpndVersionMinor"
-    DetailPrint "patch: $VpndVersionPatch"
-    DetailPrint "pre-rel: $VpndVersionPreRel"
-    ${If} $VpndVersionMajor == 1
-    ${AndIf} $VpndVersionMinor < 14
-      DetailPrint "vpnd version is pre 1.14"
-      StrCpy $VpndPre_1_14 1
-    ${EndIf}
-FunctionEnd
-
-; un. version of above, plain dup
-Function un.GetVpndVersion
-    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
-    Pop $0
-    Pop $1
-    StrCpy $VpndVersion "$1" "" 9
-    DetailPrint "vpnd version: $VpndVersion"
-    ${UnStrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
-    ${UnStrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
-    ${UnStrTok} $VpndVersionPatch "$VpndVersion" ".-+" "2" "1"
-    ${UnStrTok} $VpndVersionPreRel "$VpndVersion" "-" "1" "1"
-    DetailPrint "major: $VpndVersionMajor"
-    DetailPrint "minor: $VpndVersionMinor"
-    DetailPrint "patch: $VpndVersionPatch"
-    DetailPrint "pre-rel: $VpndVersionPreRel"
-    ${If} $VpndVersionMajor == 1
-    ${AndIf} $VpndVersionMinor < 14
-      DetailPrint "vpnd version is pre 1.14"
-      StrCpy $VpndPre_1_14 1
-    ${EndIf}
-FunctionEnd
 
 Function RestorePreviousInstallLocation
   ReadRegStr $4 SHCTX "${MANUPRODUCTKEY}" ""
