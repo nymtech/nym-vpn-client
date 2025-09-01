@@ -24,6 +24,8 @@ ManifestDPIAwareness PerMonitorV2
 !include "StrFunc.nsh"
 ${StrCase}
 ${StrLoc}
+${StrTok}
+${UnStrTok}
 
 {{#if installer_hooks}}
 !include "{{installer_hooks}}"
@@ -68,6 +70,9 @@ Var UpdateMode
 Var NoShortcutMode
 Var WixMode
 Var OldMainBinaryName
+Var VpndVersion
+Var VpndVersionMajor
+Var VpndVersionMinor
 
 Name "${PRODUCTNAME}"
 BrandingText "${COPYRIGHT}"
@@ -143,6 +148,58 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
 !define MUI_LANGDLL_REGISTRY_KEY "${MANUPRODUCTKEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+
+; It's a NSIS thing that any function called from the Uninstall section
+; must be prefixed with `un.`. Cherry on top of the cake, any function
+; called from a `un.` func, must be `un.` too (:
+
+Function GetVpndSemVer
+  ${StrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
+  ${StrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
+FunctionEnd
+
+; un. version of above, plain dup
+Function un.GetVpndSemVer
+  ${UnStrTok} $VpndVersionMajor "$VpndVersion" "." "0" "1"
+  ${UnStrTok} $VpndVersionMinor "$VpndVersion" "." "1" "1"
+FunctionEnd
+
+; Here we use macros to avoid code dup
+; From install section, it can be called as `GetVpndVersionFull`
+; From uninstall section, it can be called as `un.GetVpndVersionFull`
+!macro VPND_GET_VERSION_FULL un
+  Function ${un}GetVpndVersionFull
+    nsExec::ExecToStack '"$INSTDIR\nym-vpnd.exe" -V'
+    Pop $0
+    Pop $1
+    StrCpy $VpndVersion "$1" "" 9
+    DetailPrint "vpnd version: $VpndVersion"
+    Call ${un}GetVpndSemVer
+    DetailPrint "vpnd semver major: $VpndVersionMajor"
+    DetailPrint "vpnd semver minor: $VpndVersionMinor"
+  FunctionEnd
+!macroend
+
+; Same here we use macros to avoid code dup
+; From install section, call it with `VpndUninstall`
+; From uninstall section, call it with `un.VpndUninstall`
+!macro VPND_UNINSTALL un
+  Function ${un}VpndUninstall
+    Call ${un}GetVpndVersionFull
+    ${If} $VpndVersionMajor == 1
+    ${AndIf} $VpndVersionMinor < 14
+      DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
+      ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
+    ${Else}
+      ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+    ${EndIf}
+  FunctionEnd
+!macroend
+
+!insertmacro VPND_GET_VERSION_FULL ""
+!insertmacro VPND_GET_VERSION_FULL "un."
+!insertmacro VPND_UNINSTALL ""
+!insertmacro VPND_UNINSTALL "un."
 
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
@@ -366,10 +423,6 @@ Function PageLeaveReinstall
       Abort
     ${EndIf}
   reinst_done:
-FunctionEnd
-
-Function VpndUninstall
-  ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
 FunctionEnd
 
 ; 5. Choose install directory page
@@ -780,7 +833,7 @@ Section Uninstall
   !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; vpnd cleanup
-  ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+  Call un.VpndUninstall
   Delete "$INSTDIR\nym-vpnd.exe"
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
