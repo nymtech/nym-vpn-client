@@ -5,8 +5,6 @@ use time::OffsetDateTime;
 
 use nym_vpn_lib_types_uniffi::{NymNetworkDetails, NymVpnNetwork};
 
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::OffsetDateTime);
-
 #[derive(uniffi::Record)]
 pub struct VpnServiceInfo {
     pub version: String,

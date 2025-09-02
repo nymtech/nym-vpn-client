@@ -3,8 +3,6 @@
 
 use std::path::PathBuf;
 
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::PathBuf);
-
 #[derive(uniffi::Record)]
 pub struct LogPath {
     pub dir: PathBuf,

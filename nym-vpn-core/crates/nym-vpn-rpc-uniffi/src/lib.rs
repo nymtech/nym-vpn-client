@@ -193,9 +193,9 @@ impl RpcClient {
             .await?;
 
         if let Some(err) = response.error {
-            return Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(
+            Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(
                 AccountCommandError::from(err),
-            ))));
+            ))))
         } else {
             Ok(())
         }
