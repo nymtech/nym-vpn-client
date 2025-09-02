@@ -470,7 +470,7 @@ fn is_recently_updated(last_updated_utc: &str) -> bool {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGatewayCountriesResponse(Vec<NymDirectoryCountry>);
 
 impl NymDirectoryGatewayCountriesResponse {

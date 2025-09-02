@@ -1174,7 +1174,13 @@ impl VpnApiClient {
         match kind {
             GatewayType::MixnetEntry => self.get_entry_gateways(min_performance).await,
             GatewayType::MixnetExit => self.get_exit_gateways(min_performance).await,
+            GatewayType::MixnetNearestEntry => {
+                self.get_nearest_entry_gateways(min_performance).await
+            }
             GatewayType::Wg => self.get_vpn_gateways(min_performance).await,
+            GatewayType::WgNearestEntry => {
+                self.get_vpn_nearest_entry_gateway(min_performance).await
+            }
         }
     }
 
@@ -1187,6 +1193,10 @@ impl VpnApiClient {
             GatewayType::MixnetEntry => self.get_entry_gateway_countries(min_performance).await,
             GatewayType::MixnetExit => self.get_exit_gateway_countries(min_performance).await,
             GatewayType::Wg => self.get_vpn_gateway_countries(min_performance).await,
+            // nearest country doesn't make sense (at least for now)
+            GatewayType::MixnetNearestEntry | GatewayType::WgNearestEntry => {
+                Ok(NymDirectoryGatewayCountriesResponse::default())
+            }
         }
     }
 
@@ -1319,6 +1329,46 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::GetExitGatewayCountries)
+    }
+
+    pub async fn get_nearest_entry_gateways(
+        &self,
+        min_performance: Option<GatewayMinPerformance>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::ENTRY,
+                routes::NEAREST,
+            ],
+            &min_performance.unwrap_or_default().to_param(),
+        )
+        .await
+        .map_err(VpnApiClientError::GetNearestEntryGateways)
+    }
+
+    pub async fn get_vpn_nearest_entry_gateway(
+        &self,
+        min_performance: Option<GatewayMinPerformance>,
+    ) -> Result<NymDirectoryGatewaysResponse> {
+        let mut params = min_performance.unwrap_or_default().to_param();
+        params.push((routes::SHOW_VPN_ONLY.to_string(), "true".to_string()));
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::GATEWAYS,
+                routes::ENTRY,
+                routes::NEAREST,
+            ],
+            &params,
+        )
+        .await
+        .map_err(VpnApiClientError::GetNearestEntryGateways)
     }
 
     // DIRECTORY ZK-NYM

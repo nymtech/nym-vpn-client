@@ -258,7 +258,9 @@ enum Score {
 enum GatewayType {
   MIXNET_ENTRY = 0;
   MIXNET_EXIT = 1;
-  WG = 2;
+  MIXNET_NEAREST_ENTRY = 2;
+  WG = 3;
+  WG_NEAREST_ENTRY = 4;
 }
 
 message ListGatewaysRequest {

@@ -502,7 +502,9 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
+    MixnetNearestEntry,
     Wg,
+    WgNearestEntry,
 }
 
 impl fmt::Display for GatewayType {
@@ -510,7 +512,9 @@ impl fmt::Display for GatewayType {
         match self {
             GatewayType::MixnetEntry => write!(f, "mixnet entry"),
             GatewayType::MixnetExit => write!(f, "mixnet exit"),
+            GatewayType::MixnetNearestEntry => write!(f, "mixnet nearest entry"),
             GatewayType::Wg => write!(f, "vpn"),
+            GatewayType::WgNearestEntry => write!(f, "vpn nearest entry"),
         }
     }
 }
@@ -520,7 +524,11 @@ impl From<nym_vpn_api_client::types::GatewayType> for GatewayType {
         match gateway_type {
             nym_vpn_api_client::types::GatewayType::MixnetEntry => GatewayType::MixnetEntry,
             nym_vpn_api_client::types::GatewayType::MixnetExit => GatewayType::MixnetExit,
+            nym_vpn_api_client::types::GatewayType::MixnetNearestEntry => {
+                GatewayType::MixnetNearestEntry
+            }
             nym_vpn_api_client::types::GatewayType::Wg => GatewayType::Wg,
+            nym_vpn_api_client::types::GatewayType::WgNearestEntry => GatewayType::WgNearestEntry,
         }
     }
 }
@@ -530,7 +538,11 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
         match gateway_type {
             GatewayType::MixnetEntry => nym_vpn_api_client::types::GatewayType::MixnetEntry,
             GatewayType::MixnetExit => nym_vpn_api_client::types::GatewayType::MixnetExit,
+            GatewayType::MixnetNearestEntry => {
+                nym_vpn_api_client::types::GatewayType::MixnetNearestEntry
+            }
             GatewayType::Wg => nym_vpn_api_client::types::GatewayType::Wg,
+            GatewayType::WgNearestEntry => nym_vpn_api_client::types::GatewayType::WgNearestEntry,
         }
     }
 }

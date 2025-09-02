@@ -86,6 +86,9 @@ pub enum VpnApiClientError {
     #[error("failed to get entry gateway countries")]
     GetEntryGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
+    #[error("failed to get nearest entry gateways")]
+    GetNearestEntryGateways(#[source] HttpClientError<UnexpectedError>),
+
     #[error("failed to get exit gateways")]
     GetExitGateways(#[source] HttpClientError<UnexpectedError>),
 
@@ -94,6 +97,9 @@ pub enum VpnApiClientError {
 
     #[error("failed to get vpn gateways")]
     GetVpnGateways(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get vpn nearest gateways")]
+    GetVpnNearestGateways(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get vpn gateway countries")]
     GetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),

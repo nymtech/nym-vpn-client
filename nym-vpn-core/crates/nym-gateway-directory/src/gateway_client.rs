@@ -331,7 +331,11 @@ impl GatewayClient {
         match gw_type {
             GatewayType::MixnetEntry => self.lookup_entry_gateways_from_nym_api().await,
             GatewayType::MixnetExit => self.lookup_exit_gateways_from_nym_api().await,
+            GatewayType::MixnetNearestEntry => {
+                self.lookup_nearest_entry_gateways_from_nym_api().await
+            }
             GatewayType::Wg => self.lookup_vpn_gateways_from_nym_api().await,
+            GatewayType::WgNearestEntry => self.lookup_vpn_nearest_gateways_from_nym_api().await,
         }
     }
 
@@ -346,7 +350,17 @@ impl GatewayClient {
             .map(GatewayList::into_exit_gateways)
     }
 
+    async fn lookup_nearest_entry_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        self.lookup_all_gateways_from_nym_api().await
+    }
+
     async fn lookup_vpn_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        self.lookup_all_gateways_from_nym_api()
+            .await
+            .map(GatewayList::into_vpn_gateways)
+    }
+
+    async fn lookup_vpn_nearest_gateways_from_nym_api(&self) -> Result<GatewayList> {
         self.lookup_all_gateways_from_nym_api()
             .await
             .map(GatewayList::into_vpn_gateways)

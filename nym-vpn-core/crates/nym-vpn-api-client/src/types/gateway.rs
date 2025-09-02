@@ -48,7 +48,9 @@ impl GatewayMinPerformance {
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
+    MixnetNearestEntry,
     Wg,
+    WgNearestEntry,
 }
 
 #[derive(Clone, Copy, Debug)]

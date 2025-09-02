@@ -20,7 +20,13 @@ impl From<nym_gateway_directory::GatewayType> for proto::GatewayType {
         match value {
             nym_gateway_directory::GatewayType::MixnetEntry => proto::GatewayType::MixnetEntry,
             nym_gateway_directory::GatewayType::MixnetExit => proto::GatewayType::MixnetExit,
+            nym_gateway_directory::GatewayType::MixnetNearestEntry => {
+                proto::GatewayType::MixnetNearestEntry
+            }
             nym_gateway_directory::GatewayType::Wg => proto::GatewayType::Wg,
+            nym_gateway_directory::GatewayType::WgNearestEntry => {
+                proto::GatewayType::WgNearestEntry
+            }
         }
     }
 }
@@ -30,7 +36,13 @@ impl From<proto::GatewayType> for nym_gateway_directory::GatewayType {
         match value {
             proto::GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
             proto::GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
+            proto::GatewayType::MixnetNearestEntry => {
+                nym_gateway_directory::GatewayType::MixnetNearestEntry
+            }
             proto::GatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
+            proto::GatewayType::WgNearestEntry => {
+                nym_gateway_directory::GatewayType::WgNearestEntry
+            }
         }
     }
 }
