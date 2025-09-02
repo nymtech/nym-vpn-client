@@ -11,8 +11,11 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, Gateway, GatewayType, TunnelEvent, TunnelState,
+use nym_vpn_lib_types_uniffi::{AccountControllerState, GatewayType, TunnelEvent, TunnelState};
+use nym_vpnd_types_uniffi::{
+    gateway::{Country, Gateway},
+    log_path::LogPath,
+    nym_vpn_api::{NymVpnDevice, NymVpnUsage},
 };
 
 #[derive(Debug, uniffi::Object)]
@@ -198,7 +201,7 @@ impl RpcClient {
         Ok(StreamObserver::new(cancel_token))
     }
 
-    pub async fn list_gateways(&self, gw_type: GatewayType) -> Result<Vec<String>> {
+    pub async fn list_gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>> {
         let options = nym_vpnd_types::ListGatewaysOptions {
             gw_type: nym_gateway_directory::GatewayType::from(gw_type),
             user_agent: None,
@@ -211,16 +214,23 @@ impl RpcClient {
             .into_iter()
             .map(Gateway::from)
             .collect();
-        todo!()
+        Ok(gateways)
     }
 
-    pub async fn list_countries(&self, gw_type: GatewayType) -> Result<Vec<String>> {
+    pub async fn list_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
         let options = nym_vpnd_types::ListCountriesOptions {
             gw_type: nym_gateway_directory::GatewayType::from(gw_type),
             user_agent: None,
         };
-        let countries = self.inner.clone().list_countries(options).await?;
-        todo!()
+        let countries = self
+            .inner
+            .clone()
+            .list_countries(options)
+            .await?
+            .into_iter()
+            .map(Country::from)
+            .collect();
+        Ok(countries)
     }
 
     pub async fn store_account(&self, mnemonic: String) -> Result<()> {
@@ -301,9 +311,16 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_account_usage(&self) -> Result<()> {
-        let usage = self.inner.clone().get_account_usage().await?;
-        todo!()
+    pub async fn get_account_usage(&self) -> Result<Vec<NymVpnUsage>> {
+        let usage = self
+            .inner
+            .clone()
+            .get_account_usage()
+            .await?
+            .into_iter()
+            .map(NymVpnUsage::from)
+            .collect::<Vec<_>>();
+        Ok(usage)
     }
 
     pub async fn reset_device_identity(&self, seed: Option<Vec<u8>>) -> Result<()> {
@@ -316,18 +333,30 @@ impl RpcClient {
     }
 
     pub async fn get_devices(&self) -> Result<Vec<String>> {
-        let devices = self.inner.clone().get_devices().await?;
-        todo!()
+        Ok(self
+            .inner
+            .clone()
+            .get_devices()
+            .await?
+            .into_iter()
+            .map(NymVpnDevice::from)
+            .collect())
     }
 
     pub async fn get_active_devices(&self) -> Result<Vec<String>> {
-        let devices = self.inner.clone().get_active_devices().await?;
-        todo!()
+        Ok(self
+            .inner
+            .clone()
+            .get_active_devices()
+            .await?
+            .into_iter()
+            .map(NymVpnDevice::from)
+            .collect())
     }
 
-    pub async fn get_log_path(&self) -> Result<()> {
-        let log_path = self.inner.clone().get_log_path().await?;
-        todo!()
+    pub async fn get_log_path(&self) -> Result<LogPath> {
+        let log_path = self.inner.clone().get_log_path().await.map(LogPath::from)?;
+        Ok(log_path)
     }
 
     pub async fn delete_log_file(&self) -> Result<()> {

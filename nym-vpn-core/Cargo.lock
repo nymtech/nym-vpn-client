@@ -5501,6 +5501,8 @@ name = "nym-vpnd-types-uniffi"
 version = "1.15.0-beta"
 dependencies = [
  "nym-gateway-directory",
+ "nym-vpn-api-client",
+ "nym-vpn-lib-types-uniffi",
  "nym-vpnd-types",
  "uniffi",
 ]

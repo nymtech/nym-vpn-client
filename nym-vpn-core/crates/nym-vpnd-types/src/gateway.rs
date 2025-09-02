@@ -95,7 +95,6 @@ impl Country {
 }
 
 impl fmt::Display for Gateway {
-    #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let location = self
             .location

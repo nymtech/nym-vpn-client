@@ -16,4 +16,6 @@ workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
 
 nym-gateway-directory.workspace = true
+nym-vpn-api-client.workspace = true
 nym-vpnd-types.workspace = true
+nym-vpn-lib-types-uniffi.workspace = true
