@@ -23,6 +23,7 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.manager.backend.model.toInfo
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
@@ -49,6 +50,7 @@ import nym_vpn_lib_types.MixnetEvent
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib.VpnException
+import nym_vpn_lib_types.EstablishConnectionData
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -229,9 +231,15 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
-	private fun emitConnectionData(connectionData: ConnectionData?) {
+	private fun emitConnectedData(connectionData: ConnectionData?) {
 		_state.update {
-			it.copy(connectionData = connectionData)
+			it.copy(connectionData = connectionData?.toInfo())
+		}
+	}
+
+	private fun emitConnectionData(connectionData: EstablishConnectionData?) {
+		_state.update {
+			it.copy(connectionData = connectionData?.toInfo())
 		}
 	}
 
@@ -258,7 +266,7 @@ class NymBackendManager @Inject constructor(
 			}
 
 			is BackendEvent.Tunnel -> when (val state = backendEvent.state) {
-				is TunnelState.Connected -> emitConnectionData(state.connectionData)
+				is TunnelState.Connected -> emitConnectedData(state.connectionData)
 				is TunnelState.Connecting -> emitConnectionData(state.connectionData)
 				is TunnelState.Disconnecting -> Timber.d("After disconnect status: ${state.afterDisconnect.name}")
 				is TunnelState.Error -> {
