@@ -5385,7 +5385,6 @@ version = "1.15.0-beta"
 dependencies = [
  "futures",
  "nym-gateway-directory",
- "nym-vpn-lib-types",
  "nym-vpn-lib-types-uniffi",
  "nym-vpn-proto",
  "nym-vpnd-types",

@@ -11,10 +11,9 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, AccountLinks, FeatureFlags, GatewayType, NetworkCompatibility,
-    SystemMessage, TunnelEvent, TunnelState,
+    AccountCommandError, AccountControllerState, AccountLinks, FeatureFlags, GatewayType,
+    NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState,
 };
 use nym_vpnd_types_uniffi::{
     gateway::{Country, Gateway},
@@ -22,99 +21,6 @@ use nym_vpnd_types_uniffi::{
     nym_vpn_api::{NymVpnDevice, NymVpnUsage},
     service::VpnServiceInfo,
 };
-
-#[derive(Debug)]
-pub enum InnerRpcError {
-    RpcError(DaemonRpcError),
-    AccountCommand(AccountCommandError),
-}
-
-impl std::fmt::Display for InnerRpcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            InnerRpcError::RpcError(err) => write!(f, "{err}"),
-            InnerRpcError::AccountCommand(err) => write!(f, "{err}"),
-        }
-    }
-}
-
-#[derive(Debug, uniffi::Object)]
-pub struct RpcError {
-    inner: InnerRpcError,
-}
-
-#[uniffi::export]
-impl RpcError {
-    pub fn message(&self) -> String {
-        self.inner.to_string()
-    }
-}
-
-impl std::fmt::Display for RpcError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.inner)
-    }
-}
-
-impl From<DaemonRpcError> for RpcError {
-    fn from(err: DaemonRpcError) -> Self {
-        RpcError {
-            inner: InnerRpcError::RpcError(err),
-        }
-    }
-}
-
-impl From<AccountCommandError> for RpcError {
-    fn from(err: AccountCommandError) -> Self {
-        RpcError {
-            inner: InnerRpcError::AccountCommand(err),
-        }
-    }
-}
-
-pub type Result<T, E = RpcError> = std::result::Result<T, E>;
-
-#[derive(Clone, uniffi::Object)]
-pub struct StreamObserver {
-    cancel_token: CancellationToken,
-}
-
-#[uniffi::export]
-impl StreamObserver {
-    pub fn cancel(&self) {
-        self.cancel_token.cancel();
-    }
-}
-
-impl StreamObserver {
-    fn new(cancel_token: CancellationToken) -> Self {
-        StreamObserver { cancel_token }
-    }
-}
-
-impl Drop for StreamObserver {
-    fn drop(&mut self) {
-        self.cancel_token.cancel();
-    }
-}
-
-#[uniffi::export(with_foreign)]
-pub trait TunnelEventObserver: Send + Sync {
-    fn on_tunnel_event(&self, event: TunnelEvent);
-    fn on_close(&self);
-}
-
-#[uniffi::export(with_foreign)]
-pub trait TunnelStateObserver: Send + Sync {
-    fn on_tunnel_state_change(&self, new_state: TunnelState);
-    fn on_close(&self);
-}
-
-#[uniffi::export(with_foreign)]
-pub trait AccountEventObserver: Send + Sync {
-    fn on_account_state_change(&self, new_state: AccountControllerState);
-    fn on_close(&self);
-}
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -287,7 +193,9 @@ impl RpcClient {
             .await?;
 
         if let Some(err) = response.error {
-            return Err(RpcError::from(err));
+            return Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(
+                AccountCommandError::from(err),
+            ))));
         } else {
             Ok(())
         }
@@ -300,7 +208,7 @@ impl RpcClient {
     pub async fn forget_account(&self) -> Result<()> {
         let response = self.inner.clone().forget_account().await?;
         if let Some(err) = response.error {
-            return Err(RpcError::from(err));
+            Err(RpcError::from(Arc::new(AccountCommandError::from(err))))
         } else {
             Ok(())
         }
@@ -452,4 +360,112 @@ impl RpcClient {
         self.inner.clone().disable_collect_network_stats().await?;
         Ok(())
     }
+}
+
+#[derive(Debug)]
+pub enum InnerRpcError {
+    RpcError(DaemonRpcError),
+    AccountCommand(Arc<AccountCommandError>),
+}
+
+impl std::fmt::Display for InnerRpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InnerRpcError::RpcError(err) => write!(f, "{err}"),
+            InnerRpcError::AccountCommand(err) => write!(f, "{}", err.message()),
+        }
+    }
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct RpcError {
+    inner: InnerRpcError,
+}
+
+impl RpcError {
+    pub fn new(inner: InnerRpcError) -> Self {
+        RpcError { inner }
+    }
+}
+
+#[uniffi::export]
+impl RpcError {
+    /// Returns the error message.
+    pub fn message(&self) -> String {
+        self.inner.to_string()
+    }
+
+    /// Returns the account error if the underlying error is an account error.
+    pub fn account_error(&self) -> Option<Arc<AccountCommandError>> {
+        match &self.inner {
+            InnerRpcError::AccountCommand(err) => Some(err.clone()),
+            _ => None,
+        }
+    }
+}
+
+impl std::fmt::Display for RpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.inner)
+    }
+}
+
+impl From<DaemonRpcError> for RpcError {
+    fn from(err: DaemonRpcError) -> Self {
+        RpcError {
+            inner: InnerRpcError::RpcError(err),
+        }
+    }
+}
+
+impl From<Arc<AccountCommandError>> for RpcError {
+    fn from(err: Arc<AccountCommandError>) -> Self {
+        RpcError {
+            inner: InnerRpcError::AccountCommand(err),
+        }
+    }
+}
+
+pub type Result<T, E = RpcError> = std::result::Result<T, E>;
+
+#[derive(Clone, uniffi::Object)]
+pub struct StreamObserver {
+    cancel_token: CancellationToken,
+}
+
+#[uniffi::export]
+impl StreamObserver {
+    pub fn cancel(&self) {
+        self.cancel_token.cancel();
+    }
+}
+
+impl StreamObserver {
+    fn new(cancel_token: CancellationToken) -> Self {
+        StreamObserver { cancel_token }
+    }
+}
+
+impl Drop for StreamObserver {
+    fn drop(&mut self) {
+        self.cancel_token.cancel();
+    }
+}
+
+#[uniffi::export(with_foreign)]
+pub trait TunnelEventObserver: Send + Sync {
+    fn on_tunnel_event(&self, event: TunnelEvent);
+    fn on_close(&self);
+}
+
+#[uniffi::export(with_foreign)]
+pub trait TunnelStateObserver: Send + Sync {
+    fn on_tunnel_state_change(&self, new_state: TunnelState);
+    fn on_close(&self);
+}
+
+#[uniffi::export(with_foreign)]
+pub trait AccountEventObserver: Send + Sync {
+    fn on_account_state_change(&self, new_state: AccountControllerState);
+    fn on_close(&self);
 }
