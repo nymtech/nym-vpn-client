@@ -444,9 +444,6 @@ pub enum Error {
 
     #[error("Failed to parse rpc response")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
-
-    #[error("Missing account state in response")]
-    MissingAccountState,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

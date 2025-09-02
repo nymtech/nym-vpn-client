@@ -11,16 +11,36 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib_types_uniffi::{AccountControllerState, GatewayType, TunnelEvent, TunnelState};
+use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types_uniffi::{
+    AccountControllerState, AccountLinks, FeatureFlags, GatewayType, NetworkCompatibility,
+    SystemMessage, TunnelEvent, TunnelState,
+};
 use nym_vpnd_types_uniffi::{
     gateway::{Country, Gateway},
     log_path::LogPath,
     nym_vpn_api::{NymVpnDevice, NymVpnUsage},
+    service::VpnServiceInfo,
 };
+
+#[derive(Debug)]
+pub enum InnerRpcError {
+    RpcError(DaemonRpcError),
+    AccountCommand(AccountCommandError),
+}
+
+impl std::fmt::Display for InnerRpcError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InnerRpcError::RpcError(err) => write!(f, "{err}"),
+            InnerRpcError::AccountCommand(err) => write!(f, "{err}"),
+        }
+    }
+}
 
 #[derive(Debug, uniffi::Object)]
 pub struct RpcError {
-    inner: DaemonRpcError,
+    inner: InnerRpcError,
 }
 
 #[uniffi::export]
@@ -38,7 +58,17 @@ impl std::fmt::Display for RpcError {
 
 impl From<DaemonRpcError> for RpcError {
     fn from(err: DaemonRpcError) -> Self {
-        RpcError { inner: err }
+        RpcError {
+            inner: InnerRpcError::RpcError(err),
+        }
+    }
+}
+
+impl From<AccountCommandError> for RpcError {
+    fn from(err: AccountCommandError) -> Self {
+        RpcError {
+            inner: InnerRpcError::AccountCommand(err),
+        }
     }
 }
 
@@ -100,9 +130,13 @@ impl RpcClient {
         })
     }
 
-    pub async fn get_info(&self) -> Result<String> {
-        let service_info = self.inner.clone().get_info().await?;
-        todo!()
+    pub async fn get_info(&self) -> Result<VpnServiceInfo> {
+        Ok(self
+            .inner
+            .clone()
+            .get_info()
+            .await
+            .map(VpnServiceInfo::from)?)
     }
 
     pub async fn set_network(&self, network: String) -> Result<()> {
@@ -110,19 +144,31 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_system_message(&self) -> Result<String> {
+    pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {
         let system_messages = self.inner.clone().get_system_messages().await?;
-        todo!()
+        Ok(system_messages
+            .into_iter()
+            .map(SystemMessage::from)
+            .collect())
     }
 
-    pub async fn get_network_compatibility(&self) -> Result<String> {
-        let network_compatibility = self.inner.clone().get_network_compatibility().await?;
-        todo!()
+    pub async fn get_network_compatibility(&self) -> Result<Option<NetworkCompatibility>> {
+        let network_compatibility = self
+            .inner
+            .clone()
+            .get_network_compatibility()
+            .await?
+            .map(NetworkCompatibility::from);
+        Ok(network_compatibility)
     }
 
-    pub async fn get_feature_flags(&self) -> Result<String> {
-        let feature_flags = self.inner.clone().get_feature_flags().await?;
-        todo!()
+    pub async fn get_feature_flags(&self) -> Result<FeatureFlags> {
+        Ok(self
+            .inner
+            .clone()
+            .get_feature_flags()
+            .await
+            .map(FeatureFlags::from)?)
     }
 
     pub async fn disconnect_tunnel(&self) -> Result<()> {
@@ -234,13 +280,17 @@ impl RpcClient {
     }
 
     pub async fn store_account(&self, mnemonic: String) -> Result<()> {
-        let maybe_err = self
+        let response = self
             .inner
             .clone()
             .store_account(nym_vpnd_types::StoreAccountRequest { mnemonic })
             .await?;
 
-        todo!()
+        if let Some(err) = response.error {
+            return Err(RpcError::from(err));
+        } else {
+            Ok(())
+        }
     }
 
     pub async fn is_account_stored(&self) -> Result<bool> {
@@ -248,18 +298,25 @@ impl RpcClient {
     }
 
     pub async fn forget_account(&self) -> Result<()> {
-        let maybe_err = self.inner.clone().forget_account().await?;
-
-        todo!()
+        let response = self.inner.clone().forget_account().await?;
+        if let Some(err) = response.error {
+            return Err(RpcError::from(err));
+        } else {
+            Ok(())
+        }
     }
 
     pub async fn get_account_identity(&self) -> Result<Option<String>> {
         Ok(self.inner.clone().get_account_identity().await?)
     }
 
-    pub async fn get_account_links(&self, locale: String) -> Result<String> {
-        let account_links = self.inner.clone().get_account_links(locale).await?;
-        todo!()
+    pub async fn get_account_links(&self, locale: String) -> Result<AccountLinks> {
+        Ok(self
+            .inner
+            .clone()
+            .get_account_links(locale)
+            .await
+            .map(AccountLinks::from)?)
     }
 
     pub async fn get_account_state(&self) -> Result<AccountControllerState> {
@@ -332,7 +389,7 @@ impl RpcClient {
         Ok(self.inner.clone().get_device_identity().await?)
     }
 
-    pub async fn get_devices(&self) -> Result<Vec<String>> {
+    pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>> {
         Ok(self
             .inner
             .clone()
@@ -343,7 +400,7 @@ impl RpcClient {
             .collect())
     }
 
-    pub async fn get_active_devices(&self) -> Result<Vec<String>> {
+    pub async fn get_active_devices(&self) -> Result<Vec<NymVpnDevice>> {
         Ok(self
             .inner
             .clone()

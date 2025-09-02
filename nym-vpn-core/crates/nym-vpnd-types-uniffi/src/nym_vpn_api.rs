@@ -46,20 +46,16 @@ pub enum NymVpnDeviceStatus {
 impl From<nym_vpn_api_client::response::NymVpnDeviceStatus> for NymVpnDeviceStatus {
     fn from(status: nym_vpn_api_client::response::NymVpnDeviceStatus) -> Self {
         match status {
-            nym_vpn_api_client::response::NymVpnDeviceStatus::Active => NymVpnDeviceStatus::Active,
-            nym_vpn_api_client::response::NymVpnDeviceStatus::Inactive => {
-                NymVpnDeviceStatus::Inactive
-            }
-            nym_vpn_api_client::response::NymVpnDeviceStatus::DeleteMe => {
-                NymVpnDeviceStatus::DeleteMe
-            }
+            nym_vpn_api_client::response::NymVpnDeviceStatus::Active => Self::Active,
+            nym_vpn_api_client::response::NymVpnDeviceStatus::Inactive => Self::Inactive,
+            nym_vpn_api_client::response::NymVpnDeviceStatus::DeleteMe => Self::DeleteMe,
         }
     }
 }
 
-impl From<NymVpnDevice> for nym_vpn_api_client::response::NymVpnDevice {
-    fn from(device: NymVpnDevice) -> Self {
-        nym_vpn_api_client::response::NymVpnDevice {
+impl From<nym_vpn_api_client::response::NymVpnDevice> for NymVpnDevice {
+    fn from(device: nym_vpn_api_client::response::NymVpnDevice) -> Self {
+        Self {
             created_on_utc: device.created_on_utc,
             last_updated_utc: device.last_updated_utc,
             device_identity_key: device.device_identity_key,
