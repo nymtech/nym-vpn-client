@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(dead_code)]
+
 use super::error::{Error, Result};
 use nym_vpn_lib::gateway_directory;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -65,21 +67,117 @@ impl TryFrom<&str> for NetworkEnvironments {
 }
 
 //
+// NymVpnServiceConfigManager
+//
+
+pub(super) struct NymVpnServiceConfigManager {
+    config_path: PathBuf,
+    config: NymVpnServiceConfig,
+}
+
+impl NymVpnServiceConfigManager {
+    #[allow(clippy::result_large_err)]
+    pub(super) fn new(network_config_dir: &Path) -> Result<Self> {
+        let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
+        let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
+
+        let config = Self::read_from_file(&toml_config_path, &json_config_path)?;
+
+        Ok(Self {
+            config_path: json_config_path,
+            config,
+        })
+    }
+
+    #[cfg(test)]
+    fn config(&self) -> &NymVpnServiceConfig {
+        &self.config
+    }
+
+    pub(super) fn entry_point(&self) -> &gateway_directory::EntryPoint {
+        &self.config.entry_point
+    }
+
+    pub(super) fn set_entry_point(&mut self, entry_point: gateway_directory::EntryPoint) {
+        self.config.entry_point = entry_point;
+    }
+
+    pub(super) fn exit_point(&self) -> &gateway_directory::ExitPoint {
+        &self.config.exit_point
+    }
+
+    pub(super) fn set_exit_point(&mut self, exit_point: gateway_directory::ExitPoint) {
+        self.config.exit_point = exit_point;
+    }
+
+    #[allow(clippy::result_large_err)]
+    fn read_from_file(
+        toml_config_path: &Path,
+        json_config_path: &Path,
+    ) -> Result<NymVpnServiceConfig> {
+        let json_config_exists = json_config_path.exists();
+        let toml_config_exists = toml_config_path.exists();
+
+        let config = if json_config_exists {
+            let ext_config = read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
+                .map_err(Error::ConfigSetup)?;
+
+            tracing::info!("Loaded service config {}", json_config_path.display());
+
+            NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?
+        } else if toml_config_exists {
+            let legacy_config =
+                read_toml_config_file::<LegacyNymVpnServiceConfig>(toml_config_path)
+                    .map_err(Error::ConfigSetup)?;
+
+            tracing::info!("Loaded service config {}", toml_config_path.display());
+
+            NymVpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?
+        } else {
+            tracing::info!("Using default service config");
+
+            NymVpnServiceConfig::default()
+        };
+
+        if toml_config_exists {
+            tracing::info!(
+                "Removing deprecated config file {}",
+                toml_config_path.display()
+            );
+            let _ = fs::remove_file(toml_config_path);
+        }
+
+        Ok(config)
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub(super) fn write_to_file(&self, config_path: &Path) -> Result<()> {
+        let ext_config =
+            NymVpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup)?;
+        write_json_config_file(config_path, &ext_config).map_err(Error::ConfigSetup)
+    }
+}
+
+impl Drop for NymVpnServiceConfigManager {
+    fn drop(&mut self) {
+        if let Err(err) = self.write_to_file(&self.config_path) {
+            tracing::error!(
+                "Failed to write service config file {}: {}",
+                self.config_path.display(),
+                err
+            );
+        }
+    }
+}
+
+//
 // NymVpnServiceConfig
 //
 
 #[derive(Clone, Debug)]
-pub struct NymVpnServiceConfig {
+pub(super) struct NymVpnServiceConfig {
     pub(super) entry_point: gateway_directory::EntryPoint,
     pub(super) exit_point: gateway_directory::ExitPoint,
-}
-
-impl NymVpnServiceConfig {
-    #[allow(clippy::result_large_err)]
-    pub(super) fn write_to_file(&self, config_path: &Path) -> Result<()> {
-        let ext_config = NymVpnServiceConfigExt::try_from(self).map_err(Error::ConfigSetup)?;
-        write_json_config_file(config_path, &ext_config).map_err(Error::ConfigSetup)
-    }
 }
 
 impl fmt::Display for NymVpnServiceConfig {
@@ -110,7 +208,7 @@ type NymVpnServiceConfigExtLatest = NymVpnServiceConfigExtV1;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "version")]
 #[serde(rename_all = "snake_case")]
-pub(super) enum NymVpnServiceConfigExt {
+enum NymVpnServiceConfigExt {
     V1(NymVpnServiceConfigExtV1),
 }
 
@@ -135,7 +233,7 @@ impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExt {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(super) struct NymVpnServiceConfigExtV1 {
+struct NymVpnServiceConfigExtV1 {
     entry_point: EntryPointExtV1,
     exit_point: ExitPointExtV1,
 }
@@ -398,47 +496,6 @@ pub enum ConfigSetupError {
     },
 }
 
-#[allow(clippy::result_large_err)]
-pub(super) fn setup_service_config(
-    toml_config_path: &Path,
-    json_config_path: &Path,
-    entry: Option<gateway_directory::EntryPoint>,
-    exit: Option<gateway_directory::ExitPoint>,
-) -> Result<NymVpnServiceConfig> {
-    let json_config_exists = json_config_path.exists();
-    let toml_config_exists = toml_config_path.exists();
-
-    let mut config = if json_config_exists {
-        let ext_config = read_json_config_file::<NymVpnServiceConfigExt>(json_config_path)
-            .map_err(Error::ConfigSetup)?;
-
-        NymVpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?
-    } else if toml_config_exists {
-        let legacy_config = read_toml_config_file::<LegacyNymVpnServiceConfig>(toml_config_path)
-            .map_err(Error::ConfigSetup)?;
-        NymVpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?
-    } else {
-        NymVpnServiceConfig::default()
-    };
-
-    config.entry_point = entry.unwrap_or(config.entry_point);
-    config.exit_point = exit.unwrap_or(config.exit_point);
-
-    if toml_config_exists {
-        tracing::info!(
-            "Removing deprecated config file {}",
-            toml_config_path.display()
-        );
-        let _ = fs::remove_file(toml_config_path);
-    }
-
-    // Always write back config file back using the latest JSON version
-    // TODO: Avoid doing this as it's double-writing the config file.
-    config.write_to_file(json_config_path)?;
-
-    Ok(config)
-}
-
 #[cfg(windows)]
 pub fn program_data_path() -> PathBuf {
     PathBuf::from(std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()))
@@ -624,22 +681,22 @@ mod tests {
     use tempfile::tempdir;
 
     // Config directory will be deleted on drop
-    fn setup() -> (tempfile::TempDir, PathBuf, PathBuf) {
+    fn setup() -> (tempfile::TempDir, PathBuf, PathBuf, PathBuf) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
         println!("Using config dir: {config_path:?}");
 
-        let service_path = config_path.join("tulips");
-        let _ = fs::create_dir_all(&service_path);
+        let network_config_path = config_path.join("tulips");
+        let _ = fs::create_dir_all(&network_config_path);
 
-        let toml_path = service_path.join(DEFAULT_CONFIG_FILE_TOML);
+        let toml_path = network_config_path.join(DEFAULT_CONFIG_FILE_TOML);
         let _ = fs::remove_file(&toml_path);
 
-        let json_path = service_path.join(DEFAULT_CONFIG_FILE_JSON);
+        let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
         let _ = fs::remove_file(&json_path);
 
-        (temp_dir, toml_path, json_path)
+        (temp_dir, network_config_path, toml_path, json_path)
     }
 
     fn run_test(
@@ -648,24 +705,30 @@ mod tests {
         entry_point: gateway_directory::EntryPoint,
         exit_point: gateway_directory::ExitPoint,
     ) {
-        let (_temp_dir, toml_path, json_path) = setup();
+        let (_temp_dir, network_config_path, toml_path, json_path) = setup();
 
         // Write the TOML config file
         fs::write(&toml_path, toml_content).unwrap();
 
         // Read the TOML config and migrate it to JSON
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        let config_manager = NymVpnServiceConfigManager::new(&network_config_path).unwrap();
+        let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
+
+        drop(config_manager); // JSON file written on drop
 
         // The TOML file should be deleted and replaced with a JSON version
         assert!(!toml_path.exists());
         assert!(json_path.exists());
 
         // Read the JSON config
-        let config = setup_service_config(&toml_path, &json_path, None, None).unwrap();
+        let config_manager = NymVpnServiceConfigManager::new(&network_config_path).unwrap();
+        let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
+
+        drop(config_manager); // JSON file written on drop
 
         // Check the JSON is the right version and all snake-case
         let read_json_content = fs::read_to_string(&json_path).unwrap();

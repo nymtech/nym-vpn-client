@@ -46,7 +46,7 @@ use nym_vpnd_types::{
 use std::time::Duration;
 
 use super::{
-    config::{DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, NetworkEnvironments},
+    config::{NetworkEnvironments, NymVpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
@@ -157,12 +157,6 @@ pub struct NymVpnService {
     // Receive state from account controller,
     account_state_rx: AccountStateReceiver,
 
-    // Path to the main config file (deprecated TOML version)
-    toml_config_path: PathBuf,
-
-    // Path to the main config file
-    json_config_path: PathBuf,
-
     // Path to the data directory
     data_dir: PathBuf,
 
@@ -192,6 +186,9 @@ pub struct NymVpnService {
 
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
+
+    // Configuration Manager
+    config_manager: NymVpnServiceConfigManager,
 
     // VPN service shutdown token.
     shutdown_token: CancellationToken,
@@ -267,8 +264,6 @@ impl NymVpnService {
             .clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
-        let toml_config_path = config_dir.join(DEFAULT_CONFIG_FILE_TOML);
-        let json_config_path = config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let data_dir = super::config::data_dir();
         let network_data_dir = data_dir.join(&network_name);
 
@@ -348,6 +343,9 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         )
         .await;
+
+        // Configuration Manager setup
+        let config_manager = NymVpnServiceConfigManager::new(&config_dir)?;
 
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
@@ -442,8 +440,6 @@ impl NymVpnService {
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
-            toml_config_path,
-            json_config_path,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             tunnel_state: TunnelState::Disconnected,
@@ -451,6 +447,7 @@ impl NymVpnService {
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
+            config_manager,
             command_sender,
             event_receiver,
             shutdown_token,
@@ -692,15 +689,6 @@ impl NymVpnService {
         );
         tracing::debug!("Using options: {:?}", options);
 
-        let config = super::config::setup_service_config(
-            &self.toml_config_path,
-            &self.json_config_path,
-            entry,
-            exit,
-        )?;
-
-        tracing::info!("Using config: {}", config);
-
         let gateway_options = GatewayPerformanceOptions {
             mixnet_min_performance: options
                 .min_gateway_mixnet_performance
@@ -748,8 +736,8 @@ impl NymVpnService {
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
-            entry_point: Box::new(config.entry_point),
-            exit_point: Box::new(config.exit_point),
+            entry_point: Box::new(self.config_manager.entry_point().clone()),
+            exit_point: Box::new(self.config_manager.exit_point().clone()),
             dns,
             user_agent: options.user_agent,
         };
