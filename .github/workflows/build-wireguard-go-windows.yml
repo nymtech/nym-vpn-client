@@ -19,6 +19,12 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Debug PATH
+        run: |
+          echo %PATH%
+          where cargo
+          where winget
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
