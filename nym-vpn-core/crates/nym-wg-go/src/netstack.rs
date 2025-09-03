@@ -1,12 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "android")]
-use std::os::fd::RawFd;
 use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
     net::{IpAddr, SocketAddr},
+    os::fd::RawFd,
 };
 
 #[cfg(windows)]
@@ -179,6 +178,27 @@ impl Tunnel {
         TunnelConnection::open(self, listen_port, client_port, exit_endpoint)
     }
 
+    /// Open TCP socket through the tunnel
+    #[cfg(unix)]
+    pub fn open_tcp_socket(&mut self, endpoint: String) -> Result<RawFd> {
+        let endpoint = CString::new(endpoint).map_err(|_| Error::EndpointContainsNulByte)?;
+
+        let unix_sock_fd = unsafe {
+            wgNetOpenTCPSocketThroughTunnel(
+                self.handle,
+                endpoint.as_ptr(),
+                wg_netstack_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if unix_sock_fd >= 0 {
+            Ok(unix_sock_fd)
+        } else {
+            Err(Error::OpenTCPConnection(unix_sock_fd))
+        }
+    }
+
     fn stop_inner(&mut self) {
         if self.handle >= 0 {
             unsafe { wgNetTurnOff(self.handle) };
@@ -237,7 +257,7 @@ impl TunnelConnection {
         if handle >= 0 {
             Ok(Self { handle })
         } else {
-            Err(Error::OpenConnection(handle))
+            Err(Error::OpenUDPConnection(handle))
         }
     }
 
@@ -297,6 +317,16 @@ unsafe extern "C" {
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
+
+    /// Open TCP socket through the tunnel.
+    /// Returns a file descriptor to anynonymous unix socket created with `socketpair()`
+    #[cfg(unix)]
+    unsafe fn wgNetOpenTCPSocketThroughTunnel(
+        entry_tunnel_handle: i32,
+        endpoint: *const c_char,
+        logging_callback: LoggingCallback,
+        logging_context: *mut c_void,
+    ) -> RawFd;
 
     /// Close connection through the tunnel.
     unsafe fn wgNetCloseConnectionThroughTunnel(handle: i32);
