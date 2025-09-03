@@ -10,7 +10,7 @@ import {
   NetworkCompat,
   NetworkEnv,
 } from './tauri';
-import { Tunnel, TunnelError } from './tunnel';
+import { ConnectingState, Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =
   | 'connected'
@@ -41,17 +41,18 @@ export type AppState = {
   initialized: boolean;
   state: TunnelState;
   tunnel?: Tunnel | null;
+  connectingState?: ConnectingState | null;
   tunnelError?: TunnelError | null;
   accountState?: AccountState | null;
   accountError?: AppError | null;
   accountSyncing: boolean;
-  retryAttempt: number;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
   networkEnv: NetworkEnv;
   version: string | null;
   error?: AppError | null;
-  progressMessages: ConnectProgressMsg[];
+  // general progress messages to show in the main badge
+  progressMessages: ProgressMsg[];
   tunnelConnectedAt?: Dayjs | null;
   vpnMode: VpnMode;
   // `UiTheme` is the current applied theme to the UI, that is either `dark` or `light`
@@ -77,11 +78,7 @@ export type AppState = {
   networkStats: boolean;
 };
 
-export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
-
-export type ProgressEventPayload = {
-  key: ConnectProgressMsg;
-};
+export type ProgressMsg = 'canceling';
 
 export type StateDispatch = Dispatch<StateAction>;
 
