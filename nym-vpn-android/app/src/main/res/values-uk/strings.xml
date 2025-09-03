@@ -134,8 +134,7 @@
     <string name="log_out_title">Ви впевнені, що хочете вийти з системи?</string>
     <string name="log_out_body">Для повторного входу вам знадобиться фраза відновлення.</string>
     <string name="cancel">Скасувати</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">Інформація</string>
+    <string name="info">Інформація</string>
     <string name="collapse">Згортання</string>
     <string name="expand">Розгорнути</string>
     <string name="country_flag">Прапор %1$s</string>

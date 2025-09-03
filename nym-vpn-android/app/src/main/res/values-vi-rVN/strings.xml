@@ -134,8 +134,7 @@
     <string name="log_out_title">Bạn có chắc chắn muốn đăng xuất?</string>
     <string name="log_out_body">Bạn sẽ cần cụm từ khôi phục của mình để đăng nhập lại.</string>
     <string name="cancel">Hủy</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">Thông tin</string>
+    <string name="info">Thông tin</string>
     <string name="collapse">Thu nhỏ</string>
     <string name="expand">Mở rộng</string>
     <string name="country_flag">Cờ của %1$s</string>

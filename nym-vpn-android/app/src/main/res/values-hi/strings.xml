@@ -134,8 +134,7 @@
     <string name="log_out_title">क्या आप सुनिश्चित हैं कि आप लॉग आउट करना चाहते हैं?</string>
     <string name="log_out_body">आपको फिर से लॉग इन करने के लिए अपनी रिकवरी फ़्रेज़ की आवश्यकता होगी।</string>
     <string name="cancel">कैंसल</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">सूचना</string>
+    <string name="info">सूचना</string>
     <string name="collapse">छोटा करें</string>
     <string name="expand">बड़ा करके देखें</string>
     <string name="country_flag">%1$s का झंडा</string>

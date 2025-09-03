@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -37,12 +37,12 @@ fun PillLabel(text: String, backgroundColor: Color, textColor: Color, trailing: 
 			modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
 		) {
 			Text(
-				text.uppercase(),
+				text,
 				textAlign = TextAlign.Center,
 				color = textColor,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				maxLines = 1,
-				style = CustomTypography.labelHuge,
+				style = Typography.titleMedium,
 			)
 			trailing?.let {
 				trailing()

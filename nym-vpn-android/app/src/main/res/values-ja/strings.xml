@@ -134,8 +134,7 @@
     <string name="log_out_title">ログアウトしますか？</string>
     <string name="log_out_body">再度ログインするにはアクセスコードが必要です。</string>
     <string name="cancel">キャンセル</string>
-    <string name="subscription_expired_error">このアカウントのサブスクリプションの有効期限が切れています。引き続き使用するにはサブスクリプションをアップグレードしてください。</string>
-	<string name="info">お知らせ</string>
+    <string name="info">お知らせ</string>
     <string name="collapse">縮小</string>
     <string name="expand">拡大</string>
     <string name="country_flag">%1$sのフラグ</string>

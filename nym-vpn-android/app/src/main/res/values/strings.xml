@@ -176,7 +176,6 @@
 	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
-	<string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_bad_bandwidth">Gateway is not responding or responding badly to a bandwidth.</string>
 	<string name="error_device_logged_out">Device is logged out.</string>
@@ -186,6 +185,10 @@
 	<string name="error_set_routing">Failed to configure routing.</string>
 	<string name="error_tun_device">Failed to configure tunnel device.</string>
 	<string name="error_tunnel_provider">Failed to configure packet tunnel provider.</string>
+	<string name="error_kill_switch">Kill switch protects you. Tap Stop and \nrenew your plan.</string>
+	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
+	<!-- Main Screen -->
+	<string name="main_get_started_button">Get started</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -219,4 +222,8 @@
 	<string name="welcome_terms_privacy_text_start">By continuing, you agree to NymVPN\'s</string>
 	<string name="welcome_terms_privacy_text_middle">and acknowledge NymVPN\'s</string>
 	<string name="welcome_error_toggle_descr">via Sentry</string>
+	<!-- Select Plan screen -->
+	<string name="select_plan_title">Choose your \nprotection level 🛡️</string>
+	<string name="select_plan_descr">Select a plan now to activate your \nprotection\n\nYour upcoming payment cannot be linked \nto your future browsing activity</string>
+	<string name="select_plan_button">Choose my NymVPN plan</string>
 </resources>
