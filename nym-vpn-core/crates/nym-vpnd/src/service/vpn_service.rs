@@ -46,7 +46,7 @@ use nym_vpnd_types::{
 use std::time::Duration;
 
 use super::{
-    config::{NetworkEnvironments, NymVpnServiceConfigManager},
+    config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
@@ -188,7 +188,7 @@ pub struct NymVpnService {
     statistics_controller_handle: JoinHandle<()>,
 
     // Configuration Manager
-    config_manager: NymVpnServiceConfigManager,
+    config_manager: VpnServiceConfigManager,
 
     // VPN service shutdown token.
     shutdown_token: CancellationToken,
@@ -345,7 +345,7 @@ impl NymVpnService {
         .await;
 
         // Configuration Manager setup
-        let config_manager = NymVpnServiceConfigManager::new(&config_dir)?;
+        let config_manager = VpnServiceConfigManager::new(&config_dir)?;
 
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
@@ -736,8 +736,8 @@ impl NymVpnService {
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
-            entry_point: Box::new(self.config_manager.entry_point().clone()),
-            exit_point: Box::new(self.config_manager.exit_point().clone()),
+            entry_point: Box::new(self.config_manager.config().entry_point.clone()),
+            exit_point: Box::new(self.config_manager.config().exit_point.clone()),
             dns,
             user_agent: options.user_agent,
         };
