@@ -10,20 +10,26 @@ package container
 import (
 	"errors"
 	"math"
+	"sync"
 )
 
 // Generic index-based memory storage
 type Container[Context any] struct {
 	tunnels map[int32]Context
+	lock    sync.RWMutex
 }
 
 func New[Context any]() Container[Context] {
 	return Container[Context]{
 		tunnels: make(map[int32]Context),
+		lock:    sync.RWMutex{},
 	}
 }
 
 func (wself *Container[Context]) Insert(context Context) (int32, error) {
+	wself.lock.Lock()
+	defer wself.lock.Unlock()
+
 	var i int32
 	for i = 0; i < math.MaxInt32; i++ {
 		if _, exists := wself.tunnels[i]; !exists {
@@ -40,6 +46,9 @@ func (wself *Container[Context]) Insert(context Context) (int32, error) {
 }
 
 func (wself *Container[Context]) Get(handle int32) (*Context, error) {
+	wself.lock.Lock()
+	defer wself.lock.Unlock()
+
 	context, ok := wself.tunnels[handle]
 	if !ok {
 		return nil, errors.New("invalid context handle")
@@ -48,6 +57,9 @@ func (wself *Container[Context]) Get(handle int32) (*Context, error) {
 }
 
 func (wself *Container[Context]) Remove(handle int32) (*Context, error) {
+	wself.lock.Lock()
+	defer wself.lock.Unlock()
+
 	context, ok := wself.tunnels[handle]
 	if !ok {
 		return nil, errors.New("invalid context handle")
@@ -57,7 +69,11 @@ func (wself *Container[Context]) Remove(handle int32) (*Context, error) {
 }
 
 func (wself *Container[Context]) ForEach(callback func(Context)) {
-	for _, tunnel := range wself.tunnels {
+	wself.lock.Lock()
+	tunnels := wself.tunnels
+	wself.lock.Unlock()
+
+	for _, tunnel := range tunnels {
 		callback(tunnel)
 	}
 }

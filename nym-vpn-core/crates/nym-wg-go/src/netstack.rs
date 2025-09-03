@@ -6,6 +6,7 @@ use std::{
     fmt,
     net::{IpAddr, SocketAddr},
     os::fd::RawFd,
+    str::FromStr,
 };
 
 #[cfg(windows)]
@@ -178,25 +179,15 @@ impl Tunnel {
         TunnelConnection::open(self, listen_port, client_port, exit_endpoint)
     }
 
-    /// Open TCP socket through the tunnel
+    /// Open TCP socket through the tunnel.
+    ///
+    /// Due to FFI boundary, direct communication is impossible. Instead a bidrectional TCP forwarder listens on a loopback port that can be obtained via `TunnelTCPConnection::listen_addr()`.
+    /// The clients should connect to it in order to communicate with the endpoint over the tunnel.
+    ///
+    /// If `endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
     #[cfg(unix)]
-    pub fn open_tcp_socket(&mut self, endpoint: String) -> Result<RawFd> {
-        let endpoint = CString::new(endpoint).map_err(|_| Error::EndpointContainsNulByte)?;
-
-        let unix_sock_fd = unsafe {
-            wgNetOpenTCPSocketThroughTunnel(
-                self.handle,
-                endpoint.as_ptr(),
-                wg_netstack_logger_callback,
-                std::ptr::null_mut(),
-            )
-        };
-
-        if unix_sock_fd >= 0 {
-            Ok(unix_sock_fd)
-        } else {
-            Err(Error::OpenTCPConnection(unix_sock_fd))
-        }
+    pub fn open_tcp_connection(&mut self, endpoint: SocketAddr) -> Result<TunnelTCPConnection> {
+        TunnelTCPConnection::open(self, endpoint)
     }
 
     fn stop_inner(&mut self) {
@@ -279,6 +270,78 @@ impl Drop for TunnelConnection {
     }
 }
 
+/// TCP connection through the netstack tunnel.
+#[derive(Debug)]
+pub struct TunnelTCPConnection {
+    handle: i32,
+    listen_addr: SocketAddr,
+}
+
+impl TunnelTCPConnection {
+    fn open(entry_tunnel: &Tunnel, endpoint: SocketAddr) -> Result<Self> {
+        let endpoint_str = endpoint.to_string();
+        let endpoint = CString::new(endpoint_str).map_err(|_| Error::EndpointContainsNulByte)?;
+        let mut out_listen_addr: *mut c_char = std::ptr::null_mut();
+        let out_listen_addr_ptr: *mut *mut c_char = &mut out_listen_addr;
+
+        let handle = unsafe {
+            wgNetOpenTCPConnectionThroughTunnel(
+                entry_tunnel.handle,
+                endpoint.as_ptr(),
+                out_listen_addr_ptr,
+                wg_netstack_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if handle >= 0 {
+            // SAFETY: libwg is expected to set a non-null value upon successful return.
+            let listen_addr_cstr = unsafe { CStr::from_ptr(out_listen_addr) };
+
+            let listen_addr = listen_addr_cstr
+                .to_str()
+                .map_err(|_| Error::ConvertTcpListenAddrToString)
+                .map(|s| s.to_owned());
+
+            // SAFETY: free C string allocated in Go using the correct deallocator.
+            unsafe { wgFreePtr(out_listen_addr as *mut _) };
+
+            let listen_addr = listen_addr?;
+            let listen_addr =
+                SocketAddr::from_str(&listen_addr).map_err(|_| Error::ParseTcpListenAddr)?;
+
+            Ok(Self {
+                handle,
+                listen_addr,
+            })
+        } else {
+            Err(Error::OpenTCPConnection(handle))
+        }
+    }
+
+    /// Returns an address that can be used to connect to the endpoint over the tunnel.
+    pub fn listen_addr(&self) -> &SocketAddr {
+        &self.listen_addr
+    }
+
+    pub fn close(mut self) {
+        self.close_inner()
+    }
+
+    fn close_inner(&mut self) {
+        if self.handle >= 0 {
+            unsafe { wgCloseTCPConnectionThroughTunnel(self.handle) };
+            self.handle = -1;
+        }
+    }
+}
+
+impl Drop for TunnelTCPConnection {
+    fn drop(&mut self) {
+        self.close_inner();
+    }
+}
+
 fn to_comma_separated_addrs(ip_addrs: &[IpAddr]) -> String {
     ip_addrs
         .iter()
@@ -318,18 +381,22 @@ unsafe extern "C" {
         logging_context: *mut c_void,
     ) -> i32;
 
-    /// Open TCP socket through the tunnel.
-    /// Returns a file descriptor to anynonymous unix socket created with `socketpair()`
-    #[cfg(unix)]
-    unsafe fn wgNetOpenTCPSocketThroughTunnel(
-        entry_tunnel_handle: i32,
-        endpoint: *const c_char,
-        logging_callback: LoggingCallback,
-        logging_context: *mut c_void,
-    ) -> RawFd;
-
     /// Close connection through the tunnel.
     unsafe fn wgNetCloseConnectionThroughTunnel(handle: i32);
+
+    /// Open tcp connection through the tunnel.
+    ///
+    /// Returns a unique tcp connection handle.
+    unsafe fn wgNetOpenTCPConnectionThroughTunnel(
+        entry_tunnel_handle: i32,
+        endpoint: *const c_char,
+        out_listen_addr: *mut *mut c_char,
+        logging_callback: LoggingCallback,
+        logging_context: *mut c_void,
+    ) -> i32;
+
+    /// Close tcp connection through the tunnel.
+    unsafe fn wgCloseTCPConnectionThroughTunnel(tcp_conn_handle: i32);
 
     /// Returns tunnel IPv4 socket.
     #[cfg(target_os = "android")]
@@ -349,6 +416,10 @@ unsafe extern "C" {
     /// - `interface_index` - index of network interface to which the tunnel socket should be bound to. Pass 0 to bind to blackhole.
     #[cfg(windows)]
     unsafe fn wgNetRebindTunnelSocket(address_family: u16, interface_index: u32);
+
+    /// Frees a pointer allocated by the go runtime - useful to free return value of wgGetConfig
+    #[allow(unused)]
+    unsafe fn wgFreePtr(ptr: *mut c_void);
 }
 
 /// Callback used by libwg to pass netstack logs.

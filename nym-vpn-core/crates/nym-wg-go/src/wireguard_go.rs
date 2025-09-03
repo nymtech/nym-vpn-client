@@ -183,16 +183,16 @@ impl Tunnel {
             // SAFETY: conversion must never fail.
             let wintun_iface_name = wintun_iface_name_cstr
                 .to_str()
-                .expect("failed to convert cstring to str")
-                .to_owned();
-
-            let wintun_interface = WintunInterface {
-                name: wintun_iface_name,
-                luid: out_interface_luid,
-            };
+                .map_err(|_| Error::ConvertWintunInterfaceNameToString)
+                .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.
             unsafe { wgFreePtr(out_interface_name as *mut _) };
+
+            let wintun_interface = WintunInterface {
+                name: wintun_iface_name?,
+                luid: out_interface_luid,
+            };
 
             Ok(Self {
                 handle,
