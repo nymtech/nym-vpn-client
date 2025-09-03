@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Disengage the kill switch screens and functionality (https://github.com/nymtech/nym-vpn-client/pull/3360)
+
 ### Changed
 - Updated error messages (https://github.com/nymtech/nym-vpn-client/pull/3354)
 - Updated connection data (https://github.com/nymtech/nym-vpn-client/pull/3354)
