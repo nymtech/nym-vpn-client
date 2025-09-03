@@ -32,6 +32,7 @@ pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 pub const DEFAULT_GLOBAL_CONFIG_FILE_TOML: &str = "config.toml";
 pub const DEFAULT_GLOBAL_CONFIG_FILE_JSON: &str = "config.json";
 
+// Used for serializing the Percent type to 3 decimal places
 macro_rules! round_f64 {
     ($val:expr) => {{
         let v: f64 = $val as f64;
@@ -81,7 +82,8 @@ impl TryFrom<&str> for NetworkEnvironments {
 //
 
 pub(super) struct VpnServiceConfigManager {
-    config_path: PathBuf,
+    toml_config_path: PathBuf,
+    json_config_path: PathBuf,
     config: VpnServiceConfig,
 }
 
@@ -94,7 +96,8 @@ impl VpnServiceConfigManager {
         let config = Self::read_from_file(&toml_config_path, &json_config_path)?;
 
         Ok(Self {
-            config_path: json_config_path,
+            json_config_path,
+            toml_config_path,
             config,
         })
     }
@@ -112,17 +115,14 @@ impl VpnServiceConfigManager {
         toml_config_path: &Path,
         json_config_path: &Path,
     ) -> Result<VpnServiceConfig> {
-        let json_config_exists = json_config_path.exists();
-        let toml_config_exists = toml_config_path.exists();
-
-        let config = if json_config_exists {
+        let config = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Loaded service config {}", json_config_path.display());
 
             VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?
-        } else if toml_config_exists {
+        } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .map_err(Error::ConfigSetup)?;
 
@@ -135,21 +135,22 @@ impl VpnServiceConfigManager {
             VpnServiceConfig::default()
         };
 
-        if toml_config_exists {
-            tracing::info!(
-                "Removing deprecated config file {}",
-                toml_config_path.display()
-            );
-            let _ = fs::remove_file(toml_config_path);
-        }
-
         Ok(config)
     }
 
     #[allow(clippy::result_large_err)]
     pub(super) fn write_to_file(&self) -> Result<()> {
+        // If the deprecated TOML file still exists, then remove it
+        if self.toml_config_path.exists() {
+            tracing::info!(
+                "Removing deprecated config file {}",
+                self.toml_config_path.display()
+            );
+            let _ = fs::remove_file(&self.toml_config_path);
+        }
+
         let ext_config = VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup)?;
-        write_json_config_file(&self.config_path, &ext_config).map_err(Error::ConfigSetup)
+        write_json_config_file(&self.json_config_path, &ext_config).map_err(Error::ConfigSetup)
     }
 }
 
@@ -542,9 +543,9 @@ pub enum ConfigSetupError {
         #[source]
         error: ContractsCommonError,
     },
-    #[error("failed to convert User Agent {user_agent}")]
+    #[error("failed to convert user agent {user_agent}")]
     UserAgent {
-        user_agent: String, // Couldn't import UserAgentError!
+        user_agent: String, // Importing UserAgentError seems impossible.
     },
 }
 
