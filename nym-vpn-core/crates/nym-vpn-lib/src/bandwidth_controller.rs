@@ -192,7 +192,8 @@ impl TemporaryBandwidthClient {
         wg_gateway_client: WgGatewayLightClient,
         metadata_client: MetadataClient,
     ) -> Self {
-        if let Some(version) = gateway.version.as_ref()
+        if !cfg!(target_os = "ios")
+            && let Some(version) = gateway.version.as_ref()
             && let Ok(version) = semver::Version::parse(version)
             && version >= GATEWAY_METADATA_UPDATE_VERSION
         {
