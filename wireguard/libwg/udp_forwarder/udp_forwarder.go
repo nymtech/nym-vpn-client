@@ -119,7 +119,6 @@ func (w *UDPForwarder) RoutineHandleInbound(inbound *net.UDPConn, outbound *gone
 		bytesRead, senderAddr, err := inbound.ReadFromUDP(inboundBuffer)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
-			// todo: handle error
 			return
 		}
 
@@ -162,7 +161,6 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 		bytesRead, senderAddr, err := outbound.ReadFrom(outboundBuffer)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
-			// todo: handle error
 			return
 		}
 		// Cast net.Addr to net.UDPAddr
@@ -179,16 +177,14 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 		err = inbound.SetWriteDeadline(deadline)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
 		}
 
 		// Forward packet from remote to local client.
 		_, err = inbound.WriteToUDP(outboundBuffer[:bytesRead], clientAddr)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
 		}
 	}
 }
