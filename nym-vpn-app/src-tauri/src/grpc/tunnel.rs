@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter};
 use tracing::warn;
 use ts_rs::TS;
 
+use super::proto::ProtoConversionError;
 use super::tunnel_error::TunnelError;
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -63,12 +64,38 @@ pub struct Tunnel {
     pub data: TunnelData,
 }
 
+#[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
+#[ts(export)]
+#[serde(rename_all = "kebab-case")]
+pub enum TunnelType {
+    #[default]
+    Wg,
+    Mixnet,
+}
+
+#[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
+#[ts(export)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConnectingProgress {
+    #[default]
+    ResolvingApiAddresses,
+    AwaitingAccountReadiness,
+    RefreshingGateways,
+    SelectingGateways,
+    ConnectingMixnetClient,
+    ConnectingTunnel,
+}
+
 #[derive(Serialize, Clone, PartialEq, Debug, TS, Default)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectingState {
-    pub tunnel: Option<Tunnel>,
+    pub tunnel_type: TunnelType,
+    pub progress: ConnectingProgress,
+    pub tunnel: Option<TunnelData>,
     pub retry_attempt: u32,
+    pub entry_gw_id: Option<String>,
+    pub exit_gw_id: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
@@ -87,14 +114,34 @@ pub enum TunnelState {
 }
 
 impl TunnelState {
-    pub fn from_proto(tunnel: State) -> Result<TunnelState, &'static str> {
+    pub fn from_proto(tunnel: State) -> Result<TunnelState, ProtoConversionError> {
         Ok(match tunnel {
             State::Disconnected(_empty) => TunnelState::Disconnected,
             State::Connecting(c) => {
-                let tunnel = c.connection_data.map(Tunnel::try_from).transpose()?;
+                let entry_gw_id = c
+                    .connection_data
+                    .as_ref()
+                    .and_then(|d| d.entry_gateway.clone())
+                    .map(|g| g.id);
+                let exit_gw_id = c
+                    .connection_data
+                    .as_ref()
+                    .and_then(|d| d.exit_gateway.clone())
+                    .map(|g| g.id);
+                let tunnel = c
+                    .connection_data
+                    .and_then(|d| d.tunnel)
+                    .map(TunnelData::try_from)
+                    .transpose()?;
+                let state = p::EstablishConnectionState::try_from(c.state)?;
+                let tun_type = p::TunnelType::try_from(c.tunnel_type)?;
                 TunnelState::Connecting(ConnectingState {
+                    tunnel_type: TunnelType::from(tun_type),
+                    progress: ConnectingProgress::from(state),
                     tunnel,
                     retry_attempt: c.retry_attempt,
+                    entry_gw_id,
+                    exit_gw_id,
                 })
             }
             State::Connected(c) => {
@@ -102,7 +149,7 @@ impl TunnelState {
                     .connection_data
                     .map(Tunnel::try_from)
                     .transpose()?
-                    .ok_or("missing tunnel data")?;
+                    .ok_or(ProtoConversionError::MissingValue("connection_data"))?;
                 if tunnel.connected_at.is_none() {
                     // just in case
                     warn!("connected but missing connected_at timestamp");
@@ -154,29 +201,39 @@ impl From<p::MixnetConnectionData> for MixnetData {
 }
 
 impl TryFrom<p::WireguardConnectionData> for WireguardData {
-    type Error = &'static str;
+    type Error = ProtoConversionError;
 
     fn try_from(p_data: p::WireguardConnectionData) -> Result<Self, Self::Error> {
         Ok(WireguardData {
-            entry: p_data.entry.ok_or("missing wg entry node data")?.into(),
-            exit: p_data.exit.ok_or("missing wg exit node data")?.into(),
+            entry: p_data
+                .entry
+                .ok_or(ProtoConversionError::MissingValue("entry"))?
+                .into(),
+            exit: p_data
+                .exit
+                .ok_or(ProtoConversionError::MissingValue("exit"))?
+                .into(),
         })
     }
 }
 
 impl TryFrom<p::TunnelConnectionData> for TunnelData {
-    type Error = &'static str;
+    type Error = ProtoConversionError;
 
     fn try_from(tunnel: p::TunnelConnectionData) -> Result<Self, Self::Error> {
-        let tunnel = tunnel.state.ok_or("missing tunnel state data")?;
+        let tunnel = tunnel
+            .state
+            .ok_or(ProtoConversionError::MissingValue("state"))?;
 
         match tunnel {
             p::tunnel_connection_data::State::Mixnet(data) => Ok(TunnelData::Mixnet(
-                data.data.ok_or("missing Mixnet connection data")?.into(),
+                data.data
+                    .ok_or(ProtoConversionError::MissingValue("data"))?
+                    .into(),
             )),
             p::tunnel_connection_data::State::Wireguard(data) => Ok(TunnelData::Wireguard(
                 data.data
-                    .ok_or("missing Wireguard connection data")?
+                    .ok_or(ProtoConversionError::MissingValue("data"))?
                     .try_into()?,
             )),
         }
@@ -184,22 +241,25 @@ impl TryFrom<p::TunnelConnectionData> for TunnelData {
 }
 
 impl TryFrom<p::ConnectionData> for Tunnel {
-    type Error = &'static str;
+    type Error = ProtoConversionError;
 
     fn try_from(p_data: p::ConnectionData) -> Result<Self, Self::Error> {
         Ok(Tunnel {
             entry_gw_id: p_data
                 .entry_gateway
-                .ok_or("missing entry gateway ID")?
+                .ok_or(ProtoConversionError::MissingValue("entry_gateway"))?
                 .id
                 .clone(),
             exit_gw_id: p_data
                 .exit_gateway
-                .ok_or("missing exit gateway ID")?
+                .ok_or(ProtoConversionError::MissingValue("exit_gateway"))?
                 .id
                 .clone(),
             connected_at: p_data.connected_at.map(|t| t.seconds),
-            data: p_data.tunnel.ok_or("missing tunnel data")?.try_into()?,
+            data: p_data
+                .tunnel
+                .ok_or(ProtoConversionError::MissingValue("tunnel"))?
+                .try_into()?,
         })
     }
 }
@@ -257,6 +317,36 @@ impl Display for TunnelState {
             TunnelState::Offline { reconnect } => {
                 write!(f, "offline - reconnect ({reconnect})")
             }
+        }
+    }
+}
+
+impl From<p::TunnelType> for TunnelType {
+    fn from(kind: p::TunnelType) -> Self {
+        match kind {
+            p::TunnelType::Mixnet => TunnelType::Mixnet,
+            p::TunnelType::Wireguard => TunnelType::Wg,
+        }
+    }
+}
+
+impl From<p::EstablishConnectionState> for ConnectingProgress {
+    fn from(state: p::EstablishConnectionState) -> Self {
+        match state {
+            p::EstablishConnectionState::ResolvingApiAddresses => {
+                ConnectingProgress::ResolvingApiAddresses
+            }
+            p::EstablishConnectionState::AwaitingAccountReadiness => {
+                ConnectingProgress::AwaitingAccountReadiness
+            }
+            p::EstablishConnectionState::RefreshingGateways => {
+                ConnectingProgress::RefreshingGateways
+            }
+            p::EstablishConnectionState::SelectingGateways => ConnectingProgress::SelectingGateways,
+            p::EstablishConnectionState::ConnectingMixnetClient => {
+                ConnectingProgress::ConnectingMixnetClient
+            }
+            p::EstablishConnectionState::ConnectingTunnel => ConnectingProgress::ConnectingTunnel,
         }
     }
 }
