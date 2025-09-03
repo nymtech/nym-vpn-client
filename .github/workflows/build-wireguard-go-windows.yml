@@ -34,6 +34,7 @@ jobs:
           install: mingw-w64-x86_64-clang
 
       - name: Install GNU make
+        shell: bash
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
