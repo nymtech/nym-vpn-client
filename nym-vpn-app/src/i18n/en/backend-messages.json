@@ -9,5 +9,5 @@
     "connecting-tunnel": "Connecting to the VPN tunnel…"
   },
   "connection-attempt_one": "Retrying… attempt {{count}}",
-  "connection-attempt_other": "Retrying… attempts {{count}}"
+  "connection-attempt_other": "Retrying… attempt {{count}}"
 }
