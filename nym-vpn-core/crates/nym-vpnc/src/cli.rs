@@ -7,6 +7,7 @@ use anyhow::{Result, anyhow};
 use clap::{ArgAction, Args, Parser, Subcommand};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
+pub use nym_vpnd_types::service::VpnServiceConfig;
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
@@ -26,7 +27,11 @@ fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
 #[derive(Subcommand)]
 pub enum Command {
     /// Connect to the Nym network.
-    Connect(Box<ConnectArgs>),
+    Connect {
+        /// Blocks until connected.
+        #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
+        wait: bool,
+    },
 
     /// Disconnect from the Nym network.
     Disconnect {
@@ -34,6 +39,12 @@ pub enum Command {
         #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
         wait: bool,
     },
+
+    /// Get VPN service configuration
+    GetConfig,
+
+    /// Set VPN service configuration
+    SetConfig(Box<VpnServiceConfig>),
 
     /// Get the current status of the connection.
     Status {

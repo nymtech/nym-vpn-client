@@ -11,8 +11,7 @@ use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
-    ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
-    service::VpnServiceInfo,
+    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest, service::VpnServiceInfo,
 };
 use sysinfo::System;
 use tokio_stream::StreamExt;
@@ -34,8 +33,10 @@ async fn main() -> Result<()> {
     };
 
     match args.command {
-        Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await?,
+        Command::Connect { wait } => connect(rpc_client, wait).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
+        Command::GetConfig => get_config(rpc_client).await?,
+        Command::SetConfig(config) => set_config(rpc_client, *config).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
@@ -95,32 +96,10 @@ fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
     }
 }
 
-async fn connect(
-    mut rpc_client: RpcClient,
-    connect_args: cli::ConnectArgs,
-    user_agent: UserAgent,
-) -> Result<()> {
-    let options = ConnectArgs {
-        entry: connect_args.entry_point()?,
-        exit: connect_args.exit_point()?,
-        options: ConnectOptions {
-            dns: connect_args.dns,
-            disable_ipv6: connect_args.disable_ipv6,
-            enable_two_hop: connect_args.enable_two_hop,
-            netstack: connect_args.netstack,
-            disable_poisson_rate: connect_args.disable_poisson_rate,
-            disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
-            enable_credentials_mode: connect_args.enable_credentials_mode,
-            min_gateway_mixnet_performance: None,
-            min_mixnode_performance: None,
-            min_gateway_vpn_performance: None,
-            user_agent: Some(user_agent),
-        },
-    };
+async fn connect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
+    rpc_client.connect_tunnel().await?;
 
-    rpc_client.connect_tunnel(options).await?;
-
-    if connect_args.wait {
+    if wait {
         println!("Waiting until connected or failed");
         wait_until_connected(rpc_client).await
     } else {
@@ -163,6 +142,18 @@ async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
     } else {
         Ok(())
     }
+}
+
+async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
+    let config = rpc_client.get_config().await?;
+    println!("{config}");
+    Ok(())
+}
+
+async fn set_config(mut rpc_client: RpcClient, config: cli::VpnServiceConfig) -> Result<()> {
+    let config = config.into();
+    rpc_client.set_config(config).await?;
+    Ok(())
 }
 
 async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {

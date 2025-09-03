@@ -3,9 +3,14 @@
 
 use super::error::{Error, Result};
 use nym_vpn_lib::{
-    UserAgent,
+    MixnetClientConfig, UserAgent,
     gateway_directory::{self, ContractsCommonError, EntryPoint, ExitPoint, NaiveFloat, Percent},
+    tunnel_state_machine::{
+        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
+        WireguardMultihopMode, WireguardTunnelOptions,
+    },
 };
+use nym_vpn_lib_types::TunnelType;
 use nym_vpnd_types::service::VpnServiceConfig;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
@@ -34,10 +39,7 @@ pub const DEFAULT_GLOBAL_CONFIG_FILE_JSON: &str = "config.json";
 
 // Used for serializing the Percent type to 3 decimal places
 macro_rules! round_f64 {
-    ($val:expr) => {{
-        let v: f64 = $val as f64;
-        (v * 1000.0).round() / 1000.0
-    }};
+    ($f64:expr) => {{ ($f64 * 1000.0).round() / 1000.0 }};
 }
 
 //
@@ -106,8 +108,8 @@ impl VpnServiceConfigManager {
         &self.config
     }
 
-    pub(super) fn config_mut(&mut self) -> &mut VpnServiceConfig {
-        &mut self.config
+    pub(super) fn set_config(&mut self, config: VpnServiceConfig) {
+        self.config = config;
     }
 
     #[allow(clippy::result_large_err)]
@@ -151,6 +153,75 @@ impl VpnServiceConfigManager {
 
         let ext_config = VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup)?;
         write_json_config_file(&self.json_config_path, &ext_config).map_err(Error::ConfigSetup)
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub(super) fn generate_tunnel_settings(
+        &self,
+        enable_credentials_mode: bool,
+    ) -> Result<TunnelSettings> {
+        let enable_credentials_mode =
+            enable_credentials_mode || self.config.enable_credentials_mode;
+
+        tracing::debug!("Using config: {:?}", self.config);
+
+        let gateway_options = GatewayPerformanceOptions {
+            mixnet_min_performance: self
+                .config
+                .min_gateway_mixnet_performance
+                .map(|x| x.round_to_integer()),
+            vpn_min_performance: self
+                .config
+                .min_gateway_vpn_performance
+                .map(|x| x.round_to_integer()),
+        };
+
+        let mixnet_client_config = MixnetClientConfig {
+            disable_poisson_rate: self.config.disable_poisson_rate,
+            disable_background_cover_traffic: self.config.disable_background_cover_traffic,
+            min_mixnode_performance: self
+                .config
+                .min_mixnode_performance
+                .map(|p| p.round_to_integer()),
+            min_gateway_performance: self
+                .config
+                .min_gateway_mixnet_performance
+                .map(|p| p.round_to_integer()),
+        };
+
+        let tunnel_type = if self.config.enable_two_hop {
+            TunnelType::Wireguard
+        } else {
+            TunnelType::Mixnet
+        };
+
+        let dns = self
+            .config
+            .dns
+            .map(|addr| DnsOptions::Custom(vec![addr]))
+            .unwrap_or_default();
+
+        Ok(TunnelSettings {
+            enable_ipv6: !self.config.disable_ipv6,
+            tunnel_type,
+            mixnet_tunnel_options: MixnetTunnelOptions {
+                mtu: None,
+                enable_credentials_mode,
+            },
+            wireguard_tunnel_options: WireguardTunnelOptions {
+                multihop_mode: if self.config.netstack {
+                    WireguardMultihopMode::Netstack
+                } else {
+                    WireguardMultihopMode::TunTun
+                },
+            },
+            gateway_performance_options: gateway_options,
+            mixnet_client_config: Some(mixnet_client_config),
+            entry_point: Box::new(self.config.entry_point.clone()),
+            exit_point: Box::new(self.config.exit_point.clone()),
+            dns,
+            user_agent: self.config.user_agent.clone(),
+        })
     }
 }
 
@@ -781,7 +852,7 @@ mod tests {
 
         // Write the config to disk
         let mut config_manager = VpnServiceConfigManager::new(network_config_path).unwrap();
-        config_manager.config_mut().clone_from(&config);
+        config_manager.set_config(config.clone());
         config_manager.write_to_file().unwrap();
         drop(config_manager);
 

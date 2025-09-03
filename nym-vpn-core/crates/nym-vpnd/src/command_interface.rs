@@ -20,7 +20,7 @@ use nym_vpn_proto::proto::{
     self,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
-use nym_vpnd_types::{ConnectArgs, ListCountriesOptions, ListGatewaysOptions};
+use nym_vpnd_types::{ListCountriesOptions, ListGatewaysOptions, service::VpnServiceConfig};
 
 use crate::service::{SetNetworkError, VpnServiceCommand};
 
@@ -70,6 +70,37 @@ impl NymVpnService for CommandInterface {
         let response = proto::InfoResponse::from(info);
 
         Ok(tonic::Response::new(response))
+    }
+
+    async fn get_config(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::VpnServiceConfig>> {
+        let config = self.send_and_wait(VpnServiceCommand::GetConfig, ()).await?;
+
+        let response = proto::VpnServiceConfig::try_from(config).map_err(|e| {
+            tonic::Status::internal(format!("Failed to convert VPN service config: {e}"))
+        })?;
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn set_config(
+        &self,
+        request: tonic::Request<proto::VpnServiceConfig>,
+    ) -> Result<tonic::Response<()>> {
+        let config = VpnServiceConfig::try_from(request.into_inner()).map_err(|e| {
+            tonic::Status::invalid_argument(format!("Failed to convert VPN service config: {e}"))
+        })?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetConfig, config)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set VPN service config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
     }
 
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
@@ -130,15 +161,8 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(feature_flags.into()))
     }
 
-    async fn connect_tunnel(
-        &self,
-        request: tonic::Request<proto::ConnectRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let connect_args = ConnectArgs::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
-        self.send_and_wait(VpnServiceCommand::Connect, connect_args)
-            .await?;
+    async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::Connect, ()).await?;
 
         Ok(tonic::Response::new(()))
     }
@@ -437,6 +461,7 @@ impl NymVpnService for CommandInterface {
             devices: Some(proto::get_devices_response::Devices::from(devices)),
         }))
     }
+
     async fn get_available_tickets(
         &self,
         _request: tonic::Request<()>,
@@ -454,13 +479,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn delete_log_file(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
-            .await?;
-
-        Ok(tonic::Response::new(()))
-    }
-
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,
@@ -473,6 +491,13 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(log_path.try_into().map_err(
             |err| tonic::Status::internal(format!("Failed to obtain log path: {err}")),
         )?))
+    }
+
+    async fn delete_log_file(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
+            .await?;
+
+        Ok(tonic::Response::new(()))
     }
 
     async fn is_sentry_enabled(&self, _: tonic::Request<()>) -> Result<tonic::Response<bool>> {

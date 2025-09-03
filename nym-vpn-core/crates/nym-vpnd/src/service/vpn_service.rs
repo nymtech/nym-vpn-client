@@ -26,22 +26,17 @@ use nym_vpn_api_client::{
     types::ScoreThresholds,
 };
 use nym_vpn_lib::{
-    MixnetClientConfig, UserAgent, VpnTopologyProvider,
+    UserAgent, VpnTopologyProvider,
     gateway_directory::{self, CachingGatewayClient, GatewayClient},
-    tunnel_state_machine::{
-        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
-    },
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelSettings, TunnelStateMachine},
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, TunnelEvent, TunnelState, TunnelType,
-};
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::VpnServiceInfo,
+    service::{VpnServiceConfig, VpnServiceInfo},
 };
 use std::time::Duration;
 
@@ -49,7 +44,7 @@ use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
+        Result, SetConfigError, SetNetworkError,
     },
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
@@ -63,6 +58,11 @@ type Locale = String;
 #[derive(Debug, strum::Display)]
 pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
+    GetConfig(oneshot::Sender<VpnServiceConfig>, ()),
+    SetConfig(
+        oneshot::Sender<Result<(), SetConfigError>>,
+        VpnServiceConfig,
+    ),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -75,7 +75,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
         ListCountriesOptions,
     ),
-    Connect(oneshot::Sender<()>, ConnectArgs),
+    Connect(oneshot::Sender<()>, ()),
     Disconnect(oneshot::Sender<()>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<broadcast::Receiver<TunnelState>>, ()),
@@ -550,6 +550,14 @@ impl NymVpnService {
                 let result = self.handle_info().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetConfig(tx, ()) => {
+                let result = self.handle_get_config().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::SetConfig(tx, config) => {
+                let result = self.handle_set_config(config).await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -572,8 +580,8 @@ impl NymVpnService {
             VpnServiceCommand::ListCountries(tx, options) => {
                 self.handle_list_countries(options, tx)
             }
-            VpnServiceCommand::Connect(tx, connect_args) => {
-                self.handle_connect(connect_args).await.ok();
+            VpnServiceCommand::Connect(tx, ()) => {
+                self.handle_connect().await.ok();
                 let _ = tx.send(());
             }
             VpnServiceCommand::Disconnect(tx, ()) => {
@@ -654,121 +662,6 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
-        let ConnectArgs {
-            entry,
-            exit,
-            mut options,
-        } = connect_args;
-
-        self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(options.enable_two_hop)); // desktop "Connect" event
-
-        // Get feature flag
-        let enable_credentials_mode = self
-            .network_env
-            .get_feature_flag_credential_mode()
-            .unwrap_or(false);
-        tracing::debug!("feature flag: credential mode: {enable_credentials_mode}");
-
-        options.enable_credentials_mode =
-            options.enable_credentials_mode || enable_credentials_mode;
-
-        tracing::debug!(
-            "Using entry point: {}",
-            entry
-                .clone()
-                .map(|e| e.to_string())
-                .unwrap_or("None".to_string())
-        );
-        tracing::debug!(
-            "Using exit point: {}",
-            exit.clone()
-                .map(|e| e.to_string())
-                .unwrap_or("None".to_string())
-        );
-        tracing::debug!("Using options: {:?}", options);
-
-        let gateway_options = GatewayPerformanceOptions {
-            mixnet_min_performance: options
-                .min_gateway_mixnet_performance
-                .map(|x| x.round_to_integer()),
-            vpn_min_performance: options
-                .min_gateway_vpn_performance
-                .map(|x| x.round_to_integer()),
-        };
-
-        let mixnet_client_config = MixnetClientConfig {
-            disable_poisson_rate: options.disable_poisson_rate,
-            disable_background_cover_traffic: options.disable_background_cover_traffic,
-            min_mixnode_performance: options
-                .min_mixnode_performance
-                .map(|p| p.round_to_integer()),
-            min_gateway_performance: options
-                .min_gateway_mixnet_performance
-                .map(|p| p.round_to_integer()),
-        };
-
-        let tunnel_type = if options.enable_two_hop {
-            TunnelType::Wireguard
-        } else {
-            TunnelType::Mixnet
-        };
-
-        let dns = options
-            .dns
-            .map(|addr| DnsOptions::Custom(vec![addr]))
-            .unwrap_or(DnsOptions::default());
-
-        let tunnel_settings = TunnelSettings {
-            enable_ipv6: !options.disable_ipv6,
-            tunnel_type,
-            mixnet_tunnel_options: MixnetTunnelOptions {
-                mtu: None,
-                enable_credentials_mode,
-            },
-            wireguard_tunnel_options: WireguardTunnelOptions {
-                multihop_mode: if options.netstack {
-                    WireguardMultihopMode::Netstack
-                } else {
-                    WireguardMultihopMode::TunTun
-                },
-            },
-            gateway_performance_options: gateway_options,
-            mixnet_client_config: Some(mixnet_client_config),
-            entry_point: Box::new(self.config_manager.config().entry_point.clone()),
-            exit_point: Box::new(self.config_manager.config().exit_point.clone()),
-            dns,
-            user_agent: options.user_agent,
-        };
-
-        match self
-            .command_sender
-            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
-        {
-            Ok(()) => {
-                self.command_sender.send(TunnelCommand::Connect).ok();
-                Ok(())
-            }
-            Err(e) => {
-                tracing::error!("Failed to send command to set tunnel options: {}", e);
-                Ok(())
-            }
-        }
-    }
-
-    async fn handle_disconnect(&mut self) {
-        self.command_sender.send(TunnelCommand::Disconnect).ok();
-    }
-
-    fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.clone()
-    }
-
-    fn handle_subscribe_to_tunnel_state(&self) -> broadcast::Receiver<TunnelState> {
-        self.tunnel_state_sender.subscribe()
-    }
-
     async fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
 
@@ -781,6 +674,27 @@ impl NymVpnService {
             nym_network: self.network_env.nym_network.clone(),
             nym_vpn_network: self.network_env.nym_vpn_network.clone(),
         }
+    }
+
+    async fn handle_get_config(&self) -> VpnServiceConfig {
+        self.config_manager.config().clone()
+    }
+
+    async fn handle_set_config(&mut self, config: VpnServiceConfig) -> Result<(), SetConfigError> {
+        self.config_manager.set_config(config);
+
+        self.config_manager
+            .write_to_file()
+            .map_err(|source| SetConfigError::SetConfig {
+                source: source.into(),
+            })?;
+
+        // inform the state machine that the config has changed
+        // self.command_sender
+        //     .send(TunnelCommand::ConfigUpdated)
+        //     .map_err(|_| SetConfigError::StateMachineNotRunning)?;
+
+        Ok(())
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
@@ -873,6 +787,50 @@ impl NymVpnService {
                 });
             completion_tx.send(result).ok();
         });
+    }
+
+    async fn handle_connect(&mut self) -> Result<()> {
+        self.statistics_event_sender
+            .report(StatisticsEvent::new_connecting(
+                self.config_manager.config().enable_two_hop,
+            )); // desktop "Connect" event
+
+        // Get feature flag
+        let enable_credentials_mode = self
+            .network_env
+            .get_feature_flag_credential_mode()
+            .unwrap_or(false);
+        tracing::debug!("feature flag: credential mode: {enable_credentials_mode}");
+
+        let tunnel_settings = self
+            .config_manager
+            .generate_tunnel_settings(enable_credentials_mode)?;
+
+        match self
+            .command_sender
+            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
+        {
+            Ok(()) => {
+                self.command_sender.send(TunnelCommand::Connect).ok();
+                Ok(())
+            }
+            Err(e) => {
+                tracing::error!("Failed to send command to set tunnel options: {}", e);
+                Ok(())
+            }
+        }
+    }
+
+    async fn handle_disconnect(&mut self) {
+        self.command_sender.send(TunnelCommand::Disconnect).ok();
+    }
+
+    fn handle_get_tunnel_state(&self) -> TunnelState {
+        self.tunnel_state.clone()
+    }
+
+    fn handle_subscribe_to_tunnel_state(&self) -> broadcast::Receiver<TunnelState> {
+        self.tunnel_state_sender.subscribe()
     }
 
     async fn handle_store_account(

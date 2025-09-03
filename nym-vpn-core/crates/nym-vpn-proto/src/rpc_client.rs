@@ -10,8 +10,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{AccountControllerState, AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest,
+    AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -88,11 +87,9 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
-        let request = proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
-
+    pub async fn connect_tunnel(&mut self) -> Result<()> {
         self.0
-            .connect_tunnel(request)
+            .connect_tunnel(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)

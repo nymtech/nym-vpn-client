@@ -32,6 +32,15 @@ pub enum SetNetworkError {
     NetworkNotFound(String),
 }
 
+/// Not yet implemented.
+#[derive(Debug, thiserror::Error)]
+pub enum SetConfigError {
+    #[error("failed to set config")]
+    SetConfig {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum AccountLinksError {
     #[error("account management not configured")]
