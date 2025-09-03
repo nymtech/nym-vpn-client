@@ -58,7 +58,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					show = true,
 					trailing = {
 						NavIcon(Icons.Outlined.Settings, stringResource(R.string.settings)) {
-							navController.goFromRoot(Route.Settings)
+							navController.goFromRoot(Route.Settings(false))
 						}
 					},
 				)
@@ -141,6 +141,15 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			)
 			currentRoute.startsWith(Route.Display::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.display_theme)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+			currentRoute.startsWith(Route.SelectPlan::class.qualifiedName!!) -> NavBarState(
+				title = { MainTitle() },
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {

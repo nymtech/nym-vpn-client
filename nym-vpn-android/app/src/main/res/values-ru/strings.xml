@@ -136,8 +136,7 @@
     <string name="log_out_title">Вы уверены, что хотите выйти?</string>
     <string name="log_out_body">Для повторного входа вам понадобится ваша фраза восстановления.</string>
     <string name="cancel">Отмена</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">Информация</string>
+    <string name="info">Информация</string>
     <string name="collapse">Свернуть</string>
     <string name="expand">Развернуть</string>
     <string name="country_flag">Флаг %1$s</string>

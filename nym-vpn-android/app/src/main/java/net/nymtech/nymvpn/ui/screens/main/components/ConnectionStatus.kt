@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCancellationBehavior
@@ -27,10 +28,13 @@ import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.ErrorStateReason
 
 @Composable
 fun ConnectionStatus(
@@ -44,6 +48,7 @@ fun ConnectionStatus(
 ) {
 	val isDarkMode = isSystemInDarkTheme()
 	val surfaceAvailable by rememberSurfaceAvailability()
+	val context = LocalContext.current
 
 	val canPlayAnimation = connectionState == ConnectionState.Connected && isAppInForeground && surfaceAvailable
 
@@ -80,21 +85,39 @@ fun ConnectionStatus(
 			)
 		}
 
-		ConnectionStateDisplay(connectionState = connectionState, theme = theme)
+		ConnectionStateDisplay(connectionState = connectionState, stateMessage, theme = theme)
 
 		when (stateMessage) {
 			is StateMessage.Status -> StatusInfoLabel(
-				message = stateMessage.message.asString(LocalContext.current),
+				message = stateMessage.message.asString(context),
 				textColor = MaterialTheme.colorScheme.onSurfaceVariant,
 			)
 
-			is StateMessage.Error -> StatusInfoLabel(
-				message = stateMessage.reason.toUserMessage(LocalContext.current),
-				textColor = CustomColors.error,
-			)
+			is StateMessage.Error ->
+				when (stateMessage.reason) {
+					ErrorStateReason.InactiveSubscription -> {
+						if (isVpnAlwaysOn(context)) {
+							StatusInfoLabel(
+								message = context.getString(R.string.error_kill_switch),
+								textColor = CustomColors.error,
+							)
+						} else {
+							StatusInfoLabel(
+								message = stateMessage.reason.toUserMessage(context),
+								textColor = CustomColors.error,
+							)
+						}
+					}
+					else -> {
+						StatusInfoLabel(
+							message = stateMessage.reason.toUserMessage(context),
+							textColor = CustomColors.error,
+						)
+					}
+				}
 
 			is StateMessage.StartError -> StatusInfoLabel(
-				message = stateMessage.exception.toUserMessage(LocalContext.current),
+				message = stateMessage.exception.toUserMessage(context),
 				textColor = CustomColors.error,
 			)
 		}
@@ -126,4 +149,19 @@ private fun rememberSurfaceAvailability(): State<Boolean> {
 			},
 		)
 	return surfaceAvailable
+}
+
+@Composable
+@Preview
+private fun ConnectionStatusPreview() {
+	NymVPNTheme(Theme.default()) {
+		ConnectionStatus(
+			ConnectionState.Disconnected,
+			Tunnel.Mode.TWO_HOP_MIXNET,
+			StateMessage.Error(ErrorStateReason.InactiveSubscription),
+			null,
+			Theme.default(),
+			isAppInForeground = false,
+		)
+	}
 }

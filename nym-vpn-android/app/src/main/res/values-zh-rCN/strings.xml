@@ -134,8 +134,7 @@
     <string name="log_out_title">确定要退出登录吗？</string>
     <string name="log_out_body">您需要助记词才能重新登录。</string>
     <string name="cancel">取消</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">信息</string>
+    <string name="info">信息</string>
     <string name="collapse">折叠</string>
     <string name="expand">扩展</string>
     <string name="country_flag">%1$s 的标志</string>

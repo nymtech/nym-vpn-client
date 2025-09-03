@@ -136,8 +136,7 @@
     <string name="log_out_title">آیا مطمئنید که می‌خواهید از حساب کاربری خارج شوید؟</string>
     <string name="log_out_body">برای ورود مجدد به حساب کاربری خود به عبارت بازیابی نیاز خواهی داشت.</string>
     <string name="cancel">انصراف</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">درباره</string>
+    <string name="info">درباره</string>
     <string name="collapse">جمع کردن</string>
     <string name="expand">باز کردن</string>
     <string name="country_flag">پرچم %1$s</string>

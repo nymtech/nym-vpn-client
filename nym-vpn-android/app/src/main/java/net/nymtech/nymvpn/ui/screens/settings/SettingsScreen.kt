@@ -37,11 +37,17 @@ import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
 import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
+import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+	appViewModel: AppViewModel,
+	appUiState: AppUiState,
+	showVpnSettings: Boolean = false,
+	viewModel: SettingsViewModel = hiltViewModel(),
+) {
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val navController = LocalNavController.current
@@ -50,6 +56,12 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
+
+	if (showVpnSettings) {
+		LaunchedEffect(Unit) {
+			context.launchVpnSettings()
+		}
+	}
 
 	LaunchedEffect(appUiState.managerState.isMnemonicStored) {
 		loggingOut = false

@@ -8,11 +8,14 @@ import androidx.compose.ui.platform.LocalContext
 import net.nymtech.nymvpn.ui.common.animations.Pulse
 import net.nymtech.nymvpn.ui.common.labels.PillLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
+import nym_vpn_lib_types.ErrorStateReason
 
 @Composable
-fun ConnectionStateDisplay(connectionState: ConnectionState, theme: Theme) {
+fun ConnectionStateDisplay(connectionState: ConnectionState, stateMessage: StateMessage, theme: Theme) {
 	val context = LocalContext.current
 	val text = connectionState.status.asString(context)
 
@@ -34,12 +37,21 @@ fun ConnectionStateDisplay(connectionState: ConnectionState, theme: Theme) {
 				textColor = MaterialTheme.colorScheme.tertiary,
 			)
 
-		ConnectionState.Disconnected ->
-			PillLabel(
-				text = text,
-				backgroundColor = determinePillColor(CustomColors.statusDefaultLight, CustomColors.statusDefaultDark),
-				textColor = MaterialTheme.colorScheme.onSecondary,
-			)
+		ConnectionState.Disconnected -> {
+			if (stateMessage is StateMessage.Error && stateMessage.reason == ErrorStateReason.InactiveSubscription && isVpnAlwaysOn(context)) {
+				PillLabel(
+					text = "Subscription expired",
+					backgroundColor = CustomColors.error,
+					textColor = determinePillColor(CustomColors.errorStatusPillLight, CustomColors.errorStatusPillDark),
+				)
+			} else {
+				PillLabel(
+					text = text,
+					backgroundColor = determinePillColor(CustomColors.statusDefaultLight, CustomColors.statusDefaultDark),
+					textColor = MaterialTheme.colorScheme.onSecondary,
+				)
+			}
+		}
 		is ConnectionState.Connecting ->
 			PillLabel(
 				text = text,

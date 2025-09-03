@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.util.extensions
 
+import android.content.Context
+import android.provider.Settings
 import net.nymtech.vpn.model.NymGateway
 import java.util.Locale
 import kotlin.math.round
@@ -28,4 +30,15 @@ fun String.truncateWithEllipsis(length: Int): String {
 
 fun NymGateway.toLocale(): Locale? {
 	return twoLetterCountryISO?.let { Locale(it, it) }
+}
+
+private const val ALWAYS_ON_VPN_APP = "always_on_vpn_app"
+
+fun isVpnAlwaysOn(context: Context): Boolean {
+	return try {
+		val alwaysOn = Settings.Secure.getString(context.contentResolver, ALWAYS_ON_VPN_APP)
+		alwaysOn == context.packageName
+	} catch (ex: SecurityException) {
+		false
+	}
 }

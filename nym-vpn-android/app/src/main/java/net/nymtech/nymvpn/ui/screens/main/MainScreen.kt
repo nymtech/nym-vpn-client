@@ -177,6 +177,14 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		checkStatsEnabled()
 	}
 
+	fun onStopKillSwitchPressed() {
+		navController.goFromRoot(Route.Settings(true))
+	}
+
+	fun onGetStartedPressed() {
+		navController.goFromRoot(Route.SelectPlan)
+	}
+
 	LaunchedEffect(Unit) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -245,9 +253,12 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			}
 			ConnectionButton(
 				connectionState = uiState.connectionState,
+				stateMessage = uiState.stateMessage,
 				isMnemonicStored = appUiState.managerState.isMnemonicStored,
 				onConnect = { onConnectPressed() },
 				onDisconnect = { onDisconnectPressed() },
+				onStopKillSwitch = { onStopKillSwitchPressed() },
+				onGetStart = { onGetStartedPressed() },
 				navController = navController,
 				snackbar = snackbar,
 			)

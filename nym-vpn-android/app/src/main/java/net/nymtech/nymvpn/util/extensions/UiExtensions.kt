@@ -116,7 +116,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
 		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
-		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.subscription_expired_error)
+		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
 		ErrorStateReason.BadBandwidthIncrease -> context.getString(R.string.error_bad_bandwidth)
 		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
 		ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)

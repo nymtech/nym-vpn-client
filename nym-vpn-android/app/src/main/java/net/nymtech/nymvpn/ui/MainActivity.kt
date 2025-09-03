@@ -52,6 +52,7 @@ import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
+import net.nymtech.nymvpn.ui.screens.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
@@ -199,9 +200,11 @@ class MainActivity : AppCompatActivity() {
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
 								) {
+									val args = it.toRoute<Route.Settings>()
 									SettingsScreen(
 										appViewModel,
 										appState,
+										args.showVpnSettings,
 									)
 								}
 								composable<Route.EntryLocation> {
@@ -250,6 +253,9 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Welcome> {
 									WelcomeScreen(appState)
+								}
+								composable<Route.SelectPlan> {
+									SelectPlanScreen()
 								}
 							}
 						}
