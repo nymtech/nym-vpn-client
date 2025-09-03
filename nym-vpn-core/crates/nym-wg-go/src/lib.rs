@@ -30,6 +30,10 @@ pub enum Error {
     InterfaceNameContainsNulByte,
 
     #[cfg(target_os = "windows")]
+    #[error("failed to convert Wintun interface name to string")]
+    ConvertWintunInterfaceNameToString,
+
+    #[cfg(target_os = "windows")]
     #[error("requested guid contains nul byte")]
     RequestedGuidContainsNulByte,
 
@@ -56,6 +60,12 @@ pub enum Error {
     #[cfg(unix)]
     #[error("failed to open TCP connection through the tunnel (code: {0})")]
     OpenTCPConnection(i32),
+
+    #[error("failed to convert TCP listen address to string")]
+    ConvertTcpListenAddrToString,
+
+    #[error("failed to parse TCP listen address")]
+    ParseTcpListenAddr,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

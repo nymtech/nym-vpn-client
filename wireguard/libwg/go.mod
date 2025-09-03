@@ -10,11 +10,6 @@ require (
 )
 
 require (
-	github.com/higebu/netfd v1.0.1
-	github.com/prep/socketpair v0.0.0-20171228153254-c2c6a7f821c2
-)
-
-require (
 	github.com/google/btree v1.1.3 // indirect
 	github.com/tevino/abool v1.2.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect

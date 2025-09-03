@@ -13,6 +13,7 @@ import (
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
+	"github.com/nymtech/nym-vpn-client/wireguard/libwg/tcp_forwarder"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/udp_forwarder"
 
 	"github.com/amnezia-vpn/amneziawg-go/device"
@@ -27,10 +28,12 @@ type NetTunnelHandle struct {
 
 var netTunnelHandles container.Container[NetTunnelHandle]
 var udpForwarders container.Container[*udp_forwarder.UDPForwarder]
+var tcpForwarders container.Container[*tcp_forwarder.TCPForwarder]
 
 func init() {
 	netTunnelHandles = container.New[NetTunnelHandle]()
 	udpForwarders = container.New[*udp_forwarder.UDPForwarder]()
+	tcpForwarders = container.New[*udp_forwarder.TCPForwarder]()
 }
 
 //export wgNetTurnOff
@@ -100,4 +103,51 @@ func wgNetCloseConnectionThroughTunnel(udpForwarderHandle int32) {
 		return
 	}
 	(*udpForwarder).Close()
+}
+
+//export wgNetOpenTCPConnectionThroughTunnel
+func wgNetOpenTCPConnectionThroughTunnel(entryTunnelHandle int32, endpoint *C.char, outListenAddr **C.char, logSink LogSink, logContext LogContext) int32 {
+	logger := logging.NewLogger(logSink, logContext)
+
+	if outListenAddr == nil {
+		logger.Errorf("outListenAddr is null")
+		return ERROR_GENERAL_FAILURE
+	}
+
+	dev, err := netTunnelHandles.Get(entryTunnelHandle)
+	if err != nil {
+		dev.Errorf("Invalid tunnel handle: %d", entryTunnelHandle)
+		return ERROR_GENERAL_FAILURE
+	}
+
+	addr, err := netip.ParseAddrPort(C.GoString(endpoint))
+	if err != nil {
+		dev.Errorf("Failed to parse endpoint: %v", err)
+		return ERROR_GENERAL_FAILURE
+	}
+
+	forwarder, err := tcp_forwarder.New(addr, dev.Net, logger)
+	if err != nil {
+		dev.Errorf("Failed to create tcp forwarder: %v", err)
+		return ERROR_GENERAL_FAILURE
+	}
+
+	index, err := tcpForwarders.Insert(forwarder)
+	if err != nil {
+		dev.Errorf("Failed to store tcp forwarder: %v", err)
+		forwarder.Close()
+		return ERROR_GENERAL_FAILURE
+	}
+
+	*outListenAddr = C.CString(forwarder.GetListenAddr().String())
+
+	return index
+}
+
+func wgCloseTCPConnectionThroughTunnel(connectionHandle int32) {
+	forwarder, err := tcpForwarders.Remove(connectionHandle)
+	if err != nil {
+		return
+	}
+	(*forwarder).Close()
 }
