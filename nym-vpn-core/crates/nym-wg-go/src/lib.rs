@@ -40,14 +40,22 @@ pub enum Error {
     #[error("failed to start the tunnel (code: {0})")]
     StartTunnel(i32),
 
-    #[error("failed to open connection through the tunnel (code: {0})")]
-    OpenConnection(i32),
+    #[error("failed to open UDP connection through the tunnel (code: {0})")]
+    OpenUDPConnection(i32),
 
     #[error("failed to set UAPI config (code: {0})")]
     SetUapiConfig(i64),
 
     #[error("failed to obtain tunnel socket fd")]
     ObtainSocketFd,
+
+    #[cfg(unix)]
+    #[error("endpoint contains nul byte")]
+    EndpointContainsNulByte,
+
+    #[cfg(unix)]
+    #[error("failed to open TCP connection through the tunnel (code: {0})")]
+    OpenTCPConnection(i32),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
