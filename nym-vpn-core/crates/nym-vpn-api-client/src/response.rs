@@ -12,6 +12,7 @@ use crate::network_compatibility::NetworkCompatibility;
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
+use nym_http_api_client::HttpClientError;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
@@ -641,17 +642,11 @@ impl fmt::Display for StatusOk {
     }
 }
 
-pub fn extract_error_response(err: &VpnApiClientError) -> Option<NymErrorResponse> {
-    // Try to extract the HttpClientError and parse structured error response
-    if let Some(nym_http_api_client::HttpClientError::EndpointFailure { error, .. }) =
-        err.http_client_error()
-    {
-        // Try to parse the error string as NymErrorResponse
-        if let Ok(parsed) = serde_json::from_str::<NymErrorResponse>(error) {
-            return Some(parsed);
-        }
+pub fn extract_error_response(err: VpnApiClientError) -> NymErrorResponse {
+    NymErrorResponse {
+        message: err.to_string(),
+        ..Default::default()
     }
-    None
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -730,3 +725,20 @@ pub struct NymWellknownDiscoveryItem {
 }
 
 pub type RegisteredNetworksResponse = HashSet<String>;
+
+impl TryFrom<VpnApiClientError> for NymErrorResponse {
+    type Error = VpnApiClientError;
+
+    fn try_from(err: VpnApiClientError) -> Result<Self, Self::Error> {
+        // Try to extract the HttpClientError and parse structured error response
+        if let Some(nym_http_api_client::HttpClientError::EndpointFailure { error, .. }) =
+            err.http_client_error()
+        {
+            // Try to parse the error string as NymErrorResponse
+            if let Ok(parsed) = serde_json::from_str::<NymErrorResponse>(error) {
+                return Ok(parsed);
+            }
+        }
+        Err(err)
+    }
+}
