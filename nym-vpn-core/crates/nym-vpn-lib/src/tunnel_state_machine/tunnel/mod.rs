@@ -17,6 +17,7 @@ use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
+use nym_wg_metadata_client::TunUpEvent;
 use tokio::{
     sync::{Mutex, mpsc},
     task::JoinHandle,
@@ -82,7 +83,7 @@ impl ConnectedMixnet {
         task_manager: &TaskManager,
         network: &Network,
         cancel_token: CancellationToken,
-    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
+    ) -> Result<(wireguard::connected_tunnel::ConnectedTunnel, TunUpEvent)> {
         let connector =
             wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
 

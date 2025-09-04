@@ -12,8 +12,8 @@ use nym_authenticator_requests::{
 use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_sdk::mixnet::{
-    ClientStatsEvents, ClientStatsSender, IncludedSurbs, MixnetClientSender, MixnetMessageSender,
-    Recipient, ReconstructedMessage, TransmissionLane,
+    IncludedSurbs, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
+    TransmissionLane,
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
@@ -1027,35 +1027,66 @@ impl From<semver::Version> for AuthenticatorVersion {
     }
 }
 
-pub struct AuthClient {
+#[derive(Clone)]
+pub struct AuthenticatorClient {
+    auth_mix_client: AuthenticatorMixnetClient,
+    auth_recipient: Recipient,
+    auth_version: AuthenticatorVersion,
+}
+
+impl AuthenticatorClient {
+    pub fn new(
+        auth_mix_client: AuthenticatorMixnetClient,
+        auth_recipient: Recipient,
+        auth_version: AuthenticatorVersion,
+    ) -> Self {
+        Self {
+            auth_mix_client,
+            auth_recipient,
+            auth_version,
+        }
+    }
+
+    pub fn auth_recipient(&self) -> Recipient {
+        self.auth_recipient
+    }
+
+    pub fn auth_version(&self) -> AuthenticatorVersion {
+        self.auth_version
+    }
+
+    pub async fn send(&mut self, message: &ClientMessage) -> Result<AuthenticatorResponse> {
+        self.auth_mix_client
+            .send(message, self.auth_recipient)
+            .await
+    }
+}
+
+pub struct AuthenticatorMixnetClient {
     mixnet_listener: MixnetMessageBroadcastReceiver,
     mixnet_sender: MixnetClientSender,
-    stats_sender: ClientStatsSender,
     our_nym_address: Recipient,
 }
 
-impl Clone for AuthClient {
+impl Clone for AuthenticatorMixnetClient {
     fn clone(&self) -> Self {
         Self {
             mixnet_listener: self.mixnet_listener.resubscribe(),
             mixnet_sender: self.mixnet_sender.clone(),
-            stats_sender: self.stats_sender.clone(),
             our_nym_address: self.our_nym_address,
         }
     }
 }
 
-impl AuthClient {
+impl AuthenticatorMixnetClient {
     pub async fn new(
         mixnet_sender: MixnetClientSender,
         mixnet_listener: MixnetMessageBroadcastReceiver,
-        stats_sender: ClientStatsSender,
         our_nym_address: Recipient,
     ) -> Self {
         Self {
             mixnet_listener,
             mixnet_sender,
-            stats_sender,
             our_nym_address,
         }
     }
@@ -1066,10 +1097,6 @@ impl AuthClient {
         authenticator_address: Recipient,
     ) -> Result<AuthenticatorResponse> {
         self.send_inner(message, authenticator_address).await
-    }
-
-    pub fn send_stats_event(&self, event: ClientStatsEvents) {
-        self.stats_sender.report(event);
     }
 
     async fn send_inner(

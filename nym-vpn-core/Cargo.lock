@@ -473,18 +473,52 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "axum"
+version = "0.7.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
+dependencies = [
+ "async-trait",
+ "axum-core 0.4.5",
+ "bytes",
+ "futures-util",
+ "http 1.3.1",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.6.0",
+ "hyper-util",
+ "itoa",
+ "matchit 0.7.3",
+ "memchr",
+ "mime",
+ "percent-encoding",
+ "pin-project-lite",
+ "rustversion",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "serde_urlencoded",
+ "sync_wrapper 1.0.2",
+ "tokio",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "tracing",
+]
+
+[[package]]
+name = "axum"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "021e862c184ae977658b36c4500f7feac3221ca5da43e3f25bd04ab6c79a29b5"
 dependencies = [
- "axum-core",
+ "axum-core 0.5.2",
  "bytes",
  "futures-util",
  "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "itoa",
- "matchit",
+ "matchit 0.8.4",
  "memchr",
  "mime",
  "percent-encoding",
@@ -495,6 +529,27 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+]
+
+[[package]]
+name = "axum-core"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09f2bd6146b97ae3359fa0cc6d6b376d9539582c7b4220f041a33ec24c226199"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures-util",
+ "http 1.3.1",
+ "http-body 1.0.1",
+ "http-body-util",
+ "mime",
+ "pin-project-lite",
+ "rustversion",
+ "sync_wrapper 1.0.2",
+ "tower-layer",
+ "tower-service",
+ "tracing",
 ]
 
 [[package]]
@@ -2756,7 +2811,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.61.2",
+ "windows-core 0.58.0",
 ]
 
 [[package]]
@@ -3215,6 +3270,12 @@ dependencies = [
 
 [[package]]
 name = "matchit"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
+
+[[package]]
+name = "matchit"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
@@ -3554,7 +3615,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3622,7 +3683,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3643,7 +3704,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bip39",
  "log",
@@ -3665,7 +3726,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "const-str",
  "log",
@@ -3680,7 +3741,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3738,7 +3799,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -3754,8 +3815,9 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
+ "anyhow",
  "async-trait",
  "cosmrs",
  "nym-crypto",
@@ -3773,8 +3835,9 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
+ "anyhow",
  "async-trait",
  "dashmap",
  "nym-crypto",
@@ -3791,7 +3854,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3813,7 +3876,7 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3836,7 +3899,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3869,7 +3932,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3884,7 +3947,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -3903,8 +3966,9 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
+ "anyhow",
  "async-trait",
  "bincode",
  "log",
@@ -3922,7 +3986,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3941,7 +4005,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3965,7 +4029,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
@@ -3974,6 +4038,7 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "strum",
+ "strum_macros 0.27.2",
  "thiserror 2.0.16",
  "time",
  "utoipa",
@@ -3982,7 +4047,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "aead",
  "aes",
@@ -4046,7 +4111,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4060,7 +4125,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-signer-check-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -4076,7 +4141,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -4085,7 +4150,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "serde",
  "serde_json",
@@ -4118,7 +4183,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -4222,7 +4287,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bs58",
  "futures",
@@ -4252,7 +4317,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4277,7 +4342,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4303,7 +4368,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bincode",
  "serde",
@@ -4314,7 +4379,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4342,7 +4407,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bincode",
  "bytes",
@@ -4384,7 +4449,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4395,7 +4460,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "dashmap",
  "futures",
@@ -4409,7 +4474,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4430,7 +4495,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4446,7 +4511,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -4461,7 +4526,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "celes",
@@ -4477,6 +4542,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "strum_macros 0.27.2",
  "thiserror 2.0.16",
  "time",
  "utoipa",
@@ -4485,7 +4551,7 @@ dependencies = [
 [[package]]
 name = "nym-noise"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -4496,6 +4562,7 @@ dependencies = [
  "sha2 0.10.9",
  "snow",
  "strum",
+ "strum_macros 0.27.2",
  "thiserror 2.0.16",
  "tokio",
  "tokio-util",
@@ -4505,7 +4572,7 @@ dependencies = [
 [[package]]
 name = "nym-noise-keys"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-crypto",
  "schemars",
@@ -4516,7 +4583,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4546,7 +4613,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "log",
  "thiserror 2.0.16",
@@ -4555,7 +4622,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "blake3",
  "chacha20",
@@ -4573,7 +4640,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "pem",
  "tracing",
@@ -4583,7 +4650,7 @@ dependencies = [
 [[package]]
 name = "nym-performance-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4602,7 +4669,7 @@ dependencies = [
  "objc2-foundation",
  "rs-release",
  "sha2 0.10.9",
- "sysinfo 0.37.0",
+ "sysinfo",
  "windows 0.61.3",
 ]
 
@@ -4632,7 +4699,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4687,7 +4754,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -4699,7 +4766,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "serde",
  "thiserror 2.0.16",
@@ -4708,7 +4775,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "log",
@@ -4722,7 +4789,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4755,7 +4822,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bytes",
  "futures",
@@ -4770,7 +4837,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bincode",
  "log",
@@ -4786,7 +4853,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -4812,7 +4879,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4829,7 +4896,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4840,7 +4907,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -4858,7 +4925,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "dashmap",
  "log",
@@ -4876,7 +4943,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4894,7 +4961,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -4906,7 +4973,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "bytes",
  "nym-sphinx-acknowledgements",
@@ -4922,7 +4989,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4933,7 +5000,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4943,7 +5010,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4964,7 +5031,7 @@ dependencies = [
  "serde",
  "sqlx",
  "sqlx-pool-guard",
- "sysinfo 0.37.0",
+ "sysinfo",
  "thiserror 2.0.16",
  "tokio",
  "tokio-util",
@@ -4985,7 +5052,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "futures",
  "log",
@@ -4999,7 +5066,8 @@ dependencies = [
  "sha2 0.10.9",
  "si-scale",
  "strum",
- "sysinfo 0.33.1",
+ "strum_macros 0.27.2",
+ "sysinfo",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5009,7 +5077,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cfg-if",
  "futures",
@@ -5026,7 +5094,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -5041,7 +5109,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -5061,7 +5129,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5111,7 +5179,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5183,7 +5251,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "strum",
- "strum_macros",
+ "strum_macros 0.26.4",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5226,6 +5294,7 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-macos",
  "nym-offline-monitor",
+ "nym-platform-metadata",
  "nym-routing",
  "nym-sdk",
  "nym-statistics",
@@ -5238,10 +5307,14 @@ dependencies = [
  "nym-vpn-store",
  "nym-wg-gateway-client",
  "nym-wg-go",
+ "nym-wg-metadata-client",
  "nym-windows",
  "nym-wireguard-types",
  "rand 0.8.5",
+ "semver",
+ "sentry",
  "serial_test",
+ "sysinfo",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5268,7 +5341,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-wg-gateway-client",
  "si-scale",
- "strum_macros",
+ "strum_macros 0.26.4",
  "thiserror 2.0.16",
  "time",
 ]
@@ -5319,7 +5392,7 @@ dependencies = [
  "nym-vpn-store",
  "rand 0.8.5",
  "sentry",
- "sysinfo 0.37.0",
+ "sysinfo",
  "thiserror 2.0.16",
  "time",
  "tokio",
@@ -5425,7 +5498,7 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "nym-vpnd-types",
- "sysinfo 0.37.0",
+ "sysinfo",
  "tokio",
  "tokio-stream",
  "vergen-gitcl",
@@ -5461,7 +5534,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
- "sysinfo 0.37.0",
+ "sysinfo",
  "tempfile",
  "thiserror 2.0.16",
  "time",
@@ -5508,9 +5581,11 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-wg-go",
+ "nym-wg-metadata-client",
  "rand 0.8.5",
  "thiserror 2.0.16",
  "tracing",
+ "url",
 ]
 
 [[package]]
@@ -5530,6 +5605,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-wg-metadata-client"
+version = "1.15.0-beta"
+dependencies = [
+ "nym-credentials-interface",
+ "nym-gateway-directory",
+ "nym-http-api-client",
+ "nym-wireguard-private-metadata-client",
+ "nym-wireguard-private-metadata-shared",
+ "thiserror 2.0.16",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "nym-windows"
 version = "1.15.0-beta"
 dependencies = [
@@ -5543,9 +5633,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-wireguard-private-metadata-client"
+version = "1.0.0"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
+dependencies = [
+ "async-trait",
+ "nym-http-api-client",
+ "nym-wireguard-private-metadata-shared",
+ "tracing",
+]
+
+[[package]]
+name = "nym-wireguard-private-metadata-shared"
+version = "1.0.0"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
+dependencies = [
+ "axum 0.7.9",
+ "bincode",
+ "nym-credentials-interface",
+ "schemars",
+ "serde",
+ "thiserror 2.0.16",
+ "utoipa",
+]
+
+[[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -7124,6 +7239,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_path_to_error"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59fab13f937fa393d08645bf3a84bdfe86e296747b506ada67bb15f10f218b2a"
+dependencies = [
+ "itoa",
+ "serde",
+]
+
+[[package]]
 name = "serde_repr"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7573,7 +7698,7 @@ dependencies = [
 [[package]]
 name = "sqlx-pool-guard"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -7676,11 +7801,11 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "strum"
-version = "0.26.3"
+version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
+checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
 dependencies = [
- "strum_macros",
+ "strum_macros 0.27.2",
 ]
 
 [[package]]
@@ -7693,6 +7818,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
+ "syn 2.0.103",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.27.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7695ce3845ea4b33927c055a39dc438a45b059f7c1b3d91d38d10355fb8cbca7"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
  "syn 2.0.103",
 ]
 
@@ -7769,20 +7906,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.103",
-]
-
-[[package]]
-name = "sysinfo"
-version = "0.33.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fc858248ea01b66f19d8e8a6d55f41deaf91e9d495246fd01368d99935c6c01"
-dependencies = [
- "core-foundation-sys",
- "libc",
- "memchr",
- "ntapi",
- "rayon",
- "windows 0.57.0",
 ]
 
 [[package]]
@@ -8273,7 +8396,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e581ba15a835f4d9ea06c55ab1bd4dce26fc53752c69a04aac00703bfb49ba9"
 dependencies = [
  "async-trait",
- "axum",
+ "axum 0.8.4",
  "base64 0.22.1",
  "bytes",
  "h2 0.4.11",
@@ -9064,7 +9187,7 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration#036088671e1ba9c1f48fd19b265a10a11a11b7be"
+source = "git+https://github.com/nymtech/nym?branch=domain-fronting-integration-fork#1898853263ca4f130e2027e56acba22eb3da1064"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -9223,16 +9346,6 @@ dependencies = [
 
 [[package]]
 name = "windows"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12342cb4d8e3b046f3d80effd474a7a02447231330ef77d71daa6fbc40681143"
-dependencies = [
- "windows-core 0.57.0",
- "windows-targets 0.52.6",
-]
-
-[[package]]
-name = "windows"
 version = "0.58.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd04d41d93c4992d421894c18c8b43496aa748dd4c081bac0dc93eb0489272b6"
@@ -9274,18 +9387,6 @@ dependencies = [
 
 [[package]]
 name = "windows-core"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2ed2439a290666cd67ecce2b0ffaad89c2a56b976b736e6ece670297897832d"
-dependencies = [
- "windows-implement 0.57.0",
- "windows-interface 0.57.0",
- "windows-result 0.1.2",
- "windows-targets 0.52.6",
-]
-
-[[package]]
-name = "windows-core"
 version = "0.58.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ba6d44ec8c2591c134257ce647b7ea6b20335bf6379a27dac5f1641fcf59f99"
@@ -9323,17 +9424,6 @@ dependencies = [
 
 [[package]]
 name = "windows-implement"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9107ddc059d5b6fbfbffdfa7a7fe3e22a226def0b2608f72e9d552763d3e1ad7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.103",
-]
-
-[[package]]
-name = "windows-implement"
 version = "0.58.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bbd5b46c938e506ecbce286b6628a02171d56153ba733b6c741fc627ec9579b"
@@ -9348,17 +9438,6 @@ name = "windows-implement"
 version = "0.60.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a47fddd13af08290e67f4acabf4b459f647552718f683a7b415d290ac744a836"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.103",
-]
-
-[[package]]
-name = "windows-interface"
-version = "0.57.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29bee4b38ea3cde66011baa44dba677c432a78593e202392d1e9070cf2a7fca7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9401,15 +9480,6 @@ checksum = "9150af68066c4c5c07ddc0ce30421554771e528bde427614c61038bc2c92c2b1"
 dependencies = [
  "windows-core 0.61.2",
  "windows-link",
-]
-
-[[package]]
-name = "windows-result"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e383302e8ec8515204254685643de10811af0ed97ea37210dc26fb0032647f8"
-dependencies = [
- "windows-targets 0.52.6",
 ]
 
 [[package]]

@@ -87,14 +87,15 @@ impl ConnectedTunnel {
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
+        initial_allowed_ips: Vec<IpNetwork>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> Result<TunnelHandle> {
+        let mut allowed_ips = initial_allowed_ips;
+        allowed_ips.push(IpNetwork::from(self.connection_data.exit.endpoint.ip()));
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
-            AllowedIps::Specific(vec![IpNetwork::from(
-                self.connection_data.exit.endpoint.ip(),
-            )]),
+            AllowedIps::Specific(allowed_ips),
             dns.clone(),
             self.entry_mtu(),
         );

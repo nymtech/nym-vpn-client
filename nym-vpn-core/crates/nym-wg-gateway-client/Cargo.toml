@@ -12,18 +12,19 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+nym-authenticator-client = { workspace = true }
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-credentials-interface.workspace = true
 nym-crypto.workspace = true
+nym-gateway-directory = { workspace = true }
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
+nym-wg-go = { workspace = true }
+nym-wg-metadata-client = { workspace = true }
 rand.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
-
-nym-authenticator-client = { workspace = true }
-nym-gateway-directory = { workspace = true }
-nym-wg-go = { workspace = true }
+url.workspace = true

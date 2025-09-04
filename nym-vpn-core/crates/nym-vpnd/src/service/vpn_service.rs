@@ -30,7 +30,8 @@ use nym_vpn_lib::{
     gateway_directory::{self, CachingGatewayClient, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
+        TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
+        WireguardTunnelOptions,
     },
 };
 use nym_vpn_lib_types::{
@@ -357,6 +358,7 @@ impl NymVpnService {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
+        let tunnel_constants = TunnelConstants::default();
         let nyxd_url = parameters.network_env.nyxd_url();
         let api_url = parameters.network_env.api_url();
 
@@ -421,6 +423,7 @@ impl NymVpnService {
             event_sender,
             nym_config,
             tunnel_settings,
+            tunnel_constants,
             account_command_tx.clone(),
             account_state_rx.clone(),
             statistics_event_sender.clone(),
