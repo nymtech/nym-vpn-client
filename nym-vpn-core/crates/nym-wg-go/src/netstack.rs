@@ -198,7 +198,7 @@ impl Tunnel {
 
             let listen_addr = listen_addr_cstr
                 .to_str()
-                .map_err(|_| Error::ConvertTcpListenAddrToString)
+                .map_err(|_| Error::ConvertListenAddrToString)
                 .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.
@@ -249,7 +249,7 @@ impl Tunnel {
 
             let listen_addr = listen_addr_cstr
                 .to_str()
-                .map_err(|_| Error::ConvertTcpListenAddrToString)
+                .map_err(|_| Error::ConvertListenAddrToString)
                 .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.

@@ -61,8 +61,8 @@ pub enum Error {
     #[error("failed to open TCP connection through the tunnel (code: {0})")]
     OpenTCPConnection(i32),
 
-    #[error("failed to convert TCP listen address to string")]
-    ConvertTcpListenAddrToString,
+    #[error("failed to convert listen address to string")]
+    ConvertListenAddrToString,
 
     #[error("failed to parse listen address")]
     ParseListenAddr,
