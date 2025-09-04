@@ -249,7 +249,7 @@ impl ConnectedTunnel {
             netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
 
         // Open connection to the exit node via entry node.
-        let exit_connection = entry_tunnel.start_intunnel_udp_connection_proxy(
+        let exit_intunnel_udp_proxy = entry_tunnel.start_intunnel_udp_connection_proxy(
             two_hop_config.forwarder.listen_endpoint.port(),
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
@@ -304,7 +304,7 @@ impl ConnectedTunnel {
             }
 
             entry_tunnel.stop();
-            exit_connection.close();
+            exit_intunnel_udp_proxy.close();
 
             // Windows: do not drop exit tunnel as it owns the underlying tunnel device.
             #[cfg(not(windows))]

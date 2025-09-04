@@ -135,7 +135,7 @@ impl ConnectedTunnel {
         }
 
         // Open connection to the exit node via entry node.
-        let exit_connection = entry_tunnel.open_connection(
+        let exit_intunnel_udp_proxy = entry_tunnel.start_intunnel_udp_connection_proxy(
             two_hop_config.forwarder.listen_endpoint.port(),
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
@@ -218,7 +218,7 @@ impl ConnectedTunnel {
             }
 
             exit_tunnel.stop();
-            exit_connection.close();
+            exit_intunnel_udp_proxy.close();
             entry_tunnel.stop();
 
             Tombstone::with_tun_device(tun_device)
