@@ -3,7 +3,7 @@
  * Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
  */
 
-package tcp_forwarder
+package forwarders
 
 import (
 	"net"
@@ -16,15 +16,18 @@ import (
 	"gvisor.dev/gvisor/pkg/tcpip/adapters/gonet"
 )
 
+// TCP forwarder that creates a bidirectional in-tunnel connection between a local and remote TCP endpoints
 type TCPForwarder struct {
-	// Logger.
 	logger *device.Logger
 
-	// UDP listener that receives inbound traffic destined to endpoint.
-	listener *net.TCPListener
+	// Netstack tunnel
+	tnet *netstack.Net
 
-	// Outbound connection to the endpoint over the tunnel.
-	outbound *gonet.TCPConn
+	// Endpoint to connect to over netstack
+	endpoint netip.AddrPort
+
+	// TCP listener accepting connections on local address and establishing a bidirectional connection to the endpoint over netstack tunnel
+	listener *net.TCPListener
 
 	// Wait group used to signal when all goroutines have finished execution.
 	waitGroup *sync.WaitGroup
@@ -33,10 +36,10 @@ type TCPForwarder struct {
 const TCP_BUFFER_LEN = 65535
 const TCP_WRITE_TIMEOUT = time.Duration(5) * time.Second
 
-func New(endpoint netip.AddrPort, tnet *netstack.Net, logger *device.Logger) (*TCPForwarder, error) {
+func NewTCPForwarder(endpoint netip.AddrPort, tnet *netstack.Net, logger *device.Logger) (*TCPForwarder, error) {
 	var listenAddr *net.TCPAddr
 
-	// Use the same ip protocol family as exit endpoint.
+	// Use the same ip protocol family as exit endpoint
 	if endpoint.Addr().Is4() {
 		loopback := netip.AddrFrom4([4]byte{127, 0, 0, 1})
 		listenAddr = net.TCPAddrFromAddrPort(netip.AddrPortFrom(loopback, 0))
@@ -49,20 +52,15 @@ func New(endpoint netip.AddrPort, tnet *netstack.Net, logger *device.Logger) (*T
 		return nil, err
 	}
 
-	outbound, err := tnet.DialTCPAddrPort(endpoint)
-	if err != nil {
-		return nil, err
-	}
-
 	waitGroup := &sync.WaitGroup{}
 	forwarder := &TCPForwarder{
 		logger:    logger,
 		listener:  listener,
-		outbound:  outbound,
+		endpoint:  endpoint,
 		waitGroup: waitGroup,
 	}
 	waitGroup.Add(1)
-	go forwarder.RoutineListenTCP(listener)
+	go forwarder.routineListenTCP(listener)
 
 	return forwarder, nil
 }
@@ -73,11 +71,11 @@ func (w *TCPForwarder) GetListenAddr() net.Addr {
 }
 
 func (w *TCPForwarder) Close() {
-	// Close all connections. This should release any blocking ReadFromUDP() calls.
+	// Close TCP listener connection
+	// Active connections will be closed shortly after
 	w.listener.Close()
-	w.outbound.Close()
 
-	// Wait for all routines to complete.
+	// Wait for all routines to complete
 	w.waitGroup.Wait()
 }
 
@@ -85,24 +83,48 @@ func (w *TCPForwarder) Wait() {
 	w.waitGroup.Wait()
 }
 
-func (w *TCPForwarder) RoutineListenTCP(listener *net.TCPListener) {
+func (w *TCPForwarder) routineListenTCP(listener *net.TCPListener) {
 	defer w.waitGroup.Done()
 
 	w.logger.Verbosef("tcpforwarder(listen): listening on %s", listener.Addr().String())
 	defer w.logger.Verbosef("tcpforwarder(listen): closed")
 
-	inbound, err := listener.AcceptTCP()
-	if err != nil {
-		w.logger.Errorf("tcpforwarder(listen): %s", err.Error())
-		return
-	}
+	outbounds := []*gonet.TCPConn{}
+	inbounds := []*net.TCPConn{}
+	defer func() {
+		w.logger.Verbosef("tcpforwarder(listen): closing connections")
+		for _, outbound := range outbounds {
+			outbound.Close()
+		}
+		for _, inbound := range inbounds {
+			inbound.Close()
+		}
+	}()
 
-	w.waitGroup.Add(2)
-	go w.RoutineHandleInbound(inbound, w.outbound)
-	go w.RoutineHandleOutbound(inbound, w.outbound)
+	for {
+		inbound, err := listener.AcceptTCP()
+		if err != nil {
+			w.logger.Errorf("tcpforwarder(listen): failed to accept connection: %s", err.Error())
+			return
+		}
+
+		outbound, err := w.tnet.DialTCPAddrPort(w.endpoint)
+		if err != nil {
+			w.logger.Errorf("tcpforwarder(listen): failed to connect to %s: %s", w.endpoint.String(), err.Error())
+			inbound.Close()
+			continue
+		}
+
+		inbounds = append(inbounds, inbound)
+		outbounds = append(outbounds, outbound)
+
+		w.waitGroup.Add(2)
+		go w.routineHandleInbound(inbound, outbound)
+		go w.routineHandleOutbound(inbound, outbound)
+	}
 }
 
-func (w *TCPForwarder) RoutineHandleInbound(inbound *net.TCPConn, outbound *gonet.TCPConn) {
+func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gonet.TCPConn) {
 	defer w.waitGroup.Done()
 
 	inboundBuffer := make([]byte, TCP_BUFFER_LEN)
@@ -118,26 +140,29 @@ func (w *TCPForwarder) RoutineHandleInbound(inbound *net.TCPConn, outbound *gone
 			return
 		}
 
-		// Set write timeout for outbound.
+		// Set write timeout for outbound
 		deadline := time.Now().Add(TCP_WRITE_TIMEOUT)
 		err = outbound.SetWriteDeadline(deadline)
 		if err != nil {
 			w.logger.Errorf("tcpforwarder(inbound): %s", err.Error())
-			// todo: handle error
 			return
 		}
 
-		// Forward the packet over the outbound connection via another WireGuard tunnel.
-		_, err = outbound.Write(inboundBuffer[:bytesRead])
+		// Forward the packet over the outbound connection via another WireGuard tunnel
+		bytesWritten, err := outbound.Write(inboundBuffer[:bytesRead])
 		if err != nil {
 			w.logger.Errorf("tcpforwarder(inbound): %s", err.Error())
-			// todo: handle error
 			return
+		}
+
+		// todo: is it possible?
+		if bytesWritten != bytesRead {
+			w.logger.Errorf("tcpforwarder(inbound): wrote %d bytes, expected %d", bytesWritten, bytesRead)
 		}
 	}
 }
 
-func (w *TCPForwarder) RoutineHandleOutbound(inbound *net.TCPConn, outbound *gonet.TCPConn) {
+func (w *TCPForwarder) routineHandleOutbound(inbound *net.TCPConn, outbound *gonet.TCPConn) {
 	defer w.waitGroup.Done()
 
 	remoteAddr := outbound.RemoteAddr().(*net.TCPAddr)
@@ -147,15 +172,14 @@ func (w *TCPForwarder) RoutineHandleOutbound(inbound *net.TCPConn, outbound *gon
 	outboundBuffer := make([]byte, TCP_BUFFER_LEN)
 
 	for {
-		// Receive packets from remote server.
+		// Receive packets from remote server
 		bytesRead, err := outbound.Read(outboundBuffer)
 		if err != nil {
 			w.logger.Errorf("tcpforwarder(outbound): %s", err.Error())
-			// todo: handle error
 			return
 		}
 
-		// Set write timeout for inbound.
+		// Set write timeout for inbound
 		deadline := time.Now().Add(TCP_WRITE_TIMEOUT)
 		err = (*inbound).SetWriteDeadline(deadline)
 		if err != nil {
@@ -163,11 +187,16 @@ func (w *TCPForwarder) RoutineHandleOutbound(inbound *net.TCPConn, outbound *gon
 			return
 		}
 
-		// Forward packet from remote to local client.
-		_, err = (*inbound).Write(outboundBuffer[:bytesRead])
+		// Forward packet from remote to local client
+		bytesWritten, err := (*inbound).Write(outboundBuffer[:bytesRead])
 		if err != nil {
 			w.logger.Errorf("tcpforwarder(outbound): %s", err.Error())
 			return
+		}
+
+		// todo: is it possible?
+		if bytesWritten != bytesRead {
+			w.logger.Errorf("tcpforwarder(outbound): wrote %d bytes, expected %d", bytesWritten, bytesRead)
 		}
 	}
 }

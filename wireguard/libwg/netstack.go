@@ -12,9 +12,8 @@ import (
 	"net/netip"
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
+	"github.com/nymtech/nym-vpn-client/wireguard/libwg/forwarders"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
-	"github.com/nymtech/nym-vpn-client/wireguard/libwg/tcp_forwarder"
-	"github.com/nymtech/nym-vpn-client/wireguard/libwg/udp_forwarder"
 
 	"github.com/amnezia-vpn/amneziawg-go/device"
 	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
@@ -27,13 +26,13 @@ type NetTunnelHandle struct {
 }
 
 var netTunnelHandles container.Container[NetTunnelHandle]
-var udpForwarders container.Container[*udp_forwarder.UDPForwarder]
-var tcpForwarders container.Container[*tcp_forwarder.TCPForwarder]
+var udpForwarders container.Container[*forwarders.UDPForwarder]
+var tcpForwarders container.Container[*forwarders.TCPForwarder]
 
 func init() {
 	netTunnelHandles = container.New[NetTunnelHandle]()
-	udpForwarders = container.New[*udp_forwarder.UDPForwarder]()
-	tcpForwarders = container.New[*udp_forwarder.TCPForwarder]()
+	udpForwarders = container.New[*forwarders.UDPForwarder]()
+	tcpForwarders = container.New[*forwarders.TCPForwarder]()
 }
 
 //export wgNetTurnOff
@@ -58,8 +57,8 @@ func wgNetGetConfig(tunnelHandle int32) *C.char {
 	return C.CString(settings)
 }
 
-//export wgNetOpenConnectionThroughTunnel
-func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
+//export wgNetStartUDPConnectionProxy
+func wgNetStartUDPConnectionProxy(entryTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 
 	dev, err := netTunnelHandles.Get(entryTunnelHandle)
@@ -74,13 +73,13 @@ func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16
 		return ERROR_GENERAL_FAILURE
 	}
 
-	forwarderConfig := udp_forwarder.UDPForwarderConfig{
-		ListenPort:   listenPort,
-		ClientPort:   clientPort,
-		ExitEndpoint: exitEndpoint,
+	forwarderConfig := forwarders.UDPForwarderConfig{
+		ListenPort: listenPort,
+		ClientPort: clientPort,
+		Endpoint:   exitEndpoint,
 	}
 
-	udpForwarder, err := udp_forwarder.New(forwarderConfig, dev.Net, logger)
+	udpForwarder, err := forwarders.NewUDPForwarder(forwarderConfig, dev.Net, logger)
 	if err != nil {
 		dev.Errorf("Failed to create udp forwarder: %v", err)
 		return ERROR_GENERAL_FAILURE
@@ -96,8 +95,8 @@ func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16
 	return forwarderHandle
 }
 
-//export wgNetCloseConnectionThroughTunnel
-func wgNetCloseConnectionThroughTunnel(udpForwarderHandle int32) {
+//export wgNetStopUDPConnectionProxy
+func wgNetStopUDPConnectionProxy(udpForwarderHandle int32) {
 	udpForwarder, err := udpForwarders.Remove(udpForwarderHandle)
 	if err != nil {
 		return
@@ -105,8 +104,8 @@ func wgNetCloseConnectionThroughTunnel(udpForwarderHandle int32) {
 	(*udpForwarder).Close()
 }
 
-//export wgNetOpenTCPConnectionThroughTunnel
-func wgNetOpenTCPConnectionThroughTunnel(entryTunnelHandle int32, endpoint *C.char, outListenAddr **C.char, logSink LogSink, logContext LogContext) int32 {
+//export wgNetStartTCPConnectionProxy
+func wgNetStartTCPConnectionProxy(entryTunnelHandle int32, endpoint *C.char, outListenAddr **C.char, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 
 	if outListenAddr == nil {
@@ -126,7 +125,7 @@ func wgNetOpenTCPConnectionThroughTunnel(entryTunnelHandle int32, endpoint *C.ch
 		return ERROR_GENERAL_FAILURE
 	}
 
-	forwarder, err := tcp_forwarder.New(addr, dev.Net, logger)
+	forwarder, err := forwarders.NewTCPForwarder(addr, dev.Net, logger)
 	if err != nil {
 		dev.Errorf("Failed to create tcp forwarder: %v", err)
 		return ERROR_GENERAL_FAILURE
@@ -144,8 +143,9 @@ func wgNetOpenTCPConnectionThroughTunnel(entryTunnelHandle int32, endpoint *C.ch
 	return index
 }
 
-func wgCloseTCPConnectionThroughTunnel(connectionHandle int32) {
-	forwarder, err := tcpForwarders.Remove(connectionHandle)
+//export wgNetStopTCPConnectionProxy
+func wgNetStopTCPConnectionProxy(connectionProxyHandle int32) {
+	forwarder, err := tcpForwarders.Remove(connectionProxyHandle)
 	if err != nil {
 		return
 	}
