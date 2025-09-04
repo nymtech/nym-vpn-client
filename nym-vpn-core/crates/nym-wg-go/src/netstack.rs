@@ -375,7 +375,7 @@ unsafe extern "C" {
 
     /// Start UDP connection proxy through the netstack tunnel.
     unsafe fn wgNetStartUDPConnectionProxy(
-        entry_tunnel_handle: i32,
+        net_tunnel_handle: i32,
         listen_port: u16,
         client_port: u16,
         exit_endpoint: *const c_char,
@@ -388,7 +388,7 @@ unsafe extern "C" {
 
     /// Start TCP connection proxy through the netstack tunnel.
     unsafe fn wgNetStartTCPConnectionProxy(
-        entry_tunnel_handle: i32,
+        net_tunnel_handle: i32,
         endpoint: *const c_char,
         out_listen_addr: *mut *mut c_char,
         logging_callback: LoggingCallback,

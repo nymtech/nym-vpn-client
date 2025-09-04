@@ -58,12 +58,12 @@ func wgNetGetConfig(tunnelHandle int32) *C.char {
 }
 
 //export wgNetStartUDPConnectionProxy
-func wgNetStartUDPConnectionProxy(entryTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
+func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 
-	dev, err := netTunnelHandles.Get(entryTunnelHandle)
+	dev, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
-		dev.Errorf("Invalid tunnel handle: %d", entryTunnelHandle)
+		dev.Errorf("Invalid tunnel handle: %d", netTunnelHandle)
 		return ERROR_GENERAL_FAILURE
 	}
 
@@ -105,7 +105,7 @@ func wgNetStopUDPConnectionProxy(udpForwarderHandle int32) {
 }
 
 //export wgNetStartTCPConnectionProxy
-func wgNetStartTCPConnectionProxy(entryTunnelHandle int32, endpoint *C.char, outListenAddr **C.char, logSink LogSink, logContext LogContext) int32 {
+func wgNetStartTCPConnectionProxy(netTunnelHandle int32, endpoint *C.char, outListenAddr **C.char, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 
 	if outListenAddr == nil {
@@ -113,9 +113,9 @@ func wgNetStartTCPConnectionProxy(entryTunnelHandle int32, endpoint *C.char, out
 		return ERROR_GENERAL_FAILURE
 	}
 
-	dev, err := netTunnelHandles.Get(entryTunnelHandle)
+	dev, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
-		dev.Errorf("Invalid tunnel handle: %d", entryTunnelHandle)
+		dev.Errorf("Invalid tunnel handle: %d", netTunnelHandle)
 		return ERROR_GENERAL_FAILURE
 	}
 
@@ -144,8 +144,8 @@ func wgNetStartTCPConnectionProxy(entryTunnelHandle int32, endpoint *C.char, out
 }
 
 //export wgNetStopTCPConnectionProxy
-func wgNetStopTCPConnectionProxy(connectionProxyHandle int32) {
-	forwarder, err := tcpForwarders.Remove(connectionProxyHandle)
+func wgNetStopTCPConnectionProxy(tcpForwarderHandle int32) {
+	forwarder, err := tcpForwarders.Remove(tcpForwarderHandle)
 	if err != nil {
 		return
 	}
