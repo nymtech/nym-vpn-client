@@ -243,10 +243,10 @@ impl ConnectedTunnel {
             None,
         );
 
-        let two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
+        let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
 
         let mut entry_tunnel =
-            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
+            netstack::Tunnel::start(two_hop_config.entry.clone().into_netstack_config())?;
 
         // Open connection to the exit node via entry node.
         let exit_intunnel_udp_proxy = entry_tunnel.start_intunnel_udp_connection_proxy(
@@ -255,13 +255,10 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
+        two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
+
         let entry_magic_bandwidth_tcp_proxy =
             entry_tunnel.start_intunnel_tcp_connection_proxy("10.1.0.1:51830".parse().unwrap())?;
-
-        tracing::info!(
-            "Entry bandwidth proxy runs on {}",
-            entry_magic_bandwidth_tcp_proxy.listen_addr()
-        );
 
         let exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),

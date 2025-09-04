@@ -112,7 +112,6 @@ impl ConnectedTunnel {
         #[cfg(target_os = "ios")]
         let orig_entry_peer = wg_entry_config.peer.clone();
 
-        #[allow(unused_mut)]
         let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
 
         // iOS does not perform dns64 resolution by default. Do that manually.
@@ -120,7 +119,7 @@ impl ConnectedTunnel {
         two_hop_config.entry.peer.resolve_in_place()?;
 
         let mut entry_tunnel =
-            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
+            netstack::Tunnel::start(two_hop_config.entry.clone().into_netstack_config())?;
 
         // Configure tunnel sockets to bypass the tunnel interface.
         #[cfg(target_os = "android")]
@@ -141,6 +140,11 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
         )?;
+
+        two_hop_config.set_local_forwarder_addr(exit_intunnel_udp_proxy.listen_addr());
+
+        let entry_magic_bandwidth_tcp_proxy =
+            entry_tunnel.start_intunnel_tcp_connection_proxy("10.1.0.1:51830".parse().unwrap())?;
 
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
@@ -219,6 +223,7 @@ impl ConnectedTunnel {
             }
 
             exit_tunnel.stop();
+            entry_magic_bandwidth_tcp_proxy.close();
             exit_intunnel_udp_proxy.close();
             entry_tunnel.stop();
 
