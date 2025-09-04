@@ -322,8 +322,8 @@ impl InTunnelTcpConnectionProxy {
     }
 
     /// Returns an address that can be used to connect to the endpoint over the tunnel.
-    pub fn listen_addr(&self) -> &SocketAddr {
-        &self.listen_addr
+    pub fn listen_addr(&self) -> SocketAddr {
+        self.listen_addr
     }
 
     pub fn close(mut self) {
