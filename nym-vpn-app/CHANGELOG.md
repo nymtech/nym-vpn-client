@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add event progress messages while connecting, showing the steps daemon is
+  performing
+
+### Changed
+
+- Max and min window size adjusted to support exotic screen resolutions
+
+### Fixed
+
+- [Windows] Installer fails to uninstall daemon during upgrade
+
 ## [1.14.0] - 2025-08-26
 
 ### Added
