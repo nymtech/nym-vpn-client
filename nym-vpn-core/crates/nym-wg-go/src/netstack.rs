@@ -162,22 +162,22 @@ impl Tunnel {
         self.stop_inner();
     }
 
-    /// Open UDP connection through the tunnel.
+    /// Start UDP proxy through the tunnel to the given endpoint.
     ///
     /// Due to FFI boundary, direct communication is impossible. Instead a bidrectional UDP proxy listens on
     /// `listen_port`. The clients should connect to it in order to communicate with the exit endpoint over
     /// the tunnel.
     ///
     /// Note that the client traffic should originate from the `client_port` on the loopback interface.
-    /// If `exit_endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
+    /// If `endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
     pub fn start_intunnel_udp_connection_proxy(
         &mut self,
         listen_port: u16,
         client_port: u16,
-        exit_endpoint: SocketAddr,
+        endpoint: SocketAddr,
     ) -> Result<InTunnelUdpConnectionProxy> {
         let exit_endpoint =
-            CString::new(exit_endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
+            CString::new(endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
         let udp_proxy_handle = unsafe {
             wgNetStartUDPConnectionProxy(
                 self.tunnel_handle,
@@ -196,7 +196,7 @@ impl Tunnel {
         }
     }
 
-    /// Start TCP proxy through the netstack tunnel.
+    /// Start TCP proxy through the tunnel to the given endpoint.
     ///
     /// Due to FFI boundary, direct communication is impossible. Instead a bidirectional TCP proxy listens on a loopback port that can be obtained via [`InTunnelTcpConnectionProxy::listen_addr()`].
     /// The clients should connect to it in order to communicate with the endpoint over the tunnel. Each new connection established to proxy listen address

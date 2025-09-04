@@ -108,7 +108,7 @@ impl WintunInterface {
 /// Classic WireGuard tunnel.
 #[derive(Debug)]
 pub struct Tunnel {
-    handle: i32,
+    tunnel_handle: i32,
     #[cfg(windows)]
     wintun_interface: WintunInterface,
 }
@@ -120,7 +120,7 @@ impl Tunnel {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
 
-        let handle = unsafe {
+        let tunnel_handle = unsafe {
             wgTurnOn(
                 // note: not all platforms accept mtu = 0
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -132,10 +132,10 @@ impl Tunnel {
             )
         };
 
-        if handle >= 0 {
-            Ok(Self { handle })
+        if tunnel_handle >= 0 {
+            Ok(Self { tunnel_handle })
         } else {
-            Err(Error::StartTunnel(handle))
+            Err(Error::StartTunnel(tunnel_handle))
         }
     }
 
@@ -162,7 +162,7 @@ impl Tunnel {
         let mut out_interface_luid: u64 = 0;
         let out_interface_luid_ptr: *mut u64 = &mut out_interface_luid;
 
-        let handle = unsafe {
+        let tunnel_handle = unsafe {
             wgTurnOn(
                 interface_name_cstr.as_ptr(),
                 requested_guid_cstr.as_ptr(),
@@ -176,7 +176,7 @@ impl Tunnel {
             )
         };
 
-        if handle >= 0 {
+        if tunnel_handle >= 0 {
             // SAFETY: libwg is expected to set a non-null value upon successful return.
             let wintun_iface_name_cstr = unsafe { CStr::from_ptr(out_interface_name) };
 
@@ -195,11 +195,11 @@ impl Tunnel {
             };
 
             Ok(Self {
-                handle,
+                tunnel_handle,
                 wintun_interface,
             })
         } else {
-            Err(Error::StartTunnel(handle))
+            Err(Error::StartTunnel(tunnel_handle))
         }
     }
 
@@ -237,7 +237,7 @@ impl Tunnel {
         }
         let settings =
             CString::new(config_builder.into_bytes()).map_err(|_| Error::ConfigContainsNulByte)?;
-        let ret_code = unsafe { wgSetConfig(self.handle, settings.as_ptr()) };
+        let ret_code = unsafe { wgSetConfig(self.tunnel_handle, settings.as_ptr()) };
 
         if ret_code == 0 {
             Ok(())
@@ -247,9 +247,9 @@ impl Tunnel {
     }
 
     fn stop_inner(&mut self) {
-        if self.handle >= 0 {
-            unsafe { wgTurnOff(self.handle) };
-            self.handle = -1;
+        if self.tunnel_handle >= 0 {
+            unsafe { wgTurnOff(self.tunnel_handle) };
+            self.tunnel_handle = -1;
         }
     }
 }
