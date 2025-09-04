@@ -182,7 +182,7 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiErrorRespon
     type Error = nym_vpn_api_client::error::VpnApiClientError;
 
     fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
-        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(Into::into)
+        Ok(VpnApiErrorResponse::from(nym_vpn_api_client::response::NymErrorResponse::from(err)))
     }
 }
 
