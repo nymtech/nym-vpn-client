@@ -53,7 +53,7 @@ func NewUDPForwarder(config UDPForwarderConfig, tnet *netstack.Net, logger *devi
 	var listenAddr *net.UDPAddr
 	var clientAddr *net.UDPAddr
 
-	// Use the same ip protocol family as exit endpoint
+	// Use the same ip protocol family as endpoint
 	if config.Endpoint.Addr().Is4() {
 		loopback := netip.AddrFrom4([4]byte{127, 0, 0, 1})
 		listenAddr = net.UDPAddrFromAddrPort(netip.AddrPortFrom(loopback, config.ListenPort))
@@ -89,6 +89,10 @@ func NewUDPForwarder(config UDPForwarderConfig, tnet *netstack.Net, logger *devi
 	return wrapper, nil
 }
 
+func (w *UDPForwarder) GetListenAddr() net.Addr {
+	return w.listener.LocalAddr()
+}
+
 func (w *UDPForwarder) Close() {
 	// Close all connections. This should release any blocking ReadFromUDP() calls
 	w.listener.Close()
@@ -107,7 +111,7 @@ func (w *UDPForwarder) routineHandleInbound(inbound *net.UDPConn, outbound *gone
 
 	inboundBuffer := make([]byte, MAX_UDP_DATAGRAM_LEN)
 
-	w.logger.Verbosef("udpforwarder(inbound): listening on %s", inbound.LocalAddr().String())
+	w.logger.Verbosef("udpforwarder(inbound): listening on %s (proxy to %s)", inbound.LocalAddr().String(), outbound.RemoteAddr().String())
 	defer w.logger.Verbosef("udpforwarder(inbound): closed")
 
 	for {
@@ -129,16 +133,14 @@ func (w *UDPForwarder) routineHandleInbound(inbound *net.UDPConn, outbound *gone
 		err = outbound.SetWriteDeadline(deadline)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
 		}
 
 		// Forward the packet over the outbound connection via another WireGuard tunnel
 		bytesWritten, err := outbound.Write(inboundBuffer[:bytesRead])
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
 		}
 
 		// todo: is it possible?

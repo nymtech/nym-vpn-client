@@ -6,6 +6,7 @@
 package forwarders
 
 import (
+	"context"
 	"net"
 	"net/netip"
 	"sync"
@@ -29,6 +30,12 @@ type TCPForwarder struct {
 	// Endpoint to connect to over netstack
 	endpoint netip.AddrPort
 
+	// Cancellation context
+	ctx context.Context
+
+	// Cancellation func
+	cancel context.CancelFunc
+
 	// Wait group used to signal when all goroutines have finished execution.
 	waitGroup *sync.WaitGroup
 }
@@ -39,7 +46,7 @@ const TCP_WRITE_TIMEOUT = time.Duration(5) * time.Second
 func NewTCPForwarder(endpoint netip.AddrPort, tnet *netstack.Net, logger *device.Logger) (*TCPForwarder, error) {
 	var listenAddr *net.TCPAddr
 
-	// Use the same ip protocol family as exit endpoint
+	// Use the same ip protocol family as endpoint
 	if endpoint.Addr().Is4() {
 		loopback := netip.AddrFrom4([4]byte{127, 0, 0, 1})
 		listenAddr = net.TCPAddrFromAddrPort(netip.AddrPortFrom(loopback, 0))
@@ -52,12 +59,16 @@ func NewTCPForwarder(endpoint netip.AddrPort, tnet *netstack.Net, logger *device
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	waitGroup := &sync.WaitGroup{}
 	forwarder := &TCPForwarder{
 		logger:    logger,
 		tnet:      tnet,
 		listener:  listener,
 		endpoint:  endpoint,
+		ctx:       ctx,
+		cancel:    cancel,
 		waitGroup: waitGroup,
 	}
 	waitGroup.Add(1)
@@ -66,17 +77,16 @@ func NewTCPForwarder(endpoint netip.AddrPort, tnet *netstack.Net, logger *device
 	return forwarder, nil
 }
 
-// Get listener address that should be used to connect to the forwarder.
 func (w *TCPForwarder) GetListenAddr() net.Addr {
 	return w.listener.Addr()
 }
 
 func (w *TCPForwarder) Close() {
-	w.logger.Verbosef("tcpforwarder(listen): close!")
-
 	// Close TCP listener connection
-	// Active connections will be closed shortly after
 	w.listener.Close()
+
+	// Cancel all active connections
+	w.cancel()
 
 	// Wait for all routines to complete
 	w.waitGroup.Wait()
@@ -89,51 +99,80 @@ func (w *TCPForwarder) Wait() {
 func (w *TCPForwarder) routineListenTCP() {
 	defer w.waitGroup.Done()
 
-	w.logger.Verbosef("tcpforwarder(listen): listening on %s", w.listener.Addr().String())
+	w.logger.Verbosef("tcpforwarder(listen): listening on %s (proxy to %s)", w.listener.Addr().String(), w.endpoint.String())
 	defer w.logger.Verbosef("tcpforwarder(listen): closed")
 
-	outbounds := []*gonet.TCPConn{}
-	inbounds := []*net.TCPConn{}
-	defer func() {
-		w.logger.Verbosef("tcpforwarder(listen): closing connections")
-		for _, outbound := range outbounds {
-			outbound.Close()
-		}
-		for _, inbound := range inbounds {
-			inbound.Close()
+	// Cancel pending connections when TCP listener is closed
+	defer w.cancel()
+
+	newConns := make(chan *net.TCPConn)
+
+	go func() {
+		for {
+			inbound, err := w.listener.AcceptTCP()
+			if err != nil {
+				w.logger.Errorf("tcpforwarder(listen): failed to accept connection: %s", err.Error())
+				w.cancel()
+				return
+			}
+
+			newConns <- inbound
 		}
 	}()
 
 	for {
-		inbound, err := w.listener.AcceptTCP()
-		if err != nil {
-			w.logger.Errorf("tcpforwarder(listen): failed to accept connection: %s", err.Error())
+		select {
+		case inbound := <-newConns:
+			w.waitGroup.Add(1)
+			go w.routineHandleNewConnection(inbound)
+		case <-w.ctx.Done():
 			return
 		}
-
-		w.logger.Verbosef("tcpforwarder(listen): dial %s", w.endpoint.String())
-		outbound, err := w.tnet.DialTCPAddrPort(w.endpoint)
-		if err != nil {
-			w.logger.Errorf("tcpforwarder(listen): failed to connect to %s: %s", w.endpoint.String(), err.Error())
-			inbound.Close()
-			continue
-		}
-
-		inbounds = append(inbounds, inbound)
-		outbounds = append(outbounds, outbound)
-
-		w.waitGroup.Add(2)
-		go w.routineHandleInbound(inbound, outbound)
-		go w.routineHandleOutbound(inbound, outbound)
 	}
 }
 
-func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gonet.TCPConn) {
+func (w *TCPForwarder) routineHandleNewConnection(inbound *net.TCPConn) {
 	defer w.waitGroup.Done()
+
+	w.logger.Verbosef("tcpforwarder(listen): accepted from %s", (*inbound).LocalAddr().String())
+
+	ctx, cancel := context.WithCancel(w.ctx)
+	defer cancel()
+
+	go func() {
+		<-ctx.Done()
+		w.logger.Verbosef("tcpforwarder(listen): close inbound")
+		inbound.Close()
+	}()
+
+	w.logger.Verbosef("tcpforwarder(listen): dial %s", w.endpoint.String())
+	outbound, err := w.tnet.DialContextTCPAddrPort(ctx, w.endpoint)
+	if err != nil {
+		w.logger.Errorf("tcpforwarder(listen): failed to connect to %s: %s", w.endpoint.String(), err.Error())
+		return
+	}
+
+	go func() {
+		<-ctx.Done()
+		w.logger.Verbosef("tcpforwarder(listen): close outbound")
+		outbound.Close()
+	}()
+
+	waitGroup := &sync.WaitGroup{}
+	waitGroup.Add(2)
+
+	go w.routineHandleInbound(inbound, outbound, waitGroup)
+	go w.routineHandleOutbound(inbound, outbound, waitGroup)
+
+	waitGroup.Wait()
+	w.logger.Verbosef("tcpforwarder(listen): connection closed")
+}
+
+func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gonet.TCPConn, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
 
 	inboundBuffer := make([]byte, TCP_BUFFER_LEN)
 
-	w.logger.Verbosef("tcpforwarder(inbound): accepted from %s", (*inbound).LocalAddr().String())
 	defer w.logger.Verbosef("tcpforwarder(inbound): closed")
 
 	for {
@@ -166,11 +205,12 @@ func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gone
 	}
 }
 
-func (w *TCPForwarder) routineHandleOutbound(inbound *net.TCPConn, outbound *gonet.TCPConn) {
-	defer w.waitGroup.Done()
+func (w *TCPForwarder) routineHandleOutbound(inbound *net.TCPConn, outbound *gonet.TCPConn, waitGroup *sync.WaitGroup) {
+	defer func() {
+		w.logger.Verbosef("tcpforwarder(outbound): connWaitGroup.Done()")
+		waitGroup.Done()
+	}()
 
-	remoteAddr := outbound.RemoteAddr().(*net.TCPAddr)
-	w.logger.Verbosef("tcpforwarder(outbound): dial %s", remoteAddr.String())
 	defer w.logger.Verbosef("tcpforwarder(outbound): closed")
 
 	outboundBuffer := make([]byte, TCP_BUFFER_LEN)
