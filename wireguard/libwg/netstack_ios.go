@@ -10,8 +10,8 @@ import "C"
 import "time"
 
 //export wgNetBumpSockets
-func wgNetBumpSockets(tunnelHandle int32) {
-	tunnel, err := netTunnelHandles.Get(tunnelHandle)
+func wgNetBumpSockets(netTunnelHandle int32) {
+	tunnel, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
 		return
 	}

@@ -36,8 +36,8 @@ func init() {
 }
 
 //export wgNetTurnOff
-func wgNetTurnOff(tunnelHandle int32) {
-	dev, err := netTunnelHandles.Remove(tunnelHandle)
+func wgNetTurnOff(netTunnelHandle int32) {
+	dev, err := netTunnelHandles.Remove(netTunnelHandle)
 	if err != nil {
 		return
 	}
@@ -45,8 +45,8 @@ func wgNetTurnOff(tunnelHandle int32) {
 }
 
 //export wgNetGetConfig
-func wgNetGetConfig(tunnelHandle int32) *C.char {
-	device, err := netTunnelHandles.Get(tunnelHandle)
+func wgNetGetConfig(netTunnelHandle int32) *C.char {
+	device, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
 		return nil
 	}
@@ -58,7 +58,7 @@ func wgNetGetConfig(tunnelHandle int32) *C.char {
 }
 
 //export wgNetStartUDPConnectionProxy
-func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clientPort uint16, exitEndpointStr *C.char, logSink LogSink, logContext LogContext) int32 {
+func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clientPort uint16, endpoint *C.char, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
 
 	dev, err := netTunnelHandles.Get(netTunnelHandle)
@@ -67,7 +67,7 @@ func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clie
 		return ERROR_GENERAL_FAILURE
 	}
 
-	exitEndpoint, err := netip.ParseAddrPort(C.GoString(exitEndpointStr))
+	addr, err := netip.ParseAddrPort(C.GoString(endpoint))
 	if err != nil {
 		dev.Errorf("Failed to parse endpoint: %v", err)
 		return ERROR_GENERAL_FAILURE
@@ -76,7 +76,7 @@ func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clie
 	forwarderConfig := forwarders.UDPForwarderConfig{
 		ListenPort: listenPort,
 		ClientPort: clientPort,
-		Endpoint:   exitEndpoint,
+		Endpoint:   addr,
 	}
 
 	udpForwarder, err := forwarders.NewUDPForwarder(forwarderConfig, dev.Net, logger)
@@ -96,8 +96,8 @@ func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clie
 }
 
 //export wgNetStopUDPConnectionProxy
-func wgNetStopUDPConnectionProxy(udpForwarderHandle int32) {
-	udpForwarder, err := udpForwarders.Remove(udpForwarderHandle)
+func wgNetStopUDPConnectionProxy(udpProxyHandle int32) {
+	udpForwarder, err := udpForwarders.Remove(udpProxyHandle)
 	if err != nil {
 		return
 	}
@@ -144,8 +144,8 @@ func wgNetStartTCPConnectionProxy(netTunnelHandle int32, endpoint *C.char, outLi
 }
 
 //export wgNetStopTCPConnectionProxy
-func wgNetStopTCPConnectionProxy(tcpForwarderHandle int32) {
-	forwarder, err := tcpForwarders.Remove(tcpForwarderHandle)
+func wgNetStopTCPConnectionProxy(tcpProxyHandle int32) {
+	forwarder, err := tcpForwarders.Remove(tcpProxyHandle)
 	if err != nil {
 		return
 	}
