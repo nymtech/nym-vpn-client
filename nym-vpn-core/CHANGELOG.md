@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Daemon global and service configuration is now stored in JSON format, allowing versioning to be
   supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
+- Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
 
 ## [1.14.0] - 2025-08-26
 
@@ -36,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reconnect on failure to resolve gateway addresses instead of entering error
   state (https://github.com/nymtech/nym-vpn-client/pull/3268)
 - Reconnect to new gateways every 2 failed connection attempts (https://github.com/nymtech/nym-vpn-client/pull/3273)
-- Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
 
 ### Fixed
 
