@@ -141,7 +141,6 @@ func (w *TCPForwarder) routineHandleNewConnection(inbound *net.TCPConn) {
 
 	go func() {
 		<-ctx.Done()
-		w.logger.Verbosef("tcpforwarder(listen): close inbound")
 		inbound.Close()
 	}()
 
@@ -154,7 +153,6 @@ func (w *TCPForwarder) routineHandleNewConnection(inbound *net.TCPConn) {
 
 	go func() {
 		<-ctx.Done()
-		w.logger.Verbosef("tcpforwarder(listen): close outbound")
 		outbound.Close()
 	}()
 
@@ -206,11 +204,7 @@ func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gone
 }
 
 func (w *TCPForwarder) routineHandleOutbound(inbound *net.TCPConn, outbound *gonet.TCPConn, waitGroup *sync.WaitGroup) {
-	defer func() {
-		w.logger.Verbosef("tcpforwarder(outbound): connWaitGroup.Done()")
-		waitGroup.Done()
-	}()
-
+	defer waitGroup.Done()
 	defer w.logger.Verbosef("tcpforwarder(outbound): closed")
 
 	outboundBuffer := make([]byte, TCP_BUFFER_LEN)

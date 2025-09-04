@@ -219,7 +219,7 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        unsafe { wgBumpSockets(self.handle) }
+        unsafe { wgBumpSockets(self.tunnel_handle) }
     }
 
     /// Re-bind tunnel socket to the new network interface.
