@@ -13,9 +13,6 @@ pub const ETHERNET_V2_MTU: u16 = 1500;
 /// WG tunnel overhead (IPv6)
 pub const WG_TUNNEL_OVERHEAD: u16 = 80;
 
-/// Local port used for accepting exit traffic.
-const DEFAULT_UDP_FORWARDER_PORT: u16 = 34001;
-
 /// Local port used by exit tunnel when sending traffic to the udp forwarder.
 const DEFAULT_EXIT_WG_CLIENT_PORT: u16 = 54001;
 
@@ -73,7 +70,7 @@ impl TwoHopConfig {
                 } else {
                     IpAddr::V6(Ipv6Addr::LOCALHOST)
                 },
-                Self::get_dynamic_port(DEFAULT_UDP_FORWARDER_PORT),
+                0,
             ),
             exit_endpoint: exit.peer.endpoint,
             client_port,
@@ -113,6 +110,12 @@ impl TwoHopConfig {
             forwarder: forwarder_config,
             tun: tun_config,
         }
+    }
+
+    /// Set the address of UDP proxy used for injecting traffic into netstack tunnel.
+    pub fn set_udp_proxy_listen_addr(&mut self, addr: SocketAddr) {
+        self.forwarder.listen_endpoint = addr;
+        self.exit.peer.endpoint = addr;
     }
 }
 

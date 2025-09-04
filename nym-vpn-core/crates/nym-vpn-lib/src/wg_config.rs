@@ -14,7 +14,7 @@ use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::amnezia::AmneziaConfig;
 use nym_wg_go::{PeerConfig, PrivateKey, PublicKey, netstack, wireguard_go};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WgNodeConfig {
     /// Interface configuration
     pub interface: WgInterface,
@@ -26,6 +26,7 @@ pub struct WgNodeConfig {
     pub allowed_ips: AllowedIps,
 }
 
+#[derive(Clone)]
 pub struct WgInterface {
     /// WG client port.
     pub listen_port: Option<u16>,
