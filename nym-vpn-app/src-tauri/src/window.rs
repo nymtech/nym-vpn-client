@@ -82,8 +82,8 @@ impl AppWindow {
         .center()
         .focused(true)
         .inner_size(328.0, 710.0)
-        .min_inner_size(160.0, 346.0)
-        .max_inner_size(600.0, 1299.0)
+        .min_inner_size(160.0, 200.0)
+        .max_inner_size(800.0, 1400.0)
         .initialization_script(AppWindow::init_js(init_env.to_json()))
         .build()
         .inspect_err(|e| error!("failed to create main window: {e}"))?;
@@ -181,9 +181,9 @@ impl AppWindow {
         };
         // in case of monitor > 1440p, increase the max allowed window size
         if monitor.size().width > 2560 {
-            debug!("setting max window size to 739x1600");
+            debug!("setting max window size to 1000x1600");
             self.0
-                .set_max_size(Some(PhysicalSize::new(739, 1600)))
+                .set_max_size(Some(PhysicalSize::new(1000, 1600)))
                 .inspect_err(|e| {
                     error!("failed to set max size: {e}");
                 })
