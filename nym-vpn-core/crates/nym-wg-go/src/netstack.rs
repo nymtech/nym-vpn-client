@@ -1,11 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "android")]
+use std::os::fd::RawFd;
 use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
     net::{IpAddr, SocketAddr},
-    os::fd::RawFd,
     str::FromStr,
 };
 
@@ -136,7 +137,7 @@ impl Tunnel {
     /// Get socket descriptor for IPv4 tunnel connection.
     #[cfg(target_os = "android")]
     pub fn get_socket_v4(&self) -> Result<RawFd> {
-        let fd = unsafe { wgNetGetSocketV4(self.handle) };
+        let fd = unsafe { wgNetGetSocketV4(self.tunnel_handle) };
         if fd >= 0 {
             Ok(fd)
         } else {
@@ -147,7 +148,7 @@ impl Tunnel {
     /// Get socket descriptor for IPv6 tunnel connection.
     #[cfg(target_os = "android")]
     pub fn get_socket_v6(&self) -> Result<RawFd> {
-        let fd = unsafe { wgNetGetSocketV6(self.handle) };
+        let fd = unsafe { wgNetGetSocketV6(self.tunnel_handle) };
         if fd >= 0 {
             Ok(fd)
         } else {
@@ -259,7 +260,7 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        unsafe { wgNetBumpSockets(self.handle) }
+        unsafe { wgNetBumpSockets(self.tunnel_handle) }
     }
 
     /// Re-bind tunnel socket to the new network interface.
