@@ -145,7 +145,7 @@ func (w *UDPForwarder) routineHandleInbound(inbound *net.UDPConn, outbound *gone
 
 		// todo: is it possible?
 		if bytesWritten != bytesRead {
-			w.logger.Errorf("udpforwarder(outbound): wrote %d bytes, expected %d", bytesWritten, bytesRead)
+			w.logger.Errorf("udpforwarder(inbound): wrote %d bytes, expected %d", bytesWritten, bytesRead)
 		}
 	}
 }
