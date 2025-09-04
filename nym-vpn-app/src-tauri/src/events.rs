@@ -12,18 +12,6 @@ pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_TUNNEL_STATE: &str = "tunnel-state";
 pub const EVENT_ACCOUNT_STATE: &str = "account-state";
 pub const EVENT_MIXNET: &str = "mixnet-event";
-pub const EVENT_CONNECTION_PROGRESS: &str = "connection-progress";
-
-#[derive(Clone, Debug, Serialize)]
-pub enum ConnectProgressMsg {
-    Initializing,
-    InitDone,
-}
-
-#[derive(Clone, Serialize)]
-pub struct ProgressEventPayload {
-    pub key: ConnectProgressMsg,
-}
 
 #[derive(Clone, Serialize, TS)]
 #[ts(export)]
@@ -73,7 +61,6 @@ pub trait AppHandleEventEmitter {
     fn emit_disconnecting(&self);
     fn emit_disconnected(&self, error: Option<BackendError>);
     fn emit_mixnet_event(&self, event: MixnetEvent);
-    fn emit_connection_progress(&self, key: ConnectProgressMsg);
     fn emit_account_state_update(&self, state: &AccountState);
 }
 
@@ -117,12 +104,6 @@ impl AppHandleEventEmitter for tauri::AppHandle {
 
     fn emit_mixnet_event(&self, event: MixnetEvent) {
         self.emit(EVENT_MIXNET, MixnetEventPayload::new(event)).ok();
-    }
-
-    fn emit_connection_progress(&self, key: ConnectProgressMsg) {
-        trace!("sending event [{}]: {:?}", EVENT_CONNECTION_PROGRESS, key);
-        self.emit(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key })
-            .ok();
     }
 
     fn emit_account_state_update(&self, state: &AccountState) {

@@ -62,7 +62,7 @@ function Home() {
     ) {
       console.info('disconnect');
       if (state === 'connecting') {
-        dispatch({ type: 'new-progress-message', message: 'Canceling' });
+        dispatch({ type: 'new-progress-message', message: 'canceling' });
       }
       invoke('disconnect')
         .then((result) => {

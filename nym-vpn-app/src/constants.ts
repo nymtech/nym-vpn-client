@@ -3,7 +3,6 @@ import { Country } from './types';
 export const AppName = 'NymVPN';
 export const TunnelStateEvent = 'tunnel-state';
 export const AccountStateEvent = 'account-state';
-export const ProgressEvent = 'connection-progress';
 export const DaemonEvent = 'vpnd-status';
 export const MixnetEvent = 'mixnet-event';
 // ⚠ keep this value in sync with the one declared in `index.html`

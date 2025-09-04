@@ -8,6 +8,7 @@ pub mod feature_flags;
 pub mod gateway;
 mod network;
 mod node;
+mod proto;
 pub mod system_message;
 mod timestamp;
 pub mod tunnel;

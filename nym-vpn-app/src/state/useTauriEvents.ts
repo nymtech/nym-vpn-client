@@ -6,7 +6,6 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
   MixnetEventPayload,
-  ProgressEventPayload,
   StateDispatch,
   TAccountState,
   TunnelStateEvent as TunnelStatePayload,
@@ -19,7 +18,6 @@ import {
   AccountStateEvent,
   DaemonEvent,
   MixnetEvent,
-  ProgressEvent,
   TunnelStateEvent,
 } from '../constants';
 import { Notification } from '../contexts';
@@ -99,18 +97,6 @@ export function useTauriEvents(
     });
   }, [dispatch]);
 
-  const registerProgressListener = useCallback(() => {
-    return listen<ProgressEventPayload>(ProgressEvent, (event) => {
-      console.log(
-        `received event [${event.event}], message: ${event.payload.key}`,
-      );
-      dispatch({
-        type: 'new-progress-message',
-        message: event.payload.key,
-      });
-    });
-  }, [dispatch]);
-
   const registerThemeChangedListener = useCallback(() => {
     const window = getCurrentWebviewWindow();
     return window.onThemeChanged(({ payload }) => {
@@ -128,7 +114,6 @@ export function useTauriEvents(
     const unlistenTunnelState = registerTunnelStateListener();
     const unlistenAccountState = registerAccountStateListener();
     const unlistenMixnetEvent = registerMixnetEventListener();
-    const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
 
     return () => {
@@ -136,7 +121,6 @@ export function useTauriEvents(
       unlistenTunnelState.then((f) => f());
       unlistenAccountState.then((f) => f());
       unlistenMixnetEvent.then((f) => f());
-      unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
     };
   }, [
@@ -144,7 +128,6 @@ export function useTauriEvents(
     registerTunnelStateListener,
     registerAccountStateListener,
     registerMixnetEventListener,
-    registerProgressListener,
     registerThemeChangedListener,
   ]);
 }

@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { useMainState } from '../../contexts';
 import { setToString } from '../../util';
-import { useI18nAccountState, useI18nError } from '../../hooks';
+import {
+  useI18nAccountState,
+  useI18nError,
+  useI18nProgressMsg,
+} from '../../hooks';
 import { AppError } from '../../types';
 import ConnectionBadge from './ConnectionBadge';
 import ConnectionTimer from './ConnectionTimer';
@@ -14,7 +18,7 @@ function TunnelState() {
     error,
     progressMessages,
     tunnelError,
-    retryAttempt,
+    connectingState,
     accountState,
     accountError,
   } = useMainState();
@@ -28,13 +32,16 @@ function TunnelState() {
     accountState === 'error';
   const isError = tunnelError || error || isAccountError;
   const isOffline = state === 'offline' || state === 'offline-auto-reconnect';
-  const showRetryAttempt = state === 'connecting' && !error && retryAttempt > 0;
-  const showProgressMsg =
-    loading && progressMessages.length > 0 && !error && !showRetryAttempt;
+  const retryAttempt = connectingState?.retryAttempt || 0;
+  const showRetryAttempt = !error && state === 'connecting' && retryAttempt > 0;
+  const showConnectingProgress =
+    !error && state === 'connecting' && connectingState?.progress !== undefined;
+  const showProgressMsg = loading && !error && progressMessages.length > 0;
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
-  const { tA } = useI18nAccountState();
+  const { t: tA } = useI18nAccountState();
+  const { t: tP } = useI18nProgressMsg();
 
   useEffect(() => {
     // Quickly hide and show badge when state changes to trigger
@@ -60,7 +67,46 @@ function TunnelState() {
     </>
   );
 
-  const InfoMessage = (message: string) => (
+  const messages = useMemo(() => {
+    const msgs = [];
+    if (isOffline) {
+      msgs.push(
+        t(
+          state === 'offline' ? 'offline-message' : 'offline-reconnect-message',
+          { ns: 'home' },
+        ),
+      );
+      return msgs;
+    }
+    if (showProgressMsg) {
+      msgs.push(tP(progressMessages[progressMessages.length - 1]));
+    }
+    if (showRetryAttempt) {
+      msgs.push(
+        t('connection-attempt', {
+          ns: 'backendMessages',
+          count: retryAttempt,
+        }),
+      );
+    }
+    if (showConnectingProgress) {
+      msgs.push(tP(connectingState.progress));
+    }
+    return msgs;
+  }, [
+    connectingState?.progress,
+    isOffline,
+    progressMessages,
+    retryAttempt,
+    showConnectingProgress,
+    showProgressMsg,
+    showRetryAttempt,
+    state,
+    t,
+    tP,
+  ]);
+
+  const InfoMessage = (message: string[]) => (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -68,7 +114,14 @@ function TunnelState() {
       className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
       data-testid="tunnel-info-message"
     >
-      <p className="text-base text-iron dark:text-bombay">{message}</p>
+      {message.map((msg, idx) => (
+        <p
+          key={`${msg}-${idx}`}
+          className="text-base text-iron dark:text-bombay"
+        >
+          {msg}
+        </p>
+      ))}
     </motion.div>
   );
 
@@ -101,34 +154,7 @@ function TunnelState() {
         className="w-full flex flex-col flex-1 items-center overflow-hidden"
         data-testid="tunnel-details-container"
       >
-        {showProgressMsg &&
-          InfoMessage(
-            t(
-              `connection-progress.${
-                progressMessages[progressMessages.length - 1]
-              }`,
-              {
-                ns: 'backendMessages',
-              },
-            ),
-          )}
-        {showRetryAttempt &&
-          InfoMessage(
-            t('connection-attempt', {
-              ns: 'backendMessages',
-              count: retryAttempt,
-            }),
-          )}
-        {isOffline &&
-          !isError &&
-          InfoMessage(
-            t(
-              state === 'offline'
-                ? 'offline-message'
-                : 'offline-reconnect-message',
-              { ns: 'home' },
-            ),
-          )}
+        {!isError && messages.length > 0 && InfoMessage(messages)}
         {state === 'connected' && <ConnectionTimer />}
         {isError && (
           <motion.div

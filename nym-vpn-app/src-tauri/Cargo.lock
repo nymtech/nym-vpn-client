@@ -3411,6 +3411,7 @@ dependencies = [
  "nym-platform-metadata",
  "nym-vpn-proto",
  "once_cell",
+ "prost",
  "rust_iso3166",
  "semver",
  "sentry",

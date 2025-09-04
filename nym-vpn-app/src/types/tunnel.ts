@@ -1,7 +1,21 @@
 import { BackendError, ErrorKey } from './tauri';
 
 export type TunnelConnected = { connected: Tunnel };
-export type ConnectingState = { tunnel: Tunnel | null; retryAttempt: number };
+export type ConnectingProgress =
+  | 'resolving-api-addresses'
+  | 'awaiting-account-readiness'
+  | 'refreshing-gateways'
+  | 'selecting-gateways'
+  | 'connecting-mixnet-client'
+  | 'connecting-tunnel';
+export type ConnectingState = {
+  tunnelType: 'wg' | 'mixnet';
+  progress: ConnectingProgress;
+  tunnel: TunnelData | null;
+  retryAttempt: number;
+  entryGwId: string | null;
+  exitGwId: string | null;
+};
 export type TunnelConnecting = {
   connecting: ConnectingState;
 };
