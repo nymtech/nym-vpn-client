@@ -69,7 +69,8 @@ func (wself *Container[Context]) Remove(handle int32) (*Context, error) {
 }
 
 func (wself *Container[Context]) ForEach(callback func(Context)) {
-	wself.lock.Lock()
+	// Make a shallow copy of the tunnels map to avoid locking during iteration
+	wself.lock.RLock()
 	tunnels := wself.tunnels
 	wself.lock.Unlock()
 
