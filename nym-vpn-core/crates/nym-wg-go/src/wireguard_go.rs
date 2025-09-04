@@ -117,8 +117,8 @@ impl Tunnel {
     /// Start new WireGuard tunnel
     #[cfg(not(windows))]
     pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
-        let settings =
-            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let settings = CString::new(config.as_uapi_config())
+            .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
             wgTurnOn(
@@ -150,11 +150,11 @@ impl Tunnel {
         let settings =
             CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
         let interface_name_cstr =
-            CString::new(interface_name).map_err(|_| Error::InterfaceNameContainsNulByte)?;
+            CString::new(interface_name).map_err(|_| Error::ConvertToCString("interface name"))?;
         let requested_guid_cstr =
-            CString::new(requested_guid).map_err(|_| Error::RequestedGuidContainsNulByte)?;
+            CString::new(requested_guid).map_err(|_| Error::ConvertToCString("requested guid"))?;
         let wintun_tunnel_type_cstr =
-            CString::new(wintun_tunnel_type).map_err(|_| Error::WintunTunnelTypeContainsNulByte)?;
+            CString::new(wintun_tunnel_type).map_err(|_| Error::ConvertToCString("tunnel type"))?;
 
         let mut out_interface_name: *mut c_char = std::ptr::null_mut();
         let out_interface_name_ptr: *mut *mut c_char = &mut out_interface_name;
@@ -183,7 +183,7 @@ impl Tunnel {
             // SAFETY: conversion must never fail.
             let wintun_iface_name = wintun_iface_name_cstr
                 .to_str()
-                .map_err(|_| Error::ConvertWintunInterfaceNameToString)
+                .map_err(|_| Error::ConvertToString("wintun interface name"))
                 .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.
@@ -235,8 +235,8 @@ impl Tunnel {
         for peer_update in peer_updates {
             peer_update.append_to(&mut config_builder);
         }
-        let settings =
-            CString::new(config_builder.into_bytes()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let settings = CString::new(config_builder.into_bytes())
+            .map_err(|_| Error::ConvertToCString("peer update config"))?;
         let ret_code = unsafe { wgSetConfig(self.tunnel_handle, settings.as_ptr()) };
 
         if ret_code == 0 {
