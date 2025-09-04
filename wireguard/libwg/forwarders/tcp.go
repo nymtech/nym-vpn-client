@@ -23,11 +23,11 @@ type TCPForwarder struct {
 	// Netstack tunnel
 	tnet *netstack.Net
 
-	// Endpoint to connect to over netstack
-	endpoint netip.AddrPort
-
 	// TCP listener accepting connections on local address and establishing a bidirectional connection to the endpoint over netstack tunnel
 	listener *net.TCPListener
+
+	// Endpoint to connect to over netstack
+	endpoint netip.AddrPort
 
 	// Wait group used to signal when all goroutines have finished execution.
 	waitGroup *sync.WaitGroup
@@ -55,12 +55,13 @@ func NewTCPForwarder(endpoint netip.AddrPort, tnet *netstack.Net, logger *device
 	waitGroup := &sync.WaitGroup{}
 	forwarder := &TCPForwarder{
 		logger:    logger,
+		tnet:      tnet,
 		listener:  listener,
 		endpoint:  endpoint,
 		waitGroup: waitGroup,
 	}
 	waitGroup.Add(1)
-	go forwarder.routineListenTCP(listener)
+	go forwarder.routineListenTCP()
 
 	return forwarder, nil
 }
@@ -71,6 +72,8 @@ func (w *TCPForwarder) GetListenAddr() net.Addr {
 }
 
 func (w *TCPForwarder) Close() {
+	w.logger.Verbosef("tcpforwarder(listen): close!")
+
 	// Close TCP listener connection
 	// Active connections will be closed shortly after
 	w.listener.Close()
@@ -83,10 +86,10 @@ func (w *TCPForwarder) Wait() {
 	w.waitGroup.Wait()
 }
 
-func (w *TCPForwarder) routineListenTCP(listener *net.TCPListener) {
+func (w *TCPForwarder) routineListenTCP() {
 	defer w.waitGroup.Done()
 
-	w.logger.Verbosef("tcpforwarder(listen): listening on %s", listener.Addr().String())
+	w.logger.Verbosef("tcpforwarder(listen): listening on %s", w.listener.Addr().String())
 	defer w.logger.Verbosef("tcpforwarder(listen): closed")
 
 	outbounds := []*gonet.TCPConn{}
@@ -102,12 +105,13 @@ func (w *TCPForwarder) routineListenTCP(listener *net.TCPListener) {
 	}()
 
 	for {
-		inbound, err := listener.AcceptTCP()
+		inbound, err := w.listener.AcceptTCP()
 		if err != nil {
 			w.logger.Errorf("tcpforwarder(listen): failed to accept connection: %s", err.Error())
 			return
 		}
 
+		w.logger.Verbosef("tcpforwarder(listen): dial %s", w.endpoint.String())
 		outbound, err := w.tnet.DialTCPAddrPort(w.endpoint)
 		if err != nil {
 			w.logger.Errorf("tcpforwarder(listen): failed to connect to %s: %s", w.endpoint.String(), err.Error())
