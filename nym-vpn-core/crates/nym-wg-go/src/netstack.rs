@@ -177,21 +177,41 @@ impl Tunnel {
         client_port: u16,
         endpoint: SocketAddr,
     ) -> Result<InTunnelUdpConnectionProxy> {
-        let exit_endpoint =
-            CString::new(endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
+        let endpoint = CString::new(endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
+        let mut out_listen_addr: *mut c_char = std::ptr::null_mut();
+        let out_listen_addr_ptr: *mut *mut c_char = &mut out_listen_addr;
         let udp_proxy_handle = unsafe {
             wgNetStartUDPConnectionProxy(
                 self.tunnel_handle,
                 listen_port,
                 client_port,
-                exit_endpoint.as_ptr(),
+                endpoint.as_ptr(),
+                out_listen_addr_ptr,
                 wg_netstack_logger_callback,
                 std::ptr::null_mut(),
             )
         };
 
         if udp_proxy_handle >= 0 {
-            Ok(InTunnelUdpConnectionProxy::new(udp_proxy_handle))
+            // SAFETY: libwg is expected to set a non-null value upon successful return.
+            let listen_addr_cstr = unsafe { CStr::from_ptr(out_listen_addr) };
+
+            let listen_addr = listen_addr_cstr
+                .to_str()
+                .map_err(|_| Error::ConvertTcpListenAddrToString)
+                .map(|s| s.to_owned());
+
+            // SAFETY: free C string allocated in Go using the correct deallocator.
+            unsafe { wgFreePtr(out_listen_addr as *mut _) };
+
+            let listen_addr = listen_addr?;
+            let listen_addr =
+                SocketAddr::from_str(&listen_addr).map_err(|_| Error::ParseListenAddr)?;
+
+            Ok(InTunnelUdpConnectionProxy::new(
+                udp_proxy_handle,
+                listen_addr,
+            ))
         } else {
             Err(Error::OpenUDPConnection(udp_proxy_handle))
         }
@@ -237,7 +257,7 @@ impl Tunnel {
 
             let listen_addr = listen_addr?;
             let listen_addr =
-                SocketAddr::from_str(&listen_addr).map_err(|_| Error::ParseTcpListenAddr)?;
+                SocketAddr::from_str(&listen_addr).map_err(|_| Error::ParseListenAddr)?;
 
             Ok(InTunnelTcpConnectionProxy::new(
                 tcp_proxy_handle,
@@ -281,11 +301,20 @@ impl Drop for Tunnel {
 #[derive(Debug)]
 pub struct InTunnelUdpConnectionProxy {
     proxy_handle: i32,
+    listen_addr: SocketAddr,
 }
 
 impl InTunnelUdpConnectionProxy {
-    fn new(proxy_handle: i32) -> Self {
-        Self { proxy_handle }
+    fn new(proxy_handle: i32, listen_addr: SocketAddr) -> Self {
+        Self {
+            proxy_handle,
+            listen_addr,
+        }
+    }
+
+    /// Returns local endpoint that can be used to proxy data to the remote endpoint.
+    pub fn listen_addr(&self) -> SocketAddr {
+        self.listen_addr
     }
 
     pub fn close(mut self) {
@@ -321,7 +350,7 @@ impl InTunnelTcpConnectionProxy {
         }
     }
 
-    /// Returns an address that can be used to connect to the endpoint over the tunnel.
+    /// Returns local endpoint that can be used to proxy data to the remote endpoint.
     pub fn listen_addr(&self) -> SocketAddr {
         self.listen_addr
     }
@@ -380,7 +409,8 @@ unsafe extern "C" {
         net_tunnel_handle: i32,
         listen_port: u16,
         client_port: u16,
-        exit_endpoint: *const c_char,
+        endpoint: *const c_char,
+        out_listen_addr: *mut *mut c_char,
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;

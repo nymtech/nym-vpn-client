@@ -58,8 +58,13 @@ func wgNetGetConfig(netTunnelHandle int32) *C.char {
 }
 
 //export wgNetStartUDPConnectionProxy
-func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clientPort uint16, endpoint *C.char, logSink LogSink, logContext LogContext) int32 {
+func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clientPort uint16, endpoint *C.char, outListenAddr **C.char, logSink LogSink, logContext LogContext) int32 {
 	logger := logging.NewLogger(logSink, logContext)
+
+	if outListenAddr == nil {
+		logger.Errorf("outListenAddr is null")
+		return ERROR_GENERAL_FAILURE
+	}
 
 	dev, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
@@ -79,20 +84,22 @@ func wgNetStartUDPConnectionProxy(netTunnelHandle int32, listenPort uint16, clie
 		Endpoint:   addr,
 	}
 
-	udpForwarder, err := forwarders.NewUDPForwarder(forwarderConfig, dev.Net, logger)
+	forwarder, err := forwarders.NewUDPForwarder(forwarderConfig, dev.Net, logger)
 	if err != nil {
 		dev.Errorf("Failed to create udp forwarder: %v", err)
 		return ERROR_GENERAL_FAILURE
 	}
 
-	forwarderHandle, err := udpForwarders.Insert(udpForwarder)
+	index, err := udpForwarders.Insert(forwarder)
 	if err != nil {
 		dev.Errorf("Failed to store udp forwarder: %v", err)
-		udpForwarder.Close()
+		forwarder.Close()
 		return ERROR_GENERAL_FAILURE
 	}
 
-	return forwarderHandle
+	*outListenAddr = C.CString(forwarder.GetListenAddr().String())
+
+	return index
 }
 
 //export wgNetStopUDPConnectionProxy

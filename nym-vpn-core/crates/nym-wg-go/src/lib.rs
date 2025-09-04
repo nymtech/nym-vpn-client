@@ -64,8 +64,8 @@ pub enum Error {
     #[error("failed to convert TCP listen address to string")]
     ConvertTcpListenAddrToString,
 
-    #[error("failed to parse TCP listen address")]
-    ParseTcpListenAddr,
+    #[error("failed to parse listen address")]
+    ParseListenAddr,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
