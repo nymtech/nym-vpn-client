@@ -374,6 +374,8 @@ unsafe extern "C" {
     unsafe fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
 
     /// Start UDP connection proxy through the netstack tunnel.
+    ///
+    /// Returns negative integer on error, otherwise the valid UDP proxy handle.
     unsafe fn wgNetStartUDPConnectionProxy(
         net_tunnel_handle: i32,
         listen_port: u16,
@@ -384,9 +386,11 @@ unsafe extern "C" {
     ) -> i32;
 
     /// Stop UDP connection proxy.
-    unsafe fn wgNetStopUDPConnectionProxy(handle: i32);
+    unsafe fn wgNetStopUDPConnectionProxy(udp_proxy_handle: i32);
 
     /// Start TCP connection proxy through the netstack tunnel.
+    ///
+    /// Returns negative integer on error, otherwise the valid TCP proxy handle.
     unsafe fn wgNetStartTCPConnectionProxy(
         net_tunnel_handle: i32,
         endpoint: *const c_char,
@@ -396,7 +400,7 @@ unsafe extern "C" {
     ) -> i32;
 
     /// Stop TCP connection proxy.
-    unsafe fn wgNetStopTCPConnectionProxy(tcp_conn_handle: i32);
+    unsafe fn wgNetStopTCPConnectionProxy(tcp_proxy_handle: i32);
 
     /// Returns tunnel IPv4 socket.
     #[cfg(target_os = "android")]
@@ -408,7 +412,7 @@ unsafe extern "C" {
 
     /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
-    unsafe fn wgNetBumpSockets(handle: i32);
+    unsafe fn wgNetBumpSockets(net_tunnel_handle: i32);
 
     /// Re-bind tunnel socket to the new interface.
     ///
