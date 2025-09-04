@@ -7,7 +7,7 @@ use nym_wireguard_private_metadata_shared::ErrorResponse;
 #[derive(Debug, thiserror::Error)]
 pub enum MetadataClientError {
     #[error(transparent)]
-    HttpClientError(#[from] HttpClientError<ErrorResponse>),
+    HttpClientError(#[from] HttpClientError),
 
     #[error(transparent)]
     NymWireguardMetadataClient(#[from] nym_wireguard_private_metadata_shared::error::MetadataError),

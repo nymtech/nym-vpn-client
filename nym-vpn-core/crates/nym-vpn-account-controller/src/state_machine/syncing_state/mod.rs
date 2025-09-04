@@ -156,24 +156,18 @@ impl SyncingState {
             }
 
             Err(e) => {
-                match NymErrorResponse::try_from(e) {
-                    Ok(error) => {
-                        // SW Use UUID when it will be available
-                        if error.status == "access_denied" && error.message == "Account not found" {
-                            // Request was fine, but account is unregistered
-                            // Later down the line we can maybe register it here
-                            Err(SyncError::UnregisteredAccount)
-                        } else {
-                            Err(SyncError::ApiResponseError {
-                                code_reference_id: error.code_reference_id,
-                            })
-                        }
-                    }
-
-                    Err(e) => {
-                        tracing::error!("Error trying to get account summary : {e}");
-                        Err(SyncError::ApiRequestError)
-                    }
+                let error_response = NymErrorResponse::from(e);
+                // SW Use UUID when it will be available
+                if error_response.status == "access_denied"
+                    && error_response.message == "Account not found"
+                {
+                    // Request was fine, but account is unregistered
+                    // Later down the line we can maybe register it here
+                    Err(SyncError::UnregisteredAccount)
+                } else {
+                    Err(SyncError::ApiResponseError {
+                        code_reference_id: error_response.code_reference_id,
+                    })
                 }
             }
         }
@@ -314,11 +308,9 @@ impl SyncError {
 
 impl From<VpnApiClientError> for SyncError {
     fn from(value: VpnApiClientError) -> Self {
-        match NymErrorResponse::try_from(value) {
-            Ok(e) => SyncError::ApiResponseError {
-                code_reference_id: e.code_reference_id,
-            },
-            Err(_) => SyncError::ApiRequestError,
+        let error_response = NymErrorResponse::from(value);
+        SyncError::ApiResponseError {
+            code_reference_id: error_response.code_reference_id,
         }
     }
 }
