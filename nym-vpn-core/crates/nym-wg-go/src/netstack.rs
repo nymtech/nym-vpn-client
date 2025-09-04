@@ -93,11 +93,11 @@ pub struct Tunnel {
 impl Tunnel {
     pub fn start(config: Config) -> Result<Self> {
         let local_addrs = CString::new(to_comma_separated_addrs(&config.interface.local_addrs))
-            .map_err(|_| Error::IpAddrToCstr)?;
+            .map_err(|_| Error::ConvertToCString("interface local addrs"))?;
         let dns_addrs = CString::new(to_comma_separated_addrs(&config.interface.dns_addrs))
-            .map_err(|_| Error::IpAddrToCstr)?;
-        let settings =
-            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+            .map_err(|_| Error::ConvertToCString("interface dns addrs"))?;
+        let settings = CString::new(config.as_uapi_config())
+            .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
             wgNetTurnOn(
@@ -123,8 +123,8 @@ impl Tunnel {
         for peer_update in peer_updates {
             peer_update.append_to(&mut config_builder);
         }
-        let settings =
-            CString::new(config_builder.into_bytes()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let settings = CString::new(config_builder.into_bytes())
+            .map_err(|_| Error::ConvertToCString("peer update config"))?;
         let ret_code = unsafe { wgNetSetConfig(self.tunnel_handle, settings.as_ptr()) };
 
         if ret_code == 0 {
@@ -177,7 +177,8 @@ impl Tunnel {
         client_port: u16,
         endpoint: SocketAddr,
     ) -> Result<InTunnelUdpConnectionProxy> {
-        let endpoint = CString::new(endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
+        let endpoint =
+            CString::new(endpoint.to_string()).map_err(|_| Error::ConvertToCString("endpoint"))?;
         let mut out_listen_addr: *mut c_char = std::ptr::null_mut();
         let out_listen_addr_ptr: *mut *mut c_char = &mut out_listen_addr;
         let udp_proxy_handle = unsafe {
@@ -198,7 +199,7 @@ impl Tunnel {
 
             let listen_addr = listen_addr_cstr
                 .to_str()
-                .map_err(|_| Error::ConvertListenAddrToString)
+                .map_err(|_| Error::ConvertToString("udp listen address"))
                 .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.
@@ -213,7 +214,7 @@ impl Tunnel {
                 listen_addr,
             ))
         } else {
-            Err(Error::OpenUDPConnection(udp_proxy_handle))
+            Err(Error::StartUdpProxy(udp_proxy_handle))
         }
     }
 
@@ -229,7 +230,8 @@ impl Tunnel {
         endpoint: SocketAddr,
     ) -> Result<InTunnelTcpConnectionProxy> {
         let endpoint_str = endpoint.to_string();
-        let endpoint = CString::new(endpoint_str).map_err(|_| Error::EndpointContainsNulByte)?;
+        let endpoint =
+            CString::new(endpoint_str).map_err(|_| Error::ConvertToCString("endpoint"))?;
         let mut out_listen_addr: *mut c_char = std::ptr::null_mut();
         let out_listen_addr_ptr: *mut *mut c_char = &mut out_listen_addr;
 
@@ -249,7 +251,7 @@ impl Tunnel {
 
             let listen_addr = listen_addr_cstr
                 .to_str()
-                .map_err(|_| Error::ConvertListenAddrToString)
+                .map_err(|_| Error::ConvertToString("tcp listen address"))
                 .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.
@@ -264,7 +266,7 @@ impl Tunnel {
                 listen_addr,
             ))
         } else {
-            Err(Error::OpenTCPConnection(tcp_proxy_handle))
+            Err(Error::StartTcpProxy(tcp_proxy_handle))
         }
     }
 

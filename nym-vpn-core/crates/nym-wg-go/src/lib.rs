@@ -16,53 +16,27 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to convert IP addr into C string")]
-    IpAddrToCstr,
-
-    #[error("failed to convert socket addr into C string")]
-    SocketAddrToCstr,
-
-    #[error("config contains nul byte")]
-    ConfigContainsNulByte,
-
-    #[cfg(target_os = "windows")]
-    #[error("interface name contains nul byte")]
-    InterfaceNameContainsNulByte,
-
-    #[cfg(target_os = "windows")]
-    #[error("failed to convert Wintun interface name to string")]
-    ConvertWintunInterfaceNameToString,
-
-    #[cfg(target_os = "windows")]
-    #[error("requested guid contains nul byte")]
-    RequestedGuidContainsNulByte,
-
-    #[cfg(target_os = "windows")]
-    #[error("wintun tunnel type contains nul byte")]
-    WintunTunnelTypeContainsNulByte,
-
     #[error("failed to start the tunnel (code: {0})")]
     StartTunnel(i32),
 
-    #[error("failed to open UDP connection through the tunnel (code: {0})")]
-    OpenUDPConnection(i32),
+    #[error("failed to start UDP proxy (code: {0})")]
+    StartUdpProxy(i32),
+
+    #[error("failed to start TCP proxy (code: {0})")]
+    StartTcpProxy(i32),
 
     #[error("failed to set UAPI config (code: {0})")]
     SetUapiConfig(i64),
 
+    #[cfg(target_os = "android")]
     #[error("failed to obtain tunnel socket fd")]
     ObtainSocketFd,
 
-    #[cfg(unix)]
-    #[error("endpoint contains nul byte")]
-    EndpointContainsNulByte,
+    #[error("failed to convert {0} to C string")]
+    ConvertToCString(&'static str),
 
-    #[cfg(unix)]
-    #[error("failed to open TCP connection through the tunnel (code: {0})")]
-    OpenTCPConnection(i32),
-
-    #[error("failed to convert listen address to string")]
-    ConvertListenAddrToString,
+    #[error("failed to convert {0} to string")]
+    ConvertToString(&'static str),
 
     #[error("failed to parse listen address")]
     ParseListenAddr,
