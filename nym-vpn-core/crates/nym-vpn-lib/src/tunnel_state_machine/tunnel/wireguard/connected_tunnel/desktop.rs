@@ -255,6 +255,14 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
+        let entry_magic_bandwidth_tcp_proxy =
+            entry_tunnel.start_intunnel_tcp_connection_proxy("10.1.0.1:51830".parse().unwrap())?;
+
+        tracing::info!(
+            "Entry bandwidth proxy runs on {}",
+            entry_magic_bandwidth_tcp_proxy.listen_addr()
+        );
+
         let exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             #[cfg(unix)]
@@ -304,6 +312,7 @@ impl ConnectedTunnel {
             }
 
             entry_tunnel.stop();
+            entry_magic_bandwidth_tcp_proxy.close();
             exit_intunnel_udp_proxy.close();
 
             // Windows: do not drop exit tunnel as it owns the underlying tunnel device.
