@@ -25,6 +25,7 @@ import net.nymtech.nymvpn.ui.screens.welcome.components.WelcomeSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -42,7 +43,7 @@ fun WelcomeScreen(appUiState: AppUiState, viewModel: WelcomeViewModel = hiltView
 		},
 		onContinueClick = {
 			viewModel.onContinueClicked()
-			navController.navigateAndForget(Route.Main())
+			navController.replaceCurrentWith(Route.Main())
 		},
 	)
 }
