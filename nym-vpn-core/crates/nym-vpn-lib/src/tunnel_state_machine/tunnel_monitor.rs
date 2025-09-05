@@ -533,8 +533,7 @@ impl TunnelMonitor {
         // Send metadata endpoint data to the bandwidth controller
         match tunnel_interface {
             TunnelInterface::One(exit) => {
-                // kick off obtaining metadata endpoint in background
-                let metadata_event_handler = tokio::spawn(async move {
+                let _metadata_event_handler = tokio::spawn(async move {
                     if let Ok(entry_metadata_endpoint) = entry_metadata_addr_rx.await {
                         tracing::info!(
                             "Received entry metadata endpoint: {entry_metadata_endpoint}"

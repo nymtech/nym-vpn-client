@@ -164,7 +164,7 @@ impl Connector {
         let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
         let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
 
-        let metadata_event_handler = tokio::spawn(async move {
+        let _metadata_event_handler = tokio::spawn(async move {
             if let Ok(entry) = entry_metadata_rx.await {
                 entry_signal_tx.send(entry.into()).ok();
             }
