@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 
 use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
@@ -113,11 +113,7 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
-                IpNetwork::from(
-                    tunnel_constants
-                        .in_tunnel_banwidth_query_gateway_endpoint
-                        .ip(),
-                ),
+                IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
             self.entry_mtu(),
@@ -238,11 +234,7 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
-                IpNetwork::from(
-                    tunnel_constants
-                        .in_tunnel_banwidth_query_gateway_endpoint
-                        .ip(),
-                ),
+                IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
             self.entry_mtu(),
@@ -275,7 +267,7 @@ impl ConnectedTunnel {
         two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
 
         let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_intunnel_tcp_connection_proxy(
-            tunnel_constants.in_tunnel_banwidth_query_gateway_endpoint,
+            tunnel_constants.in_tunnel_bandwidth_metadata_endpoint,
         )?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
@@ -289,6 +281,11 @@ impl ConnectedTunnel {
             #[cfg(windows)]
             &options.wintun_tunnel_type,
         )?;
+
+        options
+            .metadata_proxy_tx
+            .send(entry_magic_bandwidth_tcp_proxy.listen_addr())
+            .ok();
 
         let shutdown_token = CancellationToken::new();
         let child_shutdown_token = shutdown_token.child_token();
@@ -447,6 +444,9 @@ pub struct TunTunTunnelOptions {
 
 /// Multihop configuration based on WireGuard/netstack.
 pub struct NetstackTunnelOptions {
+    /// Sender that receives an endpoint of metadata proxy for entry interface
+    pub metadata_proxy_tx: tokio::sync::oneshot::Sender<SocketAddr>,
+
     /// Entry tunnel device.
     #[cfg(unix)]
     pub exit_tun: AsyncDevice,

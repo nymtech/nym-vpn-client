@@ -92,13 +92,13 @@ enum NextTunnelState {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct TunnelConstants {
     /// in-tunnel gateway IP used for bandwidth queries
-    pub in_tunnel_banwidth_query_gateway_endpoint: SocketAddr,
+    pub in_tunnel_bandwidth_metadata_endpoint: SocketAddr,
 }
 
 impl Default for TunnelConstants {
     fn default() -> Self {
         Self {
-            in_tunnel_banwidth_query_gateway_endpoint: SocketAddr::new(
+            in_tunnel_bandwidth_metadata_endpoint: SocketAddr::new(
                 IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4),
                 WG_METADATA_PORT,
             ),

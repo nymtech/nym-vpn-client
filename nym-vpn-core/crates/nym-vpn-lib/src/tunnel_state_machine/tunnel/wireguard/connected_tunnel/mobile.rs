@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 #[cfg(target_os = "android")]
 use std::sync::Arc;
 #[cfg(target_os = "ios")]
@@ -91,6 +91,7 @@ impl ConnectedTunnel {
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
         tunnel_constants: TunnelConstants,
+        metadata_proxy_tx: tokio::sync::oneshot::Sender<SocketAddr>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
@@ -163,6 +164,10 @@ impl ConnectedTunnel {
 
         let shutdown_token = CancellationToken::new();
         let cloned_shutdown_token = shutdown_token.child_token();
+
+        metadata_proxy_tx
+            .send(entry_magic_bandwidth_tcp_proxy.listen_addr())
+            .await?;
 
         let event_loop_handle = tokio::spawn(async move {
             #[cfg(target_os = "ios")]
