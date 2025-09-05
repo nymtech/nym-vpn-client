@@ -134,7 +134,7 @@ func (w *TCPForwarder) routineListenTCP() {
 func (w *TCPForwarder) routineHandleNewConnection(inbound *net.TCPConn) {
 	defer w.waitGroup.Done()
 
-	w.logger.Verbosef("tcpforwarder(listen): accepted from %s", (*inbound).LocalAddr().String())
+	w.logger.Verbosef("tcpforwarder(listen): accepted from %s", (*inbound).RemoteAddr().String())
 
 	ctx, cancel := context.WithCancel(w.ctx)
 	defer cancel()
@@ -168,10 +168,10 @@ func (w *TCPForwarder) routineHandleNewConnection(inbound *net.TCPConn) {
 
 func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gonet.TCPConn, waitGroup *sync.WaitGroup) {
 	defer waitGroup.Done()
+	defer w.logger.Verbosef("tcpforwarder(inbound): closed")
+	defer outbound.Close()
 
 	inboundBuffer := make([]byte, TCP_BUFFER_LEN)
-
-	defer w.logger.Verbosef("tcpforwarder(inbound): closed")
 
 	for {
 		// Receive bytes from local socket
@@ -206,6 +206,7 @@ func (w *TCPForwarder) routineHandleInbound(inbound *net.TCPConn, outbound *gone
 func (w *TCPForwarder) routineHandleOutbound(inbound *net.TCPConn, outbound *gonet.TCPConn, waitGroup *sync.WaitGroup) {
 	defer waitGroup.Done()
 	defer w.logger.Verbosef("tcpforwarder(outbound): closed")
+	defer inbound.Close()
 
 	outboundBuffer := make([]byte, TCP_BUFFER_LEN)
 
