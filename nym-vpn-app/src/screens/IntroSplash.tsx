@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
-import { S_STATE } from '../static';
 import { NymSplash } from '../assets';
 
 let initialized = false;
 const splashDuration = 400; // ms
 
-function IntroSplash() {
+function IntroSplash({ theme }: { theme: 'light' | 'dark' }) {
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
@@ -22,7 +21,7 @@ function IntroSplash() {
   }, []);
 
   return (
-    <div className={clsx([S_STATE.uiTheme === 'dark' && 'dark'])}>
+    <div className={clsx([theme === 'dark' && 'dark'])}>
       <AnimatePresence>
         {!completed && (
           <motion.div

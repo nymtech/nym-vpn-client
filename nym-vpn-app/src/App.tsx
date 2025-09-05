@@ -19,18 +19,24 @@ import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
 import { GatewaysProvider } from './contexts/gateways';
 import { IntroAnim, IntroSplash } from './screens';
+import { InitState } from './types';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
 const os = type();
 
-function App() {
+function App({ init }: { init: InitState }) {
   const { i18n } = useTranslation();
   dayjs.locale(i18n.language);
   dayjs.extend(customParseFormat);
 
   const { set } = useLang();
-  const intro = os === 'windows' ? <IntroAnim /> : <IntroSplash />;
+  const intro =
+    os === 'windows' ? (
+      <IntroAnim theme={init.uiTheme} />
+    ) : (
+      <IntroSplash theme={init.uiTheme} />
+    );
 
   useEffect(() => {
     if (initialized) {
@@ -60,7 +66,7 @@ function App() {
       {!noSplash && intro}
       <InAppNotificationProvider>
         <Toast.Provider>
-          <MainStateProvider>
+          <MainStateProvider init={init}>
             <GatewaysProvider>
               <ThemeSetter>
                 <DialogProvider>
