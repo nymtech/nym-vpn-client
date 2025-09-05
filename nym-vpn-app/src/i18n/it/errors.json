@@ -1,57 +1,60 @@
 {
-  "unknown": "Unknown error",
-  "internal": "Internal error",
+  "unknown": "Errore sconosciuto",
+  "internal": "Errore interno",
   "daemon": {
-    "not-connected": "Not connected to the daemon",
-    "internal": "Daemon internal error",
-    "invalid-network": "Invalid network"
+    "not-connected": "Non connesso al demone",
+    "internal": "Errore interno del demone",
+    "invalid-network": "Rete non valida"
   },
-  "grpc": "Internal gRPC error",
+  "grpc": "Errore interno gRPC",
   "tunnel": {
-    "internal": "Internal error",
-    "api": "API error",
-    "account-controller": "Account controller: internal error",
-    "firewall": "Firewall error",
-    "routing": "Routing error",
-    "dns": "DNS error",
-    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
-    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
-    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
-    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Errore interno",
+    "firewall": "Errore firewall",
+    "routing": "Errore di routing",
+    "dns": "Errore DNS",
+    "same-entry-exit-gw": "Impossibile connettersi con lo stesso nodo di entrata e uscita. Si prega di cambiare la posizione del nodo di uscita o di entrata.",
+    "invalid-entry-gw-country": "Nodo di entrata non valido, si prega di cambiare la posizione del nodo di entrata",
+    "invalid-exit-gw-country": "Nato nodo di uscita non valido, si prega di cambiare la posizione del nodo di uscita",
+    "max-devices-reached": "Limite di dispositivo dell'account superato. Si prega di rimuovere un dispositivo dal tuo account prima di connettersi.",
+    "bandwidth-exceeded": "Larghezza di banda mensile superata. Si prega di aggiornare il piano dell'account.",
     "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "device-time-out-of-sync": "Il tempo del dispositivo non è sincronizzato. Si prega di sincronizzare l'ora del dispositivo con Internet.",
+    "ipv6-unavailable": "IPv6 non è disponibile nel sistema. Disabilita nelle impostazioni per usare IPv4",
+    "tun-device": "Errore dispositivo TUN",
+    "tunnel-provider": "Errore nel provider tunnel",
+    "bad-bandwidth-increase": "Valore di aumento larghezza di banda non valido",
+    "inactive-account": "Il tuo account è inattivo",
+    "device-logged-out": "Questo dispositivo è stato disconnesso. Effettua il login per continuare a utilizzare la VPN."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Errore account interno",
+    "max-devices-reached": "Limite del dispositivo account superato.",
+    "bandwidth-exceeded": "Larghezza di banda superata. Si prega di aggiornare il piano dell'account.",
     "invalid-recovery-phrase": "Frase di recupero non valida",
-    "storage": "Storage backend error",
-    "is-connected": "Unable to proceed while connected",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "storage": "Errore backend memoria",
+    "is-connected": "Impossibile procedere durante la connessione",
+    "no-account-stored": "Nessun account memorizzato",
+    "no-device-stored": "Nessun dispositivo memorizzato",
+    "existing-account": "Account già esistente",
+    "no-subscription": "Non hai un piano attivo. Tocca Inizia a iniziare la navigazione anonima.",
+    "status-not-active": "Il tuo account è inattivo",
+    "device-time-out-of-sync": "Il tempo del dispositivo non è sincronizzato. Si prega di sincronizzare l'ora del dispositivo con Internet."
   },
   "countries-request": {
-    "entry": "Failed to fetch the available entry node countries",
-    "exit": "Failed to fetch the available exit node countries",
-    "fast-mode": "Failed to fetch the available countries"
+    "entry": "Recupero dei paesi del nodo di entrata disponibili non riuscito",
+    "exit": "Recupero dei paesi del nodo di uscita disponibili non riuscito",
+    "fast-mode": "Recupero delle nazioni disponibili non riuscito"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "No bandwidth remaining.",
+    "entry-gateway-down": "Il gateway di entrata è giù",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "Il gateway di uscita è giù (IPv4)",
+      "ipv6": "Il gateway di uscita è giù (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "Errore di routing del gateway (IPv4)",
+      "ipv6": "Errore di routing del gateway (IPv6)"
     }
   }
 }

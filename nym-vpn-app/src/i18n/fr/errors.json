@@ -9,8 +9,6 @@
   "grpc": "Erreur interne gRPC",
   "tunnel": {
     "internal": "Erreur interne",
-    "api": "Erreur d'API",
-    "account-controller": "Contrôleur de compte : erreur interne",
     "firewall": "Erreur de pare-feu",
     "routing": "Erreur de routage",
     "dns": "Erreur de DNS",
@@ -21,7 +19,12 @@
     "bandwidth-exceeded": "La bande passante mensuelle a été dépassée. Veuillez mettre à niveau l'abonnement de votre compte.",
     "subscription-expired": "Votre abonnement a expiré. Le kill-switch vous protège, cliquez \"Stop\" et souscrivez à un nouvel abonnement dans votre compte.",
     "device-time-out-of-sync": "L'heure de votre appareil n'est pas synchronisée. Veuillez synchroniser l'heure de votre appareil avec celle d'Internet.",
-    "ipv6-unavailable": "L'IPv6 n'est pas disponible sur ce système. Désactiver l'option dans les réglages pour basculer en IPv4"
+    "ipv6-unavailable": "L'IPv6 n'est pas disponible sur ce système. Désactiver l'option dans les réglages pour basculer en IPv4",
+    "tun-device": "Erreur d'appareil TUN",
+    "tunnel-provider": "Erreur de fournisseur de tunnels",
+    "bad-bandwidth-increase": "Valeur d'augmentation de bande passante invalide",
+    "inactive-account": "Votre compte est inactif",
+    "device-logged-out": "Cet appareil a été déconnecté. Veuillez vous connecter pour continuer à utiliser le VPN."
   },
   "account": {
     "internal": "Erreur interne du compte",

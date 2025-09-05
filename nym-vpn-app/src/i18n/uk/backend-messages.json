@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "Ініціалізація клієнта Nym VPN…",
-    "InitDone": "Клієнт Nym VPN ініціалізовано",
-    "Canceling": "Скасування…"
+    "canceling": "Скасування…",
+    "resolving-api-addresses": "Вирішення API адрес…",
+    "awaiting-account-readiness": "Awaiting for account readiness…",
+    "refreshing-gateways": "Оновлення шлюзів…",
+    "selecting-gateways": "Вибір шлюзів…",
+    "connecting-mixnet-client": "Підключення до мікшнетового клієнта…",
+    "connecting-tunnel": "Підключення до тунелю VPN…"
   },
   "connection-attempt_one": "перезапуск... спроба {{count}}",
   "connection-attempt_other": "повторна спроба… спроб {{count}}"

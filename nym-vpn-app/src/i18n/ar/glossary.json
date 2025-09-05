@@ -7,7 +7,7 @@
   "ok": "أوكي",
   "selected": "محدد",
   "via": "عبر",
-  "stop": "stop",
-  "server_one": "server",
-  "server_other": "servers"
+  "stop": "إيقاف",
+  "server_one": "خادم",
+  "server_other": "خوادم"
 }

@@ -6,11 +6,11 @@
     "disconnected": "Disconnesso",
     "connecting": "Connessione in corso",
     "disconnecting": "Disconnessione",
-    "error": "Error",
-    "offline": "No internet"
+    "error": "Errore",
+    "offline": "Nessuna connessione internet"
   },
-  "offline-message": "Your device has no internet connection",
-  "offline-reconnect-message": "Will connect once the device goes online",
+  "offline-message": "Il tuo dispositivo non ha connessione internet",
+  "offline-reconnect-message": "Si connetterà una volta che il dispositivo va in rete",
   "last-hop": "Ultimo hop",
   "first-hop": "Primo hop",
   "connecting-message": "In connessione",
@@ -27,41 +27,41 @@
   },
   "last-node-select": {
     "label": "Ultimo hop",
-    "text": "Quick connect ({{country}})"
+    "text": "Connessione rapida ({{country}})"
   },
   "snackbar-disabled-message": {
     "connected": "Disabilità quando connesso al VPN",
-    "connecting": "Disabled while connecting to VPN",
-    "disconnecting": "Disabled while disconnecting from VPN",
-    "offline": "Disabled when there is no internet connection",
-    "error": "Disabled when there is an error"
+    "connecting": "Disabilitato durante la connessione alla VPN",
+    "disconnecting": "Disabilitato durante la disconnessione dalla VPN",
+    "offline": "Disabilitato quando non c'è connessione internet",
+    "error": "Disabilitato quando c'è un errore"
   },
   "modes-dialog": {
     "title": "Selezione modalità",
     "privacy-description": "Goditi il massimo livello di privacy mandando la tua connessione attraverso 5 server sulla mixnet. Perfetto per gestire in modo sicuro pagamenti, e-mail e messaggi.",
-    "fast-description": "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.",
+    "fast-description": "Prova la massima velocità con la connettività a 2 server. Questa modalità sfrutta AmneziaWG, una versione resistente alla censura di WireGuard, ideale per la navigazione veloce, lo streaming e la condivisione di file.",
     "link": "Continua a leggere"
   },
   "update-dialog": {
-    "title": "Update required!",
-    "description-1-app": "Your app is no longer supported.",
-    "description-1-daemon": "Your daemon is no longer supported.",
-    "description-1-other": "Your app and daemon are no longer supported.",
-    "description-2": "Please update to the latest version to continue using NymVPN.",
-    "button-update": "Update"
+    "title": "Aggiornamento richiesto!",
+    "description-1-app": "La tua app non è più supportata.",
+    "description-1-daemon": "Il tuo demone non è più supportato.",
+    "description-1-other": "L'app e il demone non sono più supportati.",
+    "description-2": "Si prega di aggiornare all'ultima versione per continuare a utilizzare NymVPN.",
+    "button-update": "Aggiorna"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "Aggiornamento disponibile",
+    "description": "La versione {{version}} è pronta con miglioramenti delle prestazioni e nuove funzionalità.",
+    "restart-note": "L'app verrà riavviata dopo l'aggiornamento.",
+    "button-update": "Aggiorna NymVPN",
+    "button-close": "Chiudi"
   },
   "app-update-progress": {
     "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "description": "Installazione degli aggiornamenti - per favore non chiudere l'app.",
+    "restart-note": "L'app verrà riavviata dopo l'aggiornamento.",
+    "bar-label": "Progresso download"
   },
-  "get-started": "Get started"
+  "get-started": "Per iniziare"
 }

@@ -13,15 +13,15 @@
   "logs": "Logs",
   "feedback": "Feedback",
   "legal": "Rechtliches",
-  "data-privacy": "Privacy & data",
-  "support": "Support",
+  "data-privacy": "Datenschutz & Daten",
+  "support": "Unterstützung",
   "fastest": "Am schnellsten",
-  "sentry": "Sentry",
+  "sentry": "Wächter",
   "tos": "Allgemeine Nutzungsbedingungen",
   "privacy-statement": "Datenschutzerklärung",
   "ui-mode": {
-    "dark": "Dark mode",
-    "light": "Light mode"
+    "dark": "Dunkler Modus",
+    "light": "Lichtmodus"
   },
   "appearance": "Erscheinungsbild",
   "language": "Sprache"

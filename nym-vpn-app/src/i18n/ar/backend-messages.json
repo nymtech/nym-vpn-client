@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "تجري عملية تهيئة عميل Nym VPN…",
-    "InitDone": "تم تهيئة عميل Nym VPN",
-    "Canceling": "Canceling…"
+    "canceling": "إلغاء…",
+    "resolving-api-addresses": "حل عناوين API…",
+    "awaiting-account-readiness": "في انتظار استعداد الحساب…",
+    "refreshing-gateways": "تحديث البوابات…",
+    "selecting-gateways": "تحديد البوابات…",
+    "connecting-mixnet-client": "جارٍ الاتصال بعميل mixnet…",
+    "connecting-tunnel": "جارٍ الاتصال بنفق VPN…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",
   "connection-attempt_other": "retrying… attempts {{count}}"

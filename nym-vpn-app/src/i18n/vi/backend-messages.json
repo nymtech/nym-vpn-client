@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "Đang khởi tạo máy khách NymVPN…",
-    "InitDone": "Đã khởi tạo máy khách Nym VPN",
-    "Canceling": "Đang hủy…"
+    "canceling": "Canceling…",
+    "resolving-api-addresses": "Resolving API addresses…",
+    "awaiting-account-readiness": "Awaiting for account readiness…",
+    "refreshing-gateways": "Refreshing gateways…",
+    "selecting-gateways": "Selecting gateways…",
+    "connecting-mixnet-client": "Connecting to the mixnet client…",
+    "connecting-tunnel": "Connecting to the VPN tunnel…"
   },
   "connection-attempt_one": "đang thử lại… lần thử {{count}}",
   "connection-attempt_other": "đang thử lại… lần thử {{count}}"

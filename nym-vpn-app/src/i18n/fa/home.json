@@ -51,17 +51,17 @@
     "button-update": "به‌روزرسانی"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "به‌روزرسانی موجود است",
+    "description": "نسخه {{version}} آماده است با بهبودهای عملکرد و ویژگی‌های جدید.",
+    "restart-note": "بعد از به‌روزرسانی، برنامه مجدداً راه‌اندازی خواهد شد.",
+    "button-update": "NymVPN را به روز رسانی کنید",
+    "button-close": "بستن"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "در حال به‌روزرسانی به نسخه {{version}}…",
+    "description": "در حال نصب به‌روزرسانی‌ها - لطفاً برنامه را نبندید.",
+    "restart-note": "بعد از به‌روزرسانی، برنامه مجدداً راه‌اندازی خواهد شد.",
+    "bar-label": "پیشروی دانلود"
   },
-  "get-started": "Get started"
+  "get-started": "شروع کنید"
 }

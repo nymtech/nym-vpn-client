@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "NymVPN クライアントを初期化中…",
-    "InitDone": "NymVPNクライアントが初期化されました",
-    "Canceling": "キャンセル中…"
+    "canceling": "Canceling…",
+    "resolving-api-addresses": "Resolving API addresses…",
+    "awaiting-account-readiness": "Awaiting for account readiness…",
+    "refreshing-gateways": "Refreshing gateways…",
+    "selecting-gateways": "Selecting gateways…",
+    "connecting-mixnet-client": "Connecting to the mixnet client…",
+    "connecting-tunnel": "Connecting to the VPN tunnel…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",
   "connection-attempt_other": "retrying… attempts {{count}}"

@@ -1,13 +1,13 @@
 {
   "account": "account",
-  "cancel": "cancel",
+  "cancel": "annulla",
   "left": "rimasti",
   "login": "login",
   "logout": "logout",
   "ok": "ok",
-  "selected": "selected",
+  "selected": "selezionato",
   "via": "via",
   "stop": "stop",
   "server_one": "server",
-  "server_other": "servers"
+  "server_other": "server"
 }
