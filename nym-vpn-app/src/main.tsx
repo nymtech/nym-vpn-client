@@ -65,6 +65,7 @@ dayjs.extend(duration);
     uiTheme: await getTheme(),
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
   };
+  console.log('initial state:', initState);
 
   // check for unrecoverable errors
   if (startupError) {
