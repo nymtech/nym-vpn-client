@@ -108,6 +108,7 @@ func (w *UDPForwarder) Wait() {
 
 func (w *UDPForwarder) routineHandleInbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
 	defer w.waitGroup.Done()
+	defer outbound.Close()
 
 	inboundBuffer := make([]byte, MAX_UDP_DATAGRAM_LEN)
 
@@ -152,6 +153,7 @@ func (w *UDPForwarder) routineHandleInbound(inbound *net.UDPConn, outbound *gone
 
 func (w *UDPForwarder) routineHandleOutbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
 	defer w.waitGroup.Done()
+	defer inbound.Close()
 
 	remoteAddr := outbound.RemoteAddr().(*net.UDPAddr)
 	w.logger.Verbosef("udpforwarder(outbound): dial %s", remoteAddr.String())
