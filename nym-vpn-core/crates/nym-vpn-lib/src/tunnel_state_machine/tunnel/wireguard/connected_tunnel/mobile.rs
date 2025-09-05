@@ -30,12 +30,15 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 use crate::{
-    tunnel_state_machine::tunnel::{
-        Error, Result, Tombstone,
-        wireguard::{
-            connector::ConnectionData,
-            fd::DupFd,
-            two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
+    tunnel_state_machine::{
+        TunnelConstants,
+        tunnel::{
+            Error, Result, Tombstone,
+            wireguard::{
+                connector::ConnectionData,
+                fd::DupFd,
+                two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
+            },
         },
     },
     wg_config::{AllowedIps, WgNodeConfig},
@@ -87,15 +90,20 @@ impl ConnectedTunnel {
         self,
         tun_device: AsyncDevice,
         dns: Vec<IpAddr>,
-        initial_allowed_ips: Vec<IpNetwork>,
+        tunnel_constants: TunnelConstants,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> Result<TunnelHandle> {
-        let mut allowed_ips = initial_allowed_ips;
-        allowed_ips.push(IpNetwork::from(self.connection_data.exit.endpoint.ip()));
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
-            AllowedIps::Specific(allowed_ips),
+            AllowedIps::Specific(vec![
+                IpNetwork::from(self.connection_data.exit.endpoint.ip()),
+                IpNetwork::from(
+                    tunnel_constants
+                        .in_tunnel_banwidth_query_gateway_endpoint
+                        .ip(),
+                ),
+            ]),
             dns.clone(),
             self.entry_mtu(),
         );
@@ -141,10 +149,11 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        two_hop_config.set_local_forwarder_addr(exit_intunnel_udp_proxy.listen_addr());
+        two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
 
-        let entry_magic_bandwidth_tcp_proxy =
-            entry_tunnel.start_intunnel_tcp_connection_proxy("10.1.0.1:51830".parse().unwrap())?;
+        let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_intunnel_tcp_connection_proxy(
+            tunnel_constants.in_tunnel_banwidth_query_gateway_endpoint,
+        )?;
 
         #[allow(unused_mut)]
         let mut exit_tunnel = wireguard_go::Tunnel::start(
