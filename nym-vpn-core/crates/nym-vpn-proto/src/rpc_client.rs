@@ -397,6 +397,30 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
+
+    pub async fn is_collect_network_stats_enabled(&mut self) -> Result<bool> {
+        self.0
+            .is_collect_network_stats_enabled(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn enable_collect_network_stats(&mut self) -> Result<()> {
+        self.0
+            .enable_collect_network_stats(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn disable_collect_network_stats(&mut self) -> Result<()> {
+        self.0
+            .disable_collect_network_stats(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
 }
 
 pub fn get_rpc_socket_path() -> PathBuf {
@@ -412,17 +436,14 @@ pub enum Error {
     #[error(transparent)]
     Transport(#[from] tonic::transport::Error),
 
-    #[error("GRPC call returned error")]
+    #[error("Rpc call returned error")]
     Rpc(#[source] tonic::Status),
 
-    #[error("Failed to serialize gRPC request")]
+    #[error("Failed to serialize rpc request")]
     InvalidRequest(#[source] crate::conversions::ConversionError),
 
-    #[error("Failed to parse gRPC response")]
+    #[error("Failed to parse rpc response")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
-
-    #[error("Missing account state in response")]
-    MissingAccountState,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

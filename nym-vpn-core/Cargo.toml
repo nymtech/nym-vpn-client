@@ -37,6 +37,7 @@ members = [
     "crates/nym-vpn-lib-uniffi",
     "crates/nym-vpn-lib-types-uniffi",
     "crates/nym-vpn-rpc-uniffi",
+    "crates/nym-vpnd-types-uniffi",
 ]
 
 default-members = [
@@ -220,6 +221,7 @@ nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
+nym-vpnd-types-uniffi = { path = "crates/nym-vpnd-types-uniffi" }
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration-fork" }
 nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration-fork" }

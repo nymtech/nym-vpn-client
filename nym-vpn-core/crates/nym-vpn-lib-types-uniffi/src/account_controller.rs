@@ -14,6 +14,69 @@ impl From<nym_vpn_lib_types::RegisterAccountResponse> for RegisterAccountRespons
     }
 }
 
+#[derive(uniffi::Enum)]
+pub enum AccountCommandErrorKind {
+    Internal,
+    Storage,
+    VpnApi,
+    UnexpectedVpnApiResponse,
+    NoAccountStored,
+    NoDeviceStored,
+    ExistingAccount,
+    Offline,
+    InvalidMnemonic,
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct AccountCommandError {
+    inner: nym_vpn_lib_types::AccountCommandError,
+}
+
+impl AccountCommandError {
+    pub fn new(inner: nym_vpn_lib_types::AccountCommandError) -> Self {
+        Self { inner }
+    }
+}
+
+#[uniffi::export]
+impl AccountCommandError {
+    pub fn kind(&self) -> AccountCommandErrorKind {
+        match self.inner {
+            nym_vpn_lib_types::AccountCommandError::Internal(_) => {
+                AccountCommandErrorKind::Internal
+            }
+            nym_vpn_lib_types::AccountCommandError::Storage(_) => AccountCommandErrorKind::Storage,
+            nym_vpn_lib_types::AccountCommandError::VpnApi(_) => AccountCommandErrorKind::VpnApi,
+            nym_vpn_lib_types::AccountCommandError::UnexpectedVpnApiResponse(_) => {
+                AccountCommandErrorKind::UnexpectedVpnApiResponse
+            }
+            nym_vpn_lib_types::AccountCommandError::NoAccountStored => {
+                AccountCommandErrorKind::NoAccountStored
+            }
+            nym_vpn_lib_types::AccountCommandError::NoDeviceStored => {
+                AccountCommandErrorKind::NoDeviceStored
+            }
+            nym_vpn_lib_types::AccountCommandError::ExistingAccount => {
+                AccountCommandErrorKind::ExistingAccount
+            }
+            nym_vpn_lib_types::AccountCommandError::Offline => AccountCommandErrorKind::Offline,
+            nym_vpn_lib_types::AccountCommandError::InvalidMnemonic(_) => {
+                AccountCommandErrorKind::InvalidMnemonic
+            }
+        }
+    }
+
+    pub fn message(&self) -> String {
+        self.inner.to_string()
+    }
+}
+
+impl From<nym_vpn_lib_types::AccountCommandError> for AccountCommandError {
+    fn from(value: nym_vpn_lib_types::AccountCommandError) -> Self {
+        Self::new(value)
+    }
+}
+
 #[derive(uniffi::Enum, Debug, Clone, PartialEq)]
 pub enum AccountControllerState {
     Offline,

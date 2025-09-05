@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//pub mod account_state;
 pub mod gateway;
 pub mod log_path;
 pub mod service;

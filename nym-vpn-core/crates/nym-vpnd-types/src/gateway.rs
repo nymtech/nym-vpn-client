@@ -23,7 +23,6 @@ pub struct Location {
 }
 
 impl fmt::Display for Location {
-    #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.two_letter_iso_country_code)
     }
@@ -96,7 +95,6 @@ impl Country {
 }
 
 impl fmt::Display for Gateway {
-    #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let location = self
             .location

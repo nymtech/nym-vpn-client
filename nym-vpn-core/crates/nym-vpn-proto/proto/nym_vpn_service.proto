@@ -674,10 +674,6 @@ service NymVpnService {
   // List the available countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
-  // -- Unstable --
-  // These below are considered unstable, in the sense that their definitions
-  // are still being integrated upon and their meaning might change
-
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
 
@@ -719,6 +715,7 @@ service NymVpnService {
 
   // Get the list of active devices associated with this account from the nym-vpn-api
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
+
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
 
