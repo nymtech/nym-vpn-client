@@ -99,11 +99,7 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
-                IpNetwork::from(
-                    tunnel_constants
-                        .in_tunnel_banwidth_query_gateway_endpoint
-                        .ip(),
-                ),
+                IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             dns.clone(),
             self.entry_mtu(),
@@ -153,7 +149,9 @@ impl ConnectedTunnel {
         two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
 
         let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_intunnel_tcp_connection_proxy(
-            tunnel_constants.in_tunnel_banwidth_query_gateway_endpoint,
+            tunnel_constants
+                .tunnel_constants
+                .in_tunnel_bandwidth_metadata_endpoint,
         )?;
 
         #[allow(unused_mut)]
