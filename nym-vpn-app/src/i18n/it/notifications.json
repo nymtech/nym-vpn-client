@@ -1,16 +1,16 @@
 {
   "vpn-tunnel-state": {
-    "connected": "VPN tunnel connected",
-    "disconnected": "VPN tunnel disconnected",
-    "error": "VPN tunnel failed: an error occurred",
-    "offline": "PC is offline"
+    "connected": "Tunnel VPN connesso",
+    "disconnected": "Tunnel VPN disconnesso",
+    "error": "tunnel VPN non riuscito: si è verificato un errore",
+    "offline": "Il PC è offline"
   },
   "logout": {
-    "success": "Logout successfull",
-    "error": "An error occurred while logging out",
-    "from-state": "Cannot logout from VPN tunnel state: {{state}}"
+    "success": "Logout riuscito",
+    "error": "Si è verificato un errore durante l'uscita",
+    "from-state": "Impossibile uscire dallo stato del tunnel VPN: {{state}}"
   },
-  "copied-to-clipboard": "Copied to clipboard",
-  "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
-  "daemon-not-connected": "No daemon connection, please contact our support team"
+  "copied-to-clipboard": "Copiato negli appunti",
+  "daemon-no-compat": "La versione di demone non è compatibile con la versione dell'app! Versione demonia: {{version}}, previsto: {{required}}. Si prega di aggiornare l'app o il demone.",
+  "daemon-not-connected": "Nessuna connessione al demone, contatta il nostro team di assistenza"
 }

@@ -4,8 +4,8 @@
     "desc": "اتصال خودکار در زمان راه‌اندازی برنامه"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "تونل‌زنی ترافیک IPv6",
+    "desc": "غیرفعال کردن، فقط برای استفاده از IPv4"
   },
   "notifications": {
     "title": "اعلانات دسکتاپ"
@@ -14,7 +14,7 @@
   "support": {
     "title": "پشتیبانی و پیشنهادات",
     "faq": "سوالات متداول",
-    "contact": "Contact support",
+    "contact": "با ما در ارتباط باشید",
     "telegram": "با ما در تلگرام چت کنید",
     "github": "مطرح کردن مشکل در GitHub",
     "matrix": "در Matrix به ما بپیوندید",
@@ -61,26 +61,26 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "گزارش‌های خطا و خرابی",
+      "sublabel": "تغییرات پس از راه‌اندازی مجدد برنامه و سرویس‌دهنده اعمال خواهند شد.",
+      "desc": "اطلاعات خرابی را ارسال کنید تا به ما در رفع سریع‌تر باگ‌ها کمک کنید.\nگزارش‌ها از طریق سیستم امن Sentry ارسال می‌شوند و فقط شامل داده‌های فنی جهت اشکال‌زدایی هستند.",
+      "link": "مشاهده سیاست حفظ حریم خصوصی Sentry"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "آمار ناشناس شبکه",
+      "sublabel": "تغییرات پس از راه‌اندازی مجدد daemon اعمال خواهند شد.",
+      "desc1": "به ما از طریق اشتراک گذاری داده های عملکرد به صورت ناشناس از منطقه خود، کمک کنید تا شبکه ای سریع تر بسازیم. ما از این داده‌ها برای بهینه‌سازی سرعت‌ها، کاهش قطع ارتباط، و هدایت پوشش سرورها به مناطقی که بیشترین نیاز را دارند استفاده می کنیم.",
+      "desc2": "هرگز فعالیت مرورگر یا داده های شخصی شما به اشتراک گذاشته نمی شود – فقط داده های عملکرد شبکه.",
+      "link": "دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است"
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "شروع کنید",
+    "syncing": "در حال همگام سازی…",
+    "no-plan": "طرح فعال وجود ندارد",
+    "bandwidth-exceeded": "حجم ترافیک شما تمام شده است",
+    "max-device-reached": "به حداکثر تعداد دستگاه‌ها رسیده است",
+    "status-inactive": "حساب غیرفعال است",
+    "error": "خطای داخلی"
   }
 }

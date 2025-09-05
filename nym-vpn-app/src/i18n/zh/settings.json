@@ -61,26 +61,26 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "错误和崩溃报告",
+      "sublabel": "改动仅在应用和守护进程重启后才会生效",
+      "desc": "分享错误与崩溃日志帮助我们更快地修复bug，数据通过Sentry安全系统收集，并且仅包含技术性诊断信息。",
+      "link": "查看Sentry的隐私政策"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "匿名网络数据",
+      "sublabel": "改动仅在守护进程重启后才会生效",
+      "desc1": "通过分享您所在地区的匿名性能数据，帮助我们构建更快速的网络。 我们将利用这些数据优化速度、减少断线，并将服务器资源精准部署到最需要的区域。",
+      "desc2": "仅收集网络性能相关数据，您的浏览记录与个人信息始终保持私密，绝不会被共享。",
+      "link": "了解何种数据会被收集"
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "开始",
+    "syncing": "同步中…",
+    "no-plan": "没有可用的订阅",
+    "bandwidth-exceeded": "带宽已达上限",
+    "max-device-reached": "设备数量已达上限",
+    "status-inactive": "账号未激活",
+    "error": "内部错误"
   }
 }

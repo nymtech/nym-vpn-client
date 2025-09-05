@@ -9,8 +9,6 @@
   "grpc": "内部gRPCエラー",
   "tunnel": {
     "internal": "内部エラー",
-    "api": "APIエラー",
-    "account-controller": "Account controller: internal error",
     "firewall": "ファイアウォールエラー",
     "routing": "ルーティングエラー",
     "dns": "DNS エラー",
@@ -21,21 +19,26 @@
     "bandwidth-exceeded": "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。",
     "subscription-expired": "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。",
     "device-time-out-of-sync": "デバイスの時刻が同期していません。デバイスの時刻をインターネットと同期してください。",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "ipv6-unavailable": "IPv6はシステムで利用できません。 IPv4を使用するには設定で無効にしてください",
+    "tun-device": "TUNデバイスエラー",
+    "tunnel-provider": "トンネルプロバイダエラー",
+    "bad-bandwidth-increase": "帯域幅増加値が無効です",
+    "inactive-account": "あなたのアカウントは無効です",
+    "device-logged-out": "このデバイスはログアウトされました。VPNを使用するにはログインしてください。"
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "内部アカウントエラー",
+    "max-devices-reached": "アカウントデバイスの上限を超えました。",
+    "bandwidth-exceeded": "帯域幅を超えています。アカウントプランをアップグレードしてください。",
     "invalid-recovery-phrase": "無効なアクセスコード",
     "storage": "ストレージバックエンドエラー",
     "is-connected": "接続中は操作を進めることができません",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "no-account-stored": "アカウントが保存されていません",
+    "no-device-stored": "デバイスが保存されていません",
+    "existing-account": "アカウントは既に存在します",
+    "no-subscription": "有効なプランがありません。匿名のブラウジングを開始するには、format@@0をタップします。",
+    "status-not-active": "あなたのアカウントは無効です",
+    "device-time-out-of-sync": "デバイスの時刻が同期していません。デバイスの時刻をインターネットと同期してください。"
   },
   "countries-request": {
     "entry": "利用可能なエントリーノードの国を取得できませんでした",
@@ -43,15 +46,15 @@
     "fast-mode": "利用可能な国を取得できませんでした"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "残りの帯域幅がありません。",
+    "entry-gateway-down": "エントリーgatewayがダウンしています",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "出口gatewayがダウンしています (IPv4)",
+      "ipv6": "出口gatewayがダウンしています (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "gatewayルーティングエラー(IPv4) を終了します。",
+      "ipv6": "gatewayルーティングエラー(IPv6) を終了します"
     }
   }
 }

@@ -15,6 +15,6 @@
     "exit": "موقع الخروج المحدد غير متاح، تم التبديل إلى {{location}}"
   },
   "node-details": {
-    "id-label": "Identity key:"
+    "id-label": "مفتاح الهوية:"
   }
 }

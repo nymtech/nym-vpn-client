@@ -4,8 +4,8 @@
     "desc": "アプリ起動時に自動で接続"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "IPv6 トラフィックトンネル",
+    "desc": "IPv4のみ使用するよう無効にする"
   },
   "notifications": {
     "title": "デスクトップ通知"
@@ -61,26 +61,26 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "エラーとクラッシュレポート",
+      "sublabel": "変更はアプリとデーモンの再起動後に適用されます。",
+      "desc": "バグを迅速に修正するためにクラッシュ情報を送信します。報告書はSentryの安全なシステムを通過し、技術的なデバッグデータのみを含みます。",
+      "link": "Sentry プライバシーポリシーを表示"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "匿名のネットワーク統計",
+      "sublabel": "変更はデーモンの再起動後に適用されます。",
+      "desc1": "お住まいの地域から匿名のパフォーマンスデータを共有することで、より高速なネットワークを構築することができます。 これを使用して、スピードを最適化し、切断を減らし、最も必要とされるサーバーカバレッジを管理します。",
+      "desc2": "ネットワークパフォーマンスデータのみが共有されます。ブラウジング活動や個人データは共有されません。",
+      "link": "共有されているものを正確に学ぶ"
     }
   },
   "account": {
-    "get-started": "Get started",
+    "get-started": "開始する",
     "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "no-plan": "アクティブなプランがありません",
+    "bandwidth-exceeded": "帯域幅を超えました",
+    "max-device-reached": "最大デバイス数に達しました",
+    "status-inactive": "アカウントは無効です",
+    "error": "内部エラー"
   }
 }

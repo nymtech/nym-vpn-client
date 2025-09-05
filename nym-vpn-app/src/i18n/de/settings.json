@@ -4,8 +4,8 @@
     "desc": "Beim Start der App automatisch verbinden"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "IPv6 Verkehrstunnel",
+    "desc": "Deaktivieren, um nur IPv4 zu verwenden"
   },
   "notifications": {
     "title": "Bildschirmbenachrichtigungen"
@@ -14,8 +14,8 @@
   "support": {
     "title": "Support",
     "faq": "Lies die FAQs",
-    "contact": "Contact support",
-    "telegram": "Chat on Telegram",
+    "contact": "Get in touch",
+    "telegram": "Chat auf Telegramm",
     "github": "Problem auf GitHub melden",
     "matrix": "Tritt unserem Matrix Chat bei",
     "discord": "Tritt unserem Discord Channel bei"
@@ -32,15 +32,15 @@
   "logs": {
     "title": "Logs",
     "desc": "Kopier oder lösch die Logfiles",
-    "app": "App logs",
-    "daemon": "Daemon logs"
+    "app": "App-Logs",
+    "daemon": "Daemon Logs"
   },
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",
   "logout-confirmation": {
-    "title": "Are you sure?",
-    "description": "You will need your access code to reconnect your device.",
-    "logging-out": "Logging out…"
+    "title": "Bist du sicher?",
+    "description": "Du benötigst deinen Zugangscode, um dein Gerät wieder zu verbinden.",
+    "logging-out": "Abmelden…"
   },
   "quit": "NymVPN beenden",
   "login-button": "Zum Verbinden Zugangsdaten hinzufügen",
@@ -48,39 +48,39 @@
     "client-version": "Client Version",
     "daemon-version": "Dienst Version",
     "network-name": "Netzwerk",
-    "account-id": "Account ID",
-    "device-id": "Device ID"
+    "account-id": "Konto-ID",
+    "device-id": "Geräte-ID"
   },
   "autostart": {
     "title": "Autostart",
-    "desc": "Launch NymVPN when system starts"
+    "desc": "NymVPN beim Systemstart starten"
   },
   "killswitch": {
     "title": "Killswitch",
-    "desc": "Disconnect if the internet drops"
+    "desc": "Trenne die Verbindung, wenn das Internet abfällt"
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "Fehler & Absturzberichte",
+      "sublabel": "Änderungen werden nach dem Neustart der App und des Daemon angewendet.",
+      "desc": "Senden Sie Absturzinformationen, um uns zu helfen, Fehler schneller zu beheben. Berichte gehen durch das sichere System von Sentry und enthalten nur technische Debugging-Daten.",
+      "link": "Sentry-Datenschutzerklärung anzeigen"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "Anonyme Netzwerkstatistiken",
+      "sublabel": "Änderungen werden nach einem Neustart des Daemon angewendet.",
+      "desc1": "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird.",
+      "desc2": "Es werden nur Daten über die Netzwerkleistung geteilt - niemals Ihre Surfaktivität oder Ihre persönlichen Daten.",
+      "link": "Erfahren Sie genau, was geteilt wird"
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "Los geht's",
+    "syncing": "Synchronisiere…",
+    "no-plan": "Kein aktives Paket",
+    "bandwidth-exceeded": "Bandbreite überschritten",
+    "max-device-reached": "Max. Geräte erreicht",
+    "status-inactive": "Konto ist inaktiv",
+    "error": "Interner Fehler"
   }
 }
