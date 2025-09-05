@@ -890,18 +890,12 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
-        let initial_allowed_ips = self
-            .tunnel_parameters
-            .tunnel_constants
-            .initial_allowed_ips
-            .clone();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
             dns: dns_config.tunnel_config().to_vec(),
-            initial_allowed_ips,
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -909,6 +903,7 @@ impl TunnelMonitor {
                 #[cfg(windows)]
                 self.route_handler.clone(),
                 tunnel_options,
+                self.tunnel_parameters.tunnel_constants,
             )
             .await
             .map_err(Box::new)?;
@@ -1139,7 +1134,6 @@ impl TunnelMonitor {
                 #[cfg(windows)]
                 self.route_handler.clone(),
                 tunnel_options,
-                entry_metadata_tx,
                 self.tunnel_parameters.tunnel_constants,
             )
             .await

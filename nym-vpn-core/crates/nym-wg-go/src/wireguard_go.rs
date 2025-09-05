@@ -147,8 +147,8 @@ impl Tunnel {
         requested_guid: &str,
         wintun_tunnel_type: &str,
     ) -> Result<Self> {
-        let settings =
-            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let settings = CString::new(config.as_uapi_config())
+            .map_err(|_| Error::ConvertToCString("settings"))?;
         let interface_name_cstr =
             CString::new(interface_name).map_err(|_| Error::ConvertToCString("interface name"))?;
         let requested_guid_cstr =
