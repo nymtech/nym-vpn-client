@@ -258,15 +258,15 @@ impl ConnectedTunnel {
             netstack::Tunnel::start(two_hop_config.entry.clone().into_netstack_config())?;
 
         // Open connection to the exit node via entry node.
-        let exit_intunnel_udp_proxy = entry_tunnel.start_intunnel_udp_connection_proxy(
+        let exit_in_tunnel_udp_proxy = entry_tunnel.start_in_tunnel_udp_connection_proxy(
             two_hop_config.forwarder.listen_endpoint.port(),
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
+        two_hop_config.set_udp_proxy_listen_addr(exit_in_tunnel_udp_proxy.listen_addr());
 
-        let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_intunnel_tcp_connection_proxy(
+        let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_in_tunnel_tcp_connection_proxy(
             tunnel_constants.in_tunnel_bandwidth_metadata_endpoint,
         )?;
 
@@ -282,10 +282,13 @@ impl ConnectedTunnel {
             &options.wintun_tunnel_type,
         )?;
 
-        options
+        if options
             .metadata_proxy_tx
             .send(entry_magic_bandwidth_tcp_proxy.listen_addr())
-            .ok();
+            .is_err()
+        {
+            tracing::warn!("Failed to send metadata proxy address")
+        }
 
         let shutdown_token = CancellationToken::new();
         let child_shutdown_token = shutdown_token.child_token();
@@ -325,7 +328,7 @@ impl ConnectedTunnel {
 
             entry_tunnel.stop();
             entry_magic_bandwidth_tcp_proxy.close();
-            exit_intunnel_udp_proxy.close();
+            exit_in_tunnel_udp_proxy.close();
 
             // Windows: do not drop exit tunnel as it owns the underlying tunnel device.
             #[cfg(not(windows))]

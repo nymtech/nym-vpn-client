@@ -140,18 +140,16 @@ impl ConnectedTunnel {
         }
 
         // Open connection to the exit node via entry node.
-        let exit_intunnel_udp_proxy = entry_tunnel.start_intunnel_udp_connection_proxy(
+        let exit_in_tunnel_udp_proxy = entry_tunnel.start_in_tunnel_udp_connection_proxy(
             two_hop_config.forwarder.listen_endpoint.port(),
             two_hop_config.forwarder.client_port,
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
+        two_hop_config.set_udp_proxy_listen_addr(exit_in_tunnel_udp_proxy.listen_addr());
 
-        let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_intunnel_tcp_connection_proxy(
-            tunnel_constants
-                .tunnel_constants
-                .in_tunnel_bandwidth_metadata_endpoint,
+        let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_in_tunnel_tcp_connection_proxy(
+            tunnel_constants.in_tunnel_bandwidth_metadata_endpoint,
         )?;
 
         #[allow(unused_mut)]
@@ -163,9 +161,12 @@ impl ConnectedTunnel {
         let shutdown_token = CancellationToken::new();
         let cloned_shutdown_token = shutdown_token.child_token();
 
-        metadata_proxy_tx
+        if metadata_proxy_tx
             .send(entry_magic_bandwidth_tcp_proxy.listen_addr())
-            .await?;
+            .is_err()
+        {
+            tracing::warn!("Failed to send metadata proxy address");
+        }
 
         let event_loop_handle = tokio::spawn(async move {
             #[cfg(target_os = "ios")]
@@ -236,7 +237,7 @@ impl ConnectedTunnel {
 
             exit_tunnel.stop();
             entry_magic_bandwidth_tcp_proxy.close();
-            exit_intunnel_udp_proxy.close();
+            exit_in_tunnel_udp_proxy.close();
             entry_tunnel.stop();
 
             Tombstone::with_tun_device(tun_device)

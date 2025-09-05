@@ -171,7 +171,7 @@ impl Tunnel {
     ///
     /// Note that the client traffic should originate from the `client_port` on the loopback interface.
     /// If `endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
-    pub fn start_intunnel_udp_connection_proxy(
+    pub fn start_in_tunnel_udp_connection_proxy(
         &mut self,
         listen_port: u16,
         client_port: u16,
@@ -225,7 +225,7 @@ impl Tunnel {
     /// will establish a new connection to the endpoint over the tunnel.
     ///
     /// If `endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
-    pub fn start_intunnel_tcp_connection_proxy(
+    pub fn start_in_tunnel_tcp_connection_proxy(
         &mut self,
         endpoint: SocketAddr,
     ) -> Result<InTunnelTcpConnectionProxy> {
