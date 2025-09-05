@@ -63,6 +63,7 @@ default-members = [
 #nym-crypto = { path = "../../nym/common/crypto" }
 #nym-ecash-time = { path = "../../nym/common/ecash-time" }
 #nym-http-api-client = { path = "../../nym/common/http-api-client" }
+#nym-http-api-client-macro = { path = "../../nym/common/http-api-client-macro" }
 #nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
 #nym-network-defaults = { path = "../../nym/common/network-defaults" }
 #nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
@@ -223,33 +224,34 @@ nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
 nym-vpnd-types-uniffi = { path = "crates/nym-vpnd-types-uniffi" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "mark/force-api-clients-to-use-ipv4" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
