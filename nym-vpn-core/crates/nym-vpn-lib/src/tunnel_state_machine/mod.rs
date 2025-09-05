@@ -26,7 +26,7 @@ use std::{
     path::PathBuf,
 };
 
-use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
+use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
@@ -100,7 +100,7 @@ impl Default for TunnelConstants {
         Self {
             in_tunnel_banwidth_query_gateway_endpoint: SocketAddr::new(
                 IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4),
-                51830,
+                WG_METADATA_PORT,
             ),
         }
     }
