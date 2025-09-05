@@ -12,7 +12,6 @@ use crate::network_compatibility::NetworkCompatibility;
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
-use nym_http_api_client::HttpClientError;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
