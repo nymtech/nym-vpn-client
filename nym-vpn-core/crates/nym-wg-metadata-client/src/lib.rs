@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 
 use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
@@ -24,7 +24,9 @@ pub struct TunUpEvent {
 
 #[derive(Clone)]
 pub enum TunUpSendData {
+    #[cfg(not(target_os = "windows"))]
     InterfaceName(String),
+    TcpProxy(SocketAddr),
     Signal,
 }
 
@@ -38,11 +40,22 @@ struct LazyMetadataClient {
 }
 
 impl LazyMetadataClient {
-    async fn new(base_url: Url, bind_ip: IpAddr, sent_data: TunUpSendData) -> Result<Self> {
+    async fn new(mut base_url: Url, bind_ip: IpAddr, sent_data: TunUpSendData) -> Result<Self> {
         let reqwest_builder = ReqwestClientBuilder::new().local_address(bind_ip);
         let reqwest_builder = match sent_data {
             #[cfg(not(target_os = "windows"))]
             TunUpSendData::InterfaceName(interface) => reqwest_builder.interface(&interface),
+            TunUpSendData::TcpProxy(tcp_proxy) => {
+                base_url.set_ip_host(tcp_proxy.ip()).map_err(|_| {
+                    MetadataClientError::Internal("failed to set tcp proxy ip".to_owned())
+                })?;
+
+                base_url.set_port(Some(tcp_proxy.port())).map_err(|_| {
+                    MetadataClientError::Internal("failed to set tcp proxy port".to_owned())
+                })?;
+
+                reqwest_builder
+            }
             _ => reqwest_builder,
         };
         let inner = nym_http_api_client::Client::builder(base_url)

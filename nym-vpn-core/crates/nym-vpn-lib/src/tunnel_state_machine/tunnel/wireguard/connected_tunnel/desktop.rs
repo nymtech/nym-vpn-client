@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 
 use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
@@ -290,6 +290,11 @@ impl ConnectedTunnel {
             &options.wintun_tunnel_type,
         )?;
 
+        options
+            .metadata_proxy_tx
+            .send(entry_magic_bandwidth_tcp_proxy.listen_addr())
+            .ok();
+
         let shutdown_token = CancellationToken::new();
         let child_shutdown_token = shutdown_token.child_token();
 
@@ -447,6 +452,9 @@ pub struct TunTunTunnelOptions {
 
 /// Multihop configuration based on WireGuard/netstack.
 pub struct NetstackTunnelOptions {
+    /// Sender that receives an endpoint of metadata proxy for entry interface
+    pub metadata_proxy_tx: tokio::sync::oneshot::Sender<SocketAddr>,
+
     /// Entry tunnel device.
     #[cfg(unix)]
     pub exit_tun: AsyncDevice,
