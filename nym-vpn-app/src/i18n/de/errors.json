@@ -3,39 +3,42 @@
   "internal": "Interner Fehler",
   "daemon": {
     "not-connected": "Nicht mit dem Dienst verbunden",
-    "internal": "Daemon internal error",
-    "invalid-network": "Invalid network"
+    "internal": "Interner Daemon-Fehler",
+    "invalid-network": "Ungültiges Netzwerk"
   },
   "grpc": "Interner gRPC Fehler",
   "tunnel": {
-    "internal": "Internal error",
-    "api": "API error",
-    "account-controller": "Account controller: internal error",
-    "firewall": "Firewall error",
-    "routing": "Routing error",
-    "dns": "DNS error",
-    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
-    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
-    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
-    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Interner Fehler",
+    "firewall": "Firewall-Fehler",
+    "routing": "Routing-Fehler",
+    "dns": "DNS-Fehler",
+    "same-entry-exit-gw": "Kann nicht mit dem gleichen Eintrag und Exit-Knoten verbinden. Bitte ändern Sie entweder die Position des Eintrags oder des Exitknotens.",
+    "invalid-entry-gw-country": "Ungültiges Eintragsknotenland, bitte ändern Sie den Eintragsknotenpunkt",
+    "invalid-exit-gw-country": "Ungültiges Exitknotenland, bitte den Exitknotenpunkt ändern",
+    "max-devices-reached": "Limit des Kontogeräts überschritten. Bitte entfernen Sie vor der Verbindung ein Gerät von Ihrem Konto.",
+    "bandwidth-exceeded": "Monatliche Bandbreite überschritten. Bitte aktualisieren Sie Ihr Konto-Paket.",
     "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "device-time-out-of-sync": "Die Gerätezeit ist nicht synchronisiert. Bitte synchronisieren Sie die Zeit Ihres Geräts mit dem Internet.",
+    "ipv6-unavailable": "IPv6 ist im System nicht verfügbar. Deaktivieren in den Einstellungen für IPv4",
+    "tun-device": "TUN Gerätefehler",
+    "tunnel-provider": "Tunnel-Provider Fehler",
+    "bad-bandwidth-increase": "Ungültige Bandbreitenerhöhung",
+    "inactive-account": "Ihr Konto ist inaktiv",
+    "device-logged-out": "Dieses Gerät wurde ausgeloggt. Bitte melde dich an, um das VPN weiter zu verwenden."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Interner Account Fehler",
+    "max-devices-reached": "Limit des Kontogeräts überschritten.",
+    "bandwidth-exceeded": "Bandbreite überschritten. Bitte aktualisieren Sie Ihr Konto-Paket.",
     "invalid-recovery-phrase": "ungültiger Wiederherstellungsphrase",
-    "storage": "Storage backend error",
-    "is-connected": "Unable to proceed while connected",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "storage": "Speicherfehler im Backend",
+    "is-connected": "Kann nicht fortfahren während der Verbindung",
+    "no-account-stored": "Kein Konto gespeichert",
+    "no-device-stored": "Kein Gerät gespeichert",
+    "existing-account": "Konto existiert bereits",
+    "no-subscription": "Sie haben keinen aktiven Plan. Tippen Sie auf \"Beginnen Sie mit dem anonymen Surfen.",
+    "status-not-active": "Ihr Konto ist inaktiv",
+    "device-time-out-of-sync": "Die Gerätezeit ist nicht synchronisiert. Bitte synchronisieren Sie die Zeit Ihres Geräts mit dem Internet."
   },
   "countries-request": {
     "entry": "Fehler beim Abrufen der verfügbaren Eintrittsländer",
@@ -43,15 +46,15 @@
     "fast-mode": "Fehler beim Abrufen der verfügbaren Länder"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "No bandwidth remaining.",
+    "entry-gateway-down": "Eintrags-Gateway ist nicht verfügbar",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "Gateway verlassen (IPv4)",
+      "ipv6": "Gateway verlassen (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "Gateway-Routing-Fehler (IPv4)",
+      "ipv6": "Gateway-Routing Fehler (IPv6) beenden"
     }
   }
 }

@@ -15,6 +15,6 @@
     "exit": "Ausgewählte Austrittsregion nicht verfügbar, gewechselt zu {{location}}"
   },
   "node-details": {
-    "id-label": "Identity key:"
+    "id-label": "Identitätsschlüssel:"
   }
 }

@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "Inicializando cliente Nym VPN…",
-    "InitDone": "Cliente Nym VPN inicializado",
-    "Canceling": "Cancelando…"
+    "canceling": "Cancelando…",
+    "resolving-api-addresses": "Resolviendo direcciones API…",
+    "awaiting-account-readiness": "Esperando la preparación de la cuenta…",
+    "refreshing-gateways": "Actualizando pasarelas…",
+    "selecting-gateways": "Seleccionando pasarelas…",
+    "connecting-mixnet-client": "Conectando al cliente mixnet…",
+    "connecting-tunnel": "Conectando al túnel de VPN…"
   },
   "connection-attempt_one": "reintentando… intento {{count}}",
   "connection-attempt_other": "reintentando… intentos {{count}}"
