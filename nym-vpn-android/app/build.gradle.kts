@@ -239,6 +239,9 @@ dependencies {
 
 	// sentry
 	implementation(libs.sentry)
+
+	// billing
+	implementation(libs.billing.client)
 }
 
 fun determineVersionName(): String {

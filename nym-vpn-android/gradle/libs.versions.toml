@@ -32,6 +32,7 @@ windowCoreAndroid = "1.3.0"
 desugar = "2.1.5"
 zxingAndroidEmbedded = "4.3.0"
 sentry = "8.13.2"
+billing-client = "8.0.0"
 
 gradlePlugins-licensee = "1.13.0"
 gradlePlugins-detekt = "1.23.8"
@@ -102,6 +103,10 @@ androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-p
 
 #sentry
 sentry = { module = "io.sentry:sentry-android", version.ref = "sentry" }
+
+#billing
+billing-client = { module = "com.android.billingclient:billing-ktx", version.ref = "billing-client" }
+
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
