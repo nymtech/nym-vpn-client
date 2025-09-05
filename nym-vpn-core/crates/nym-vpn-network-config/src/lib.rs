@@ -177,6 +177,10 @@ impl Network {
     pub fn get_feature_flag_stats_recipient(&self) -> Option<Recipient> {
         self.get_feature_flag("statistics", "recipient")
     }
+
+    pub fn get_feature_flag_gateway_metadata_update_version(&self) -> Option<semver::Version> {
+        self.get_feature_flag("versions", "gatewayMetadataUpdate")
+    }
 }
 
 pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {

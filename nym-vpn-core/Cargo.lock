@@ -5417,6 +5417,7 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "semver",
  "serde",
  "serde_json",
  "tempfile",
@@ -5571,7 +5572,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd-types-uniffi"
-version = "1.15.0-beta"
+version = "1.16.0-beta"
 dependencies = [
  "nym-gateway-directory",
  "nym-vpn-api-client",
