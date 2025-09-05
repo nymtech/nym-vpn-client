@@ -1,6 +1,6 @@
 [
+  "evil-env",
   "mainnet",
   "sandbox",
-  "canary",
-  "qa"
+  "canary"
 ]
