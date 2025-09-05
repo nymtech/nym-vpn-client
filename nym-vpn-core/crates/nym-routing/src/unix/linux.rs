@@ -15,7 +15,7 @@ use std::{
     num::NonZeroI32,
 };
 
-use futures::{StreamExt, TryStream, TryStreamExt, future::FutureExt};
+use futures::{StreamExt, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
@@ -837,10 +837,7 @@ impl RouteManagerImpl {
         }
         message.header.flags = RouteFlags::FibMatch;
 
-        // todo: equivalent to execute_route_get_request is the following (except it sets NLM_F_DUMP -- not sure important?)
-        // self.handle.route().get(message).execute().await;
-
-        let mut stream = execute_route_get_request(self.handle.clone(), message.clone());
+        let mut stream = self.handle.route().get(message).execute();
         match stream.try_next().await {
             Ok(Some(route_msg)) => self.parse_route_message(route_msg),
             Ok(None) => Err(Error::NoRoute),
@@ -887,31 +884,6 @@ fn route_via_to_ip(via: RouteVia) -> Result<IpAddr> {
 fn compat_table_id(id: u32) -> u8 {
     // RT_TABLE_COMPAT must be combined with nla Table(id)
     if id > 255 { RT_TABLE_COMPAT } else { id as u8 }
-}
-
-fn execute_route_get_request(
-    mut handle: Handle,
-    message: RouteMessage,
-) -> impl TryStream<Ok = RouteMessage, Error = rtnetlink::Error> {
-    use futures::future::{self, Either};
-    use rtnetlink::Error;
-
-    let mut req = NetlinkMessage::from(RouteNetlinkMessage::GetRoute(message));
-    req.header.flags = NLM_F_REQUEST;
-
-    match handle.request(req) {
-        Ok(response) => Either::Left(response.map(move |msg| {
-            let (header, payload) = msg.into_parts();
-            match payload {
-                NetlinkPayload::InnerMessage(RouteNetlinkMessage::NewRoute(msg)) => Ok(msg),
-                NetlinkPayload::Error(err) => Err(Error::NetlinkError(err)),
-                _ => Err(Error::UnexpectedMessage(NetlinkMessage::new(
-                    header, payload,
-                ))),
-            }
-        })),
-        Err(e) => Either::Right(future::err::<RouteMessage, Error>(e).into_stream()),
-    }
 }
 
 #[derive(Debug)]
