@@ -68,8 +68,9 @@ impl FileRefresher {
 
         self.cancel_token
             .run_until_cancelled(async {
-                interval.tick().await; // initial tick
+                // no initial tick, since we're only running in Connected state, we have to make the most of it
                 loop {
+                    interval.tick().await;
                     if !checked_consistency {
                         match self.network.check_consistency().await {
                             // This is probably because of network unavailability, so consistency can't be checked yet
@@ -84,8 +85,6 @@ impl FileRefresher {
                             }
                         }
                     }
-
-                    interval.tick().await;
 
                     if let Err(err) = self.refresh_envs_file().await {
                         trace_err_chain!(err, "Failed to refresh envs file");

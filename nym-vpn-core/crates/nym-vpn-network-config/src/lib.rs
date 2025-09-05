@@ -178,6 +178,7 @@ impl Network {
         self.get_feature_flag("statistics", "recipient")
     }
 
+    /// Get the version of the gateway from where the metadata endpoint should start to be used
     pub fn get_feature_flag_gateway_metadata_update_version(&self) -> Option<semver::Version> {
         self.get_feature_flag("versions", "gatewayMetadataUpdate")
     }
