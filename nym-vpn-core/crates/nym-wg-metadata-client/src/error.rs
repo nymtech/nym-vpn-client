@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_http_api_client::HttpClientError;
-use nym_wireguard_private_metadata_shared::ErrorResponse;
 
 #[derive(Debug, thiserror::Error)]
 pub enum MetadataClientError {
