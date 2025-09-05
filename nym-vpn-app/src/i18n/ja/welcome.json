@@ -4,6 +4,6 @@
   "anon-toggle-desc": "アプリの再起動時に適用",
   "tos-notice": "続けることにより、NymVPNの <tosLink /> に同意し、NymVPNの <privacyLink />に同意したことになります。",
   "continue-button": "続ける",
-  "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Anonymous network stats"
+  "error-monitoring-label": "匿名のエラーレポート",
+  "network-statistic": "匿名のネットワーク統計"
 }

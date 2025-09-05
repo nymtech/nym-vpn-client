@@ -8,34 +8,37 @@
   },
   "grpc": "خطأ داخلي في خدمة gRPC",
   "tunnel": {
-    "internal": "Internal error",
-    "api": "API error",
-    "account-controller": "Account controller: internal error",
-    "firewall": "Firewall error",
-    "routing": "Routing error",
-    "dns": "DNS error",
-    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
-    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
-    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
-    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "خطأ داخلي",
+    "firewall": "خطأ في جدار الحماية",
+    "routing": "خطأ في الاتجاه",
+    "dns": "خطأ DNS",
+    "same-entry-exit-gw": "لا يمكن الاتصال بنفس عقدة الدخول والخروج. الرجاء تغيير موقع الدخول أو الخروج من العقدة.",
+    "invalid-entry-gw-country": "بلد عقدة الإدخال غير صالح، يرجى تغيير موقع عقدة الإدخال",
+    "invalid-exit-gw-country": "بلد الخروج من العقدة غير صالح، يرجى تغيير موقع الخروج من العقدة",
+    "max-devices-reached": "تجاوز حد جهاز الحساب. الرجاء إزالة جهاز من حسابك قبل الاتصال.",
+    "bandwidth-exceeded": "تجاوز عرض النطاق الترددي الشهري. الرجاء ترقية خطة حسابك.",
     "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "device-time-out-of-sync": "وقت الجهاز غير متزامن. الرجاء مزامنة وقت جهازك مع الإنترنت.",
+    "ipv6-unavailable": "IPv6 غير متوفر في النظام. تعطيل في الإعدادات لاستخدام IPv4",
+    "tun-device": "خطأ في جهاز TUN",
+    "tunnel-provider": "خطأ موفر النفق",
+    "bad-bandwidth-increase": "قيمة زيادة عرض النطاق الترددي غير صالحة",
+    "inactive-account": "حسابك غير نشط",
+    "device-logged-out": "تم تسجيل خروج هذا الجهاز. الرجاء تسجيل الدخول للاستمرار في استخدام VPN."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "خطأ في الحساب الداخلي",
+    "max-devices-reached": "تجاوز حد جهاز الحساب.",
+    "bandwidth-exceeded": "تجاوز النطاق الترددي. يرجى ترقية خطة حسابك.",
     "invalid-recovery-phrase": "عبارة الاسترداد غير صحيحة",
     "storage": "خطأ في تخزين البيانات",
-    "is-connected": "Unable to proceed while connected",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "is-connected": "غير قادر على المتابعة أثناء الاتصال",
+    "no-account-stored": "لا يوجد حساب مخزون",
+    "no-device-stored": "لا يوجد جهاز مخزن",
+    "existing-account": "الحساب موجود بالفعل",
+    "no-subscription": "ليس لديك خطة نشطة. انقر على بدء تشغيل تصفح مجهول.",
+    "status-not-active": "حسابك غير نشط",
+    "device-time-out-of-sync": "وقت الجهاز غير متزامن. الرجاء مزامنة وقت جهازك مع الإنترنت."
   },
   "countries-request": {
     "entry": "تعذر الحصول على الدول المتاحة لنقاط الدخول",
@@ -43,15 +46,15 @@
     "fast-mode": "تعذر الحصول على الدول المتاحة"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "No bandwidth remaining.",
+    "entry-gateway-down": "بوابة الدخول لأسفل",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "بوابة الخروج لأسفل (IPv4)",
+      "ipv6": "بوابة الخروج لأسفل (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "الخروج من مسار البوابة خطأ (IPv4)",
+      "ipv6": "الخروج من مسار البوابة خطأ (IPv6)"
     }
   }
 }

@@ -8,20 +8,20 @@
   "first-hop-selection": "Selezione del primo hop",
   "last-hop-selection": "Selezione dell'ultimo hop",
   "settings": "Impostazioni",
-  "display-theme": "Display",
+  "display-theme": "Visualizzazione",
   "notifications": "Notifiche",
-  "logs": "Logs",
+  "logs": "Registri",
   "feedback": "Feedsback",
   "legal": "Legale",
-  "data-privacy": "Privacy & data",
+  "data-privacy": "Privacy & dati",
   "support": "Supporto",
   "fastest": "Più veloce",
   "sentry": "Sentinella",
   "tos": "Termini di utilizzo",
   "privacy-statement": "Privacy policy",
   "ui-mode": {
-    "dark": "Dark mode",
-    "light": "Light mode"
+    "dark": "Modalità scura",
+    "light": "Modalità luce"
   },
   "appearance": "Aspetto",
   "language": "Lingua"

@@ -75,12 +75,12 @@
     }
   },
   "account": {
-    "get-started": "Get started",
+    "get-started": "शुरू करें",
     "syncing": "Syncing…",
     "no-plan": "No active plan",
     "bandwidth-exceeded": "Bandwidth exceeded",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "error": "अंदरूनी त्रुटि"
   }
 }

@@ -51,17 +51,17 @@
     "button-update": "アップデート"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "アップデートがあります",
+    "description": "バージョン {{version}} はパフォーマンスの向上と新機能の準備ができています。",
+    "restart-note": "アップデート後にアプリが再起動します。",
+    "button-update": "NymVPNを更新",
+    "button-close": "閉じる"
   },
   "app-update-progress": {
     "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "description": "アップデートをインストールする - アプリを閉じないでください。",
+    "restart-note": "アップデート後にアプリが再起動します。",
+    "bar-label": "ダウンロードの進捗状況"
   },
-  "get-started": "Get started"
+  "get-started": "開始する"
 }

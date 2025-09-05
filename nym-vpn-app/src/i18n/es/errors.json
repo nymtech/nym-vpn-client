@@ -9,8 +9,6 @@
   "grpc": "Error interno gRPC",
   "tunnel": {
     "internal": "Error interno",
-    "api": "Error de API",
-    "account-controller": "Account controller: internal error",
     "firewall": "Error del firewall",
     "routing": "Error al enrutar",
     "dns": "Error de DNS",
@@ -21,21 +19,26 @@
     "bandwidth-exceeded": "Se ha superado el ancho de banda mensual. Actualiza el plan de tu cuenta.",
     "subscription-expired": "La suscripción ha caducado. Por favor, compra un plan para tu cuenta.",
     "device-time-out-of-sync": "El tiempo del dispositivo no está sincronizado. Por favor, sincroniza el tiempo de tu dispositivo con el internet.",
-    "ipv6-unavailable": "IPv6 no está disponible en el sistema. Desactívelo en la configuración para usar IPv4"
+    "ipv6-unavailable": "IPv6 no está disponible en el sistema. Desactívelo en la configuración para usar IPv4",
+    "tun-device": "Error de dispositivo TUN",
+    "tunnel-provider": "Error del proveedor del túnel",
+    "bad-bandwidth-increase": "Valor de aumento de ancho de banda no válido",
+    "inactive-account": "Tu cuenta está inactiva",
+    "device-logged-out": "Este dispositivo ha sido desconectado. Por favor, inicie sesión para continuar usando la VPN."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Error interno de la cuenta",
+    "max-devices-reached": "Límite de dispositivo de cuenta excedido.",
+    "bandwidth-exceeded": "Ancho de banda excedido. Actualice su plan de cuenta.",
     "invalid-recovery-phrase": "Código de acceso inválido",
     "storage": "Error de backend de almacenamiento",
     "is-connected": "No se puede continuar mientras está conectado",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "no-account-stored": "Ninguna cuenta almacenada",
+    "no-device-stored": "Ningún dispositivo guardado",
+    "existing-account": "La cuenta ya existe",
+    "no-subscription": "No tienes un plan activo. Pulsa en Empezar para iniciar una navegación anónima.",
+    "status-not-active": "Tu cuenta está inactiva",
+    "device-time-out-of-sync": "El tiempo del dispositivo no está sincronizado. Por favor, sincroniza el tiempo de tu dispositivo con el internet."
   },
   "countries-request": {
     "entry": "Fallo al obtener los países disponibles del gateway de entrada",
@@ -43,15 +46,15 @@
     "fast-mode": "Fallo al buscar los países disponibles"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "No queda ancho de banda.",
+    "entry-gateway-down": "El gateway de entrada está caído",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "El gateway de salida está caído (IPv4)",
+      "ipv6": "El gateway de salida está caído (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "Error de ruteo del gateway de salida (IPv4)",
+      "ipv6": "Error de ruteo del gateway de salida (IPv6)"
     }
   }
 }

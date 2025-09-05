@@ -75,12 +75,12 @@
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "Começar",
+    "syncing": "Sincronizando…",
+    "no-plan": "Nenhum plano ativo",
+    "bandwidth-exceeded": "Largura de banda excedida",
+    "max-device-reached": "Máximo de dispositivos atingido",
+    "status-inactive": "Conta inativa",
+    "error": "Erro interno"
   }
 }

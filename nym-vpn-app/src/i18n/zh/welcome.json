@@ -4,6 +4,6 @@
   "anon-toggle-desc": "重启时响应",
   "tos-notice": "继续后，您会同意 NymVPN的 <tosLink /> 并确认 NymVPN的 <privacyLink />。",
   "continue-button": "继续",
-  "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Anonymous network stats"
+  "error-monitoring-label": "匿名错误报告",
+  "network-statistic": "匿名网络数据"
 }

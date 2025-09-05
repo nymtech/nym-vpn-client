@@ -4,8 +4,8 @@
     "desc": "Tự động kết nối khi khởi động ứng dụng"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "Tunneling lưu lượng IPv6",
+    "desc": "Vô hiệu hóa để chỉ sử dụng IPv4"
   },
   "notifications": {
     "title": "Thông báo trên máy tính"
@@ -61,26 +61,26 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "Báo cáo lỗi & sự cố",
+      "sublabel": "Thay đổi sẽ có hiệu lực sau khi khởi động lại ứng dụng và daemon.",
+      "desc": "Gửi thông tin sự cố để giúp chúng tôi sửa lỗi nhanh hơn. Các báo cáo sẽ được chuyển qua hệ thống bảo mật của Sentry và chỉ chứa dữ liệu gỡ lỗi kỹ thuật.",
+      "link": "Xem Chính sách quyền riêng tư của Sentry"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "Thống kê mạng ẩn danh",
+      "sublabel": "Thay đổi sẽ có hiệu lực sau khi khởi động lại daemon.",
+      "desc1": "Hãy giúp chúng tôi xây dựng một mạng lưới nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất một cách ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu hóa tốc độ, giảm tình trạng ngắt kết nối và mở rộng độ phủ máy chủ tại những khu vực cần thiết nhất.",
+      "desc2": "Chỉ có dữ liệu hiệu suất mạng được chia sẻ - không bao giờ chia sẻ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn.",
+      "link": "Tìm hiểu chính xác những gì được chia sẻ"
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "Bắt đầu",
+    "syncing": "Đang đồng bộ…",
+    "no-plan": "Không có gói dịch vụ khả dụng",
+    "bandwidth-exceeded": "Vượt quá giới hạn băng thông",
+    "max-device-reached": "Đã đạt đến số lượng thiết bị tối đa",
+    "status-inactive": "Tài khoản không hoạt động",
+    "error": "Lỗi nội bộ"
   }
 }

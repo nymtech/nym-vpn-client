@@ -1,8 +1,8 @@
 {
   "select-a-plan": {
-    "title": "Choose your protection level",
-    "description-1": "Select a plan now to activate your protection",
-    "description-2": "Your upcoming payment cannot be linked to your future browsing activity",
-    "button": "Choose my NymVPN plan"
+    "title": "Elige tu nivel de protección",
+    "description-1": "Selecciona un plan ahora para activar tu protección",
+    "description-2": "Tu próximo pago no podrá ser vinculado a tu actividad de navegación",
+    "button": "Elige tu plan NymVPN"
   }
 }

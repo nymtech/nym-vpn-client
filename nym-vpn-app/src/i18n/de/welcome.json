@@ -1,9 +1,9 @@
 {
-  "title": "Welcome to NymVPN",
+  "title": "Willkommen bei NymVPN",
   "description": "Help us improve the app by identifying and resolving issues. Opt-in for anonymous error monitoring (via <sentryLink />) and analytics, you can opt out anytime. Thanks for your support!",
-  "anon-toggle-desc": "Applies on app restart",
-  "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
+  "anon-toggle-desc": "Gilt beim Neustart der App",
+  "tos-notice": "Indem du fortfährst, stimmst du NymVPN's <tosLink /> zu und bestätigst NymVPN's <privacyLink />.",
   "continue-button": "Fortfahren",
-  "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Anonymous network stats"
+  "error-monitoring-label": "Anonymisierte Fehlerprotokolle",
+  "network-statistic": "Anonyme Netzwerkstatistiken"
 }

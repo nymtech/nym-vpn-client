@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "NymVPN क्लाइंट शुरू हो रहा है…",
-    "InitDone": "NymVPN क्लाइंट शुरू हो गया है",
-    "Canceling": "कैंसल हो रहा है…"
+    "canceling": "Canceling…",
+    "resolving-api-addresses": "Resolving API addresses…",
+    "awaiting-account-readiness": "Awaiting for account readiness…",
+    "refreshing-gateways": "Refreshing gateways…",
+    "selecting-gateways": "Selecting gateways…",
+    "connecting-mixnet-client": "Connecting to the mixnet client…",
+    "connecting-tunnel": "Connecting to the VPN tunnel…"
   },
   "connection-attempt_one": "फिरसे प्रयास कर रहे हैं… {{count}}",
   "connection-attempt_other": "फिरसे प्रयास कर रहे हैं… {{count}}"
