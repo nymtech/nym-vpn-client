@@ -6,13 +6,6 @@ use std::net::IpAddr;
 use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(windows)]
-use tokio::sync::mpsc;
-use tokio::task::{JoinError, JoinHandle};
-use tokio_util::sync::CancellationToken;
-#[cfg(unix)]
-use tun::AsyncDevice;
-
-#[cfg(windows)]
 use nym_routing::{Callback, CallbackHandle, EventType};
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
@@ -20,6 +13,12 @@ use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{netstack, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::{self as winnet, AddressFamily};
+#[cfg(windows)]
+use tokio::sync::mpsc;
+use tokio::task::{JoinError, JoinHandle};
+use tokio_util::sync::CancellationToken;
+#[cfg(unix)]
+use tun::AsyncDevice;
 
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
@@ -28,11 +27,14 @@ use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 #[cfg(unix)]
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
-    tunnel_state_machine::tunnel::{
-        Error, Result, Tombstone,
-        wireguard::{
-            connector::ConnectionData,
-            two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
+    tunnel_state_machine::{
+        TunnelConstants,
+        tunnel::{
+            Error, Result, Tombstone,
+            wireguard::{
+                connector::ConnectionData,
+                two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
+            },
         },
     },
     wg_config::{AllowedIps, WgNodeConfig},
@@ -79,6 +81,7 @@ impl ConnectedTunnel {
         self,
         #[cfg(windows)] route_handler: RouteHandler,
         options: TunnelOptions,
+        tunnel_constants: TunnelConstants,
     ) -> Result<TunnelHandle> {
         match options {
             TunnelOptions::TunTun(tuntun_options) => {
@@ -86,6 +89,7 @@ impl ConnectedTunnel {
                     #[cfg(windows)]
                     route_handler,
                     tuntun_options,
+                    tunnel_constants,
                 )
                 .await
             }
@@ -93,6 +97,7 @@ impl ConnectedTunnel {
                 #[cfg(windows)]
                 route_handler,
                 netstack_options,
+                tunnel_constants,
             ),
         }
     }
@@ -101,13 +106,19 @@ impl ConnectedTunnel {
         self,
         #[cfg(windows)] route_handler: RouteHandler,
         options: TunTunTunnelOptions,
+        tunnel_constants: TunnelConstants,
     ) -> Result<TunnelHandle> {
-        let mut allowed_ips = options.initial_allowed_ips;
-        allowed_ips.push(IpNetwork::from(self.connection_data.exit.endpoint.ip()));
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
-            AllowedIps::Specific(allowed_ips),
+            AllowedIps::Specific(vec![
+                IpNetwork::from(self.connection_data.exit.endpoint.ip()),
+                IpNetwork::from(
+                    tunnel_constants
+                        .in_tunnel_banwidth_query_gateway_endpoint
+                        .ip(),
+                ),
+            ]),
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
@@ -220,13 +231,19 @@ impl ConnectedTunnel {
         self,
         #[cfg(windows)] route_handler: RouteHandler,
         options: NetstackTunnelOptions,
+        tunnel_constants: TunnelConstants,
     ) -> Result<TunnelHandle> {
-        let mut allowed_ips = options.initial_allowed_ips;
-        allowed_ips.push(IpNetwork::from(self.connection_data.exit.endpoint.ip()));
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
-            AllowedIps::Specific(allowed_ips),
+            AllowedIps::Specific(vec![
+                IpNetwork::from(self.connection_data.exit.endpoint.ip()),
+                IpNetwork::from(
+                    tunnel_constants
+                        .in_tunnel_banwidth_query_gateway_endpoint
+                        .ip(),
+                ),
+            ]),
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
@@ -257,8 +274,9 @@ impl ConnectedTunnel {
 
         two_hop_config.set_udp_proxy_listen_addr(exit_intunnel_udp_proxy.listen_addr());
 
-        let entry_magic_bandwidth_tcp_proxy =
-            entry_tunnel.start_intunnel_tcp_connection_proxy("10.1.0.1:51830".parse().unwrap())?;
+        let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_intunnel_tcp_connection_proxy(
+            tunnel_constants.in_tunnel_banwidth_query_gateway_endpoint,
+        )?;
 
         let exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
@@ -425,9 +443,6 @@ pub struct TunTunTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
-
-    /// IPs that should be tunneled by all tunnels
-    pub initial_allowed_ips: Vec<IpNetwork>,
 }
 
 /// Multihop configuration based on WireGuard/netstack.
@@ -450,9 +465,6 @@ pub struct NetstackTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
-
-    /// IPs that should be tunneled by all tunnels
-    pub initial_allowed_ips: Vec<IpNetwork>,
 }
 
 pub struct TunnelHandle {

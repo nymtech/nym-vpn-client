@@ -1,14 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse};
-#[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use nym_sdk::UserAgent;
-use nym_task::TaskManager;
-use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::start_background_file_refresh;
-use nym_wg_metadata_client::TunUpSendData;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -20,6 +12,15 @@ use std::os::fd::{FromRawFd, OwnedFd};
 use std::{net::IpAddr, path::PathBuf, time::Duration};
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
+
+use futures::{FutureExt, future::Fuse};
+#[cfg(target_os = "linux")]
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nym_sdk::UserAgent;
+use nym_task::TaskManager;
+use nym_vpn_account_controller::AccountStateReceiver;
+use nym_vpn_network_config::start_background_file_refresh;
+use nym_wg_metadata_client::TunUpSendData;
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -753,15 +754,9 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
-        let initial_allowed_ips = self
-            .tunnel_parameters
-            .tunnel_constants
-            .initial_allowed_ips
-            .clone();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             exit_tun,
             dns: dns_config.tunnel_config().to_vec(),
-            initial_allowed_ips,
         });
 
         let tunnel_metadata = TunnelMetadata {
@@ -775,7 +770,7 @@ impl TunnelMonitor {
         };
 
         let tunnel_handle = connected_tunnel
-            .run(tunnel_options)
+            .run(tunnel_options, self.tunnel_parameters.tunnel_constants)
             .await
             .map_err(Box::new)?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
@@ -982,20 +977,14 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
-        let initial_allowed_ips = self
-            .tunnel_parameters
-            .tunnel_constants
-            .initial_allowed_ips
-            .clone();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun,
             exit_tun,
             dns: dns_config.tunnel_config().to_vec(),
-            initial_allowed_ips,
         });
 
         let tunnel_handle = connected_tunnel
-            .run(tunnel_options)
+            .run(tunnel_options, self.tunnel_parameters.tunnel_constants)
             .await
             .map_err(Box::new)?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
@@ -1084,11 +1073,6 @@ impl TunnelMonitor {
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
-        let initial_allowed_ips = self
-            .tunnel_parameters
-            .tunnel_constants
-            .initial_allowed_ips
-            .clone();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun_name: WG_ENTRY_WINTUN_NAME.to_owned(),
             entry_tun_guid: WG_ENTRY_WINTUN_GUID.to_owned(),
@@ -1096,7 +1080,6 @@ impl TunnelMonitor {
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
             dns: dns_config.tunnel_config().to_vec(),
-            initial_allowed_ips,
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -1104,6 +1087,7 @@ impl TunnelMonitor {
                 #[cfg(windows)]
                 self.route_handler.clone(),
                 tunnel_options,
+                self.tunnel_parameters.tunnel_constants,
             )
             .await
             .map_err(Box::new)?;
@@ -1234,17 +1218,12 @@ impl TunnelMonitor {
             .dns
             .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
             .to_vec();
-        let initial_allowed_ips = self
-            .tunnel_parameters
-            .tunnel_constants
-            .initial_allowed_ips
-            .clone();
 
         let tunnel_handle = connected_tunnel
             .run(
                 tun_device,
                 dns_servers,
-                initial_allowed_ips,
+                self.tunnel_parameters.tunnel_constants,
                 #[cfg(target_os = "android")]
                 self.tun_provider.clone(),
             )
