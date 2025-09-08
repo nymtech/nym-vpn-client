@@ -1,6 +1,6 @@
 {
   "connection-progress": {
-    "canceling": "Annulation de…",
+    "canceling": "Annulation…",
     "resolving-api-addresses": "Résolution des adresses API…",
     "awaiting-account-readiness": "En attente de préparation du compte…",
     "refreshing-gateways": "Rafraîchissement des passerelles…",
