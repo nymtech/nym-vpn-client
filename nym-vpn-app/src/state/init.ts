@@ -15,19 +15,16 @@ import {
   CodeDependency,
   Country,
   Gateway,
+  InitState,
   NetworkCompat,
   StateDispatch,
   TAccountState,
   ThemeMode,
   TunnelStateIpc,
   UiTheme,
-  VpnMode,
 } from '../types';
-import { S_STATE } from '../static';
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
-
-const defaultVpnMode = window._APP.defaultVpnMode;
 
 // initialize connection state
 const getInitialTunnelState = async () => {
@@ -41,7 +38,10 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-export async function initFirstBatch(dispatch: StateDispatch) {
+export async function initFirstBatch(
+  dispatch: StateDispatch,
+  initState: InitState,
+) {
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
@@ -140,15 +140,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getVpnModeRq: TauriReq<() => Promise<VpnMode | undefined>> = {
-    name: 'getVpnMode',
-    request: () => kvGet<VpnMode>('vpn-mode'),
-    onFulfilled: (vpnMode) => {
-      S_STATE.vpnModeInit = true;
-      dispatch({ type: 'set-vpn-mode', mode: vpnMode || defaultVpnMode });
-    },
-  };
-
   const getDesktopNotificationsRq: TauriReq<
     () => Promise<boolean | undefined>
   > = {
@@ -228,7 +219,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   };
 
   let requests: TauriReq<never>[] = [
-    getVpnModeRq,
     getEntryNodeRq,
     getExitNodeRq,
     getVersionRq,
@@ -242,7 +232,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getNetworkStatsRq,
   ];
 
-  if (S_STATE.vpnd !== 'down') {
+  if (initState.vpnd !== 'down') {
     requests = [
       initStateRq,
       getStoredAccountRq,
@@ -255,7 +245,10 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   await fireRequests(requests);
 }
 
-export async function initSecondBatch(dispatch: StateDispatch) {
+export async function initSecondBatch(
+  dispatch: StateDispatch,
+  initState: InitState,
+) {
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
@@ -292,7 +285,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     };
 
   let requests: TauriReq<never>[] = [getAutostart];
-  if (S_STATE.vpnd !== 'down') {
+  if (initState.vpnd !== 'down') {
     requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
   }
 

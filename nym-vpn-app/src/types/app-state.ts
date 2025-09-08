@@ -9,6 +9,7 @@ import {
   Gateway,
   NetworkCompat,
   NetworkEnv,
+  VpndStatus,
 } from './tauri';
 import { ConnectingState, Tunnel, TunnelError } from './tunnel';
 
@@ -35,6 +36,14 @@ export type CodeDependency = {
 };
 
 export type DaemonStatus = 'ok' | 'non-compat' | 'down';
+
+// early stage state used to initialize the main app-state
+export type InitState = {
+  uiTheme: UiTheme;
+  welcomeChecked: boolean;
+  vpnMode: VpnMode;
+  vpnd: VpndStatus;
+};
 
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
@@ -76,6 +85,8 @@ export type AppState = {
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;
   networkStats: boolean;
+  // whether the user has completed once the welcome screen
+  welcomeChecked: boolean;
 };
 
 export type ProgressMsg = 'canceling';

@@ -15,10 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Max and min window size adjusted to support exotic screen resolutions
+- Refactor UI early state initialization
 
 ### Fixed
 
 - [Windows] Installer fails to uninstall daemon during upgrade
+- Fix in-app update popup not showing after the Welcome screen
 
 ## [1.14.0] - 2025-08-26
 

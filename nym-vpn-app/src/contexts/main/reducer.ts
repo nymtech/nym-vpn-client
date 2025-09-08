@@ -67,6 +67,7 @@ export type StateAction =
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-syncing'; syncing: boolean }
+  | { type: 'set-welcome-checked'; checked: boolean }
   | { type: 'set-account-error'; error: AppError | null };
 
 export const initialState: AppState = {
@@ -96,6 +97,7 @@ export const initialState: AppState = {
   account: false,
   ipv6Support: true,
   networkStats: false,
+  welcomeChecked: false,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -319,6 +321,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         accountError: action.error,
+      };
+    case 'set-welcome-checked':
+      return {
+        ...state,
+        welcomeChecked: action.checked,
       };
 
     case 'reset':
