@@ -108,7 +108,7 @@ impl WintunInterface {
 /// Classic WireGuard tunnel.
 #[derive(Debug)]
 pub struct Tunnel {
-    handle: i32,
+    tunnel_handle: i32,
     #[cfg(windows)]
     wintun_interface: WintunInterface,
 }
@@ -117,10 +117,10 @@ impl Tunnel {
     /// Start new WireGuard tunnel
     #[cfg(not(windows))]
     pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
-        let settings =
-            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let settings = CString::new(config.as_uapi_config())
+            .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
-        let handle = unsafe {
+        let tunnel_handle = unsafe {
             wgTurnOn(
                 // note: not all platforms accept mtu = 0
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -132,10 +132,10 @@ impl Tunnel {
             )
         };
 
-        if handle >= 0 {
-            Ok(Self { handle })
+        if tunnel_handle >= 0 {
+            Ok(Self { tunnel_handle })
         } else {
-            Err(Error::StartTunnel(handle))
+            Err(Error::StartTunnel(tunnel_handle))
         }
     }
 
@@ -147,14 +147,14 @@ impl Tunnel {
         requested_guid: &str,
         wintun_tunnel_type: &str,
     ) -> Result<Self> {
-        let settings =
-            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+        let settings = CString::new(config.as_uapi_config())
+            .map_err(|_| Error::ConvertToCString("settings"))?;
         let interface_name_cstr =
-            CString::new(interface_name).map_err(|_| Error::InterfaceNameContainsNulByte)?;
+            CString::new(interface_name).map_err(|_| Error::ConvertToCString("interface name"))?;
         let requested_guid_cstr =
-            CString::new(requested_guid).map_err(|_| Error::RequestedGuidContainsNulByte)?;
+            CString::new(requested_guid).map_err(|_| Error::ConvertToCString("requested guid"))?;
         let wintun_tunnel_type_cstr =
-            CString::new(wintun_tunnel_type).map_err(|_| Error::WintunTunnelTypeContainsNulByte)?;
+            CString::new(wintun_tunnel_type).map_err(|_| Error::ConvertToCString("tunnel type"))?;
 
         let mut out_interface_name: *mut c_char = std::ptr::null_mut();
         let out_interface_name_ptr: *mut *mut c_char = &mut out_interface_name;
@@ -162,7 +162,7 @@ impl Tunnel {
         let mut out_interface_luid: u64 = 0;
         let out_interface_luid_ptr: *mut u64 = &mut out_interface_luid;
 
-        let handle = unsafe {
+        let tunnel_handle = unsafe {
             wgTurnOn(
                 interface_name_cstr.as_ptr(),
                 requested_guid_cstr.as_ptr(),
@@ -176,30 +176,30 @@ impl Tunnel {
             )
         };
 
-        if handle >= 0 {
+        if tunnel_handle >= 0 {
             // SAFETY: libwg is expected to set a non-null value upon successful return.
             let wintun_iface_name_cstr = unsafe { CStr::from_ptr(out_interface_name) };
 
             // SAFETY: conversion must never fail.
             let wintun_iface_name = wintun_iface_name_cstr
                 .to_str()
-                .expect("failed to convert cstring to str")
-                .to_owned();
-
-            let wintun_interface = WintunInterface {
-                name: wintun_iface_name,
-                luid: out_interface_luid,
-            };
+                .map_err(|_| Error::ConvertToString("wintun interface name"))
+                .map(|s| s.to_owned());
 
             // SAFETY: free C string allocated in Go using the correct deallocator.
             unsafe { wgFreePtr(out_interface_name as *mut _) };
 
+            let wintun_interface = WintunInterface {
+                name: wintun_iface_name?,
+                luid: out_interface_luid,
+            };
+
             Ok(Self {
-                handle,
+                tunnel_handle,
                 wintun_interface,
             })
         } else {
-            Err(Error::StartTunnel(handle))
+            Err(Error::StartTunnel(tunnel_handle))
         }
     }
 
@@ -219,7 +219,7 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        unsafe { wgBumpSockets(self.handle) }
+        unsafe { wgBumpSockets(self.tunnel_handle) }
     }
 
     /// Re-bind tunnel socket to the new network interface.
@@ -235,9 +235,9 @@ impl Tunnel {
         for peer_update in peer_updates {
             peer_update.append_to(&mut config_builder);
         }
-        let settings =
-            CString::new(config_builder.into_bytes()).map_err(|_| Error::ConfigContainsNulByte)?;
-        let ret_code = unsafe { wgSetConfig(self.handle, settings.as_ptr()) };
+        let settings = CString::new(config_builder.into_bytes())
+            .map_err(|_| Error::ConvertToCString("peer update config"))?;
+        let ret_code = unsafe { wgSetConfig(self.tunnel_handle, settings.as_ptr()) };
 
         if ret_code == 0 {
             Ok(())
@@ -247,9 +247,9 @@ impl Tunnel {
     }
 
     fn stop_inner(&mut self) {
-        if self.handle >= 0 {
-            unsafe { wgTurnOff(self.handle) };
-            self.handle = -1;
+        if self.tunnel_handle >= 0 {
+            unsafe { wgTurnOff(self.tunnel_handle) };
+            self.tunnel_handle = -1;
         }
     }
 }

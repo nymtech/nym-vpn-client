@@ -98,6 +98,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .existingAccount
         case let .AccountControllerError(details: details):
             self = .accountControllerError(details: details)
+        case let .HttpClient(msg):
+            self = .internalError(details: msg)
         }
     }
 

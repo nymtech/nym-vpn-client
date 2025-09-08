@@ -11,8 +11,8 @@ import "C"
 import "github.com/amnezia-vpn/amneziawg-go/conn"
 
 //export wgNetGetSocketV4
-func wgNetGetSocketV4(tunnelHandle int32) int32 {
-	tunnel, err := netTunnelHandles.Get(tunnelHandle)
+func wgNetGetSocketV4(netTunnelHandle int32) int32 {
+	tunnel, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
 		return ERROR_GENERAL_FAILURE
 	}
@@ -25,8 +25,8 @@ func wgNetGetSocketV4(tunnelHandle int32) int32 {
 }
 
 //export wgNetGetSocketV6
-func wgNetGetSocketV6(tunnelHandle int32) int32 {
-	tunnel, err := netTunnelHandles.Get(tunnelHandle)
+func wgNetGetSocketV6(netTunnelHandle int32) int32 {
+	tunnel, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
 		return ERROR_GENERAL_FAILURE
 	}
