@@ -7,8 +7,8 @@ use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6Beaco
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
 use nym_task::TaskClient;
-use tokio::{sync::oneshot, task::JoinHandle};
-use tokio_util::codec::Framed;
+use tokio::task::JoinHandle;
+use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
 
 use super::SharedMixnetClient;
@@ -36,19 +36,23 @@ pub(super) struct MixnetListener {
 
     // Connection event sender
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+
+    // Cancellation token
+    shutdown_token: CancellationToken,
 }
 
 impl MixnetListener {
-    pub(super) async fn new(
+    pub(super) fn spawn(
         mixnet_client: SharedMixnetClient,
         task_client: TaskClient,
         tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-    ) -> Self {
+        shutdown_token: CancellationToken,
+    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
         let ipr_listener = IprListener::new();
-        Self {
+        let mixnet_listener = Self {
             mixnet_client,
             ipr_listener,
             task_client,
@@ -56,7 +60,9 @@ impl MixnetListener {
             icmp_beacon_identifier,
             our_ips,
             connection_event_tx,
-        }
+            shutdown_token,
+        };
+        tokio::spawn(mixnet_listener.run())
     }
 
     fn send_connection_event(&self, event: ConnectionStatusEvent) {
@@ -82,6 +88,10 @@ impl MixnetListener {
         while !self.task_client.is_shutdown() {
             tokio::select! {
                 _ = self.task_client.recv() => {
+                    tracing::debug!("Mixnet listener: Received shutdown");
+                    break;
+                }
+                _ = self.shutdown_token.cancelled() => {
                     tracing::debug!("Mixnet listener: Received shutdown");
                     break;
                 }
@@ -127,17 +137,6 @@ impl MixnetListener {
 
         tracing::debug!("Mixnet listener: Exiting");
         self.tun_device_sink
-    }
-
-    pub(super) fn start(
-        self,
-        is_done: oneshot::Sender<()>,
-    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
-        tokio::spawn(async move {
-            let tun_device_sink = self.run().await;
-            let _ = is_done.send(());
-            tun_device_sink
-        })
     }
 }
 
