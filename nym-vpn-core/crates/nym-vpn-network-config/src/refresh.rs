@@ -68,7 +68,8 @@ impl FileRefresher {
 
         self.cancel_token
             .run_until_cancelled(async {
-                // no initial tick, since we're only running in Connected state, we have to make the most of it
+                // no initial tick outside the loop, since we're only running in Connected state,
+                // we want to try to refresh asap and make the most of this iteration
                 loop {
                     interval.tick().await;
                     if !checked_consistency {

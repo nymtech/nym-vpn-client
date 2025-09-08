@@ -170,16 +170,16 @@ impl Network {
             })
     }
 
-    pub fn get_feature_flag_credential_mode(&self) -> Option<bool> {
+    pub fn credential_mode(&self) -> Option<bool> {
         self.get_feature_flag("zkNyms", "credentialMode")
     }
 
-    pub fn get_feature_flag_stats_recipient(&self) -> Option<Recipient> {
+    pub fn stats_recipient(&self) -> Option<Recipient> {
         self.get_feature_flag("statistics", "recipient")
     }
 
     /// Get the version of the gateway from where the metadata endpoint should start to be used
-    pub fn get_feature_flag_gateway_metadata_update_version(&self) -> Option<semver::Version> {
+    pub fn gw_update_version(&self) -> Option<semver::Version> {
         self.get_feature_flag("versions", "gatewayMetadataUpdate")
     }
 }
