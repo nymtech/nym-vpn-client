@@ -7,7 +7,6 @@ import { useGateways, useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import MsIcon from '../../ui/MsIcon';
-import { S_STATE } from '../../static';
 import ModeDetailsDialog from './ModeDetailsDialog';
 import { useActionToast } from './util';
 
@@ -125,7 +124,7 @@ function NetworkModeSelect() {
         data-testid="network-mode-radio-group-container"
       >
         <RadioGroup
-          key={`_${S_STATE.vpnModeInit}`}
+          key={`_${vpnMode}`}
           defaultValue={vpnMode}
           options={vpnModes}
           onChange={handleNetworkModeChange}

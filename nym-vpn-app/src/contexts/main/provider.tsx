@@ -1,9 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useEffect, useReducer } from 'react';
-import { SystemMessage } from '../../types';
+import { InitState, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
-import { S_STATE } from '../../static';
 import { useInAppNotify } from '../in-app-notification';
 import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
 import { CCache } from '../../cache';
@@ -11,18 +10,23 @@ import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
 let initialized = false;
+let systemMessageInit = false;
 
 type Props = {
   children?: React.ReactNode;
+  init: InitState;
 };
 
-function MainStateProvider({ children }: Props) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+function MainStateProvider({ children, init }: Props) {
+  const [state, dispatch] = useReducer(reducer, {
+    ...initialState,
+    vpnMode: init.vpnMode,
+    uiTheme: init.uiTheme,
+    welcomeChecked: init.welcomeChecked,
+  });
 
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
-
-  // const { t } = useTranslation();
 
   // initialize app state
   useEffect(() => {
@@ -30,8 +34,8 @@ function MainStateProvider({ children }: Props) {
       return;
     }
     initialized = true;
-    daemonStatusUpdate(S_STATE.vpnd, dispatch, push);
-    networkEnvChanged(S_STATE.vpnd).then(async (changed) => {
+    daemonStatusUpdate(init.vpnd, dispatch, push);
+    networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {
         console.info('network env changed, clearing cache');
         await CCache.clear();
@@ -39,24 +43,28 @@ function MainStateProvider({ children }: Props) {
     });
 
     // this first batch is needed to ensure the app is fully initialized and ready
-    initFirstBatch(dispatch).then(() => {
+    initFirstBatch(dispatch, init).then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
     });
 
     // this second batch is not needed for the app to be fully
     // functional, and continue loading in the background
-    initSecondBatch(dispatch).then(() => {
+    initSecondBatch(dispatch, init).then(() => {
       console.log('init of 2nd batch done');
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (S_STATE.systemMessageInit || state.daemonStatus === 'down') {
+    if (
+      systemMessageInit ||
+      init.vpnd === 'down' ||
+      state.daemonStatus === 'down'
+    ) {
       return;
     }
-    S_STATE.systemMessageInit = true;
+    systemMessageInit = true;
     const querySystemMessages = async () => {
       try {
         const messages = await invoke<SystemMessage[]>('system_messages');
@@ -74,7 +82,7 @@ function MainStateProvider({ children }: Props) {
       } catch {}
     };
     querySystemMessages();
-  }, [push, state.daemonStatus]);
+  }, [init.vpnd, push, state.daemonStatus]);
 
   return (
     <MainStateContext.Provider value={state}>
