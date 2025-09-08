@@ -20,11 +20,11 @@
     "subscription-expired": "Gói đăng ký của bạn đã hết hạn. Kill switch bảo vệ bạn. Chạm vào Dừng và gia hạn gói dịch vụ của bạn.",
     "device-time-out-of-sync": "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet.",
     "ipv6-unavailable": "IPv6 không khả dụng trong hệ thống. Vui lòng tắt trong cài đặt để sử dụng IPv4",
-    "tun-device": "TUN device error",
-    "tunnel-provider": "Tunnel provider error",
-    "bad-bandwidth-increase": "Invalid bandwidth increase value",
-    "inactive-account": "Your account is inactive",
-    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN."
+    "tun-device": "Lỗi thiết bị TUN",
+    "tunnel-provider": "Lỗi nhà cung cấp tunnel",
+    "bad-bandwidth-increase": "Giá trị tăng băng thông không hợp lệ",
+    "inactive-account": "Tài khoản của bạn không hoạt động",
+    "device-logged-out": "Thiết bị này đã đăng xuất. Vui lòng đăng nhập để tiếp tục sử dụng VPN."
   },
   "account": {
     "internal": "Lỗi tài khoản nội bộ",
