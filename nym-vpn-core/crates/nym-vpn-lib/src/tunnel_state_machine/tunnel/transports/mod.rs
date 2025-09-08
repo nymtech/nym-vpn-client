@@ -285,12 +285,13 @@ where
                         let mut sent = 0;
                         let mut sends = 1;
                         while sent < len {
-                            sent += sock.send_to(&buf[..], fw_addr).await.map_err(|e| {
+                            let len_sent = sock.send_to(&buf[sent..len], fw_addr).await.map_err(|e| {
                                 error!("error sending to egress socket: {e}");
                                 token.cancel();
                                 e
                             })?;
-                            trace!(" ->{fw_addr} wrote {len}B {sends} send");
+                            sent += len_sent;
+                            trace!(" ->{fw_addr} wrote {len_sent}B {sends} send");
                             sends +=1;
                         }
                     }
