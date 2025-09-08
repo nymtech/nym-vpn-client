@@ -22,6 +22,7 @@ public enum VPNErrorReason: LocalizedError {
     case failedAccountRegistration(details: String)
     case existingAccount
     case accountControllerError(details: String)
+    case httpClient(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -98,11 +99,12 @@ public enum VPNErrorReason: LocalizedError {
             self = .existingAccount
         case let .AccountControllerError(details: details):
             self = .accountControllerError(details: details)
+        case let .HttpClient(details):
+            self = .httpClient(details: details)
         }
     }
 
     // MARK: - Initializer from NSError
-    // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
         guard nsError.domain == VPNErrorReason.domain,
               let errorReason = VPNErrorReasonCode(rawValue: nsError.code)
@@ -152,6 +154,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .existingAccount:
             self = .existingAccount
+        case .httpClient:
+            self = .httpClient(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -218,6 +222,8 @@ extension VPNErrorReason {
             "errorReason.existingAccount".localizedString
         case let .accountControllerError(details: details):
             details
+        case let .httpClient(details: details):
+            details
         }
     }
 }
@@ -249,6 +255,7 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case failedAccountRegistration
     case existingAccount
     case accountControllerError
+    case httpClient
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -290,6 +297,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .existingAccount
         case .accountControllerError:
             self = .accountControllerError
+        case .httpClient:
+            self = .httpClient
         }
     }
 }

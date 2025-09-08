@@ -17,7 +17,12 @@ extension PacketTunnelProvider {
                 var afterDisconnectAction: AfterDisconnectAction?
 
                 switch tunnelState {
-                case let .connecting(retryAttempt: attempt, connectionData: _):
+                case let .connecting(
+                    retryAttempt: attempt,
+                    state: establishConnectionState,
+                    tunnelType: tunnelType,
+                    connectionData: _
+                ):
                     retryAttempt = Int(attempt)
                 case let .disconnecting(afterDisconnect: action):
                     afterDisconnectAction = AfterDisconnectAction.convert(from: action)
