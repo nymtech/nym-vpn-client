@@ -195,6 +195,7 @@ impl Connector {
                 &mut wg_exit_gateway_client,
                 entry_signal_rx,
                 exit_signal_rx,
+                network.gw_update_version(),
                 shutdown,
                 cancel_token,
             )
@@ -212,6 +213,7 @@ impl Connector {
                 &mut wg_exit_gateway_client,
                 entry_signal_rx,
                 exit_signal_rx,
+                network.gw_update_version(),
                 shutdown,
                 cancel_token,
             )
