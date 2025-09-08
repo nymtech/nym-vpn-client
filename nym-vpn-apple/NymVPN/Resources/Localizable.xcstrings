@@ -5863,13 +5863,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "es" : {
@@ -5881,7 +5881,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "fr" : {
@@ -5893,7 +5893,7 @@
         "hi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "it" : {
@@ -5905,7 +5905,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -8886,7 +8886,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "زيادة سيئة في عرض النطاق الترددي"
           }
         },
@@ -8899,84 +8899,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bad bandwidth increase"
+            "value" : "Gateway is not responding or responding badly to a bandwidth increase request, causing credential waste. Please try again. (Bad bandwidth increase)"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aumento de ancho de banda incorrecto"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "افزایش غیر عادی مصرف ترافیک"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Erreur de forfait de données"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "बुरी बैंडविड्थ वृद्धि"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Incremento larghezza di banda errata"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "不正な帯域幅です。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aumentar banda mal larga"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aumento de largura de banda inválido"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Проблемы с увеличением пропускной способности"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Kötü bant genişliği artışı"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Погіршення пропускної здатності"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tăng băng thông không hợp lệ"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "带宽扩容失败"
           }
         }
@@ -9079,107 +9079,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已超出每月带宽。请升级您的账户计划。"
-          }
-        }
-      }
-    },
-    "errorReason.createMixnetStorage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فشل إنشاء وحدة تخزين بيانات الاعتماد."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to create credential storage."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error al crear almacenamiento de credenciales."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de la création du stockage des informations d'identification."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Creazione dell'archivio credenziali non riuscita."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível criar o armazenamento de credenciais."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Falha ao criar o armazenamento de credenciais."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось создать хранилище учетных данных."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kimlik bilgileri depolama yapılamadı."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не вдалося створити базу даних облікових даних."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể tạo bộ lưu trữ thông tin xác thực."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建凭据存储失败."
           }
         }
       }
@@ -9290,7 +9189,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "فشل في تكوين DNS"
           }
         },
@@ -9303,84 +9202,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure DNS"
+            "value" : "Failed to configure DNS. Please try again."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Fallo al configurar DNS"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "پیکربندی DNS با شکست مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Impossible de configurer le DNS"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "DNS को कॉन्फ़िगर करने में असफल"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Configurazione DNS non riuscita"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "DNS設定に失敗しました"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar DNS"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar DNS"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не удалось настроить DNS"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "DNS yapılandırması yapılamadı"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не вдалося налаштувати DNS"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Không cấu hình được DNS"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "DNS 配置失败"
           }
         }
@@ -9795,7 +9694,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "فشل في تكوين جدار الحماية"
           }
         },
@@ -9808,85 +9707,96 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure firewall"
+            "value" : "Failed to configure firewall policy. Please try again."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Error al configurar firewall"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "پیکربندی فایروال با شکست مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Erreur de configuration du pare-feu"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "फ़ायरवॉल को कॉन्फ़िगर करने में विफल"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Configurazione del firewall non riuscita"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ファイアウォールの設定に失敗しました"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar firewall"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar firewall"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не удалось настроить брандмауэр"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Güvenlik duvarı yapılandırılamadı"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не вдалось налаштувати брандмауер"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Không cấu hình được tường lửa"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "防火墙配置失败"
+          }
+        }
+      }
+    },
+    "errorReason.inactiveAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account is not active. Please try again."
           }
         }
       }
@@ -11007,7 +10917,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "فشل في تكوين المسار"
           }
         },
@@ -11020,84 +10930,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure routing"
+            "value" : "Failed to configure routing. Please try again."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Fallo al configurar la ruta"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تنظیم مسیریابی با خطا مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Impossible de configurer le routage"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "राउटिंग को कॉन्फ़िगर करने में असफल"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Configurazione del routing non riuscita"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "DNS設定に失敗しました"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar roteamento"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar roteamento"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не удалось настроить маршрутизацию"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Yönlendirme yapılandırılamadı"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не вдалось налаштувати маршрутизацію"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Không cấu hình được định truyến"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "路由配置失败"
           }
         }
@@ -11411,7 +11321,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "فشل في تكوين جهاز النفق"
           }
         },
@@ -11424,84 +11334,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to configure tunnel device"
+            "value" : "Failed to configure tunnel device. Please try again."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Error al configurar el dispositivo de túnel"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تنظیم تونل دستگاه با خطا مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Impossible de configurer le tunnel (« tunnel device »)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "संगन को कॉन्फ़िगर करने में विफल"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Configurazione del dispositivo tunnel non riuscita"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "トンネルデバイスの設定に失敗しました"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar o dispositivo de túnel"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao configurar o dispositivo do túnel"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не удалось настроить туннельное устройство"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tünel cihazı yapılandırılamadı"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не вдалось налаштувати пристрій тунелю"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Không thể cấu hình thiết bị tunnel"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "隧道设备配置失败"
           }
         }
@@ -11604,6 +11514,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隧道数据包服务配置失败"
+          }
+        }
+      }
+    },
+    "errorReason.tunProvider" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to configure tunnel provider. Please try again."
           }
         }
       }
@@ -14442,19 +14363,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -14496,7 +14417,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -22427,13 +22348,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\u2028Reports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Send crash info to help us fix bugs faster.\u2028Reports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only."
           }
         },
         "es" : {
@@ -22445,7 +22366,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\u2028Reports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only."
           }
         },
         "fr" : {
@@ -22457,7 +22378,7 @@
         "hi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\u2028Reports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only."
           }
         },
         "it" : {
@@ -22469,7 +22390,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\u2028Reports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only."
           }
         },
         "pt" : {
@@ -22505,7 +22426,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\u2028Reports go through Sentry’s secure system and include technical debugging data only."
+            "value" : "Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only."
           }
         },
         "zh-Hans" : {

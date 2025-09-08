@@ -62,7 +62,6 @@ extension GRPCManager {
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
             tunnelStatus = .connected
         case let .connecting(details):
-            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
             connectionRetryAttempt = Int(details.retryAttempt)
             tunnelStatus = .connecting
         case .disconnected:
@@ -98,10 +97,10 @@ extension GRPCManager {
 extension GRPCManager {
     func resolveError(with tunnelStateError: NymVpnService_TunnelState.Error) -> Error? {
         switch tunnelStateError.reason {
-        case .firewall:
-            ErrorReason.firewall
-        case .routing:
-            ErrorReason.routing
+        case .setFirewallPolicy:
+            ErrorReason.setFirewallPolicy
+        case .setRouting:
+            ErrorReason.setRouting
         case .sameEntryAndExitGateway:
             ErrorReason.sameEntryAndExitGateway
         case .invalidEntryGatewayCountry:
@@ -112,24 +111,73 @@ extension GRPCManager {
             ErrorReason.maxDevicesReached
         case .bandwidthExceeded:
             ErrorReason.bandwidthExceeded
-        case .dns:
-            ErrorReason.dns
-        case .api:
-            ErrorReason.api(tunnelStateError.detail)
+        case .setDns:
+            ErrorReason.setDns
         case .internal:
-            ErrorReason.internalError(tunnelStateError.detail)
+            ErrorReason(with: tunnelStateError.reason)
         case .UNRECOGNIZED:
             ErrorReason.unknown
         case .deviceTimeOutOfSync:
             ErrorReason.deviceTimeOutOfSync
-        case .createMixnetStorage:
-            ErrorReason.createMixnetStorage
         case .ipv6Unavailable:
             ErrorReason.ipv6Unavailable
         case .inactiveSubscription:
             ErrorReason.inactiveSubscription
-        case .accountControl:
-            ErrorReason.accountControl(tunnelStateError.detail)
+        case .tunDevice:
+            ErrorReason.tunDevice
+        case .tunnelProvider:
+            ErrorReason.tunnelProvider
+        case .badBandwidthIncrease:
+            ErrorReason.badBandwidthIncrease
+        case .inactiveAccount:
+            ErrorReason.inactiveAccount
+        case .deviceLoggedOut:
+            ErrorReason.deviceLoggedOut
         }
     }
 }
+
+#if os(macOS)
+extension ErrorReason {
+    init(with tunnelStateError: NymVpnService_TunnelState.ErrorStateReason) {
+        switch tunnelStateError {
+        case .setFirewallPolicy:
+            self = .setFirewallPolicy
+        case .setRouting:
+            self = .setRouting
+        case .sameEntryAndExitGateway:
+            self = .sameEntryAndExitGateway
+        case .invalidEntryGatewayCountry:
+            self = .invalidEntryGatewayCountry
+        case .setDns:
+            self = .setDns
+        case .tunDevice:
+            self = .tunDevice
+        case .tunnelProvider:
+            self = .tunnelProvider
+        case .ipv6Unavailable:
+            self = .ipv6Unavailable
+        case .invalidExitGatewayCountry:
+            self = .invalidExitGatewayCountry
+        case .badBandwidthIncrease:
+            self = .badBandwidthIncrease
+        case .bandwidthExceeded:
+            self = .bandwidthExceeded
+        case .inactiveSubscription:
+            self = .inactiveSubscription
+        case .inactiveAccount:
+            self = .inactiveAccount
+        case .maxDevicesReached:
+            self = .maxDevicesReached
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
+        case .deviceLoggedOut:
+            self = .deviceLoggedOut
+        case .internal:
+            self = .internalUnknown
+        case .UNRECOGNIZED:
+            self = .internalUnknown
+        }
+    }
+}
+#endif
