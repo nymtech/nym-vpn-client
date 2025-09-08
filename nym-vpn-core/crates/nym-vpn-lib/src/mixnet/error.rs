@@ -39,6 +39,9 @@ pub enum MixnetError {
     #[error("failed to send input message")]
     SendInputMessage(#[source] Box<nym_sdk::Error>),
 
-    #[error("Mixnet client is already disposed")]
+    #[error("mixnet client is already disposed")]
     ClientAlreadyDisposed,
+
+    #[error("failed to join on mixnet listener")]
+    JoinMixnetListener(#[source] tokio::task::JoinError),
 }

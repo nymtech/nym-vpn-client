@@ -16,7 +16,7 @@ use nym_sdk::mixnet::{
     InputMessage, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient,
 };
 use nym_task::{TaskClient, TaskManager, connections::TransmissionLane};
-use tokio::{sync::oneshot, task::JoinHandle};
+use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
@@ -138,22 +138,18 @@ impl MixnetProcessor {
 
         let message_creator = MessageCreator::new(self.ip_packet_router_address.into());
 
-        // Listen for when the mixnet listener is done
-        let (mixnet_listener_done_tx, mixnet_listener_done) = oneshot::channel();
-        tokio::pin!(mixnet_listener_done);
-
         // Starting the mixnet listener.
         tracing::debug!("Starting mixnet listener");
-        let mixnet_listener = super::mixnet_listener::MixnetListener::new(
+        let mixnet_listener_shutdown_token = CancellationToken::new();
+        let mut mixnet_listener_handle = super::mixnet_listener::MixnetListener::spawn(
             self.mixnet_client.clone(),
             task_client_mix_listener,
             tun_device_sink,
             self.icmp_beacon_identifier,
             self.our_ips,
             self.connection_event_tx.clone(),
-        )
-        .await;
-        let mixnet_listener_handle = mixnet_listener.start(mixnet_listener_done_tx);
+            mixnet_listener_shutdown_token.child_token(),
+        );
 
         // Keep track of whether we've sent the disconnect message, so we don't send it multiple
         // times
@@ -225,7 +221,7 @@ impl MixnetProcessor {
                 }
                 // When the mixnet listener receives the disconnect response, it will notify us
                 // that it's done. This means we can now stop
-                _ = &mut mixnet_listener_done => {
+                _ = &mut mixnet_listener_handle => {
                     tracing::debug!("Mixnet listener has finished");
                     break;
                 }
@@ -252,7 +248,11 @@ impl MixnetProcessor {
                                 }
                             }
                             _ = task_client_mix_processor.recv() => {
-                                tracing::debug!("Received shutdown while sending.");
+                                tracing::debug!("Received shutdown while sending");
+                                break;
+                            }
+                            _ = self.cancel_token.cancelled() => {
+                                tracing::debug!("Received cancellation while sending");
                                 break;
                             }
                         }
@@ -290,6 +290,10 @@ impl MixnetProcessor {
                             tracing::debug!("Received shutdown while flushing");
                             break;
                         }
+                        _ = self.cancel_token.cancelled() => {
+                            tracing::debug!("Received shutdown while flushing");
+                            break;
+                        }
                     }
                 }
             }
@@ -299,7 +303,10 @@ impl MixnetProcessor {
         backpressure_monitor.stop().await;
 
         tracing::info!("Waiting for mixnet listener to finish");
-        let tun_device_sink = mixnet_listener_handle.await.unwrap();
+        mixnet_listener_shutdown_token.cancel();
+        let tun_device_sink = mixnet_listener_handle
+            .await
+            .map_err(MixnetError::JoinMixnetListener)?;
 
         tracing::debug!("Exiting");
         Ok(tun_device_sink

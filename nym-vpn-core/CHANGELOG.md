@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix edgecase where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
+
 ## [1.15.0] - TBD
 
 ### Added
