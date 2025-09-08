@@ -21,10 +21,7 @@ impl AccountControllerConfig {
     // Determine if the credentials mode is enabled. This is determined by the credentials_mode
     // field in the config, if it is set. Else the network environment feature flag is used.
     pub fn credentials_mode(&self) -> bool {
-        self.credentials_mode.unwrap_or_else(|| {
-            self.network_env
-                .get_feature_flag_credential_mode()
-                .unwrap_or(false)
-        })
+        self.credentials_mode
+            .unwrap_or_else(|| self.network_env.credential_mode().unwrap_or(false))
     }
 }
