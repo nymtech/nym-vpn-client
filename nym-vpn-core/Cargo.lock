@@ -5417,6 +5417,7 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "semver",
  "serde",
  "serde_json",
  "tempfile",
