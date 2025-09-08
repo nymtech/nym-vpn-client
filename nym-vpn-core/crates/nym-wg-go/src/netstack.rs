@@ -7,6 +7,7 @@ use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
     net::{IpAddr, SocketAddr},
+    str::FromStr,
 };
 
 #[cfg(windows)]
@@ -86,19 +87,19 @@ impl Config {
 /// Netstack/WireGuard tunnel
 #[derive(Debug)]
 pub struct Tunnel {
-    handle: i32,
+    tunnel_handle: i32,
 }
 
 impl Tunnel {
     pub fn start(config: Config) -> Result<Self> {
         let local_addrs = CString::new(to_comma_separated_addrs(&config.interface.local_addrs))
-            .map_err(|_| Error::IpAddrToCstr)?;
+            .map_err(|_| Error::ConvertToCString("interface local addrs"))?;
         let dns_addrs = CString::new(to_comma_separated_addrs(&config.interface.dns_addrs))
-            .map_err(|_| Error::IpAddrToCstr)?;
-        let settings =
-            CString::new(config.as_uapi_config()).map_err(|_| Error::ConfigContainsNulByte)?;
+            .map_err(|_| Error::ConvertToCString("interface dns addrs"))?;
+        let settings = CString::new(config.as_uapi_config())
+            .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
-        let handle = unsafe {
+        let tunnel_handle = unsafe {
             wgNetTurnOn(
                 local_addrs.as_ptr(),
                 dns_addrs.as_ptr(),
@@ -109,10 +110,10 @@ impl Tunnel {
             )
         };
 
-        if handle >= 0 {
-            Ok(Self { handle })
+        if tunnel_handle >= 0 {
+            Ok(Self { tunnel_handle })
         } else {
-            Err(Error::StartTunnel(handle))
+            Err(Error::StartTunnel(tunnel_handle))
         }
     }
 
@@ -122,9 +123,9 @@ impl Tunnel {
         for peer_update in peer_updates {
             peer_update.append_to(&mut config_builder);
         }
-        let settings =
-            CString::new(config_builder.into_bytes()).map_err(|_| Error::ConfigContainsNulByte)?;
-        let ret_code = unsafe { wgNetSetConfig(self.handle, settings.as_ptr()) };
+        let settings = CString::new(config_builder.into_bytes())
+            .map_err(|_| Error::ConvertToCString("peer update config"))?;
+        let ret_code = unsafe { wgNetSetConfig(self.tunnel_handle, settings.as_ptr()) };
 
         if ret_code == 0 {
             Ok(())
@@ -136,7 +137,7 @@ impl Tunnel {
     /// Get socket descriptor for IPv4 tunnel connection.
     #[cfg(target_os = "android")]
     pub fn get_socket_v4(&self) -> Result<RawFd> {
-        let fd = unsafe { wgNetGetSocketV4(self.handle) };
+        let fd = unsafe { wgNetGetSocketV4(self.tunnel_handle) };
         if fd >= 0 {
             Ok(fd)
         } else {
@@ -147,7 +148,7 @@ impl Tunnel {
     /// Get socket descriptor for IPv6 tunnel connection.
     #[cfg(target_os = "android")]
     pub fn get_socket_v6(&self) -> Result<RawFd> {
-        let fd = unsafe { wgNetGetSocketV6(self.handle) };
+        let fd = unsafe { wgNetGetSocketV6(self.tunnel_handle) };
         if fd >= 0 {
             Ok(fd)
         } else {
@@ -162,27 +163,117 @@ impl Tunnel {
         self.stop_inner();
     }
 
-    /// Open UDP connection through the tunnel.
+    /// Start UDP proxy through the tunnel to the given endpoint.
     ///
-    /// Due to FFI boundary, direct communication is impossible. Instead a bidrectional UDP forwarder listens on
+    /// Due to FFI boundary, direct communication is impossible. Instead a bidrectional UDP proxy listens on
     /// `listen_port`. The clients should connect to it in order to communicate with the exit endpoint over
     /// the tunnel.
     ///
     /// Note that the client traffic should originate from the `client_port` on the loopback interface.
-    /// If `exit_endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
-    pub fn open_connection(
+    /// If `endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
+    pub fn start_in_tunnel_udp_connection_proxy(
         &mut self,
         listen_port: u16,
         client_port: u16,
-        exit_endpoint: SocketAddr,
-    ) -> Result<TunnelConnection> {
-        TunnelConnection::open(self, listen_port, client_port, exit_endpoint)
+        endpoint: SocketAddr,
+    ) -> Result<InTunnelUdpConnectionProxy> {
+        let endpoint =
+            CString::new(endpoint.to_string()).map_err(|_| Error::ConvertToCString("endpoint"))?;
+        let mut out_listen_addr: *mut c_char = std::ptr::null_mut();
+        let out_listen_addr_ptr: *mut *mut c_char = &mut out_listen_addr;
+        let udp_proxy_handle = unsafe {
+            wgNetStartUDPConnectionProxy(
+                self.tunnel_handle,
+                listen_port,
+                client_port,
+                endpoint.as_ptr(),
+                out_listen_addr_ptr,
+                wg_netstack_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if udp_proxy_handle >= 0 {
+            // SAFETY: libwg is expected to set a non-null value upon successful return.
+            let listen_addr_cstr = unsafe { CStr::from_ptr(out_listen_addr) };
+
+            let listen_addr = listen_addr_cstr
+                .to_str()
+                .map_err(|_| Error::ConvertToString("udp listen address"))
+                .map(|s| s.to_owned());
+
+            // SAFETY: free C string allocated in Go using the correct deallocator.
+            unsafe { wgFreePtr(out_listen_addr as *mut _) };
+
+            let listen_addr = listen_addr?;
+            let listen_addr =
+                SocketAddr::from_str(&listen_addr).map_err(|_| Error::ParseListenAddr)?;
+
+            Ok(InTunnelUdpConnectionProxy::new(
+                udp_proxy_handle,
+                listen_addr,
+            ))
+        } else {
+            Err(Error::StartUdpProxy(udp_proxy_handle))
+        }
+    }
+
+    /// Start TCP proxy through the tunnel to the given endpoint.
+    ///
+    /// Due to FFI boundary, direct communication is impossible. Instead a bidirectional TCP proxy listens on a loopback port that can be obtained via [`InTunnelTcpConnectionProxy::listen_addr()`].
+    /// The clients should connect to it in order to communicate with the endpoint over the tunnel. Each new connection established to proxy listen address
+    /// will establish a new connection to the endpoint over the tunnel.
+    ///
+    /// If `endpoint` belongs to IPv6 address family, then the `listen_port` is opened on `::1`, otherwise `127.0.0.1`.
+    pub fn start_in_tunnel_tcp_connection_proxy(
+        &mut self,
+        endpoint: SocketAddr,
+    ) -> Result<InTunnelTcpConnectionProxy> {
+        let endpoint_str = endpoint.to_string();
+        let endpoint =
+            CString::new(endpoint_str).map_err(|_| Error::ConvertToCString("endpoint"))?;
+        let mut out_listen_addr: *mut c_char = std::ptr::null_mut();
+        let out_listen_addr_ptr: *mut *mut c_char = &mut out_listen_addr;
+
+        let tcp_proxy_handle = unsafe {
+            wgNetStartTCPConnectionProxy(
+                self.tunnel_handle,
+                endpoint.as_ptr(),
+                out_listen_addr_ptr,
+                wg_netstack_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if tcp_proxy_handle >= 0 {
+            // SAFETY: libwg is expected to set a non-null value upon successful return.
+            let listen_addr_cstr = unsafe { CStr::from_ptr(out_listen_addr) };
+
+            let listen_addr = listen_addr_cstr
+                .to_str()
+                .map_err(|_| Error::ConvertToString("tcp listen address"))
+                .map(|s| s.to_owned());
+
+            // SAFETY: free C string allocated in Go using the correct deallocator.
+            unsafe { wgFreePtr(out_listen_addr as *mut _) };
+
+            let listen_addr = listen_addr?;
+            let listen_addr =
+                SocketAddr::from_str(&listen_addr).map_err(|_| Error::ParseListenAddr)?;
+
+            Ok(InTunnelTcpConnectionProxy::new(
+                tcp_proxy_handle,
+                listen_addr,
+            ))
+        } else {
+            Err(Error::StartTcpProxy(tcp_proxy_handle))
+        }
     }
 
     fn stop_inner(&mut self) {
-        if self.handle >= 0 {
-            unsafe { wgNetTurnOff(self.handle) };
-            self.handle = -1;
+        if self.tunnel_handle >= 0 {
+            unsafe { wgNetTurnOff(self.tunnel_handle) };
+            self.tunnel_handle = -1;
         }
     }
 
@@ -191,7 +282,7 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        unsafe { wgNetBumpSockets(self.handle) }
+        unsafe { wgNetBumpSockets(self.tunnel_handle) }
     }
 
     /// Re-bind tunnel socket to the new network interface.
@@ -208,37 +299,24 @@ impl Drop for Tunnel {
     }
 }
 
-/// UDP connection through the netstack tunnel.
+/// UDP connection proxy through the netstack tunnel.
 #[derive(Debug)]
-pub struct TunnelConnection {
-    handle: i32,
+pub struct InTunnelUdpConnectionProxy {
+    proxy_handle: i32,
+    listen_addr: SocketAddr,
 }
 
-impl TunnelConnection {
-    fn open(
-        entry_tunnel: &Tunnel,
-        listen_port: u16,
-        client_port: u16,
-        exit_endpoint: SocketAddr,
-    ) -> Result<Self> {
-        let exit_endpoint =
-            CString::new(exit_endpoint.to_string()).map_err(|_| Error::SocketAddrToCstr)?;
-        let handle = unsafe {
-            wgNetOpenConnectionThroughTunnel(
-                entry_tunnel.handle,
-                listen_port,
-                client_port,
-                exit_endpoint.as_ptr(),
-                wg_netstack_logger_callback,
-                std::ptr::null_mut(),
-            )
-        };
-
-        if handle >= 0 {
-            Ok(Self { handle })
-        } else {
-            Err(Error::OpenConnection(handle))
+impl InTunnelUdpConnectionProxy {
+    fn new(proxy_handle: i32, listen_addr: SocketAddr) -> Self {
+        Self {
+            proxy_handle,
+            listen_addr,
         }
+    }
+
+    /// Returns local endpoint that can be used to proxy data to the remote endpoint.
+    pub fn listen_addr(&self) -> SocketAddr {
+        self.listen_addr
     }
 
     pub fn close(mut self) {
@@ -246,14 +324,52 @@ impl TunnelConnection {
     }
 
     fn close_inner(&mut self) {
-        if self.handle >= 0 {
-            unsafe { wgNetCloseConnectionThroughTunnel(self.handle) };
-            self.handle = -1;
+        if self.proxy_handle >= 0 {
+            unsafe { wgNetStopUDPConnectionProxy(self.proxy_handle) };
+            self.proxy_handle = -1;
         }
     }
 }
 
-impl Drop for TunnelConnection {
+impl Drop for InTunnelUdpConnectionProxy {
+    fn drop(&mut self) {
+        self.close_inner();
+    }
+}
+
+/// TCP connection proxy through the netstack tunnel.
+#[derive(Debug)]
+pub struct InTunnelTcpConnectionProxy {
+    proxy_handle: i32,
+    listen_addr: SocketAddr,
+}
+
+impl InTunnelTcpConnectionProxy {
+    fn new(proxy_handle: i32, listen_addr: SocketAddr) -> Self {
+        Self {
+            proxy_handle,
+            listen_addr,
+        }
+    }
+
+    /// Returns local endpoint that can be used to proxy data to the remote endpoint.
+    pub fn listen_addr(&self) -> SocketAddr {
+        self.listen_addr
+    }
+
+    pub fn close(mut self) {
+        self.close_inner()
+    }
+
+    fn close_inner(&mut self) {
+        if self.proxy_handle >= 0 {
+            unsafe { wgNetStopTCPConnectionProxy(self.proxy_handle) };
+            self.proxy_handle = -1;
+        }
+    }
+}
+
+impl Drop for InTunnelTcpConnectionProxy {
     fn drop(&mut self) {
         self.close_inner();
     }
@@ -288,18 +404,35 @@ unsafe extern "C" {
     #[allow(unused)]
     unsafe fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
 
-    /// Open connection through the tunnel.
-    unsafe fn wgNetOpenConnectionThroughTunnel(
-        entry_tunnel_handle: i32,
+    /// Start UDP connection proxy through the netstack tunnel.
+    ///
+    /// Returns negative integer on error, otherwise the valid UDP proxy handle.
+    unsafe fn wgNetStartUDPConnectionProxy(
+        net_tunnel_handle: i32,
         listen_port: u16,
         client_port: u16,
-        exit_endpoint: *const c_char,
+        endpoint: *const c_char,
+        out_listen_addr: *mut *mut c_char,
         logging_callback: LoggingCallback,
         logging_context: *mut c_void,
     ) -> i32;
 
-    /// Close connection through the tunnel.
-    unsafe fn wgNetCloseConnectionThroughTunnel(handle: i32);
+    /// Stop UDP connection proxy.
+    unsafe fn wgNetStopUDPConnectionProxy(udp_proxy_handle: i32);
+
+    /// Start TCP connection proxy through the netstack tunnel.
+    ///
+    /// Returns negative integer on error, otherwise the valid TCP proxy handle.
+    unsafe fn wgNetStartTCPConnectionProxy(
+        net_tunnel_handle: i32,
+        endpoint: *const c_char,
+        out_listen_addr: *mut *mut c_char,
+        logging_callback: LoggingCallback,
+        logging_context: *mut c_void,
+    ) -> i32;
+
+    /// Stop TCP connection proxy.
+    unsafe fn wgNetStopTCPConnectionProxy(tcp_proxy_handle: i32);
 
     /// Returns tunnel IPv4 socket.
     #[cfg(target_os = "android")]
@@ -311,7 +444,7 @@ unsafe extern "C" {
 
     /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
-    unsafe fn wgNetBumpSockets(handle: i32);
+    unsafe fn wgNetBumpSockets(net_tunnel_handle: i32);
 
     /// Re-bind tunnel socket to the new interface.
     ///
@@ -319,6 +452,10 @@ unsafe extern "C" {
     /// - `interface_index` - index of network interface to which the tunnel socket should be bound to. Pass 0 to bind to blackhole.
     #[cfg(windows)]
     unsafe fn wgNetRebindTunnelSocket(address_family: u16, interface_index: u32);
+
+    /// Frees a pointer allocated by the go runtime - useful to free return value of wgGetConfig
+    #[allow(unused)]
+    unsafe fn wgFreePtr(ptr: *mut c_void);
 }
 
 /// Callback used by libwg to pass netstack logs.

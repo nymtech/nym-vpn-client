@@ -83,8 +83,8 @@ func wgNetTurnOn(localAddresses *C.char, dnsAddresses *C.char, mtu int, settings
 }
 
 //export wgNetSetConfig
-func wgNetSetConfig(tunnelHandle int32, settings *C.char) int64 {
-	dev, err := netTunnelHandles.Get(tunnelHandle)
+func wgNetSetConfig(netTunnelHandle int32, settings *C.char) int64 {
+	dev, err := netTunnelHandles.Get(netTunnelHandle)
 	if err != nil {
 		return 0
 	}
