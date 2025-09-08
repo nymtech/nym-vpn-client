@@ -55,9 +55,11 @@ pub(crate) static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| 
         .collect()
 });
 
+/// Routing table id used for routing all traffic through the tunnel.
 #[cfg(target_os = "linux")]
 pub const TUNNEL_TABLE_ID: u32 = 0x14d;
 
+/// Firewall mark used for marking traffic that should bypass the tunnel.
 #[cfg(target_os = "linux")]
 pub const TUNNEL_FWMARK: u32 = 0x14d;
 
