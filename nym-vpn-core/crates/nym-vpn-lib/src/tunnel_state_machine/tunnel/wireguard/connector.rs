@@ -77,6 +77,7 @@ impl Connector {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn connect(
         self,
         task_manager: &TaskManager,
