@@ -68,7 +68,7 @@ use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 pub use route_handler::RouteHandler;
 #[cfg(target_os = "linux")]
-pub use route_handler::TUNNEL_FWMARK;
+pub use route_handler::RoutingParameters;
 use states::{DisconnectedState, OfflineState};
 
 #[async_trait::async_trait]
@@ -91,17 +91,27 @@ enum NextTunnelState {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct TunnelConstants {
-    /// in-tunnel gateway IP used for bandwidth queries
+    /// Private (in-tunnel) entry gateway address
+    pub private_entry_gateway_address: IpAddr,
+
+    /// In-tunnel gateway IP used for bandwidth queries
     pub in_tunnel_bandwidth_metadata_endpoint: SocketAddr,
+
+    #[cfg(target_os = "linux")]
+    /// Firewall mark used for bypassing the tunnel
+    pub fwmark: u32,
 }
 
 impl Default for TunnelConstants {
     fn default() -> Self {
         Self {
+            private_entry_gateway_address: IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4),
             in_tunnel_bandwidth_metadata_endpoint: SocketAddr::new(
                 IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4),
                 WG_METADATA_PORT,
             ),
+            #[cfg(target_os = "linux")]
+            fwmark: crate::TUNNEL_FWMARK,
         }
     }
 }
@@ -504,7 +514,7 @@ impl TunnelStateMachine {
             allow_lan: true,
             initial_state: InitialFirewallState::None,
             #[cfg(target_os = "linux")]
-            fwmark: route_handler::TUNNEL_FWMARK,
+            fwmark: tunnel_constants.fwmark,
         })
         .map_err(Error::CreateFirewall)?;
 

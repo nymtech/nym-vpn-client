@@ -62,12 +62,12 @@ use nym_vpn_lib_types::{
 use super::tunnel::wireguard::connected_tunnel::{
     NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
 };
+#[cfg(target_os = "linux")]
+use crate::TUNNEL_FWMARK;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-#[cfg(target_os = "linux")]
-use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -1019,6 +1019,10 @@ impl TunnelMonitor {
             exit_tun_name: exit_tunnel_metadata.interface.clone(),
             entry_tun_mtu: entry_mtu,
             exit_tun_mtu: exit_mtu,
+            private_entry_gateway_address: self
+                .tunnel_parameters
+                .tunnel_constants
+                .private_entry_gateway_address,
             #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),

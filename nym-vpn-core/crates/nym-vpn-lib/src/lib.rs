@@ -55,6 +55,12 @@ pub(crate) static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| 
         .collect()
 });
 
+#[cfg(target_os = "linux")]
+pub const TUNNEL_TABLE_ID: u32 = 0x14d;
+
+#[cfg(target_os = "linux")]
+pub const TUNNEL_FWMARK: u32 = 0x14d;
+
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct MixnetClientConfig {
     /// Disable Poission process rate limiting of outbound traffic.

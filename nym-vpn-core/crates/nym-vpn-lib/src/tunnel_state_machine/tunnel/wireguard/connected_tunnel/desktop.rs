@@ -20,10 +20,10 @@ use tokio_util::sync::CancellationToken;
 #[cfg(unix)]
 use tun::AsyncDevice;
 
+#[cfg(target_os = "linux")]
+use crate::TUNNEL_FWMARK;
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
-#[cfg(target_os = "linux")]
-use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 #[cfg(unix)]
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
