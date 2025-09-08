@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{net::SocketAddr, path::PathBuf};
 
 use nym_vpn_network_config::Network;
 
@@ -12,18 +12,49 @@ use nym_gateway_directory::{CachingGatewayClient, Gateway, Recipient};
 use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
-use nym_wg_metadata_client::TunUpEvent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     bandwidth_controller::{BandwidthController, get_nyxd_client},
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{
-        Error, Result, gateway_selector::SelectedGateways,
-        wireguard::connected_tunnel::ConnectedTunnel,
+    tunnel_state_machine::{
+        TunnelMetadata,
+        tunnel::{
+            Error, Result, gateway_selector::SelectedGateways,
+            wireguard::connected_tunnel::ConnectedTunnel,
+        },
     },
 };
+
+pub enum MetadataEvent {
+    MetadataProxy(SocketAddr),
+    TunnelMetadata(TunnelMetadata),
+}
+
+impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
+    fn from(event: MetadataEvent) -> Self {
+        match event {
+            MetadataEvent::MetadataProxy(proxy_addr) => {
+                nym_wg_metadata_client::TunUpSendData::TcpProxy(proxy_addr)
+            }
+            MetadataEvent::TunnelMetadata(_metadata) => {
+                #[cfg(target_os = "linux")]
+                {
+                    nym_wg_metadata_client::TunUpSendData::InterfaceName(_metadata.interface)
+                }
+
+                #[cfg(not(target_os = "linux"))]
+                {
+                    nym_wg_metadata_client::TunUpSendData::Signal
+                }
+            }
+        }
+    }
+}
+
+pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
+pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
 
 pub struct ConnectionData {
     pub entry: GatewayData,
@@ -46,6 +77,7 @@ impl Connector {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn connect(
         self,
         task_manager: &TaskManager,
@@ -53,8 +85,10 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
-    ) -> Result<(ConnectedTunnel, TunUpEvent)> {
-        let (connect_result, tun_up) = Box::pin(Self::connect_inner(
+        entry_metadata_rx: MetadataReceiver,
+        exit_metadata_rx: MetadataReceiver,
+    ) -> Result<ConnectedTunnel> {
+        let connect_result = Box::pin(Self::connect_inner(
             task_manager,
             network,
             self.mixnet_client.clone(),
@@ -62,17 +96,16 @@ impl Connector {
             selected_gateways,
             data_path,
             cancel_token,
+            entry_metadata_rx,
+            exit_metadata_rx,
         ))
         .await?;
-        Ok((
-            ConnectedTunnel::new(
-                connect_result.entry_gateway_client,
-                connect_result.exit_gateway_client,
-                connect_result.connection_data,
-                connect_result.bandwidth_controller_handle,
-                connect_result.auth_client_mixnet_listener_handle,
-            ),
-            tun_up,
+        Ok(ConnectedTunnel::new(
+            connect_result.entry_gateway_client,
+            connect_result.exit_gateway_client,
+            connect_result.connection_data,
+            connect_result.bandwidth_controller_handle,
+            connect_result.auth_client_mixnet_listener_handle,
         ))
     }
 
@@ -100,7 +133,9 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
-    ) -> Result<(ConnectResult, TunUpEvent)> {
+        entry_metadata_rx: MetadataReceiver,
+        exit_metadata_rx: MetadataReceiver,
+    ) -> Result<ConnectResult> {
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
         let mixnet_listener =
@@ -129,6 +164,15 @@ impl Connector {
         let client = get_nyxd_client(network)?;
         let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
         let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
+
+        let _metadata_event_handler = tokio::spawn(async move {
+            if let Ok(entry) = entry_metadata_rx.await {
+                entry_signal_tx.send(entry.into()).ok();
+            }
+            if let Ok(exit) = exit_metadata_rx.await {
+                exit_signal_tx.send(exit.into()).ok();
+            }
+        });
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
@@ -178,26 +222,20 @@ impl Connector {
             (connection_data, bandwidth_controller_handle)
         };
 
-        Ok((
-            ConnectResult {
-                entry_gateway_client: wg_entry_gateway_client,
-                exit_gateway_client: wg_exit_gateway_client,
-                connection_data,
-                bandwidth_controller_handle,
-                auth_client_mixnet_listener_handle: mixnet_listener,
-            },
-            TunUpEvent {
-                entry: entry_signal_tx,
-                exit: exit_signal_tx,
-            },
-        ))
+        Ok(ConnectResult {
+            entry_gateway_client: wg_entry_gateway_client,
+            exit_gateway_client: wg_exit_gateway_client,
+            connection_data,
+            bandwidth_controller_handle,
+            auth_client_mixnet_listener_handle: mixnet_listener,
+        })
     }
 }
 
 struct ConnectResult {
-    pub(crate) entry_gateway_client: WgGatewayClient,
-    pub(crate) exit_gateway_client: WgGatewayClient,
-    pub(crate) connection_data: ConnectionData,
-    pub(crate) bandwidth_controller_handle: JoinHandle<()>,
-    pub(crate) auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    entry_gateway_client: WgGatewayClient,
+    exit_gateway_client: WgGatewayClient,
+    connection_data: ConnectionData,
+    bandwidth_controller_handle: JoinHandle<()>,
+    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }

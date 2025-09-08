@@ -17,7 +17,6 @@ use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
-use nym_wg_metadata_client::TunUpEvent;
 use tokio::{
     sync::{Mutex, mpsc},
     task::JoinHandle,
@@ -30,6 +29,7 @@ use super::{MixnetEvent, TunnelType};
 use crate::{
     GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
     mixnet::SharedMixnetClient,
+    tunnel_state_machine::tunnel::wireguard::connector::MetadataReceiver,
 };
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
@@ -83,7 +83,9 @@ impl ConnectedMixnet {
         task_manager: &TaskManager,
         network: &Network,
         cancel_token: CancellationToken,
-    ) -> Result<(wireguard::connected_tunnel::ConnectedTunnel, TunUpEvent)> {
+        entry_metadata_rx: MetadataReceiver,
+        exit_metadata_rx: MetadataReceiver,
+    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
         let connector =
             wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
 
@@ -94,6 +96,8 @@ impl ConnectedMixnet {
                 self.selected_gateways,
                 self.data_path,
                 cancel_token,
+                entry_metadata_rx,
+                exit_metadata_rx,
             )
             .await
     }

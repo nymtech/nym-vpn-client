@@ -22,12 +22,11 @@ mod wintun;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
 
-use ipnetwork::IpNetwork;
-use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
+use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
@@ -90,15 +89,19 @@ enum NextTunnelState {
     Finished,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct TunnelConstants {
-    pub initial_allowed_ips: Vec<IpNetwork>,
+    /// in-tunnel gateway IP used for bandwidth queries
+    pub in_tunnel_bandwidth_metadata_endpoint: SocketAddr,
 }
 
 impl Default for TunnelConstants {
     fn default() -> Self {
         Self {
-            initial_allowed_ips: vec![IpNetwork::from(IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4))],
+            in_tunnel_bandwidth_metadata_endpoint: SocketAddr::new(
+                IpAddr::from(WG_TUN_DEVICE_IP_ADDRESS_V4),
+                WG_METADATA_PORT,
+            ),
         }
     }
 }

@@ -42,12 +42,6 @@ public enum ErrorReason: LocalizedError, Codable {
 #if os(iOS)
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
-        case .firewall:
-            self = .firewall
-        case .routing:
-            self = .routing
-        case .dns:
-            self = .dns
         case .internal:
             self = .internalUnknown
         case .sameEntryAndExitGateway:
@@ -60,18 +54,28 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
-        case let .api(message):
-            self = .api(message ?? Self.somethingWentWrong)
         case .deviceTimeOutOfSync:
             self = .deviceTimeOutOfSync
-        case .createMixnetStorage:
-            self = .createMixnetStorage
         case .ipv6Unavailable:
             self = .ipv6Unavailable
         case .inactiveSubscription:
             self = .inactiveSubscription
-        case let .accountControl(message):
-            self = .accountControl(message ?? Self.somethingWentWrong)
+        case .setFirewallPolicy:
+            self = .firewall
+        case .setRouting:
+            self = .routing
+        case .setDns:
+            self = .dns
+        case .tunDevice:
+            self = .internalError("tunDevice")
+        case .tunnelProvider:
+            self = .internalError("tunnelProvider")
+        case .badBandwidthIncrease:
+            self = .internalError("badBandwidthIncrease")
+        case .inactiveAccount:
+            self = .internalError("inactiveAccount")
+        case .deviceLoggedOut:
+            self = .internalError("deviceLoggedOut")
         }
     }
 #endif
