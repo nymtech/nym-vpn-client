@@ -19,13 +19,13 @@ const DEFAULT_EXIT_WG_CLIENT_PORT: u16 = 54001;
 pub const ENTRY_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
     MIN_IPV6_MTU + WG_TUNNEL_OVERHEAD
 } else {
-    ETHERNET_V2_MTU - WG_TUNNEL_OVERHEAD
+    ETHERNET_V2_MTU - WG_TUNNEL_OVERHEAD - 52
 };
 
 pub const EXIT_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
     MIN_IPV6_MTU
 } else {
-    ETHERNET_V2_MTU - WG_TUNNEL_OVERHEAD * 2
+    ETHERNET_V2_MTU - (WG_TUNNEL_OVERHEAD * 2) - 52
 };
 
 /// A struct that holds all configuration needed to setup the tunnels, tun device and forwarder.

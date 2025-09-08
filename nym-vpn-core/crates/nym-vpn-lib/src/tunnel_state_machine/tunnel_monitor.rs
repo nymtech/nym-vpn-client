@@ -73,6 +73,7 @@ use crate::{
         tunnel::wireguard::connector::{MetadataEvent, MetadataReceiver},
     },
 };
+use crate::tunnel_state_machine::tunnel::wireguard;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -957,6 +958,7 @@ impl TunnelMonitor {
             TunnelType::WrappedWireguard
         ) {
             let conn_data = connected_tunnel.connection_data_mut();
+            let buffer_mtu = wireguard::two_hop_config::ETHERNET_V2_MTU - transports::MTU_OVERHEAD;
 
             // Attempt transport Connection returning a listening UDP connection if successful
             let cancel = CancellationToken::new();
@@ -965,7 +967,7 @@ impl TunnelMonitor {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
             let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, cancel.clone()).await?;
+                transports::UdpForwarder::new(bridge_conn, None, buffer_mtu, cancel.clone()).await?;
             let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
             tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
             conn_data.entry.endpoint = local_addr;
