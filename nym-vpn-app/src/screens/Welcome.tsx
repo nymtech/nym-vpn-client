@@ -8,7 +8,6 @@ import { kvSet } from '../kvStore';
 import { routes } from '../router';
 import { StateDispatch } from '../types';
 import { Button, Link, PageAnim, Switch } from '../ui';
-import { S_STATE } from '../static';
 import SettingsGroup from './settings/SettingsGroup';
 
 const defaultSentry = window._APP.defaultSentryEnabled;
@@ -24,10 +23,9 @@ function Welcome() {
   const handleContinue = () => {
     initMonitoring();
     initNetworkStats();
-    kvSet('welcome-screen-seen', true).then(() => {
-      S_STATE.welcomeScreenSeen = true;
-      navigate(routes.root);
-    });
+    dispatch({ type: 'set-welcome-checked', checked: true });
+    kvSet('welcome-screen-seen', true);
+    navigate(routes.root);
   };
 
   const toggleMonitoring = () => {

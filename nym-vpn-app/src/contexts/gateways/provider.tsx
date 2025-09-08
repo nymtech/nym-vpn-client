@@ -10,7 +10,6 @@ import { useMainDispatch, useMainState } from '../main';
 import { CCache } from '../../cache';
 import { DefaultCountry, GatewaysCacheDuration } from '../../constants';
 import { kvSet } from '../../kvStore';
-import { S_STATE } from '../../static';
 import { exists, getStateProps, gwTypeToCacheKey } from './util';
 import { GatewaysContext, initialState } from './context';
 import { reducer } from './reducer';
@@ -25,7 +24,7 @@ type GatewaysStateProviderProps = {
 function GatewaysProvider({ children }: GatewaysStateProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { entryNode, exitNode, daemonStatus } = useMainState();
+  const { entryNode, exitNode, daemonStatus, vpnMode } = useMainState();
   const mainDispatch = useMainDispatch() as StateDispatch;
 
   const checkSelectedNode = useCallback(
@@ -131,7 +130,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
       return;
     }
     initialized = true;
-    if (S_STATE.vpnModeAtStart === 'wg') {
+    if (vpnMode === 'wg') {
       fetchGateways('wg').then(() => {
         console.info('[wg] gateways initialized');
       });
@@ -143,7 +142,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
         console.info('[mx-exit] gateways initialized');
       });
     }
-  }, [fetchGateways, daemonStatus]);
+  }, [fetchGateways, daemonStatus, vpnMode]);
 
   const ctx = useMemo<GatewaysState>(
     () => ({
