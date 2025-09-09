@@ -66,8 +66,6 @@ use super::tunnel::wireguard::connected_tunnel::{
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-#[cfg(target_os = "linux")]
-use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -395,6 +393,8 @@ impl TunnelMonitor {
 
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
+        #[cfg(target_os = "linux")]
+        let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
         #[cfg(unix)]
         let connection_fd_callback = move |_fd: RawFd| {
             #[cfg(target_os = "android")]
@@ -407,7 +407,7 @@ impl TunnelMonitor {
             {
                 tracing::debug!("Bypass websocket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
-                if let Err(err) = Mark.set(borrowed_fd, &TUNNEL_FWMARK) {
+                if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
                     tracing::error!("Could not set fwmark for websocket fd: {err}");
                 }
             }
@@ -1019,6 +1019,10 @@ impl TunnelMonitor {
             exit_tun_name: exit_tunnel_metadata.interface.clone(),
             entry_tun_mtu: entry_mtu,
             exit_tun_mtu: exit_mtu,
+            private_entry_gateway_address: self
+                .tunnel_parameters
+                .tunnel_constants
+                .private_entry_gateway_address,
             #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
@@ -1180,6 +1184,10 @@ impl TunnelMonitor {
             exit_tun_name: wintun_exit_interface.name.clone(),
             entry_tun_mtu,
             exit_tun_mtu,
+            private_entry_gateway_address: self
+                .tunnel_parameters
+                .tunnel_constants
+                .private_entry_gateway_address,
             entry_gateway_address,
             exit_gateway_address,
         };

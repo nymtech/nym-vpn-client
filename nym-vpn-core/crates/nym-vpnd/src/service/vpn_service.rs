@@ -287,15 +287,22 @@ impl NymVpnService {
             .as_ref()
             .and_then(|config| config.statistics_api.clone());
 
-        let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new()
-            .await
-            .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
-            .map_err(Error::StateMachine)?;
+        #[cfg(target_os = "linux")]
+        let routing_params = nym_vpn_lib::tunnel_state_machine::RoutingParameters::default();
 
+        let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new(
+            #[cfg(target_os = "linux")]
+            routing_params,
+        )
+        .await
+        .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
+        .map_err(Error::StateMachine)?;
+
+        let tunnel_constants = TunnelConstants::default();
         let connectivity_handle = nym_offline_monitor::spawn_monitor(
             route_handler.inner_handle(),
             #[cfg(target_os = "linux")]
-            Some(nym_vpn_lib::tunnel_state_machine::TUNNEL_FWMARK),
+            Some(tunnel_constants.fwmark),
         )
         .await;
 
@@ -358,7 +365,6 @@ impl NymVpnService {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
-        let tunnel_constants = TunnelConstants::default();
         let nyxd_url = parameters.network_env.nyxd_url();
         let api_url = parameters.network_env.api_url();
 

@@ -22,8 +22,6 @@ use tun::AsyncDevice;
 
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
-#[cfg(target_os = "linux")]
-use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 #[cfg(unix)]
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
@@ -118,7 +116,7 @@ impl ConnectedTunnel {
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
-            Some(TUNNEL_FWMARK),
+            Some(tunnel_constants.fwmark),
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
@@ -239,7 +237,7 @@ impl ConnectedTunnel {
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
-            Some(TUNNEL_FWMARK),
+            Some(tunnel_constants.fwmark),
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(

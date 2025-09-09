@@ -38,10 +38,16 @@ pub async fn init_offline_monitor(
 async fn start_offline_monitor(
     #[cfg(target_os = "android")] connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
 ) -> Result<OfflineMonitorHandle, VpnError> {
+    #[cfg(target_os = "linux")]
+    let routing_params = tunnel_state_machine::RoutingParameters::default();
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    let route_handler = tunnel_state_machine::RouteHandler::new()
-        .await
-        .map_err(tunnel_state_machine::Error::CreateRouteHandler)?;
+    let route_handler = tunnel_state_machine::RouteHandler::new(
+        #[cfg(target_os = "linux")]
+        routing_params,
+    )
+    .await
+    .map_err(tunnel_state_machine::Error::CreateRouteHandler)?;
 
     #[cfg(target_os = "android")]
     let connectivity_receiver = register_connectivity_observer(connectivity_monitor);
@@ -52,7 +58,7 @@ async fn start_offline_monitor(
         #[cfg(target_os = "android")]
         connectivity_receiver,
         #[cfg(target_os = "linux")]
-        Some(tunnel_state_machine::TUNNEL_FWMARK),
+        Some(routing_params.fwmark),
     )
     .await;
 
