@@ -9,7 +9,7 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{CachingGatewayClient, Gateway};
+use nym_gateway_directory::{Gateway, GatewayCacheHandle};
 use nym_sdk::{TaskClient, mixnet::CredentialStorage as Storage};
 use nym_validator_client::{
     QueryHttpRpcNyxdClient,
@@ -331,7 +331,7 @@ impl<St: Storage> BandwidthController<St> {
     #[allow(clippy::too_many_arguments)]
     pub(crate) async fn register_and_create(
         controller: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
-        gateway_client: &CachingGatewayClient,
+        gateway_cache_handle: &GatewayCacheHandle,
         selected_gateways: SelectedGateways,
         wg_entry_gateway_client: &mut WgGatewayClient,
         wg_exit_gateway_client: &mut WgGatewayClient,
@@ -347,13 +347,13 @@ impl<St: Storage> BandwidthController<St> {
         let entry_fut = Self::register(
             &controller,
             TicketType::V1WireguardEntry,
-            gateway_client,
+            gateway_cache_handle,
             wg_entry_gateway_client,
         );
         let exit_fut = Self::register(
             &controller,
             TicketType::V1WireguardExit,
-            gateway_client,
+            gateway_cache_handle,
             wg_exit_gateway_client,
         );
 
@@ -392,7 +392,7 @@ impl<St: Storage> BandwidthController<St> {
     async fn register(
         controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
         ticketbook_type: TicketType,
-        gateway_client: &CachingGatewayClient,
+        gateway_cache_handle: &GatewayCacheHandle,
         wg_gateway_client: &mut WgGatewayClient,
     ) -> Result<GatewayData>
     where
@@ -403,8 +403,8 @@ impl<St: Storage> BandwidthController<St> {
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = wg_gateway_client.auth_recipient().gateway();
         tracing::info!("Registering with wireguard gateway {gateway_id} ({wg_version})");
-        let gateway_host = gateway_client
-            .lookup_gateway_ip(&gateway_id.to_base58_string())
+        let gateway_host = gateway_cache_handle
+            .lookup_gateway_ip(gateway_id.to_base58_string())
             .await
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_id.to_base58_string(),
