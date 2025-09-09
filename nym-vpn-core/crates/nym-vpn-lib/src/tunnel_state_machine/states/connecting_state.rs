@@ -396,7 +396,7 @@ impl ConnectingState {
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
-            shared_state.gateway_directory.clone(),
+            shared_state.gateway_cache_handle.clone(),
             shared_state.topology_provider.clone(),
             tunnel_monitor_event_sender,
             shared_state.mixnet_event_sender.clone(),

@@ -13,7 +13,7 @@ use std::os::fd::RawFd;
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
@@ -38,7 +38,7 @@ pub use tombstone::Tombstone;
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub struct ConnectedMixnet {
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
@@ -70,7 +70,7 @@ impl ConnectedMixnet {
         cancel_token: CancellationToken,
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
         let connector =
-            mixnet::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
+            mixnet::connector::Connector::new(self.mixnet_client, self.gateway_cache_handle);
 
         connector
             .connect(self.selected_gateways, cancel_token)
@@ -87,7 +87,7 @@ impl ConnectedMixnet {
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
         let connector =
-            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
+            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_cache_handle);
 
         connector
             .connect(
@@ -117,14 +117,14 @@ pub struct MixnetConnectOptions {
 }
 
 pub async fn select_gateways(
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
     let select_gateways_fut = gateway_selector::select_gateways(
-        gateway_directory_client,
+        gateway_cache_handle,
         tunnel_type,
         entry_point,
         exit_point,
@@ -140,7 +140,7 @@ pub async fn connect_mixnet(
     task_manager: &TaskManager,
     options: MixnetConnectOptions,
     network_env: &Network,
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
@@ -189,7 +189,7 @@ pub async fn connect_mixnet(
     Ok(ConnectedMixnet {
         selected_gateways: options.selected_gateways,
         data_path: options.data_path,
-        gateway_directory_client,
+        gateway_cache_handle,
         mixnet_client: Arc::new(Mutex::new(Some(mixnet_client))),
     })
 }

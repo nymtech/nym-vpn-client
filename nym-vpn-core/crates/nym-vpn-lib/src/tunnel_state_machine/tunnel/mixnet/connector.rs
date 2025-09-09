@@ -3,7 +3,7 @@
 
 use std::net::IpAddr;
 
-use nym_gateway_directory::{CachingGatewayClient, IpPacketRouterAddress, Recipient};
+use nym_gateway_directory::{GatewayCacheHandle, IpPacketRouterAddress, Recipient};
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::ConnectionStatsEvent;
@@ -29,17 +29,17 @@ pub struct AssignedAddresses {
 /// Type responsible for connecting the mixnet tunnel.
 pub struct Connector {
     mixnet_client: SharedMixnetClient,
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
 }
 
 impl Connector {
     pub fn new(
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
     ) -> Self {
         Self {
             mixnet_client,
-            gateway_directory_client,
+            gateway_cache_handle,
         }
     }
 
@@ -51,7 +51,7 @@ impl Connector {
         let assigned_addresses = Self::connect_inner(
             selected_gateways,
             self.mixnet_client.clone(),
-            self.gateway_directory_client.clone(),
+            self.gateway_cache_handle.clone(),
             cancel_token.clone(),
         )
         .await?;
@@ -66,7 +66,7 @@ impl Connector {
     async fn connect_inner(
         selected_gateways: SelectedGateways,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
         cancel_token: CancellationToken,
     ) -> Result<AssignedAddresses> {
         let mixnet_client_address = *mixnet_client
@@ -77,11 +77,11 @@ impl Connector {
             .nym_address();
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
         let entry_mixnet_gateway_ip: IpAddr = cancel_token
-            .run_until_cancelled(gateway_directory_client.lookup_gateway_ip(&gateway_used))
+            .run_until_cancelled(gateway_cache_handle.lookup_gateway_ip(gateway_used.clone()))
             .await
             .ok_or(tunnel::Error::Cancelled)?
             .map_err(|source| Error::LookupGatewayIp {
-                gateway_id: gateway_used,
+                gateway_id: gateway_used.clone(),
                 source: Box::new(source),
             })?;
 
@@ -91,7 +91,7 @@ impl Connector {
             .expect("failed to unwrap ipr_address");
         let gateway_used = exit_mix_addresses.gateway().to_base58_string();
         let exit_mixnet_gateway_ip = cancel_token
-            .run_until_cancelled(gateway_directory_client.lookup_gateway_ip(&gateway_used))
+            .run_until_cancelled(gateway_cache_handle.lookup_gateway_ip(gateway_used.clone()))
             .await
             .ok_or(tunnel::Error::Cancelled)?
             .map_err(|source| Error::LookupGatewayIp {

@@ -27,7 +27,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     MixnetClientConfig, UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, CachingGatewayClient, GatewayClient},
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
@@ -194,6 +194,12 @@ pub struct NymVpnService {
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
 
+    // Gateway cache join handle
+    gateway_cache_join_handle: JoinHandle<()>,
+
+    // Gateway cache handle
+    gateway_cache_handle: GatewayCacheHandle,
+
     // VPN service shutdown token.
     shutdown_token: CancellationToken,
 
@@ -202,9 +208,6 @@ pub struct NymVpnService {
 
     // Shutdown token used for account and statistics controllers and other services that are safe to exit altogether.
     services_shutdown_token: CancellationToken,
-
-    // Gateway directory client
-    gateway_directory_client: CachingGatewayClient,
 
     // Sentry client has been initialized and is enabled
     sentry_enabled: bool,
@@ -404,14 +407,11 @@ impl NymVpnService {
 
         let gateway_directory_client =
             GatewayClient::new(gateway_config, parameters.user_agent.clone()).unwrap();
-        let gateway_directory_client =
-            CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
-
-        // todo: we must not block service initialization
-        shutdown_token
-            .run_until_cancelled(gateway_directory_client.refresh_all())
-            .await
-            .ok_or(Error::CancelledInitialization)?;
+        let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
+            gateway_directory_client,
+            connectivity_handle.clone(),
+            services_shutdown_token.child_token(),
+        );
 
         let validator_client = nym_http_api_client::Client::builder(api_url)?
             .with_user_agent(parameters.user_agent.clone())
@@ -433,7 +433,7 @@ impl NymVpnService {
             account_command_tx.clone(),
             account_state_rx.clone(),
             statistics_event_sender.clone(),
-            gateway_directory_client.clone(),
+            gateway_cache_handle.clone(),
             topology_provider,
             connectivity_handle,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -465,7 +465,8 @@ impl NymVpnService {
             shutdown_token,
             services_shutdown_token,
             state_machine_shutdown_token,
-            gateway_directory_client,
+            gateway_cache_handle,
+            gateway_cache_join_handle,
             sentry_enabled: parameters.sentry_enabled,
             network_statistics_enabled: parameters.netstats_enabled,
             statistics_event_sender,
@@ -524,6 +525,10 @@ impl NymVpnService {
 
         if let Err(e) = self.statistics_controller_handle.await {
             tracing::error!("Failed to join on statistics controller handle: {}", e);
+        }
+
+        if let Err(e) = self.gateway_cache_join_handle.await {
+            tracing::error!("Failed to join on gateway cache handle: {}", e);
         }
 
         tracing::info!("Exiting vpn service run loop");
@@ -845,7 +850,7 @@ impl NymVpnService {
         options: ListGatewaysOptions,
         completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
     ) {
-        let gateway_client = self.gateway_directory_client.clone();
+        let gateway_client = self.gateway_cache_handle.clone();
 
         tokio::spawn(async move {
             // todo: pass options.user_agent with request
@@ -872,7 +877,7 @@ impl NymVpnService {
         options: ListCountriesOptions,
         completion_tx: oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
     ) {
-        let gateway_client = self.gateway_directory_client.clone();
+        let gateway_client = self.gateway_cache_handle.clone();
 
         tokio::spawn(async move {
             // todo: pass options.user_agent with request
