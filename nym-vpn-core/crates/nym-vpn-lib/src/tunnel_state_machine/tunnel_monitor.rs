@@ -393,7 +393,7 @@ impl TunnelMonitor {
 
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
-        #[cfg(unix)]
+        #[cfg(target_os = "linux")]
         let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
         #[cfg(unix)]
         let connection_fd_callback = move |_fd: RawFd| {
@@ -407,9 +407,7 @@ impl TunnelMonitor {
             {
                 tracing::debug!("Bypass websocket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
-                if let Err(err) =
-                    Mark.set(borrowed_fd, &fwmark)
-                {
+                if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
                     tracing::error!("Could not set fwmark for websocket fd: {err}");
                 }
             }
