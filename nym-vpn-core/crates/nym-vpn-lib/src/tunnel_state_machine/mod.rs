@@ -94,7 +94,7 @@ pub struct TunnelConstants {
     /// Private (in-tunnel) entry gateway address
     pub private_entry_gateway_address: IpAddr,
 
-    /// In-tunnel gateway IP used for bandwidth queries
+    /// In-tunnel endpoint used for bandwidth queries
     pub in_tunnel_bandwidth_metadata_endpoint: SocketAddr,
 
     #[cfg(target_os = "linux")]
