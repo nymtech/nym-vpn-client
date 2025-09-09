@@ -11,6 +11,7 @@
     "core:window:allow-show",
     "os:allow-os-type",
     "process:allow-exit",
+    "notification:default",
     "os:default"
   ]
 }

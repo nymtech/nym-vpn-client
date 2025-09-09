@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Windows] Installer fails to uninstall daemon during upgrade
 - Fix in-app update popup not showing after the Welcome screen
+- Fix error window not opening on startup error
 
 ## [1.14.0] - 2025-08-26
 
