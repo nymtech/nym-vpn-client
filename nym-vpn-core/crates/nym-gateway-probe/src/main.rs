@@ -10,7 +10,7 @@ use std::time::Duration;
 
 client_defaults!(
     priority = 10;
-    timeout = Duration::from_secs(180),
+    timeout = Duration::from_secs(300),
     local_address = std::net::IpAddr::from_str("0.0.0.0").unwrap(),
 );
 
