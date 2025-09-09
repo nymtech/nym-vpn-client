@@ -65,8 +65,7 @@ pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
         min: (260.0, 280.0),
         max: (1000.0, 1000.0),
     };
-    let win_env = WindowInitEnv::new(false, Some(error)).to_json();
-    let init_script = format!("window._APP = {win_env};");
+    let env = WindowInitEnv::new(false, Some(error)).to_json();
     let window = tauri::WebviewWindowBuilder::new(
         app,
         ERROR_WINDOW_LABEL,
@@ -82,7 +81,7 @@ pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
     .inner_size(sizes.inner.0, sizes.inner.1)
     .min_inner_size(sizes.min.0, sizes.min.1)
     .max_inner_size(sizes.max.0, sizes.max.1)
-    .initialization_script(init_script)
+    .initialization_script(format!("window._APP = {env};"))
     .build()
     .inspect_err(|e| {
         error!("failed to build the error window: {e}");

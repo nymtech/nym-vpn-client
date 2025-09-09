@@ -64,8 +64,7 @@ impl AppWindow {
     #[instrument(skip(app))]
     pub fn create_main_window(app: &AppHandle, cli: &Cli) -> Result<AppWindow> {
         let no_splash = cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH);
-        let init_env = WindowInitEnv::new(no_splash, None).to_json();
-        let init_script = format!("window._APP = {init_env};");
+        let win_env = WindowInitEnv::new(no_splash, None).to_json();
         let window = WebviewWindowBuilder::new(
             app,
             MAIN_WINDOW_LABEL,
@@ -82,7 +81,7 @@ impl AppWindow {
         .inner_size(328.0, 710.0)
         .min_inner_size(160.0, 200.0)
         .max_inner_size(800.0, 1400.0)
-        .initialization_script(init_script)
+        .initialization_script(format!("window._APP = {win_env};"))
         .build()
         .inspect_err(|e| error!("failed to create main window: {e}"))?;
         Ok(AppWindow(window))
