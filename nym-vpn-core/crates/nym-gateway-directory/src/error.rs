@@ -99,6 +99,9 @@ pub enum Error {
 
     #[error("Nym API error: {source}")]
     NymApi { source: NymAPIError },
+
+    #[error("operation cancelled")]
+    Cancelled,
 }
 // Result type based on our error type
 pub type Result<T> = std::result::Result<T, Error>;
