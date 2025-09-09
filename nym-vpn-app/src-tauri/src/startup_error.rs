@@ -1,4 +1,5 @@
 use crate::db::DbError;
+use crate::window::WindowInitEnv;
 use crate::{ERROR_WINDOW_LABEL, MAIN_WINDOW_LABEL};
 
 use anyhow::Result;
@@ -7,13 +8,14 @@ use tauri::{AppHandle, Manager};
 use tracing::{error, info, instrument, warn};
 use ts_rs::TS;
 
-const WIN_TITLE: &str = "NymVPN - Startup error";
+const WIN_TITLE: &str = "NymVPN - Error";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone, strum::AsRefStr)]
 #[ts(export, export_to = "StartupErrorKey.ts")]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum ErrorKey {
+    InternalError,
     /// At startup, failed to open the embedded db, generic
     StartupDbOpen,
     /// At startup, failed to open the embedded db because it is already locked
@@ -45,32 +47,26 @@ struct WinSizes {
 #[instrument(skip(app))]
 pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
     info!("hide the main window");
-    let main_win = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
-    main_win
-        .hide()
-        .inspect_err(|e| warn!("failed to hide main window: {}", e))
-        .ok();
+    if let Some(win) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+        win.hide()
+            .inspect_err(|e| warn!("failed to hide main window: {}", e))
+            .ok();
+    }
 
     #[cfg(windows)]
     let sizes = WinSizes {
-        inner: (360.0, 380.0),
+        inner: (360.0, 400.0),
         min: (260.0, 280.0),
         max: (700.0, 720.0),
     };
     #[cfg(not(windows))]
     let sizes = WinSizes {
-        inner: (480.0, 510.0),
+        inner: (480.0, 600.0),
         min: (260.0, 280.0),
-        max: (900.0, 920.0),
+        max: (1000.0, 1000.0),
     };
-    let init_script = format!(
-        "
-        window._APP = {{}};
-        window._APP.startupError = {{  key: '{}', detail: '{}' }};
-        ",
-        error.key.as_ref(),
-        error.detail.unwrap_or(String::from("internal error"))
-    );
+    let win_env = WindowInitEnv::new(false, Some(error)).to_json();
+    let init_script = format!("window._APP = {win_env};");
     let window = tauri::WebviewWindowBuilder::new(
         app,
         ERROR_WINDOW_LABEL,

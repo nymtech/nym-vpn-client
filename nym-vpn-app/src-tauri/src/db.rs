@@ -88,8 +88,7 @@ impl Db {
             DbError::Io(e)
         })?;
         let db = sled::open(&path).map_err(|e| {
-            error!("failed to open sled db from path {}: {e}", path.display());
-            dbg!(&e);
+            error!("failed to open sled db {}: {e}", path.display());
             match &e {
                 sled::Error::Io(io_err) => {
                     if io_err.kind() == io::ErrorKind::Other

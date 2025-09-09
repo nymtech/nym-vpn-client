@@ -5,7 +5,7 @@ use tracing::{info, warn};
 use crate::env::APP_SENTRY_DSN;
 use crate::sys::OsInfo;
 
-static EXCLUDED_ERRORS: [&str; 9] = [
+static EXCLUDED_ERRORS: [&str; 10] = [
     "failed to connect to the daemon: transport error",
     "vpnd down",
     "invalid mnemonic",
@@ -15,6 +15,9 @@ static EXCLUDED_ERRORS: [&str; 9] = [
     "account already exists",
     "maxdevicesreached",
     "subscriptionexpired",
+    // sled db open error when db is locked by another process
+    // (another instance of the app)
+    "IO error: could not acquire lock on",
 ];
 
 pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
