@@ -51,7 +51,7 @@ pub enum RoutingConfig {
 }
 
 #[cfg(target_os = "linux")]
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct RoutingParameters {
     /// Routing table id used for routing all traffic through the tunnel.
     pub table_id: u32,
