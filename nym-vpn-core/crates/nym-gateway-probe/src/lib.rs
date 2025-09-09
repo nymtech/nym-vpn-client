@@ -208,6 +208,7 @@ impl Probe {
             let bw_client = disconnected_mixnet_client
                 .create_bandwidth_client(self.credentials_args.mnemonic.clone(), ticketbook_type)
                 .await?;
+            info!("Calling bandwidth controller acquire() for {ticketbook_type}");
             match bw_client.acquire().await {
                 Ok(_) => {
                     if i > 0 {
