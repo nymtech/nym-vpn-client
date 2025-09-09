@@ -1,5 +1,5 @@
 type StartupError = {
-  key: 'startup-db-open' | 'startup-db-locked';
+  key: 'internal' | 'db-open' | 'db-locked';
   detail: string | null;
 };
 

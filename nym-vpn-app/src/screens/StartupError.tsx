@@ -6,12 +6,12 @@ import { Button, MsIcon } from '../ui';
 
 function getErrorText(key: StartupError['key']) {
   switch (key) {
-    case 'startup-db-open':
+    case 'db-open':
       return 'Failed to open the application database.';
-    case 'startup-db-locked':
+    case 'db-locked':
       return 'The application is likely already running. Check your system tray or task manager.';
     default:
-      return 'Unknown error';
+      return 'Internal error. Please contact support and share the app logs.';
   }
 }
 
@@ -69,7 +69,7 @@ function StartupError({
         <p className="text-center" data-testid="startup-error-message">
           {error
             ? getErrorText(error?.key)
-            : 'Something went wrong while loading the app. Please check the logs.'}
+            : 'Something went wrong while loading the app. Please contact support and share the app logs.'}
         </p>
         {error?.detail && (
           <div

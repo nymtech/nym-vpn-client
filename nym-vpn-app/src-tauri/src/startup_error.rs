@@ -15,11 +15,11 @@ const WIN_TITLE: &str = "NymVPN - Error";
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum ErrorKey {
-    InternalError,
-    /// At startup, failed to open the embedded db, generic
-    StartupDbOpen,
-    /// At startup, failed to open the embedded db because it is already locked
-    StartupDbLocked,
+    Internal,
+    /// Failed to open the embedded db, generic
+    DbOpen,
+    /// Failed to open the embedded db because it is already locked
+    DbLocked,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -100,8 +100,9 @@ pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
 impl From<&DbError> for ErrorKey {
     fn from(value: &DbError) -> Self {
         match value {
-            DbError::Locked(_) => ErrorKey::StartupDbLocked,
-            _ => ErrorKey::StartupDbOpen,
+            DbError::Locked(_) => ErrorKey::DbLocked,
+            DbError::Db(_) => ErrorKey::DbOpen,
+            _ => ErrorKey::Internal,
         }
     }
 }
