@@ -780,7 +780,6 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                #[cfg(target_os = "linux")] self.tunnel_parameters.tunnel_constants.fwmark
             )
             .await
             .map_err(Box::new)?;
@@ -961,7 +960,6 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                #[cfg(target_os = "linux")] self.tunnel_parameters.tunnel_constants.fwmark
             )
             .await
             .map_err(Box::new)?;

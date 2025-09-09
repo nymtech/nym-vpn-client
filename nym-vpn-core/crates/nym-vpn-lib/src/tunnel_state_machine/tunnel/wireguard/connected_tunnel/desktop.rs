@@ -44,8 +44,6 @@ pub struct ConnectedTunnel {
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
-    #[cfg(target_os = "linux")]
-    fwmark: u32,
 }
 
 impl ConnectedTunnel {
@@ -55,7 +53,6 @@ impl ConnectedTunnel {
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
-        #[cfg(target_os = "linux")] fwmark: u32,
     ) -> Self {
         Self {
             entry_gateway_client,
@@ -63,8 +60,6 @@ impl ConnectedTunnel {
             connection_data,
             bandwidth_controller_handle,
             auth_client_mixnet_listener_handle,
-            #[cfg(target_os = "linux")]
-            fwmark,
         }
     }
 
@@ -121,7 +116,7 @@ impl ConnectedTunnel {
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
-            Some(self.fwmark),
+            Some(tunnel_constants.fwmark),
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
@@ -242,7 +237,7 @@ impl ConnectedTunnel {
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
-            Some(self.fwmark),
+            Some(tunnel_constants.fwmark),
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
