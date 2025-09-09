@@ -1,9 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod caching_client;
 mod entries;
 mod error;
+pub mod gateway_cache;
 mod gateway_client;
 mod helpers;
 
@@ -11,7 +11,6 @@ pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 
 pub use crate::{
-    caching_client::CachingGatewayClient,
     entries::{
         auth_addresses::AuthAddress,
         country::Country,
@@ -24,6 +23,7 @@ pub use crate::{
         score::Score,
     },
     error::Error,
+    gateway_cache::{GatewayCache, GatewayCacheHandle},
     gateway_client::{Config, GatewayClient, ResolvedConfig},
     helpers::resolve_config,
 };

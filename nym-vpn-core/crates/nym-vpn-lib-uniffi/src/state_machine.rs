@@ -19,6 +19,8 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::TunnelType;
 
+use crate::gateway_cache;
+
 use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
 pub(super) async fn init_state_machine(
@@ -70,15 +72,13 @@ pub(super) async fn start_state_machine(
 
     // Bootstrap the state machines gateway client with the static gateway client, so that we can
     // use the existing cached directory data.
-    let static_gw_client = super::init_static_gateway_client(config.user_agent.clone()).await?;
-    let gateway_directory_client =
-        nym_gateway_directory::CachingGatewayClient::new_from_existing(&static_gw_client).await;
-    let gateway_config = gateway_directory_client.get_config().await;
+    let gateway_cache_handle = gateway_cache::get_gateway_cache_handle().await?;
+    let gateway_config = gateway_cache::get_gateway_config().await?;
 
     let nym_config = NymConfig {
         config_path: config.config_path,
         data_path: config.credential_data_path,
-        gateway_config: gateway_config.clone(),
+        gateway_config,
         network_env: network_env.clone(),
     };
 
@@ -116,10 +116,6 @@ pub(super) async fn start_state_machine(
 
     let connectivity_handle = crate::offline_monitor::get_connectivity_handle().await?;
 
-    gateway_directory_client
-        .set_connectivity_handle(connectivity_handle.clone())
-        .await;
-
     let shutdown_token = CancellationToken::new();
 
     let validator_client = nym_http_api_client::Client::builder(network_env.api_url())
@@ -143,7 +139,7 @@ pub(super) async fn start_state_machine(
         account_controller_tx,
         account_controller_state,
         statistics_event_sender,
-        gateway_directory_client,
+        gateway_cache_handle,
         topology_provider,
         connectivity_handle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]

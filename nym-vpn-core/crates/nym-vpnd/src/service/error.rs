@@ -55,9 +55,6 @@ pub enum Error {
     #[error("mixnet setup error")]
     MixnetSetup(#[from] MixnetError),
 
-    #[error("cancelled during initialization")]
-    CancelledInitialization,
-
     #[error("HTTP Client Error: {0}")]
     HttpClient(#[from] HttpClientError),
 }
