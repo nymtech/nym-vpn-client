@@ -61,13 +61,10 @@ pub struct WindowInitEnv {
 }
 
 impl AppWindow {
-    fn init_js(json: String) -> String {
-        format!("window._APP = JSON.parse('{json}');")
-    }
-
     #[instrument(skip(app))]
     pub fn create_main_window(app: &AppHandle, cli: &Cli) -> Result<AppWindow> {
-        let init_env = WindowInitEnv::new(cli);
+        let no_splash = cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH);
+        let win_env = WindowInitEnv::new(no_splash, None).to_json();
         let window = WebviewWindowBuilder::new(
             app,
             MAIN_WINDOW_LABEL,
@@ -84,7 +81,7 @@ impl AppWindow {
         .inner_size(328.0, 710.0)
         .min_inner_size(160.0, 200.0)
         .max_inner_size(800.0, 1400.0)
-        .initialization_script(AppWindow::init_js(init_env.to_json()))
+        .initialization_script(format!("window._APP = {win_env};"))
         .build()
         .inspect_err(|e| error!("failed to create main window: {e}"))?;
         Ok(AppWindow(window))
@@ -330,15 +327,15 @@ impl From<Theme> for UiMode {
 }
 
 impl WindowInitEnv {
-    pub fn new(cli: &Cli) -> Self {
+    pub fn new(no_splash: bool, startup_error: Option<StartupError>) -> Self {
         WindowInitEnv {
             dev_mode: *DEV_MODE,
             updater_enabled: *UPDATER_ENABLED,
-            no_splash: cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH),
+            no_splash,
             default_vpn_mode: Default::default(),
             default_sentry_enabled: DEFAULT_SENTRY_ENABLED,
             default_netstats_enabled: DEFAULT_NETSTATS_ENABLED,
-            startup_error: None,
+            startup_error,
         }
     }
 

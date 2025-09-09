@@ -1,4 +1,5 @@
 use crate::db::DbError;
+use crate::window::WindowInitEnv;
 use crate::{ERROR_WINDOW_LABEL, MAIN_WINDOW_LABEL};
 
 use anyhow::Result;
@@ -7,17 +8,18 @@ use tauri::{AppHandle, Manager};
 use tracing::{error, info, instrument, warn};
 use ts_rs::TS;
 
-const WIN_TITLE: &str = "NymVPN - Startup error";
+const WIN_TITLE: &str = "NymVPN - Error";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone, strum::AsRefStr)]
 #[ts(export, export_to = "StartupErrorKey.ts")]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum ErrorKey {
-    /// At startup, failed to open the embedded db, generic
-    StartupDbOpen,
-    /// At startup, failed to open the embedded db because it is already locked
-    StartupDbLocked,
+    Internal,
+    /// Failed to open the embedded db, generic
+    DbOpen,
+    /// Failed to open the embedded db because it is already locked
+    DbLocked,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -45,32 +47,25 @@ struct WinSizes {
 #[instrument(skip(app))]
 pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
     info!("hide the main window");
-    let main_win = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
-    main_win
-        .hide()
-        .inspect_err(|e| warn!("failed to hide main window: {}", e))
-        .ok();
+    if let Some(win) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+        win.hide()
+            .inspect_err(|e| warn!("failed to hide main window: {}", e))
+            .ok();
+    }
 
     #[cfg(windows)]
     let sizes = WinSizes {
-        inner: (360.0, 380.0),
+        inner: (360.0, 400.0),
         min: (260.0, 280.0),
         max: (700.0, 720.0),
     };
     #[cfg(not(windows))]
     let sizes = WinSizes {
-        inner: (480.0, 510.0),
+        inner: (480.0, 600.0),
         min: (260.0, 280.0),
-        max: (900.0, 920.0),
+        max: (1000.0, 1000.0),
     };
-    let init_script = format!(
-        "
-        window._APP = {{}};
-        window._APP.startupError = {{  key: '{}', detail: '{}' }};
-        ",
-        error.key.as_ref(),
-        error.detail.unwrap_or(String::from("internal error"))
-    );
+    let env = WindowInitEnv::new(false, Some(error)).to_json();
     let window = tauri::WebviewWindowBuilder::new(
         app,
         ERROR_WINDOW_LABEL,
@@ -86,7 +81,7 @@ pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
     .inner_size(sizes.inner.0, sizes.inner.1)
     .min_inner_size(sizes.min.0, sizes.min.1)
     .max_inner_size(sizes.max.0, sizes.max.1)
-    .initialization_script(init_script)
+    .initialization_script(format!("window._APP = {env};"))
     .build()
     .inspect_err(|e| {
         error!("failed to build the error window: {e}");
@@ -105,8 +100,9 @@ pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
 impl From<&DbError> for ErrorKey {
     fn from(value: &DbError) -> Self {
         match value {
-            DbError::Locked(_) => ErrorKey::StartupDbLocked,
-            _ => ErrorKey::StartupDbOpen,
+            DbError::Locked(_) => ErrorKey::DbLocked,
+            DbError::Db(_) => ErrorKey::DbOpen,
+            _ => ErrorKey::Internal,
         }
     }
 }
