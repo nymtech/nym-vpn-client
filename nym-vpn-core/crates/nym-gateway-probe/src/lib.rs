@@ -202,7 +202,7 @@ impl Probe {
         const MAX_RETRIES: usize = 50;
         for i in 0..MAX_RETRIES {
             let attempt = i + 1; // since humans usually don't count from 0 in this instance
-            debug!(
+            info!(
                 "attempt {attempt}/{MAX_RETRIES} for attempting to acquire {ticketbook_type} bandwidth"
             );
             let bw_client = disconnected_mixnet_client
