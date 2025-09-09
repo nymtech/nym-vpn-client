@@ -53,7 +53,10 @@ pub enum RoutingConfig {
 #[cfg(target_os = "linux")]
 #[derive(Debug, Clone)]
 pub struct RoutingParameters {
+    /// Routing table id used for routing all traffic through the tunnel.
     pub table_id: u32,
+
+    /// Firewall mark used for marking traffic that should bypass the tunnel.
     pub fwmark: u32,
 }
 
