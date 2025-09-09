@@ -169,7 +169,7 @@ impl RouteHandler {
                 exit_tun_name,
                 entry_tun_mtu,
                 exit_tun_mtu,
-                private_entry_gateway_address: in_tunnel_entry_gateway_address,
+                private_entry_gateway_address,
                 #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
                 exit_gateway_address,
@@ -181,7 +181,7 @@ impl RouteHandler {
                 ));
 
                 routes.insert(Self::get_in_tunnel_gateway_entry_route(
-                    in_tunnel_entry_gateway_address,
+                    private_entry_gateway_address,
                     entry_tun_name.clone(),
                     entry_tun_mtu,
                 ));

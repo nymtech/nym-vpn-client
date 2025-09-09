@@ -1184,6 +1184,10 @@ impl TunnelMonitor {
             exit_tun_name: wintun_exit_interface.name.clone(),
             entry_tun_mtu,
             exit_tun_mtu,
+            private_entry_gateway_address: self
+                .tunnel_parameters
+                .tunnel_constants
+                .private_entry_gateway_address,
             entry_gateway_address,
             exit_gateway_address,
         };
