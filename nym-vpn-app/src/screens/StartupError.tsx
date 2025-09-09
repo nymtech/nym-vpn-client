@@ -6,12 +6,12 @@ import { Button, MsIcon } from '../ui';
 
 function getErrorText(key: StartupError['key']) {
   switch (key) {
-    case 'startup-db-open':
+    case 'db-open':
       return 'Failed to open the application database.';
-    case 'startup-db-locked':
-      return 'The application is likely already running. Multiple instances cannot be opened simultaneously.';
+    case 'db-locked':
+      return 'The application is likely already running. Check your system tray or task manager.';
     default:
-      return 'Unknown error';
+      return 'Internal error. Please contact support and share the app logs.';
   }
 }
 
@@ -30,7 +30,7 @@ function StartupError({
     }
     initialized = true;
     const window = getCurrentWindow();
-    console.info(`show window [${window.label}]`);
+    console.info(`show window ${window.label}`);
     window.show().catch((e: unknown) => {
       console.error(`failed to show error window: ${e}`);
     });
@@ -69,11 +69,11 @@ function StartupError({
         <p className="text-center" data-testid="startup-error-message">
           {error
             ? getErrorText(error?.key)
-            : 'Something went wrong while loading the app. Please check the logs.'}
+            : 'Something went wrong while loading the app. Please contact support and share the app logs.'}
         </p>
         {error?.detail && (
           <div
-            className="w-full max-h-32 overflow-auto select-text text-balance break-words"
+            className="w-full max-h-44 overflow-auto select-text text-balance break-words"
             data-testid="startup-error-details"
           >
             <p className="text-aphrodisiac text-center cursor-auto">
