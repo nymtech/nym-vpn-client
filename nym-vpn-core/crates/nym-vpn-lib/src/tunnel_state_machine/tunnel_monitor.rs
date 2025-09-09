@@ -394,6 +394,8 @@ impl TunnelMonitor {
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
         #[cfg(unix)]
+        let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
+        #[cfg(unix)]
         let connection_fd_callback = move |_fd: RawFd| {
             #[cfg(target_os = "android")]
             {
@@ -406,7 +408,7 @@ impl TunnelMonitor {
                 tracing::debug!("Bypass websocket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
                 if let Err(err) =
-                    Mark.set(borrowed_fd, &self.tunnel_parameters.tunnel_constants.fwmark)
+                    Mark.set(borrowed_fd, &fwmark)
                 {
                     tracing::error!("Could not set fwmark for websocket fd: {err}");
                 }
@@ -778,6 +780,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
+                #[cfg(target_os = "linux")] self.tunnel_parameters.tunnel_constants.fwmark
             )
             .await
             .map_err(Box::new)?;
@@ -958,6 +961,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
+                #[cfg(target_os = "linux")] self.tunnel_parameters.tunnel_constants.fwmark
             )
             .await
             .map_err(Box::new)?;

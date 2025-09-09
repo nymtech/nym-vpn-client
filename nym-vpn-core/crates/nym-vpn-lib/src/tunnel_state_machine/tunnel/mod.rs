@@ -85,6 +85,7 @@ impl ConnectedMixnet {
         cancel_token: CancellationToken,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
+        #[cfg(target_os = "linux")] fwmark: u32,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
         let connector =
             wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
@@ -98,6 +99,7 @@ impl ConnectedMixnet {
                 cancel_token,
                 entry_metadata_rx,
                 exit_metadata_rx,
+                #[cfg(target_os = "linux")] fwmark
             )
             .await
     }
