@@ -87,6 +87,7 @@ impl Connector {
         cancel_token: CancellationToken,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
+        #[cfg(target_os = "linux")] fwmark: u32,
     ) -> Result<ConnectedTunnel> {
         let connect_result = Box::pin(Self::connect_inner(
             task_manager,
@@ -106,6 +107,8 @@ impl Connector {
             connect_result.connection_data,
             connect_result.bandwidth_controller_handle,
             connect_result.auth_client_mixnet_listener_handle,
+            #[cfg(target_os = "linux")]
+            fwmark,
         ))
     }
 
