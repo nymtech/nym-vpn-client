@@ -334,7 +334,12 @@ impl VpnApiClient {
         match self.get_query::<T>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure {
+                    url: _,
+                    status: _,
+                    headers: _,
+                    error,
+                } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -381,6 +386,8 @@ impl VpnApiClient {
 
         let response = request.send().await?;
         let status = response.status();
+        let headers = response.headers().clone();
+        let url = response.url().clone();
         tracing::info!("Response status: {:#?}", status);
 
         // TODO: support this mode in the upstream crate
@@ -397,19 +404,19 @@ impl VpnApiClient {
                 } else {
                     tracing::info!("Response: {:#?}", response_text);
 
-                    if let Ok(request_error) = serde_json::from_str(&response_text) {
-                        Err(HttpClientError::EndpointFailure {
-                            status,
-                            error: request_error,
-                        })
-                    } else {
-                        Err(HttpClientError::GenericRequestFailure(
-                            response_text.to_string(),
-                        ))
-                    }
+                    Err(HttpClientError::EndpointFailure {
+                        url,
+                        status,
+                        headers,
+                        error: response_text,
+                    })
                 }
             }
-            Err(err) => Err(HttpClientError::RequestFailure { status }),
+            Err(err) => Err(HttpClientError::RequestFailure {
+                url,
+                status,
+                headers,
+            }),
         }
     }
 
@@ -500,7 +507,12 @@ impl VpnApiClient {
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure {
+                    url: _,
+                    status: _,
+                    headers: _,
+                    error,
+                } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -562,7 +574,12 @@ impl VpnApiClient {
         match self.delete_query::<T>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure {
+                    url: _,
+                    status: _,
+                    headers: _,
+                    error,
+                } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -629,7 +646,12 @@ impl VpnApiClient {
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure {
+                    url: _,
+                    status: _,
+                    headers: _,
+                    error,
+                } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
