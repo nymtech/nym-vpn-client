@@ -62,8 +62,6 @@ use nym_vpn_lib_types::{
 use super::tunnel::wireguard::connected_tunnel::{
     NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
 };
-#[cfg(target_os = "linux")]
-use crate::TUNNEL_FWMARK;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -407,7 +405,9 @@ impl TunnelMonitor {
             {
                 tracing::debug!("Bypass websocket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
-                if let Err(err) = Mark.set(borrowed_fd, &TUNNEL_FWMARK) {
+                if let Err(err) =
+                    Mark.set(borrowed_fd, &self.tunnel_parameters.tunnel_constants.fwmark)
+                {
                     tracing::error!("Could not set fwmark for websocket fd: {err}");
                 }
             }

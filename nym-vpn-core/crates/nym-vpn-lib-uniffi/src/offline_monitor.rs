@@ -58,7 +58,7 @@ async fn start_offline_monitor(
         #[cfg(target_os = "android")]
         connectivity_receiver,
         #[cfg(target_os = "linux")]
-        Some(tunnel_state_machine::TUNNEL_FWMARK),
+        Some(routing_params.fwmark),
     )
     .await;
 
