@@ -45,6 +45,7 @@ public final class GRPCManager: ObservableObject {
     @Published public var errorReason: Error?
     @Published public var connectedDate: Date?
     @Published public var connectionRetryAttempt: Int?
+    @Published public var tunnelConnectingState: TunnelConnectingState?
     @Published public var networkName: String?
     @Published public var daemonVersion = "unknown"
     public var requiredVersion: String {

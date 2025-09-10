@@ -60,7 +60,25 @@ extension HomeViewModel {
                         with: StatusInfoState(
                             tunnelStatus: tunnel.status,
                             isOnline: self.networkMonitor.isAvailable,
-                            retryAttempt: attempt
+                            retryAttempt: attempt,
+                            tunnelConnectingState: tunnel.tunnelConnectingState
+                        )
+                    )
+                }
+            }
+
+        tunnelConnectingStateCancellable = tunnel.$tunnelConnectingState
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newState in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self.updateStatusInfoState(
+                        with: StatusInfoState(
+                            tunnelStatus: self.lastTunnelStatus,
+                            isOnline: self.networkMonitor.isAvailable,
+                            retryAttempt: self.connectionManager.connectionRetryAttempt,
+                            tunnelConnectingState: newState
                         )
                     )
                 }

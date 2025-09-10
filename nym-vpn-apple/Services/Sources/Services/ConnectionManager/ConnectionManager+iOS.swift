@@ -69,6 +69,14 @@ extension ConnectionManager {
                     self?.lastError = newError
                 }
             }
+
+        tunnelConnectingStateCancellable = tunnel.$tunnelConnectingState
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newState in
+                MainActor.assumeIsolated {
+                    self?.tunnelConnectingState = newState
+                }
+            }
     }
 }
 

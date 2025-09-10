@@ -5,7 +5,7 @@ import TunnelStatus
 
 public enum StatusInfoState: Equatable {
     case initialising
-    case connecting(retryAttempt: Int?)
+    case connecting(retryAttempt: Int?, tunnelConnectingState: TunnelConnectingState?)
     case connectionTime
     case error(message: String)
     case noInternet
@@ -13,12 +13,17 @@ public enum StatusInfoState: Equatable {
     case unknown
     case installingDaemon
 
-    public init(tunnelStatus: TunnelStatus, isOnline: Bool, retryAttempt: Int?) {
+    public init(
+        tunnelStatus: TunnelStatus,
+        isOnline: Bool,
+        retryAttempt: Int?,
+        tunnelConnectingState: TunnelConnectingState?
+    ) {
         switch tunnelStatus {
         case .connected:
             self = .connectionTime
         case .connecting, .reasserting, .restarting:
-            self = .connecting(retryAttempt: retryAttempt)
+            self = .connecting(retryAttempt: retryAttempt, tunnelConnectingState: tunnelConnectingState)
         case .disconnected, .disconnecting, .unknown:
             self = isOnline ? .unknown : .noInternet
         case .offline:
@@ -38,11 +43,24 @@ public enum StatusInfoState: Equatable {
         switch self {
         case .initialising:
             "initializingClient".localizedString
-        case let .connecting(retryAttempt):
-            if let retryAttempt, retryAttempt > 0 {
-                "\("establishingConnection".localizedString). \("home.connectingRetryAttempt".localizedString): \(retryAttempt)"
-            } else {
+        case let .connecting(retryAttempt, connectingState):
+            switch (retryAttempt, connectingState) {
+            case (.none, .none):
                 "establishingConnection".localizedString
+            case (let .some(retryCount), .none):
+                if retryCount > 0 {
+                    "\("establishingConnection".localizedString). \("home.connectingRetryAttempt".localizedString): \(retryCount)"
+                } else {
+                    "establishingConnection".localizedString
+                }
+            case (.none, let .some(state)):
+                "\(state.localizedStringKey.localizedString)"
+            case let (.some(retryCount), .some(state)):
+                if retryCount > 0 {
+                    "\(state.localizedStringKey.localizedString). \("home.connectingRetryAttempt".localizedString): \(retryCount)"
+                } else {
+                    state.localizedStringKey.localizedString
+                }
             }
         case .connectionTime:
             "connectionTime".localizedString

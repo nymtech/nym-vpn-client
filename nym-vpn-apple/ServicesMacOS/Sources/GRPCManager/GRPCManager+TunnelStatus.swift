@@ -3,6 +3,7 @@ import Foundation
 import SwiftProtobuf
 import Constants
 import ErrorReason
+import TunnelStatus
 
 extension GRPCManager {
     func setupListenToTunnelStateChangesObserver() {
@@ -64,6 +65,7 @@ extension GRPCManager {
         case let .connecting(details):
             connectionRetryAttempt = Int(details.retryAttempt)
             tunnelStatus = .connecting
+            tunnelConnectingState = TunnelConnectingState(with: details.state)
         case .disconnected:
             tunnelStatus = .disconnected
         case let .disconnecting(details):
@@ -181,3 +183,24 @@ extension ErrorReason {
     }
 }
 #endif
+
+private extension TunnelConnectingState {
+    init(with state: NymVpnService_EstablishConnectionState) {
+        switch state {
+        case .resolvingApiAddresses:
+            self = .resolvingApiAddresses
+        case .awaitingAccountReadiness:
+            self = .awaitingAccountReadiness
+        case .refreshingGateways:
+            self = .refreshingGateways
+        case .selectingGateways:
+            self = .selectingGateways
+        case .connectingMixnetClient:
+            self = .connectingMixnetClient
+        case .connectingTunnel:
+            self = .connectingTunnel
+        case .UNRECOGNIZED(_):
+            self = .unrecognized
+        }
+    }
+}
