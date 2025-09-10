@@ -30192,6 +30192,72 @@
         }
       }
     },
+    "tunnelConnectingState.awaitingAccountReadiness" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Awaiting account readiness"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.connectingMixnetClient" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting mixnet client"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.connectingTunnel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting tunnel"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.refreshingGateways" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refreshing gateways"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.resolvingApiAddresses" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolving API IP addresses"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.selectingGateways" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecting gateways"
+          }
+        }
+      }
+    },
     "unprotectedBanner.actionTitle" : {
       "extractionState" : "manual",
       "localizations" : {

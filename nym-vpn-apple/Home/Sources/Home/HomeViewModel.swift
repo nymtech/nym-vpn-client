@@ -50,12 +50,16 @@ public class HomeViewModel: HomeFlowState {
     var cancellables = Set<AnyCancellable>()
     var tunnelStatusUpdateCancellable: AnyCancellable?
     var tunnelRetryAttemptCancellable: AnyCancellable?
+    var tunnelConnectingStateCancellable: AnyCancellable?
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
 
     @MainActor @Published var activeTunnel: Tunnel?
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
+
+    /// Use updateStatusInfoState(with:) to update the statusInfoState
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
+
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
     @MainActor @Published var isOfflineOverlayDisplayed = false
@@ -330,7 +334,8 @@ extension HomeViewModel {
                 statusInfoState = StatusInfoState(
                     tunnelStatus: newStatus,
                     isOnline: networkMonitor.isAvailable,
-                    retryAttempt: connectionManager.connectionRetryAttempt
+                    retryAttempt: connectionManager.connectionRetryAttempt,
+                    tunnelConnectingState: connectionManager.tunnelConnectingState
                 )
             }
 
