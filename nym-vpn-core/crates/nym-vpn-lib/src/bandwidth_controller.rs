@@ -31,8 +31,6 @@ const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
-// Version of gateway where we have metadata endpoint available
-pub(crate) const GATEWAY_METADATA_UPDATE_VERSION: semver::Version = semver::Version::new(1, 18, 0);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -191,11 +189,13 @@ impl TemporaryBandwidthClient {
         gateway: &Gateway,
         wg_gateway_client: WgGatewayLightClient,
         metadata_client: MetadataClient,
+        gateway_metadata_update_version: Option<semver::Version>,
     ) -> Self {
         if !cfg!(target_os = "ios")
-            && let Some(version) = gateway.version.as_ref()
-            && let Ok(version) = semver::Version::parse(version)
-            && version >= GATEWAY_METADATA_UPDATE_VERSION
+            && let Some(gateway_version) = gateway.version.as_ref()
+            && let Ok(gateway_version) = semver::Version::parse(gateway_version)
+            && let Some(update_version) = gateway_metadata_update_version
+            && gateway_version >= update_version
         {
             tracing::debug!(
                 "Using latest metadata client for {}'s bandwidth controller",
@@ -307,6 +307,7 @@ impl<St: Storage> BandwidthController<St> {
         signal_channel: TunUpReceiver,
         gateway: &Gateway,
         wg_gateway_client: &WgGatewayClient,
+        gateway_metadata_update_version: Option<semver::Version>,
     ) -> TemporaryBandwidthClient {
         // this shouldn't fail, verified by unit test as well
         let gateway_private_url = Url::parse(&format!(
@@ -319,7 +320,12 @@ impl<St: Storage> BandwidthController<St> {
             bind_ip,
             signal_channel,
         );
-        TemporaryBandwidthClient::new(gateway, wg_gateway_client.light_client(), metadata_client)
+        TemporaryBandwidthClient::new(
+            gateway,
+            wg_gateway_client.light_client(),
+            metadata_client,
+            gateway_metadata_update_version,
+        )
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -331,6 +337,7 @@ impl<St: Storage> BandwidthController<St> {
         wg_exit_gateway_client: &mut WgGatewayClient,
         entry_signal_channel: TunUpReceiver,
         exit_signal_channel: TunUpReceiver,
+        gateway_metadata_update_version: Option<semver::Version>,
         shutdown: TaskClient,
         cancel_token: CancellationToken,
     ) -> Result<(BandwidthController<St>, ConnectionData)>
@@ -361,12 +368,14 @@ impl<St: Storage> BandwidthController<St> {
             entry_signal_channel,
             &selected_gateways.entry,
             wg_entry_gateway_client,
+            gateway_metadata_update_version.clone(),
         );
         let wg_exit_client = Self::construct_bandwidth_client(
             exit.private_ipv4.into(),
             exit_signal_channel,
             &selected_gateways.exit,
             wg_exit_gateway_client,
+            gateway_metadata_update_version,
         );
 
         let bw = Self::new(

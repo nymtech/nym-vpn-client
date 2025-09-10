@@ -222,23 +222,47 @@ impl Probe {
                         BandwidthControllerError::Nyxd(nyxd_error),
                     ) => match nyxd_error {
                         // happens when sequence issue occurs during tx delivery
-                        NyxdError::BroadcastTxErrorDeliverTx { hash, raw_log, .. } => {
+                        NyxdError::BroadcastTxErrorDeliverTx {
+                            hash,
+                            height,
+                            code,
+                            raw_log,
+                        } => {
                             // unfortunately at this point we have to do string matching as the log
                             // is returned from the go nyxd binary
                             if raw_log.contains("account sequence mismatch") {
                                 error!(
                                     "another process is using the same mnemonic. we failed to broadcast transaction {hash} due to mismatched sequence number"
                                 )
+                            } else {
+                                return Err(NyxdError::BroadcastTxErrorDeliverTx {
+                                    hash,
+                                    height,
+                                    code,
+                                    raw_log,
+                                }
+                                .into());
                             }
                         }
                         // happens when sequence issue occurs during tx simulate
-                        NyxdError::AbciError { log, .. } => {
+                        NyxdError::AbciError {
+                            code,
+                            log,
+                            pretty_log,
+                        } => {
                             // unfortunately at this point we have to do string matching as the log
                             // is returned from the go nyxd binary
                             if log.contains("account sequence mismatch") {
                                 error!(
                                     "another process is using the same mnemonic. we failed to simulate transaction due to mismatched sequence number"
                                 )
+                            } else {
+                                return Err(NyxdError::AbciError {
+                                    code,
+                                    log,
+                                    pretty_log,
+                                }
+                                .into());
                             }
                         }
                         other => {

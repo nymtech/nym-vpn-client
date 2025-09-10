@@ -13,26 +13,28 @@ public enum ErrorReason: LocalizedError, Codable {
     case noAccountStored
     case noDeviceStored
     // Tunnel
-    case firewall
-    case routing
-    case dns
+    case setFirewallPolicy
+    case setRouting
+    case setDns
     case internalUnknown
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
     case maxDevicesReached
     case bandwidthExceeded
-    case api(String)
     case apiTimeout
     case apiStatusCode(String)
     case apiResponse(String)
     case registrationInProgress
     case internalError(String)
     case deviceTimeOutOfSync
-    case createMixnetStorage
     case ipv6Unavailable
     case inactiveSubscription
-    case accountControl(String)
+    case tunDevice
+    case tunnelProvider
+    case badBandwidthIncrease
+    case inactiveAccount
+    case deviceLoggedOut
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -61,21 +63,21 @@ public enum ErrorReason: LocalizedError, Codable {
         case .inactiveSubscription:
             self = .inactiveSubscription
         case .setFirewallPolicy:
-            self = .firewall
+            self = .setFirewallPolicy
         case .setRouting:
-            self = .routing
+            self = .setRouting
         case .setDns:
-            self = .dns
+            self = .setDns
         case .tunDevice:
-            self = .internalError("tunDevice")
+            self = .tunDevice
         case .tunnelProvider:
-            self = .internalError("tunnelProvider")
+            self = .tunnelProvider
         case .badBandwidthIncrease:
-            self = .internalError("badBandwidthIncrease")
+            self = .badBandwidthIncrease
         case .inactiveAccount:
-            self = .internalError("inactiveAccount")
+            self = .inactiveAccount
         case .deviceLoggedOut:
-            self = .internalError("deviceLoggedOut")
+            self = .deviceLoggedOut
         }
     }
 #endif
@@ -97,12 +99,12 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .noAccountStored
         case .noDeviceStored:
             self = .noDeviceStored
-        case .firewall:
-            self = .firewall
-        case .routing:
-            self = .routing
-        case .dns:
-            self = .dns
+        case .setFirewallPolicy:
+            self = .setFirewallPolicy
+        case .setRouting:
+            self = .setRouting
+        case .setDns:
+            self = .setDns
         case .internalUnknown:
             self = .internalUnknown
         case .sameEntryAndExitGateway:
@@ -115,8 +117,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
-        case .api:
-            self = .api(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .registrationInProgress:
             self = .registrationInProgress
         case .internalError:
@@ -129,14 +129,20 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .apiStatusCode(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .apiResponse:
             self = .apiResponse(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .createMixnetStorage:
-            self = .createMixnetStorage
         case .ipv6Unavailable:
             self = .ipv6Unavailable
         case .inactiveSubscription:
             self = .inactiveSubscription
-        case .accountControl:
-            self = .accountControl(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .tunDevice:
+            self = .tunDevice
+        case .tunnelProvider:
+            self = .tunnelProvider
+        case .badBandwidthIncrease:
+            self = .badBandwidthIncrease
+        case .inactiveAccount:
+            self = .inactiveAccount
+        case .deviceLoggedOut:
+            self = .deviceLoggedOut
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount
@@ -169,11 +175,11 @@ extension ErrorReason {
 private extension ErrorReason {
     var description: String {
         switch self {
-        case .firewall:
+        case .setFirewallPolicy:
             "errorReason.firewall".localizedString
-        case .routing:
+        case .setRouting:
             "errorReason.routing".localizedString
-        case .dns:
+        case .setDns:
             "errorReason.dns".localizedString
         case .internalUnknown:
             "errorReason.internalUnknown".localizedString
@@ -197,8 +203,6 @@ private extension ErrorReason {
             "errorReason.bandwidthExceeded".localizedString
         case .inactiveSubscription:
             "errorReason.subscriptionExpired".localizedString
-        case let .api(message):
-            message
         case .registrationInProgress:
             "errorReason.registrattionInProgress".localizedString
         case let .internalError(message):
@@ -211,16 +215,23 @@ private extension ErrorReason {
             code
         case let .apiResponse(message):
             message
-        case .createMixnetStorage:
-            "errorReason.createMixnetStorage".localizedString
         case .ipv6Unavailable:
             "errorReason.ipv6Unavailable".localizedString
-        case let .accountControl(message):
-            message
+        case .tunDevice:
+            "errorReason.tunDevice".localizedString
+        case .tunnelProvider:
+            "errorReason.tunProvider".localizedString
+        case .badBandwidthIncrease:
+            "errorReason.badBandwidthIncrease".localizedString
+        case .inactiveAccount:
+            "errorReason.inactiveAccount".localizedString
+        case .deviceLoggedOut:
+            "".localizedString
 #if os(macOS)
         case .existingAccount:
             "errorReason.existingAccount".localizedString
 #endif
+
         }
     }
 }
@@ -239,26 +250,28 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case offline
     case noAccountStored
     case noDeviceStored
-    case firewall
-    case routing
-    case dns
+    case setFirewallPolicy
+    case setRouting
+    case setDns
     case internalUnknown
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
     case maxDevicesReached
     case bandwidthExceeded
-    case api
     case apiTimeout
     case apiStatusCode
     case apiResponse
     case internalError
     case registrationInProgress
     case deviceTimeOutOfSync
-    case createMixnetStorage
     case ipv6Unavailable
     case inactiveSubscription
-    case accountControl
+    case tunDevice
+    case tunnelProvider
+    case badBandwidthIncrease
+    case inactiveAccount
+    case deviceLoggedOut
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -270,12 +283,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .noAccountStored
         case .noDeviceStored:
             self = .noDeviceStored
-        case .firewall:
-            self = .firewall
-        case .routing:
-            self = .routing
-        case .dns:
-            self = .dns
         case .internalUnknown:
             self = .internalUnknown
         case .sameEntryAndExitGateway:
@@ -288,8 +295,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
-        case .api:
-            self = .api
         case .registrationInProgress:
             self = .registrationInProgress
         case .internalError:
@@ -302,14 +307,26 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .apiStatusCode
         case .apiResponse:
             self = .apiResponse
-        case .createMixnetStorage:
-            self = .createMixnetStorage
         case .ipv6Unavailable:
             self = .ipv6Unavailable
         case .inactiveSubscription:
             self = .inactiveSubscription
-        case .accountControl:
-            self = .accountControl
+        case .setFirewallPolicy:
+            self = .setFirewallPolicy
+        case .setRouting:
+            self = .setRouting
+        case .setDns:
+            self = .setDns
+        case .tunDevice:
+            self = .tunDevice
+        case .tunnelProvider:
+            self = .tunnelProvider
+        case .badBandwidthIncrease:
+            self = .badBandwidthIncrease
+        case .inactiveAccount:
+            self = .inactiveAccount
+        case .deviceLoggedOut:
+            self = .deviceLoggedOut
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount

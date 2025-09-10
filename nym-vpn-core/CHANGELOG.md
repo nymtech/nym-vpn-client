@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ### Added
 
 - Select the nearest geo-IP based entry gateway as a new mode for entry selection (https://github.com/nymtech/nym-vpn-client/pull/3412)
+
+### Fixed
+
+- Fix edgecase where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
+- Fix Sentry extra metadata tag when there is no OS extra info
+  (https://github.com/nymtech/nym-vpn-client/pull/3411)
 
 ## [1.15.0] - TBD
 
@@ -21,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Windows] Embed core version into `winfw.dll` and `libwg.dll` (https://github.com/nymtech/nym-vpn-client/pull/3292)
 - Disable mixnet cover traffic in two-hop mode (https://github.com/nymtech/nym-vpn-client/pull/3347)
+- Prevent discovery file from becoming stale because it's only refreshed whilst connected (https://github.com/nymtech/nym-vpn-client/pull/3377)
 
 ### Changed
 
