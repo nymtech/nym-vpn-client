@@ -228,7 +228,6 @@ where
     W: Sink<bytes::Bytes, Error = io::Error> + Unpin + Send,
 {
     // allocate buffers of mtu size, and take ownership to ensure they can't be resized anymore
-    // let up_buf = &mut vec![0u8; mtu as usize].into_boxed_slice()[..];
     let mut dn_buf = BytesMut::with_capacity(mtu as usize);
 
     loop {
@@ -252,6 +251,12 @@ where
                     e
                 })?;
                 trace!(" [tr]<- wrote {len}B");
+
+                //reset the buffer without any new allocations.
+                dn_buf.clear();
+                if !dn_buf.try_reclaim(mtu as usize) {
+                    warn!("unable to reclaim bytes in buffer: {} ", dn_buf.capacity());
+                }
             }
             _ = token.cancelled() => {
                 debug!("end io copy from {fw_addr}<->[tr]");
