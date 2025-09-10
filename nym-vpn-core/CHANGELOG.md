@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Select the nearest geo-IP based entry gateway as a new mode for entry selection (https://github.com/nymtech/nym-vpn-client/pull/3412)
+
 ## [1.15.0] - TBD
 
 ### Added
