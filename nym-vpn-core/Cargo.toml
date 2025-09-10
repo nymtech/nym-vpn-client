@@ -76,7 +76,7 @@ default-members = [
 #nym-credential-utils = { path = "../../nym/common/credential-utils" }
 
 [workspace.package]
-version = "1.15.0-beta"
+version = "1.15.0"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
