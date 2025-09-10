@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Connecting states
 
+### Fixed
+
+- UI glitches in gateway/country list view
+
 ## [2.9.0] - 2025-09-03
 
 ### Fixed

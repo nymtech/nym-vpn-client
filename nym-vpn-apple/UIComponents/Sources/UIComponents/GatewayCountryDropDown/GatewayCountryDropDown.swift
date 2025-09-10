@@ -55,7 +55,6 @@ public struct GatewayCountryDropDown: View {
                 }
             }
         }
-        .animation(.easeInOut, value: isExpanded)
         .onAppear {
             guard let server = selectedServer() else { return }
             isExpanded = true
