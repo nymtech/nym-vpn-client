@@ -54,7 +54,9 @@ pub fn init_sentry() -> Option<ClientInitGuard> {
     ));
     sentry::configure_scope(|scope| {
         scope.set_tag("os_version", &os_info.os_version);
-        scope.set_tag("extra_metadata", os_info.extra.join(", "));
+        if !os_info.extra.is_empty() {
+            scope.set_tag("extra_metadata", os_info.extra.join(", "));
+        }
         scope.set_user(Some(sentry::User {
             id: Some(os_info.hash_identifier()), // anonymized user identifier
             ip_address: None,
