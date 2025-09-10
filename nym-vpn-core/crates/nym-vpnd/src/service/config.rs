@@ -190,6 +190,7 @@ impl TryFrom<&NymVpnServiceConfig> for NymVpnServiceConfigExtLatest {
 enum EntryPointExtV1 {
     Gateway { identity: String },
     Location { location: String },
+    Nearest,
     Random,
 }
 
@@ -205,6 +206,7 @@ impl TryFrom<EntryPointExtV1> for gateway_directory::EntryPoint {
             EntryPointExtV1::Location { location } => {
                 Ok(gateway_directory::EntryPoint::Location { location })
             }
+            EntryPointExtV1::Nearest => Ok(gateway_directory::EntryPoint::Nearest),
             EntryPointExtV1::Random => Ok(gateway_directory::EntryPoint::Random),
         }
     }
@@ -221,6 +223,7 @@ impl TryFrom<&gateway_directory::EntryPoint> for EntryPointExtV1 {
             gateway_directory::EntryPoint::Location { location } => Ok(EntryPointExtV1::Location {
                 location: location.clone(),
             }),
+            gateway_directory::EntryPoint::Nearest => Ok(EntryPointExtV1::Nearest),
             gateway_directory::EntryPoint::Random => Ok(EntryPointExtV1::Random),
         }
     }

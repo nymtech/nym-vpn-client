@@ -18,6 +18,8 @@ pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     // Select a random entry gateway in a specific location.
     Location { location: String },
+    // Select the gateway that is nearest to the user
+    Nearest,
     // Select an entry gateway at random.
     Random,
 }
@@ -27,6 +29,7 @@ impl Display for EntryPoint {
         match self {
             EntryPoint::Gateway { identity } => write!(f, "Gateway: {identity}"),
             EntryPoint::Location { location } => write!(f, "Location: {location}"),
+            EntryPoint::Nearest => write!(f, "Nearest"),
             EntryPoint::Random => write!(f, "Random"),
         }
     }
@@ -45,6 +48,10 @@ impl EntryPoint {
 
     pub fn is_location(&self) -> bool {
         matches!(self, EntryPoint::Location { .. })
+    }
+
+    pub fn is_nearest(&self) -> bool {
+        matches!(self, EntryPoint::Nearest { .. })
     }
 
     pub async fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
@@ -66,6 +73,12 @@ impl EntryPoint {
                         requested_location: location.clone(),
                         available_countries: gateways.all_iso_codes(),
                     })
+            }
+            EntryPoint::Nearest => {
+                debug!("Selecting the nearest gateway");
+                gateways
+                    .nearest_gateway()
+                    .ok_or_else(|| Error::FailedToSelectNearestGateway)
             }
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");

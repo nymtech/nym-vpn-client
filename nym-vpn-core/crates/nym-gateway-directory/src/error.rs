@@ -76,6 +76,9 @@ pub enum Error {
     #[error("no matching gateway found after selecting low latency: {requested_identity}")]
     NoMatchingGatewayAfterSelectingLowLatency { requested_identity: String },
 
+    #[error("failed to select the nearest gateway")]
+    FailedToSelectNearestGateway,
+
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,
 

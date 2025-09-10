@@ -411,6 +411,10 @@ impl GatewayList {
         })
     }
 
+    pub fn nearest_gateway(&self) -> Option<Gateway> {
+        self.gateways.first().cloned()
+    }
+
     pub fn random_gateway(&self) -> Option<Gateway> {
         self.gateways
             .iter()

@@ -445,6 +445,9 @@ impl TryFrom<proto::EntryNode> for nym_gateway_directory::EntryPoint {
                     })?;
                 nym_gateway_directory::EntryPoint::Gateway { identity }
             }
+            proto::entry_node::EntryNodeEnum::Nearest(_) => {
+                nym_gateway_directory::EntryPoint::Nearest
+            }
             proto::entry_node::EntryNodeEnum::Random(_) => {
                 nym_gateway_directory::EntryPoint::Random
             }
@@ -469,6 +472,9 @@ impl TryFrom<nym_gateway_directory::EntryPoint> for proto::EntryNode {
                         longitude: None,
                     },
                 )),
+            }),
+            nym_gateway_directory::EntryPoint::Nearest => Ok(proto::EntryNode {
+                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Nearest(())),
             }),
             nym_gateway_directory::EntryPoint::Random => Ok(proto::EntryNode {
                 entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Random(())),

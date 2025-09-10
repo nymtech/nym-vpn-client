@@ -35,13 +35,21 @@ pub async fn select_gateways(
         });
     };
 
-    let (mut entry_gateways, exit_gateways) = match tunnel_type {
+    let (entry_gateways, mut exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {
-            let all_gateways = gateway_directory_client
+            let exit_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
-            (all_gateways.clone(), all_gateways)
+            let entry_gateways = if entry_point.is_nearest() {
+                gateway_directory_client
+                    .lookup_gateways(GatewayType::WgNearestEntry)
+                    .await
+                    .map_err(GatewayDirectoryError::LookupGateways)?
+            } else {
+                exit_gateways.clone()
+            };
+            (entry_gateways, exit_gateways)
         }
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
@@ -50,8 +58,13 @@ pub async fn select_gateways(
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
+            let gw_type = if entry_point.is_nearest() {
+                GatewayType::MixnetNearestEntry
+            } else {
+                GatewayType::MixnetEntry
+            };
             let entry_gateways = gateway_directory_client
-                .lookup_gateways(GatewayType::MixnetEntry)
+                .lookup_gateways(gw_type)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             (entry_gateways, exit_gateways)
@@ -61,29 +74,33 @@ pub async fn select_gateways(
     tracing::info!("Found {} entry gateways", entry_gateways.len());
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
-    let exit_gateway = exit_point
-        .lookup_gateway(&exit_gateways)
-        .map_err(GatewayDirectoryError::SelectExitGateway)?;
-
-    // Exclude the exit gateway from the list of entry gateways for privacy reasons
-    entry_gateways.remove_gateway(&exit_gateway);
-
     let entry_gateway = entry_point
         .lookup_gateway(&entry_gateways)
         .await
-        .map_err(|source| match source {
-            nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
-                requested_location,
-                available_countries: _,
-            } if Some(requested_location.as_str())
-                == exit_gateway.two_letter_iso_country_code() =>
-            {
-                GatewayDirectoryError::SameEntryAndExitGateway {
-                    identity: exit_gateway.identity.to_string(),
+        .map_err(GatewayDirectoryError::SelectEntryGateway)?;
+
+    // Exclude the entry gateway from the list of exit gateways for privacy reasons
+    // Always do it in this order, as the entry gateway might get transparently selected via auto-connect
+    // and we prefer to keep the actual closest gateway as entry, in case the exit one gets randomly selected
+    // to be the same
+    exit_gateways.remove_gateway(&entry_gateway);
+
+    let exit_gateway =
+        exit_point
+            .lookup_gateway(&exit_gateways)
+            .map_err(|source| match source {
+                nym_gateway_directory::Error::NoMatchingExitGatewayForLocation {
+                    requested_location,
+                    available_countries: _,
+                } if Some(requested_location.as_str())
+                    == entry_gateway.two_letter_iso_country_code() =>
+                {
+                    GatewayDirectoryError::SameEntryAndExitGateway {
+                        identity: entry_gateway.identity.to_string(),
+                    }
                 }
-            }
-            _ => GatewayDirectoryError::SelectEntryGateway(source),
-        })?;
+                _ => GatewayDirectoryError::SelectExitGateway(source),
+            })?;
 
     tracing::info!(
         "Using entry gateway: {}, location: {}, performance: {}",

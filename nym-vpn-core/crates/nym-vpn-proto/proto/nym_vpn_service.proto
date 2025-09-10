@@ -27,6 +27,7 @@ message EntryNode {
   oneof entry_node_enum {
     Gateway gateway = 1;
     Location location = 2;
+    google.protobuf.Empty nearest = 3;
     google.protobuf.Empty random = 4;
   }
 }
@@ -258,9 +259,7 @@ enum Score {
 enum GatewayType {
   MIXNET_ENTRY = 0;
   MIXNET_EXIT = 1;
-  MIXNET_NEAREST_ENTRY = 2;
-  WG = 3;
-  WG_NEAREST_ENTRY = 4;
+  WG = 2;
 }
 
 message ListGatewaysRequest {
