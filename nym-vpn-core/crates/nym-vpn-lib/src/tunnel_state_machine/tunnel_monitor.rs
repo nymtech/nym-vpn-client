@@ -68,7 +68,7 @@ use super::tunnel::wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOp
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-use crate::tunnel_state_machine::tunnel::wireguard;
+use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 use crate::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -799,7 +799,6 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             let conn_data = connected_tunnel.connection_data_mut();
-            let buffer_mtu = wireguard::two_hop_config::ETHERNET_V2_MTU - transports::MTU_OVERHEAD;
 
             // Attempt transport Connection returning a listening UDP connection if successful
             let cancel = CancellationToken::new();
@@ -808,7 +807,7 @@ impl TunnelMonitor {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
             let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, buffer_mtu, cancel.clone())
+                transports::UdpForwarder::new(bridge_conn, None, ETHERNET_V2_MTU, cancel.clone())
                     .await?;
             let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
             tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
@@ -914,7 +913,6 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             let conn_data = connected_tunnel.connection_data_mut();
-            let buffer_mtu = wireguard::two_hop_config::ETHERNET_V2_MTU - transports::MTU_OVERHEAD;
 
             // Attempt transport Connection returning a listening UDP connection if successful
             let cancel = CancellationToken::new();
@@ -923,7 +921,7 @@ impl TunnelMonitor {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
             let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, buffer_mtu, cancel.clone())
+                transports::UdpForwarder::new(bridge_conn, None, ETHERNET_V2_MTU, cancel.clone())
                     .await?;
             let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
             tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
@@ -1060,7 +1058,6 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             let conn_data = connected_tunnel.connection_data_mut();
-            let buffer_mtu = wireguard::two_hop_config::ETHERNET_V2_MTU - transports::MTU_OVERHEAD;
 
             let cancel = CancellationToken::new();
             let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
@@ -1068,7 +1065,7 @@ impl TunnelMonitor {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
             let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, buffer_mtu, cancel.clone())
+                transports::UdpForwarder::new(bridge_conn, None, ETHERNET_V2_MTU, cancel.clone())
                     .await?;
             let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
             tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
@@ -1213,7 +1210,6 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             let conn_data = connected_tunnel.connection_data_mut();
-            let buffer_mtu = wireguard::two_hop_config::ETHERNET_V2_MTU - transports::MTU_OVERHEAD;
 
             // Attempt transport Connection returning a listening UDP connection if successful
             let cancel = CancellationToken::new();
@@ -1222,7 +1218,7 @@ impl TunnelMonitor {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
             let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, buffer_mtu, cancel.clone())
+                transports::UdpForwarder::new(bridge_conn, None, ETHERNET_V2_MTU, cancel.clone())
                     .await?;
             let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
             tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
@@ -1401,7 +1397,6 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             let conn_data = connected_tunnel.connection_data_mut();
-            let buffer_mtu = wireguard::two_hop_config::ETHERNET_V2_MTU - transports::MTU_OVERHEAD;
 
             // Attempt transport Connection returning a listening UDP connection if successful
             let cancel = CancellationToken::new();
@@ -1410,7 +1405,7 @@ impl TunnelMonitor {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
             let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, buffer_mtu, cancel.clone())
+                transports::UdpForwarder::new(bridge_conn, None, ETHERNET_V2_MTU, cancel.clone())
                     .await?;
             let local_addr = local_fwd.local_addr().map_err(tunnel::Error::Io)?;
             tracing::info!("quic transport connected, udp forwarder open on {local_addr:?}");
