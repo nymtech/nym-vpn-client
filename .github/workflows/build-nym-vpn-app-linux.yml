@@ -41,6 +41,8 @@ jobs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
       PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+      DEB_PKG: ${{ steps.repack-deb.outputs.package }}
+      DEB_VERSION: ${{ steps.repack-deb.outputs.version }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -117,17 +119,19 @@ jobs:
           ls -la target/release/ || true
           ls -la target/release/bundle/* || true
 
-      - name: Rename deb file from NymVPN to nym-vpn-app
+      - name: Repack deb package
+        id: repack-deb
         env:
           SRC_DEB: nym-vpn-app/src-tauri/target/release/bundle/deb/NymVPN_${{ steps.package-version.outputs.metadata }}_amd64.deb
+          PKGVER: ${{ steps.package-version.outputs.metadata }}
         run: |
-          ./scripts/rename-nym-vpn-app-deb.sh $SRC_DEB
+          ./pkg/repack_deb.sh
 
       - name: Move things around to prepare for upload
         env:
           SRC_APPIMAGE: nym-vpn-app/src-tauri/target/release/bundle/appimage/NymVPN_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
           DST_APPIMAGE: NymVPN_${{ steps.package-version.outputs.metadata }}_x64.AppImage
-          SRC_DEB: nym-vpn-app_${{ steps.package-version.outputs.metadata }}_amd64.deb
+          SRC_DEB: ${{ steps.repack-deb.outputs.package }}
           SRC_BIN: nym-vpn-app/src-tauri/target/release/nym-vpn-app
           DST_BIN: nym-vpn_${{ steps.package-version.outputs.metadata }}_linux_x64
         run: |
