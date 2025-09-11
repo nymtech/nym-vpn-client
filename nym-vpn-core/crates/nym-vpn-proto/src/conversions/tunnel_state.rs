@@ -10,8 +10,6 @@ use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
     TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
-    ActionAfterDisconnect, ClientErrorReason, ConnectionData, Gateway, MixnetConnectionData,
-    NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
     WrappedWireguardConnectionData,
 };
 
@@ -228,6 +226,7 @@ impl From<proto::TunnelType> for TunnelType {
         match value {
             proto::TunnelType::Mixnet => Self::Mixnet,
             proto::TunnelType::Wireguard => Self::Wireguard,
+            proto::TunnelType::WrappedWireguard => Self::WrappedWireguard,
         }
     }
 }
@@ -237,6 +236,7 @@ impl From<TunnelType> for proto::TunnelType {
         match value {
             TunnelType::Mixnet => Self::Mixnet,
             TunnelType::Wireguard => Self::Wireguard,
+            TunnelType::WrappedWireguard => Self::WrappedWireguard,
         }
     }
 }

@@ -40,6 +40,7 @@ impl From<nym_vpn_lib_types::TunnelEvent> for TunnelEvent {
 pub enum TunnelType {
     Mixnet,
     Wireguard,
+    WrappedWireguard,
 }
 
 impl From<nym_vpn_lib_types::TunnelType> for TunnelType {
@@ -47,6 +48,7 @@ impl From<nym_vpn_lib_types::TunnelType> for TunnelType {
         match value {
             nym_vpn_lib_types::TunnelType::Mixnet => Self::Mixnet,
             nym_vpn_lib_types::TunnelType::Wireguard => Self::Wireguard,
+            nym_vpn_lib_types::TunnelType::WrappedWireguard => Self::WrappedWireguard,
         }
     }
 }
