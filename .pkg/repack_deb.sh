@@ -41,9 +41,7 @@ if [ -n "$prerel" ]; then
 fi
 echo "deb version: $version"
 
-# Create a temporary directory for extraction
 tmpdir=$(mktemp -d)
-
 # Extract the .deb package contents
 dpkg-deb -R "$deb_file" "$tmpdir"
 
@@ -51,9 +49,11 @@ dpkg-deb -R "$deb_file" "$tmpdir"
 control_file="$tmpdir/DEBIAN/control"
 sed -i "s|^Package:.*|Package: $pkgname|" "$control_file"
 sed -i "s|^Version:.*|Version: $version|" "$control_file"
+cat "$control_file"
 
 # Repack the .deb package with the updated control file
-dest="${pkgname}_${version}_amd64.deb"
+# replace ~ with - in the filename to avoid file renaming by GH
+dest="${pkgname}_${version//\~/-}_amd64.deb"
 dpkg-deb -Zxz -b "$tmpdir" "$dest"
 
 # Clean up the temporary directory
