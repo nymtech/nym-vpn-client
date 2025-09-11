@@ -222,34 +222,34 @@ nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "feature/improved-http-error" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
