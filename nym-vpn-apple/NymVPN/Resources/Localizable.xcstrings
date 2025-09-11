@@ -35,7 +35,7 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -4276,8 +4276,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "आपके लॉगिन के रूप में कार्य करता है"
           }
         },
         "it" : {
@@ -4377,8 +4377,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "क्या आपके पास पहले से एक खाता है?"
           }
         },
         "it" : {
@@ -4478,8 +4478,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "गुमनामी के अनुसार डिज़ाइन"
           }
         },
         "it" : {
@@ -4579,8 +4579,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "गुमनाम mixnet प्रौद्योगिकी"
           }
         },
         "it" : {
@@ -4781,8 +4781,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "50+ देश दुनिया भर में"
           }
         },
         "it" : {
@@ -4882,8 +4882,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "मेरी गोपनीयता की रक्षा शुरू करें"
           }
         },
         "it" : {
@@ -5084,8 +5084,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "मेरा 24-शब्द पासफ़्रेज़ बनाएं"
           }
         },
         "it" : {
@@ -5185,8 +5185,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "इसे एक विश्वसनीय पासवर्ड प्रबंधक में सुरक्षित करें या अपना पासफ्रेज़ लिखकर सुरक्षित स्थान पर रखें।"
           }
         },
         "it" : {
@@ -5286,8 +5286,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "अपना पासफ्रेज़ न खोएं"
           }
         },
         "it" : {
@@ -5387,8 +5387,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "इसे कभी साझा न करें—यहाँ तक कि Nym सपोर्ट टीम के साथ भी नहीं।"
           }
         },
         "it" : {
@@ -5488,8 +5488,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "साझा न करें!"
           }
         },
         "it" : {
@@ -5589,8 +5589,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "ईमेल उपयोग"
           }
         },
         "it" : {
@@ -5690,8 +5690,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "स्वयं-कस्टडी सक्षम करता है"
           }
         },
         "it" : {
@@ -5791,8 +5791,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "अपने NymVPN पासफ़्रेज़ को सुरक्षित कैसे रखें?"
           }
         },
         "it" : {
@@ -5892,8 +5892,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "इसके बजाय, आप एक ऐसा खाता बना रहे हैं जो 24-शब्दों वाले पासफ्रेज़ द्वारा सुरक्षित है।"
           }
         },
         "it" : {
@@ -6094,8 +6094,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "मैं समझ गया हूँ: बिना पासफ़्रेज़ के, उपयोग असंभव होगा।"
           }
         },
         "it" : {
@@ -6195,8 +6195,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "ओपन सोर्स और स्विस गोपनीयता कानून"
           }
         },
         "it" : {
@@ -6296,8 +6296,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "पासवर्ड बनाएँ"
           }
         },
         "it" : {
@@ -6498,8 +6498,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "तीसरे पक्ष का विश्वास"
           }
         },
         "it" : {
@@ -6599,8 +6599,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "भुगतान और गतिविधि जोड़ी नहीं जा सकती"
           }
         },
         "it" : {
@@ -6700,8 +6700,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "24-शब्द पासफ्रेज़ क्या है?"
           }
         },
         "it" : {
@@ -6801,8 +6801,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "24-शब्द पासफ्रेज़ (आपके डिवाइस पर स्थानीय रूप से बनाया गया) आपके खाते के लॉगिन विवरण के रूप में कार्य करता है। यह पासफ्रेज़ आपके खाते तक पहुँचने का एकमात्र तरीका है।"
           }
         },
         "it" : {
@@ -6902,8 +6902,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "आपका 24-शब्दों वाला NymVPN पासफ़्रेज़"
           }
         },
         "it" : {
@@ -7003,8 +7003,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "आपकी गोपनीयता के लिए, हमने निम्नलिखित को समाप्त कर दिया है:"
           }
         },
         "it" : {
@@ -8922,8 +8922,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "क्रेडेंशियल संग्रह बनाने में विफल।"
           }
         },
         "it" : {
@@ -9427,8 +9427,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "खाता पंजीकरण विफल रहा। कृपया फिर से प्रयास करें।"
           }
         },
         "it" : {
@@ -13265,8 +13265,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating keys that never leave your device"
+            "state" : "translated",
+            "value" : "ऐसे कुंजी बन रही है जो कभी भी आपके उपकरण को नहीं छोड़ेंगी"
           }
         },
         "it" : {
@@ -13301,8 +13301,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating keys that never leave your device"
+            "state" : "translated",
+            "value" : "Anahtarlarınızı sadece cihazınızda oluşturun ve cihazdan hiç dışarı çıkarmayın."
           }
         },
         "uk" : {
@@ -13366,8 +13366,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing anonymous network credentials"
+            "state" : "translated",
+            "value" : "गुमनाम नेटवर्क प्रमाण पत्र स्थापित हो रहा है"
           }
         },
         "it" : {
@@ -13402,8 +13402,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing anonymous network credentials"
+            "state" : "translated",
+            "value" : "Anonim ağ kimlik bilgileri oluşturuluyor"
           }
         },
         "uk" : {
@@ -13467,8 +13467,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+            "state" : "translated",
+            "value" : "आपके डिवाइस कुंजी से क्रेडेंशियल्स को एन्क्रिप्ट किया जा रहा है। केवल आप ही उन्हें अनलॉक कर सकते हैं।"
           }
         },
         "it" : {
@@ -13503,8 +13503,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+            "state" : "translated",
+            "value" : "Kimlik bilgilerinizi cihaz anahtarınızla şifreliyoruz. Yalnızca siz bunların kilidini açabilirsiniz."
           }
         },
         "uk" : {
@@ -13568,8 +13568,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Generating cryptographic keypairs..."
+            "state" : "translated",
+            "value" : "क्रिप्टोग्राफिक कुंजी युग्म उत्पन्न किया जा रहा है..."
           }
         },
         "it" : {
@@ -13604,8 +13604,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Generating cryptographic keypairs..."
+            "state" : "translated",
+            "value" : "Kriptografik anahtar çiftleri oluşturuluyor..."
           }
         },
         "uk" : {
@@ -13669,8 +13669,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating your anonymous identity..."
+            "state" : "translated",
+            "value" : "आपकी गुमनाम पहचान बनाई जा रही है..."
           }
         },
         "it" : {
@@ -13705,8 +13705,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating your anonymous identity..."
+            "state" : "translated",
+            "value" : "Anonim kimliğiniz oluşturuluyor..."
           }
         },
         "uk" : {
@@ -13770,8 +13770,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "आपके प्रमाणपत्रों को स्थानीय रूप से सुरक्षित किया जा रहा है..."
           }
         },
         "it" : {
@@ -13806,8 +13806,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "Kimlik bilgilerinizi yerel olarak güvence altına alınıyor…"
           }
         },
         "uk" : {
@@ -22153,8 +22153,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "मेरा पासफ्रेज़ दिखाएँ"
           }
         },
         "it" : {
@@ -22189,8 +22189,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "Parola cümlemi göster"
           }
         },
         "uk" : {
@@ -22254,8 +22254,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share them with anyone, including Nym Support."
+            "state" : "translated",
+            "value" : "इन्हें किसी के साथ भी साझा न करें, जिसमें Nym सपोर्ट भी शामिल है।"
           }
         },
         "it" : {
@@ -22290,8 +22290,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share them with anyone, including Nym Support."
+            "state" : "translated",
+            "value" : "Bunları, Nym Destek de dahil olmak üzere, hiç kimseyle paylaşmayın."
           }
         },
         "uk" : {
@@ -22456,8 +22456,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy passphrase"
+            "state" : "translated",
+            "value" : "पासफ़्रेज़ कॉपी करें"
           }
         },
         "it" : {
@@ -22492,8 +22492,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy passphrase"
+            "state" : "translated",
+            "value" : "Parolayı kopyala"
           }
         },
         "uk" : {
@@ -22557,8 +22557,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Face ID to access the passphrase"
+            "state" : "translated",
+            "value" : "पासफ़्रेज़ तक पहुँचने के लिए फ़ेस आई.डी का उपयोग करें"
           }
         },
         "it" : {
@@ -22593,8 +22593,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Face ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Parolaya erişmek için Face ID kullanın"
           }
         },
         "uk" : {
@@ -22658,8 +22658,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved these 24 words securely and will never share them"
+            "state" : "translated",
+            "value" : "मैंने इन 24 शब्दों को सुरक्षित रूप से सहेजा है और कभी भी इन्हें साझा नहीं करूंगा"
           }
         },
         "it" : {
@@ -22694,8 +22694,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved these 24 words securely and will never share them"
+            "state" : "translated",
+            "value" : "Bu 24 kelimeyi güvenli bir şekilde kaydettim ve asla paylaşmayacağım."
           }
         },
         "uk" : {
@@ -22759,8 +22759,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "⚠️ Lose these words = lose your account forever."
+            "state" : "translated",
+            "value" : "⚠️ यदि ये शब्द खो दिए तो = आपका खाता हमेशा के लिए खो जाएगा।"
           }
         },
         "it" : {
@@ -22795,8 +22795,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "⚠️ Lose these words = lose your account forever."
+            "state" : "translated",
+            "value" : "⚠️ Bu kelimeleri kaybederseniz = hesabınızı sonsuza kadar kaybedersiniz."
           }
         },
         "uk" : {
@@ -22860,8 +22860,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+            "state" : "translated",
+            "value" : "🔒आपका मास्टर खाता पासफ्रेज़: 24 शब्द जो आपको किसी भी डिवाइस से आपका खाता एक्सेस करने की अनुमति देते हैं।"
           }
         },
         "it" : {
@@ -22896,8 +22896,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+            "state" : "translated",
+            "value" : "🔒Ana hesap parola cümleniz: Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime."
           }
         },
         "uk" : {
@@ -22961,8 +22961,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Optic ID to access the passphrase"
+            "state" : "translated",
+            "value" : "पासफ़्रेज़ तक पहुँचने के लिए ऑप्टिक आई.डी का उपयोग करें"
           }
         },
         "it" : {
@@ -22997,8 +22997,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Optic ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Parola cümlesine erişmek için Optic ID’yi kullanın."
           }
         },
         "uk" : {
@@ -23062,8 +23062,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your passcode to access the passphrase"
+            "state" : "translated",
+            "value" : "पासफ्रेज़ तक पहुंचने के लिए अपना पासकोड दर्ज करें"
           }
         },
         "it" : {
@@ -23098,8 +23098,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your passcode to access the passphrase"
+            "state" : "translated",
+            "value" : "Parola cümlesine erişmek için şifrenizi girin."
           }
         },
         "uk" : {
@@ -23163,8 +23163,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your password to access the passphrase"
+            "state" : "translated",
+            "value" : "पासफ़्रेज़ तक पहुँचने के लिए अपना पासवर्ड दर्ज करें"
           }
         },
         "it" : {
@@ -23199,8 +23199,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your password to access the passphrase"
+            "state" : "translated",
+            "value" : "Parola cümlesine erişmek için şifrenizi girin."
           }
         },
         "uk" : {
@@ -23264,8 +23264,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save to keychain"
+            "state" : "translated",
+            "value" : "कीचेन में सहेजें"
           }
         },
         "it" : {
@@ -23300,8 +23300,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save to keychain"
+            "state" : "translated",
+            "value" : "Anahtarlığa kaydet"
           }
         },
         "uk" : {
@@ -23365,8 +23365,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "मेरा पासफ़्रेज़ दिखाएं"
           }
         },
         "it" : {
@@ -23401,8 +23401,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "Parola cümlemi göster"
           }
         },
         "uk" : {
@@ -23466,8 +23466,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Touch ID to access the passphrase"
+            "state" : "translated",
+            "value" : "पासफ़्रेज़ तक पहुँचने के लिए टच ID का उपयोग करें"
           }
         },
         "it" : {
@@ -23502,8 +23502,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Touch ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Parola cümlesine erişmek için Touch ID’yi kullanın."
           }
         },
         "uk" : {
@@ -23567,8 +23567,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your account passphrase"
+            "state" : "translated",
+            "value" : "आपके खाते का पासफ़्रेज़"
           }
         },
         "it" : {
@@ -23603,8 +23603,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your account passphrase"
+            "state" : "translated",
+            "value" : "Hesap parola cümleniz"
           }
         },
         "uk" : {
@@ -23704,7 +23704,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " "
           }
         },
@@ -23769,8 +23769,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
+            "state" : "translated",
+            "value" : "हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते"
           }
         },
         "it" : {
@@ -23805,8 +23805,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
+            "state" : "translated",
+            "value" : "Aboneliğiniz doğrulanıyor—kişisel bilgileriniz asla kimliğinizle ilişkilendirilmez."
           }
         },
         "uk" : {
@@ -23870,8 +23870,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
+            "state" : "translated",
+            "value" : "ये zero-knowledge क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं"
           }
         },
         "it" : {
@@ -23906,8 +23906,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
+            "state" : "translated",
+            "value" : "Bu sıfır bilgi kimlik bilgileri, kimliğinizi açığa çıkarmadan erişiminiz olduğunu kanıtlar."
           }
         },
         "uk" : {
@@ -23971,8 +23971,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
+            "state" : "translated",
+            "value" : "आपके गुमनाम पहुंच प्रमाणपत्र अब सुरक्षित, निजी, एन्क्रिप्टेड हैं और आपके नियंत्रण में हैं"
           }
         },
         "it" : {
@@ -24007,8 +24007,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
+            "state" : "translated",
+            "value" : "Anonim erişim kimlik bilgileriniz artık güvenli bir şekilde saklanıyor; gizli, şifreli ve tamamen sizin kontrolünüzde."
           }
         },
         "uk" : {
@@ -24072,8 +24072,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You're now fully protected"
+            "state" : "translated",
+            "value" : "आप अब पूरी तरह से संरक्षित हैं"
           }
         },
         "it" : {
@@ -24173,8 +24173,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment confirmed"
+            "state" : "translated",
+            "value" : "भुगतान पुष्टि हो गई है"
           }
         },
         "it" : {
@@ -24209,8 +24209,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment confirmed"
+            "state" : "translated",
+            "value" : "Ödeme onaylandı"
           }
         },
         "uk" : {
@@ -24274,8 +24274,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Processing your payment securely..."
+            "state" : "translated",
+            "value" : "आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है..."
           }
         },
         "it" : {
@@ -24310,8 +24310,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Processing your payment securely..."
+            "state" : "translated",
+            "value" : "Ödemeniz güvenli bir şekilde işleniyor…"
           }
         },
         "uk" : {
@@ -24375,8 +24375,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "state" : "translated",
+            "value" : "आपके गुमनाम खाते की प्रमाणीकरण \nजानकारी (zk-nyms) प्राप्त की जा रही है..."
           }
         },
         "it" : {
@@ -24411,8 +24411,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "state" : "translated",
+            "value" : "Anonim hesap kimlik bilgileriniz\n(zk-nymler) alınıyor…"
           }
         },
         "uk" : {
@@ -24476,8 +24476,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "state" : "translated",
+            "value" : "डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं..."
           }
         },
         "it" : {
@@ -24512,8 +24512,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "state" : "translated",
+            "value" : "Zk-nymleriniz \ncihazda kaydediliyor…"
           }
         },
         "uk" : {
@@ -24678,8 +24678,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose my NymVPN plan"
+            "state" : "translated",
+            "value" : "अपना NymVPN योजना चुनें"
           }
         },
         "it" : {
@@ -24779,8 +24779,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "NymVPN का उपयोग शुरू करें"
           }
         },
         "it" : {
@@ -24880,8 +24880,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "आपका आगामी भुगतान आपकी भविष्य की ब्राउज़िंग गतिविधि से जोड़ी नहीं जा सकती"
           }
         },
         "it" : {
@@ -24981,8 +24981,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "आपका कनेक्शन निजी है।"
           }
         },
         "it" : {
@@ -25082,8 +25082,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "आपकी पहचान आपकी ही रहेगी।"
           }
         },
         "it" : {
@@ -25183,8 +25183,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "योजना सक्रिय हुई"
           }
         },
         "it" : {
@@ -25284,8 +25284,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "translated",
+            "value" : "आपका सुरक्षित NymVPN खाता तैयार है🎉"
           }
         },
         "it" : {
@@ -25890,8 +25890,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retry"
+            "state" : "translated",
+            "value" : "पुनः प्रयास करें"
           }
         },
         "it" : {
@@ -25926,8 +25926,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retry"
+            "state" : "translated",
+            "value" : "Yeniden Dene"
           }
         },
         "uk" : {
@@ -29223,8 +29223,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Passphrase"
+            "state" : "translated",
+            "value" : "पासफ़्रेज़"
           }
         },
         "it" : {
@@ -29259,8 +29259,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Passphrase"
+            "state" : "translated",
+            "value" : "Parola Cümlesi"
           }
         },
         "uk" : {
@@ -29526,8 +29526,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "कीचेन में सहेजा गया"
           }
         },
         "it" : {
@@ -29930,8 +29930,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "सब्सक्रिप्शन समाप्त हो गया"
           }
         },
         "it" : {
@@ -30031,8 +30031,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try again"
+            "state" : "translated",
+            "value" : "फिर से प्रयास करें"
           }
         },
         "it" : {
@@ -30195,10 +30195,100 @@
     "tunnelConnectingState.awaitingAccountReadiness" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "في انتظار جاهزية الحساب"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf Kontoreife"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Awaiting account readiness"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperando la preparación de la cuenta"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Awaiting account readiness"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En attente de préparation du compte"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Awaiting account readiness"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In attesa di disponibilità dell'account"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウントの準備を待っています"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando prontidão da conta"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguardando prontidão da conta"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ожидание готовности аккаунта"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Awaiting account readiness"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Очікування готовності облікового запису"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Awaiting account readiness"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待帐户准备状态"
           }
         }
       }
@@ -30206,10 +30296,100 @@
     "tunnelConnectingState.connectingMixnetClient" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توصيل عميل المزيج"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mixnet-Client verbinden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connecting mixnet client"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando cliente mixnet"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting mixnet client"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion du client mixnet"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting mixnet client"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting mixnet client"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mixnet クライアントへの接続"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando o cliente mixnet"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando o cliente mixnet"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключение клиента mixnet"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting mixnet client"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключення клієнта mixnet"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting mixnet client"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接 mixnet 客户端"
           }
         }
       }
@@ -30217,10 +30397,100 @@
     "tunnelConnectingState.connectingTunnel" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توصيل النفق"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindungstunnel"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connecting tunnel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando túnel"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting tunnel"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion au tunnel"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting tunnel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunnel di collegamento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トンネルを接続中"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando túnel"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectando túnel"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключение туннеля"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting tunnel"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключення тунелю"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting tunnel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接隧道中"
           }
         }
       }
@@ -30228,10 +30498,100 @@
     "tunnelConnectingState.refreshingGateways" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحديث البوابات"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gateways aktualisieren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Refreshing gateways"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasarelas refrescantes"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refreshing gateways"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rafraîchissement des passerelles"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refreshing gateways"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gateway di aggiornamento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゲートウェイの更新"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizando gateways"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizando gateways"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновление шлюзов"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refreshing gateways"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оновлення шлюзів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refreshing gateways"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在刷新网关"
           }
         }
       }
@@ -30239,10 +30599,100 @@
     "tunnelConnectingState.resolvingApiAddresses" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حل عناوين IP API"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auflösen von API-IP-Adressen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resolving API IP addresses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolviendo direcciones IP API"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Resolving API IP addresses"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Résolution des adresses IP de l'API"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Resolving API IP addresses"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Risoluzione indirizzi IP API"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API の IP アドレスの解決"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolvendo endereços IP API"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolvendo endereços IP API"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешение IP-адресов API"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Resolving API IP addresses"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вирішення API IP-адрес"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Resolving API IP addresses"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在解析 API IP 地址"
           }
         }
       }
@@ -30250,10 +30700,100 @@
     "tunnelConnectingState.selectingGateways" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختيار البوابات"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gateways auswählen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selecting gateways"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionando pasarelas"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Selecting gateways"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélection des passerelles"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Selecting gateways"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selezione dei gateway"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゲートウェイの選択"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecionando gateways"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecionando gateways"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбор шлюзов"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Selecting gateways"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вибір шлюзів"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Selecting gateways"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择网关"
           }
         }
       }
@@ -30400,8 +30940,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get anonymous browsing now"
+            "state" : "translated",
+            "value" : "अज्ञात ब्राउज़िंग अभी प्राप्त करें"
           }
         },
         "it" : {
@@ -30501,8 +31041,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your privacy is unprotected "
+            "state" : "translated",
+            "value" : "आपकी गोपनीयता असुरक्षित है "
           }
         },
         "it" : {
