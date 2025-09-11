@@ -246,6 +246,10 @@ message GatewayResponse {
   optional Score wg_score = 4;
   optional Score mixnet_score = 5;
   string moniker = 6;
+  repeated string exit_ipv4s = 7;
+  repeated string exit_ipv6s = 8;
+  optional string build_version = 9;
+
 }
 
 enum Score {

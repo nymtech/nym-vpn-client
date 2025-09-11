@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 
 use super::error::UniffiConversionError;
@@ -103,16 +105,23 @@ pub struct GatewayInfo {
     pub location: Option<Location>,
     pub mixnet_score: Option<Score>,
     pub wg_score: Option<Score>,
+    pub exit_ipv4s: Vec<Ipv4Addr>,
+    pub exit_ipv6s: Vec<Ipv6Addr>,
+    pub build_version: Option<String>,
 }
 
 impl From<nym_gateway_directory::Gateway> for GatewayInfo {
     fn from(value: nym_gateway_directory::Gateway) -> Self {
+        let (exit_ipv4s, exit_ipv6s) = value.split_ips();
         GatewayInfo {
             moniker: value.moniker,
             location: value.location.map(Location::from),
             id: value.identity,
             mixnet_score: value.mixnet_score.map(Score::from),
             wg_score: value.wg_score.map(Score::from),
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version: value.version,
         }
     }
 }

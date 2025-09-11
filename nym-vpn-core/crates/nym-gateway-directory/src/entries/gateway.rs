@@ -7,10 +7,13 @@ use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
 use nym_vpn_api_client::types::{NaiveFloat, Percent, ScoreThresholds};
 use rand::seq::IteratorRandom;
-use std::{fmt, net::IpAddr};
+use std::{
+    fmt,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+};
 use tracing::error;
 
-use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result};
+use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
 
 use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
 
@@ -80,6 +83,10 @@ impl Gateway {
 
     pub fn lookup_ip(&self) -> Option<IpAddr> {
         self.ips.first().copied()
+    }
+
+    pub fn split_ips(&self) -> (Vec<Ipv4Addr>, Vec<Ipv6Addr>) {
+        helpers::split_ips(self.ips.clone())
     }
 
     pub fn clients_address_no_tls(&self) -> Option<String> {
