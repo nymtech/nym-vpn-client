@@ -8,7 +8,7 @@
     "zane <zanecschepke@gmail.com>",
     "nym"
   ],
-  "description": "Nym VPN Desktop Client",
+  "description": "NymVPN desktop client",
   "license": "GPL-3.0-only",
   "scripts": {
     "dev": "vite",

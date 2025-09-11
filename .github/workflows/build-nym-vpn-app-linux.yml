@@ -115,7 +115,7 @@ jobs:
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: false
         run: |
-          npm run tauri build
+          npm run tauri build -- --bundles deb,appimage
           ls -la target/release/ || true
           ls -la target/release/bundle/* || true
 
