@@ -182,6 +182,14 @@ impl Network {
     pub fn gw_update_version(&self) -> Option<semver::Version> {
         self.get_feature_flag("versions", "gatewayMetadataUpdate")
     }
+
+    pub fn domain_fronting_enabled(&self) -> Option<bool> {
+        self.get_feature_flag("domain_fronting", "enabled")
+    }
+
+    pub fn quic_enabled(&self) -> Option<bool> {
+        self.get_feature_flag("quic", "enabled")
+    }
 }
 
 pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {
