@@ -287,6 +287,7 @@ message GetAccountLinksRequest {
 enum TunnelType {
   MIXNET = 0;
   WIREGUARD = 1;
+  WRAPPED_WIREGUARD = 2;
 }
 
 enum EstablishConnectionState {

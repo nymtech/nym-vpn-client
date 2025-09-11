@@ -17,6 +17,7 @@ impl TunnelType {
         match self {
             Self::Mixnet => "mix",
             Self::Wireguard => "wg",
+            Self::WrappedWireguard => "t(wg)",
         }
     }
 }
@@ -90,6 +91,19 @@ impl std::fmt::Display for TunnelState {
                             retry_attempt,
                         )
                     }
+                    Some(TunnelConnectionData::WrappedWireguard(ref data)) => {
+                        write!(
+                            f,
+                            "Connecting {} to quic({}) [{}] → {} [{}], {}, try #{}",
+                            tunnel_type.short_name(),
+                            data.entry_bridge_addr,
+                            connection_data.entry_gateway.id,
+                            data.exit.endpoint,
+                            connection_data.exit_gateway.id,
+                            state,
+                            retry_attempt
+                        )
+                    }
                     None => {
                         write!(
                             f,
@@ -99,17 +113,6 @@ impl std::fmt::Display for TunnelState {
                             connection_data.exit_gateway.id,
                             state,
                             retry_attempt,
-                        )
-                    }
-                    TunnelConnectionData::WrappedWireguard(ref data) => {
-                        write!(
-                            f,
-                            "Connecting wrapped wireguard tunnel to quic({}) → {} (entry: {} → exit: {}), attempt {}",
-                            data.entry_bridge_addr,
-                            data.exit.endpoint,
-                            connection_data.entry_gateway.id,
-                            connection_data.exit_gateway.id,
-                            retry_attempt
                         )
                     }
                 },

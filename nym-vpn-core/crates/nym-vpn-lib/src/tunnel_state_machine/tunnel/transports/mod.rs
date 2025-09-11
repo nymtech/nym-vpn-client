@@ -303,7 +303,7 @@ where
                     Some(Err(e)) => {
                         error!("error reading from transport conn: {e}");
                         token.cancel();
-                        return Err(e.into());
+                        return Err(e);
                     }
                 }
             }
@@ -393,7 +393,7 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
 }
 
 #[cfg(target_os = "linux")]
-use crate::tunnel_state_machine::TUNNEL_FWMARK;
+use crate::TUNNEL_FWMARK;
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 #[cfg(target_os = "linux")]

@@ -104,6 +104,7 @@ impl TunnelConnectionData {
         match self {
             TunnelConnectionData::Mixnet(_) => TunnelType::Mixnet,
             TunnelConnectionData::Wireguard(_) => TunnelType::Wireguard,
+            TunnelConnectionData::WrappedWireguard(_) => TunnelType::WrappedWireguard,
         }
     }
 }
