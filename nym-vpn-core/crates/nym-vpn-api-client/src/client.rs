@@ -407,7 +407,7 @@ impl VpnApiClient {
                     Err(HttpClientError::EndpointFailure {
                         url,
                         status,
-                        headers,
+                        headers: Box::new(headers),
                         error: response_text,
                     })
                 }
@@ -415,7 +415,7 @@ impl VpnApiClient {
             Err(err) => Err(HttpClientError::RequestFailure {
                 url,
                 status,
-                headers,
+                headers: Box::new(headers),
             }),
         }
     }
