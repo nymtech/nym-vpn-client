@@ -241,7 +241,7 @@ dependencies {
 	implementation(libs.sentry)
 
 	// billing
-	implementation(libs.billing.client)
+	add("generalImplementation", libs.billing.client)
 }
 
 fun determineVersionName(): String {
