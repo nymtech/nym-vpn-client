@@ -74,7 +74,6 @@ private extension SettingsListItem {
                 .renderingMode(.template)
                 .foregroundStyle(NymColor.primary)
                 .font(.system(size: 18, weight: .bold))
-                .padding(.leading, 8)
         }
     }
 
