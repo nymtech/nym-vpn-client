@@ -16,7 +16,7 @@ use nym_vpn_lib_types_uniffi::{
     NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState,
 };
 use nym_vpnd_types_uniffi::{
-    gateway::{Country, Gateway},
+    gateway::{Gateway, GatewayCountry},
     log_path::LogPath,
     nym_vpn_api::{NymVpnDevice, NymVpnUsage},
     service::VpnServiceInfo,
@@ -169,7 +169,7 @@ impl RpcClient {
         Ok(gateways)
     }
 
-    pub async fn list_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
+    pub async fn list_countries(&self, gw_type: GatewayType) -> Result<Vec<GatewayCountry>> {
         let options = nym_vpnd_types::ListCountriesOptions {
             gw_type: nym_gateway_directory::GatewayType::from(gw_type),
             user_agent: None,
@@ -180,7 +180,7 @@ impl RpcClient {
             .list_countries(options)
             .await?
             .into_iter()
-            .map(Country::from)
+            .map(GatewayCountry::from)
             .collect();
         Ok(countries)
     }
