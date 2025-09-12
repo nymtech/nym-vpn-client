@@ -25,5 +25,5 @@ pub use crate::{
     },
     error::Error,
     gateway_client::{Config, GatewayClient, ResolvedConfig},
-    helpers::resolve_config,
+    helpers::{resolve_config, split_ips},
 };
