@@ -1,12 +1,15 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Country, Gateway, NodeHop, isGateway } from '../../types';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
+import { useGateways } from '../../contexts';
 import { useActionToast } from './util';
 
 type HopSelectProps = {
   node: Country | Gateway;
+  gatewayId: string | null;
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
@@ -16,10 +19,12 @@ type HopSelectProps = {
 export default function HopSelect({
   nodeHop,
   node,
+  gatewayId,
   onClick,
   disabled,
   locked,
 }: HopSelectProps) {
+  const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
@@ -69,6 +74,16 @@ export default function HopSelect({
       </div>
     </div>
   );
+
+  const gateway = useMemo(() => {
+    if (!gatewayId || isGateway(node)) {
+      return null;
+    }
+    return lookupGw(gatewayId, node.code, nodeHop);
+  }, [gatewayId, lookupGw, nodeHop, node]);
+
+  // TODO remove me
+  console.log('__', gateway);
 
   return (
     <div
