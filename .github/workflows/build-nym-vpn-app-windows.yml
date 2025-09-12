@@ -309,9 +309,9 @@ jobs:
           echo "generate updater bundle: ${{ env.UPDATER_ENABLED }}"
           if [ "${{ env.UPDATER_ENABLED }}" = true ]; then
             echo "updater endpoint: ${{ env.UPDATER_ENDPOINT }}"
-            npm run tauri build -- --config src-tauri/updater.conf.json
+            npm run tauri build -- --bundles nsis --config src-tauri/updater.conf.json
           else
-            npm run tauri build
+            npm run tauri build -- --bundles nsis
           fi
           ls -la target/release/bundle/nsis/* || true
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [Linux] Fix deb package version for prerelease builds, and description
+
 ## [1.15.0] - 2025-09-10
 
 ### Added
