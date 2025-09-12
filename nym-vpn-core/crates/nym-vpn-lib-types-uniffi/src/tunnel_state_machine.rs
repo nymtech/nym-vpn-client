@@ -435,13 +435,13 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
 }
 
 #[derive(uniffi::Record)]
-pub struct Gateway {
+pub struct GatewayId {
     /// Gateway id in base58.
     pub id: String,
 }
 
-impl From<nym_vpn_lib_types::Gateway> for Gateway {
-    fn from(value: nym_vpn_lib_types::Gateway) -> Self {
+impl From<nym_vpn_lib_types::GatewayId> for GatewayId {
+    fn from(value: nym_vpn_lib_types::GatewayId) -> Self {
         Self { id: value.id }
     }
 }
@@ -463,8 +463,8 @@ impl From<nym_vpn_lib_types::NymAddress> for NymAddress {
 
 #[derive(uniffi::Record)]
 pub struct ConnectionData {
-    pub entry_gateway: Gateway,
-    pub exit_gateway: Gateway,
+    pub entry_gateway: GatewayId,
+    pub exit_gateway: GatewayId,
     pub connected_at: Option<OffsetDateTime>,
     pub tunnel: TunnelConnectionData,
 }
@@ -472,8 +472,8 @@ pub struct ConnectionData {
 impl From<nym_vpn_lib_types::ConnectionData> for ConnectionData {
     fn from(value: nym_vpn_lib_types::ConnectionData) -> Self {
         Self {
-            entry_gateway: Gateway::from(value.entry_gateway),
-            exit_gateway: Gateway::from(value.exit_gateway),
+            entry_gateway: GatewayId::from(value.entry_gateway),
+            exit_gateway: GatewayId::from(value.exit_gateway),
             connected_at: Some(value.connected_at),
             tunnel: TunnelConnectionData::from(value.tunnel),
         }
@@ -517,16 +517,16 @@ impl From<nym_vpn_lib_types::EstablishConnectionState> for EstablishConnectionSt
 
 #[derive(uniffi::Record)]
 pub struct EstablishConnectionData {
-    pub entry_gateway: Gateway,
-    pub exit_gateway: Gateway,
+    pub entry_gateway: GatewayId,
+    pub exit_gateway: GatewayId,
     pub tunnel: Option<TunnelConnectionData>,
 }
 
 impl From<nym_vpn_lib_types::EstablishConnectionData> for EstablishConnectionData {
     fn from(value: nym_vpn_lib_types::EstablishConnectionData) -> Self {
         Self {
-            entry_gateway: Gateway::from(value.entry_gateway),
-            exit_gateway: Gateway::from(value.exit_gateway),
+            entry_gateway: GatewayId::from(value.entry_gateway),
+            exit_gateway: GatewayId::from(value.exit_gateway),
             tunnel: value.tunnel.map(TunnelConnectionData::from),
         }
     }

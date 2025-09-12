@@ -12,18 +12,18 @@ use crate::TunnelType;
 
 // Represents the identity of a gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Gateway {
+pub struct GatewayId {
     pub id: String,
 }
 
-impl Gateway {
+impl GatewayId {
     pub fn new(id: String) -> Self {
         Self { id }
     }
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_gateway_directory::Gateway> for Gateway {
+impl From<nym_gateway_directory::Gateway> for GatewayId {
     fn from(value: nym_gateway_directory::Gateway) -> Self {
         Self::new(value.identity().to_base58_string())
     }
@@ -32,10 +32,10 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
-    pub entry_gateway: Gateway,
+    pub entry_gateway: GatewayId,
 
     /// Mixnet exit gateway.
-    pub exit_gateway: Gateway,
+    pub exit_gateway: GatewayId,
 
     /// Tunnel connection data.
     /// Becomes available once tunnel connection is initiated.
@@ -80,10 +80,10 @@ impl fmt::Display for EstablishConnectionState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
-    pub entry_gateway: Gateway,
+    pub entry_gateway: GatewayId,
 
     /// Mixnet exit gateway.
-    pub exit_gateway: Gateway,
+    pub exit_gateway: GatewayId,
 
     /// When the tunnel connection was last established.
     pub connected_at: OffsetDateTime,
