@@ -133,25 +133,6 @@ impl Network {
         self.nym_vpn_network.nym_vpn_api_url.clone()
     }
 
-    pub fn get_feature_flag<T>(&self, group: &str, flag: &str) -> Option<T>
-    where
-        T: FromStr + Debug,
-        <T as FromStr>::Err: Debug,
-    {
-        tracing::debug!("Getting feature flag: group={}, flag={}", group, flag);
-        self.feature_flags
-            .as_ref()
-            .and_then(|ff| ff.get_flag(group))
-            .and_then(|value| match value {
-                FlagValue::Group(group) => group.get(flag).and_then(|v| {
-                    v.parse::<T>()
-                        .inspect_err(|e| tracing::warn!("Failed to parse flag value: {e:#?}"))
-                        .ok()
-                }),
-                _ => None,
-            })
-    }
-
     pub fn get_simple_feature_flag<T>(&self, flag: &str) -> Option<T>
     where
         T: FromStr + Debug,
@@ -171,24 +152,32 @@ impl Network {
     }
 
     pub fn credential_mode(&self) -> Option<bool> {
-        self.get_feature_flag("zkNyms", "credentialMode")
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.credential_mode())
     }
 
     pub fn stats_recipient(&self) -> Option<Recipient> {
-        self.get_feature_flag("statistics", "recipient")
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.stats_recipient())
     }
 
     /// Get the version of the gateway from where the metadata endpoint should start to be used
     pub fn gw_update_version(&self) -> Option<semver::Version> {
-        self.get_feature_flag("versions", "gatewayMetadataUpdate")
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.gw_update_version())
     }
 
     pub fn domain_fronting_enabled(&self) -> Option<bool> {
-        self.get_feature_flag("domain_fronting", "enabled")
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.domain_fronting_enabled())
     }
 
     pub fn quic_enabled(&self) -> Option<bool> {
-        self.get_feature_flag("quic", "enabled")
+        self.feature_flags.as_ref().and_then(|ff| ff.quic_enabled())
     }
 }
 
