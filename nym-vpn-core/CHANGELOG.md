@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Provide metadata to keep track of progress when establishing connection (https://github.com/nymtech/nym-vpn-client/pull/3351)
+- Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
 
 ### Fixed
 
