@@ -92,11 +92,11 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		@Volatile
 		var instance: Backend? = null
 
-		fun getInstance(context: Context, environment: Tunnel.Environment, config: SettingsConfig): Backend {
+		fun getInstance(context: Context, environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent): Backend {
 			return instance ?: synchronized(this) {
 				instance ?: NymBackend(context).also {
 					instance = it
-					it.init(environment, config)
+					it.init(environment, config, userAgent)
 				}
 			}
 		}
@@ -118,12 +118,12 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	@set:Synchronized
 	private var networkStatus: NetworkStatus = NetworkStatus.Unknown
 
-	private fun init(environment: Tunnel.Environment, config: SettingsConfig) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
+	private fun init(environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
 		runCatching {
 			startNetworkMonitorJob()
 			initLogger(null, LOG_LEVEL, false)
 			initEnvironment(environment)
-			configureLib(config)
+			configureLib(config, userAgent)
 			initialized.complete(Unit)
 		}.onFailure {
 			Timber.e(it)
@@ -176,7 +176,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	private suspend fun configureLib(settings: SettingsConfig) {
+	private suspend fun configureLib(settings: SettingsConfig, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
 			settingConfig = NymVpnLibConfig(
 				storagePath,
@@ -184,6 +184,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				settings.sentryMonitoringEnabled,
 				settings.statisticsEnabled,
 				this@NymBackend,
+				userAgent
 			)
 			nym_vpn_lib.configureLib(settingConfig)
 		}
@@ -269,10 +270,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	override suspend fun getGateways(type: GatewayType, userAgent: UserAgent): List<NymGateway> {
+	override suspend fun getGateways(type: GatewayType): List<NymGateway> {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getGateways(type, userAgent).map(NymGateway::from)
+			nym_vpn_lib.getGateways(type).map(NymGateway::from)
 		}
 	}
 
