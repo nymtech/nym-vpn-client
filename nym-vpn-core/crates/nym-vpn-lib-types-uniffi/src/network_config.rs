@@ -153,12 +153,26 @@ impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(Clone, uniffi::Record)]
 pub struct FeatureFlags {
     pub flags: HashMap<String, FlagValue>,
 }
 
-#[derive(uniffi::Enum)]
+impl FeatureFlags {
+    /// If domain fronting is enabled or not, if set
+    #[uniffi::method]
+    pub fn domain_fronting_enabled(&self) -> Option<bool> {
+        nym_vpn_network_config::FeatureFlags::from(self.clone()).domain_fronting_enabled()
+    }
+
+    /// If quic is enabled or not, if set
+    #[uniffi::method]
+    pub fn quic_enabled(&self) -> Option<bool> {
+        nym_vpn_network_config::FeatureFlags::from(self.clone()).quic_enabled()
+    }
+}
+
+#[derive(Clone, uniffi::Enum)]
 pub enum FlagValue {
     Value(String),
     Group(HashMap<String, String>),
@@ -176,11 +190,32 @@ impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
     }
 }
 
+impl From<FeatureFlags> for nym_vpn_network_config::FeatureFlags {
+    fn from(value: FeatureFlags) -> Self {
+        nym_vpn_network_config::FeatureFlags::from(
+            value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect::<HashMap<_, _>>(),
+        )
+    }
+}
+
 impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
     fn from(value: nym_vpn_network_config::feature_flags::FlagValue) -> Self {
         match value {
             nym_vpn_network_config::feature_flags::FlagValue::Value(v) => FlagValue::Value(v),
             nym_vpn_network_config::feature_flags::FlagValue::Group(g) => FlagValue::Group(g),
+        }
+    }
+}
+
+impl From<FlagValue> for nym_vpn_network_config::feature_flags::FlagValue {
+    fn from(value: FlagValue) -> Self {
+        match value {
+            FlagValue::Value(v) => nym_vpn_network_config::feature_flags::FlagValue::Value(v),
+            FlagValue::Group(g) => nym_vpn_network_config::feature_flags::FlagValue::Group(g),
         }
     }
 }
