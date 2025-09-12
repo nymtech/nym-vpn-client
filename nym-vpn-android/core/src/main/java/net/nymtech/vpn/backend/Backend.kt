@@ -12,7 +12,7 @@ interface Backend {
 
 	suspend fun getSystemMessages(): List<SystemMessage>
 
-	suspend fun getGateways(type: GatewayType, userAgent: UserAgent): List<NymGateway>
+	suspend fun getGateways(type: GatewayType): List<NymGateway>
 
 	suspend fun storeMnemonic(credential: String)
 
