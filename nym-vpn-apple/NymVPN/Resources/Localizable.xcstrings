@@ -4331,7 +4331,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "作为您的登录"
+            "value" : "作为您的登录凭据"
           }
         }
       }
@@ -5745,7 +5745,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "启用自我保管"
+            "value" : "启用自主托管"
           }
         }
       }
@@ -8977,7 +8977,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建凭据存储失败."
+            "value" : "创建凭据存储区域失败。"
           }
         }
       }
@@ -13320,7 +13320,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建永远不离开您设备的密钥"
+            "value" : "创建存储在设备本地的密钥"
           }
         }
       }
@@ -13421,7 +13421,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建立匿名网络凭据"
+            "value" : "正在生成匿名网络凭据"
           }
         }
       }
@@ -13522,7 +13522,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在用您的设备密钥加密凭据。只有您才能解锁它们。"
+            "value" : "正在使用设备密钥加密凭据。只有您才能解锁它们"
           }
         }
       }
@@ -13825,7 +13825,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地正在保护您的凭据..."
+            "value" : "正在保存您的凭据到本地..."
           }
         }
       }
@@ -22309,7 +22309,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "永远不要与任何人分享，包括Nym Support。"
+            "value" : "永远不要与任何人分享，包括Nym团队。"
           }
         }
       }
@@ -22511,7 +22511,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制密码"
+            "value" : "复制口令"
           }
         }
       }
@@ -22612,7 +22612,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Face ID 访问密码"
+            "value" : "使用 Face ID 访问口令"
           }
         }
       }
@@ -22713,7 +22713,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我已经安全地保存了这24个单词，永远不会分享它"
+            "value" : "我已经安全地保存了这24个单词并且永远不会分享它们"
           }
         }
       }
@@ -22814,7 +22814,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : ":警告：丢失这些单词 = 永远失去您的帐户。"
+            "value" : "⚠️丢失这些单词 = 永远失去您的帐户。"
           }
         }
       }
@@ -22915,7 +22915,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔒您的主帐户密码短语：24个单词让您从任何设备访问您的帐户。"
+            "value" : "🔒您的主帐户密码短语：24个单词是您从任何设备访问您的帐户的唯一方式。"
           }
         }
       }
@@ -23016,7 +23016,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用Optic ID访问密码"
+            "value" : "使用Optic ID访问口令"
           }
         }
       }
@@ -23117,7 +23117,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入您的密码来访问密码"
+            "value" : "输入您的密码来访问助记词"
           }
         }
       }
@@ -23218,7 +23218,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入您的密码以访问密码"
+            "value" : "输入您的密码以访问助记词"
           }
         }
       }
@@ -23319,7 +23319,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存到密钥"
+            "value" : "保存到keychain"
           }
         }
       }
@@ -23521,7 +23521,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Touch ID 访问密码"
+            "value" : "使用 Touch ID 访问口令"
           }
         }
       }
@@ -23622,7 +23622,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的账户密码"
+            "value" : "您的账户密码口令"
           }
         }
       }
@@ -23824,7 +23824,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们正在验证您的订阅——没有任何个人信息与您的身份关联"
+            "value" : "我们正在验证您的订阅—请放心，不会涉及任何与您的真实身份关联的个人信息"
           }
         }
       }
@@ -23925,7 +23925,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些零知识凭据证明您可以访问，但不透露您是谁。"
+            "value" : "这些零知识凭据在不透露真实身份证明您拥有NymVPN的使用权"
           }
         }
       }
@@ -24026,7 +24026,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的匿名访问凭据现已安全存储、私密、加密并在您的控制中"
+            "value" : "您的匿名访问凭据现已安全地加密保存并在您的控制下"
           }
         }
       }
@@ -24228,7 +24228,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "付款已确认"
+            "value" : "付款已验证"
           }
         }
       }
@@ -24531,7 +24531,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在设备上保存您的zk-nyms..."
+            "value" : "正在保存您的zk-nyms到设备本地..."
           }
         }
       }
@@ -25036,7 +25036,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的连接是隐私的。"
+            "value" : "您的连接是私密的。"
           }
         }
       }
@@ -25137,7 +25137,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的身份仍然是您的。"
+            "value" : "您的身份始终在您的控制之下。"
           }
         }
       }
@@ -25339,7 +25339,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的安全 NymVPN 账户已准备好🎉"
+            "value" : "您的 NymVPN 账户已准备好🎉"
           }
         }
       }
@@ -30288,7 +30288,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "等待帐户准备状态"
+            "value" : "正在准备账号"
           }
         }
       }
@@ -30490,7 +30490,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接隧道中"
+            "value" : "正在连接到VPN隧道"
           }
         }
       }
@@ -30793,7 +30793,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择网关"
+            "value" : "正在选择网关"
           }
         }
       }
@@ -31500,7 +31500,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此为实验性软件。请勿依赖其提供强匿名性服务（目前阶段）。"
+            "value" : "此为实验性软件，请勿（在目前阶段）依赖其提供强匿名性服务。"
           }
         }
       }
@@ -31803,7 +31803,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "）及数据分析——您可以随时退出。\n感谢您的支持！"
+            "value" : "）及数据分析——您可以随时关闭这些选项。\n感谢您的支持！"
           }
         }
       }
