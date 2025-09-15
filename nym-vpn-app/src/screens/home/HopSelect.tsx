@@ -98,9 +98,6 @@ export default function HopSelect({
     return lookupGw(gatewayId, node.code, nodeHop);
   }, [gatewayId, lookupGw, nodeHop, node]);
 
-  // TODO remove me
-  console.log('__', gateway);
-
   return (
     <div
       className={clsx([
