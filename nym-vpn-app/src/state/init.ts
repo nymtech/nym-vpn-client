@@ -14,6 +14,7 @@ import {
   AccountLinks,
   CodeDependency,
   Country,
+  FeatureFlags,
   Gateway,
   InitState,
   NetworkCompat,
@@ -113,6 +114,19 @@ export async function initFirstBatch(
         type: 'set-account',
         stored: stored || false,
       });
+    },
+  };
+
+  const getFeatureFlagsRq: TauriReq<() => Promise<FeatureFlags | undefined>> = {
+    name: 'getFeatureFlagsRq',
+    request: () => invoke<FeatureFlags>('feature_flags'),
+    onFulfilled: (flags) => {
+      if (flags) {
+        dispatch({
+          type: 'set-backend-flags',
+          flags,
+        });
+      }
     },
   };
 
@@ -237,6 +251,7 @@ export async function initFirstBatch(
       initStateRq,
       getStoredAccountRq,
       getAccountStateRq,
+      getFeatureFlagsRq,
       ...requests,
     ];
   }

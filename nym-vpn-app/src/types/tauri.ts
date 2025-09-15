@@ -161,3 +161,11 @@ export function isAccountError(
 ): state is AccountStateError {
   return (state as AccountStateError).error !== undefined;
 }
+
+export type FeatureFlags = {
+  quic: boolean;
+  domainFronting: boolean;
+  zknymCredential: boolean;
+  gatewayUpdateVersion: string | null;
+  flags: Record<string, string>;
+};

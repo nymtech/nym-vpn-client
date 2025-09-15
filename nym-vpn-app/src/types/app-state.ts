@@ -6,6 +6,7 @@ import {
   AccountLinks,
   AccountState,
   ErrorKey,
+  FeatureFlags,
   Gateway,
   NetworkCompat,
   NetworkEnv,
@@ -57,6 +58,8 @@ export type AppState = {
   accountSyncing: boolean;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
+  // feature flags from backend and APIs (via daemon)
+  backendFlags?: FeatureFlags | null;
   networkEnv: NetworkEnv;
   version: string | null;
   error?: AppError | null;
