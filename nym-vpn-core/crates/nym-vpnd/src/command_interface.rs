@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{net::IpAddr, path::PathBuf};
 
 use futures::{StreamExt, stream::BoxStream};
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use tokio::{
     sync::{
         broadcast,
@@ -75,30 +76,67 @@ impl NymVpnService for CommandInterface {
     async fn get_config(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::VpnServiceConfig>> {
+    ) -> Result<tonic::Response<proto::GetConfigResponse>> {
         let config = self.send_and_wait(VpnServiceCommand::GetConfig, ()).await?;
 
-        let response = proto::VpnServiceConfig::try_from(config).map_err(|e| {
-            tonic::Status::internal(format!("Failed to convert VPN service config: {e}"))
-        })?;
+        let response = proto::GetConfigResponse {
+            config: Some(proto::VpnServiceConfig::try_from(config).map_err(|e| {
+                tonic::Status::internal(format!("Failed to convert VPN service config: {e}"))
+            })?),
+        };
 
         Ok(tonic::Response::new(response))
     }
 
-    async fn set_config(
+    async fn set_entry_point(
         &self,
-        request: tonic::Request<proto::VpnServiceConfig>,
+        request: tonic::Request<proto::EntryNode>,
     ) -> Result<tonic::Response<()>> {
-        let config = VpnServiceConfig::try_from(request.into_inner()).map_err(|e| {
-            tonic::Status::invalid_argument(format!("Failed to convert VPN service config: {e}"))
-        })?;
+        let entry_point = EntryPoint::try_from(request.into_inner())
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid entry point: {e}")))?;
 
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetConfig, config)
+            .send_and_wait(VpnServiceCommand::SetEntryPoint, entry_point)
             .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set VPN service config: {e}"))
-            })?;
+            .map_err(|e| tonic::Status::internal(format!("Failed to set VPN entry point: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_exit_point(
+        &self,
+        request: tonic::Request<proto::ExitNode>,
+    ) -> Result<tonic::Response<()>> {
+        let exit_point = ExitPoint::try_from(request.into_inner())
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid exit point: {e}")))?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetExitPoint, exit_point)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set VPN exit point: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_disable_ipv6(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
+        let disable_ipv6 = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set IPv6 config: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_enable_two_hop(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_two_hop = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetEnableTwoHop, enable_two_hop)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set two-hop config: {e}")))?;
 
         Ok(tonic::Response::new(()))
     }

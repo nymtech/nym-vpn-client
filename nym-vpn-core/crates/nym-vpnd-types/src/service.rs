@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, Percent};
-use nym_sdk::UserAgent;
 use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use std::{fmt, net::IpAddr};
 use time::OffsetDateTime;
@@ -21,7 +20,6 @@ pub struct VpnServiceConfig {
     pub min_mixnode_performance: Option<Percent>,
     pub min_gateway_mixnet_performance: Option<Percent>,
     pub min_gateway_vpn_performance: Option<Percent>,
-    pub user_agent: Option<UserAgent>,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -49,7 +47,6 @@ impl Default for VpnServiceConfig {
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
-            user_agent: None,
         }
     }
 }

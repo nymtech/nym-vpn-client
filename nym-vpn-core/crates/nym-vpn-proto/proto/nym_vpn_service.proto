@@ -7,7 +7,9 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 // Represents the identity of a gateway
-message Gateway { string id = 1; }
+message Gateway {
+  string id = 1;
+}
 
 // Represents a nym-address of the form id.enc@gateway
 message Address {
@@ -57,7 +59,9 @@ message ConnectedStateDetails {
   }
 }
 
-message Dns { string ip = 1; }
+message Dns {
+  optional string ip = 1;
+}
 
 message Url { string url = 1; }
 
@@ -66,7 +70,7 @@ message ApiUrl {
   repeated string front_hosts = 2;
 }
 
-message Percent { float percent = 1; }
+message Percent { optional float percent = 1; }
 
 // Inspired by
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
@@ -169,7 +173,13 @@ message NetworkCompatibility {
   string android = 5;
 }
 
-message GetSystemMessagesResponse { repeated SystemMessage messages = 1; }
+message GetConfigResponse {
+  VpnServiceConfig config = 1;
+}
+
+message GetSystemMessagesResponse {
+  repeated SystemMessage messages = 1;
+}
 
 message GetNetworkCompatibilityResponse {
   optional NetworkCompatibility network_compatibility = 1;
@@ -180,9 +190,26 @@ message GetFeatureFlagsResponse {
   map<string, FeatureFlagGroup> groups = 2;
 }
 
-message FeatureFlagGroup { map<string, string> map = 1; }
+message FeatureFlagGroup {
+  map<string, string> map = 1;
+}
 
-message Threshold { uint32 min_performance = 1; }
+message Threshold {
+  uint32 min_performance = 1;
+}
+
+message ConnectRequest {
+  EntryNode entry = 1;
+  ExitNode exit = 2;
+  Dns dns = 3;
+  bool disable_ipv6 = 14;
+  bool enable_two_hop = 5;
+  bool netstack = 13;
+  bool disable_poisson_rate = 6;
+  bool disable_background_cover_traffic = 7;
+  bool enable_credentials_mode = 8;
+  UserAgent user_agent = 12;
+}
 
 message VpnServiceConfig {
   EntryNode entry_point = 1;
@@ -197,7 +224,6 @@ message VpnServiceConfig {
   Percent min_mixnode_performance = 9;
   Percent min_gateway_mixnet_performance = 10;
   Percent min_gateway_vpn_performance = 11;
-  UserAgent user_agent = 12;
 }
 
 message AsEntry {
@@ -263,16 +289,22 @@ message ListGatewaysRequest {
   UserAgent user_agent = 4;
 }
 
-message ListGatewaysResponse { repeated GatewayResponse gateways = 1; }
+message ListGatewaysResponse {
+  repeated GatewayResponse gateways = 1;
+}
 
 message ListCountriesRequest {
   GatewayType kind = 1;
   UserAgent user_agent = 4;
 }
 
-message ListCountriesResponse { repeated Location countries = 1; }
+message ListCountriesResponse {
+  repeated Location countries = 1;
+}
 
-message GetAccountLinksRequest { string locale = 1; }
+message GetAccountLinksRequest {
+  string locale = 1;
+}
 
 enum TunnelType {
   MIXNET = 0;
@@ -280,12 +312,12 @@ enum TunnelType {
 }
 
 enum EstablishConnectionState {
-  RESOLVING_API_ADDRESSES = 0;
-  AWAITING_ACCOUNT_READINESS = 1;
-  REFRESHING_GATEWAYS = 2;
-  SELECTING_GATEWAYS = 3;
-  CONNECTING_MIXNET_CLIENT = 4;
-  CONNECTING_TUNNEL = 5;
+    RESOLVING_API_ADDRESSES = 0;
+    AWAITING_ACCOUNT_READINESS = 1;
+    REFRESHING_GATEWAYS = 2;
+    SELECTING_GATEWAYS = 3;
+    CONNECTING_MIXNET_CLIENT = 4;
+    CONNECTING_TUNNEL = 5;
 }
 
 message EstablishConnectionData {
@@ -323,8 +355,12 @@ message WireguardNode {
 }
 
 message TunnelConnectionData {
-  message Mixnet { MixnetConnectionData data = 1; }
-  message Wireguard { WireguardConnectionData data = 2; }
+  message Mixnet {
+    MixnetConnectionData data = 1;
+  }
+  message Wireguard {
+    WireguardConnectionData data = 2;
+  }
 
   oneof state {
     Mixnet mixnet = 1;
@@ -367,13 +403,19 @@ message TunnelState {
     TunnelType tunnel_type = 3;
     optional EstablishConnectionData connection_data = 4;
   }
-  message Connected { ConnectionData connection_data = 1; }
-  message Disconnecting { ActionAfterDisconnect after_disconnect = 1; }
+  message Connected {
+    ConnectionData connection_data = 1;
+  }
+  message Disconnecting {
+    ActionAfterDisconnect after_disconnect = 1;
+  }
   message Error {
     ErrorStateReason reason = 1;
     optional string message = 2;
   }
-  message Offline { bool reconnect = 1; }
+  message Offline {
+    bool reconnect = 1;
+  }
 
   oneof state {
     Disconnected disconnected = 1;
@@ -395,7 +437,9 @@ message TunnelEvent {
 message MixnetEvent {
   message BandwidthEvent {
     message NoBandwidth {}
-    message RemainingBandwidth { int64 value = 1; }
+    message RemainingBandwidth {
+      int64 value = 1;
+    }
     oneof event {
       NoBandwidth no_bandwidth = 1;
       RemainingBandwidth remaining_bandwidth = 2;
@@ -436,7 +480,9 @@ message MixnetEvent {
     double additional_reply_surbs_queued = 18;
   }
 
-  message ConnectionStatisticsEvent { SphinxPacketRates rates = 1; }
+  message ConnectionStatisticsEvent {
+    SphinxPacketRates rates = 1;
+  }
 
   oneof event {
     BandwidthEvent bandwidth_event = 1;
@@ -449,6 +495,7 @@ message GetLogPathResponse {
   string dir = 1;
   string filename = 2;
 }
+
 
 message AccountCommandError {
   oneof error_detail {
@@ -464,7 +511,9 @@ message AccountCommandError {
   }
 }
 
-message DeleteLogFileError { string message = 1; }
+message DeleteLogFileError {
+  string message = 1;
+}
 
 message VpnApiError {
   oneof error_detail {
@@ -514,14 +563,23 @@ message AccountControllerState {
 
 // --- Requests and responses ---
 
-message StoreAccountRequest { string mnemonic = 1; }
+message StoreAccountRequest {
+  string mnemonic = 1;
+}
 
-message AccountCommandResponse { optional AccountCommandError error = 1; }
+message AccountCommandResponse {
+ optional AccountCommandError error = 1;
+}
 
-message GetAccountIdentityResponse { optional string account_identity = 1; }
+
+message GetAccountIdentityResponse {
+  optional string account_identity = 1;
+}
 
 message GetAccountUsageResponse {
-  message AccountUsages { repeated AccountUsage account_usages = 1; }
+  message AccountUsages {
+    repeated AccountUsage account_usages = 1;
+  }
 
   message AccountUsage {
     string created_on_utc = 1;
@@ -542,7 +600,9 @@ message ResetDeviceIdentityRequest {
   optional bytes seed = 1;
 }
 
-message GetDeviceIdentityResponse { optional string device_identity = 1; }
+message GetDeviceIdentityResponse {
+  optional string device_identity = 1;
+}
 
 message GetDevicesResponse {
   message Device {
@@ -558,7 +618,9 @@ message GetDevicesResponse {
     DeviceStatus status = 4;
   }
 
-  message Devices { repeated Device devices = 1; }
+  message Devices {
+    repeated Device devices = 1;
+  }
 
   Devices devices = 1;
 }
@@ -600,129 +662,130 @@ message DeleteLogFileResponse {
 
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
-  rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
+  rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
   // Get the VPN service configuration
-  rpc GetConfig(google.protobuf.Empty) returns (VpnServiceConfig) {}
+  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
 
   // Set the VPN service configuration
-  rpc SetConfig(VpnServiceConfig) returns (google.protobuf.Empty) {}
+  rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
+  rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
+  //rpc SetDns(OptionalDns) returns (google.protobuf.Empty) {}
+  rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  //rpc SetDisablePoissonRate(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  //rpc SetDisableBackgroundCoverTraffic(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  //rpc SetEnableCredentialsMode(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  //rpc SetMinMixNodePerformance(OptionalPercent) returns (google.protobuf.Empty) {}
+  //rpc SetMinGatewayMixNodePerformance(OptionalPercent) returns (google.protobuf.Empty) {}
+  //rpc SetMinGatewayVpnPerformance(OptionalPercent) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
-  rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}
+  rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 
   // List messages fetched from nym-vpn-api
-  rpc GetSystemMessages(google.protobuf.Empty)
-      returns (GetSystemMessagesResponse) {}
+  rpc GetSystemMessages (google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
 
   // List network compatibility client versions from nym-vpn-api
-  rpc GetNetworkCompatibility(google.protobuf.Empty)
-      returns (GetNetworkCompatibilityResponse) {}
+  rpc GetNetworkCompatibility (google.protobuf.Empty) returns (GetNetworkCompatibilityResponse) {}
 
   // List the feature flags fetched from the nym-vpn-api
-  rpc GetFeatureFlags(google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
+  rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
-  // Connect the tunnel
-  rpc ConnectTunnel(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  // Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
+  rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
+
+  // Connect the tunnel (Configuration is owned by daemon)
+  rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Disconnect the tunnel
-  rpc DisconnectTunnel(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the current tunnel state
-  rpc GetTunnelState(google.protobuf.Empty) returns (TunnelState) {}
+  rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
 
-  // Listen for current tunnel state and subsequent changes to it. Emits current
-  // state as the first value.
-  rpc ListenToTunnelState(google.protobuf.Empty) returns (stream TunnelState) {}
+  // Listen for current tunnel state and subsequent changes to it. Emits current state as the first value.
+  rpc ListenToTunnelState (google.protobuf.Empty) returns (stream TunnelState) {}
 
   /// Listen for daemon events.
   rpc ListenToEvents(google.protobuf.Empty) returns (stream TunnelEvent) {}
 
   // List the available gateways for the selected mode
-  rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse) {}
+  rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
   // List the available countries for the selected mode
   rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
-  // Store the recovery phrase, which is also the account identity and
-  // authentication
-  rpc StoreAccount(StoreAccountRequest) returns (AccountCommandResponse) {}
+  // -- Unstable --
+  // These below are considered unstable, in the sense that their definitions
+  // are still being integrated upon and their meaning might change
+
+  // Store the recovery phrase, which is also the account identity and authentication
+  rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
-  rpc IsAccountStored(google.protobuf.Empty)
-      returns (google.protobuf.BoolValue) {}
+  rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.
-  rpc ForgetAccount(google.protobuf.Empty) returns (AccountCommandResponse) {}
+  rpc ForgetAccount (google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Get the account identity of the locally stored recovery phrase
-  rpc GetAccountIdentity(google.protobuf.Empty)
-      returns (GetAccountIdentityResponse) {}
+  rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
 
   // Get the set of account links for the user
-  rpc GetAccountLinks(GetAccountLinksRequest) returns (AccountManagement) {}
+  rpc GetAccountLinks (GetAccountLinksRequest) returns (AccountManagement) {}
 
-  // Query the account state, which is synced from the nym-vpn-api account, as
-  // it is known and interpreted by nym-vpnd
-  rpc GetAccountState(google.protobuf.Empty) returns (AccountControllerState) {}
+  // Query the account state, which is synced from the nym-vpn-api account, as it
+  // is known and interpreted by nym-vpnd
+  rpc GetAccountState (google.protobuf.Empty) returns (AccountControllerState) {}
 
-  // Listen for current account controller state and subsequent changes to it.
-  // Emits current state as the first value.
-  rpc ListenToAccountState(google.protobuf.Empty)
-      returns (stream AccountControllerState) {}
+  // Listen for current account controller state and subsequent changes to it. Emits current state as the first value.
+  rpc ListenToAccountState (google.protobuf.Empty) returns (stream AccountControllerState) {}
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
-  rpc RefreshAccountState(google.protobuf.Empty)
-      returns (google.protobuf.Empty) {}
+  rpc RefreshAccountState (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the account usage from the nym-vpn-api
-  rpc GetAccountUsage(google.protobuf.Empty) returns (GetAccountUsageResponse) {
-  }
+  rpc GetAccountUsage (google.protobuf.Empty) returns (GetAccountUsageResponse) {}
 
   // Reset the device identity
-  rpc ResetDeviceIdentity(ResetDeviceIdentityRequest)
-      returns (google.protobuf.Empty) {}
+  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
 
   // Get the device identity
-  rpc GetDeviceIdentity(google.protobuf.Empty)
-      returns (GetDeviceIdentityResponse) {}
+  rpc GetDeviceIdentity (google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
 
   // Get the list of devices associated with this account from the nym-vpn-api
-  rpc GetDevices(google.protobuf.Empty) returns (GetDevicesResponse) {}
+  rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Get the list of active devices associated with this account from the nym-vpn-api
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
-
   // Get the available tickets in the local credential store
-  rpc GetAvailableTickets(google.protobuf.Empty) returns (AvailableTickets) {}
+  rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
 
   // Get the log file path
-  rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}
+  rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 
   // Delete the log file
-  rpc DeleteLogFile(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DeleteLogFile (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Check if Sentry error monitoring is enabled
-  rpc IsSentryEnabled(google.protobuf.Empty)
-      returns (google.protobuf.BoolValue) {}
+  rpc IsSentryEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Enable Sentry error monitoring (requires daemon restart)
-  rpc EnableSentry(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc EnableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Disable Sentry error monitoring (requires daemon restart)
-  rpc DisableSentry(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Check if network statistics collection is enabled
-  rpc IsCollectNetworkStatsEnabled(google.protobuf.Empty)
-      returns (google.protobuf.BoolValue) {}
+  rpc IsCollectNetworkStatsEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Enable network statistics collection (requires daemon restart)
-  rpc EnableCollectNetworkStats(google.protobuf.Empty)
-      returns (google.protobuf.Empty) {}
+  rpc EnableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Disable network statistics collection (requires daemon restart)
-  rpc DisableCollectNetworkStats(google.protobuf.Empty)
-      returns (google.protobuf.Empty) {}
+  rpc DisableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }

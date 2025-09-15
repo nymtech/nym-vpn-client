@@ -27,7 +27,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, CachingGatewayClient, GatewayClient},
+    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
@@ -63,10 +63,8 @@ type Locale = String;
 pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     GetConfig(oneshot::Sender<VpnServiceConfig>, ()),
-    SetConfig(
-        oneshot::Sender<Result<(), SetConfigError>>,
-        VpnServiceConfig,
-    ),
+    SetEntryPoint(oneshot::Sender<Result<(), SetConfigError>>, EntryPoint),
+    SetExitPoint(oneshot::Sender<Result<(), SetConfigError>>, ExitPoint),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -566,8 +564,12 @@ impl NymVpnService {
                 let result = self.handle_get_config().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::SetConfig(tx, config) => {
-                let result = self.handle_set_config(config).await;
+            VpnServiceCommand::SetEntryPoint(tx, entry_point) => {
+                let result = self.handle_set_entry_point(entry_point).await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::SetExitPoint(tx, exit_point) => {
+                let result = self.handle_set_exit_point(exit_point).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
@@ -692,8 +694,11 @@ impl NymVpnService {
         self.config_manager.config().clone()
     }
 
-    async fn handle_set_config(&mut self, config: VpnServiceConfig) -> Result<(), SetConfigError> {
-        self.config_manager.set_config(config);
+    async fn handle_set_entry_point(
+        &mut self,
+        entry_point: EntryPoint,
+    ) -> Result<(), SetConfigError> {
+        self.config_manager.set_entry_point(entry_point);
 
         self.config_manager
             .write_to_file()

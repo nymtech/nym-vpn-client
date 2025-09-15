@@ -1,13 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-
 use anyhow::{Result, anyhow};
 use clap::{ArgAction, Args, Parser, Subcommand};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
-pub use nym_vpnd_types::service::VpnServiceConfig;
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
@@ -43,8 +40,11 @@ pub enum Command {
     /// Get VPN service configuration
     GetConfig,
 
-    /// Set VPN service configuration
-    SetConfig(Box<VpnServiceConfig>),
+    /// Set VPN entry point
+    SetEntryPoint(CliEntry),
+
+    /// Set VPN exit point
+    SetExitPoint(CliExit),
 
     /// Get the current status of the connection.
     Status {
@@ -137,91 +137,6 @@ pub enum Internal {
 }
 
 #[derive(Args)]
-pub struct ConnectArgs {
-    #[command(flatten)]
-    pub entry: CliEntry,
-
-    #[command(flatten)]
-    pub exit: CliExit,
-
-    /// Set the IP address of the DNS server to use.
-    #[arg(long)]
-    pub dns: Option<IpAddr>,
-
-    /// Disable IPv6 support
-    #[arg(long)]
-    pub disable_ipv6: bool,
-
-    /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway using Wireguard protocol.
-    #[arg(long)]
-    pub enable_two_hop: bool,
-
-    /// Blocks until the connection is established or failed
-    #[arg(short, long)]
-    pub wait: bool,
-
-    /// Use netstack based implementation for two-hop wireguard.
-    #[arg(long, requires = "enable_two_hop")]
-    pub netstack: bool,
-
-    /// Disable Poisson process rate limiting of outbound traffic.
-    #[arg(long, hide = true)]
-    pub disable_poisson_rate: bool,
-
-    /// Disable constant rate background loop cover traffic.
-    #[arg(long, hide = true)]
-    pub disable_background_cover_traffic: bool,
-
-    /// Enable credentials mode.
-    #[arg(long)]
-    pub enable_credentials_mode: bool,
-}
-
-impl ConnectArgs {
-    pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
-        if let Some(ref entry_gateway_id) = self.entry.entry_id {
-            Ok(Some(EntryPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(entry_gateway_id)
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            }))
-        } else if let Some(ref entry_gateway_country) = self.entry.entry_country {
-            Ok(Some(EntryPoint::Location {
-                location: entry_gateway_country.alpha2.to_string(),
-            }))
-        } else if self.entry.entry_random {
-            Ok(Some(EntryPoint::Random))
-        } else {
-            Ok(None)
-        }
-    }
-
-    pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
-        if let Some(ref exit_router_address) = self.exit.exit_ipr_address {
-            Ok(Some(ExitPoint::Address {
-                address: Box::new(
-                    Recipient::try_from_base58_string(exit_router_address)
-                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
-                ),
-            }))
-        } else if let Some(ref exit_router_id) = self.exit.exit_id {
-            Ok(Some(ExitPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            }))
-        } else if let Some(ref exit_gateway_country) = self.exit.exit_country {
-            Ok(Some(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
-            }))
-        } else if self.exit.exit_random {
-            Ok(Some(ExitPoint::Random))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-#[derive(Args)]
 #[group(multiple = false)]
 pub struct CliEntry {
     /// Mixnet public ID of the entry gateway.
@@ -235,6 +150,27 @@ pub struct CliEntry {
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
     pub entry_random: bool,
+}
+
+impl TryFrom<CliEntry> for EntryPoint {
+    type Error = anyhow::Error;
+
+    fn try_from(value: CliEntry) -> std::result::Result<Self, Self::Error> {
+        if let Some(ref entry_gateway_id) = value.entry_id {
+            Ok(EntryPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(entry_gateway_id)
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            })
+        } else if let Some(ref entry_gateway_country) = value.entry_country {
+            Ok(EntryPoint::Location {
+                location: entry_gateway_country.alpha2.to_string(),
+            })
+        } else if value.entry_random {
+            Ok(EntryPoint::Random)
+        } else {
+            Err(anyhow!("Invalid Entry point value"))
+        }
+    }
 }
 
 #[derive(Args)]
@@ -256,6 +192,34 @@ pub struct CliExit {
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-gateway-random")]
     pub exit_random: bool,
+}
+
+impl TryFrom<CliExit> for ExitPoint {
+    type Error = anyhow::Error;
+
+    fn try_from(value: CliExit) -> std::result::Result<Self, Self::Error> {
+        if let Some(ref exit_router_address) = value.exit_ipr_address {
+            Ok(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            })
+        } else if let Some(ref exit_router_id) = value.exit_id {
+            Ok(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            })
+        } else if let Some(ref exit_gateway_country) = value.exit_country {
+            Ok(ExitPoint::Location {
+                location: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if value.exit_random {
+            Ok(ExitPoint::Random)
+        } else {
+            Err(anyhow!("Invalid Exit Point value"))
+        }
+    }
 }
 
 #[derive(Args)]

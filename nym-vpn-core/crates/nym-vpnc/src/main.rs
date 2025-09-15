@@ -3,10 +3,10 @@
 
 mod cli;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::Parser;
 use cli::Internal;
-use nym_gateway_directory::GatewayType;
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayType};
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_proto::rpc_client::RpcClient;
@@ -36,7 +36,8 @@ async fn main() -> Result<()> {
         Command::Connect { wait } => connect(rpc_client, wait).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
         Command::GetConfig => get_config(rpc_client).await?,
-        Command::SetConfig(config) => set_config(rpc_client, *config).await?,
+        Command::SetEntryPoint(entry_point) => set_entry_point(rpc_client, entry_point).await?,
+        Command::SetExitPoint(exit_point) => set_exit_point(rpc_client, exit_point).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
@@ -150,10 +151,20 @@ async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
     Ok(())
 }
 
-async fn set_config(mut rpc_client: RpcClient, config: cli::VpnServiceConfig) -> Result<()> {
-    let config = config.into();
-    rpc_client.set_config(config).await?;
-    Ok(())
+async fn set_entry_point(mut rpc_client: RpcClient, entry_point: cli::CliEntry) -> Result<()> {
+    let entry_point = EntryPoint::try_from(entry_point)?;
+    match rpc_client.set_entry_point(entry_point).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(anyhow!("Failed to set entry point: {e}")),
+    }
+}
+
+async fn set_exit_point(mut rpc_client: RpcClient, exit_point: cli::CliExit) -> Result<()> {
+    let exit_point = ExitPoint::try_from(exit_point)?;
+    match rpc_client.set_exit_point(exit_point).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(anyhow!("Failed to set exit point: {e}")),
+    }
 }
 
 async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {

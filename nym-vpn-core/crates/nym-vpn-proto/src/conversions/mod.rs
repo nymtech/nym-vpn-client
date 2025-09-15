@@ -104,7 +104,9 @@ impl From<&nym_sdk::mixnet::Recipient> for proto::ExitNode {
 
 impl From<std::net::IpAddr> for proto::Dns {
     fn from(ip: std::net::IpAddr) -> Self {
-        Self { ip: ip.to_string() }
+        Self {
+            ip: Some(ip.to_string()),
+        }
     }
 }
 

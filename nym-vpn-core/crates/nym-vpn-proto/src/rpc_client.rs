@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 
+use nym_gateway_directory::{EntryPoint, ExitPoint};
 use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
@@ -13,7 +14,7 @@ use nym_vpnd_types::{
     AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::VpnServiceInfo,
+    service::{VpnServiceConfig, VpnServiceInfo},
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -41,6 +42,41 @@ impl RpcClient {
         let response = self.0.info(()).await.map_err(Error::Rpc)?.into_inner();
 
         VpnServiceInfo::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_config(&mut self) -> Result<VpnServiceConfig> {
+        let response = self
+            .0
+            .get_config(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let config = response
+            .config
+            .ok_or_else(|| Error::Rpc(tonic::Status::internal("Missing config in response")))?;
+
+        VpnServiceConfig::try_from(config).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn set_entry_point(&mut self, entry_point: EntryPoint) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub async fn set_exit_point(&mut self, exit_point: ExitPoint) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub async fn set_enable_two_hop(&mut self, enable_two_hop: bool) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
+        unimplemented!()
     }
 
     pub async fn set_network(&mut self, network: String) -> Result<()> {
@@ -87,9 +123,19 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn connect_tunnel(&mut self) -> Result<()> {
+    pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
+        let request = proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
+
         self.0
-            .connect_tunnel(())
+            .connect_tunnel(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn connect_tunnel_v2(&mut self) -> Result<()> {
+        self.0
+            .connect_tunnel_v2(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)

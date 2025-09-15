@@ -112,6 +112,54 @@ impl VpnServiceConfigManager {
         self.config = config;
     }
 
+    pub(super) fn set_entry_point(&mut self, entry_point: EntryPoint) {
+        self.config.entry_point = entry_point;
+    }
+
+    pub(super) fn set_exit_point(&mut self, exit_point: ExitPoint) {
+        self.config.exit_point = exit_point;
+    }
+
+    pub(super) fn set_dns(&mut self, dns: Option<IpAddr>) {
+        self.config.dns = dns;
+    }
+
+    pub(super) fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
+        self.config.disable_ipv6 = disable_ipv6;
+    }
+
+    pub(super) fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
+        self.config.enable_two_hop = enable_two_hop;
+    }
+
+    pub(super) fn set_netstack(&mut self, netstack: bool) {
+        self.config.netstack = netstack;
+    }
+
+    pub(super) fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
+        self.config.disable_poisson_rate = disable_poisson_rate;
+    }
+
+    pub(super) fn set_disable_background_cover_traffic(&mut self, disable: bool) {
+        self.config.disable_background_cover_traffic = disable;
+    }
+
+    pub(super) fn set_enable_credentials_mode(&mut self, enable: bool) {
+        self.config.enable_credentials_mode = enable;
+    }
+
+    pub(super) fn set_min_mixnode_performance(&mut self, min: Option<Percent>) {
+        self.config.min_mixnode_performance = min;
+    }
+
+    pub(super) fn set_min_gateway_mixnet_performance(&mut self, min: Option<Percent>) {
+        self.config.min_gateway_mixnet_performance = min;
+    }
+
+    pub(super) fn set_min_gateway_vpn_performance(&mut self, min: Option<Percent>) {
+        self.config.min_gateway_vpn_performance = min;
+    }
+
     #[allow(clippy::result_large_err)]
     fn read_from_file(
         toml_config_path: &Path,
@@ -220,7 +268,7 @@ impl VpnServiceConfigManager {
             entry_point: Box::new(self.config.entry_point.clone()),
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
-            user_agent: self.config.user_agent.clone(),
+            user_agent: None,
         })
     }
 }
@@ -272,7 +320,6 @@ struct VpnServiceConfigExtV1 {
     min_mixnode_performance: Option<f64>,
     min_gateway_mixnet_performance: Option<f64>,
     min_gateway_vpn_performance: Option<f64>,
-    user_agent: Option<String>,
 }
 
 impl Default for VpnServiceConfigExtV1 {
@@ -290,7 +337,6 @@ impl Default for VpnServiceConfigExtV1 {
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
-            user_agent: None,
         }
     }
 }
@@ -352,14 +398,6 @@ impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
                         .map_err(|e| ConfigSetupError::Percent { error: e })
                 })
                 .transpose()?,
-
-            user_agent: value
-                .user_agent
-                .map(|s| {
-                    UserAgent::from_str(&s)
-                        .map_err(|_e| ConfigSetupError::UserAgent { user_agent: s })
-                })
-                .transpose()?,
         };
         Ok(config)
     }
@@ -388,7 +426,6 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             min_gateway_vpn_performance: value
                 .min_gateway_vpn_performance
                 .map(|p| round_f64!(p.naive_to_f64())),
-            user_agent: value.user_agent.as_ref().map(|ua| ua.to_string()),
         };
         Ok(ext_config)
     }
@@ -893,8 +930,7 @@ location = "BE"
   "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null,
-  "user_agent": null
+  "min_gateway_vpn_performance": null
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Location {
@@ -939,8 +975,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null,
-  "user_agent": null
+  "min_gateway_vpn_performance": null
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Gateway {
@@ -992,8 +1027,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null,
-  "user_agent": null
+  "min_gateway_vpn_performance": null
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Gateway {
@@ -1032,8 +1066,7 @@ exit_point = "Random"
   "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null,
-  "user_agent": null
+  "min_gateway_vpn_performance": null
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Random;
@@ -1071,9 +1104,6 @@ exit_point = "Random"
             min_mixnode_performance: Some(Percent::naive_try_from_f64(0.552).unwrap()),
             min_gateway_mixnet_performance: Some(Percent::naive_try_from_f64(0.643).unwrap()),
             min_gateway_vpn_performance: Some(Percent::naive_try_from_f64(0.001).unwrap()),
-            user_agent: Some(
-                UserAgent::from_str("nym-mixnode/0.11.0/x86_64-unknown-linux-gnu/abcdefg").unwrap(),
-            ),
         };
         run_serialize_test(config);
     }
