@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "初始化客户端…",
-    "InitDone": "Nym VPN 客户端已初始化",
-    "Canceling": "正在取消···"
+    "canceling": "取消…",
+    "resolving-api-addresses": "正在解析 API 地址…",
+    "awaiting-account-readiness": "Awaiting for account readiness…",
+    "refreshing-gateways": "Refreshing gateways…",
+    "selecting-gateways": "选择网关…",
+    "connecting-mixnet-client": "正在连接到 mixnet客户端…",
+    "connecting-tunnel": "Connecting to the VPN tunnel…"
   },
   "connection-attempt_one": "重试中… 尝试 {{count}}",
   "connection-attempt_other": "重试… 尝试 {{count}}"

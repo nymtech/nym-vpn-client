@@ -136,8 +136,7 @@
     <string name="log_out_title">¿Seguro que quieres cerrar la sesión?</string>
     <string name="log_out_body">Necesitarás tu frase de recuperación para iniciar sesión de nuevo.</string>
     <string name="cancel">Cancelar</string>
-    <string name="subscription_expired_error">La suscripción de esta cuenta ha expirado. Actualiza tu suscripción.</string>
-	<string name="info">Información</string>
+    <string name="info">Información</string>
     <string name="collapse">Contraer</string>
     <string name="expand">Expandir</string>
     <string name="country_flag">Bandera de %1$s</string>

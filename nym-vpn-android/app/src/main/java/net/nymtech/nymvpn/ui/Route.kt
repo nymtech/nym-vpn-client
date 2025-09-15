@@ -16,7 +16,7 @@ sealed class Route {
 	data class Permission(val permission: net.nymtech.nymvpn.ui.screens.permission.Permission) : Route()
 
 	@Serializable
-	data object Settings : Route()
+	data class Settings(val showVpnSettings: Boolean) : Route()
 
 	@Serializable
 	data object Appearance : Route()
@@ -59,4 +59,7 @@ sealed class Route {
 
 	@Serializable
 	data object Welcome : Route()
+
+	@Serializable
+	data object SelectPlan : Route()
 }

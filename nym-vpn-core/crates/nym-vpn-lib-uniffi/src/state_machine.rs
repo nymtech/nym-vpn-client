@@ -14,7 +14,7 @@ use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
+        TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
     },
 };
 use nym_vpn_lib_types::TunnelType;
@@ -96,6 +96,7 @@ pub(super) async fn start_state_machine(
         dns: DnsOptions::default(),
         user_agent: Some(user_agent.clone()),
     };
+    let tunnel_constants = TunnelConstants::default();
 
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
     let (event_sender, mut event_receiver) = mpsc::unbounded_channel();
@@ -138,6 +139,7 @@ pub(super) async fn start_state_machine(
         event_sender,
         nym_config,
         tunnel_settings,
+        tunnel_constants,
         account_controller_tx,
         account_controller_state,
         statistics_event_sender,

@@ -75,12 +75,12 @@
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "Başlayın",
+    "syncing": "Senkronize ediliyor...",
+    "no-plan": "Aktif plan yok",
+    "bandwidth-exceeded": "Bant genişliği aşıldı",
+    "max-device-reached": "Maksimum cihaz sayısına ulaşıldı",
+    "status-inactive": "Hesap pasif",
+    "error": "Dahili hata"
   }
 }

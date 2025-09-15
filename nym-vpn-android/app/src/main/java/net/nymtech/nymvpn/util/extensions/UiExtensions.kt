@@ -111,17 +111,20 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.same_entry_exit_message)
 		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.selected_entry_unavailable)
 		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.selected_exit_unavailable)
-		is ErrorStateReason.Api -> context.getString(R.string.network_error)
 		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.bandwidth_error)
-		is ErrorStateReason.Dns -> context.getString(R.string.network_error)
 		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${error.v1}"
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
-		ErrorStateReason.Firewall, ErrorStateReason.Routing -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
-		ErrorStateReason.CreateMixnetStorage -> context.getString(R.string.create_mixnet_storage)
-		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.ipv6_unavailable)
-		is ErrorStateReason.AccountControl -> error.v1 ?: ""
-		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.subscription_expired_error)
+		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
+		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
+		ErrorStateReason.BadBandwidthIncrease -> context.getString(R.string.error_bad_bandwidth)
+		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
+		ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
+		ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
+		ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
+		ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
+		ErrorStateReason.TunDevice -> context.getString(R.string.error_tun_device)
+		ErrorStateReason.TunnelProvider -> context.getString(R.string.error_tunnel_provider)
 	}
 }
 

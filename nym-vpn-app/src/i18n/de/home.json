@@ -6,11 +6,11 @@
     "disconnected": "Getrennt",
     "connecting": "Verbinden",
     "disconnecting": "Trennen",
-    "error": "Error",
-    "offline": "No internet"
+    "error": "Fehler",
+    "offline": "Kein Internet"
   },
-  "offline-message": "Your device has no internet connection",
-  "offline-reconnect-message": "Will connect once the device goes online",
+  "offline-message": "Ihr Gerät hat keine Internetverbindung",
+  "offline-reconnect-message": "Verbinden, sobald das Gerät online ist",
   "last-hop": "Austrittsregion",
   "first-hop": "Eintrittsregion",
   "connecting-message": "Verbindung wird hergestellt",
@@ -33,8 +33,8 @@
     "connected": "Deaktiviert während Verbindung zu VPN besteht",
     "connecting": "Deaktiviert während Verbindung mit dem VPN besteht",
     "disconnecting": "Deaktiviert während Verbindung vom VPN getrennt wird",
-    "offline": "Disabled when there is no internet connection",
-    "error": "Disabled when there is an error"
+    "offline": "Deaktiviert, wenn keine Internetverbindung vorhanden ist",
+    "error": "Deaktiviert, wenn ein Fehler auftritt"
   },
   "modes-dialog": {
     "title": "Modus auswählen",
@@ -43,25 +43,25 @@
     "link": "Weiter lesen"
   },
   "update-dialog": {
-    "title": "Update required!",
-    "description-1-app": "Your app is no longer supported.",
-    "description-1-daemon": "Your daemon is no longer supported.",
-    "description-1-other": "Your app and daemon are no longer supported.",
-    "description-2": "Please update to the latest version to continue using NymVPN.",
-    "button-update": "Update"
+    "title": "Aktualisierung erforderlich!",
+    "description-1-app": "Ihre App wird nicht mehr unterstützt.",
+    "description-1-daemon": "Ihr Daemon wird nicht mehr unterstützt.",
+    "description-1-other": "Ihre App und Daemon werden nicht mehr unterstützt.",
+    "description-2": "Bitte aktualisieren Sie auf die neueste Version, um NymVPN weiter zu verwenden.",
+    "button-update": "Aktualisieren"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "Update verfügbar",
+    "description": "Version {{version}} ist bereit mit Leistungsverbesserungen und neuen Features.",
+    "restart-note": "Die App wird nach dem Update neu gestartet.",
+    "button-update": "NymVPN aktualisieren",
+    "button-close": "Schließen"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "Aktualisiere auf Version {{version}}…",
+    "description": "Aktualisierungen werden installiert - bitte die App nicht schließen.",
+    "restart-note": "Die App wird nach dem Update neu gestartet.",
+    "bar-label": "Downloadfortschritt"
   },
-  "get-started": "Get started"
+  "get-started": "Los geht's"
 }

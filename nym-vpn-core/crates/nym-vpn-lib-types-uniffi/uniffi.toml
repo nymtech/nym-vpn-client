@@ -2,7 +2,7 @@
 # Name of the type in the Swift code
 type_name = "URL"
 # Modules that need to be imported
-imports = ["Foundation"]
+imports = []
 # Functions to convert between strings and URLs
 into_custom = "URL(string: {})!"
 from_custom = "String(describing: {})"

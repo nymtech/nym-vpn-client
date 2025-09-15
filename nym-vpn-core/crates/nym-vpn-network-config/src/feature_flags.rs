@@ -1,8 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt, str::FromStr};
 
+use nym_sdk::mixnet::Recipient;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -11,7 +12,23 @@ pub struct FeatureFlags {
 }
 
 impl FeatureFlags {
-    /// Get value for flag if set, otherwise return `None`
+    fn get_group_flag<T>(&self, group: &str, flag: &str) -> Option<T>
+    where
+        T: FromStr + fmt::Debug,
+        <T as FromStr>::Err: fmt::Debug,
+    {
+        tracing::debug!("Getting feature flag: group={}, flag={}", group, flag);
+        self.get_flag(group).and_then(|value| match value {
+            FlagValue::Group(group) => group.get(flag).and_then(|v| {
+                v.parse::<T>()
+                    .inspect_err(|e| tracing::warn!("Failed to parse flag value: {e:#?}"))
+                    .ok()
+            }),
+            _ => None,
+        })
+    }
+
+    /// Get value for flag, if set
     pub fn get_flag(&self, flag: &str) -> Option<FlagValue> {
         self.flags.get(flag).cloned()
     }
@@ -19,6 +36,31 @@ impl FeatureFlags {
     /// Convert feature flags into a `HashMap<String, FlagValue>`
     pub fn into_hash_map(self) -> HashMap<String, FlagValue> {
         self.flags
+    }
+
+    /// If credential mode is enabled or not, if set
+    pub fn credential_mode(&self) -> Option<bool> {
+        self.get_group_flag("zkNyms", "credentialMode")
+    }
+
+    /// Get statistics recipient, if set
+    pub fn stats_recipient(&self) -> Option<Recipient> {
+        self.get_group_flag("statistics", "recipient")
+    }
+
+    /// Get the version of the gateway from where the metadata endpoint should start to be used, if set
+    pub fn gw_update_version(&self) -> Option<semver::Version> {
+        self.get_group_flag("versions", "gatewayMetadataUpdate")
+    }
+
+    /// If domain fronting is enabled or not, if set
+    pub fn domain_fronting_enabled(&self) -> Option<bool> {
+        self.get_group_flag("domain_fronting", "enabled")
+    }
+
+    /// If quic is enabled or not, if set
+    pub fn quic_enabled(&self) -> Option<bool> {
+        self.get_group_flag("quic", "enabled")
     }
 }
 

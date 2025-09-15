@@ -136,8 +136,7 @@
     <string name="log_out_title">Êtes-vous sûr de vouloir vous déconnecter ?</string>
     <string name="log_out_body">Vous aurez besoin de votre phrase de récupération pour vous reconnecter.</string>
     <string name="cancel">Abandonner</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">Infos</string>
+    <string name="info">Infos</string>
     <string name="collapse">Réduire</string>
     <string name="expand">Agrandir</string>
     <string name="country_flag">Drapeau de %1$s</string>

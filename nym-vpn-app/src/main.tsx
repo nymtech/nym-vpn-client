@@ -11,7 +11,6 @@ import { kvGet } from './kvStore';
 import { VpnMode, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
-import { S_STATE } from './static';
 import { getTheme } from './util';
 
 // needed locales to load for dayjs
@@ -59,23 +58,15 @@ dayjs.extend(duration);
     console.info('dev mode enabled');
   }
 
-  S_STATE.uiTheme = await getTheme();
-  S_STATE.vpnd =
-    (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
-  S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || defaultVpnMode;
-  S_STATE.welcomeScreenSeen =
-    (await kvGet<boolean>('welcome-screen-seen')) || false;
-
   // check for unrecoverable errors
   if (startupError) {
-    console.info('get unrecoverable error');
+    console.info('startup error');
     if (window.label !== ErrorWindowLabel) {
       // the index.html entry point is called by all webview windows rendering it
       // so check which window is calling it, if it's not the error window, return
       return;
     }
     const theme = await window.theme();
-    document.getElementById('splash')?.remove();
 
     ReactDOM.createRoot(document.getElementById('root')!).render(
       <React.StrictMode>
@@ -85,9 +76,18 @@ dayjs.extend(duration);
     return;
   }
 
+  // pre-get and prepare some early stage state
+  const initState = {
+    vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',
+    vpnMode: (await kvGet<VpnMode>('vpn-mode')) || defaultVpnMode,
+    uiTheme: await getTheme(),
+    welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
+  };
+  console.log('initial state:', initState);
+
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <App />
+      <App init={initState} />
     </React.StrictMode>,
   );
 })();

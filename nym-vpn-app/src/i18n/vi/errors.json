@@ -9,8 +9,6 @@
   "grpc": "Lỗi gRPC nội bộ",
   "tunnel": {
     "internal": "Lỗi nội bộ",
-    "api": "Lỗi API",
-    "account-controller": "Account controller: internal error",
     "firewall": "Lỗi tường lửa",
     "routing": "Lỗi định tuyến",
     "dns": "Lỗi DNS",
@@ -19,23 +17,28 @@
     "invalid-exit-gw-country": "Vị trí node thoát không hợp lệ, vui lòng thay đổi vị trí node thoát",
     "max-devices-reached": "Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.",
     "bandwidth-exceeded": "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn.",
-    "subscription-expired": "Gói đăng ký của bạn đã hết hạn. Vui lòng mua một gói dịch vụ mới cho tài khoản của bạn.",
+    "subscription-expired": "Gói đăng ký của bạn đã hết hạn. Kill switch bảo vệ bạn. Chạm vào Dừng và gia hạn gói dịch vụ của bạn.",
     "device-time-out-of-sync": "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet.",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "ipv6-unavailable": "IPv6 không khả dụng trong hệ thống. Vui lòng tắt trong cài đặt để sử dụng IPv4",
+    "tun-device": "Lỗi thiết bị TUN",
+    "tunnel-provider": "Lỗi nhà cung cấp tunnel",
+    "bad-bandwidth-increase": "Giá trị tăng băng thông không hợp lệ",
+    "inactive-account": "Tài khoản của bạn không hoạt động",
+    "device-logged-out": "Thiết bị này đã đăng xuất. Vui lòng đăng nhập để tiếp tục sử dụng VPN."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Lỗi tài khoản nội bộ",
+    "max-devices-reached": "Vượt quá giới hạn thiết bị cho tài khoản.",
+    "bandwidth-exceeded": "Đã vượt quá băng thông. Vui lòng nâng cấp gói tài khoản của bạn.",
     "invalid-recovery-phrase": "Mã truy cập không hợp lệ",
     "storage": "Lỗi hệ thống lưu trữ",
     "is-connected": "Không thể xử lý khi đã kết nối",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "no-account-stored": "Không có tài khoản nào được lưu trữ",
+    "no-device-stored": "Không có thiết bị nào được lưu trữ",
+    "existing-account": "Tài khoản đã tồn tại",
+    "no-subscription": "Bạn chưa có gói dịch vụ hoạt động. Nhấn Bắt đầu để bắt đầu duyệt web ẩn danh.",
+    "status-not-active": "Tài khoản của bạn không hoạt động",
+    "device-time-out-of-sync": "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet."
   },
   "countries-request": {
     "entry": "Không thể tìm thấy các quốc gia có node vào khả dụng",
@@ -43,15 +46,15 @@
     "fast-mode": "Không thể tìm thấy các quốc gia khả dụng"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "Hết dung lượng dữ liệu",
+    "entry-gateway-down": "Cổng vào đã ngừng hoạt động",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "Cổng thoát đã ngừng hoạt động (IPv4)",
+      "ipv6": "Cổng thoát đã ngừng hoạt động (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "Lỗi định tuyến cổng thoát (IPv4)",
+      "ipv6": "Lỗi định tuyến cổng thoát (IPv6)"
     }
   }
 }

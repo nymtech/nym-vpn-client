@@ -94,9 +94,7 @@
     <string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
     <string name="vpn_permission_missing">Vpn permission has not been accepted or is being used by another app.</string>
 	<string name="action_requires_tunnel_down">Action requires tunnel down</string>
-    <string name="selected_exit_unavailable">Selected exit country is unavailable. Please select a different exit country.</string>
-    <string name="selected_entry_unavailable">Selected entry country is unavailable. Please select a different entry country.</string>
-	<string name="device_added_success">Device successfully added to your account</string>
+    <string name="device_added_success">Device successfully added to your account</string>
     <string name="invalid_recovery_phrase">Invalid recovery phrase</string>
     <string name="recovery_phrase">Recovery phrase</string>
     <string name="log_in">Log in</string>
@@ -120,10 +118,9 @@
     <string name="access_code">24-word-access-code</string>
     <string name="support_and_feedback"><![CDATA[Support & feedback]]></string>
     <string name="get_in_touch">Contact support</string>
-    <string name="same_entry_exit_message">For privacy, NymVPN won\'t use the same gateway for entry and exit. Reconnect or choose different locations.</string>
     <string name="device_id">Device ID:</string>
     <string name="location_support_link" translatable="false">https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
-    <string name="unexpected_error">An unexpected error occurred:</string>
+
 	<string name="loading">Loading</string>
     <string name="offline">No internet</string>
 	<string name="no_internet">Your device has no internet connection</string>
@@ -151,7 +148,6 @@
 	<string name="log_out_title">Are you sure you want to log out?</string>
 	<string name="log_out_body">You will need your recovery phrase to log in again.</string>
 	<string name="cancel">Cancel</string>
-	<string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
 	<string name="info">Info</string>
 	<string name="collapse">Collapse</string>
 	<string name="expand">Expand</string>
@@ -166,17 +162,33 @@
 	<string name="bars_2">2 bars</string>
 	<string name="bars_1">1 bar</string>
     <string name="bypass_lan">Bypass LAN</string>
-	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
-	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
-    <string name="pricing_url">https://nym.com/pricing</string>
+	<string name="pricing_url">https://nym.com/pricing</string>
 	<string name="account_id">Account ID:</string>
 	<string name="developer">Developer</string>
 	<string name="get_help">Get help</string>
 	<string name="telegram_url">https://nym.com/go/telegram</string>
 	<string name="join_telegram">Join us on Telegram</string>
+	<!-- Error State -->
+	<string name="same_entry_exit_message">For privacy, NymVPN won\'t use the same gateway for entry and exit. Reconnect or choose different locations.</string>
+	<string name="unexpected_error">An unexpected error occurred:</string>
+	<string name="selected_exit_unavailable">Selected exit country is unavailable. Please select a different exit country.</string>
+	<string name="selected_entry_unavailable">Selected entry country is unavailable. Please select a different entry country.</string>
+	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
+	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
-	<string name="create_mixnet_storage">Failed to create credential storage</string>
-	<string name="ipv6_unavailable">Ipv6 Unavailable</string>
+	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
+	<string name="error_bad_bandwidth">Gateway is not responding or responding badly to a bandwidth.</string>
+	<string name="error_device_logged_out">Device is logged out.</string>
+	<string name="error_inactive_account">Account status is not "Active".</string>
+	<string name="error_set_dns">Failed to configure dns.</string>
+	<string name="error_set_firewall_policy">Failed to set firewall policy.</string>
+	<string name="error_set_routing">Failed to configure routing.</string>
+	<string name="error_tun_device">Failed to configure tunnel device.</string>
+	<string name="error_tunnel_provider">Failed to configure packet tunnel provider.</string>
+	<string name="error_kill_switch">Kill switch protects you. Tap Stop and \nrenew your plan.</string>
+	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
+	<!-- Main Screen -->
+	<string name="main_get_started_button">Get started</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -210,4 +222,8 @@
 	<string name="welcome_terms_privacy_text_start">By continuing, you agree to NymVPN\'s</string>
 	<string name="welcome_terms_privacy_text_middle">and acknowledge NymVPN\'s</string>
 	<string name="welcome_error_toggle_descr">via Sentry</string>
+	<!-- Select Plan screen -->
+	<string name="select_plan_title">Choose your \nprotection level 🛡️</string>
+	<string name="select_plan_descr">Select a plan now to activate your \nprotection\n\nYour upcoming payment cannot be linked \nto your future browsing activity</string>
+	<string name="select_plan_button">Choose my NymVPN plan</string>
 </resources>

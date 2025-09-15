@@ -10,13 +10,14 @@ import {
   AppError,
   AppState,
   CodeDependency,
-  ConnectProgressMsg,
+  ConnectingState,
   Country,
   DaemonInfo,
   DaemonStatus,
   Gateway,
   NetworkCompat,
   NodeHop,
+  ProgressMsg,
   ThemeMode,
   Tunnel,
   TunnelAction,
@@ -34,16 +35,13 @@ export type StateAction =
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-error'; error: AppError | null }
   | { type: 'reset-error' }
-  | { type: 'new-progress-message'; message: ConnectProgressMsg }
+  | { type: 'new-progress-message'; message: ProgressMsg }
   | { type: 'connect' }
   | { type: 'disconnect' }
   | { type: 'set-version'; version: string }
   | { type: 'set-tunnel-connected'; tunnel: Tunnel }
   | { type: 'set-tunnel-disconnected' }
-  | {
-      type: 'set-tunnel-connecting';
-      payload: { tunnel: Tunnel | null; retryAttempt: number };
-    }
+  | { type: 'set-tunnel-connecting'; state: ConnectingState }
   | { type: 'set-tunnel-disconnecting'; action: TunnelAction | null }
   | { type: 'set-tunnel-offline'; reconnect: boolean | null }
   | { type: 'set-tunnel-inerror'; error: TunnelError }
@@ -69,6 +67,7 @@ export type StateAction =
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-syncing'; syncing: boolean }
+  | { type: 'set-welcome-checked'; checked: boolean }
   | { type: 'set-account-error'; error: AppError | null };
 
 export const initialState: AppState = {
@@ -96,9 +95,9 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
-  retryAttempt: 0,
   ipv6Support: true,
   networkStats: false,
+  welcomeChecked: false,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -118,7 +117,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
           progressMessages: [],
           tunnelConnectedAt: null,
           tunnelError: null,
-          retryAttempt: 0,
+          connectingState: null,
           error: {
             key: 'not-connected-to-daemon',
             message: 'Not connected to the daemon',
@@ -202,7 +201,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
           : dayjs(),
         tunnelError: null,
         error: null,
-        retryAttempt: 0,
+        connectingState: null,
       };
     case 'set-tunnel-disconnected':
       return {
@@ -212,14 +211,13 @@ export function reducer(state: AppState, action: StateAction): AppState {
         progressMessages: [],
         tunnelConnectedAt: null,
         tunnelError: null,
-        retryAttempt: 0,
+        connectingState: null,
       };
     case 'set-tunnel-connecting':
       return {
         ...state,
         state: 'connecting',
-        tunnel: action.payload.tunnel,
-        retryAttempt: action.payload.retryAttempt || 0,
+        connectingState: action.state,
         tunnelError: null,
       };
     case 'set-tunnel-disconnecting':
@@ -228,6 +226,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         state: 'disconnecting',
         tunnel: null,
         tunnelError: null,
+        connectingState: null,
       };
     case 'set-tunnel-offline':
       return {
@@ -235,12 +234,14 @@ export function reducer(state: AppState, action: StateAction): AppState {
         state: action.reconnect ? 'offline-auto-reconnect' : 'offline',
         tunnel: null,
         tunnelError: null,
+        connectingState: null,
       };
     case 'set-tunnel-inerror':
       return {
         ...state,
         state: 'error',
         tunnelError: action.error,
+        connectingState: null,
       };
     case 'set-account':
       return { ...state, account: action.stored };
@@ -320,6 +321,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         accountError: action.error,
+      };
+    case 'set-welcome-checked':
+      return {
+        ...state,
+        welcomeChecked: action.checked,
       };
 
     case 'reset':

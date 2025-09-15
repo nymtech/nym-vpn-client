@@ -86,15 +86,25 @@ import UIComponents
         case .wireguard:
             gateways = gatewayManager.vpn
         }
-        let countryCodes = Array(Set(gateways.map { $0.countryCode }))
-        countries = countryCodes.compactMap {
-            countriesManager.country(with: $0)
-        }
-        .sorted(by: { $0.name < $1.name })
+        countries = Array(Set(gateways.map { $0.countryCode }))
+            .compactMap { countriesManager.country(with: $0) }
+            .sorted {
+                $0.name.compare(
+                    $1.name,
+                    options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+                    range: nil,
+                    locale: Locale.current
+                ) == .orderedAscending
+            }
     }
 
     func searchCountriesGateways() {
-        guard searchText.count >= minimumSearchSymbols else { return }
+        guard searchText.count >= minimumSearchSymbols
+        else {
+            foundCountries = [Country]()
+            foundGateways = [GatewayNode]()
+            return
+        }
         foundCountries = countries.filter {
             $0.name.lowercased().contains(searchText.lowercased())
             || $0.code.lowercased().contains(searchText.lowercased())

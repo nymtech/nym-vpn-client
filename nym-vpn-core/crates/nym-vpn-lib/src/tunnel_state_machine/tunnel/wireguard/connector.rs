@@ -1,25 +1,60 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{net::SocketAddr, path::PathBuf};
 
 use nym_vpn_network_config::Network;
-use tokio::task::JoinHandle;
 
-use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
-use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway};
-use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
+use nym_authenticator_client::{
+    AuthClientMixnetListener, AuthClientMixnetListenerHandle, AuthenticatorVersion,
+};
+use nym_gateway_directory::{CachingGatewayClient, Gateway, Recipient};
+use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::connected_tunnel::ConnectedTunnel;
 use crate::{
-    bandwidth_controller::BandwidthController,
+    bandwidth_controller::{BandwidthController, get_nyxd_client},
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{self, Error, Result, gateway_selector::SelectedGateways},
+    tunnel_state_machine::{
+        TunnelMetadata,
+        tunnel::{
+            Error, Result, gateway_selector::SelectedGateways,
+            wireguard::connected_tunnel::ConnectedTunnel,
+        },
+    },
 };
+
+pub enum MetadataEvent {
+    MetadataProxy(SocketAddr),
+    TunnelMetadata(TunnelMetadata),
+}
+
+impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
+    fn from(event: MetadataEvent) -> Self {
+        match event {
+            MetadataEvent::MetadataProxy(proxy_addr) => {
+                nym_wg_metadata_client::TunUpSendData::TcpProxy(proxy_addr)
+            }
+            MetadataEvent::TunnelMetadata(_metadata) => {
+                #[cfg(target_os = "linux")]
+                {
+                    nym_wg_metadata_client::TunUpSendData::InterfaceName(_metadata.interface)
+                }
+
+                #[cfg(not(target_os = "linux"))]
+                {
+                    nym_wg_metadata_client::TunUpSendData::Signal
+                }
+            }
+        }
+    }
+}
+
+pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
+pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
 
 pub struct ConnectionData {
     pub entry: GatewayData,
@@ -42,6 +77,7 @@ impl Connector {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn connect(
         self,
         task_manager: &TaskManager,
@@ -49,6 +85,8 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
+        entry_metadata_rx: MetadataReceiver,
+        exit_metadata_rx: MetadataReceiver,
     ) -> Result<ConnectedTunnel> {
         let connect_result = Box::pin(Self::connect_inner(
             task_manager,
@@ -58,9 +96,10 @@ impl Connector {
             selected_gateways,
             data_path,
             cancel_token,
+            entry_metadata_rx,
+            exit_metadata_rx,
         ))
         .await?;
-
         Ok(ConnectedTunnel::new(
             connect_result.entry_gateway_client,
             connect_result.exit_gateway_client,
@@ -68,6 +107,21 @@ impl Connector {
             connect_result.bandwidth_controller_handle,
             connect_result.auth_client_mixnet_listener_handle,
         ))
+    }
+
+    fn get_recipient_and_version(gateway: &Gateway) -> Result<(Recipient, AuthenticatorVersion)> {
+        let Some(auth_recipient) = gateway
+            .authenticator_address
+            .ok_or(Error::AuthenticatorAddressNotFound)?
+            .0
+        else {
+            return Err(Error::AuthenticationNotPossible(
+                gateway.identity.to_string(),
+            ));
+        };
+        let auth_version = gateway.version.clone().into();
+
+        Ok((auth_recipient, auth_version))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -79,42 +133,46 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
+        entry_metadata_rx: MetadataReceiver,
+        exit_metadata_rx: MetadataReceiver,
     ) -> Result<ConnectResult> {
-        let auth_addresses =
-            Self::setup_auth_addresses(&selected_gateways.entry, &selected_gateways.exit)?;
-        let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
-            (auth_addresses.entry().0, auth_addresses.exit().0)
-        else {
-            return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
-        };
-        let entry_version = selected_gateways.entry.version.clone().into();
-        tracing::debug!("Entry gateway version: {entry_version}");
-        let exit_version = selected_gateways.exit.version.clone().into();
-        tracing::debug!("Exit gateway version: {exit_version}");
-
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
         let mixnet_listener =
             AuthClientMixnetListener::new(mixnet_client.clone(), cancel_token.child_token())
                 .start();
 
-        let auth_client = mixnet_listener
+        let auth_mix_client = mixnet_listener
             .new_auth_client()
             .await
             .ok_or(Error::MixnetClientDisposed)?;
 
+        let (entry_recipient, entry_version) =
+            Self::get_recipient_and_version(&selected_gateways.entry)?;
         let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
             &data_path,
-            auth_client.clone(),
-            entry_auth_recipient,
+            auth_mix_client.clone(),
+            entry_recipient,
             entry_version,
         );
-        let mut wg_exit_gateway_client = WgGatewayClient::new_exit(
-            &data_path,
-            auth_client.clone(),
-            exit_auth_recipient,
-            exit_version,
-        );
+
+        let (exit_recipient, exit_version) =
+            Self::get_recipient_and_version(&selected_gateways.exit)?;
+        let mut wg_exit_gateway_client =
+            WgGatewayClient::new_exit(&data_path, auth_mix_client, exit_recipient, exit_version);
+
+        let client = get_nyxd_client(network)?;
+        let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
+        let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
+
+        let _metadata_event_handler = tokio::spawn(async move {
+            if let Ok(entry) = entry_metadata_rx.await {
+                entry_signal_tx.send(entry.into()).ok();
+            }
+            if let Ok(exit) = exit_metadata_rx.await {
+                exit_signal_tx.send(exit.into()).ok();
+            }
+        });
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
@@ -126,69 +184,43 @@ impl Connector {
                 .persistent_credential_storage()
                 .await
                 .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
-            let bw = BandwidthController::new(
-                storage,
-                network,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
-                shutdown,
-                cancel_token.clone(),
-            )?;
-            let entry_fut = bw.get_initial_bandwidth(
-                TicketType::V1WireguardEntry,
-                gateway_directory_client.clone(),
+
+            let controller = nym_bandwidth_controller::BandwidthController::new(storage, client);
+
+            let (bw, connection_data) = BandwidthController::register_and_create(
+                controller,
+                &gateway_directory_client,
+                selected_gateways,
                 &mut wg_entry_gateway_client,
-            );
-            let exit_fut = bw.get_initial_bandwidth(
-                TicketType::V1WireguardExit,
-                gateway_directory_client.clone(),
                 &mut wg_exit_gateway_client,
-            );
-
-            let (entry, exit) = Box::pin(
-                cancel_token.run_until_cancelled(async { tokio::try_join!(entry_fut, exit_fut) }),
+                entry_signal_rx,
+                exit_signal_rx,
+                network.gw_update_version(),
+                shutdown,
+                cancel_token,
             )
-            .await
-            .ok_or(tunnel::Error::Cancelled)??;
-
+            .await?;
             let bandwidth_controller_handle = tokio::spawn(bw.run());
-
-            (ConnectionData { entry, exit }, bandwidth_controller_handle)
+            (connection_data, bandwidth_controller_handle)
         } else {
             let storage = EphemeralCredentialStorage::default();
-            let bw = BandwidthController::new(
-                storage,
-                network,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
+            let controller = nym_bandwidth_controller::BandwidthController::new(storage, client);
+            let (bw, connection_data) = BandwidthController::register_and_create(
+                controller,
+                &gateway_directory_client,
+                selected_gateways,
+                &mut wg_entry_gateway_client,
+                &mut wg_exit_gateway_client,
+                entry_signal_rx,
+                exit_signal_rx,
+                network.gw_update_version(),
                 shutdown,
-                cancel_token.clone(),
-            )?;
-            let entry = bw
-                .get_initial_bandwidth(
-                    TicketType::V1WireguardEntry,
-                    gateway_directory_client.clone(),
-                    &mut wg_entry_gateway_client,
-                )
-                .await?;
-            let exit = bw
-                .get_initial_bandwidth(
-                    TicketType::V1WireguardExit,
-                    gateway_directory_client,
-                    &mut wg_exit_gateway_client,
-                )
-                .await?;
-
+                cancel_token,
+            )
+            .await?;
             let bandwidth_controller_handle = tokio::spawn(bw.run());
-
-            (ConnectionData { entry, exit }, bandwidth_controller_handle)
+            (connection_data, bandwidth_controller_handle)
         };
-
-        if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
-            auth_client.send_stats_event(
-                ConnectionStatsEvent::WgCountry(exit_country_code.to_string()).into(),
-            );
-        }
 
         Ok(ConnectResult {
             entry_gateway_client: wg_entry_gateway_client,
@@ -197,19 +229,6 @@ impl Connector {
             bandwidth_controller_handle,
             auth_client_mixnet_listener_handle: mixnet_listener,
         })
-    }
-
-    fn setup_auth_addresses(entry: &Gateway, exit: &Gateway) -> Result<AuthAddresses> {
-        let entry_authenticator_address = entry
-            .authenticator_address
-            .ok_or(Error::AuthenticatorAddressNotFound)?;
-        let exit_authenticator_address = exit
-            .authenticator_address
-            .ok_or(Error::AuthenticatorAddressNotFound)?;
-        Ok(AuthAddresses::new(
-            entry_authenticator_address,
-            exit_authenticator_address,
-        ))
     }
 }
 

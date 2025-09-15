@@ -3,7 +3,7 @@
  * Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
  */
 
-package udp_forwarder
+package forwarders
 
 import (
 	"net"
@@ -20,45 +20,41 @@ const UDP_WRITE_TIMEOUT = time.Duration(5) * time.Second
 const MAX_UDP_DATAGRAM_LEN = 65535
 
 type UDPForwarderConfig struct {
-	// Listen port for incoming WireGuard traffic.
-	// For IPv4 exit endpoint, the listening port is bound to 127.0.0.1, for IPv6 it's ::1.
+	// Listen port for incoming UDP traffic.
+	// For IPv4 endpoint, the listening port is bound to 127.0.0.1, for IPv6 it's ::1.
 	ListenPort uint16
 
-	// Client port on loopback from which the incoming WireGuard connection will be received.
-	// Only packets from this port will be passed through to the exit endpoint.
+	// Client port on loopback from which the incoming connection will be received.
+	// Only packets from this port will be passed through to the endpoint.
 	ClientPort uint16
 
-	// Exit endpoint which will receive the raw WireGuard packets received on the listen port.
-	// The connection to exit endpoint is established over the entry tunnel, thus it creates
-	// a tunnel inside of tunnel.
-	ExitEndpoint netip.AddrPort
+	// Endpoint to connect to over netstack
+	Endpoint netip.AddrPort
 }
 
-// UDP forwarder that creates a bidirectional connection between a local and exit UDP endpoints
-// over the netstack-based WireGuard tunnel.
+// UDP forwarder that creates a bidirectional in-tunnel connection between a local and remote UDP endpoints
 type UDPForwarder struct {
-	// Logger.
 	logger *device.Logger
 
-	// Netstack tunnel wrapping the inbound WireGuard traffic.
+	// Netstack tunnel
 	tnet *netstack.Net
 
-	// UDP listener that receives inbound WireGuard traffic destined to exit endpoint.
+	// UDP listener that receives inbound traffic piped to the remote endpoint
 	listener *net.UDPConn
 
-	// Outbound connection to the exit endpoint over the entry tunnel.
+	// Outbound connection to the remote endpoint over the entry tunnel
 	outbound *gonet.UDPConn
 
-	// Wait group used to signal when all goroutines have finished execution.
+	// Wait group used to signal when all goroutines have finished execution
 	waitGroup *sync.WaitGroup
 }
 
-func New(config UDPForwarderConfig, tnet *netstack.Net, logger *device.Logger) (*UDPForwarder, error) {
+func NewUDPForwarder(config UDPForwarderConfig, tnet *netstack.Net, logger *device.Logger) (*UDPForwarder, error) {
 	var listenAddr *net.UDPAddr
 	var clientAddr *net.UDPAddr
 
-	// Use the same ip protocol family as exit endpoint.
-	if config.ExitEndpoint.Addr().Is4() {
+	// Use the same ip protocol family as endpoint
+	if config.Endpoint.Addr().Is4() {
 		loopback := netip.AddrFrom4([4]byte{127, 0, 0, 1})
 		listenAddr = net.UDPAddrFromAddrPort(netip.AddrPortFrom(loopback, config.ListenPort))
 		clientAddr = net.UDPAddrFromAddrPort(netip.AddrPortFrom(loopback, config.ClientPort))
@@ -72,7 +68,7 @@ func New(config UDPForwarderConfig, tnet *netstack.Net, logger *device.Logger) (
 		return nil, err
 	}
 
-	outbound, err := tnet.DialUDPAddrPort(netip.AddrPort{}, config.ExitEndpoint)
+	outbound, err := tnet.DialUDPAddrPort(netip.AddrPort{}, config.Endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -87,18 +83,22 @@ func New(config UDPForwarderConfig, tnet *netstack.Net, logger *device.Logger) (
 	}
 
 	waitGroup.Add(2)
-	go wrapper.RoutineHandleInbound(listener, outbound, clientAddr)
-	go wrapper.RoutineHandleOutbound(listener, outbound, clientAddr)
+	go wrapper.routineHandleInbound(listener, outbound, clientAddr)
+	go wrapper.routineHandleOutbound(listener, outbound, clientAddr)
 
 	return wrapper, nil
 }
 
+func (w *UDPForwarder) GetListenAddr() net.Addr {
+	return w.listener.LocalAddr()
+}
+
 func (w *UDPForwarder) Close() {
-	// Close all connections. This should release any blocking ReadFromUDP() calls.
+	// Close all connections. This should release any blocking ReadFromUDP() calls
 	w.listener.Close()
 	w.outbound.Close()
 
-	// Wait for all routines to complete.
+	// Wait for all routines to complete
 	w.waitGroup.Wait()
 }
 
@@ -106,12 +106,13 @@ func (w *UDPForwarder) Wait() {
 	w.waitGroup.Wait()
 }
 
-func (w *UDPForwarder) RoutineHandleInbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
+func (w *UDPForwarder) routineHandleInbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
 	defer w.waitGroup.Done()
+	defer outbound.Close()
 
 	inboundBuffer := make([]byte, MAX_UDP_DATAGRAM_LEN)
 
-	w.logger.Verbosef("udpforwarder(inbound): listening on %s", inbound.LocalAddr().String())
+	w.logger.Verbosef("udpforwarder(inbound): listening on %s (proxy to %s)", inbound.LocalAddr().String(), outbound.RemoteAddr().String())
 	defer w.logger.Verbosef("udpforwarder(inbound): closed")
 
 	for {
@@ -119,37 +120,40 @@ func (w *UDPForwarder) RoutineHandleInbound(inbound *net.UDPConn, outbound *gone
 		bytesRead, senderAddr, err := inbound.ReadFromUDP(inboundBuffer)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
-			// todo: handle error
 			return
 		}
 
-		// Drop packet from unknown sender.
+		// Drop packet from unknown sender
 		if !senderAddr.IP.IsLoopback() || senderAddr.Port != clientAddr.Port {
 			w.logger.Verbosef("udpforwarder(inbound): drop packet from unknown sender: %s, expected: %s.", senderAddr.String(), clientAddr.String())
 			continue
 		}
 
-		// Set write timeout for outbound.
+		// Set write timeout for outbound
 		deadline := time.Now().Add(UDP_WRITE_TIMEOUT)
 		err = outbound.SetWriteDeadline(deadline)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
 		}
 
-		// Forward the packet over the outbound connection via another WireGuard tunnel.
-		_, err = outbound.Write(inboundBuffer[:bytesRead])
+		// Forward the packet over the outbound connection via another WireGuard tunnel
+		bytesWritten, err := outbound.Write(inboundBuffer[:bytesRead])
 		if err != nil {
 			w.logger.Errorf("udpforwarder(inbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
+		}
+
+		// todo: is it possible?
+		if bytesWritten != bytesRead {
+			w.logger.Errorf("udpforwarder(inbound): wrote %d bytes, expected %d", bytesWritten, bytesRead)
 		}
 	}
 }
 
-func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
+func (w *UDPForwarder) routineHandleOutbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
 	defer w.waitGroup.Done()
+	defer inbound.Close()
 
 	remoteAddr := outbound.RemoteAddr().(*net.UDPAddr)
 	w.logger.Verbosef("udpforwarder(outbound): dial %s", remoteAddr.String())
@@ -158,11 +162,10 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 	outboundBuffer := make([]byte, MAX_UDP_DATAGRAM_LEN)
 
 	for {
-		// Receive WireGuard packet from remote server.
+		// Receive WireGuard packet from remote server
 		bytesRead, senderAddr, err := outbound.ReadFrom(outboundBuffer)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
-			// todo: handle error
 			return
 		}
 		// Cast net.Addr to net.UDPAddr
@@ -174,21 +177,24 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 			continue
 		}
 
-		// Set write timeout for inbound.
+		// Set write timeout for inbound
 		deadline := time.Now().Add(UDP_WRITE_TIMEOUT)
 		err = inbound.SetWriteDeadline(deadline)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
 		}
 
-		// Forward packet from remote to local client.
-		_, err = inbound.WriteToUDP(outboundBuffer[:bytesRead], clientAddr)
+		// Forward packet from remote to local client
+		bytesWritten, err := inbound.WriteToUDP(outboundBuffer[:bytesRead], clientAddr)
 		if err != nil {
 			w.logger.Errorf("udpforwarder(outbound): %s", err.Error())
-			// todo: handle error
-			continue
+			return
+		}
+
+		// todo: is it possible?
+		if bytesWritten != bytesRead {
+			w.logger.Errorf("udpforwarder(outbound): wrote %d bytes, expected %d", bytesWritten, bytesRead)
 		}
 	}
 }

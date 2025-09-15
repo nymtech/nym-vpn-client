@@ -170,7 +170,6 @@ async fn main() -> Result<()> {
             let db = match Db::new() {
                 Ok(db) => db,
                 Err(e) => {
-                    error!("failed to open the embedded db: {e}");
                     startup_error::create_window(
                         app.handle(),
                         StartupError::new(ErrorKey::from(&e), Some(e.to_string())),

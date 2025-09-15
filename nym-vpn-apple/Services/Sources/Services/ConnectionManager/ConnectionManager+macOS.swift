@@ -85,6 +85,15 @@ extension ConnectionManager {
                 }
             }
             .store(in: &cancellables)
+
+        grpcManager.$tunnelConnectingState
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newState in
+                MainActor.assumeIsolated {
+                    self?.tunnelConnectingState = newState
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 

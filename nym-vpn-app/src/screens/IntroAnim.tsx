@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { S_STATE } from '../static';
 
 let initialized = false;
 const splashDuration = 1000; // 1s, duration of the animation
 
-function IntroAnim() {
+function IntroAnim({ theme }: { theme: 'light' | 'dark' }) {
   const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
@@ -22,7 +21,7 @@ function IntroAnim() {
   }, []);
 
   return (
-    <div className={clsx([S_STATE.uiTheme === 'dark' && 'dark'])}>
+    <div className={clsx([theme === 'dark' && 'dark'])}>
       <AnimatePresence>
         {!completed && (
           <motion.div

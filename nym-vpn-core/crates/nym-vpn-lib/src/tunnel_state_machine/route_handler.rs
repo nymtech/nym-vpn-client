@@ -12,11 +12,6 @@ use nym_routing::NetNode;
 pub use nym_routing::{Callback, CallbackHandle};
 use nym_routing::{Node, RequiredRoute, RouteManagerHandle};
 
-#[cfg(target_os = "linux")]
-pub const TUNNEL_TABLE_ID: u32 = 0x14d;
-#[cfg(target_os = "linux")]
-pub const TUNNEL_FWMARK: u32 = 0x14d;
-
 pub enum RoutingConfig {
     Mixnet {
         tun_name: String,
@@ -25,12 +20,26 @@ pub enum RoutingConfig {
         entry_gateway_address: IpAddr,
     },
     Wireguard {
+        /// Entry tunnel name
         entry_tun_name: String,
+
+        /// Exit tunnel name
         exit_tun_name: String,
+
+        /// Entry tunnel MTU
         entry_tun_mtu: u16,
+
+        /// Exit tunnel MTU
         exit_tun_mtu: u16,
+
+        /// Private (in-tunnel) gateway IP
+        private_entry_gateway_address: IpAddr,
+
+        /// Public entry gateway IP
         #[cfg(not(target_os = "linux"))]
         entry_gateway_address: IpAddr,
+
+        /// Public exit gateway IP
         exit_gateway_address: IpAddr,
     },
     WireguardNetstack {
@@ -41,18 +50,40 @@ pub enum RoutingConfig {
     },
 }
 
+#[cfg(target_os = "linux")]
+#[derive(Debug, Copy, Clone)]
+pub struct RoutingParameters {
+    /// Routing table id used for routing all traffic through the tunnel.
+    pub table_id: u32,
+
+    /// Firewall mark used for marking traffic that should bypass the tunnel.
+    pub fwmark: u32,
+}
+
+#[cfg(target_os = "linux")]
+impl Default for RoutingParameters {
+    fn default() -> Self {
+        Self {
+            table_id: crate::TUNNEL_TABLE_ID,
+            fwmark: crate::TUNNEL_FWMARK,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct RouteHandler {
     route_manager: RouteManagerHandle,
 }
 
 impl RouteHandler {
-    pub async fn new() -> Result<Self> {
+    pub async fn new(
+        #[cfg(target_os = "linux")] routing_parameters: RoutingParameters,
+    ) -> Result<Self> {
         let route_manager = RouteManagerHandle::spawn(
             #[cfg(target_os = "linux")]
-            TUNNEL_TABLE_ID,
+            routing_parameters.table_id,
             #[cfg(target_os = "linux")]
-            TUNNEL_FWMARK,
+            routing_parameters.fwmark,
         )
         .await?;
         Ok(Self { route_manager })
@@ -138,6 +169,7 @@ impl RouteHandler {
                 exit_tun_name,
                 entry_tun_mtu,
                 exit_tun_mtu,
+                private_entry_gateway_address,
                 #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
                 exit_gateway_address,
@@ -148,6 +180,11 @@ impl RouteHandler {
                     NetNode::DefaultNode,
                 ));
 
+                routes.insert(Self::get_in_tunnel_gateway_entry_route(
+                    private_entry_gateway_address,
+                    entry_tun_name.clone(),
+                    entry_tun_mtu,
+                ));
                 routes.insert(Self::get_multihop_exit_route(
                     exit_gateway_address,
                     entry_tun_name,
@@ -179,6 +216,30 @@ impl RouteHandler {
         }
 
         routes
+    }
+
+    fn get_in_tunnel_gateway_entry_route(
+        in_tunnel_gateway_address: IpAddr,
+        iface: String,
+        _mtu: u16,
+    ) -> RequiredRoute {
+        #[allow(unused_mut)]
+        let mut route = RequiredRoute::new(
+            IpNetwork::from(in_tunnel_gateway_address),
+            Node::device(iface),
+        );
+
+        #[cfg(target_os = "linux")]
+        {
+            route = route.use_main_table(false);
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            route = route.mtu(_mtu);
+        }
+
+        route
     }
 
     fn get_multihop_exit_route(ip_addr: IpAddr, iface: String, _mtu: u16) -> RequiredRoute {

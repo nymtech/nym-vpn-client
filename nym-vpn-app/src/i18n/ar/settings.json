@@ -4,8 +4,8 @@
     "desc": "الاتصال التلقائي عند تشغيل التطبيق"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "نفق حركة مرور IPv6",
+    "desc": "تعطيل لاستخدام IPv4 فقط"
   },
   "notifications": {
     "title": "إشعارات سطح المكتب"
@@ -14,8 +14,8 @@
   "support": {
     "title": "الدعم",
     "faq": "تحقق من الأسئلة الشائعة",
-    "contact": "Contact support",
-    "telegram": "Chat on Telegram",
+    "contact": "Get in touch",
+    "telegram": "الدردشة على تيليجرام",
     "github": "إرسال مشكلة إلى GitHub",
     "matrix": "انضم إلينا على Matrix",
     "discord": "انضم إلينا على Discord"
@@ -32,15 +32,15 @@
   "logs": {
     "title": "السجلات",
     "desc": "نسخ أو مسح السجلات",
-    "app": "App logs",
-    "daemon": "Daemon logs"
+    "app": "سجلات التطبيق",
+    "daemon": "سجلات دايمون"
   },
   "faq": "الأسئلة الشائعة",
   "display-theme": "نمط العرض",
   "logout-confirmation": {
     "title": "هل أنت متأكد؟",
     "description": "يمكنك استخدام عبارة الاسترداد لتسجيل الدخول مرة أخرى.",
-    "logging-out": "Logging out…"
+    "logging-out": "تسجيل الخروج…"
   },
   "quit": "اغلاق NymVPN",
   "login-button": "تسجيل الدخول",
@@ -48,39 +48,39 @@
     "client-version": "نسخة العميل",
     "daemon-version": "نسخة الديمن",
     "network-name": "الشبكة",
-    "account-id": "Account ID",
-    "device-id": "Device ID"
+    "account-id": "معرف الحساب",
+    "device-id": "معرف الجهاز"
   },
   "autostart": {
     "title": "Autostart",
-    "desc": "Launch NymVPN when system starts"
+    "desc": "تشغيل NymVPN عند بدء تشغيل النظام"
   },
   "killswitch": {
-    "title": "Killswitch",
-    "desc": "Disconnect if the internet drops"
+    "title": "كيلتبديل",
+    "desc": "قطع الاتصال إذا انخفض الإنترنت"
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "تقارير الأخطاء و الأعطال",
+      "sublabel": "سيتم تطبيق التغييرات بعد التطبيق وإعادة تشغيل ديميون.",
+      "desc": "إرسال معلومات الأعطال لمساعدتنا على إصلاح الأخطاء أسرع. التقارير تمر عبر نظام Sentry's الآمن وتشمل بيانات تصحيح الأخطاء التقنية فقط.",
+      "link": "عرض سياسة خصوصية الحراسة"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "إحصائيات الشبكة المجهولة",
+      "sublabel": "سيتم تطبيق التغييرات بعد إعادة تشغيل daemon.",
+      "desc1": "ساعدنا على بناء شبكة أسرع من خلال مشاركة بيانات الأداء المجهولة من منطقتك. نحن نستخدم هذا لتحسين السرعة، وتقليل قطع الاتصالات، وتوجيه تغطية الخوادم حيث هي في أمس الحاجة إليها.",
+      "desc2": "يتم مشاركة بيانات أداء الشبكة فقط - لا نشاط التصفح الخاص بك أو البيانات الشخصية أبدا.",
+      "link": "تعلم بالضبط ما هو مشترك"
     }
   },
   "account": {
-    "get-started": "Get started",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
-    "error": "Internal error"
+    "get-started": "بدء التشغيل",
+    "syncing": "مزامنة…",
+    "no-plan": "لا توجد خطة نشطة",
+    "bandwidth-exceeded": "تم تجاوز العرض الترددي",
+    "max-device-reached": "وصل الحد الأقصى للأجهزة",
+    "status-inactive": "الحساب غير نشط",
+    "error": "خطأ داخلي"
   }
 }

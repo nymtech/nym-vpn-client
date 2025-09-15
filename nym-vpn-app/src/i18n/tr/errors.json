@@ -9,8 +9,6 @@
   "grpc": "Dahili gRPC hatası",
   "tunnel": {
     "internal": "Dahili hata",
-    "api": "API hatası",
-    "account-controller": "Account controller: internal error",
     "firewall": "Güvenlik duvarı hatası",
     "routing": "Yönlendirme hatası",
     "dns": "DNS hatası",
@@ -21,21 +19,26 @@
     "bandwidth-exceeded": "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin.",
     "subscription-expired": "Aboneliğinizin süresi doldu. Lütfen hesabınız için bir plan satın alın.",
     "device-time-out-of-sync": "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin.",
-    "ipv6-unavailable": "Sistemde IPv6 desteklenmiyor. IPv4 kullanmak için ayarlardan IPv6’yı devre dışı bırakın."
+    "ipv6-unavailable": "Sistemde IPv6 desteklenmiyor. IPv4 kullanmak için ayarlardan IPv6’yı devre dışı bırakın.",
+    "tun-device": "TUN aygıt hatası",
+    "tunnel-provider": "Tünel sağlayıcısı hatası",
+    "bad-bandwidth-increase": "Bant genişliğini artırmak için girilen değer geçersiz",
+    "inactive-account": "Hesabınız aktif değil",
+    "device-logged-out": "Bu cihazdan çıkış yapılmış. VPN’i kullanmaya devam etmek için lütfen tekrar giriş yapın."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "Dahili hesap hatası",
+    "max-devices-reached": "Hesap cihaz limiti aşıldı.",
+    "bandwidth-exceeded": "Bant genişliği aşıldı. Lütfen hesap planınızı yükseltin.",
     "invalid-recovery-phrase": "Geçersiz erişim kodu",
     "storage": "Depolama arka ucu hatası",
     "is-connected": "Bağlantı varken işlem yapılamıyor",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "no-account-stored": "Hesap kaydedilmedi",
+    "no-device-stored": "Kayıtlı cihaz yok",
+    "existing-account": "Hesap zaten mevcut",
+    "no-subscription": "Aktif bir planınız yok. Anonim gezintiye başlamak için “Başlayın”a dokunun.",
+    "status-not-active": "Hesabınız aktif değil",
+    "device-time-out-of-sync": "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin."
   },
   "countries-request": {
     "entry": "Kullanılabilir giriş node ülke bilgileri alınamadı",
@@ -43,15 +46,15 @@
     "fast-mode": "Mevcut ülkelerin bilgisine ulaşılamadı"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "Kalan veri kotası yok",
+    "entry-gateway-down": "Entry gateway kapalı",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "Exit gateway kapalı (IPv4)",
+      "ipv6": "Exit gateway kapalı (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "Exit gateway yönlendirme hatası (IPv4)",
+      "ipv6": "Exit gateway yönlendirme hatası (IPv6)"
     }
   }
 }

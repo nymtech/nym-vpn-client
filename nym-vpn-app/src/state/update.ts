@@ -25,13 +25,10 @@ export function updateTunnel(state: TunnelStateIpc, dispatch: StateDispatch) {
     return;
   }
   if (isTunnelConnecting(state)) {
-    console.log('tunnel [connecting]');
+    console.log(`tunnel [connecting] ${state.connecting.progress}`);
     dispatch({
       type: 'set-tunnel-connecting',
-      payload: {
-        tunnel: state.connecting.tunnel,
-        retryAttempt: state.connecting.retryAttempt,
-      },
+      state: state.connecting,
     });
     return;
   }

@@ -1,8 +1,12 @@
 {
   "connection-progress": {
-    "Initializing": "در حال آماده‌سازی کلاینت Nym VPN…",
-    "InitDone": "کلاینت Nym VPN راه‌اندازی شد",
-    "Canceling": "درحال لغو کردن…"
+    "canceling": "Canceling…",
+    "resolving-api-addresses": "Resolving API addresses…",
+    "awaiting-account-readiness": "Awaiting for account readiness…",
+    "refreshing-gateways": "Refreshing gateways…",
+    "selecting-gateways": "Selecting gateways…",
+    "connecting-mixnet-client": "Connecting to the mixnet client…",
+    "connecting-tunnel": "Connecting to the VPN tunnel…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",
   "connection-attempt_other": "retrying… attempts {{count}}"

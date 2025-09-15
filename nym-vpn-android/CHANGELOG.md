@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Themed icons support (https://github.com/nymtech/nym-vpn-client/pull/3429)
+
+## [2.0.0] - 2025-09-10
+
+### Added
+- Disengage the kill switch screens and functionality (https://github.com/nymtech/nym-vpn-client/pull/3360)
+
+### Changed
+- Updated error messages (https://github.com/nymtech/nym-vpn-client/pull/3354)
+- Updated connection data (https://github.com/nymtech/nym-vpn-client/pull/3354)
+
+### Fixed
+- Fix the backstack for Welcome screen (https://github.com/nymtech/nym-vpn-client/pull/3366)
 
 ## [1.9.1] - 2025-08-29
 

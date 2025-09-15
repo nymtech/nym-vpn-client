@@ -15,7 +15,7 @@ pub use nym_vpn_api_client::types::{
 pub use crate::{
     caching_client::CachingGatewayClient,
     entries::{
-        auth_addresses::{AuthAddress, AuthAddresses},
+        auth_addresses::AuthAddress,
         country::Country,
         entry_point::EntryPoint,
         exit_point::ExitPoint,
@@ -27,5 +27,5 @@ pub use crate::{
     },
     error::Error,
     gateway_client::{Config, GatewayClient, ResolvedConfig},
-    helpers::resolve_config,
+    helpers::{resolve_config, split_ips},
 };

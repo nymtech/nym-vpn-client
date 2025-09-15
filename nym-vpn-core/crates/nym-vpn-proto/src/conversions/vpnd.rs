@@ -1,7 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, str::FromStr};
+use std::{
+    net::{Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    str::FromStr,
+};
 
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use url::Url;
@@ -185,6 +189,20 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
         let wg_score = gateway
             .wg_score
             .map(nym_vpnd_types::gateway::Score::from_i32);
+
+        let exit_ipv4s = gateway
+            .exit_ipv4s
+            .iter()
+            .map(|ip| Ipv4Addr::from_str(ip))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| ConversionError::ParseAddr("GatewayResponse.exit_ipv4s", e))?;
+        let exit_ipv6s = gateway
+            .exit_ipv6s
+            .iter()
+            .map(|ip| Ipv6Addr::from_str(ip))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| ConversionError::ParseAddr("GatewayResponse.exit_ipv6s", e))?;
+        let build_version = gateway.build_version;
         Ok(Self {
             identity_key,
             moniker,
@@ -192,6 +210,9 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             last_probe,
             wg_score,
             mixnet_score,
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version,
         })
     }
 }
@@ -204,6 +225,9 @@ impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
         let location = gateway.location.map(proto::Location::from);
         let last_probe = gateway.last_probe.map(proto::Probe::from);
         let moniker = gateway.moniker;
+        let exit_ipv4s = gateway.exit_ipv4s.iter().map(|ip| ip.to_string()).collect();
+        let exit_ipv6s = gateway.exit_ipv6s.iter().map(|ip| ip.to_string()).collect();
+        let build_version = gateway.build_version;
         proto::GatewayResponse {
             id,
             location,
@@ -215,6 +239,9 @@ impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
                 .mixnet_score
                 .map(|score| proto::Score::from(score) as i32),
             moniker,
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version,
         }
     }
 }

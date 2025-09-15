@@ -112,52 +112,61 @@ private extension GatewaysView {
         if viewModel.searchText.count >= viewModel.minimumSearchSymbols,
            viewModel.foundGateways.isEmpty,
            viewModel.foundCountries.isEmpty {
-            VStack {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("search.noResults".localizedString)
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Large.regular)
-                    .padding(.horizontal, 8)
                 Spacer()
                     .frame(height: 16)
                 Text("search.noResultsSubtitle".localizedString)
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Large.regular)
-                    .padding(.horizontal, 8)
                 Spacer()
-                    .frame(height: 4)
+                    .frame(height: 8)
 
                 contactUsForHelpLinkView()
                 Spacer()
                     .frame(height: 4)
             }
+            .padding(.horizontal, 16)
         }
     }
 
     @ViewBuilder
     func contactUsForHelpLinkView() -> some View {
-        if let newSupportRequestURL = URL(string: Constants.newSupportRequest.rawValue),
-           let operatorURL = URL(string: Constants.operatorDocs.rawValue) {
-            HStack(alignment: .top, spacing: 0) {
-                Link(destination: newSupportRequestURL) {
-                    Text("search.contactUsForHelp".localizedString)
-                        .underline()
-                        .foregroundStyle(NymColor.gray1)
-                        .textStyle(.Body.Large.regular)
-                }
-
-                Text(" \("search.or".localizedString) ")
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Large.regular)
-
-                Link(destination: operatorURL) {
-                    Text("search.howToRunGateway".localizedString)
-                        .underline()
-                        .foregroundStyle(NymColor.gray1)
-                        .textStyle(.Body.Large.regular)
-                }
-            }
-            .padding(.horizontal, 8)
+        if let attributtedText = contactUsForHelpAttributedString() {
+            Text(attributtedText)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Large.regular)
         }
+    }
+
+    func contactUsForHelpAttributedString() -> AttributedString? {
+        guard let newSupportRequestURL = URL(string: Constants.newSupportRequest.rawValue),
+              let operatorURL = URL(string: Constants.operatorDocs.rawValue)
+        else {
+            return nil
+        }
+
+        let contactUs = "search.contactUsForHelp".localizedString
+        let orText = "search.or".localizedString
+        let howToRun = "search.howToRunGateway".localizedString
+        let markdown = "[\(contactUs)](\(newSupportRequestURL.absoluteString)) \(orText) [\(howToRun)](\(operatorURL.absoluteString))."
+
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
+
+        guard var attributed = try? AttributedString(markdown: markdown, options: options)
+        else {
+            return nil
+        }
+
+        for run in attributed.runs where run.link != nil {
+            attributed[run.range].underlineStyle = .single
+            attributed[run.range].foregroundColor = NymColor.gray1
+        }
+        return attributed
     }
 
     @ViewBuilder

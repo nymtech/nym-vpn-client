@@ -1,9 +1,9 @@
 {
   "title": "خوش آمدید به NymVPN",
-  "description": "به ما با شناسایی و حل مشکلات کمک کنید تا اپلیکیشن را بهبود ببخشیم. برای نظارت و آنالیز بر خطاها به‌صورت ناشناس (از طریق <sentryLink />)، هر زمان که مایل بودید می‌توانید انصراف دهید. از حمایت شما متشکریم!",
+  "description": "به ما با شناسایی و حل مشکلات کمک کنید تا اپلیکیشن را بهبود ببخشیم. برای نظارت و آنالیز خطاها به‌صورت ناشناس (از طریق <sentryLink />)، هر زمان که مایل بودید می‌توانید انصراف دهید. از حمایت شما متشکریم!",
   "anon-toggle-desc": "بعد از راه‌اندازی مجدد برنامه اعمال می‌شود",
   "tos-notice": "با ادامه دادن، شما با <tosLink /> NymVPN و <privacyLink /> NymVPN موافقت می‌کنید.",
   "continue-button": "ادامه",
-  "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Anonymous network stats"
+  "error-monitoring-label": "گزارش خطا به صورت ناشناس",
+  "network-statistic": "آمار ناشناس شبکه"
 }

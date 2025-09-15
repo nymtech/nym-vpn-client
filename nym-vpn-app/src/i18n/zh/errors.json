@@ -9,8 +9,6 @@
   "grpc": "内部gRPC错误",
   "tunnel": {
     "internal": "内部错误",
-    "api": "API 错误",
-    "account-controller": "Account controller: internal error",
     "firewall": "防火墙错误",
     "routing": "路由错误",
     "dns": "DNS 错误",
@@ -21,21 +19,26 @@
     "bandwidth-exceeded": "超过月带宽。请升级您的帐户计划。",
     "subscription-expired": "订阅已过期。请为您的帐户购买计划。",
     "device-time-out-of-sync": "设备时间不同步。请将您的设备时间与互联网同步。",
-    "ipv6-unavailable": "IPv6在系统中不可用。请在设置中禁用以使用IPv4"
+    "ipv6-unavailable": "IPv6在系统中不可用。请在设置中禁用以使用IPv4",
+    "tun-device": "TUN 设备错误",
+    "tunnel-provider": "隧道提供者错误",
+    "bad-bandwidth-increase": "无效的带宽增加值",
+    "inactive-account": "您的帐户处于非活动状态",
+    "device-logged-out": "此设备已注销。请登录以继续使用 VPN。"
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "内部账号错误",
+    "max-devices-reached": "账号允许同时连接的设备数量达到上限。",
+    "bandwidth-exceeded": "您的网络使用已达到当前方案的上限，升级账户即可继续畅享服务。",
     "invalid-recovery-phrase": "访问代码无效",
     "storage": "存储后端错误",
     "is-connected": "连接时无法继续",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "no-account-stored": "当前无可用账户",
+    "no-device-stored": "未检测到关联设备",
+    "existing-account": "账号已经存在",
+    "no-subscription": "您没有可用的订阅。点击“开始使用”即可开启匿名浏览。",
+    "status-not-active": "您的账户当前处于未激活状态",
+    "device-time-out-of-sync": "设备时间不同步，请将设备时间保持与互联网时间同步。"
   },
   "countries-request": {
     "entry": "获取可用的条目节点国家失败",
@@ -43,15 +46,15 @@
     "fast-mode": "获取可用国家失败"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "数据流量已用尽",
+    "entry-gateway-down": "入口网关不可用",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "出口网关不可用（IPv4）",
+      "ipv6": "出口网关不可用（IPv6）"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "出口网关路由故障（IPv4）",
+      "ipv6": "出口网关路由故障（IPv6）"
     }
   }
 }

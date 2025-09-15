@@ -1,7 +1,7 @@
 use crate::{
     db::{Db, Key},
     error::{BackendError, ErrorKey},
-    events::{AppHandleEventEmitter, ConnectProgressMsg},
+    events::AppHandleEventEmitter,
     grpc::{
         client::{GrpcClient, NodeConnect, VpndError},
         tunnel::{ConnectingState, TunnelState},
@@ -45,8 +45,6 @@ pub async fn connect(
     }
 
     app.emit_connecting();
-    app.emit_connection_progress(ConnectProgressMsg::Initializing);
-
     let app_state = state.lock().await;
     let vpn_mode = app_state.vpn_mode.clone();
 
@@ -80,7 +78,6 @@ pub async fn connect(
         .unwrap_or(None)
         .unwrap_or(false);
 
-    app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
         .vpn_connect(
             entry,

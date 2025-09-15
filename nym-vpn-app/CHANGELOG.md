@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- [Linux] Fix deb package version for prerelease builds, and description
+
+## [1.15.0] - 2025-09-10
+
+### Added
+
+- Add event progress messages while connecting, showing the steps daemon is
+  performing
+
+### Changed
+
+- Max and min window size adjusted to support exotic screen resolutions
+- Refactor UI early state initialization
+
+### Fixed
+
+- [Windows] Installer fails to uninstall daemon during upgrade
+- Fix in-app update popup not showing after the Welcome screen
+- Fix error window not opening on startup error
+
 ## [1.14.0] - 2025-08-26
 
 ### Added

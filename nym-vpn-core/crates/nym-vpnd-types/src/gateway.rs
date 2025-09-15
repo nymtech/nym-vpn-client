@@ -1,8 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use std::{
+    fmt,
+    net::{Ipv4Addr, Ipv6Addr},
+};
 
+use nym_gateway_directory::split_ips;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -13,6 +17,9 @@ pub struct Gateway {
     pub last_probe: Option<Probe>,
     pub mixnet_score: Option<Score>,
     pub wg_score: Option<Score>,
+    pub exit_ipv4s: Vec<Ipv4Addr>,
+    pub exit_ipv6s: Vec<Ipv6Addr>,
+    pub build_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -23,7 +30,6 @@ pub struct Location {
 }
 
 impl fmt::Display for Location {
-    #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.two_letter_iso_country_code)
     }
@@ -96,7 +102,6 @@ impl Country {
 }
 
 impl fmt::Display for Gateway {
-    #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let location = self
             .location
@@ -129,6 +134,9 @@ impl From<nym_gateway_directory::Country> for Country {
 
 impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
     fn from(node_description: nym_validator_client::models::NymNodeDescription) -> Self {
+        let build_version = Some(node_description.version().to_owned());
+        let (exit_ipv4s, exit_ipv6s) =
+            split_ips(node_description.description.host_information.ip_address);
         Self {
             identity_key: node_description
                 .description
@@ -141,6 +149,9 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
             last_probe: None,
             wg_score: None,
             mixnet_score: None,
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version,
         }
     }
 }
@@ -207,6 +218,7 @@ impl From<nym_gateway_directory::Probe> for Probe {
 
 impl From<nym_gateway_directory::Gateway> for Gateway {
     fn from(gateway: nym_gateway_directory::Gateway) -> Self {
+        let (exit_ipv4s, exit_ipv6s) = gateway.split_ips();
         Self {
             identity_key: gateway.identity.to_string(),
             moniker: gateway.moniker,
@@ -214,6 +226,9 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             last_probe: gateway.last_probe.map(Probe::from),
             wg_score: gateway.wg_score.map(Score::from),
             mixnet_score: gateway.mixnet_score.map(Score::from),
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version: gateway.version,
         }
     }
 }

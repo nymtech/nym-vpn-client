@@ -29,6 +29,7 @@ time = { workspace = true, features = ["serde-human-readable"] }
 tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true
+semver.workspace = true
 url = { workspace = true, features = ["serde"] }
 
 [build-dependencies]

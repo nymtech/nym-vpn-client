@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    net::{IpAddr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     time::Duration,
 };
 
@@ -80,4 +80,15 @@ pub async fn resolve_config(config: &Config) -> Result<ResolvedConfig> {
         api_socket_addrs,
         nym_vpn_api_socket_addrs,
     })
+}
+
+pub fn split_ips(ips: Vec<IpAddr>) -> (Vec<Ipv4Addr>, Vec<Ipv6Addr>) {
+    ips.into_iter()
+        .fold((vec![], vec![]), |(mut v4, mut v6), ip| {
+            match ip {
+                IpAddr::V4(ipv4_addr) => v4.push(ipv4_addr),
+                IpAddr::V6(ipv6_addr) => v6.push(ipv6_addr),
+            }
+            (v4, v6)
+        })
 }

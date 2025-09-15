@@ -127,7 +127,7 @@ function UpdateDialog() {
             })}
           </p>
           <p
-            className="md:text-nowrap text-baltic-sea dark:text-white"
+            className="md:text-nowrap text-baltic-sea dark:text-white text-center max-w-2/3"
             data-testid="update-dialog-description"
           >
             {t('app-update-available.restart-note')}

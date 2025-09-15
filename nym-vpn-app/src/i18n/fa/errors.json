@@ -9,8 +9,6 @@
   "grpc": "خطای gRPC داخلی",
   "tunnel": {
     "internal": "خطای داخلی",
-    "api": "خطای API",
-    "account-controller": "Account controller: internal error",
     "firewall": "خطای Firewall",
     "routing": "خطای مسیریابی",
     "dns": "خطای DNS",
@@ -21,21 +19,26 @@
     "bandwidth-exceeded": "بسته ماهانه شما به اتمام رسیده. لطفاَ بسته جدید بخرید.",
     "subscription-expired": "اشتراک شما منقضی شده است. لطفاً برای حساب خود یک طرح خریداری کنید.",
     "device-time-out-of-sync": "ساعت دستگاه همگام‌سازی نشده است. لطفا ساعت دستگاه خود را از طریق اینترنت همگام‌سازی کنید.",
-    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
+    "ipv6-unavailable": "IPv6 در سیستم در دسترس نیست. برای استفاده ازIPv4 آی‌پی‌وی‌۶ (IPv6) را در تنظیمات غیرفعال کنید",
+    "tun-device": "TUN device error",
+    "tunnel-provider": "Tunnel provider error",
+    "bad-bandwidth-increase": "Invalid bandwidth increase value",
+    "inactive-account": "Your account is inactive",
+    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN."
   },
   "account": {
-    "internal": "Internal account error",
-    "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "internal": "خطای داخلی حساب کاربری",
+    "max-devices-reached": "تجاوز از تعداد دستگاه‌های حساب کاربری.",
+    "bandwidth-exceeded": "ترافیک شما تمام شد لطفا حساب کاربری خود را شارژ کنید.",
     "invalid-recovery-phrase": "کد دسترسی نامعتبر است",
     "storage": "خطای ذخیره‌سازی",
     "is-connected": "قادر به ادامه دادن در حالی که متصل هستید نیست",
-    "no-account-stored": "No account stored",
-    "no-device-stored": "No device stored",
-    "existing-account": "Account already exists",
-    "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
-    "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "no-account-stored": "هیچ حساب کاربری ذخیره نشده است",
+    "no-device-stored": "هیچ دستگاهی ذخیره نشده است",
+    "existing-account": "حساب کاربری از قبل وجود دارد",
+    "no-subscription": "شما طرح فعالی ندارید. برای شروع وب‌گردی ناشناس، روی شروع ضربه بزنید.",
+    "status-not-active": "حساب شما غیرفعال است",
+    "device-time-out-of-sync": "ساعت دستگاه همگام‌سازی نشده است. لطفا ساعت دستگاه خود را از طریق اینترنت همگام‌سازی کنید."
   },
   "countries-request": {
     "entry": "دریافت کشورهای در دسترس برای گره ورودی ناموفق بود",
@@ -43,15 +46,15 @@
     "fast-mode": "دریافت کشورهای در دسترس ناموفق بود"
   },
   "mixnet": {
-    "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "no-bandwidth": "حجم‌ترافیک باقی نمانده است.",
+    "entry-gateway-down": "گیت‌وی‌های ورودی غیر‌‌‌‌‌فعال است",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "گیت‌وی خروجی غیرفعال است (IPv4)",
+      "ipv6": "گیت‌وی خروجی غیرفعال است (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "خطای مسیریابی گیت‌وی خروجی (IPv4)",
+      "ipv6": "خطای مسیریابی گیت‌وی خروجی (IPv6)"
     }
   }
 }

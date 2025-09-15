@@ -9,17 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
+
+### Fixed
+
+- Fix edgecase where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
+- Fix Sentry extra metadata tag when there is no OS extra info
+  (https://github.com/nymtech/nym-vpn-client/pull/3411)
+
+## [1.15.0] - 2025-09-10
+
+### Added
+
 - Provide metadata to keep track of progress when establishing connection (https://github.com/nymtech/nym-vpn-client/pull/3351)
 
 ### Fixed
 
 - [Windows] Embed core version into `winfw.dll` and `libwg.dll` (https://github.com/nymtech/nym-vpn-client/pull/3292)
 - Disable mixnet cover traffic in two-hop mode (https://github.com/nymtech/nym-vpn-client/pull/3347)
+- Prevent discovery file from becoming stale because it's only refreshed whilst connected (https://github.com/nymtech/nym-vpn-client/pull/3377)
 
 ### Changed
 
 - Daemon global and service configuration is now stored in JSON format, allowing versioning to be
   supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
+- Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
 
 ## [1.14.0] - 2025-08-26
 

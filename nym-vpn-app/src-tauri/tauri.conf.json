@@ -8,8 +8,8 @@
     "frontendDist": "../dist"
   },
   "bundle": {
-    "active": true,
-    "targets": ["deb", "appimage", "nsis", "app", "dmg"],
+    "active": false,
+    "longDescription": "NymVPN is a decentralized, mixnet hardened and privacy focused VPN.\n .\n Note: this is a client application and is intended to be used with\n the daemon service nym-vpnd.\n",
     "windows": {
       "nsis": {
         "template": "./bundle/windows/installer.nsi",
@@ -26,16 +26,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "macOS": {
-      "frameworks": [],
-      "minimumSystemVersion": "",
-      "exceptionDomain": "",
-      "signingIdentity": "Developer ID Application: Nym Technologies SA (VW5DZLFHM5)",
-      "entitlements": null
-    },
     "linux": {
       "deb": {
-        "depends": ["nym-vpnd (>= 1.15.0~beta)"],
+        "depends": ["nym-vpnd (>= 1.16.0~beta)"],
         "desktopTemplate": "./bundle/deb/main.desktop"
       }
     }

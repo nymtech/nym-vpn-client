@@ -134,8 +134,7 @@
     <string name="log_out_title">Çıkış yapmak istediğinizden emin misiniz?</string>
     <string name="log_out_body">Tekrar giriş yapabilmek için kurtarma cümlenize ihtiyacınız olacak.</string>
     <string name="cancel">Iptal et</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
-	<string name="info">Bilgi</string>
+    <string name="info">Bilgi</string>
     <string name="collapse">Daralt</string>
     <string name="expand">Genişlet</string>
     <string name="country_flag">%1$s bayrağı</string>

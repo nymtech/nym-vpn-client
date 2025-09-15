@@ -17,7 +17,7 @@ extension GRPCManager {
             case .timeout:
                 throw ErrorReason.apiTimeout
             case let .statusCode(code):
-                throw ErrorReason.api(String(code))
+                throw ErrorReason.apiStatusCode(String(code))
             case let .response(errorResponse):
                 throw ErrorReason.apiResponse(errorResponse.message)
             case .none:
@@ -48,7 +48,7 @@ extension GRPCManager {
             case .timeout:
                 throw ErrorReason.apiTimeout
             case let .statusCode(code):
-                throw ErrorReason.api(String(code))
+                throw ErrorReason.apiStatusCode(String(code))
             case let .response(errorResponse):
                 throw ErrorReason.apiResponse(errorResponse.message)
             case .none:

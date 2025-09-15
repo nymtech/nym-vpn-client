@@ -15,22 +15,31 @@ extension PacketTunnelProvider {
             do {
                 var retryAttempt: Int?
                 var afterDisconnectAction: AfterDisconnectAction?
+                var tunnelConnectingState: TunnelConnectingState?
 
                 switch tunnelState {
-                case let .connecting(retryAttempt: attempt, connectionData: _):
+                case let .connecting(
+                    retryAttempt: attempt,
+                    state: establishConnectionState,
+                    tunnelType: _,
+                    connectionData: _
+                ):
                     retryAttempt = Int(attempt)
+                    tunnelConnectingState = TunnelConnectingState(with: establishConnectionState)
                 case let .disconnecting(afterDisconnect: action):
                     afterDisconnectAction = AfterDisconnectAction.convert(from: action)
                 default:
                     retryAttempt = nil
                     afterDisconnectAction = nil
+                    tunnelConnectingState = nil
                 }
 
                 let statusResponse = await TunnelStatusResponse(
                     status: TunnelStatus(from: tunnelState),
                     retryAttempt: retryAttempt,
                     afterDisconnectAction: afterDisconnectAction,
-                    lastError: tunnelActor.lastError
+                    lastError: tunnelActor.lastError,
+                    tunnelConnectingState: tunnelConnectingState
                 )
                 return try JSONEncoder().encode(statusResponse)
             } catch {
@@ -50,6 +59,25 @@ private extension AfterDisconnectAction {
             .reconnect
         case .offline:
             .offline
+        }
+    }
+}
+
+private extension TunnelConnectingState {
+    init(with establishConnectionState: EstablishConnectionState) {
+        switch establishConnectionState {
+        case .resolvingApiAddresses:
+            self = .resolvingApiAddresses
+        case .awaitingAccountReadiness:
+            self = .awaitingAccountReadiness
+        case .refreshingGateways:
+            self = .refreshingGateways
+        case .selectingGateways:
+            self = .selectingGateways
+        case .connectingMixnetClient:
+            self = .connectingMixnetClient
+        case .connectingTunnel:
+            self = .connectingTunnel
         }
     }
 }

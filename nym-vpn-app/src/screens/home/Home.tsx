@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { type } from '@tauri-apps/plugin-os';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
-import { S_STATE } from '../../static';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
 import NetworkModeSelect from './NetworkModeSelect';
@@ -18,6 +18,8 @@ import UpdateDialog from './UpdateDialog';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
+const os = type();
+let welcomeInit = false;
 let compatChecked = false;
 
 function Home() {
@@ -29,6 +31,7 @@ function Home() {
     daemonStatus,
     account,
     networkCompat,
+    welcomeChecked,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
@@ -62,7 +65,7 @@ function Home() {
     ) {
       console.info('disconnect');
       if (state === 'connecting') {
-        dispatch({ type: 'new-progress-message', message: 'Canceling' });
+        dispatch({ type: 'new-progress-message', message: 'canceling' });
       }
       invoke('disconnect')
         .then((result) => {
@@ -100,10 +103,14 @@ function Home() {
   }, [networkCompat]);
 
   useEffect(() => {
-    if (!S_STATE.welcomeScreenSeen) {
+    if (welcomeInit) {
+      return;
+    }
+    welcomeInit = true;
+    if (!welcomeChecked) {
       navigate(routes.welcome);
     }
-  }, [navigate]);
+  }, [navigate, welcomeChecked]);
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
@@ -148,13 +155,15 @@ function Home() {
 
   return (
     <>
-      {updaterEnabled && <UpdateDialog />}
-      <NetworkUpdateDialog
-        isOpen={isDialogUpdateOpen}
-        onClose={() => setIsDialogUpdateOpen(false)}
-        appUpdate={!networkCompat?.tauri}
-        daemonUpdate={!networkCompat?.core}
-      />
+      {welcomeChecked && updaterEnabled && <UpdateDialog />}
+      {os !== 'windows' && (
+        <NetworkUpdateDialog
+          isOpen={isDialogUpdateOpen}
+          onClose={() => setIsDialogUpdateOpen(false)}
+          appUpdate={!networkCompat?.tauri}
+          daemonUpdate={!networkCompat?.core}
+        />
+      )}
       <motion.div
         initial={{ opacity: 0, x: '-1rem' }}
         animate={{ opacity: 1, x: 0 }}

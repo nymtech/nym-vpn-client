@@ -239,6 +239,10 @@ message GatewayResponse {
   optional Score wg_score = 4;
   optional Score mixnet_score = 5;
   string moniker = 6;
+  repeated string exit_ipv4s = 7;
+  repeated string exit_ipv6s = 8;
+  optional string build_version = 9;
+
 }
 
 enum Score {
@@ -638,11 +642,7 @@ service NymVpnService {
   rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
   // List the available countries for the selected mode
-  rpc ListCountries(ListCountriesRequest) returns (ListCountriesResponse) {}
-
-  // -- Unstable --
-  // These below are considered unstable, in the sense that their definitions
-  // are still being integrated upon and their meaning might change
+  rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // Store the recovery phrase, which is also the account identity and
   // authentication
@@ -692,9 +692,9 @@ service NymVpnService {
   // Get the list of devices associated with this account from the nym-vpn-api
   rpc GetDevices(google.protobuf.Empty) returns (GetDevicesResponse) {}
 
-  // Get the list of active devices associated with this account from the
-  // nym-vpn-api
-  rpc GetActiveDevices(google.protobuf.Empty) returns (GetDevicesResponse) {}
+  // Get the list of active devices associated with this account from the nym-vpn-api
+  rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
+
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets(google.protobuf.Empty) returns (AvailableTickets) {}
 
