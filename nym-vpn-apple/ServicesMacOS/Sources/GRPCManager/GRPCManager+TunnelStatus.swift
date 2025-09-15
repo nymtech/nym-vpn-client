@@ -1,33 +1,10 @@
-import GRPC
 import Foundation
-import SwiftProtobuf
+import NymVPNRpc
 import Constants
 import ErrorReason
 import TunnelStatus
 
 extension GRPCManager {
-    func setupListenToTunnelStateChangesObserver() {
-        var iterator = client.listenToTunnelState(Google_Protobuf_Empty()).makeAsyncIterator()
-
-        Task {
-            do {
-                while let tunnelState = try await iterator.next() {
-                    await MainActor.run {
-                        self.updateTunnelStatus(with: tunnelState)
-                    }
-                }
-                await MainActor.run {
-                    resetTunnelStateChangeObserver()
-                }
-            } catch {
-                await MainActor.run {
-                    logger.error("Listening to tunnel state failed: \(error)")
-                    resetTunnelStateChangeObserver()
-                }
-            }
-        }
-    }
-
     func resetTunnelStateChangeObserver() {
         setup()
         tunnelStatus = .unknown
@@ -54,7 +31,7 @@ extension GRPCManager {
         while !isServing {
             do {
                 try await version()
-                let tunnelState = try await client.getTunnelState(Google_Protobuf_Empty())
+                guard let tunnelState = try await rpcClient?.getTunnelState() else { return }
                 await MainActor.run {
                     updateTunnelStatus(with: tunnelState)
                 }
@@ -86,10 +63,12 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    @MainActor func updateTunnelStatus(with state: NymVpnService_TunnelState) {
-        switch state.state {
+    @MainActor func updateTunnelStatus(with state: TunnelState) {
+        switch state {
         case let .connected(details):
-            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
+            if let connectedAt = details.connectedAt {
+                connectedDate = Date(timeIntervalSince1970: Double(connectedAt))
+            }
             tunnelStatus = .connected
             connectionInfoData = ConnectionInfoData(
                 entryGatewayId: details.connectionData.entryGateway.id,
@@ -123,11 +102,13 @@ extension GRPCManager {
             connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
-            errorReason = resolveError(with: details)
-        case let .offline(details):
-            tunnelStatus = details.reconnect ? .offlineReconnect : .offline
-        case .none:
-            tunnelStatus = .unknown
+            errorReason = resolveError(with: errorStateReason)
+        case let .offline(reconnect: reconnect):
+            if reconnect {
+                tunnelStatus = .offlineReconnect
+            } else {
+                tunnelStatus = .offline
+            }
         }
 
         guard !isServing else { return }
@@ -136,8 +117,8 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    func resolveError(with tunnelStateError: NymVpnService_TunnelState.Error) -> Error? {
-        switch tunnelStateError.reason {
+    func resolveError(with tunnelStateError: ErrorStateReason) -> Error? {
+        switch tunnelStateError {
         case .setFirewallPolicy:
             ErrorReason.setFirewallPolicy
         case .setRouting:
@@ -154,10 +135,8 @@ extension GRPCManager {
             ErrorReason.bandwidthExceeded
         case .setDns:
             ErrorReason.setDns
-        case .internal:
-            ErrorReason(with: tunnelStateError.reason)
-        case .UNRECOGNIZED:
-            ErrorReason.unknown
+        case let .internal(code):
+            ErrorReason.internalError(code)
         case .deviceTimeOutOfSync:
             ErrorReason.deviceTimeOutOfSync
         case .ipv6Unavailable:
@@ -182,7 +161,7 @@ extension GRPCManager {
 
 #if os(macOS)
 extension ErrorReason {
-    init(with tunnelStateError: NymVpnService_TunnelState.ErrorStateReason) {
+    init(with tunnelStateError: ErrorStateReason) {
         switch tunnelStateError {
         case .setFirewallPolicy:
             self = .setFirewallPolicy

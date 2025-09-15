@@ -1,18 +1,19 @@
+import NymVPNRpc
 import CountriesManagerTypes
 
 extension GatewayNodeScore {
-    init(with score: NymVpnService_Score) {
+    static func convert(from score: GatewayScore?) -> GatewayNodeScore? {
         switch score {
-        case .low:
-            self = .low
-        case .medium:
-            self = .medium
         case .high:
-            self = .high
-        case .offline:
-            self = .offline
-        case .UNRECOGNIZED:
-            self = .noScore
+            .high
+        case .medium:
+            .medium
+        case .low:
+            .low
+        case .none:
+            .noScore
+        case .none?:
+            .noScore
         }
     }
 }

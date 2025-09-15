@@ -1,7 +1,8 @@
+import NymVPNRpc
 import CountriesManagerTypes
 
 extension GatewayNode {
-    init(with newGateway: NymVpnService_GatewayResponse) {
+    init(with newGateway: Gateway) {
         self.init(
             id: newGateway.id.id,
             countryCode: newGateway.location.twoLetterIsoCountryCode,

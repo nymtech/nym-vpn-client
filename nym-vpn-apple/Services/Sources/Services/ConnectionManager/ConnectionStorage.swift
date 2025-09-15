@@ -85,7 +85,10 @@ private extension ConnectionStorage {
             if let existingGateway = existingGateway(with: gateway, nodeType: entryGatewayType) {
                 return .gateway(existingGateway)
             } else {
-                let existingCountry = existingCountry(with: gateway.countryCode, nodeType: entryGatewayType)
+                let existingCountry = existingCountry(
+                    with: gateway.countryCode ?? fallbackCountry(nodeType: .entry).code,
+                    nodeType: entryGatewayType
+                )
                 return .country(existingCountry)
             }
         case .random:
@@ -111,7 +114,10 @@ private extension ConnectionStorage {
             if let existingGateway = existingGateway(with: gateway, nodeType: exitGatewayType) {
                 return .gateway(existingGateway)
             } else {
-                let existingCountry = existingCountry(with: gateway.countryCode, nodeType: exitGatewayType)
+                let existingCountry = existingCountry(
+                    with: gateway.countryCode ?? fallbackCountry(nodeType: .exit).code,
+                    nodeType: exitGatewayType
+                )
                 return .country(existingCountry)
             }
         }

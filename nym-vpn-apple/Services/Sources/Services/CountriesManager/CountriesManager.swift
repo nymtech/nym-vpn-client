@@ -332,8 +332,8 @@ private extension CountriesManager {
 #endif
 
 extension CountriesManager {
-    public func country(with countryCode: String) -> Country? {
-        guard !countryCode.isEmpty, let countryName = Locale.current.localizedString(forRegionCode: countryCode)
+    public func country(with countryCode: String?) -> Country? {
+        guard let countryCode, !countryCode.isEmpty, let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             return nil
         }
