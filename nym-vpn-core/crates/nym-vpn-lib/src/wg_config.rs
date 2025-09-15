@@ -10,7 +10,6 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_wg_gateway_client::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-#[cfg(feature = "amnezia")]
 use nym_wg_go::amnezia::AmneziaConfig;
 use nym_wg_go::{PeerConfig, PrivateKey, PublicKey, netstack, wireguard_go};
 
@@ -48,7 +47,6 @@ pub struct WgInterface {
     pub fwmark: Option<u32>,
 
     /// Amnezia Configuration
-    #[cfg(feature = "amnezia")]
     pub azwg_config: Option<nym_wg_go::amnezia::AmneziaConfig>,
 }
 
@@ -62,7 +60,6 @@ impl fmt::Debug for WgInterface {
             .field("mtu", &self.mtu);
         #[cfg(target_os = "linux")]
         d.field("fwmark", &self.fwmark);
-        #[cfg(feature = "amnezia")]
         d.field("amnezia", &self.azwg_config);
         d.finish()
     }
@@ -113,7 +110,6 @@ impl WgNodeConfig {
                 mtu: self.interface.mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: self.interface.fwmark,
-                #[cfg(feature = "amnezia")]
                 azwg_config: self.interface.azwg_config,
             },
             peers: vec![PeerConfig {
@@ -135,7 +131,6 @@ impl WgNodeConfig {
                 mtu: self.interface.mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: self.interface.fwmark,
-                #[cfg(feature = "amnezia")]
                 azwg_config: self.interface.azwg_config,
             },
             peers: vec![PeerConfig {
@@ -187,7 +182,6 @@ impl WgNodeConfig {
                 mtu,
                 #[cfg(target_os = "linux")]
                 fwmark,
-                #[cfg(feature = "amnezia")]
                 azwg_config: Some(AmneziaConfig::OFF),
             },
             peer: WgPeer {
@@ -198,7 +192,6 @@ impl WgNodeConfig {
         }
     }
 
-    #[cfg(feature = "amnezia")]
     /// Enable Amnezia wireguard features
     pub fn with_amnezia_config(mut self, azwg_config: AmneziaConfig) -> Self {
         self.interface.azwg_config = Some(azwg_config);

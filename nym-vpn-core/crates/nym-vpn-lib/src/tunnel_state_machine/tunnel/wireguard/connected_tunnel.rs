@@ -18,7 +18,7 @@ use nym_routing::{Callback, CallbackHandle, EventType};
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
-use nym_wg_go::{netstack, wireguard_go};
+use nym_wg_go::{amnezia::AmneziaConfig, netstack, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::{self as winnet, AddressFamily};
 #[cfg(any(windows, target_os = "ios"))]
@@ -103,6 +103,7 @@ impl ConnectedTunnel {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         options: TunnelOptions,
         tunnel_constants: TunnelConstants,
+        entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
         match options {
             #[cfg(not(any(target_os = "ios", target_os = "android")))]
@@ -112,6 +113,7 @@ impl ConnectedTunnel {
                     route_handler,
                     tuntun_options,
                     tunnel_constants,
+                    entry_amnezia,
                 )
                 .await
             }
@@ -122,6 +124,7 @@ impl ConnectedTunnel {
                 tun_provider,
                 netstack_options,
                 tunnel_constants,
+                entry_amnezia,
             ),
         }
     }
@@ -132,8 +135,9 @@ impl ConnectedTunnel {
         #[cfg(windows)] route_handler: RouteHandler,
         options: TunTunTunnelOptions,
         tunnel_constants: TunnelConstants,
+        entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
-        let wg_entry_config = WgNodeConfig::with_gateway_data(
+        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
@@ -145,6 +149,9 @@ impl ConnectedTunnel {
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
+        if entry_amnezia {
+            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+        }
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
@@ -254,8 +261,9 @@ impl ConnectedTunnel {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         options: NetstackTunnelOptions,
         tunnel_constants: TunnelConstants,
+        entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
-        let wg_entry_config = WgNodeConfig::with_gateway_data(
+        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
@@ -267,6 +275,10 @@ impl ConnectedTunnel {
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
+
+        if entry_amnezia{
+            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+        }
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),

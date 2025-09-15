@@ -791,10 +791,11 @@ impl TunnelMonitor {
 
         tracing::info!("Establishing DVPN tunnel");
         let entry_endpoint: SocketAddr;
-        if matches!(
+        let use_circumvention_transport = matches!(
             self.tunnel_parameters.tunnel_settings.tunnel_type,
             TunnelType::WrappedWireguard
-        ) {
+        );
+        if use_circumvention_transport {
             // Attempt transport Connection. If successful a listening UDP connection is created
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
@@ -872,7 +873,7 @@ impl TunnelMonitor {
         };
 
         let tunnel_handle = connected_tunnel
-            .run(tunnel_options, self.tunnel_parameters.tunnel_constants)
+            .run(tunnel_options, self.tunnel_parameters.tunnel_constants, !use_circumvention_transport)
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
@@ -905,10 +906,11 @@ impl TunnelMonitor {
 
         tracing::info!("Establishing DVPN tunnel");
         let entry_endpoint: SocketAddr;
-        if matches!(
+        let use_circumvention_transport = matches!(
             self.tunnel_parameters.tunnel_settings.tunnel_type,
             TunnelType::WrappedWireguard
-        ) {
+        );
+        if use_circumvention_transport {
             // Attempt transport Connection. If successful a listening UDP connection is created
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
@@ -990,6 +992,7 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
+                !use_circumvention_transport,
             )
             .await?;
 
@@ -1050,10 +1053,11 @@ impl TunnelMonitor {
 
         tracing::info!("Establishing DVPN tunnel");
         let entry_endpoint: SocketAddr;
-        if matches!(
+        let use_circumvention_transport = matches!(
             self.tunnel_parameters.tunnel_settings.tunnel_type,
             TunnelType::WrappedWireguard
-        ) {
+        );
+        if use_circumvention_transport {
             // Attempt transport Connection. If successful a listening UDP connection is created
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
@@ -1167,7 +1171,7 @@ impl TunnelMonitor {
         });
 
         let tunnel_handle = connected_tunnel
-            .run(tunnel_options, self.tunnel_parameters.tunnel_constants)
+            .run(tunnel_options, self.tunnel_parameters.tunnel_constants, !use_circumvention_transport)
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
@@ -1202,10 +1206,11 @@ impl TunnelMonitor {
 
         tracing::info!("Establishing DVPN tunnel");
         let entry_endpoint: SocketAddr;
-        if matches!(
+        let use_circumvention_transport = matches!(
             self.tunnel_parameters.tunnel_settings.tunnel_type,
             TunnelType::WrappedWireguard
-        ) {
+        );
+        if use_circumvention_transport {
             // Attempt transport Connection. If successful a listening UDP connection is created
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
@@ -1302,6 +1307,7 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
+                !use_circumvention_transport,
             )
             .await?;
 
@@ -1389,10 +1395,11 @@ impl TunnelMonitor {
 
         tracing::info!("Establishing DVPN tunnel");
         let entry_endpoint: SocketAddr;
-        if matches!(
+        let use_circumvention_transport = matches!(
             self.tunnel_parameters.tunnel_settings.tunnel_type,
             TunnelType::WrappedWireguard
-        ) {
+        );
+        if use_circumvention_transport {
             // Attempt transport Connection. If successful a listening UDP connection is created
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
@@ -1489,6 +1496,7 @@ impl TunnelMonitor {
                 self.tun_provider.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
+                !use_circumvention_transport,
             )
             .await?;
 
