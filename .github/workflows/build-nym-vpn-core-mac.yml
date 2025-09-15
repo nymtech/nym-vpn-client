@@ -110,7 +110,7 @@ jobs:
       - name: Build nym-vpnd (aarch64)
         working-directory: nym-vpn-core
         env:
-          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
+          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build -p nym-vpnd --target aarch64-apple-darwin --release
@@ -121,11 +121,11 @@ jobs:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build -p nym-vpnc --target x86_64-apple-darwin --release
-      
+
       - name: Build nym-vpnd (x86_64)
         working-directory: nym-vpn-core
         env:
-          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
+          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build -p nym-vpnd --target x86_64-apple-darwin --release
