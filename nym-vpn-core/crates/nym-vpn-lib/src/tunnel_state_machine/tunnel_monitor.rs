@@ -53,7 +53,7 @@ use super::{
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
-    ConnectionData, ErrorStateReason, EstablishConnectionData, Gateway, MixnetConnectionData,
+    ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     MixnetEvent, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
     WireguardNode,
 };
@@ -480,8 +480,8 @@ impl TunnelMonitor {
         };
 
         let establishing_connection_data = EstablishConnectionData {
-            entry_gateway: Gateway::from(*selected_gateways.entry.clone()),
-            exit_gateway: Gateway::from(*selected_gateways.exit.clone()),
+            entry_gateway: GatewayId::from(*selected_gateways.entry.clone()),
+            exit_gateway: GatewayId::from(*selected_gateways.exit.clone()),
             tunnel: Some(tunnel_conn_data.clone()),
         };
 
@@ -521,8 +521,8 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
 
         let connection_data = ConnectionData {
-            entry_gateway: Gateway::from(*selected_gateways.entry),
-            exit_gateway: Gateway::from(*selected_gateways.exit),
+            entry_gateway: GatewayId::from(*selected_gateways.entry),
+            exit_gateway: GatewayId::from(*selected_gateways.exit),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
         };

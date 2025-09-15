@@ -208,7 +208,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
 
 impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
     fn from(gateway: nym_vpnd_types::gateway::Gateway) -> Self {
-        let id = Some(proto::Gateway {
+        let id = Some(proto::GatewayId {
             id: gateway.identity_key.to_string(),
         });
         let location = gateway.location.map(proto::Location::from);
@@ -484,9 +484,11 @@ impl TryFrom<nym_gateway_directory::EntryPoint> for proto::EntryNode {
     fn try_from(value: nym_gateway_directory::EntryPoint) -> Result<Self, Self::Error> {
         match value {
             nym_gateway_directory::EntryPoint::Gateway { identity } => Ok(proto::EntryNode {
-                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(proto::Gateway {
-                    id: identity.to_base58_string(),
-                })),
+                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(
+                    proto::GatewayId {
+                        id: identity.to_base58_string(),
+                    },
+                )),
             }),
             nym_gateway_directory::EntryPoint::Location { location } => Ok(proto::EntryNode {
                 entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Location(
@@ -553,7 +555,7 @@ impl TryFrom<nym_gateway_directory::ExitPoint> for proto::ExitNode {
                 })
             }
             nym_gateway_directory::ExitPoint::Gateway { identity } => {
-                proto::exit_node::ExitNodeEnum::Gateway(proto::Gateway {
+                proto::exit_node::ExitNodeEnum::Gateway(proto::GatewayId {
                     id: identity.to_base58_string(),
                 })
             }

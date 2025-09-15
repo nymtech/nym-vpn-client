@@ -19,7 +19,7 @@ pub use account::{
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
-    ConnectionData, EstablishConnectionData, EstablishConnectionState, Gateway,
+    ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use tunnel_event::{

@@ -62,8 +62,8 @@ actor TunnelActor {
             lastError = ErrorReason(with: errorStateReason)
             tunnelState = .connected(
                 connectionData: ConnectionData(
-                    entryGateway: Gateway(id: ""),
-                    exitGateway: Gateway(id: ""),
+                    entryGateway: GatewayId(id: ""),
+                    exitGateway: GatewayId(id: ""),
                     connectedAt: nil,
                     tunnel: .mixnet(
                         MixnetConnectionData(

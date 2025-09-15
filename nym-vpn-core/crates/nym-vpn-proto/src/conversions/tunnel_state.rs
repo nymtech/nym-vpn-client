@@ -8,7 +8,7 @@ use std::{
 
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
-    EstablishConnectionState, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,
+    EstablishConnectionState, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
     TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
@@ -248,7 +248,7 @@ impl TryFrom<proto::EstablishConnectionData> for EstablishConnectionData {
         let entry_gateway =
             value
                 .entry_gateway
-                .map(Gateway::from)
+                .map(GatewayId::from)
                 .ok_or(ConversionError::NoValueSet(
                     "EstablishingConnectionData.entry_gateway",
                 ))?;
@@ -256,7 +256,7 @@ impl TryFrom<proto::EstablishConnectionData> for EstablishConnectionData {
         let exit_gateway =
             value
                 .exit_gateway
-                .map(Gateway::from)
+                .map(GatewayId::from)
                 .ok_or(ConversionError::NoValueSet(
                     "EstablishingConnectionData.exit_gateway",
                 ))?;
@@ -294,11 +294,11 @@ impl TryFrom<proto::ConnectionData> for ConnectionData {
             connected_at,
             entry_gateway: value
                 .entry_gateway
-                .map(Gateway::from)
+                .map(GatewayId::from)
                 .ok_or(ConversionError::NoValueSet("ConnectionData.entry_gateway"))?,
             exit_gateway: value
                 .exit_gateway
-                .map(Gateway::from)
+                .map(GatewayId::from)
                 .ok_or(ConversionError::NoValueSet("ConnectionData.exit_gateway"))?,
             tunnel: TunnelConnectionData::try_from(tunnel_connection_data)?,
         })
@@ -308,8 +308,8 @@ impl TryFrom<proto::ConnectionData> for ConnectionData {
 impl From<EstablishConnectionData> for proto::EstablishConnectionData {
     fn from(value: EstablishConnectionData) -> Self {
         proto::EstablishConnectionData {
-            entry_gateway: Some(proto::Gateway::from(value.entry_gateway)),
-            exit_gateway: Some(proto::Gateway::from(value.exit_gateway)),
+            entry_gateway: Some(proto::GatewayId::from(value.entry_gateway)),
+            exit_gateway: Some(proto::GatewayId::from(value.exit_gateway)),
             tunnel: value.tunnel.map(proto::TunnelConnectionData::from),
         }
     }
@@ -318,8 +318,8 @@ impl From<EstablishConnectionData> for proto::EstablishConnectionData {
 impl From<ConnectionData> for proto::ConnectionData {
     fn from(value: ConnectionData) -> proto::ConnectionData {
         proto::ConnectionData {
-            entry_gateway: Some(proto::Gateway::from(value.entry_gateway)),
-            exit_gateway: Some(proto::Gateway::from(value.exit_gateway)),
+            entry_gateway: Some(proto::GatewayId::from(value.entry_gateway)),
+            exit_gateway: Some(proto::GatewayId::from(value.exit_gateway)),
             connected_at: Some(
                 crate::conversions::prost::offset_datetime_into_proto_timestamp(value.connected_at),
             ),
@@ -485,8 +485,8 @@ impl From<WireguardNode> for proto::WireguardNode {
     }
 }
 
-impl From<proto::Gateway> for Gateway {
-    fn from(value: proto::Gateway) -> Self {
+impl From<proto::GatewayId> for GatewayId {
+    fn from(value: proto::GatewayId) -> Self {
         Self::new(value.id)
     }
 }
@@ -551,8 +551,8 @@ impl From<TunnelState> for proto::TunnelState {
     }
 }
 
-impl From<Gateway> for proto::Gateway {
-    fn from(value: Gateway) -> Self {
+impl From<GatewayId> for proto::GatewayId {
+    fn from(value: GatewayId) -> Self {
         Self { id: value.id }
     }
 }

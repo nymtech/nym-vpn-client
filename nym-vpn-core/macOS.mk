@@ -20,7 +20,8 @@ all: rpc-swift-package
 
 rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG) ; \
+	sed -i '' -e '/.iOS(.v13),/d' "NymVPNRpc/Package.swift"
 
 clean:
 	cargo clean --target x86_64-apple-darwin

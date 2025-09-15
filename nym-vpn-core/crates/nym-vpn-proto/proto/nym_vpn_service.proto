@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 // Represents the identity of a gateway
-message Gateway {
+message GatewayId {
   string id = 1;
 }
 
@@ -25,7 +25,7 @@ message Location {
 
 message EntryNode {
   oneof entry_node_enum {
-    Gateway gateway = 1;
+    GatewayId gateway = 1;
     Location location = 2;
     google.protobuf.Empty random = 4;
   }
@@ -34,7 +34,7 @@ message EntryNode {
 message ExitNode {
   oneof exit_node_enum {
     Address address = 1;
-    Gateway gateway = 2;
+    GatewayId gateway = 2;
     Location location = 3;
     google.protobuf.Empty random = 4;
   }
@@ -240,7 +240,7 @@ message Probe {
 }
 
 message GatewayResponse {
-  Gateway id = 1;
+  GatewayId id = 1;
   Location location = 2;
   Probe last_probe = 3;
   optional Score wg_score = 4;
@@ -302,14 +302,14 @@ enum EstablishConnectionState {
 }
 
 message EstablishConnectionData {
-  Gateway entry_gateway = 1;
-  Gateway exit_gateway = 2;
+  GatewayId entry_gateway = 1;
+  GatewayId exit_gateway = 2;
   optional TunnelConnectionData tunnel = 3;
 }
 
 message ConnectionData {
-  Gateway entry_gateway = 1;
-  Gateway exit_gateway = 2;
+  GatewayId entry_gateway = 1;
+  GatewayId exit_gateway = 2;
   google.protobuf.Timestamp connected_at = 3;
   TunnelConnectionData tunnel = 4;
 }

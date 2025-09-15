@@ -1,5 +1,5 @@
 use nym_vpn_proto::proto::{
-    EntryNode, ExitNode, Gateway as ProtoGateway, Location, entry_node::EntryNodeEnum,
+    EntryNode, ExitNode, GatewayId as ProtoGateway, Location, entry_node::EntryNodeEnum,
     exit_node::ExitNodeEnum,
 };
 use serde::{Deserialize, Serialize};
