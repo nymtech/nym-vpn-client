@@ -41,7 +41,7 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{
-    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint,
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayCacheHandle,
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
@@ -444,7 +444,7 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
-    gateway_directory: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     topology_provider: VpnTopologyProvider,
 }
 
@@ -482,7 +482,7 @@ impl TunnelStateMachine {
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
-        gateway_directory: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
         topology_provider: VpnTopologyProvider,
         connectivity_handle: ConnectivityHandle,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
@@ -538,7 +538,7 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             statistics_event_sender,
-            gateway_directory,
+            gateway_cache_handle,
             topology_provider,
         };
 

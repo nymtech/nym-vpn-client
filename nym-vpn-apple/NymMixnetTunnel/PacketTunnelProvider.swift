@@ -6,6 +6,7 @@ import ErrorHandler
 import NymVPNLib
 import TunnelMixnet
 import Tunnels
+import AppVersionProvider
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
@@ -90,7 +91,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 dataDir: credentialDataPath,
                 credentialMode: nil,
                 sentryMonitoring: isErrorReportingEnabled,
-                statisticsEnabled: isStatisticsEnabled
+                statisticsEnabled: isStatisticsEnabled,
+                userAgent: .appUserAgent
             )
             try configureLib(config: config)
             try startVpn(config: vpnConfig)
@@ -117,7 +119,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 extension PacketTunnelProvider {
     func setup() async {
         do {
-            try await ConfigurationManager.shared.setup()
+            try await ConfigurationManager.shared.setup(for: .networkExtension)
         } catch {
             self.logger.error("Failed to set environment: \(error)")
         }

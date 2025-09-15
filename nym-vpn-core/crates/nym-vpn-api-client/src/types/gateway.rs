@@ -3,7 +3,7 @@
 
 pub use nym_contracts_common::Percent;
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, Eq, PartialEq)]
 pub struct GatewayMinPerformance {
     pub mixnet_min_performance: Option<Percent>,
     pub vpn_min_performance: Option<Percent>,
@@ -51,7 +51,7 @@ pub enum GatewayType {
     Wg,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ScoreThresholds {
     pub high: u8,
     pub medium: u8,

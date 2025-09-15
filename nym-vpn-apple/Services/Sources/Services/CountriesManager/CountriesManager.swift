@@ -284,16 +284,8 @@ private extension CountriesManager {
 private extension CountriesManager {
     func fetchEntryExitCountries() {
         do {
-            let userAgent = UserAgent(
-                application: AppVersionProvider.app,
-                version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
-                platform: AppVersionProvider.platform,
-                gitCommit: ""
-            )
-
             let entryLocations = try getGatewayCountries(
-                gwType: .mixnetEntry,
-                userAgent: userAgent
+                gwType: .mixnetEntry
             )
             logger.info("Fetched \(entryLocations.count) entry countries")
             let newEntryCountries = entryLocations.compactMap {
@@ -301,20 +293,14 @@ private extension CountriesManager {
             }
             .sorted(by: { $0.name < $1.name })
 
-            let exitLocations = try getGatewayCountries(
-                gwType: .mixnetExit,
-                userAgent: userAgent
-            )
+            let exitLocations = try getGatewayCountries(gwType: .mixnetExit)
             logger.info("Fetched \(exitLocations.count) exit countries")
             let newExitCountries = exitLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
-            let newVpnLocations = try getGatewayCountries(
-                gwType: .wg,
-                userAgent: userAgent
-            )
+            let newVpnLocations = try getGatewayCountries(gwType: .wg)
             logger.info("Fetched \(newVpnLocations.count) vpn countries")
             let newVpnCountries = newVpnLocations.compactMap {
                 country(with: $0.twoLetterIsoCountryCode)

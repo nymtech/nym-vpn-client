@@ -53,6 +53,7 @@ pub mod swift;
 
 mod account;
 mod environment;
+mod gateway_cache;
 mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
@@ -70,11 +71,11 @@ use std::{
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use lazy_static::lazy_static;
-use nym_gateway_directory::{CachingGatewayClient, GatewayClient};
 use nym_platform_metadata::SysInfo;
-use nym_vpn_api_client::types::ScoreThresholds;
 use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
+
+use crate::gateway_cache::UniffiGatewayCacheHandle;
 
 use self::error::VpnError;
 use account::AccountControllerHandle;
@@ -99,6 +100,7 @@ uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Network);
 uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Network);
 uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::PathBuf);
 
+// todo: refactor this, stop using statics
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref OFFLINE_MONITOR_HANDLE: Mutex<Option<OfflineMonitorHandle>> = Mutex::new(None);
@@ -108,7 +110,7 @@ lazy_static! {
         Mutex::new(None);
     static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
         Mutex::new(None);
-    static ref GATEWAY_DIRECTORY_CLIENT: Mutex<Option<CachingGatewayClient>> = Mutex::new(None);
+    static ref GATEWAY_CACHE: Mutex<Option<UniffiGatewayCacheHandle>> = Mutex::new(None);
     static ref SENTRY_CLIENT: Mutex<Option<ClientInitGuard>> = Mutex::new(None);
 }
 
@@ -144,10 +146,19 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 }
 
 /// Setup the library with the given data directory and optionally enable credential mode.
+/// On iOS: use this function to configure the lib in network extension.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn configureLib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     RUNTIME.block_on(configure_lib(config))
+}
+
+/// Setup the library for the main process on iOS.
+#[allow(non_snake_case)]
+#[uniffi::export]
+#[cfg(target_os = "ios")]
+pub fn configureLibForMainProcess(user_agent: UserAgent) -> Result<(), VpnError> {
+    RUNTIME.block_on(configure_lib_for_main_process(user_agent))
 }
 
 async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
@@ -174,7 +185,22 @@ async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
         config.credential_mode,
         network,
     )
-    .await
+    .await?;
+
+    let connectivity_handle = offline_monitor::get_connectivity_handle().await?;
+    gateway_cache::init_gateway_cache(config.user_agent, connectivity_handle).await?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "ios")]
+async fn configure_lib_for_main_process(user_agent: UserAgent) -> Result<(), VpnError> {
+    offline_monitor::init_offline_monitor().await?;
+
+    let connectivity_handle = offline_monitor::get_connectivity_handle().await?;
+    gateway_cache::init_gateway_cache(user_agent, connectivity_handle).await?;
+
+    Ok(())
 }
 
 async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_monitoring: bool) {
@@ -378,11 +404,8 @@ pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
 /// Get the list of countries that have gateways available of the given type.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getGatewayCountries(
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<Vec<Location>, VpnError> {
-    RUNTIME.block_on(get_gateway_countries(gw_type, user_agent))
+pub fn getGatewayCountries(gw_type: GatewayType) -> Result<Vec<Location>, VpnError> {
+    RUNTIME.block_on(get_gateway_countries(gw_type))
 }
 
 async fn get_account_id() -> Result<String, VpnError> {
@@ -391,12 +414,9 @@ async fn get_account_id() -> Result<String, VpnError> {
         .ok_or(VpnError::NoAccountStored)
 }
 
-async fn get_gateway_countries(
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<Vec<Location>, VpnError> {
-    let gateway_client = init_static_gateway_client(user_agent).await?;
-    gateway_client
+async fn get_gateway_countries(gw_type: GatewayType) -> Result<Vec<Location>, VpnError> {
+    gateway_cache::get_gateway_cache_handle()
+        .await?
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
@@ -408,19 +428,13 @@ async fn get_gateway_countries(
 /// Get the list of gateways available of the given type.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getGateways(
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<Vec<GatewayInfo>, VpnError> {
-    RUNTIME.block_on(get_gateways(gw_type, user_agent))
+pub fn getGateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError> {
+    RUNTIME.block_on(get_gateways(gw_type))
 }
 
-async fn get_gateways(
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<Vec<GatewayInfo>, VpnError> {
-    let gateway_client = init_static_gateway_client(user_agent).await?;
-    gateway_client
+async fn get_gateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError> {
+    gateway_cache::get_gateway_cache_handle()
+        .await?
         .lookup_gateways(gw_type.into())
         .await
         .map(|gateways| {
@@ -433,53 +447,6 @@ async fn get_gateways(
         .map_err(|err| VpnError::NetworkConnectionError {
             details: err.to_string(),
         })
-}
-
-async fn create_gateway_client(user_agent: UserAgent) -> Result<GatewayClient, VpnError> {
-    let network_env = environment::current_environment_details().await.unwrap();
-    let nyxd_url = network_env.nyxd_url();
-    let api_url = network_env.api_url();
-    let nym_vpn_api_url = Some(network_env.vpn_api_url());
-
-    let mix_score_thresholds =
-        network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.wg_thresholds.high,
-        medium: sc.wg_thresholds.medium,
-        low: sc.wg_thresholds.low,
-    });
-
-    let directory_config = nym_gateway_directory::Config {
-        nyxd_url,
-        api_url,
-        nym_vpn_api_url,
-        min_gateway_performance: None,
-        mix_score_thresholds,
-        wg_score_thresholds,
-    };
-    GatewayClient::new(directory_config, user_agent.into()).map_err(VpnError::internal)
-}
-
-async fn init_static_gateway_client(
-    user_agent: UserAgent,
-) -> Result<CachingGatewayClient, VpnError> {
-    let mut guard = GATEWAY_DIRECTORY_CLIENT.lock().await;
-    match guard.as_ref() {
-        Some(gw_client) => Ok(gw_client.clone()),
-        None => {
-            let gw_client = create_gateway_client(user_agent).await?;
-            let gw_client = CachingGatewayClient::new(gw_client, None);
-            *guard = Some(gw_client.clone());
-            Ok(gw_client)
-        }
-    }
 }
 
 /// Start the VPN by first establishing that the account is ready to connect, including requesting
@@ -554,7 +521,8 @@ pub fn shutdown() -> Result<(), VpnError> {
 
 pub async fn shutdown_lib() -> Result<(), VpnError> {
     stats::stop_statistics_controller().await?;
-    account::stop_account_controller().await
+    account::stop_account_controller().await?;
+    gateway_cache::stop_gateway_cache().await
 }
 
 #[derive(uniffi::Record)]
@@ -586,4 +554,5 @@ pub struct NymVpnLibConfig {
     pub statistics_enabled: bool,
     #[cfg(target_os = "android")]
     pub connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
+    pub user_agent: UserAgent,
 }
