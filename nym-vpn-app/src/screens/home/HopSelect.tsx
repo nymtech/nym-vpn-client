@@ -1,12 +1,16 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { Country, Gateway, NodeHop, isGateway } from '../../types';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
+import { useGateways } from '../../contexts';
 import { useActionToast } from './util';
 
 type HopSelectProps = {
   node: Country | Gateway;
+  gatewayId: string | null;
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
@@ -16,10 +20,12 @@ type HopSelectProps = {
 export default function HopSelect({
   nodeHop,
   node,
+  gatewayId,
   onClick,
   disabled,
   locked,
 }: HopSelectProps) {
+  const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
@@ -32,7 +38,7 @@ export default function HopSelect({
     }
   };
 
-  const SelectedCountry = (country: Country) => (
+  const SelectedCountry = (country: Country, gateway: Gateway | null) => (
     <div
       className="flex flex-row items-center gap-3 overflow-hidden"
       data-testid={`hop-select-country-${nodeHop}`}
@@ -42,11 +48,26 @@ export default function HopSelect({
         alt={country.code}
         data-testid={`hop-select-flag-${nodeHop}`}
       />
-      <div
-        className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-        data-testid={`hop-select-country-name-${nodeHop}`}
-      >
-        {getCountryName(country.code) || country.name}
+      <div className={clsx('flex flex-col justify-center truncate')}>
+        <div
+          className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+          data-testid={`hop-select-country-name-${nodeHop}`}
+        >
+          {getCountryName(country.code) || country.name}
+        </div>
+        <AnimatePresence>
+          {gateway && (
+            <motion.div
+              initial={{ opacity: 0, x: '-1rem' }}
+              exit={{ opacity: 0, x: '1rem' }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="text-sm text-iron dark:text-bombay truncate"
+            >
+              {gateway.name}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -70,10 +91,17 @@ export default function HopSelect({
     </div>
   );
 
+  const gateway = useMemo(() => {
+    if (!gatewayId || isGateway(node)) {
+      return null;
+    }
+    return lookupGw(gatewayId, node.code, nodeHop);
+  }, [gatewayId, lookupGw, nodeHop, node]);
+
   return (
     <div
       className={clsx([
-        'w-full flex flex-row justify-between items-center py-3 px-4',
+        'w-full flex flex-row justify-between items-center py-3 px-4 h-[3.75rem]',
         'text-baltic-sea dark:text-white',
         'border border-bombay dark:border-iron rounded-lg',
         !locked && [
@@ -100,7 +128,7 @@ export default function HopSelect({
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node)}
+      {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node, gateway)}
       <MsIcon
         icon="arrow_right"
         className="pointer-events-none"
