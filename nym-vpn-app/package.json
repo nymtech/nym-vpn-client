@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.8",
-    "@headlessui/react": "^2.1.2",
+    "@headlessui/react": "^2.2.8",
     "@lottiefiles/dotlottie-react": "^0.15.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-slider": "^1.2.2",
@@ -46,7 +46,7 @@
     "@tauri-apps/plugin-updater": "^2.9.0",
     "@tauri-apps/plugin-window-state": "^2.4.0",
     "clsx": "^2.0.0",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.18",
     "i18next": "^25.2.1",
     "i18next-browser-languagedetector": "^8.0.0",
     "lodash-es": "^4.17.21",
@@ -60,13 +60,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
-    "@tailwindcss/vite": "^4.0.5",
+    "@tailwindcss/vite": "^4.1.13",
     "@tauri-apps/cli": "=2.8.4",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
     "@types/node": "^22.5.0",
-    "@types/react": "^19.0.2",
-    "@types/react-dom": "^19.0.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react-swc": "^3.7.2",
@@ -81,7 +81,7 @@
     "tailwindcss": "^4.0.0",
     "typescript": "^5.0.2",
     "typescript-eslint": "^8.0.1",
-    "vite": "^7.0.4",
+    "vite": "^7.1.5",
     "vite-plugin-svgr": "^4.2.0"
   }
 }
