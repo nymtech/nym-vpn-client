@@ -118,7 +118,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	@set:Synchronized
 	private var networkStatus: NetworkStatus = NetworkStatus.Unknown
 
-	private fun init(environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
+	private fun init(environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent) = ProcessLifecycleOwner.get().lifecycleScope.launch(
+		ioDispatcher,
+	) {
 		runCatching {
 			startNetworkMonitorJob()
 			initLogger(null, LOG_LEVEL, false)
@@ -184,7 +186,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				settings.sentryMonitoringEnabled,
 				settings.statisticsEnabled,
 				this@NymBackend,
-				userAgent
+				userAgent,
 			)
 			nym_vpn_lib.configureLib(settingConfig)
 		}
