@@ -124,7 +124,7 @@ private extension GatewayCell {
     }
 
     func serverSubtitleString() -> String {
-        if isSearching, let country = countriesManager.country(with: server.countryCode) {
+        if isSearching, let countryCode = server.countryCode, let country = countriesManager.country(with: countryCode) {
             "\(country.name), \(server.id)"
         } else {
             server.id
@@ -158,7 +158,7 @@ extension GatewayCell {
         let score: GatewayNodeScore?
         switch connectionManager.connectionType {
         case .mixnet5hop:
-            score = server.mixnetScore
+            score = server.mixnetScore ?? .low
         case .wireguard:
             score = server.performance.score
         }
