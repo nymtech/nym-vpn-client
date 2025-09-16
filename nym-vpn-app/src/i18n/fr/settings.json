@@ -69,8 +69,7 @@
     "network-stats": {
       "label": "Statistiques réseau anonymes",
       "sublabel": "Les changements s'appliqueront au redémarrage du démon.",
-      "desc1": "Aidez-nous à construire un réseau plus rapide en partageant des données de performances anonymisées dans votre région. Nous les utilisons afin de réduire le taux de déconnexion et orienter nos déploiements de serveurs où cela se révèle nécessaire.",
-      "desc2": "Seules les données de performance du réseau sont partagées — jamais de données personnelles ou liées à vos activités en ligne.",
+      "desc": "Aidez-nous à construire un réseau plus rapide en partageant des données de performances anonymisées dans votre région. Nous les utilisons afin de réduire le taux de déconnexion et orienter nos déploiements de serveurs où cela se révèle nécessaire.\n\nSeules les données de performance du réseau sont partagées — jamais de données personnelles ou liées à vos activités en ligne.",
       "link": "Apprenez en détail ce qui est partagé"
     }
   },
