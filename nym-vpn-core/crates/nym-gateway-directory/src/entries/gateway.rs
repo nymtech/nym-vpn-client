@@ -5,7 +5,10 @@ use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
-use nym_vpn_api_client::{response::BridgeInformation, types::{NaiveFloat, Percent, ScoreThresholds}};
+use nym_vpn_api_client::{
+    response::{BridgeInformation, BridgeParameters},
+    types::{NaiveFloat, Percent, ScoreThresholds},
+};
 use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
@@ -182,6 +185,14 @@ impl Gateway {
             mixnet_score: None,
             version,
         })
+    }
+
+    pub fn get_bridge_params(&self) -> Option<BridgeParameters> {
+        if let Some(all_params) = &self.bridge_params {
+            all_params.transports.first().cloned()
+        } else {
+            None
+        }
     }
 }
 

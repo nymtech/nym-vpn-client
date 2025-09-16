@@ -4,6 +4,7 @@
 //! Types shared between nym-vpn-lib and other crates in the workspace.
 
 mod account;
+pub mod bridges;
 mod connection_data;
 mod tunnel_event;
 mod tunnel_state;

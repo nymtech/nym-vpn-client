@@ -67,6 +67,7 @@ use super::tunnel::wireguard::connected_tunnel::{
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
+use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 use crate::{
     VpnTopologyProvider,
@@ -1034,6 +1035,13 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
+        // TODO: future, we need to make sure the node supports the desired transport by
+        // protocol type (or something)
+        let entry_bridge_params = connected_mixnet
+            .selected_gateways()
+            .entry
+            .get_bridge_params();
+
         let mut connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
@@ -1055,12 +1063,14 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             let conn_data = connected_tunnel.connection_data_mut();
-
             let cancel = CancellationToken::new();
-            let entry_bridge_params = transports::BridgeParams::from(&conn_data.entry);
-            entry_endpoint = entry_bridge_params.endpoint();
+            let bridge_params = entry_bridge_params.ok_or(TransportError::config_err(
+                "attempted to open transport connection without bridge params",
+            ))?;
+
             tracing::info!("Establishing DVPN QUIC transport tunnel");
-            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            let bridge_conn = transports::BridgeConn::try_connect(bridge_params).await?;
+            entry_endpoint = bridge_conn.endpoint.clone();
             let local_fwd =
                 transports::UdpForwarder::new(bridge_conn, None, ETHERNET_V2_MTU, cancel.clone())
                     .await?;
