@@ -55,6 +55,7 @@ Package.resolved
 Carthage/Build/
 
 NymVPNLib
+NymVPNRpc
 
 Envs/canary.env
 Envs/sandbox.env
