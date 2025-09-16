@@ -114,15 +114,20 @@ impl ConnectedState {
                 AllowedClients::current_exe(),
             );
             peer_endpoints.push(ws_endpoint);
-            let tr_endpoint = AllowedEndpoint::new(
-                Endpoint::new(*ip, 4443, TransportProtocol::Udp),
-                #[cfg(any(target_os = "linux", target_os = "macos"))]
-                AllowedClients::All,
-                #[cfg(target_os = "windows")]
-                AllowedClients::current_exe(),
-            );
-            peer_endpoints.push(tr_endpoint);
         });
+
+        if let Some(bridges) = &self.selected_gateways.entry.bridge_params {
+            bridges.get_addrs().iter().for_each(|addr| {
+                let tr_endpoint = AllowedEndpoint::new(
+                    Endpoint::new(addr.ip(), addr.port(), TransportProtocol::Udp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                );
+                peer_endpoints.push(tr_endpoint);
+            });
+        }
 
         if let Some(wg_peer_endpoint) = wg_entry_endpoint {
             let allowed_endpoint = AllowedEndpoint::new(

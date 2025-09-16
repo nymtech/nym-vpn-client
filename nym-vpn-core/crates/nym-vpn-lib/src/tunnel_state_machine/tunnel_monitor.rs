@@ -864,7 +864,11 @@ impl TunnelMonitor {
         };
 
         let tunnel_handle = connected_tunnel
-            .run(tunnel_options, self.tunnel_parameters.tunnel_constants, !use_circumvention_transport)
+            .run(
+                tunnel_options,
+                self.tunnel_parameters.tunnel_constants,
+                !use_circumvention_transport,
+            )
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
@@ -1003,7 +1007,7 @@ impl TunnelMonitor {
             exit_tun_name: wintun_exit_interface.name.clone(),
             exit_tun_mtu: exit_mtu,
             #[cfg(not(target_os = "linux"))]
-            entry_gateway_addres: entry_endpoint.ip(),
+            entry_gateway_address: entry_endpoint.ip(),
         };
 
         if let Err(err) = self.set_routes(routing_config, self.enable_ipv6()).await {
@@ -1160,7 +1164,11 @@ impl TunnelMonitor {
         });
 
         let tunnel_handle = connected_tunnel
-            .run(tunnel_options, self.tunnel_parameters.tunnel_constants, !use_circumvention_transport)
+            .run(
+                tunnel_options,
+                self.tunnel_parameters.tunnel_constants,
+                !use_circumvention_transport,
+            )
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
