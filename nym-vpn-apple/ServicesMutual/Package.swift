@@ -30,7 +30,7 @@ let package = Package(
         .target(
             name: "AppVersionProvider",
             dependencies: [
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/AppVersionProvider"
         ),

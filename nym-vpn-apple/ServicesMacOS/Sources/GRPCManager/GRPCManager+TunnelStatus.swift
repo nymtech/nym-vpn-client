@@ -36,20 +36,21 @@ extension GRPCManager {
     }
 
     func startDaemonInitialStatusPingerIfNeeded() {
-        guard pingTask == nil || pingTask?.isCancelled == true else { return }
+        guard versionPingTask == nil || versionPingTask?.isCancelled == true else { return }
 
-        pingTask = Task { [weak self] in
+        versionPingTask = Task { [weak self] in
             guard let self else { return }
             await self.pingDaemonInitialStatus()
         }
     }
 
     func stopInitialStatusPinger() {
-        pingTask?.cancel()
-        pingTask = nil
+        versionPingTask?.cancel()
+        versionPingTask = nil
     }
 
     func pingDaemonInitialStatus() async {
+        var retryCount = 0
         while !isServing {
             do {
                 try await version()
@@ -64,6 +65,12 @@ extension GRPCManager {
             }
 
             if !isServing {
+                retryCount += 1
+                if retryCount == 2 {
+                    Task { @MainActor in
+                        daemonVersion = "update"
+                    }
+                }
                 do {
                     try await Task.sleep(for: .seconds(5))
                 } catch is CancellationError {

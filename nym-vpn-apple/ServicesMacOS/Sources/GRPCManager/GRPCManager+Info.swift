@@ -7,7 +7,7 @@ extension GRPCManager {
         do {
             let result = try await client.info(
                 Google_Protobuf_Empty(),
-                callOptions: CallOptions(timeLimit: .timeout(.seconds(7)))
+                callOptions: CallOptions(timeLimit: .timeout(.seconds(3)))
             )
             Task { @MainActor in
                 daemonVersion = result.version
@@ -16,7 +16,7 @@ extension GRPCManager {
             }
         } catch {
             Task { @MainActor in
-                guard daemonVersion != "noVersion" else { return }
+                guard daemonVersion != "noVersion" || daemonVersion != "update" else { return }
                 daemonVersion = "noVersion"
             }
             throw error
