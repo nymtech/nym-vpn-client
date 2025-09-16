@@ -22,11 +22,7 @@ public final class HelperManager: ObservableObject {
 
     public static let shared = HelperManager()
 
-    @Published public var daemonState = DaemonState.unknown {
-        didSet {
-            print("helper manager daemonState: \(daemonState)")
-        }
-    }
+    @Published public var daemonState = DaemonState.unknown
 
     public init(grpcManager: GRPCManager = .shared) {
         self.grpcManager = grpcManager
