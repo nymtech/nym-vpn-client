@@ -99,6 +99,12 @@ function Settings() {
             ),
             disabled: true,
           },
+          {
+            title: t('anti-censorship.title', { ns: 'settings' }),
+            leadingIcon: 'dns',
+            onClick: () => navigate(routes.antiCensorship),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
         ]}
       />
       <SettingsGroup

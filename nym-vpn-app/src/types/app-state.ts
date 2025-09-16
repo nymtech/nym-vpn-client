@@ -90,6 +90,8 @@ export type AppState = {
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
+  quic: boolean;
+  domainFronting: boolean;
 };
 
 export type ProgressMsg = 'canceling';

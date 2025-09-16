@@ -39,13 +39,12 @@ impl From<&GetFeatureFlagsResponse> for FeatureFlags {
 
 fn get_bool_value(map: &HashMap<String, FeatureFlagGroup>, key: &str, subkey: &str) -> bool {
     map.get(key)
-        .map(|group| {
-            group.map.get(subkey).map(|v| match v.as_str() {
-                "true" | "TRUE" => true,
-                _ => false,
-            })
+        .and_then(|group| {
+            group
+                .map
+                .get(subkey)
+                .map(|v| matches!(v.to_lowercase().as_str(), "true"))
         })
-        .flatten()
         .unwrap_or(false)
 }
 

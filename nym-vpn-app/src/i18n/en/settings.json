@@ -35,6 +35,22 @@
     "app": "App logs",
     "daemon": "Daemon logs"
   },
+  "anti-censorship": {
+    "title": "Anti-censorship",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
+    "quic": {
+      "label": "Enhanced connection (QUIC)",
+      "warning": "Changes will apply after reconnect",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "How QUIC improves connections"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Changes will apply after reconnect",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking.",
+      "link": "How the Stealth API connect mode works"
+    }
+  },
   "faq": "FAQ",
   "display-theme": "Display mode",
   "logout-confirmation": {

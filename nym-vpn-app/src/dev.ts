@@ -1,11 +1,14 @@
 if (import.meta.env.MODE === 'dev-browser') {
   window._APP = {
-    defaultNetstatsEnabled: true,
-    defaultSentryEnabled: false,
     defaultVpnMode: 'wg',
     devMode: true,
+    defaultNetstats: true,
+    defaultSentry: false,
+    defaultDomainFronting: false,
+    defaultQuic: false,
     updaterEnabled: true,
     noSplash: true,
+    startupError: null,
   };
   // @ts-expect-error mocking os plugin
   window.__TAURI_OS_PLUGIN_INTERNALS__ = {

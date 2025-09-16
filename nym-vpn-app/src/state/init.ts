@@ -27,6 +27,9 @@ import {
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
+const defaultQuic = window._APP.defaultQuic;
+const defaultDomFront = window._APP.defaultDomainFronting;
+
 // initialize connection state
 const getInitialTunnelState = async () => {
   return await invoke<TunnelStateIpc>('get_tunnel_state');
@@ -222,6 +225,25 @@ export async function initFirstBatch(
     },
   };
 
+  const getQuicRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getQuicRq',
+    request: () => kvGet<boolean>('quic-enabled'),
+    onFulfilled: (enabled) => {
+      dispatch({ type: 'set-quic', enabled: enabled || defaultQuic });
+    },
+  };
+
+  const getDomainFrontingRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getDomainFrontingRq',
+    request: () => kvGet<boolean>('domain-fronting-enabled'),
+    onFulfilled: (enabled) => {
+      dispatch({
+        type: 'set-domain-fronting',
+        enabled: enabled || defaultDomFront,
+      });
+    },
+  };
+
   const getNetworkStatsRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getNetworkStats',
     request: () => kvGet<boolean>('network-stats-enabled'),
@@ -244,6 +266,8 @@ export async function initFirstBatch(
     getDesktopNotificationsRq,
     getIpv6SupportRq,
     getNetworkStatsRq,
+    getQuicRq,
+    getDomainFrontingRq,
   ];
 
   if (initState.vpnd !== 'down') {
