@@ -50,17 +50,20 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let firewall_policy_params = ConnectedPolicyParameters {
-            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
-            allow_lan: shared_state.tunnel_settings.allow_lan,
-            wg_entry_endpoint: if let TunnelConnectionData::Wireguard(ref wg) =
+
+        let wg_entry_endpoint = if let TunnelConnectionData::Wireguard(ref wg) =
                 connection_data.tunnel
             {
                 Some(wg.entry.endpoint)
             } else {
                 None
-            },
+            };
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let firewall_policy_params = ConnectedPolicyParameters {
+            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
+            allow_lan: shared_state.tunnel_settings.allow_lan,
+            wg_entry_endpoint,
             ws_entry_endpoints: selected_gateways.entry.endpoints(),
             dns_config: shared_state.tunnel_settings.resolved_dns_config(),
             tunnel_interface: tunnel_interface.clone(),

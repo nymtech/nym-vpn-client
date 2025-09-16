@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayType};
+use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayType, GatewayList};
 use nym_vpn_api_client::types::ScoreThresholds;
 
 use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
@@ -47,13 +47,28 @@ pub async fn select_gateways(
     };
 
     let (mut entry_gateways, exit_gateways) = match tunnel_type {
-        // TODO: NET-512 jmwample -- implement filter for wrapped wireguard
-        TunnelType::Wireguard | TunnelType::WrappedWireguard => {
+        TunnelType::Wireguard => {
             let all_gateways = gateway_cache_handle
                 .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             (all_gateways.clone(), all_gateways)
+        }
+        TunnelType::WrappedWireguard => {
+            // if configured to use Transport connection filter entry gateways
+            // to select from gateways that support the transport connection.
+            let all_gateways = gateway_cache_handle
+                .lookup_gateways(GatewayType::Wg)
+                .await
+                .map_err(GatewayDirectoryError::LookupGateways)?;
+            let entry_gateways = GatewayList::new(
+                all_gateways
+                    .clone()
+                    .into_iter()
+                    .filter(|gw| gw.bridge_params.is_some())
+                    .collect(),
+            );
+            (entry_gateways, all_gateways)
         }
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
