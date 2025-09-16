@@ -74,11 +74,12 @@ public final class GRPCManager: ObservableObject {
     deinit {
         try? channel.close().wait()
         try? group.syncShutdownGracefully()
+        stopInitialStatusPinger()
     }
 
     func setup() {
         setupListenToTunnelStateChangesObserver()
-        pingDaemonInitialStatus()
+        startDaemonInitialStatusPingerIfNeeded()
     }
 }
 

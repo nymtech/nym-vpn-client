@@ -31,26 +31,50 @@ extension GRPCManager {
     func resetTunnelStateChangeObserver() {
         setup()
         tunnelStatus = .unknown
+        guard isServing else { return }
         isServing = false
     }
 
-    func pingDaemonInitialStatus() {
-        Task {
-            guard !isServing
-            else {
-                try? await Task.sleep(for: .seconds(5))
-                pingDaemonInitialStatus()
-                return
-            }
+    func startDaemonInitialStatusPingerIfNeeded() {
+        guard pingTask == nil || pingTask?.isCancelled == true else { return }
 
+        pingTask = Task { [weak self] in
+            guard let self else { return }
+            await self.pingDaemonInitialStatus()
+        }
+    }
+
+    func stopInitialStatusPinger() {
+        pingTask?.cancel()
+        pingTask = nil
+    }
+
+    func pingDaemonInitialStatus() async {
+        while !isServing {
             do {
                 try await version()
                 let tunnelState = try await client.getTunnelState(Google_Protobuf_Empty())
-                Task { @MainActor in
+                await MainActor.run {
                     updateTunnelStatus(with: tunnelState)
                 }
+            } catch is CancellationError {
+                return
             } catch {
-                pingDaemonInitialStatus()
+                 logger.debug("pingDaemonInitialStatus error: \(error)")
+            }
+
+            if !isServing {
+                do {
+                    try await Task.sleep(for: .seconds(5))
+                } catch is CancellationError {
+                    logger.debug("pingDaemonInitialStatus cancelled during sleep")
+                    return
+                } catch {
+                    logger.debug("Ping Daemon initial status: \(error)")
+                }
+            }
+            if isServing {
+                stopInitialStatusPinger()
             }
         }
     }

@@ -16,6 +16,7 @@ extension GRPCManager {
             }
         } catch {
             Task { @MainActor in
+                guard daemonVersion != "noVersion" else { return }
                 daemonVersion = "noVersion"
             }
             throw error
