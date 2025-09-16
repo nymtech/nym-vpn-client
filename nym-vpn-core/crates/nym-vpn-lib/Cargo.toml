@@ -61,7 +61,6 @@ nym-http-api-client.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-statistics-common.workspace = true
-nym-task.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
@@ -73,12 +72,12 @@ nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
 nym-macos.workspace = true
 nym-offline-monitor.workspace = true
+nym-registration-client.workspace = true
 nym-statistics.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
-nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
 nym-wg-metadata-client.workspace = true
 nym-platform-metadata.workspace = true

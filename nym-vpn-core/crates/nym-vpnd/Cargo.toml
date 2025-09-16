@@ -35,8 +35,8 @@ tracing-oslog.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
 tracing.workspace = true
 nym-bin-common.workspace = true
+nym-registration-client.workspace = true
 nym-http-api-client.workspace = true
-nym-task.workspace = true
 nym-windows.workspace = true
 sentry = { workspace = true, features = [
     "backtrace",

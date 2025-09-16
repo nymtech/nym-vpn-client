@@ -17,6 +17,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
+use nym_registration_client::MixnetClientConfig;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks,
