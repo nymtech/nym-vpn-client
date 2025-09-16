@@ -88,7 +88,6 @@ function AntiCensorship() {
             <Link
               className="w-fit text-sm"
               text={t('anti-censorship.stealth-api.link')}
-              // TODO add url
               url={DomainFrontingUrl}
               color="primary"
               icon
