@@ -492,8 +492,6 @@ impl TryFrom<proto::VpnServiceConfig> for VpnServiceConfig {
 
             disable_background_cover_traffic: value.disable_background_cover_traffic,
 
-            enable_credentials_mode: value.enable_credentials_mode,
-
             min_mixnode_performance: match value.min_mixnode_performance.and_then(|p| p.percent) {
                 Some(f) => Some(
                     Percent::naive_try_from_f64(round_f64!(f))
@@ -543,7 +541,6 @@ impl TryFrom<VpnServiceConfig> for proto::VpnServiceConfig {
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-            enable_credentials_mode: value.enable_credentials_mode,
             min_mixnode_performance: value.min_mixnode_performance.map(|p| proto::Percent {
                 percent: Some(round_f32!(p.naive_to_f64())),
             }),
@@ -835,7 +832,6 @@ mod tests {
             netstack: true,
             disable_poisson_rate: true,
             disable_background_cover_traffic: true,
-            enable_credentials_mode: true,
             min_mixnode_performance: Some(Percent::naive_try_from_f64(0.552).unwrap()),
             min_gateway_mixnet_performance: Some(Percent::naive_try_from_f64(0.643).unwrap()),
             min_gateway_vpn_performance: Some(Percent::naive_try_from_f64(0.001).unwrap()),

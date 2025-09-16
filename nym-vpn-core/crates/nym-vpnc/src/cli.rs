@@ -25,8 +25,14 @@ fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
 
 #[derive(Subcommand)]
 pub enum Command {
-    /// Connect to the Nym network.
+    /// Connect to the Nym network (deprecated)
     Connect(Box<ConnectArgs>),
+
+    ConnectV2 {
+        /// Blocks until the connection is established or failed
+        #[arg(short, long)]
+        wait: bool,
+    },
 
     /// Disconnect from the Nym network.
     Disconnect {
@@ -44,6 +50,42 @@ pub enum Command {
 
     /// Get info about the current client. Things like version and network details.
     Info,
+
+    /// Get the current VPN service configuration.
+    GetConfig,
+
+    /// Set the entry gateway node
+    SetEntry {
+        #[command(flatten)]
+        entry: CliEntry,
+    },
+
+    /// Set the exit gateway node
+    SetExit {
+        #[command(flatten)]
+        exit: CliExit,
+    },
+
+    /// Enable or disable IPv6 support
+    SetIpv6 {
+        /// Enable
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        enabled: bool,
+    },
+
+    /// Enable or disable two-hop mode.
+    SetTwoHop {
+        /// Enable
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        enabled: bool,
+    },
+
+    /// Set netstack based implementation for two-hop wireguard.
+    SetNetstack {
+        /// Enable
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        enabled: bool,
+    },
 
     /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
     SetNetwork(SetNetworkArgs),
@@ -169,44 +211,11 @@ pub struct ConnectArgs {
 
 impl ConnectArgs {
     pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
-        if let Some(ref entry_gateway_id) = self.entry.entry_id {
-            Ok(Some(EntryPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(entry_gateway_id)
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            }))
-        } else if let Some(ref entry_gateway_country) = self.entry.entry_country {
-            Ok(Some(EntryPoint::Location {
-                location: entry_gateway_country.alpha2.to_string(),
-            }))
-        } else if self.entry.entry_random {
-            Ok(Some(EntryPoint::Random))
-        } else {
-            Ok(None)
-        }
+        self.entry.entry_point()
     }
 
     pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
-        if let Some(ref exit_router_address) = self.exit.exit_ipr_address {
-            Ok(Some(ExitPoint::Address {
-                address: Box::new(
-                    Recipient::try_from_base58_string(exit_router_address)
-                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
-                ),
-            }))
-        } else if let Some(ref exit_router_id) = self.exit.exit_id {
-            Ok(Some(ExitPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            }))
-        } else if let Some(ref exit_gateway_country) = self.exit.exit_country {
-            Ok(Some(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
-            }))
-        } else if self.exit.exit_random {
-            Ok(Some(ExitPoint::Random))
-        } else {
-            Ok(None)
-        }
+        self.exit.exit_point()
     }
 }
 
@@ -224,6 +233,25 @@ pub struct CliEntry {
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
     pub entry_random: bool,
+}
+
+impl CliEntry {
+    pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
+        if let Some(ref entry_gateway_id) = self.entry_id {
+            Ok(Some(EntryPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(entry_gateway_id)
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            }))
+        } else if let Some(ref entry_gateway_country) = self.entry_country {
+            Ok(Some(EntryPoint::Location {
+                location: entry_gateway_country.alpha2.to_string(),
+            }))
+        } else if self.entry_random {
+            Ok(Some(EntryPoint::Random))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 #[derive(Args)]
@@ -245,6 +273,32 @@ pub struct CliExit {
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-gateway-random")]
     pub exit_random: bool,
+}
+
+impl CliExit {
+    pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
+        if let Some(ref exit_router_address) = self.exit_ipr_address {
+            Ok(Some(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            }))
+        } else if let Some(ref exit_router_id) = self.exit_id {
+            Ok(Some(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            }))
+        } else if let Some(ref exit_gateway_country) = self.exit_country {
+            Ok(Some(ExitPoint::Location {
+                location: exit_gateway_country.alpha2.to_string(),
+            }))
+        } else if self.exit_random {
+            Ok(Some(ExitPoint::Random))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 impl TryFrom<CliExit> for ExitPoint {

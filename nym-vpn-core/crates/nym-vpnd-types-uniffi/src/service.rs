@@ -20,7 +20,6 @@ pub struct VpnServiceConfig {
     pub netstack: bool,
     pub disable_poisson_rate: bool,
     pub disable_background_cover_traffic: bool,
-    pub enable_credentials_mode: bool,
     pub min_mixnode_performance: Option<f32>,
     pub min_gateway_mixnet_performance: Option<f32>,
     pub min_gateway_vpn_performance: Option<f32>,
@@ -37,15 +36,12 @@ impl From<nym_vpnd_types::service::VpnServiceConfig> for VpnServiceConfig {
             netstack: config.netstack,
             disable_poisson_rate: config.disable_poisson_rate,
             disable_background_cover_traffic: config.disable_background_cover_traffic,
-            enable_credentials_mode: config.enable_credentials_mode,
             min_mixnode_performance: config
                 .min_mixnode_performance
                 .map(|p| round_f32!(p.naive_to_f64() as f32)),
-
             min_gateway_mixnet_performance: config
                 .min_gateway_mixnet_performance
                 .map(|p| round_f32!(p.naive_to_f64() as f32)),
-
             min_gateway_vpn_performance: config
                 .min_gateway_vpn_performance
                 .map(|p| round_f32!(p.naive_to_f64() as f32)),

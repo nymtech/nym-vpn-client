@@ -220,10 +220,9 @@ message VpnServiceConfig {
   bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
-  bool enable_credentials_mode = 8;
-  Percent min_mixnode_performance = 9;
-  Percent min_gateway_mixnet_performance = 10;
-  Percent min_gateway_vpn_performance = 11;
+  Percent min_mixnode_performance = 8;
+  Percent min_gateway_mixnet_performance = 9;
+  Percent min_gateway_vpn_performance = 10;
 }
 
 message AsEntry {

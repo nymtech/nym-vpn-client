@@ -900,7 +900,6 @@ impl NymVpnService {
             min_gateway_vpn_performance: options.min_gateway_vpn_performance,
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
-            enable_credentials_mode: options.enable_credentials_mode,
         });
 
         self.statistics_event_sender

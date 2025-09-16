@@ -145,10 +145,6 @@ impl VpnServiceConfigManager {
         self.config.disable_background_cover_traffic = disable;
     }
 
-    pub(super) fn set_enable_credentials_mode(&mut self, enable: bool) {
-        self.config.enable_credentials_mode = enable;
-    }
-
     pub(super) fn set_min_mixnode_performance(&mut self, min: Option<Percent>) {
         self.config.min_mixnode_performance = min;
     }
@@ -308,7 +304,6 @@ struct VpnServiceConfigExtV1 {
     netstack: bool,
     disable_poisson_rate: bool,
     disable_background_cover_traffic: bool,
-    enable_credentials_mode: bool,
     min_mixnode_performance: Option<f64>,
     min_gateway_mixnet_performance: Option<f64>,
     min_gateway_vpn_performance: Option<f64>,
@@ -325,7 +320,6 @@ impl Default for VpnServiceConfigExtV1 {
             netstack: false,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,
-            enable_credentials_mode: false,
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
@@ -364,8 +358,6 @@ impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
             disable_poisson_rate: value.disable_poisson_rate,
 
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-
-            enable_credentials_mode: value.enable_credentials_mode,
 
             min_mixnode_performance: value
                 .min_mixnode_performance
@@ -408,7 +400,6 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-            enable_credentials_mode: value.enable_credentials_mode,
             min_mixnode_performance: value
                 .min_mixnode_performance
                 .map(|p| round_f64!(p.naive_to_f64())),
@@ -919,7 +910,6 @@ location = "BE"
   "netstack": false,
   "disable_poisson_rate": false,
   "disable_background_cover_traffic": false,
-  "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null
@@ -964,7 +954,6 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "netstack": false,
   "disable_poisson_rate": false,
   "disable_background_cover_traffic": false,
-  "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null
@@ -1016,7 +1005,6 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "netstack": false,
   "disable_poisson_rate": false,
   "disable_background_cover_traffic": false,
-  "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null
@@ -1055,7 +1043,6 @@ exit_point = "Random"
   "netstack": false,
   "disable_poisson_rate": false,
   "disable_background_cover_traffic": false,
-  "enable_credentials_mode": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null
@@ -1092,7 +1079,6 @@ exit_point = "Random"
             netstack: true,
             disable_poisson_rate: true,
             disable_background_cover_traffic: true,
-            enable_credentials_mode: true,
             min_mixnode_performance: Some(Percent::naive_try_from_f64(0.552).unwrap()),
             min_gateway_mixnet_performance: Some(Percent::naive_try_from_f64(0.643).unwrap()),
             min_gateway_vpn_performance: Some(Percent::naive_try_from_f64(0.001).unwrap()),
