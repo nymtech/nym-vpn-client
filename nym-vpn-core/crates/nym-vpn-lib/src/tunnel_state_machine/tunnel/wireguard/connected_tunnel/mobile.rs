@@ -12,6 +12,7 @@ use dispatch2::{DispatchQueue, DispatchQueueAttr};
 
 use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
+use nym_crypto::asymmetric::x25519;
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
@@ -22,7 +23,6 @@ use tun::AsyncDevice;
 
 #[cfg(target_os = "ios")]
 use nym_apple_network::PathMonitor;
-use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
 #[cfg(target_os = "android")]
@@ -35,7 +35,7 @@ use crate::{
         tunnel::{
             Error, Result, Tombstone,
             wireguard::{
-                connector::ConnectionData,
+                ConnectionData,
                 fd::DupFd,
                 two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
             },
@@ -49,8 +49,8 @@ use crate::{
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
 pub struct ConnectedTunnel {
-    entry_gateway_client: WgGatewayClient,
-    exit_gateway_client: WgGatewayClient,
+    entry_wg_keypair: x25519::KeyPair,
+    exit_wg_keypair: x25519::KeyPair,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
@@ -58,15 +58,15 @@ pub struct ConnectedTunnel {
 
 impl ConnectedTunnel {
     pub fn new(
-        entry_gateway_client: WgGatewayClient,
-        exit_gateway_client: WgGatewayClient,
+        entry_wg_keypair: x25519::KeyPair,
+        exit_wg_keypair: x25519::KeyPair,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
-            entry_gateway_client,
-            exit_gateway_client,
+            entry_wg_keypair,
+            exit_wg_keypair,
             connection_data,
             bandwidth_controller_handle,
             auth_client_mixnet_listener_handle,
@@ -96,7 +96,7 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
-            self.entry_gateway_client.keypair().private_key(),
+            self.entry_wg_keypair.private_key(),
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
@@ -107,7 +107,7 @@ impl ConnectedTunnel {
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
-            self.exit_gateway_client.keypair().private_key(),
+            self.exit_wg_keypair.private_key(),
             AllowedIps::All,
             dns,
             self.exit_mtu(),
@@ -276,7 +276,9 @@ impl TunnelHandle {
         // No need to call cancel on auth_clients_mixnet_listener_handle as its external
         // cancel_token should already be cancelled by the time we reach this point.
         // We just need to wait for the task to finish.
-        self.auth_client_mixnet_listener_handle.wait().await;
+        if let Ok(mixnet_client) = self.auth_client_mixnet_listener_handle.wait().await {
+            mixnet_client.disconnect().await;
+        }
 
         self.event_loop_handle.await
     }

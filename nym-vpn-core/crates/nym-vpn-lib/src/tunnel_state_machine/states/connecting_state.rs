@@ -399,7 +399,6 @@ impl ConnectingState {
             shared_state.gateway_cache_handle.clone(),
             shared_state.topology_provider.clone(),
             tunnel_monitor_event_sender,
-            shared_state.mixnet_event_sender.clone(),
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             shared_state.route_handler.clone(),
             #[cfg(any(target_os = "ios", target_os = "android"))]
