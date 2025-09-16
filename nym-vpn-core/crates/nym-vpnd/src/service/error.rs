@@ -34,6 +34,7 @@ pub enum SetNetworkError {
 
 /// Not yet implemented.
 #[derive(Debug, thiserror::Error)]
+#[allow(dead_code)]
 pub enum SetConfigError {
     #[error("failed to set config")]
     SetConfig {

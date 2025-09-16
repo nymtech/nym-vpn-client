@@ -87,6 +87,7 @@ pub(super) struct VpnServiceConfigManager {
     toml_config_path: PathBuf,
     json_config_path: PathBuf,
     config: VpnServiceConfig,
+    config_changed: bool,
 }
 
 #[allow(dead_code)]
@@ -95,13 +96,14 @@ impl VpnServiceConfigManager {
     pub(super) fn new(network_config_dir: &Path) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
-
         let config = Self::read_from_file(&toml_config_path, &json_config_path)?;
+        let config_changed = true;
 
         Ok(Self {
             json_config_path,
             toml_config_path,
             config,
+            config_changed,
         })
     }
 
@@ -111,50 +113,67 @@ impl VpnServiceConfigManager {
 
     pub(super) fn set_config(&mut self, config: VpnServiceConfig) {
         self.config = config;
+        self.config_changed = true;
     }
 
     pub(super) fn set_entry_point(&mut self, entry_point: EntryPoint) {
         self.config.entry_point = entry_point;
+        self.config_changed = true;
     }
 
     pub(super) fn set_exit_point(&mut self, exit_point: ExitPoint) {
         self.config.exit_point = exit_point;
+        self.config_changed = true;
     }
 
     pub(super) fn set_dns(&mut self, dns: Option<IpAddr>) {
         self.config.dns = dns;
+        self.config_changed = true;
     }
 
     pub(super) fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
         self.config.disable_ipv6 = disable_ipv6;
+        self.config_changed = true;
     }
 
     pub(super) fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config.enable_two_hop = enable_two_hop;
+        self.config_changed = true;
     }
 
     pub(super) fn set_netstack(&mut self, netstack: bool) {
         self.config.netstack = netstack;
+        self.config_changed = true;
     }
 
     pub(super) fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         self.config.disable_poisson_rate = disable_poisson_rate;
+        self.config_changed = true;
     }
 
     pub(super) fn set_disable_background_cover_traffic(&mut self, disable: bool) {
         self.config.disable_background_cover_traffic = disable;
+        self.config_changed = true;
     }
 
     pub(super) fn set_min_mixnode_performance(&mut self, min: Option<Percent>) {
         self.config.min_mixnode_performance = min;
+        self.config_changed = true;
     }
 
     pub(super) fn set_min_gateway_mixnet_performance(&mut self, min: Option<Percent>) {
         self.config.min_gateway_mixnet_performance = min;
+        self.config_changed = true;
     }
 
     pub(super) fn set_min_gateway_vpn_performance(&mut self, min: Option<Percent>) {
         self.config.min_gateway_vpn_performance = min;
+        self.config_changed = true;
+    }
+
+    /// Has the configuration changed since the last time a `TunnelSettings` was generated?
+    pub(super) fn has_config_changed(&self) -> bool {
+        self.config_changed
     }
 
     #[allow(clippy::result_large_err)]
@@ -201,7 +220,7 @@ impl VpnServiceConfigManager {
     }
 
     #[allow(clippy::result_large_err)]
-    pub(super) fn generate_tunnel_settings(&self) -> Result<TunnelSettings> {
+    pub(super) fn generate_tunnel_settings(&mut self) -> Result<TunnelSettings> {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -239,6 +258,8 @@ impl VpnServiceConfigManager {
             .dns
             .map(|addr| DnsOptions::Custom(vec![addr]))
             .unwrap_or_default();
+
+        self.config_changed = false;
 
         Ok(TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,

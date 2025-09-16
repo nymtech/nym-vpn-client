@@ -52,6 +52,28 @@ pub enum TunnelState {
     },
 }
 
+impl TunnelState {
+    /// Returns true if the tunnel is in the connected state.
+    pub fn is_connected(&self) -> bool {
+        matches!(self, Self::Connected { .. })
+    }
+
+    /// Returns true if the tunnel is in the connecting state.
+    pub fn is_connecting(&self) -> bool {
+        matches!(self, Self::Connecting { .. })
+    }
+
+    /// Returns true if the tunnel is in the disconnected state.
+    pub fn is_disconnected(&self) -> bool {
+        matches!(self, Self::Disconnected)
+    }
+
+    /// Returns true if the tunnel is in the offline state.
+    pub fn is_offline(&self) -> bool {
+        matches!(self, Self::Offline { .. })
+    }
+}
+
 impl std::fmt::Display for TunnelState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

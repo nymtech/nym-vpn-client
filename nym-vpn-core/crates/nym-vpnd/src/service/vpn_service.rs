@@ -7,11 +7,12 @@ use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
-use std::{path::PathBuf, time::Instant};
+use std::path::PathBuf;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
+    time::{Duration, Instant, MissedTickBehavior, interval_at},
 };
 use tokio_util::sync::CancellationToken;
 
@@ -42,7 +43,6 @@ use nym_vpnd_types::{
     log_path::LogPath,
     service::{ConnectArgs, VpnServiceConfig, VpnServiceInfo},
 };
-use std::time::Duration;
 
 use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
@@ -360,7 +360,6 @@ impl NymVpnService {
         )
         .await;
 
-        // Configuration Manager setup
         let config_manager = VpnServiceConfigManager::new(&config_dir)?;
 
         let statistics_event_sender = statistics_controller.get_statistics_sender();
@@ -476,6 +475,12 @@ impl NymVpnService {
     }
 
     pub async fn run(mut self) -> anyhow::Result<()> {
+        let mut tick = interval_at(
+            Instant::now() + Duration::from_secs(1),
+            Duration::from_secs(1),
+        );
+        tick.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
@@ -483,6 +488,10 @@ impl NymVpnService {
                 }
                 Some(event) = self.event_receiver.recv() => {
                     self.handle_tunnel_event(event);
+                }
+                _ = tick.tick() => {
+                    // Check if the configuration has changed and if so, reconnect the tunnel
+                    self.reconnect_if_config_changed().await;
                 }
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("Received shutdown signal");
@@ -701,6 +710,42 @@ impl NymVpnService {
         }
     }
 
+    async fn reconnect_if_config_changed(&mut self) {
+        if self.config_manager.has_config_changed()
+            && (self.tunnel_state.is_connected() || self.tunnel_state.is_connecting())
+            && let Err(e) = self.connect().await
+        {
+            tracing::error!("Failed to reconnect tunnel after config change: {e}");
+        }
+    }
+
+    async fn connect(&mut self) -> Result<()> {
+        if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
+            self.command_sender.send(TunnelCommand::Disconnect).ok();
+        }
+
+        self.statistics_event_sender
+            .report(StatisticsEvent::new_connecting(
+                self.config_manager.config().enable_two_hop,
+            )); // desktop "Connect" event
+
+        let tunnel_settings = self.config_manager.generate_tunnel_settings()?;
+
+        match self
+            .command_sender
+            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
+        {
+            Ok(()) => {
+                self.command_sender.send(TunnelCommand::Connect).ok();
+                Ok(())
+            }
+            Err(e) => {
+                tracing::error!("Failed to send command to set tunnel options: {}", e);
+                Ok(())
+            }
+        }
+    }
+
     async fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
 
@@ -725,35 +770,17 @@ impl NymVpnService {
     ) -> Result<(), SetConfigError> {
         self.config_manager.set_entry_point(entry_point);
 
-        self.config_manager
-            .write_to_file()
-            .map_err(|source| SetConfigError::SetConfig {
-                source: source.into(),
-            })?;
-
         Ok(())
     }
 
     async fn handle_set_exit_point(&mut self, exit_point: ExitPoint) -> Result<(), SetConfigError> {
         self.config_manager.set_exit_point(exit_point);
 
-        self.config_manager
-            .write_to_file()
-            .map_err(|source| SetConfigError::SetConfig {
-                source: source.into(),
-            })?;
-
         Ok(())
     }
 
     async fn handle_set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<(), SetConfigError> {
         self.config_manager.set_disable_ipv6(disable_ipv6);
-
-        self.config_manager
-            .write_to_file()
-            .map_err(|source| SetConfigError::SetConfig {
-                source: source.into(),
-            })?;
 
         Ok(())
     }
@@ -764,23 +791,11 @@ impl NymVpnService {
     ) -> Result<(), SetConfigError> {
         self.config_manager.set_enable_two_hop(enable_two_hop);
 
-        self.config_manager
-            .write_to_file()
-            .map_err(|source| SetConfigError::SetConfig {
-                source: source.into(),
-            })?;
-
         Ok(())
     }
 
     async fn handle_set_netstack(&mut self, netstack: bool) -> Result<(), SetConfigError> {
         self.config_manager.set_netstack(netstack);
-
-        self.config_manager
-            .write_to_file()
-            .map_err(|source| SetConfigError::SetConfig {
-                source: source.into(),
-            })?;
 
         Ok(())
     }
@@ -902,47 +917,11 @@ impl NymVpnService {
             disable_background_cover_traffic: options.disable_background_cover_traffic,
         });
 
-        self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(options.enable_two_hop)); // desktop "Connect" event
-
-        let tunnel_settings = self.config_manager.generate_tunnel_settings()?;
-
-        match self
-            .command_sender
-            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
-        {
-            Ok(()) => {
-                self.command_sender.send(TunnelCommand::Connect).ok();
-                Ok(())
-            }
-            Err(e) => {
-                tracing::error!("Failed to send command to set tunnel options: {}", e);
-                Ok(())
-            }
-        }
+        self.connect().await
     }
 
     async fn handle_connect_v2(&mut self) -> Result<()> {
-        self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(
-                self.config_manager.config().enable_two_hop,
-            )); // desktop "Connect" event
-
-        let tunnel_settings = self.config_manager.generate_tunnel_settings()?;
-
-        match self
-            .command_sender
-            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
-        {
-            Ok(()) => {
-                self.command_sender.send(TunnelCommand::Connect).ok();
-                Ok(())
-            }
-            Err(e) => {
-                tracing::error!("Failed to send command to set tunnel options: {}", e);
-                Ok(())
-            }
-        }
+        self.connect().await
     }
 
     async fn handle_disconnect(&mut self) {
