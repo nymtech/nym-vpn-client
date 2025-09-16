@@ -276,7 +276,7 @@ impl ConnectedTunnel {
             Some(tunnel_constants.fwmark),
         );
 
-        if entry_amnezia{
+        if entry_amnezia {
             wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
         }
 

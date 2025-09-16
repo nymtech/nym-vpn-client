@@ -1,7 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, fmt, net::{IpAddr, SocketAddr}};
+use std::{
+    collections::HashSet,
+    fmt,
+    net::{IpAddr, SocketAddr},
+};
 
 use crate::error::VpnApiClientError;
 use crate::network_compatibility::NetworkCompatibility;
@@ -363,7 +367,7 @@ pub struct Authenticator {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BridgeInformation {
     pub version: String,
-    pub transports: Vec<TransportParameters>,
+    pub transports: Vec<BridgeParameters>,
 }
 
 impl BridgeInformation {
@@ -371,7 +375,7 @@ impl BridgeInformation {
         let mut addrs = Vec::new();
         for transport in &self.transports {
             match transport {
-                TransportParameters::QuicPlain(params) => addrs.extend(&params.addresses),
+                BridgeParameters::QuicPlain(params) => addrs.extend(&params.addresses),
             }
         }
         addrs
@@ -381,7 +385,7 @@ impl BridgeInformation {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "transport_type", content = "args")]
 #[serde(rename_all = "snake_case")]
-pub enum TransportParameters {
+pub enum BridgeParameters {
     QuicPlain(QuicClientOptions),
 }
 

@@ -14,6 +14,7 @@ use tracing::*;
 
 mod certs;
 use certs::*;
+pub use nym_vpn_lib_types::bridges::*;
 
 #[derive(thiserror::Error, Debug)]
 pub enum TransportError {
@@ -31,60 +32,29 @@ pub enum TransportError {
 }
 
 impl TransportError {
-    fn config_err(s: impl AsRef<str>) -> Self {
+    pub fn config_err(s: impl AsRef<str>) -> Self {
         Self::Config(s.as_ref().to_string())
     }
 }
 
-pub const MTU_OVERHEAD: u16 = 48;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum BridgeParams {
-    Quic(ClientOptions),
-}
-
-impl From<&GatewayData> for BridgeParams {
-    fn from(value: &GatewayData) -> Self {
-        let address = SocketAddr::new(value.endpoint.ip(), 4443);
-        // TODO: NET-512 jmwample - THIS CANNOT STAY AS A STATIC KEY
-        // this is meant to work for dev with node 3wqfp9
-        let id_pubkey_bs64 = "K8PEmaK/z6Xj6owLmU4c9m08OXrrXLLm16d3ZTfzd64=";
-        let mut pubkey_bytes = [0u8; 32];
-        BASE64_STANDARD
-            .decode_slice(id_pubkey_bs64, &mut pubkey_bytes)
-            .unwrap();
-        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes).unwrap();
-
-        BridgeParams::Quic(ClientOptions {
-            address,
-            host: Some("quic-test.example.com".into()),
-            bind: None,
-            id_pubkey,
-        })
-    }
-}
-
-impl BridgeParams {
-    pub fn endpoint(&self) -> SocketAddr {
-        match self {
-            BridgeParams::Quic(opts) => opts.address,
-        }
-    }
-}
-
 pub struct BridgeConn {
-    params: BridgeParams,
-    reader: Box<dyn AsyncRead + Send + Unpin>,
-    writer: Box<dyn AsyncWrite + Send + Unpin>,
+    /// Configured parameters from which this bridge connections was built
+    pub(crate) params: BridgeParameters,
+    /// Remote address of the bridge transport connection
+    pub(crate) endpoint: SocketAddr,
+    pub(crate) reader: Box<dyn AsyncRead + Send + Unpin>,
+    pub(crate) writer: Box<dyn AsyncWrite + Send + Unpin>,
 }
 
 impl BridgeConn {
-    pub async fn try_connect(params: BridgeParams) -> Result<Self, TransportError> {
+    pub async fn try_connect(params: BridgeParameters) -> Result<Self, TransportError> {
         let start = Instant::now();
 
         match params {
-            BridgeParams::Quic(ref opts) => {
-                let conn = transport_conn(opts).await?;
+            BridgeParameters::QuicPlain(ref opts) => {
+                let opts = ClientOptions::try_from(opts)?;
+                let conn = transport_conn(&opts).await?;
+                let endpoint = conn.remote_address();
                 // .context("failed to connect to transport conn")?;
                 let (wr, rd) = conn.open_bi().await?;
                 // .context("failed to connect to transport stream")?;
@@ -93,6 +63,7 @@ impl BridgeConn {
                     reader: Box::new(rd),
                     writer: Box::new(wr),
                     params,
+                    endpoint,
                 })
             }
         }
@@ -337,16 +308,41 @@ pub struct ClientOptions {
     /// Address describing the remote transport server
     ///
     /// Must parse as a valid [`std::net::SocketAddr`] - e.g. `123.45.67.89:443`
-    pub address: SocketAddr,
+    pub addresses: Vec<SocketAddr>,
 
     /// Override hostname used for certificate verification
     pub host: Option<String>,
 
-    /// Address to bind on
-    pub bind: Option<SocketAddr>,
-
     /// Use identity public key to verify server self signed certificate
     pub id_pubkey: VerifyingKey,
+}
+
+impl TryFrom<&QuicClientOptions> for ClientOptions {
+    type Error = TransportError;
+    fn try_from(value: &QuicClientOptions) -> Result<Self, Self::Error> {
+        let mut pubkey_bytes = [0u8; 32];
+        BASE64_STANDARD
+            .decode_slice(&value.id_pubkey, &mut pubkey_bytes)
+            .unwrap();
+        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes).unwrap();
+
+        Ok(Self {
+            addresses: value.addresses.clone(),
+            host: value.host.clone(),
+            id_pubkey,
+        })
+    }
+}
+
+impl ClientOptions {
+    fn get_ipv4(&self) -> Option<SocketAddr> {
+        for addr in &self.addresses {
+            if addr.is_ipv4() {
+                return Some(addr.clone());
+            }
+        }
+        None
+    }
 }
 
 pub const ALPN_QUIC_HTTP: &[&[u8]] = &[b"hq-29"];
@@ -356,6 +352,10 @@ use quinn_proto::crypto::rustls::QuicClientConfig;
 
 pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection, TransportError> {
     info!("initializing from transport identity pubkey");
+
+    let transport_endpoint = options
+        .get_ipv4()
+        .ok_or(TransportError::config_err("No IPv4 endpoint provided"))?;
 
     let alt_names = options.host.clone().map(|h| vec![h]);
     let verifier =
@@ -371,7 +371,7 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
 
     let client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
-    let socket = make_socket(options.bind)?;
+    let socket = make_socket(None)?;
     let runtime =
         quinn::default_runtime().ok_or_else(|| io::Error::other("no async runtime found"))?;
     let mut endpoint = quinn::Endpoint::new_with_abstract_socket(
@@ -383,11 +383,11 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
     endpoint.set_default_client_config(client_config);
 
     // If no hostname is provided use the IP address of the remote server as the hostname.
-    let addr_host = options.address.ip().to_string();
+    let addr_host = transport_endpoint.ip().to_string();
     let host = options.host.as_deref().unwrap_or(&addr_host);
 
     endpoint
-        .connect(options.address, host)?
+        .connect(transport_endpoint, host)?
         .await
         .map_err(TransportError::QuicProto)
 }
