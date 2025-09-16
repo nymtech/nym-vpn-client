@@ -186,7 +186,7 @@ enum NymVpnService_EstablishConnectionState: SwiftProtobuf.Enum, Swift.CaseItera
 }
 
 /// Represents the identity of a gateway
-struct NymVpnService_Gateway: Sendable {
+struct NymVpnService_GatewayId: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -253,10 +253,10 @@ struct NymVpnService_EntryNode: Sendable {
 
   var entryNodeEnum: NymVpnService_EntryNode.OneOf_EntryNodeEnum? = nil
 
-  var gateway: NymVpnService_Gateway {
+  var gateway: NymVpnService_GatewayId {
     get {
       if case .gateway(let v)? = entryNodeEnum {return v}
-      return NymVpnService_Gateway()
+      return NymVpnService_GatewayId()
     }
     set {entryNodeEnum = .gateway(newValue)}
   }
@@ -280,7 +280,7 @@ struct NymVpnService_EntryNode: Sendable {
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   enum OneOf_EntryNodeEnum: Equatable, Sendable {
-    case gateway(NymVpnService_Gateway)
+    case gateway(NymVpnService_GatewayId)
     case location(NymVpnService_Location)
     case random(SwiftProtobuf.Google_Protobuf_Empty)
 
@@ -304,10 +304,10 @@ struct NymVpnService_ExitNode: Sendable {
     set {exitNodeEnum = .address(newValue)}
   }
 
-  var gateway: NymVpnService_Gateway {
+  var gateway: NymVpnService_GatewayId {
     get {
       if case .gateway(let v)? = exitNodeEnum {return v}
-      return NymVpnService_Gateway()
+      return NymVpnService_GatewayId()
     }
     set {exitNodeEnum = .gateway(newValue)}
   }
@@ -332,7 +332,7 @@ struct NymVpnService_ExitNode: Sendable {
 
   enum OneOf_ExitNodeEnum: Equatable, Sendable {
     case address(NymVpnService_Address)
-    case gateway(NymVpnService_Gateway)
+    case gateway(NymVpnService_GatewayId)
     case location(NymVpnService_Location)
     case random(SwiftProtobuf.Google_Protobuf_Empty)
 
@@ -1168,8 +1168,8 @@ struct NymVpnService_GatewayResponse: @unchecked Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var id: NymVpnService_Gateway {
-    get {return _storage._id ?? NymVpnService_Gateway()}
+  var id: NymVpnService_GatewayId {
+    get {return _storage._id ?? NymVpnService_GatewayId()}
     set {_uniqueStorage()._id = newValue}
   }
   /// Returns true if `id` has been explicitly set.
@@ -1217,6 +1217,25 @@ struct NymVpnService_GatewayResponse: @unchecked Sendable {
     get {return _storage._moniker}
     set {_uniqueStorage()._moniker = newValue}
   }
+
+  var exitIpv4S: [String] {
+    get {return _storage._exitIpv4S}
+    set {_uniqueStorage()._exitIpv4S = newValue}
+  }
+
+  var exitIpv6S: [String] {
+    get {return _storage._exitIpv6S}
+    set {_uniqueStorage()._exitIpv6S = newValue}
+  }
+
+  var buildVersion: String {
+    get {return _storage._buildVersion ?? String()}
+    set {_uniqueStorage()._buildVersion = newValue}
+  }
+  /// Returns true if `buildVersion` has been explicitly set.
+  var hasBuildVersion: Bool {return _storage._buildVersion != nil}
+  /// Clears the value of `buildVersion`. Subsequent reads from it will return its default value.
+  mutating func clearBuildVersion() {_uniqueStorage()._buildVersion = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1312,8 +1331,8 @@ struct NymVpnService_EstablishConnectionData: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var entryGateway: NymVpnService_Gateway {
-    get {return _entryGateway ?? NymVpnService_Gateway()}
+  var entryGateway: NymVpnService_GatewayId {
+    get {return _entryGateway ?? NymVpnService_GatewayId()}
     set {_entryGateway = newValue}
   }
   /// Returns true if `entryGateway` has been explicitly set.
@@ -1321,8 +1340,8 @@ struct NymVpnService_EstablishConnectionData: Sendable {
   /// Clears the value of `entryGateway`. Subsequent reads from it will return its default value.
   mutating func clearEntryGateway() {self._entryGateway = nil}
 
-  var exitGateway: NymVpnService_Gateway {
-    get {return _exitGateway ?? NymVpnService_Gateway()}
+  var exitGateway: NymVpnService_GatewayId {
+    get {return _exitGateway ?? NymVpnService_GatewayId()}
     set {_exitGateway = newValue}
   }
   /// Returns true if `exitGateway` has been explicitly set.
@@ -1343,8 +1362,8 @@ struct NymVpnService_EstablishConnectionData: Sendable {
 
   init() {}
 
-  fileprivate var _entryGateway: NymVpnService_Gateway? = nil
-  fileprivate var _exitGateway: NymVpnService_Gateway? = nil
+  fileprivate var _entryGateway: NymVpnService_GatewayId? = nil
+  fileprivate var _exitGateway: NymVpnService_GatewayId? = nil
   fileprivate var _tunnel: NymVpnService_TunnelConnectionData? = nil
 }
 
@@ -1353,8 +1372,8 @@ struct NymVpnService_ConnectionData: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var entryGateway: NymVpnService_Gateway {
-    get {return _entryGateway ?? NymVpnService_Gateway()}
+  var entryGateway: NymVpnService_GatewayId {
+    get {return _entryGateway ?? NymVpnService_GatewayId()}
     set {_entryGateway = newValue}
   }
   /// Returns true if `entryGateway` has been explicitly set.
@@ -1362,8 +1381,8 @@ struct NymVpnService_ConnectionData: Sendable {
   /// Clears the value of `entryGateway`. Subsequent reads from it will return its default value.
   mutating func clearEntryGateway() {self._entryGateway = nil}
 
-  var exitGateway: NymVpnService_Gateway {
-    get {return _exitGateway ?? NymVpnService_Gateway()}
+  var exitGateway: NymVpnService_GatewayId {
+    get {return _exitGateway ?? NymVpnService_GatewayId()}
     set {_exitGateway = newValue}
   }
   /// Returns true if `exitGateway` has been explicitly set.
@@ -1393,8 +1412,8 @@ struct NymVpnService_ConnectionData: Sendable {
 
   init() {}
 
-  fileprivate var _entryGateway: NymVpnService_Gateway? = nil
-  fileprivate var _exitGateway: NymVpnService_Gateway? = nil
+  fileprivate var _entryGateway: NymVpnService_GatewayId? = nil
+  fileprivate var _exitGateway: NymVpnService_GatewayId? = nil
   fileprivate var _connectedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
   fileprivate var _tunnel: NymVpnService_TunnelConnectionData? = nil
 }
@@ -2946,8 +2965,8 @@ extension NymVpnService_EstablishConnectionState: SwiftProtobuf._ProtoNameProvid
   ]
 }
 
-extension NymVpnService_Gateway: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Gateway"
+extension NymVpnService_GatewayId: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".GatewayId"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "id"),
   ]
@@ -2971,7 +2990,7 @@ extension NymVpnService_Gateway: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: NymVpnService_Gateway, rhs: NymVpnService_Gateway) -> Bool {
+  static func ==(lhs: NymVpnService_GatewayId, rhs: NymVpnService_GatewayId) -> Bool {
     if lhs.id != rhs.id {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -3079,7 +3098,7 @@ extension NymVpnService_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._Message
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: NymVpnService_Gateway?
+        var v: NymVpnService_GatewayId?
         var hadOneofValue = false
         if let current = self.entryNodeEnum {
           hadOneofValue = true
@@ -3181,7 +3200,7 @@ extension NymVpnService_ExitNode: SwiftProtobuf.Message, SwiftProtobuf._MessageI
         }
       }()
       case 2: try {
-        var v: NymVpnService_Gateway?
+        var v: NymVpnService_GatewayId?
         var hadOneofValue = false
         if let current = self.exitNodeEnum {
           hadOneofValue = true
@@ -4737,15 +4756,21 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
     4: .standard(proto: "wg_score"),
     5: .standard(proto: "mixnet_score"),
     6: .same(proto: "moniker"),
+    7: .standard(proto: "exit_ipv4s"),
+    8: .standard(proto: "exit_ipv6s"),
+    9: .standard(proto: "build_version"),
   ]
 
   fileprivate class _StorageClass {
-    var _id: NymVpnService_Gateway? = nil
+    var _id: NymVpnService_GatewayId? = nil
     var _location: NymVpnService_Location? = nil
     var _lastProbe: NymVpnService_Probe? = nil
     var _wgScore: NymVpnService_Score? = nil
     var _mixnetScore: NymVpnService_Score? = nil
     var _moniker: String = String()
+    var _exitIpv4S: [String] = []
+    var _exitIpv6S: [String] = []
+    var _buildVersion: String? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -4766,6 +4791,9 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
       _wgScore = source._wgScore
       _mixnetScore = source._mixnetScore
       _moniker = source._moniker
+      _exitIpv4S = source._exitIpv4S
+      _exitIpv6S = source._exitIpv6S
+      _buildVersion = source._buildVersion
     }
   }
 
@@ -4790,6 +4818,9 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
         case 4: try { try decoder.decodeSingularEnumField(value: &_storage._wgScore) }()
         case 5: try { try decoder.decodeSingularEnumField(value: &_storage._mixnetScore) }()
         case 6: try { try decoder.decodeSingularStringField(value: &_storage._moniker) }()
+        case 7: try { try decoder.decodeRepeatedStringField(value: &_storage._exitIpv4S) }()
+        case 8: try { try decoder.decodeRepeatedStringField(value: &_storage._exitIpv6S) }()
+        case 9: try { try decoder.decodeSingularStringField(value: &_storage._buildVersion) }()
         default: break
         }
       }
@@ -4820,6 +4851,15 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
       if !_storage._moniker.isEmpty {
         try visitor.visitSingularStringField(value: _storage._moniker, fieldNumber: 6)
       }
+      if !_storage._exitIpv4S.isEmpty {
+        try visitor.visitRepeatedStringField(value: _storage._exitIpv4S, fieldNumber: 7)
+      }
+      if !_storage._exitIpv6S.isEmpty {
+        try visitor.visitRepeatedStringField(value: _storage._exitIpv6S, fieldNumber: 8)
+      }
+      try { if let v = _storage._buildVersion {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 9)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -4835,6 +4875,9 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
         if _storage._wgScore != rhs_storage._wgScore {return false}
         if _storage._mixnetScore != rhs_storage._mixnetScore {return false}
         if _storage._moniker != rhs_storage._moniker {return false}
+        if _storage._exitIpv4S != rhs_storage._exitIpv4S {return false}
+        if _storage._exitIpv6S != rhs_storage._exitIpv6S {return false}
+        if _storage._buildVersion != rhs_storage._buildVersion {return false}
         return true
       }
       if !storagesAreEqual {return false}
