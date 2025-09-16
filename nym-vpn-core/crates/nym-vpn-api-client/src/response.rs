@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, fmt, net::IpAddr};
+use std::{collections::HashSet, fmt, net::{IpAddr, SocketAddr}};
 
 use itertools::Itertools;
 use nym_contracts_common::Percent;
@@ -326,6 +326,7 @@ pub struct NymDirectoryGateway {
     pub mix_port: u16,
     pub role: Role,
     pub entry: EntryInformation,
+    pub bridges: Option<BridgeInformation>,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
@@ -357,6 +358,45 @@ pub struct IpPacketRouter {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Authenticator {
     pub address: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BridgeInformation {
+    pub version: String,
+    pub transports: Vec<TransportParameters>,
+}
+
+impl BridgeInformation {
+    pub fn get_addrs(&self) -> Vec<SocketAddr> {
+        let mut addrs = Vec::new();
+        for transport in &self.transports {
+            match transport {
+                TransportParameters::QuicPlain(params) => addrs.extend(&params.addresses),
+            }
+        }
+        addrs
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(tag = "transport_type", content = "args")]
+#[serde(rename_all = "snake_case")]
+pub enum TransportParameters {
+    QuicPlain(QuicClientOptions),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct QuicClientOptions {
+    /// Address describing the remote transport server. This is a vec to support multiple addresses
+    /// so as to support both IPv4 and IPv6. These addresses are meant to describe a single bridge
+    /// as the key material should not be used across multiple instances.
+    pub addresses: Vec<std::net::SocketAddr>,
+
+    /// Override hostname used for certificate verification
+    pub host: Option<String>,
+
+    /// Use identity public key to verify server self signed certificate
+    pub id_pubkey: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
