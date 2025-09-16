@@ -248,7 +248,6 @@
 		D9F744742D79BF5900DD9277 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.nymtech.vpn.helper.plist; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
-		D9FB33F22BEE320B009C3419 /* Launchd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Launchd.plist; sourceTree = "<group>"; };
 		D9FB33F32BEE320B009C3419 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -500,7 +499,6 @@
 			children = (
 				D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */,
 				D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */,
-				D9FB33F22BEE320B009C3419 /* Launchd.plist */,
 				D9FB33F32BEE320B009C3419 /* Info.plist */,
 				D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */,
 			);
