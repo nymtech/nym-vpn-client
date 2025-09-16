@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import Device
 #if os(iOS)
+import AppVersionProvider
 import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
@@ -10,6 +11,11 @@ import GRPCManager
 import Constants
 import CredentialsManager
 import Logging
+
+public enum AppType {
+    case main
+    case networkExtension
+}
 
 public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings
@@ -95,8 +101,14 @@ public final class ConfigurationManager: ObservableObject {
     }
 #endif
 
-    public func setup() async throws {
+    public func setup(for appType: AppType) async throws {
         try await configure()
+
+        #if os(iOS)
+        if case .main = appType {
+            try configureLibForMainProcess(userAgent: .appUserAgent)
+        }
+        #endif
 
         appSettings.$isCredentialImportedPublisher.sink { [weak self] _ in
             self?.updateAccountLinks()

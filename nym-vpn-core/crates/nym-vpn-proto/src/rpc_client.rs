@@ -14,7 +14,7 @@ use nym_vpnd_types::{
     AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::{VpnServiceConfig, VpnServiceInfo},
+    service::{ConnectArgs, VpnServiceConfig, VpnServiceInfo},
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -60,23 +60,55 @@ impl RpcClient {
     }
 
     pub async fn set_entry_point(&mut self, entry_point: EntryPoint) -> Result<()> {
-        unimplemented!()
+        let entry_node = proto::EntryNode::try_from(entry_point).map_err(Error::InvalidRequest)?;
+
+        self.0
+            .set_entry_point(entry_node)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(())
     }
 
     pub async fn set_exit_point(&mut self, exit_point: ExitPoint) -> Result<()> {
-        unimplemented!()
+        let exit_node =
+            proto::ExitNode::try_from(exit_point.clone()).map_err(Error::InvalidRequest)?;
+
+        self.0
+            .set_exit_point(exit_node)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(())
     }
 
     pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<()> {
-        unimplemented!()
+        self.0
+            .set_disable_ipv6(disable_ipv6)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
     }
 
     pub async fn set_enable_two_hop(&mut self, enable_two_hop: bool) -> Result<()> {
-        unimplemented!()
+        self.0
+            .set_enable_two_hop(enable_two_hop)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
     }
 
     pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
-        unimplemented!()
+        self.0
+            .set_netstack(netstack)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
     }
 
     pub async fn set_network(&mut self, network: String) -> Result<()> {

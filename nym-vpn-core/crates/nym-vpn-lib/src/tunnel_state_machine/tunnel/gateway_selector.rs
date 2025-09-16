@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Gateway, GatewayType};
+use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayType};
 
 use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
 
@@ -12,7 +12,7 @@ pub struct SelectedGateways {
 }
 
 pub async fn select_gateways(
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
@@ -37,7 +37,7 @@ pub async fn select_gateways(
 
     let (mut entry_gateways, exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {
-            let all_gateways = gateway_directory_client
+            let all_gateways = gateway_cache_handle
                 .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
@@ -45,12 +45,12 @@ pub async fn select_gateways(
         }
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
-            let exit_gateways = gateway_directory_client
+            let exit_gateways = gateway_cache_handle
                 .lookup_gateways(GatewayType::MixnetExit)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
-            let entry_gateways = gateway_directory_client
+            let entry_gateways = gateway_cache_handle
                 .lookup_gateways(GatewayType::MixnetEntry)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;

@@ -75,12 +75,7 @@ extension MixnetConfig {
             credentialDataPath: credentialsDataPath,
             tunStatusListener: tunStatusListener,
             statisticsRecipient: nil,
-            userAgent: UserAgent(
-                application: AppVersionProvider.app,
-                version: "\(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))",
-                platform: AppVersionProvider.platform,
-                gitCommit: ""
-            )
+            userAgent: .appUserAgent
         )
     }
 }

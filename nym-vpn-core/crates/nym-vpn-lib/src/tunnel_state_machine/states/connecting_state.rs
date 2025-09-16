@@ -21,7 +21,7 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
-use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, Gateway};
+use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
 
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
@@ -123,8 +123,8 @@ impl ConnectingState {
             selected_gateways
                 .as_ref()
                 .map(|gateways| EstablishConnectionData {
-                    entry_gateway: Gateway::from(*gateways.entry.clone()),
-                    exit_gateway: Gateway::from(*gateways.exit.clone()),
+                    entry_gateway: GatewayId::from(*gateways.entry.clone()),
+                    exit_gateway: GatewayId::from(*gateways.exit.clone()),
                     tunnel: None,
                 });
 
@@ -396,7 +396,7 @@ impl ConnectingState {
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
-            shared_state.gateway_directory.clone(),
+            shared_state.gateway_cache_handle.clone(),
             shared_state.topology_provider.clone(),
             tunnel_monitor_event_sender,
             shared_state.mixnet_event_sender.clone(),

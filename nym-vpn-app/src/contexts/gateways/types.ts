@@ -1,4 +1,4 @@
-import { AppError, GatewayType, GatewaysByCountry } from '../../types';
+import { AppError, Gateway, GatewayType, GatewaysByCountry } from '../../types';
 
 export type FetchGatewaysFn = (
   nodeType: GatewayType,
@@ -15,4 +15,9 @@ export type GatewaysState = {
   mxExitError?: AppError | null;
   wgError?: AppError | null;
   fetch: FetchGatewaysFn;
+  lookupGw: (
+    id: string,
+    countryCode: string,
+    type: 'entry' | 'exit',
+  ) => Gateway | null;
 };

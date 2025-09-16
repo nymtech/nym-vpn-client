@@ -2,13 +2,13 @@ package net.nymtech.nymvpn.manager.backend.model
 
 import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.EstablishConnectionData
-import nym_vpn_lib_types.Gateway
+import nym_vpn_lib_types.GatewayId
 import nym_vpn_lib_types.OffsetDateTime
 import nym_vpn_lib_types.TunnelConnectionData
 
 data class ConnectionInfo(
-	var entryGateway: Gateway,
-	var exitGateway: Gateway,
+	var entryGateway: GatewayId,
+	var exitGateway: GatewayId,
 	var connectedAt: OffsetDateTime?,
 	var tunnel: TunnelConnectionData?,
 )

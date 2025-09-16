@@ -80,7 +80,7 @@ class NymBackendManager @Inject constructor(
 				settingsRepository.getStatisticsEnabled(),
 			)
 			val nymBackend = withContext(mainDispatcher) {
-				NymBackend.getInstance(context, env, settingsConfig)
+				NymBackend.getInstance(context, env, settingsConfig, context.toUserAgent())
 			}
 			backend.complete(nymBackend)
 			val isCompatible = isClientNetworkCompatible(env)
@@ -209,7 +209,7 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun getGateways(gatewayType: GatewayType): List<NymGateway> {
-		return backend.await().getGateways(gatewayType, context.toUserAgent())
+		return backend.await().getGateways(gatewayType)
 	}
 
 	override suspend fun refreshAccountLinks() {

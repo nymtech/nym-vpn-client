@@ -124,6 +124,31 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
     ],
   );
 
+  const findGateway = (
+    id: string,
+    countryCode: string,
+    gateways: GatewaysByCountry[],
+  ) => {
+    const byCountry = gateways.find((c) => c.country.code === countryCode);
+    if (byCountry) {
+      return byCountry.gateways.find((gw) => gw.id === id) || null;
+    }
+    return null;
+  };
+
+  const lookupGw = useCallback(
+    (id: string, countryCode: string, type: 'entry' | 'exit') => {
+      if (vpnMode === 'wg') {
+        return findGateway(id, countryCode, state.wg);
+      } else if (type === 'entry') {
+        return findGateway(id, countryCode, state.mxEntry);
+      } else {
+        return findGateway(id, countryCode, state.mxExit);
+      }
+    },
+    [state.mxEntry, state.mxExit, state.wg, vpnMode],
+  );
+
   // init gateways on app start
   useEffect(() => {
     if (initialized || daemonStatus === 'down') {
@@ -148,8 +173,9 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
     () => ({
       ...state,
       fetch: fetchGateways,
+      lookupGw,
     }),
-    [state, fetchGateways],
+    [state, fetchGateways, lookupGw],
   );
 
   return (

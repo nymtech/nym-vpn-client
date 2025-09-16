@@ -2,9 +2,34 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, Percent};
+use nym_sdk::UserAgent;
 use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use std::{fmt, net::IpAddr};
 use time::OffsetDateTime;
+
+// Deprecated
+#[derive(Debug)]
+pub struct ConnectArgs {
+    pub entry: Option<EntryPoint>,
+    pub exit: Option<ExitPoint>,
+    pub options: ConnectOptions,
+}
+
+// Deprecated
+#[derive(Default, Debug, Clone)]
+pub struct ConnectOptions {
+    pub dns: Option<IpAddr>,
+    pub disable_ipv6: bool,
+    pub enable_two_hop: bool,
+    pub netstack: bool,
+    pub disable_poisson_rate: bool,
+    pub disable_background_cover_traffic: bool,
+    pub enable_credentials_mode: bool,
+    pub min_mixnode_performance: Option<Percent>,
+    pub min_gateway_mixnet_performance: Option<Percent>,
+    pub min_gateway_vpn_performance: Option<Percent>,
+    pub user_agent: Option<UserAgent>,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VpnServiceConfig {

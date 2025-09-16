@@ -87,9 +87,10 @@ private extension NymVPNApp {
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
         ThemeConfiguration.setup()
+
         Task {
-            // Things dependant on environment beeing set.
-            try await ConfigurationManager.shared.setup()
+            // Things dependant on environment being set.
+            try await ConfigurationManager.shared.setup(for: .main)
             CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()

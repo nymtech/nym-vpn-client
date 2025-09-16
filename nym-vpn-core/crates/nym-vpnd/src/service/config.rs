@@ -3,7 +3,7 @@
 
 use super::error::{Error, Result};
 use nym_vpn_lib::{
-    MixnetClientConfig, UserAgent,
+    MixnetClientConfig,
     gateway_directory::{self, ContractsCommonError, EntryPoint, ExitPoint, NaiveFloat, Percent},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
@@ -89,6 +89,7 @@ pub(super) struct VpnServiceConfigManager {
     config: VpnServiceConfig,
 }
 
+#[allow(dead_code)]
 impl VpnServiceConfigManager {
     #[allow(clippy::result_large_err)]
     pub(super) fn new(network_config_dir: &Path) -> Result<Self> {
@@ -204,13 +205,7 @@ impl VpnServiceConfigManager {
     }
 
     #[allow(clippy::result_large_err)]
-    pub(super) fn generate_tunnel_settings(
-        &self,
-        enable_credentials_mode: bool,
-    ) -> Result<TunnelSettings> {
-        let enable_credentials_mode =
-            enable_credentials_mode || self.config.enable_credentials_mode;
-
+    pub(super) fn generate_tunnel_settings(&self) -> Result<TunnelSettings> {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -252,10 +247,7 @@ impl VpnServiceConfigManager {
         Ok(TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             tunnel_type,
-            mixnet_tunnel_options: MixnetTunnelOptions {
-                mtu: None,
-                enable_credentials_mode,
-            },
+            mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
                 multihop_mode: if self.config.netstack {
                     WireguardMultihopMode::Netstack

@@ -3,7 +3,7 @@
 
 use time::OffsetDateTime;
 
-use nym_gateway_directory::{NaiveFloat, Percent};
+use nym_gateway_directory::NaiveFloat;
 use nym_vpn_lib_types_uniffi::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
 
 macro_rules! round_f32 {

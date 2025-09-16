@@ -14,6 +14,10 @@ export const initialState: GatewaysState = {
   fetch: async () => {
     /*  SCARECROW */
   },
+  lookupGw: () => {
+    /*  SCARECROW */
+    return null;
+  },
 };
 
 export const GatewaysContext = createContext<GatewaysState>(initialState);

@@ -25,6 +25,8 @@ let compatChecked = false;
 function Home() {
   const {
     state,
+    tunnel,
+    connectingState,
     accountState,
     entryNode,
     exitNode,
@@ -44,6 +46,9 @@ function Home() {
     account &&
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
+
+  const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;
+  const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
@@ -196,6 +201,7 @@ function Home() {
               >
                 <HopSelect
                   node={entryNode}
+                  gatewayId={entryGwId}
                   onClick={() => navigate(routes.entryNodeLocation)}
                   nodeHop="entry"
                   disabled={hopSelectDisabled}
@@ -203,6 +209,7 @@ function Home() {
                 />
                 <HopSelect
                   node={exitNode}
+                  gatewayId={exitGwId}
                   onClick={() => navigate(routes.exitNodeLocation)}
                   nodeHop="exit"
                   disabled={hopSelectDisabled}

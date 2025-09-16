@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf};
+use std::path::PathBuf;
 
 use futures::{StreamExt, stream::BoxStream};
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
@@ -21,7 +21,7 @@ use nym_vpn_proto::proto::{
     self,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
-use nym_vpnd_types::{ListCountriesOptions, ListGatewaysOptions, service::VpnServiceConfig};
+use nym_vpnd_types::{ListCountriesOptions, ListGatewaysOptions, service::ConnectArgs};
 
 use crate::service::{SetNetworkError, VpnServiceCommand};
 
@@ -121,7 +121,8 @@ impl NymVpnService for CommandInterface {
     async fn set_disable_ipv6(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let disable_ipv6 = request.into_inner();
 
-        self.send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set IPv6 config: {e}")))?;
 
@@ -134,9 +135,21 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<()>> {
         let enable_two_hop = request.into_inner();
 
-        self.send_and_wait(VpnServiceCommand::SetEnableTwoHop, enable_two_hop)
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableTwoHop, enable_two_hop)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set two-hop config: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
+        let netstack = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetNetstack, netstack)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set netstack config: {e}")))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -199,8 +212,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(feature_flags.into()))
     }
 
-    async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::Connect, ()).await?;
+    async fn connect_tunnel(
+        &self,
+        request: tonic::Request<proto::ConnectRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let connect_args = ConnectArgs::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+
+        self.send_and_wait(VpnServiceCommand::Connect, connect_args)
+            .await?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn connect_tunnel_v2(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::ConnectV2, ()).await?;
 
         Ok(tonic::Response::new(()))
     }

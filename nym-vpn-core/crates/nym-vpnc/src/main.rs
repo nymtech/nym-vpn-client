@@ -3,15 +3,16 @@
 
 mod cli;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use cli::Internal;
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayType};
+use nym_gateway_directory::GatewayType;
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
-    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest, service::VpnServiceInfo,
+    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
 };
 use sysinfo::System;
 use tokio_stream::StreamExt;
@@ -33,11 +34,8 @@ async fn main() -> Result<()> {
     };
 
     match args.command {
-        Command::Connect { wait } => connect(rpc_client, wait).await?,
+        Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
-        Command::GetConfig => get_config(rpc_client).await?,
-        Command::SetEntryPoint(entry_point) => set_entry_point(rpc_client, entry_point).await?,
-        Command::SetExitPoint(exit_point) => set_exit_point(rpc_client, exit_point).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
@@ -97,10 +95,32 @@ fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
     }
 }
 
-async fn connect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
-    rpc_client.connect_tunnel().await?;
+async fn connect(
+    mut rpc_client: RpcClient,
+    connect_args: cli::ConnectArgs,
+    user_agent: UserAgent,
+) -> Result<()> {
+    let options = ConnectArgs {
+        entry: connect_args.entry_point()?,
+        exit: connect_args.exit_point()?,
+        options: ConnectOptions {
+            dns: connect_args.dns,
+            disable_ipv6: connect_args.disable_ipv6,
+            enable_two_hop: connect_args.enable_two_hop,
+            netstack: connect_args.netstack,
+            disable_poisson_rate: connect_args.disable_poisson_rate,
+            disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
+            enable_credentials_mode: connect_args.enable_credentials_mode,
+            min_gateway_mixnet_performance: None,
+            min_mixnode_performance: None,
+            min_gateway_vpn_performance: None,
+            user_agent: Some(user_agent),
+        },
+    };
 
-    if wait {
+    rpc_client.connect_tunnel(options).await?;
+
+    if connect_args.wait {
         println!("Waiting until connected or failed");
         wait_until_connected(rpc_client).await
     } else {
@@ -142,28 +162,6 @@ async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
         wait_until_disconnected(rpc_client).await
     } else {
         Ok(())
-    }
-}
-
-async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
-    let config = rpc_client.get_config().await?;
-    println!("{config}");
-    Ok(())
-}
-
-async fn set_entry_point(mut rpc_client: RpcClient, entry_point: cli::CliEntry) -> Result<()> {
-    let entry_point = EntryPoint::try_from(entry_point)?;
-    match rpc_client.set_entry_point(entry_point).await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(anyhow!("Failed to set entry point: {e}")),
-    }
-}
-
-async fn set_exit_point(mut rpc_client: RpcClient, exit_point: cli::CliExit) -> Result<()> {
-    let exit_point = ExitPoint::try_from(exit_point)?;
-    match rpc_client.set_exit_point(exit_point).await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(anyhow!("Failed to set exit point: {e}")),
     }
 }
 
