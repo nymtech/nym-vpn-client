@@ -332,7 +332,7 @@ impl<St: Storage> BandwidthController<St> {
     pub(crate) async fn register_and_create(
         controller: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
         gateway_client: &CachingGatewayClient,
-        selected_gateways: SelectedGateways,
+        selected_gateways: &SelectedGateways,
         wg_entry_gateway_client: &mut WgGatewayClient,
         wg_exit_gateway_client: &mut WgGatewayClient,
         entry_signal_channel: TunUpReceiver,
@@ -386,7 +386,14 @@ impl<St: Storage> BandwidthController<St> {
             cancel_token.clone(),
         );
 
-        Ok((bw, ConnectionData { entry, exit }))
+        Ok((
+            bw,
+            ConnectionData {
+                entry,
+                exit,
+                bridge: None,
+            },
+        ))
     }
 
     async fn register(

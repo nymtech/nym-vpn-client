@@ -21,7 +21,7 @@ use crate::{
     tunnel_state_machine::{
         TunnelMetadata,
         tunnel::{
-            Error, Result, gateway_selector::SelectedGateways,
+            Error, Result, gateway_selector::SelectedGateways, transports,
             wireguard::connected_tunnel::ConnectedTunnel,
         },
     },
@@ -57,6 +57,7 @@ pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
 pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
 
 pub struct ConnectionData {
+    pub bridge: Option<SocketAddr>,
     pub entry: GatewayData,
     pub exit: GatewayData,
 }
@@ -64,16 +65,19 @@ pub struct ConnectionData {
 pub struct Connector {
     mixnet_client: SharedMixnetClient,
     gateway_directory_client: CachingGatewayClient,
+    use_bridge: bool,
 }
 
 impl Connector {
     pub fn new(
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: CachingGatewayClient,
+        use_bridge: bool,
     ) -> Self {
         Self {
             mixnet_client,
             gateway_directory_client,
+            use_bridge,
         }
     }
 
@@ -98,6 +102,7 @@ impl Connector {
             cancel_token,
             entry_metadata_rx,
             exit_metadata_rx,
+            self.use_bridge,
         ))
         .await?;
         Ok(ConnectedTunnel::new(
@@ -135,6 +140,7 @@ impl Connector {
         cancel_token: CancellationToken,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
+        use_bridge: bool,
     ) -> Result<ConnectResult> {
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
@@ -175,7 +181,7 @@ impl Connector {
         });
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
-        let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
+        let (mut connection_data, bandwidth_controller_handle) = if let Some(data_path) =
             data_path.as_ref()
         {
             let paths = StoragePaths::new_from_dir(data_path)
@@ -190,14 +196,14 @@ impl Connector {
             let (bw, connection_data) = BandwidthController::register_and_create(
                 controller,
                 &gateway_directory_client,
-                selected_gateways,
+                &selected_gateways,
                 &mut wg_entry_gateway_client,
                 &mut wg_exit_gateway_client,
                 entry_signal_rx,
                 exit_signal_rx,
                 network.gw_update_version(),
                 shutdown,
-                cancel_token,
+                cancel_token.clone(),
             )
             .await?;
             let bandwidth_controller_handle = tokio::spawn(bw.run());
@@ -208,19 +214,42 @@ impl Connector {
             let (bw, connection_data) = BandwidthController::register_and_create(
                 controller,
                 &gateway_directory_client,
-                selected_gateways,
+                &selected_gateways,
                 &mut wg_entry_gateway_client,
                 &mut wg_exit_gateway_client,
                 entry_signal_rx,
                 exit_signal_rx,
                 network.gw_update_version(),
                 shutdown,
-                cancel_token,
+                cancel_token.clone(),
             )
             .await?;
             let bandwidth_controller_handle = tokio::spawn(bw.run());
             (connection_data, bandwidth_controller_handle)
         };
+
+        if use_bridge {
+            let entry_bridge_params = selected_gateways.entry.get_bridge_params().ok_or(
+                transports::TransportError::config_err(
+                    "attempted to open transport connection without bridge params",
+                ),
+            )?;
+
+            // Attempt transport Connection. If successful a listening UDP connection is created
+            // and the bind address of that UDP listener is provided to the entry wireguard tunnel
+            // as the endpoint address.
+            tracing::info!("Establishing DVPN QUIC transport tunnel");
+            let udp_fwd_cancel = cancel_token.child_token();
+            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            connection_data.bridge = Some(bridge_conn.endpoint);
+            let local_fwd =
+                transports::UdpForwarder::new(bridge_conn, None, udp_fwd_cancel.clone()).await?;
+            let local_fwd_listen_addr = local_fwd.local_addr().map_err(Error::Io)?;
+            tracing::info!(
+                "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
+            );
+            connection_data.entry.endpoint = local_fwd_listen_addr;
+        }
 
         Ok(ConnectResult {
             entry_gateway_client: wg_entry_gateway_client,

@@ -86,9 +86,10 @@ impl ConnectedMixnet {
         cancel_token: CancellationToken,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
+        use_bridge: bool,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
         let connector =
-            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client);
+            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client, use_bridge);
 
         connector
             .connect(

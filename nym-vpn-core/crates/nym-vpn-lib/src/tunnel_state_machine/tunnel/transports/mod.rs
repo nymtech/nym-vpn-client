@@ -5,7 +5,6 @@ use std::time::{Duration, Instant};
 use base64::prelude::*;
 use bytes::{Buf, BytesMut};
 use futures::{Sink, SinkExt, Stream, StreamExt};
-use nym_wg_gateway_client::GatewayData;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::UdpSocket;
 use tokio_util::codec::LengthDelimitedCodec;
@@ -29,16 +28,24 @@ pub enum TransportError {
 
     #[error("insufficient or broken transport params: {0}")]
     Config(String),
+
+    #[error("transport error: {0}")]
+    Other(String),
 }
 
 impl TransportError {
     pub fn config_err(s: impl AsRef<str>) -> Self {
         Self::Config(s.as_ref().to_string())
     }
+
+    pub fn other(s: impl AsRef<str>) -> Self {
+        Self::Other(s.as_ref().to_string())
+    }
 }
 
 pub struct BridgeConn {
     /// Configured parameters from which this bridge connections was built
+    #[allow(unused)] // we will want these later for metrics tracking
     pub(crate) params: BridgeParameters,
     /// Remote address of the bridge transport connection
     pub(crate) endpoint: SocketAddr,
@@ -78,7 +85,6 @@ impl UdpForwarder {
     pub async fn new(
         egress_conn: BridgeConn,
         bind_addr: Option<SocketAddr>,
-        mtu: u16,
         token: CancellationToken,
     ) -> Result<Self, TransportError> {
         let bind_addr = bind_addr.unwrap_or((Ipv6Addr::LOCALHOST, 0).into());
@@ -94,7 +100,7 @@ impl UdpForwarder {
             egress_conn.reader,
             egress_conn.writer,
             socket.clone(),
-            mtu,
+            ETHERNET_V2_MTU,
             token,
         ));
         // conn.close(0u32.into(), b"done");
@@ -338,7 +344,7 @@ impl ClientOptions {
     fn get_ipv4(&self) -> Option<SocketAddr> {
         for addr in &self.addresses {
             if addr.is_ipv4() {
-                return Some(addr.clone());
+                return Some(*addr);
             }
         }
         None
@@ -392,6 +398,7 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .map_err(TransportError::QuicProto)
 }
 
+use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 #[cfg(target_os = "linux")]
 use crate::TUNNEL_FWMARK;
 #[cfg(target_os = "linux")]
