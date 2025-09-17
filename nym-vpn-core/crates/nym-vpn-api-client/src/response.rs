@@ -3,13 +3,13 @@
 
 use std::{collections::HashSet, fmt, net::IpAddr};
 
+use crate::error::VpnApiClientError;
+use crate::network_compatibility::NetworkCompatibility;
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-use crate::error::VpnApiClientError;
-use crate::network_compatibility::NetworkCompatibility;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -558,8 +558,7 @@ impl fmt::Display for StatusOk {
     }
 }
 
-pub fn extract_error_response(err: VpnApiClientError) -> NymErrorResponse
-{
+pub fn extract_error_response(err: VpnApiClientError) -> NymErrorResponse {
     NymErrorResponse {
         message: err.to_string(),
         ..Default::default()

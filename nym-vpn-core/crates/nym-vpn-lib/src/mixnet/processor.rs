@@ -15,7 +15,8 @@ use nym_ip_packet_requests::{
 use nym_sdk::mixnet::{
     InputMessage, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient,
 };
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::{TaskClient, TaskManager, connections::TransmissionLane};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};

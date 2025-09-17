@@ -261,10 +261,12 @@ impl TryFrom<ExitPointExtV1> for gateway_directory::ExitPoint {
                 let node_identity =
                     gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
                         ConfigSetupError::ExitPoint {
-                            error: Box::new(gateway_directory::Error::NodeIdentityFormattingError {
-                                identity: identity.clone(),
-                                source: e,
-                            }),
+                            error: Box::new(
+                                gateway_directory::Error::NodeIdentityFormattingError {
+                                    identity: identity.clone(),
+                                    source: e,
+                                },
+                            ),
                         }
                     })?;
                 Ok(gateway_directory::ExitPoint::Gateway {

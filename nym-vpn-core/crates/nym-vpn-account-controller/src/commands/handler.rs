@@ -142,7 +142,7 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .vpn_api_client
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
-    {   
+    {
         #[allow(clippy::unnecessary_fallible_conversions)]
         match NymErrorResponse::try_from(e) {
             Ok(nym_error)

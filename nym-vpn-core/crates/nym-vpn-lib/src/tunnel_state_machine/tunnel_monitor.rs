@@ -21,7 +21,8 @@ use futures::{FutureExt, future::Fuse};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_sdk::UserAgent;
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskManager;
 use nym_vpn_account_controller::AccountStateReceiver;
 use nym_vpn_network_config::start_background_file_refresh;
@@ -249,7 +250,8 @@ impl TunnelMonitor {
     }
 
     async fn run(mut self) -> Tombstone {
-        #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+        #[allow(deprecated)]
+        // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
         let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS);
         let (tombstone, reason) = match Box::pin(self.run_inner(&mut task_manager)).await {
             Ok(tombstone) => (tombstone, None),
