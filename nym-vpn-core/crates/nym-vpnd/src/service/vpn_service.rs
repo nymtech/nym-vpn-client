@@ -712,9 +712,7 @@ impl NymVpnService {
     async fn handle_config_changes(&mut self) {
         if self.config_manager.has_config_changed() {
             // Save the configuration to file
-            if let Err(e) = self.config_manager.write_to_file() {
-                tracing::error!("Failed to write config to file: {e}");
-            }
+            self.config_manager.write_to_file();
 
             if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
                 // Reconnect the tunnel, if it's currently connecting/connected.

@@ -78,8 +78,7 @@ impl TryFrom<&str> for NetworkEnvironments {
 // VpnServiceConfigManager
 //
 
-pub(super) struct VpnServiceConfigManager {
-    toml_config_path: PathBuf,
+pub struct VpnServiceConfigManager {
     json_config_path: PathBuf,
     config: VpnServiceConfig,
     config_changed: bool,
@@ -87,75 +86,91 @@ pub(super) struct VpnServiceConfigManager {
 
 #[allow(dead_code)]
 impl VpnServiceConfigManager {
-    pub(super) fn new(network_config_dir: &Path) -> Result<Self> {
+    pub fn new(network_config_dir: &Path) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let config = Self::read_from_file(&toml_config_path, &json_config_path)?;
         let config_changed = true;
 
-        Ok(Self {
+        // If the deprecated TOML file exists, then remove it
+        let toml_config_exists = toml_config_path.exists();
+        if toml_config_exists {
+            tracing::info!(
+                "Removing deprecated config file {}",
+                toml_config_path.display()
+            );
+            let _ = fs::remove_file(&toml_config_path);
+        }
+
+        let config_manager = Self {
             json_config_path,
-            toml_config_path,
             config,
             config_changed,
-        })
+        };
+
+        if toml_config_exists {
+            // Save the configuration to file, as we've just migrated it from TOML to JSON
+            config_manager.write_to_file();
+        }
+
+        Ok(config_manager)
     }
 
-    pub(super) fn config(&self) -> &VpnServiceConfig {
+    pub fn config(&self) -> &VpnServiceConfig {
         &self.config
     }
 
-    pub(super) fn set_config(&mut self, config: VpnServiceConfig) {
+    pub fn set_config(&mut self, config: VpnServiceConfig) {
         self.config = config;
         self.config_changed = true;
     }
 
-    pub(super) fn set_entry_point(&mut self, entry_point: EntryPoint) {
+    pub fn set_entry_point(&mut self, entry_point: EntryPoint) {
         self.config.entry_point = entry_point;
         self.config_changed = true;
     }
 
-    pub(super) fn set_exit_point(&mut self, exit_point: ExitPoint) {
+    pub fn set_exit_point(&mut self, exit_point: ExitPoint) {
         self.config.exit_point = exit_point;
         self.config_changed = true;
     }
 
-    pub(super) fn set_dns(&mut self, dns: Option<IpAddr>) {
+    pub fn set_dns(&mut self, dns: Option<IpAddr>) {
         self.config.dns = dns;
         self.config_changed = true;
     }
 
-    pub(super) fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
+    pub fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
         self.config.disable_ipv6 = disable_ipv6;
         self.config_changed = true;
     }
 
-    pub(super) fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
+    pub fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config.enable_two_hop = enable_two_hop;
         self.config_changed = true;
     }
 
-    pub(super) fn set_netstack(&mut self, netstack: bool) {
+    pub fn set_netstack(&mut self, netstack: bool) {
         self.config.netstack = netstack;
         self.config_changed = true;
     }
 
-    pub(super) fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
+    pub fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         self.config.disable_poisson_rate = disable_poisson_rate;
         self.config_changed = true;
     }
 
-    pub(super) fn set_disable_background_cover_traffic(&mut self, disable: bool) {
+    pub fn set_disable_background_cover_traffic(&mut self, disable: bool) {
         self.config.disable_background_cover_traffic = disable;
         self.config_changed = true;
     }
 
-    pub(super) fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
+    pub fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
         self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
         self.config_changed = true;
     }
 
-    pub(super) fn set_min_gateway_mixnet_performance(
+    pub fn set_min_gateway_mixnet_performance(
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
     ) {
@@ -164,16 +179,13 @@ impl VpnServiceConfigManager {
         self.config_changed = true;
     }
 
-    pub(super) fn set_min_gateway_vpn_performance(
-        &mut self,
-        min_gateway_vpn_performance: Option<u8>,
-    ) {
+    pub fn set_min_gateway_vpn_performance(&mut self, min_gateway_vpn_performance: Option<u8>) {
         self.config.min_gateway_vpn_performance = min_gateway_vpn_performance.map(|u| u.min(100));
         self.config_changed = true;
     }
 
     /// Has the configuration changed since the last time a `TunnelSettings` was generated?
-    pub(super) fn has_config_changed(&self) -> bool {
+    pub fn has_config_changed(&self) -> bool {
         self.config_changed
     }
 
@@ -204,27 +216,38 @@ impl VpnServiceConfigManager {
         Ok(config)
     }
 
-    pub(super) fn write_to_file(&self) -> Result<()> {
-        // If the deprecated TOML file still exists, then remove it
-        if self.toml_config_path.exists() {
-            tracing::info!(
-                "Removing deprecated config file {}",
-                self.toml_config_path.display()
-            );
-            let _ = fs::remove_file(&self.toml_config_path);
+    pub fn write_to_file(&self) -> bool {
+        let ext_config = match VpnServiceConfigExt::try_from(&self.config)
+            .map_err(Error::ConfigSetup)
+        {
+            Ok(ext_config) => ext_config,
+            Err(e) => {
+                tracing::error!("Failed to convert service config to external representation: {e}");
+                return false;
+            }
+        };
+
+        match write_json_config_file(&self.json_config_path, &ext_config)
+            .map_err(Error::ConfigSetup)
+        {
+            Ok(_) => {
+                tracing::info!(
+                    "Service config has been saved to file {}",
+                    self.json_config_path.display()
+                );
+                true
+            }
+            Err(e) => {
+                tracing::error!(
+                    "Failed to write service config to file {}: {e}",
+                    self.json_config_path.display()
+                );
+                false
+            }
         }
-
-        let ext_config = VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup)?;
-
-        tracing::info!(
-            "Writing service config to {}",
-            self.json_config_path.display()
-        );
-
-        write_json_config_file(&self.json_config_path, &ext_config).map_err(Error::ConfigSetup)
     }
 
-    pub(super) fn generate_tunnel_settings(&mut self) -> Result<TunnelSettings> {
+    pub fn generate_tunnel_settings(&mut self) -> Result<TunnelSettings> {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -276,9 +299,7 @@ impl VpnServiceConfigManager {
 
 impl Drop for VpnServiceConfigManager {
     fn drop(&mut self) {
-        if let Err(e) = self.write_to_file() {
-            tracing::error!("Failed to write config to file on drop: {e}");
-        }
+        self.write_to_file();
     }
 }
 
@@ -739,7 +760,7 @@ where
     Ok(())
 }
 
-pub(super) fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
+pub fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
     let network_data_dir = data_dir.join(network_name);
 
     fs::create_dir_all(&network_data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
@@ -841,7 +862,7 @@ mod tests {
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
 
-        config_manager.write_to_file().unwrap();
+        assert!(config_manager.write_to_file());
 
         // The TOML file should be deleted and replaced with a JSON version
         assert!(!toml_path.exists());
@@ -865,7 +886,7 @@ mod tests {
         // Write the config to disk
         let mut config_manager = VpnServiceConfigManager::new(network_config_path).unwrap();
         config_manager.set_config(config.clone());
-        config_manager.write_to_file().unwrap();
+        assert!(config_manager.write_to_file());
         drop(config_manager);
 
         // Read it back and compare it
