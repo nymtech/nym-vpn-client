@@ -5,7 +5,7 @@ use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
-use nym_vpn_api_client::types::{NaiveFloat, Percent, ScoreThresholds};
+use nym_vpn_api_client::types::{Percent, ScoreThresholds};
 use rand::seq::IteratorRandom;
 use std::{
     fmt,
@@ -32,10 +32,8 @@ pub struct Gateway {
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
     pub mixnet_performance: Option<Percent>,
-    pub wg_performance: Option<Percent>,
-    pub wg_score: Option<Score>,
     pub mixnet_score: Option<Score>,
-    pub wg_performance_v2: Option<Performance>,
+    pub wg_performance: Option<Performance>,
     pub version: Option<String>,
 }
 
@@ -104,16 +102,9 @@ impl Gateway {
         }
     }
 
-    pub fn update_to_new_thresholds(
-        &mut self,
-        mix_thresholds: Option<ScoreThresholds>,
-        wg_thresholds: Option<ScoreThresholds>,
-    ) {
+    pub fn update_to_new_thresholds(&mut self, mix_thresholds: Option<ScoreThresholds>) {
         if let (Some(mix_thresholds), Some(score)) = (mix_thresholds, self.mixnet_score.as_mut()) {
             score.update_to_new_thresholds(mix_thresholds);
-        }
-        if let (Some(wg_thresholds), Some(score)) = (wg_thresholds, self.wg_score.as_mut()) {
-            score.update_to_new_thresholds(wg_thresholds);
         }
     }
 
@@ -183,10 +174,8 @@ impl Gateway {
             clients_ws_port,
             clients_wss_port,
             mixnet_performance: None,
-            wg_performance: None,
-            wg_score: None,
             mixnet_score: None,
-            wg_performance_v2: None,
+            wg_performance: None,
             version,
         })
     }
@@ -418,13 +407,6 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             .cloned()
             .map(|ip| ip.to_string());
         let host = hostname.or(first_ip_address);
-        let wg_performance = gateway.last_probe.as_ref().and_then(|probe| {
-            probe
-                .outcome
-                .wg
-                .as_ref()
-                .and_then(|p| Percent::naive_try_from_f64(p.ping_hosts_performance as f64).ok())
-        });
 
         Ok(Gateway {
             identity,
@@ -439,9 +421,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
             mixnet_score: Some(Score::from(gateway.performance)),
-            wg_performance,
-            wg_score: wg_performance.map(Score::from),
-            wg_performance_v2: gateway.performance_v2.map(Performance::from),
+            wg_performance: gateway.performance_v2.map(Performance::from),
             version: gateway.build_information.map(|info| info.build_version),
         })
     }

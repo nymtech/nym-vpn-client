@@ -61,9 +61,9 @@ impl Gateway {
             .unwrap_or(p::Score::Offline);
 
         let wg_score = gateway
-            .wg_score
+            .wg_performance
             .map(|s| {
-                p::Score::try_from(s)
+                p::Score::try_from(s.score)
                     .inspect_err(|e| error!("failed to parse proto gw wireguard score: {}", e))
             })
             .transpose()?

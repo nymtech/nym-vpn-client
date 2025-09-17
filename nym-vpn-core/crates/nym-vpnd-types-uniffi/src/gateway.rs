@@ -7,8 +7,7 @@ pub struct Gateway {
     pub moniker: String,
     pub location: Option<GatewayLocation>,
     pub mixnet_score: Option<GatewayScore>,
-    pub wg_score: Option<GatewayScore>,
-    pub wg_performance_v2: Option<GatewayPerformance>,
+    pub wg_performance: Option<GatewayPerformance>,
 }
 
 #[derive(uniffi::Enum)]
@@ -118,8 +117,7 @@ impl From<nym_vpnd_types::gateway::Gateway> for Gateway {
             moniker: gateway.moniker,
             location: gateway.location.map(GatewayLocation::from),
             mixnet_score: gateway.mixnet_score.map(GatewayScore::from),
-            wg_score: gateway.wg_score.map(GatewayScore::from),
-            wg_performance_v2: gateway.wg_performance_v2.map(GatewayPerformance::from),
+            wg_performance: gateway.wg_performance.map(GatewayPerformance::from),
         }
     }
 }

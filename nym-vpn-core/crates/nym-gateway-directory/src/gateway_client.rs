@@ -390,10 +390,7 @@ impl GatewayClient {
                         .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                         .ok()
                         .map(|mut gw| {
-                            gw.update_to_new_thresholds(
-                                self.mix_score_thresholds,
-                                self.wg_score_thresholds,
-                            );
+                            gw.update_to_new_thresholds(self.mix_score_thresholds);
                             gw
                         })
                 })
@@ -417,10 +414,7 @@ impl GatewayClient {
                         .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                         .ok()
                         .map(|mut gw| {
-                            gw.update_to_new_thresholds(
-                                self.mix_score_thresholds,
-                                self.wg_score_thresholds,
-                            );
+                            gw.update_to_new_thresholds(self.mix_score_thresholds);
                             gw
                         })
                 })
