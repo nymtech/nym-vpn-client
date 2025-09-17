@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
 import {
   AccountRouteIndex,
+  AntiCensorship,
   Appearance,
   AppearanceRouteIndex,
   DataAndPrivacy,
@@ -37,6 +38,7 @@ export const routes = {
   display: '/settings/appearance/display',
   lang: '/settings/appearance/lang',
   logs: '/settings/logs',
+  antiCensorship: '/settings/anti-censorship',
   dataPrivacy: '/settings/data-privacy',
   support: '/settings/support',
   legal: '/settings/legal',
@@ -124,6 +126,11 @@ const router = createBrowserRouter([
           {
             path: routes.logs,
             element: <Logs />,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.antiCensorship,
+            element: <AntiCensorship />,
             errorElement: <Error />,
           },
           {

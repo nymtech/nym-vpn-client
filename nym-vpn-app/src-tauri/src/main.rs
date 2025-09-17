@@ -66,6 +66,8 @@ const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
 const DEFAULT_NETSTATS_ENABLED: bool = true;
+const DEFAULT_QUIC: bool = false;
+const DEFAULT_DOMAIN_FRONTING: bool = false;
 
 // build time pkg data
 build_info::build_info!(fn build_info);

@@ -24,7 +24,7 @@ pub type JsonValue = Value;
 #[derive(Deserialize, Serialize, AsRefStr, EnumIter, Debug, Clone, Copy, TS)]
 #[strum(serialize_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
-#[ts(export)]
+#[ts(export, export_to = "DbKey.ts", rename = "DbKey")]
 pub enum Key {
     UiTheme,
     UiRootFontSize,
@@ -35,14 +35,16 @@ pub enum Key {
     WelcomeScreenSeen,
     DesktopNotifications,
     LastNetworkEnv,
+    DisableIpv6,
+    NetworkStatsEnabled,
+    QuicEnabled,
+    DomainFrontingEnabled,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,
     CacheWgGateways,
     CacheAccountId,
     CacheDeviceId,
-    DisableIpv6,
-    NetworkStatsEnabled,
 }
 
 impl Display for Key {

@@ -22,13 +22,15 @@ export type DbKey =
   | 'welcome-screen-seen'
   | 'desktop-notifications'
   | 'last-network-env'
+  | 'disable-ipv6'
+  | 'network-stats-enabled'
+  | 'quic-enabled'
+  | 'domain-fronting-enabled'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
   | 'cache-account-id'
-  | 'cache-device-id'
-  | 'disable-ipv6'
-  | 'network-stats-enabled';
+  | 'cache-device-id';
 
 /*
  * Enum of the possible specialized errors emitted by the daemon or from the
@@ -161,3 +163,11 @@ export function isAccountError(
 ): state is AccountStateError {
   return (state as AccountStateError).error !== undefined;
 }
+
+export type FeatureFlags = {
+  quic: boolean;
+  domainFronting: boolean;
+  zknymCredential: boolean;
+  gatewayUpdateVersion: string | null;
+  flags: Record<string, string>;
+};

@@ -8,10 +8,12 @@ type JsEnv = {
   devMode: boolean;
   updaterEnabled: boolean;
   noSplash: boolean;
-  defaultVpnMode: 'wg' | 'mixnet';
-  defaultSentryEnabled: boolean;
-  defaultNetstatsEnabled: boolean;
-  startupError?: StartupError | null;
+  defaultVpnMode: 'mixnet' | 'wg';
+  defaultSentry: boolean;
+  defaultNetstats: boolean;
+  defaultQuic: boolean;
+  defaultDomainFronting: boolean;
+  startupError: StartupError | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

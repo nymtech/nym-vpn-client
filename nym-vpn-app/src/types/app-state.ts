@@ -6,6 +6,7 @@ import {
   AccountLinks,
   AccountState,
   ErrorKey,
+  FeatureFlags,
   Gateway,
   NetworkCompat,
   NetworkEnv,
@@ -57,6 +58,8 @@ export type AppState = {
   accountSyncing: boolean;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
+  // feature flags from backend and APIs (via daemon)
+  backendFlags?: FeatureFlags | null;
   networkEnv: NetworkEnv;
   version: string | null;
   error?: AppError | null;
@@ -87,6 +90,8 @@ export type AppState = {
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
+  quic: boolean;
+  domainFronting: boolean;
 };
 
 export type ProgressMsg = 'canceling';
