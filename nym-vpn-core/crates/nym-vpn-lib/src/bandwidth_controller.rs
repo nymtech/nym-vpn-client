@@ -329,6 +329,16 @@ impl BandwidthController {
         )
     }
 
+    pub(crate) fn is_using_latest_client(&self) -> bool {
+        matches!(
+            self.wg_entry_gateway_client,
+            TemporaryBandwidthClient::Latest(_)
+        ) && matches!(
+            self.wg_exit_gateway_client,
+            TemporaryBandwidthClient::Latest(_)
+        )
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub(crate) async fn create(
         bw_controller: Box<dyn BandwidthTicketProvider>,

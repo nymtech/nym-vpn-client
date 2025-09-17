@@ -53,7 +53,7 @@ pub struct ConnectedTunnel {
     exit_wg_keypair: x25519::KeyPair,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
-    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
 }
 
 impl ConnectedTunnel {
@@ -62,7 +62,7 @@ impl ConnectedTunnel {
         exit_wg_keypair: x25519::KeyPair,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
-        auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+        auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
     ) -> Self {
         Self {
             entry_wg_keypair,
@@ -256,7 +256,7 @@ pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_loop_handle: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
-    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
 }
 
 impl TunnelHandle {
@@ -273,11 +273,8 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        // No need to call cancel on auth_clients_mixnet_listener_handle as its external
-        // cancel_token should already be cancelled by the time we reach this point.
-        // We just need to wait for the task to finish.
-        if let Ok(mixnet_client) = self.auth_client_mixnet_listener_handle.wait().await {
-            mixnet_client.disconnect().await;
+        if let Some(auth_client_handle) = self.auth_client_mixnet_listener_handle {
+            auth_client_handle.stop().await;
         }
 
         self.event_loop_handle.await

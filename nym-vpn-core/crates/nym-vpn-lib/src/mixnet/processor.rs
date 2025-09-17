@@ -168,6 +168,7 @@ impl MixnetProcessor {
         let notify_backpressure_lifted = backpressure_monitor.get_notify_backpressure_lifted();
 
         tracing::info!("Mixnet processor is running");
+        // SW This is not correct!
         while !self.cancel_token.is_cancelled() {
             // Disable the TUN read select branch if we are in backpressure
             let is_backpressure = backpressure_monitor.is_backpressure();
