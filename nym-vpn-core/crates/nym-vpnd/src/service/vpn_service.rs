@@ -15,7 +15,7 @@ use tokio::{
     time::{Duration, Instant, MissedTickBehavior, interval_at},
 };
 use tokio_util::sync::CancellationToken;
-rtc
+
 use nym_common::trace_err_chain;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,

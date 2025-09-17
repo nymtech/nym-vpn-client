@@ -440,9 +440,6 @@ impl TryFrom<proto::ConnectRequest> for ConnectOptions {
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             enable_credentials_mode: value.enable_credentials_mode,
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
             user_agent: value.user_agent.map(UserAgent::from),
         })
     }
@@ -770,7 +767,7 @@ impl From<nym_vpnd_types::gateway::Country> for proto::Location {
 mod tests {
     use super::*;
     use crate::proto;
-    use nym_gateway_directory::{EntryPoint, ExitPoint, NaiveFloat, NodeIdentity};
+    use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
     use std::str::FromStr;
 
     #[test]
