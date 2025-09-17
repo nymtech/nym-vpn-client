@@ -66,12 +66,16 @@ constructor(
 			AppUiState(),
 		)
 
-	fun logout() = viewModelScope.launch {
+	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch {
 		runCatching {
 			if (backendManager.getState() == Tunnel.State.Down) {
 				backendManager.removeMnemonic()
+				backendManager.refresh()
+				onComplete?.invoke()
 			} else {
-				SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
+				SnackbarController.showMessage(
+					StringValue.StringResource(R.string.action_requires_tunnel_down)
+				)
 			}
 		}.onFailure { Timber.e(it) }
 	}

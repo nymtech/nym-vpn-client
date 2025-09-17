@@ -219,6 +219,30 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
+	override suspend fun refresh() {
+		try {
+			val isMnemonicStored = isMnemonicStored()
+			val deviceId = if (isMnemonicStored) getDeviceId() else null
+			val accountId = if (isMnemonicStored) getAccountId() else null
+			val accountLinks = getAccountLinks()
+			val tunnelState = getState()
+
+			_state.update {
+				it.copy(
+					isMnemonicStored = isMnemonicStored,
+					deviceId = deviceId,
+					accountId = accountId,
+					accountLinks = accountLinks,
+					tunnelState = tunnelState,
+					backendUiEvent = null, // 👈 clear any lingering message
+				)
+			}
+		} catch (e: Exception) {
+			Timber.e(e, "Backend refresh failed")
+		}
+	}
+
+
 	private fun emitMnemonicStored(stored: Boolean) {
 		_state.update {
 			it.copy(isMnemonicStored = stored)
