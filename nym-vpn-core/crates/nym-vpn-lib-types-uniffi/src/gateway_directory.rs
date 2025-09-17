@@ -61,6 +61,7 @@ pub enum ExitPoint {
     Address { address: Recipient },
     Gateway { identity: NodeIdentity },
     Location { location: String },
+    Random,
 }
 
 impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
@@ -75,6 +76,7 @@ impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
             ExitPoint::Location { location } => {
                 nym_gateway_directory::ExitPoint::Location { location }
             }
+            ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
         }
     }
 }
