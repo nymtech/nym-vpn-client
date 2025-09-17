@@ -35,6 +35,7 @@ pub struct Gateway {
     pub wg_performance: Option<Percent>,
     pub wg_score: Option<Score>,
     pub mixnet_score: Option<Score>,
+    pub wg_performance_v2: Option<Performance>,
     pub version: Option<String>,
 }
 
@@ -185,9 +186,23 @@ impl Gateway {
             wg_performance: None,
             wg_score: None,
             mixnet_score: None,
+            wg_performance_v2: None,
             version,
         })
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum AsnKind {
+    Residential,
+    Other,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Asn {
+    pub asn: String,
+    pub name: String,
+    pub kind: AsnKind,
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -195,6 +210,27 @@ pub struct Location {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
     pub longitude: f64,
+
+    pub city: String,
+    pub region: String,
+
+    pub asn: Option<Asn>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ScoreValue {
+    Offline,
+    Low,
+    Medium,
+    High,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Performance {
+    pub last_updated_utc: String,
+    pub score: ScoreValue,
+    pub load: ScoreValue,
+    pub uptime_percentage_last_24_hours: f32,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -234,12 +270,56 @@ pub struct WgProbeResults {
     pub ping_ips_performance: f32,
 }
 
+impl From<nym_vpn_api_client::response::AsnKind> for AsnKind {
+    fn from(value: nym_vpn_api_client::response::AsnKind) -> Self {
+        match value {
+            nym_vpn_api_client::response::AsnKind::Residential => AsnKind::Residential,
+            nym_vpn_api_client::response::AsnKind::Other => AsnKind::Other,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::Asn> for Asn {
+    fn from(location: nym_vpn_api_client::response::Asn) -> Self {
+        Asn {
+            asn: location.asn,
+            name: location.name,
+            kind: location.kind.into(),
+        }
+    }
+}
+
 impl From<nym_vpn_api_client::response::Location> for Location {
     fn from(location: nym_vpn_api_client::response::Location) -> Self {
         Location {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,
+            city: location.city,
+            region: location.region,
+            asn: location.asn.map(Into::into),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::ScoreValue> for ScoreValue {
+    fn from(value: nym_vpn_api_client::response::ScoreValue) -> Self {
+        match value {
+            nym_vpn_api_client::response::ScoreValue::Offline => ScoreValue::Offline,
+            nym_vpn_api_client::response::ScoreValue::Low => ScoreValue::Low,
+            nym_vpn_api_client::response::ScoreValue::Medium => ScoreValue::Medium,
+            nym_vpn_api_client::response::ScoreValue::High => ScoreValue::High,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::DVpnGatewayPerformance> for Performance {
+    fn from(value: nym_vpn_api_client::response::DVpnGatewayPerformance) -> Self {
+        Performance {
+            last_updated_utc: value.last_updated_utc,
+            score: value.score.into(),
+            load: value.load.into(),
+            uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
     }
 }
@@ -361,6 +441,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             mixnet_score: Some(Score::from(gateway.performance)),
             wg_performance,
             wg_score: wg_performance.map(Score::from),
+            wg_performance_v2: gateway.performance_v2.map(Performance::from),
             version: gateway.build_information.map(|info| info.build_version),
         })
     }

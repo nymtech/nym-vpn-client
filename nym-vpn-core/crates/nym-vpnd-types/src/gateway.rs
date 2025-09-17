@@ -17,16 +17,53 @@ pub struct Gateway {
     pub last_probe: Option<Probe>,
     pub mixnet_score: Option<Score>,
     pub wg_score: Option<Score>,
+    pub wg_performance_v2: Option<Performance>,
     pub exit_ipv4s: Vec<Ipv4Addr>,
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Performance {
+    pub last_updated_utc: String,
+    pub score: Score,
+    pub load: Score,
+    pub uptime_percentage_last_24_hours: f32,
+}
+
+impl From<nym_gateway_directory::Performance> for Performance {
+    fn from(value: nym_gateway_directory::Performance) -> Self {
+        Performance {
+            last_updated_utc: value.last_updated_utc,
+            score: value.score.into(),
+            load: value.load.into(),
+            uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum AsnKind {
+    Residential,
+    Other,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Asn {
+    pub asn: String,
+    pub name: String,
+    pub kind: AsnKind,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
+    pub latitude: f64,
+    pub longitude: f64,
+
+    pub city: String,
+    pub region: String,
+    pub asn: Option<Asn>,
 }
 
 impl fmt::Display for Location {
@@ -52,19 +89,16 @@ pub enum Score {
     High,
     Medium,
     Low,
-    None,
+    Offline,
 }
 
-impl Score {
-    pub fn from_i32(value: i32) -> Self {
-        if value == 3 {
-            Self::High
-        } else if value == 2 {
-            Self::Medium
-        } else if value == 1 {
-            Self::Low
-        } else {
-            Self::None
+impl From<nym_gateway_directory::ScoreValue> for Score {
+    fn from(value: nym_gateway_directory::ScoreValue) -> Self {
+        match value {
+            nym_gateway_directory::ScoreValue::Offline => Score::Offline,
+            nym_gateway_directory::ScoreValue::Low => Score::Low,
+            nym_gateway_directory::ScoreValue::Medium => Score::Medium,
+            nym_gateway_directory::ScoreValue::High => Score::High,
         }
     }
 }
@@ -148,6 +182,7 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
             location: None,
             last_probe: None,
             wg_score: None,
+            wg_performance_v2: None,
             mixnet_score: None,
             exit_ipv4s,
             exit_ipv6s,
@@ -156,12 +191,34 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
     }
 }
 
+impl From<nym_gateway_directory::AsnKind> for AsnKind {
+    fn from(value: nym_gateway_directory::AsnKind) -> Self {
+        match value {
+            nym_gateway_directory::AsnKind::Residential => AsnKind::Residential,
+            nym_gateway_directory::AsnKind::Other => AsnKind::Other,
+        }
+    }
+}
+
+impl From<nym_gateway_directory::Asn> for Asn {
+    fn from(value: nym_gateway_directory::Asn) -> Self {
+        Asn {
+            asn: value.asn,
+            name: value.name,
+            kind: value.kind.into(),
+        }
+    }
+}
+
 impl From<nym_gateway_directory::Location> for Location {
     fn from(location: nym_gateway_directory::Location) -> Self {
         Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
-            latitude: Some(location.latitude),
-            longitude: Some(location.longitude),
+            latitude: location.latitude,
+            longitude: location.longitude,
+            city: location.city,
+            region: location.region,
+            asn: location.asn.map(Into::into),
         }
     }
 }
@@ -172,7 +229,7 @@ impl From<nym_gateway_directory::Score> for Score {
             nym_gateway_directory::Score::High(_) => Score::High,
             nym_gateway_directory::Score::Medium(_) => Score::Medium,
             nym_gateway_directory::Score::Low(_) => Score::Low,
-            nym_gateway_directory::Score::None => Score::None,
+            nym_gateway_directory::Score::None => Score::Offline,
         }
     }
 }
@@ -225,6 +282,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
             wg_score: gateway.wg_score.map(Score::from),
+            wg_performance_v2: gateway.wg_performance_v2.map(Performance::from),
             mixnet_score: gateway.mixnet_score.map(Score::from),
             exit_ipv4s,
             exit_ipv6s,
