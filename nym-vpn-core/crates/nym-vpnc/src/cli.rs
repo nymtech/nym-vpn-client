@@ -31,11 +31,15 @@ pub enum Command {
     /// Connect to the Nym network (deprecated)
     Connect(Box<ConnectArgs>),
 
+    /// Connect the tunnel if it had been disconnected.
     ConnectV2 {
         /// Blocks until the connection is established or failed
         #[arg(short, long)]
         wait: bool,
     },
+
+    /// Reconnect the tunnel if it had been connected.
+    Reconnect,
 
     /// Disconnect from the Nym network.
     Disconnect {

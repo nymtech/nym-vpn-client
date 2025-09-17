@@ -41,7 +41,7 @@ use nym_vpnd_types::{
     ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::{ConnectArgs, VpnServiceConfig, VpnServiceInfo},
+    service::{ConnectArgs, TargetState, VpnServiceConfig, VpnServiceInfo},
 };
 
 use super::{
@@ -81,9 +81,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
         ListCountriesOptions,
     ),
+    // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
-    ConnectV2(oneshot::Sender<()>, ()),
-    Disconnect(oneshot::Sender<()>, ()),
+    SetTargetState(oneshot::Sender<bool>, TargetState),
+    Reconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<broadcast::Receiver<TunnelState>>, ()),
     StoreAccount(
@@ -175,6 +176,9 @@ pub struct NymVpnService {
 
     // Channel used for propagating tunnel state to consumers
     tunnel_state_sender: broadcast::Sender<TunnelState>,
+
+    // Target state
+    target_state: TargetState,
 
     // Last known tunnel state
     tunnel_state: TunnelState,
@@ -456,6 +460,7 @@ impl NymVpnService {
             account_state_rx,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
+            target_state: TargetState::Unsecured,
             tunnel_state: TunnelState::Disconnected,
             tunnel_state_sender: broadcast::Sender::new(10),
             state_machine_handle: Some(state_machine_handle),
@@ -547,6 +552,36 @@ impl NymVpnService {
         Ok(())
     }
 
+    fn set_target_state(&mut self, new_state: TargetState) -> bool {
+        if self.target_state != new_state || matches!(self.tunnel_state, TunnelState::Error(_)) {
+            tracing::debug!("Set target state {} => {}", self.target_state, new_state);
+            self.target_state = new_state;
+
+            match new_state {
+                TargetState::Secured => {
+                    let _ = self.command_sender.send(TunnelCommand::Connect);
+                }
+                TargetState::Unsecured => {
+                    let _ = self.command_sender.send(TunnelCommand::Disconnect);
+                }
+            }
+
+            true
+        } else {
+            false
+        }
+    }
+
+    fn reconnect_tunnel(&self) -> bool {
+        match self.target_state {
+            TargetState::Secured => {
+                let _ = self.command_sender.send(TunnelCommand::Connect);
+                true
+            }
+            TargetState::Unsecured => false,
+        }
+    }
+
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if self.tunnel_event_tx.send(event.clone()).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -628,13 +663,13 @@ impl NymVpnService {
                 self.handle_connect(connect_args).await.ok();
                 let _ = tx.send(());
             }
-            VpnServiceCommand::ConnectV2(tx, ()) => {
-                self.handle_connect_v2().await.ok();
-                let _ = tx.send(());
+            VpnServiceCommand::SetTargetState(tx, target_state) => {
+                let accepted = self.set_target_state(target_state);
+                let _ = tx.send(accepted);
             }
-            VpnServiceCommand::Disconnect(tx, ()) => {
-                self.handle_disconnect().await;
-                let _ = tx.send(());
+            VpnServiceCommand::Reconnect(tx, ()) => {
+                let accepted = self.reconnect_tunnel();
+                let _ = tx.send(accepted);
             }
             VpnServiceCommand::GetTunnelState(tx, ()) => {
                 let result = self.handle_get_tunnel_state();
@@ -923,14 +958,6 @@ impl NymVpnService {
         });
 
         self.connect().await
-    }
-
-    async fn handle_connect_v2(&mut self) -> Result<()> {
-        self.connect().await
-    }
-
-    async fn handle_disconnect(&mut self) {
-        self.command_sender.send(TunnelCommand::Disconnect).ok();
     }
 
     fn handle_get_tunnel_state(&self) -> TunnelState {

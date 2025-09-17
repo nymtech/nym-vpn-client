@@ -21,7 +21,10 @@ use nym_vpn_proto::proto::{
     self,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
-use nym_vpnd_types::{ListCountriesOptions, ListGatewaysOptions, service::ConnectArgs};
+use nym_vpnd_types::{
+    ListCountriesOptions, ListGatewaysOptions,
+    service::{ConnectArgs, TargetState},
+};
 
 use crate::service::{SetNetworkError, VpnServiceCommand};
 
@@ -225,17 +228,35 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn connect_tunnel_v2(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::ConnectV2, ()).await?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn disconnect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::Disconnect, ())
+    async fn connect_tunnel_v2(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        let accepted = self
+            .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Secured)
             .await?;
 
-        Ok(tonic::Response::new(()))
+        Ok(tonic::Response::new(accepted))
+    }
+
+    async fn reconnect_tunnel(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        let accepted = self.send_and_wait(VpnServiceCommand::Reconnect, ()).await?;
+
+        Ok(tonic::Response::new(accepted))
+    }
+
+    async fn disconnect_tunnel(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        let accepted = self
+            .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Unsecured)
+            .await?;
+
+        Ok(tonic::Response::new(accepted))
     }
 
     async fn get_tunnel_state(

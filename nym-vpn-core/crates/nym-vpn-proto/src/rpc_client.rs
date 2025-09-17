@@ -164,7 +164,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn connect_tunnel_v2(&mut self) -> Result<()> {
+    pub async fn connect_tunnel_v2(&mut self) -> Result<bool> {
         self.0
             .connect_tunnel_v2(())
             .await
@@ -172,7 +172,15 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn disconnect_tunnel(&mut self) -> Result<()> {
+    pub async fn reconnect_tunnel(&mut self) -> Result<bool> {
+        self.0
+            .reconnect_tunnel(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
         self.0
             .disconnect_tunnel(())
             .await

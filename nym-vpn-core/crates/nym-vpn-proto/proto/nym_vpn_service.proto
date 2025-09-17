@@ -687,10 +687,13 @@ service NymVpnService {
   rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
 
   // Connect the tunnel (Configuration is owned by daemon)
-  rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Reconnect the tunnel if it had been established.
+  rpc ReconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Disconnect the tunnel
-  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}

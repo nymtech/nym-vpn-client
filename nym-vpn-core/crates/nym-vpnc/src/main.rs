@@ -36,6 +36,7 @@ async fn main() -> Result<()> {
     match args.command {
         Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await?,
         Command::ConnectV2 { wait } => connect_v2(rpc_client, wait).await?,
+        Command::Reconnect => reconnect(rpc_client).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
@@ -141,6 +142,11 @@ async fn connect_v2(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
     } else {
         Ok(())
     }
+}
+
+async fn reconnect(mut rpc_client: RpcClient) -> Result<()> {
+    let _accepted = rpc_client.reconnect_tunnel().await?;
+    Ok(())
 }
 
 async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {

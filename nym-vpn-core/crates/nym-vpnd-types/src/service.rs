@@ -7,6 +7,26 @@ use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use std::{fmt, net::IpAddr};
 use time::OffsetDateTime;
 
+/// The target tunnel state.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum TargetState {
+    /// Unsecure the device.
+    Unsecured,
+
+    /// Secure the device.
+    Secured,
+}
+
+impl std::fmt::Display for TargetState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            TargetState::Unsecured => "Unsecured",
+            TargetState::Secured => "Secured",
+        };
+        write!(f, "{}", s)
+    }
+}
+
 // Deprecated
 #[derive(Debug)]
 pub struct ConnectArgs {
