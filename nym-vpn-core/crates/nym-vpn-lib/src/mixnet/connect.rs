@@ -15,6 +15,7 @@ use nym_sdk::{
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
+use tokio_util::sync::CancellationToken;
 
 use super::{MixnetError, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
@@ -38,7 +39,7 @@ pub async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mixnet_client_config: MixnetClientConfig,
     setup_options: SetupMixnetClientOptions,
-    mut task_client: nym_task::TaskClient,
+    cancellation_token: CancellationToken,
 ) -> Result<MixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config.traffic.average_packet_delay = VPN_AVERAGE_PACKET_DELAY;
@@ -94,6 +95,7 @@ pub async fn setup_mixnet_client(
             setup_options,
             debug_config,
             task_client,
+            cancellation_token,
         ))
         .await?
     } else {
@@ -104,6 +106,7 @@ pub async fn setup_mixnet_client(
             setup_options,
             debug_config,
             task_client,
+            cancellation_token,
         ))
         .await?
     };
@@ -111,11 +114,13 @@ pub async fn setup_mixnet_client(
     Ok(mixnet_client)
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 async fn build_and_connect_mixnet_client<S>(
     builder: MixnetClientBuilder<S>,
     setup_options: SetupMixnetClientOptions,
     debug_config: DebugConfig,
     task_client: nym_task::TaskClient,
+    cancellation_token: CancellationToken,
 ) -> Result<MixnetClient, MixnetError>
 where
     S: MixnetClientStorage + Clone + 'static,
@@ -133,12 +138,21 @@ where
         RememberMe::new_mixnet()
     };
 
+    tokio::spawn({
+        let mut client = task_client.clone();
+        let token = cancellation_token.clone();
+        async move {
+            client.recv().await; // Wait for TaskClient shutdown
+            token.cancel(); // Cancel the token
+        }
+    });
+
     let builder = builder
         .with_user_agent(user_agent)
         .request_gateway(setup_options.mixnet_entry_gateway.to_string())
         .network_details(setup_options.network_env.nym_network.network.clone())
         .debug_config(debug_config)
-        .custom_shutdown(task_client)
+        .with_shutdown_token(cancellation_token)
         .credentials_mode(true)
         .with_remember_me(remember_me)
         .custom_topology_provider(Box::new(setup_options.custom_topology_provider));

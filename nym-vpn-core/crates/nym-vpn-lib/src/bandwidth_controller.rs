@@ -3,6 +3,9 @@
 
 use std::{net::IpAddr, time::Duration};
 
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+use nym_task::TaskClient;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -284,6 +287,7 @@ impl TemporaryBandwidthClient {
     }
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub(crate) struct BandwidthController<St> {
     inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
@@ -298,6 +302,7 @@ pub(crate) struct BandwidthController<St> {
 }
 
 impl<St: Storage> BandwidthController<St> {
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub fn new(
         inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
         wg_entry_gateway_client: TemporaryBandwidthClient,
@@ -349,6 +354,7 @@ impl<St: Storage> BandwidthController<St> {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub(crate) async fn register_and_create(
         controller: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
         gateway_cache_handle: &GatewayCacheHandle,

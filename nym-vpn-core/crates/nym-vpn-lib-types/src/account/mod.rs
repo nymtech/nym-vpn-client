@@ -161,7 +161,8 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
 impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError {
     fn from(err: nym_vpn_api_client::error::VpnApiClientError) -> Self {
         use nym_vpn_api_client::response::NymErrorResponse;
-
+        // TODO: Another example of losing information about the original error cause
+        #[allow(clippy::unnecessary_fallible_conversions)]
         match NymErrorResponse::try_from(err) {
             Ok(e) => AccountCommandError::VpnApi(VpnApiError::Response(e.into())),
             Err(e) => AccountCommandError::Internal(e.to_string()),

@@ -8,7 +8,8 @@ use std::{
 
 use futures::{StreamExt, channel::mpsc};
 use nym_common::trace_err_chain;
-use nym_sdk::TaskClient;
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+use nym_task::TaskClient;
 use tokio::task::JoinHandle;
 
 use crate::error::Result;
@@ -160,6 +161,7 @@ impl ConnectionMonitor {
         }
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn run(mut self, mut task_client: TaskClient) -> Result<()> {
         tracing::debug!("Connection monitor is running");
         let mut report_interval = tokio::time::interval(CONNECTION_MONITOR_REPORT_INTERVAL);
@@ -188,6 +190,7 @@ impl ConnectionMonitor {
     }
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskClient) {
     if connectivity.entry == ConnectivityStatus::Fail {
         tracing::error!("Entry gateway not routing our mixnet traffic");
@@ -291,6 +294,7 @@ impl nym_task::TaskStatusEvent for ConnectionMonitorStatus {
     }
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub fn start_connection_monitor(
     connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionStatusEvent>,
     shutdown_listener: TaskClient,
