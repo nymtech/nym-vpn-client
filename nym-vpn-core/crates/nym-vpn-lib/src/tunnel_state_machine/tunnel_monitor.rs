@@ -420,7 +420,6 @@ impl TunnelMonitor {
             }
         };
         let mut connected_mixnet = Box::pin(tunnel::connect_mixnet(
-            task_manager,
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
             self.gateway_cache_handle.clone(),
