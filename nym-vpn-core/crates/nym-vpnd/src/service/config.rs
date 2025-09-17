@@ -81,7 +81,6 @@ impl TryFrom<&str> for NetworkEnvironments {
 pub struct VpnServiceConfigManager {
     json_config_path: PathBuf,
     config: VpnServiceConfig,
-    config_changed: bool,
 }
 
 #[allow(dead_code)]
@@ -90,7 +89,6 @@ impl VpnServiceConfigManager {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let config = Self::read_from_file(&toml_config_path, &json_config_path)?;
-        let config_changed = true;
 
         // If the deprecated TOML file exists, then remove it
         let toml_config_exists = toml_config_path.exists();
@@ -105,7 +103,6 @@ impl VpnServiceConfigManager {
         let config_manager = Self {
             json_config_path,
             config,
-            config_changed,
         };
 
         if toml_config_exists {
@@ -242,7 +239,7 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub fn generate_tunnel_settings(&mut self) -> Result<TunnelSettings> {
+    pub fn generate_tunnel_settings(&self) -> Result<TunnelSettings> {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -268,8 +265,6 @@ impl VpnServiceConfigManager {
             .dns
             .map(|addr| DnsOptions::Custom(vec![addr]))
             .unwrap_or_default();
-
-        self.config_changed = false;
 
         Ok(TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,

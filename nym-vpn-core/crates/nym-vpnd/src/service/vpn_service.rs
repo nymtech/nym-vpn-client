@@ -2,17 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use bip39::Mnemonic;
-use futures::{future::Fuse, pin_mut, FutureExt};
+use futures::{
+    FutureExt,
+    future::{BoxFuture, Fuse},
+    pin_mut,
+};
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
-use std::path::PathBuf;
+use std::{path::PathBuf, pin::Pin};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
-    time::{Duration, Instant, MissedTickBehavior, interval_at},
+    time::{Duration, Instant},
 };
 use tokio_util::sync::CancellationToken;
 
@@ -45,7 +49,6 @@ use nym_vpnd_types::{
 };
 
 use super::{
-    ConfigSetupError,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
@@ -64,11 +67,11 @@ type Locale = String;
 pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     GetConfig(oneshot::Sender<VpnServiceConfig>, ()),
-    SetEntryPoint(oneshot::Sender<Result<(), ConfigSetupError>>, EntryPoint),
-    SetExitPoint(oneshot::Sender<Result<(), ConfigSetupError>>, ExitPoint),
-    SetDisableIPv6(oneshot::Sender<Result<(), ConfigSetupError>>, bool),
-    SetEnableTwoHop(oneshot::Sender<Result<(), ConfigSetupError>>, bool),
-    SetNetstack(oneshot::Sender<Result<(), ConfigSetupError>>, bool),
+    SetEntryPoint(oneshot::Sender<()>, EntryPoint),
+    SetExitPoint(oneshot::Sender<()>, ExitPoint),
+    SetDisableIPv6(oneshot::Sender<()>, bool),
+    SetEnableTwoHop(oneshot::Sender<()>, bool),
+    SetNetstack(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -183,8 +186,8 @@ pub struct NymVpnService {
     // Last known tunnel state
     tunnel_state: TunnelState,
 
-    // Timer used to throttle reconnects when changing settings
-    reconnect_throttle: Fuse<tokio::time::Sleep>,
+    // Timer used to throttle changes to tunnel settings
+    tunnel_settings_throttle: Pin<Box<Fuse<tokio::time::Sleep>>>,
 
     // Command channel for state machine
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
@@ -239,7 +242,7 @@ impl NymVpnService {
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async move {
-            match NymVpnService::new(
+            let Ok(service) = NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
                 log_file_remover_handle,
@@ -247,21 +250,20 @@ impl NymVpnService {
                 shutdown_token,
             )
             .await
-            {
-                Ok(service) => {
-                    tracing::debug!("VPN service initialized successfully");
+            .inspect_err(|err| {
+                trace_err_chain!(err, "Failed to initialize VPN service");
+            }) else {
+                return;
+            };
 
-                    match service.run().await {
-                        Ok(_) => {
-                            tracing::info!("VPN service has successfully exited");
-                        }
-                        Err(e) => {
-                            tracing::error!("VPN service has exited with error: {e:?}");
-                        }
-                    }
+            tracing::debug!("VPN service initialized successfully");
+
+            match service.run().await {
+                Ok(_) => {
+                    tracing::info!("VPN service has successfully exited");
                 }
-                Err(err) => {
-                    trace_err_chain!(err, "Failed to initialize VPN service");
+                Err(e) => {
+                    tracing::error!("VPN service has exited with error: {e:?}");
                 }
             }
         })
@@ -465,6 +467,7 @@ impl NymVpnService {
             log_path: parameters.log_path,
             target_state: TargetState::Unsecured,
             tunnel_state: TunnelState::Disconnected,
+            tunnel_settings_throttle: Box::pin(Fuse::terminated()),
             tunnel_state_sender: broadcast::Sender::new(10),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -492,8 +495,8 @@ impl NymVpnService {
                 Some(event) = self.event_receiver.recv() => {
                     self.handle_tunnel_event(event);
                 }
-                _ = &mut self.reconnect_throttle => {
-                    self.reconnect_on_config_change().await;
+                _ = &mut self.tunnel_settings_throttle => {
+                    self.update_tunnel_settings();
                 }
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("Received shutdown signal");
@@ -559,7 +562,7 @@ impl NymVpnService {
                     let _ = self.command_sender.send(TunnelCommand::Connect);
                 }
                 TargetState::Unsecured => {
-                    self.reconnect_throttle = Fuse::terminated();
+                    self.tunnel_settings_throttle.set(Fuse::terminated());
 
                     let _ = self.command_sender.send(TunnelCommand::Disconnect);
                 }
@@ -581,9 +584,26 @@ impl NymVpnService {
         }
     }
 
-    fn reconnect_with_throttle(&mut self) {
-        if self.target_state == TargetState::Secured {
-            self.reconnect_throttle = tokio::time::sleep(Duration::from_secs(1)).fuse();
+    fn update_tunnel_settings(&self) {
+        match self.config_manager.generate_tunnel_settings() {
+            Ok(tunnel_settings) => {
+                self.command_sender
+                    .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
+                    .ok();
+            }
+            Err(err) => {
+                tracing::error!("Failed to generate tunnel settings: {}", err);
+            }
+        }
+    }
+
+    fn update_tunnel_settings_with_throttle(&mut self) {
+        match self.target_state {
+            TargetState::Secured => {
+                let timer = tokio::time::sleep(Duration::from_secs(1)).fuse();
+                self.tunnel_settings_throttle.set(timer);
+            }
+            TargetState::Unsecured => self.update_tunnel_settings(),
         }
     }
 
@@ -750,39 +770,6 @@ impl NymVpnService {
         }
     }
 
-    async fn connect(&mut self) -> Result<()> {
-        self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(
-                self.config_manager.config().enable_two_hop,
-            )); // desktop "Connect" event
-
-        let tunnel_settings = self.config_manager.generate_tunnel_settings()?;
-
-        match self
-            .command_sender
-            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
-        {
-            Ok(()) => {
-                self.command_sender.send(TunnelCommand::Connect).ok();
-                Ok(())
-            }
-            Err(e) => {
-                tracing::error!("Failed to send command to set tunnel options: {}", e);
-                Ok(())
-            }
-        }
-    }
-
-    async fn reconnect_on_config_change(&mut self) {
-        tracing::debug!("Reconnecting due to config chnage");
-
-        if self.target_state == TargetState::Secured {
-            if let Err(e) = self.connect().await {
-                trace_err_chain!(e, "Failed to reconnect tunnel after config change");
-            }
-        }
-    }
-
     async fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
 
@@ -801,41 +788,29 @@ impl NymVpnService {
         self.config_manager.config().clone()
     }
 
-    async fn handle_set_entry_point(
-        &mut self,
-        entry_point: EntryPoint,
-    ) {
+    async fn handle_set_entry_point(&mut self, entry_point: EntryPoint) {
         self.config_manager.set_entry_point(entry_point);
-        self.reconnect_with_throttle();
+        self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_exit_point(
-        &mut self,
-        exit_point: ExitPoint,
-    ) {
+    async fn handle_set_exit_point(&mut self, exit_point: ExitPoint) {
         self.config_manager.set_exit_point(exit_point);
-        self.reconnect_with_throttle();
+        self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_disable_ipv6(
-        &mut self,
-        disable_ipv6: bool,
-    ) {
+    async fn handle_set_disable_ipv6(&mut self, disable_ipv6: bool) {
         self.config_manager.set_disable_ipv6(disable_ipv6);
-        self.reconnect_with_throttle();
+        self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_enable_two_hop(
-        &mut self,
-        enable_two_hop: bool,
-    ) {
+    async fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config_manager.set_enable_two_hop(enable_two_hop);
-        self.reconnect_with_throttle();
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack);
-        self.reconnect_with_throttle();
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
@@ -955,7 +930,22 @@ impl NymVpnService {
             disable_background_cover_traffic: options.disable_background_cover_traffic,
         });
 
-        self.connect().await
+        self.statistics_event_sender
+            .report(StatisticsEvent::new_connecting(
+                self.config_manager.config().enable_two_hop,
+            ));
+
+        let tunnel_settings = self.config_manager.generate_tunnel_settings()?;
+
+        self.command_sender
+            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
+            .ok();
+
+        if self.target_state == TargetState::Unsecured {
+            self.command_sender.send(TunnelCommand::Connect).ok();
+        }
+
+        Ok(())
     }
 
     fn handle_get_tunnel_state(&self) -> TunnelState {
