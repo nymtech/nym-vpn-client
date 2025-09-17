@@ -51,6 +51,7 @@ import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib.VpnException
 import nym_vpn_lib_types.EstablishConnectionData
+import nym_vpn_lib_types.EstablishConnectionState
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -260,9 +261,9 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
-	private fun emitConnectionData(connectionData: EstablishConnectionData?) {
+	private fun emitConnectionData(connectionData: EstablishConnectionData?, state: EstablishConnectionState) {
 		_state.update {
-			it.copy(connectionData = connectionData?.toInfo())
+			it.copy(connectionData = connectionData?.toInfo(), establishConnectionState = state)
 		}
 	}
 
@@ -290,7 +291,7 @@ class NymBackendManager @Inject constructor(
 
 			is BackendEvent.Tunnel -> when (val state = backendEvent.state) {
 				is TunnelState.Connected -> emitConnectedData(state.connectionData)
-				is TunnelState.Connecting -> emitConnectionData(state.connectionData)
+				is TunnelState.Connecting -> emitConnectionData(state.connectionData, state.state)
 				is TunnelState.Disconnecting -> Timber.d("After disconnect status: ${state.afterDisconnect.name}")
 				is TunnelState.Error -> {
 					Timber.d("Shutting tunnel down on fatal error")
