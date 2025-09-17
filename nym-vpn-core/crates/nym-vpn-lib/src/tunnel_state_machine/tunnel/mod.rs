@@ -148,7 +148,6 @@ pub async fn connect_mixnet(
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
-    let task_client = task_manager.subscribe_named("mixnet_client_main");
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
 
     match options.tunnel_type {
@@ -177,7 +176,6 @@ pub async fn connect_mixnet(
             &options.data_path,
             mixnet_client_config,
             setup_mixnet_options,
-            task_client,
             cancel_token.clone(),
         ),
     );
