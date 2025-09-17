@@ -47,35 +47,35 @@ default-members = [
 ]
 
 # For local development
-#[patch."https://github.com/nymtech/nym"]
-#nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
-#nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
-#nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
-#nym-bin-common = { path = "../../nym/common/bin-common" }
-#nym-client-core = { path = "../../nym/common/client-core" }
-#nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
-#nym-config = { path = "../../nym/common/config" }
-#nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
-#nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests", default-features = false }
-#nym-credential-storage = { path = "../../nym/common/credential-storage" }
-#nym-credentials = { path = "../../nym/common/credentials" }
-#nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
-#nym-crypto = { path = "../../nym/common/crypto" }
-#nym-ecash-time = { path = "../../nym/common/ecash-time" }
-#nym-http-api-client = { path = "../../nym/common/http-api-client" }
-#nym-http-api-client-macro = { path = "../../nym/common/http-api-client-macro" }
-#nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
-#nym-network-defaults = { path = "../../nym/common/network-defaults" }
-#nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
-#nym-pemstore = { path = "../../nym/common/pemstore" }
-#nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
-#nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
-#nym-statistics-common = { path = "../../nym/common/statistics" }
-#nym-task = { path = "../../nym/common/task" }
-#nym-topology = { path = "../../nym/common/topology" }
-#nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
-#nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
-#nym-credential-utils = { path = "../../nym/common/credential-utils" }
+[patch."https://github.com/nymtech/nym"]
+nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
+nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
+nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
+nym-bin-common = { path = "../../nym/common/bin-common" }
+nym-client-core = { path = "../../nym/common/client-core" }
+nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
+nym-config = { path = "../../nym/common/config" }
+nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
+nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests", default-features = false }
+nym-credential-storage = { path = "../../nym/common/credential-storage" }
+nym-credentials = { path = "../../nym/common/credentials" }
+nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
+nym-crypto = { path = "../../nym/common/crypto" }
+nym-ecash-time = { path = "../../nym/common/ecash-time" }
+nym-http-api-client = { path = "../../nym/common/http-api-client" }
+nym-http-api-client-macro = { path = "../../nym/common/http-api-client-macro" }
+nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
+nym-network-defaults = { path = "../../nym/common/network-defaults" }
+nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
+nym-pemstore = { path = "../../nym/common/pemstore" }
+nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
+nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
+nym-statistics-common = { path = "../../nym/common/statistics" }
+nym-task = { path = "../../nym/common/task" }
+nym-topology = { path = "../../nym/common/topology" }
+nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
+nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
+nym-credential-utils = { path = "../../nym/common/credential-utils" }
 
 [workspace.package]
 version = "1.17.0-beta"
@@ -191,7 +191,7 @@ wiremock = "0.6.4"
 wmi = "0.17.2"
 x25519-dalek = "2.0"
 zeroize = "1.8.1"
-sentry = { version = "0.42.0", default-features = false }
+sentry = { version = "0.42.0", default-features = false}
 
 nym-apple-network = { path = "crates/nym-apple-network" }
 nym-authenticator-client = { path = "crates/nym-authenticator-client" }
@@ -224,34 +224,34 @@ nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
 nym-vpnd-types-uniffi = { path = "crates/nym-vpnd-types-uniffi" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "drazen/client-configuration-registry" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "develop", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }

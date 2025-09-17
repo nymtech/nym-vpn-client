@@ -10,11 +10,9 @@ use bytes::Bytes;
 use nym_common::trace_err_chain;
 use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
 use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec};
-use nym_sdk::{
-    TaskClient,
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
-};
-use nym_task::connections::TransmissionLane;
+use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+use nym_task::{connections::TransmissionLane, TaskClient};
 use pnet_packet::Packet;
 use tokio::task::JoinHandle;
 use tracing::{debug, trace};
@@ -132,6 +130,7 @@ impl IcmpConnectionBeacon {
         self.send_icmp_v6_ping(ICMP_IPR_TUN_EXTERNAL_PING_V6).await
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Icmp connection beacon is running");
         let mut ping_interval = tokio::time::interval(ICMP_BEACON_PING_INTERVAL);
@@ -234,6 +233,7 @@ pub fn is_icmp_v6_beacon_reply(
     None
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub fn start_icmp_connection_beacon(
     mixnet_client_sender: MixnetClientSender,
     our_ips: IpPair,

@@ -4,6 +4,7 @@
 use futures::channel::mpsc;
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::{MixnetClientSender, Recipient};
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskManager;
 use tracing::info;
 
@@ -57,6 +58,7 @@ impl ConnectionMonitorTask {
         self.icmp_beacon_identifier
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub fn start(
         self,
         mixnet_client_sender: MixnetClientSender,

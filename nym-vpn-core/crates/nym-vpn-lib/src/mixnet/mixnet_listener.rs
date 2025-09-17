@@ -6,6 +6,7 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskClient;
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
@@ -23,6 +24,7 @@ pub(super) struct MixnetListener {
     ipr_listener: IprListener,
 
     // Task client for receiving shutdown signals
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     task_client: TaskClient,
 
     // Sink for sending packets to the tun device
@@ -42,6 +44,7 @@ pub(super) struct MixnetListener {
 }
 
 impl MixnetListener {
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub(super) fn spawn(
         mixnet_client: SharedMixnetClient,
         task_client: TaskClient,

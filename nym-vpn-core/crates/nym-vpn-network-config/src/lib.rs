@@ -332,7 +332,7 @@ pub enum Error {
     GetWellKnownDiscovery(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to get network details")]
-    GetNetworkDetails(#[source] nym_validator_client::nym_api::error::NymAPIError),
+    GetNetworkDetails(#[source] Box<HttpClientError>),
 
     #[error("failed to build http client: {0}")]
     FailedToBuildHttpClient(String),
@@ -371,7 +371,7 @@ pub enum Error {
     ConvertNetworkDetailsToNetwork(#[source] NymVpnNetworkFromDetailsError),
 
     #[error("HTTP Client Error: {0}")]
-    HttpClient(#[from] HttpClientError),
+    HttpClient(#[from] Box<HttpClientError>),
 }
 
 impl Error {

@@ -95,10 +95,10 @@ pub enum Error {
     Offline,
 
     #[error("HTTP client error: {0}")]
-    HttpClient(#[from] HttpClientError),
+    HttpClient(#[from] Box<HttpClientError>),
 
     #[error("Nym API error: {source}")]
-    NymApi { source: NymAPIError },
+    NymApi { source: Box<NymAPIError> },
 
     #[error("operation cancelled")]
     Cancelled,

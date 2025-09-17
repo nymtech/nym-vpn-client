@@ -15,6 +15,7 @@ use std::{path::PathBuf, sync::Arc, time::Duration};
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
 use nym_sdk::UserAgent;
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
 use tokio::{
@@ -49,6 +50,7 @@ impl ConnectedMixnet {
         &self.selected_gateways
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub async fn start_event_listener(
         &mut self,
         task_manager: &mut TaskManager,
@@ -78,6 +80,7 @@ impl ConnectedMixnet {
     }
 
     /// Creates a tunnel over WireGuard.
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub async fn connect_wireguard_tunnel(
         self,
         task_manager: &TaskManager,
@@ -135,6 +138,7 @@ pub async fn select_gateways(
         .map_err(|err| Error::SelectGateways(Box::new(err)))
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub async fn connect_mixnet(
     task_manager: &TaskManager,
     options: MixnetConnectOptions,
@@ -172,6 +176,7 @@ pub async fn connect_mixnet(
             mixnet_client_config,
             setup_mixnet_options,
             task_client,
+            cancel_token.clone(),
         ),
     );
 
@@ -195,7 +200,7 @@ pub async fn connect_mixnet(
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to create gateway client")]
-    CreateGatewayClient(#[source] nym_gateway_directory::Error),
+    CreateGatewayClient(#[source] Box<nym_gateway_directory::Error>),
 
     #[error("failed to select gateways")]
     SelectGateways(#[source] Box<GatewayDirectoryError>),
