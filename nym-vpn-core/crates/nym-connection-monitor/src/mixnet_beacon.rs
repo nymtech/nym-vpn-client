@@ -5,8 +5,9 @@ use std::time::Duration;
 
 use nym_common::trace_err_chain;
 use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::{connections::TransmissionLane, TaskClient};
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+use nym_task::{TaskClient, connections::TransmissionLane};
 use tokio::task::JoinHandle;
 use tracing::{debug, trace};
 

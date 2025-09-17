@@ -15,7 +15,8 @@ use std::{path::PathBuf, sync::Arc, time::Duration};
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
 use nym_sdk::UserAgent;
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;

@@ -11,8 +11,9 @@ use nym_common::trace_err_chain;
 use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
 use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec};
 use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::{connections::TransmissionLane, TaskClient};
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+use nym_task::{TaskClient, connections::TransmissionLane};
 use pnet_packet::Packet;
 use tokio::task::JoinHandle;
 use tracing::{debug, trace};

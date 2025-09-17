@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{time::Duration};
+use std::time::Duration;
 
 use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
 use serde::{Serialize, de::DeserializeOwned};

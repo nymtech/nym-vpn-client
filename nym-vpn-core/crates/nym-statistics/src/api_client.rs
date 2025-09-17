@@ -24,7 +24,10 @@ impl StatisticsControllerApiClient {
         }
     }
     pub async fn post_report(&self, report: impl Serialize) -> Result<(), Error> {
-        self.inner.post_stats_report(report).await.map_err(Box::new)?;
+        self.inner
+            .post_stats_report(report)
+            .await
+            .map_err(Box::new)?;
         Ok(())
     }
 }

@@ -223,7 +223,9 @@ impl GatewayClient {
         self.api_client
             .get_all_described_nodes()
             .await
-            .map_err(|e| Error::NymApi { source: Box::new(e) })
+            .map_err(|e| Error::NymApi {
+                source: Box::new(e),
+            })
     }
 
     async fn lookup_skimmed_gateways(&self) -> Result<SkimmedNodesWithMetadata> {
@@ -231,7 +233,9 @@ impl GatewayClient {
         self.api_client
             .get_all_basic_entry_assigned_nodes_with_metadata()
             .await
-            .map_err(|e| Error::NymApi { source: Box::new(e) })
+            .map_err(|e| Error::NymApi {
+                source: Box::new(e),
+            })
     }
 
     async fn lookup_skimmed_nodes(&self) -> Result<SkimmedNodesWithMetadata> {
@@ -239,7 +243,9 @@ impl GatewayClient {
         self.api_client
             .get_all_basic_nodes_with_metadata()
             .await
-            .map_err(|e| Error::NymApi { source: Box::new(e) })
+            .map_err(|e| Error::NymApi {
+                source: Box::new(e),
+            })
     }
 
     pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
@@ -248,7 +254,9 @@ impl GatewayClient {
             .api_client
             .get_all_described_nodes()
             .await
-            .map_err(|e| Error::NymApi { source: Box::new(e) })?
+            .map_err(|e| Error::NymApi {
+                source: Box::new(e),
+            })?
             .iter()
             .find_map(|node| {
                 if node

@@ -4,7 +4,8 @@
 use futures::channel::mpsc;
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::{MixnetClientSender, Recipient};
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskManager;
 use tracing::info;
 
