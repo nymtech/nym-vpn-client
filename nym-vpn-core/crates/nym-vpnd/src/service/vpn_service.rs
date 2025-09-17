@@ -45,10 +45,11 @@ use nym_vpnd_types::{
 };
 
 use super::{
+    ConfigSetupError,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetConfigError, SetNetworkError,
+        Result, SetNetworkError,
     },
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
@@ -63,11 +64,11 @@ type Locale = String;
 pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     GetConfig(oneshot::Sender<VpnServiceConfig>, ()),
-    SetEntryPoint(oneshot::Sender<Result<(), SetConfigError>>, EntryPoint),
-    SetExitPoint(oneshot::Sender<Result<(), SetConfigError>>, ExitPoint),
-    SetDisableIPv6(oneshot::Sender<Result<(), SetConfigError>>, bool),
-    SetEnableTwoHop(oneshot::Sender<Result<(), SetConfigError>>, bool),
-    SetNetstack(oneshot::Sender<Result<(), SetConfigError>>, bool),
+    SetEntryPoint(oneshot::Sender<Result<(), ConfigSetupError>>, EntryPoint),
+    SetExitPoint(oneshot::Sender<Result<(), ConfigSetupError>>, ExitPoint),
+    SetDisableIPv6(oneshot::Sender<Result<(), ConfigSetupError>>, bool),
+    SetEnableTwoHop(oneshot::Sender<Result<(), ConfigSetupError>>, bool),
+    SetNetstack(oneshot::Sender<Result<(), ConfigSetupError>>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -767,17 +768,23 @@ impl NymVpnService {
     async fn handle_set_entry_point(
         &mut self,
         entry_point: EntryPoint,
-    ) -> Result<(), SetConfigError> {
+    ) -> Result<(), ConfigSetupError> {
         self.config_manager.set_entry_point(entry_point);
         Ok(())
     }
 
-    async fn handle_set_exit_point(&mut self, exit_point: ExitPoint) -> Result<(), SetConfigError> {
+    async fn handle_set_exit_point(
+        &mut self,
+        exit_point: ExitPoint,
+    ) -> Result<(), ConfigSetupError> {
         self.config_manager.set_exit_point(exit_point);
         Ok(())
     }
 
-    async fn handle_set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<(), SetConfigError> {
+    async fn handle_set_disable_ipv6(
+        &mut self,
+        disable_ipv6: bool,
+    ) -> Result<(), ConfigSetupError> {
         self.config_manager.set_disable_ipv6(disable_ipv6);
         Ok(())
     }
@@ -785,12 +792,12 @@ impl NymVpnService {
     async fn handle_set_enable_two_hop(
         &mut self,
         enable_two_hop: bool,
-    ) -> Result<(), SetConfigError> {
+    ) -> Result<(), ConfigSetupError> {
         self.config_manager.set_enable_two_hop(enable_two_hop);
         Ok(())
     }
 
-    async fn handle_set_netstack(&mut self, netstack: bool) -> Result<(), SetConfigError> {
+    async fn handle_set_netstack(&mut self, netstack: bool) -> Result<(), ConfigSetupError> {
         self.config_manager.set_netstack(netstack);
         Ok(())
     }

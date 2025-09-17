@@ -217,9 +217,7 @@ impl VpnServiceConfigManager {
     }
 
     pub fn write_to_file(&self) -> bool {
-        let ext_config = match VpnServiceConfigExt::try_from(&self.config)
-            .map_err(Error::ConfigSetup)
-        {
+        let ext_config = match VpnServiceConfigExt::try_from(&self.config) {
             Ok(ext_config) => ext_config,
             Err(e) => {
                 tracing::error!("Failed to convert service config to external representation: {e}");
@@ -227,9 +225,7 @@ impl VpnServiceConfigManager {
             }
         };
 
-        match write_json_config_file(&self.json_config_path, &ext_config)
-            .map_err(Error::ConfigSetup)
-        {
+        match write_json_config_file(&self.json_config_path, &ext_config) {
             Ok(_) => {
                 tracing::info!(
                     "Service config has been saved to file {}",
