@@ -490,8 +490,7 @@ impl NymVpnService {
                     self.handle_tunnel_event(event);
                 }
                 _ = tick.tick() => {
-                    // Check if the configuration has changed and if so, reconnect the tunnel
-                    self.reconnect_if_config_changed().await;
+                    self.handle_config_changes().await;
                 }
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("Received shutdown signal");
@@ -710,12 +709,19 @@ impl NymVpnService {
         }
     }
 
-    async fn reconnect_if_config_changed(&mut self) {
-        if self.config_manager.has_config_changed()
-            && (self.tunnel_state.is_connected() || self.tunnel_state.is_connecting())
-            && let Err(e) = self.connect().await
-        {
-            tracing::error!("Failed to reconnect tunnel after config change: {e}");
+    async fn handle_config_changes(&mut self) {
+        if self.config_manager.has_config_changed() {
+            // Save the configuratio to file
+            self.config_manager.write_to_file().unwrap_or_else(|e| {
+                tracing::error!("Failed to write config to file: {}", e);
+            });
+
+            if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
+                // Reconnect the tunnel, if it's currently connecting/connected.
+                if let Err(e) = self.connect().await {
+                    tracing::error!("Failed to reconnect tunnel after config change: {e}");
+                }
+            }
         }
     }
 
