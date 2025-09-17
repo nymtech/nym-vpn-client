@@ -4,7 +4,7 @@
 use super::error::{Error, Result};
 use nym_vpn_lib::{
     MixnetClientConfig,
-    gateway_directory::{self, ContractsCommonError, EntryPoint, ExitPoint, NaiveFloat, Percent},
+    gateway_directory::{self, ContractsCommonError, EntryPoint, ExitPoint},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
         WireguardMultihopMode, WireguardTunnelOptions,
@@ -36,11 +36,6 @@ pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
 pub const DEFAULT_GLOBAL_CONFIG_FILE_TOML: &str = "config.toml";
 pub const DEFAULT_GLOBAL_CONFIG_FILE_JSON: &str = "config.json";
-
-// Used for serializing the Percent type to 3 decimal places
-macro_rules! round_f64 {
-    ($f64:expr) => {{ ($f64 * 1000.0).round() / 1000.0 }};
-}
 
 //
 // NetworkEnvironments
@@ -92,7 +87,6 @@ pub(super) struct VpnServiceConfigManager {
 
 #[allow(dead_code)]
 impl VpnServiceConfigManager {
-    #[allow(clippy::result_large_err)]
     pub(super) fn new(network_config_dir: &Path) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
@@ -156,18 +150,25 @@ impl VpnServiceConfigManager {
         self.config_changed = true;
     }
 
-    pub(super) fn set_min_mixnode_performance(&mut self, min: Option<Percent>) {
-        self.config.min_mixnode_performance = min;
+    pub(super) fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
+        self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
         self.config_changed = true;
     }
 
-    pub(super) fn set_min_gateway_mixnet_performance(&mut self, min: Option<Percent>) {
-        self.config.min_gateway_mixnet_performance = min;
+    pub(super) fn set_min_gateway_mixnet_performance(
+        &mut self,
+        min_gateway_mixnet_performance: Option<u8>,
+    ) {
+        self.config.min_gateway_mixnet_performance =
+            min_gateway_mixnet_performance.map(|u| u.min(100));
         self.config_changed = true;
     }
 
-    pub(super) fn set_min_gateway_vpn_performance(&mut self, min: Option<Percent>) {
-        self.config.min_gateway_vpn_performance = min;
+    pub(super) fn set_min_gateway_vpn_performance(
+        &mut self,
+        min_gateway_vpn_performance: Option<u8>,
+    ) {
+        self.config.min_gateway_vpn_performance = min_gateway_vpn_performance.map(|u| u.min(100));
         self.config_changed = true;
     }
 
@@ -176,7 +177,6 @@ impl VpnServiceConfigManager {
         self.config_changed
     }
 
-    #[allow(clippy::result_large_err)]
     fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
@@ -204,7 +204,6 @@ impl VpnServiceConfigManager {
         Ok(config)
     }
 
-    #[allow(clippy::result_large_err)]
     pub(super) fn write_to_file(&self) -> Result<()> {
         // If the deprecated TOML file still exists, then remove it
         if self.toml_config_path.exists() {
@@ -219,32 +218,19 @@ impl VpnServiceConfigManager {
         write_json_config_file(&self.json_config_path, &ext_config).map_err(Error::ConfigSetup)
     }
 
-    #[allow(clippy::result_large_err)]
     pub(super) fn generate_tunnel_settings(&mut self) -> Result<TunnelSettings> {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
-            mixnet_min_performance: self
-                .config
-                .min_gateway_mixnet_performance
-                .map(|x| x.round_to_integer()),
-            vpn_min_performance: self
-                .config
-                .min_gateway_vpn_performance
-                .map(|x| x.round_to_integer()),
+            mixnet_min_performance: self.config.min_gateway_mixnet_performance,
+            vpn_min_performance: self.config.min_gateway_vpn_performance,
         };
 
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: self.config.disable_poisson_rate,
             disable_background_cover_traffic: self.config.disable_background_cover_traffic,
-            min_mixnode_performance: self
-                .config
-                .min_mixnode_performance
-                .map(|p| p.round_to_integer()),
-            min_gateway_performance: self
-                .config
-                .min_gateway_mixnet_performance
-                .map(|p| p.round_to_integer()),
+            min_mixnode_performance: self.config.min_mixnode_performance,
+            min_gateway_performance: self.config.min_gateway_mixnet_performance,
         };
 
         let tunnel_type = if self.config.enable_two_hop {
@@ -279,6 +265,14 @@ impl VpnServiceConfigManager {
             dns,
             user_agent: None,
         })
+    }
+}
+
+impl Drop for VpnServiceConfigManager {
+    fn drop(&mut self) {
+        if let Err(e) = self.write_to_file() {
+            tracing::error!("Failed to write config to file on drop: {e}");
+        }
     }
 }
 
@@ -325,9 +319,9 @@ struct VpnServiceConfigExtV1 {
     netstack: bool,
     disable_poisson_rate: bool,
     disable_background_cover_traffic: bool,
-    min_mixnode_performance: Option<f64>,
-    min_gateway_mixnet_performance: Option<f64>,
-    min_gateway_vpn_performance: Option<f64>,
+    min_mixnode_performance: Option<u8>,
+    min_gateway_mixnet_performance: Option<u8>,
+    min_gateway_vpn_performance: Option<u8>,
 }
 
 impl Default for VpnServiceConfigExtV1 {
@@ -358,51 +352,26 @@ impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
     type Error = ConfigSetupError;
 
     fn try_from(value: VpnServiceConfigExtV1) -> Result<Self, Self::Error> {
+        let dns = value
+            .dns
+            .map(|addr| {
+                IpAddr::from_str(&addr)
+                    .map_err(|e| ConfigSetupError::IpAddress { error: Box::new(e) })
+            })
+            .transpose()?;
+
         let config = VpnServiceConfig {
             entry_point: EntryPoint::try_from(value.entry_point)?,
-
             exit_point: ExitPoint::try_from(value.exit_point)?,
-
-            dns: value
-                .dns
-                .map(|addr| {
-                    IpAddr::from_str(&addr).map_err(|e| ConfigSetupError::IpAddress { error: e })
-                })
-                .transpose()?,
-
+            dns,
             disable_ipv6: value.disable_ipv6,
-
             enable_two_hop: value.enable_two_hop,
-
             netstack: value.netstack,
-
             disable_poisson_rate: value.disable_poisson_rate,
-
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-
-            min_mixnode_performance: value
-                .min_mixnode_performance
-                .map(|f| {
-                    Percent::naive_try_from_f64(round_f64!(f))
-                        .map_err(|e| ConfigSetupError::Percent { error: e })
-                })
-                .transpose()?,
-
-            min_gateway_mixnet_performance: value
-                .min_gateway_mixnet_performance
-                .map(|f| {
-                    Percent::naive_try_from_f64(round_f64!(f))
-                        .map_err(|e| ConfigSetupError::Percent { error: e })
-                })
-                .transpose()?,
-
-            min_gateway_vpn_performance: value
-                .min_gateway_vpn_performance
-                .map(|f| {
-                    Percent::naive_try_from_f64(round_f64!(f))
-                        .map_err(|e| ConfigSetupError::Percent { error: e })
-                })
-                .transpose()?,
+            min_mixnode_performance: value.min_mixnode_performance,
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance,
         };
         Ok(config)
     }
@@ -421,15 +390,9 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-            min_mixnode_performance: value
-                .min_mixnode_performance
-                .map(|p| round_f64!(p.naive_to_f64())),
-            min_gateway_mixnet_performance: value
-                .min_gateway_mixnet_performance
-                .map(|p| round_f64!(p.naive_to_f64())),
-            min_gateway_vpn_performance: value
-                .min_gateway_vpn_performance
-                .map(|p| round_f64!(p.naive_to_f64())),
+            min_mixnode_performance: value.min_mixnode_performance,
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance,
         };
         Ok(ext_config)
     }
@@ -453,7 +416,7 @@ impl TryFrom<EntryPointExtV1> for EntryPoint {
     fn try_from(value: EntryPointExtV1) -> Result<Self, Self::Error> {
         match value {
             EntryPointExtV1::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
-                .map_err(|e| ConfigSetupError::EntryPoint { error: e }),
+                .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
             EntryPointExtV1::Location { location } => Ok(EntryPoint::Location { location }),
             EntryPointExtV1::Random => Ok(EntryPoint::Random),
         }
@@ -497,10 +460,10 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
             ExitPointExtV1::Address { address } => {
                 let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
                     ConfigSetupError::ExitPoint {
-                        error: gateway_directory::Error::RecipientFormattingError {
+                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
                             address: address.clone(),
                             source: e,
-                        },
+                        }),
                     }
                 })?;
                 Ok(ExitPoint::Address {
@@ -511,10 +474,12 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
                 let node_identity =
                     gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
                         ConfigSetupError::ExitPoint {
-                            error: gateway_directory::Error::NodeIdentityFormattingError {
-                                identity: identity.clone(),
-                                source: e,
-                            },
+                            error: Box::new(
+                                gateway_directory::Error::NodeIdentityFormattingError {
+                                    identity: identity.clone(),
+                                    source: e,
+                                },
+                            ),
                         }
                     })?;
                 Ok(ExitPoint::Gateway {
@@ -638,22 +603,22 @@ pub enum ConfigSetupError {
     #[error("failed to convert entry point")]
     EntryPoint {
         #[source]
-        error: gateway_directory::Error,
+        error: Box<gateway_directory::Error>,
     },
     #[error("failed to convert exit point")]
     ExitPoint {
         #[source]
-        error: gateway_directory::Error,
+        error: Box<gateway_directory::Error>,
     },
     #[error("failed to convert IP address")]
     IpAddress {
         #[source]
-        error: std::net::AddrParseError,
+        error: Box<std::net::AddrParseError>,
     },
     #[error("failed to convert percentage")]
     Percent {
         #[source]
-        error: ContractsCommonError,
+        error: Box<ContractsCommonError>,
     },
     #[error("failed to convert user agent {user_agent}")]
     UserAgent {
@@ -1100,9 +1065,9 @@ exit_point = "Random"
             netstack: true,
             disable_poisson_rate: true,
             disable_background_cover_traffic: true,
-            min_mixnode_performance: Some(Percent::naive_try_from_f64(0.552).unwrap()),
-            min_gateway_mixnet_performance: Some(Percent::naive_try_from_f64(0.643).unwrap()),
-            min_gateway_vpn_performance: Some(Percent::naive_try_from_f64(0.001).unwrap()),
+            min_mixnode_performance: Some(55u8),
+            min_gateway_mixnet_performance: Some(64u8),
+            min_gateway_vpn_performance: Some(1u8),
         };
         run_serialize_test(config);
     }

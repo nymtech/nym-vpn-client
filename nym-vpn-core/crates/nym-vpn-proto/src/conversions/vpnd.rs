@@ -11,7 +11,7 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use url::Url;
 
 use nym_config::defaults::NymNetworkDetails;
-use nym_gateway_directory::{GatewayType, NaiveFloat, Percent};
+use nym_gateway_directory::GatewayType;
 use nym_sdk::UserAgent;
 use nym_vpn_network_config::{
     ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
@@ -24,15 +24,6 @@ use nym_vpnd_types::{
 };
 
 use crate::{conversions::ConversionError, proto};
-
-// Used for serializing the Percent type to 3 decimal places
-macro_rules! round_f64 {
-    ($float:expr) => {{ ($float as f64 * 1000.0).round() / 1000.0 }};
-}
-
-macro_rules! round_f32 {
-    ($float:expr) => {{ (($float * 1000.0).round() / 1000.0) as f32 }};
-}
 
 impl From<proto::Location> for nym_vpnd_types::gateway::Location {
     fn from(location: proto::Location) -> Self {
@@ -436,7 +427,7 @@ impl TryFrom<proto::ConnectRequest> for ConnectOptions {
         let dns = match value.dns.and_then(|dns| dns.ip) {
             Some(ip) => Some(
                 ip.parse::<std::net::IpAddr>()
-                    .map_err(|e| ConversionError::ParseAddr("VpnServiceConfig.dns", e))?,
+                    .map_err(|e| ConversionError::ParseAddr("ConnectRequest.dns", e))?,
             ),
             None => None,
         };
@@ -449,9 +440,6 @@ impl TryFrom<proto::ConnectRequest> for ConnectOptions {
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             enable_credentials_mode: value.enable_credentials_mode,
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
             user_agent: value.user_agent.map(UserAgent::from),
         })
     }
@@ -492,35 +480,15 @@ impl TryFrom<proto::VpnServiceConfig> for VpnServiceConfig {
 
             disable_background_cover_traffic: value.disable_background_cover_traffic,
 
-            min_mixnode_performance: match value.min_mixnode_performance.and_then(|p| p.percent) {
-                Some(f) => Some(
-                    Percent::naive_try_from_f64(round_f64!(f))
-                        .map_err(|e| ConversionError::ParsePercent(f, e))?,
-                ),
-                None => None,
-            },
+            min_mixnode_performance: value.min_mixnode_performance.map(|u| u.min(100) as u8),
 
-            min_gateway_mixnet_performance: match value
+            min_gateway_mixnet_performance: value
                 .min_gateway_mixnet_performance
-                .and_then(|p| p.percent)
-            {
-                Some(f) => Some(
-                    Percent::naive_try_from_f64(round_f64!(f))
-                        .map_err(|e| ConversionError::ParsePercent(f, e))?,
-                ),
-                None => None,
-            },
+                .map(|u| u.min(100) as u8),
 
-            min_gateway_vpn_performance: match value
+            min_gateway_vpn_performance: value
                 .min_gateway_vpn_performance
-                .and_then(|p| p.percent)
-            {
-                Some(f) => Some(
-                    Percent::naive_try_from_f64(round_f64!(f))
-                        .map_err(|e| ConversionError::ParsePercent(f, e))?,
-                ),
-                None => None,
-            },
+                .map(|u| u.min(100) as u8),
         };
         Ok(config)
     }
@@ -541,19 +509,13 @@ impl TryFrom<VpnServiceConfig> for proto::VpnServiceConfig {
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-            min_mixnode_performance: value.min_mixnode_performance.map(|p| proto::Percent {
-                percent: Some(round_f32!(p.naive_to_f64())),
-            }),
-            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|p| {
-                proto::Percent {
-                    percent: Some(round_f32!(p.naive_to_f64())),
-                }
-            }),
-            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|p| {
-                proto::Percent {
-                    percent: Some(round_f32!(p.naive_to_f64())),
-                }
-            }),
+            min_mixnode_performance: value.min_mixnode_performance.map(|u| u.min(100) as u32),
+            min_gateway_mixnet_performance: value
+                .min_gateway_mixnet_performance
+                .map(|u| u.min(100) as u32),
+            min_gateway_vpn_performance: value
+                .min_gateway_vpn_performance
+                .map(|u| u.min(100) as u32),
         };
 
         Ok(config)
@@ -813,7 +775,7 @@ impl From<nym_vpnd_types::gateway::Country> for proto::Location {
 mod tests {
     use super::*;
     use crate::proto;
-    use nym_gateway_directory::{EntryPoint, ExitPoint, NaiveFloat, NodeIdentity, Percent};
+    use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
     use std::str::FromStr;
 
     #[test]
@@ -832,9 +794,9 @@ mod tests {
             netstack: true,
             disable_poisson_rate: true,
             disable_background_cover_traffic: true,
-            min_mixnode_performance: Some(Percent::naive_try_from_f64(0.552).unwrap()),
-            min_gateway_mixnet_performance: Some(Percent::naive_try_from_f64(0.643).unwrap()),
-            min_gateway_vpn_performance: Some(Percent::naive_try_from_f64(0.001).unwrap()),
+            min_mixnode_performance: Some(55u8),
+            min_gateway_mixnet_performance: Some(64u8),
+            min_gateway_vpn_performance: Some(1u8),
         };
 
         let external: proto::VpnServiceConfig = internal.clone().try_into().unwrap();

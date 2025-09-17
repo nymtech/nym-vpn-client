@@ -3,7 +3,7 @@
 
 mod cli;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::Parser;
 use cli::Internal;
 use nym_gateway_directory::GatewayType;
@@ -118,9 +118,6 @@ async fn connect(
             disable_poisson_rate: connect_args.disable_poisson_rate,
             disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
             enable_credentials_mode: connect_args.enable_credentials_mode,
-            min_gateway_mixnet_performance: None,
-            min_mixnode_performance: None,
-            min_gateway_vpn_performance: None,
             user_agent: Some(user_agent),
         },
     };
@@ -239,21 +236,25 @@ async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn set_entry_point(mut rpc_client: RpcClient, entry: CliEntry) -> Result<()> {
-    let Some(entry_point) = entry.entry_point()? else {
-        bail!("You must specify at least one of --entry-id, --entry-country, or --entry-random");
-    };
-    rpc_client.set_entry_point(entry_point).await?;
-    Ok(())
+    if let Some(entry_point) = entry.entry_point()? {
+        rpc_client.set_entry_point(entry_point).await?;
+        Ok(())
+    } else {
+        Err(anyhow!(
+            "You must specify at least one of --entry-id, --entry-country, or --entry-random"
+        ))
+    }
 }
 
 async fn set_exit_point(mut rpc_client: RpcClient, exit: CliExit) -> Result<()> {
-    let Some(exit_point) = exit.exit_point()? else {
-        bail!(
+    if let Some(exit_point) = exit.exit_point()? {
+        rpc_client.set_exit_point(exit_point).await?;
+        Ok(())
+    } else {
+        Err(anyhow!(
             "You must specify at least one of --exit-id, --exit-country, --exit-ipr-address, or --exit-random"
-        );
-    };
-    rpc_client.set_exit_point(exit_point).await?;
-    Ok(())
+        ))
+    }
 }
 
 async fn set_disable_ipv6(mut rpc_client: RpcClient, disable_ipv6: bool) -> Result<()> {

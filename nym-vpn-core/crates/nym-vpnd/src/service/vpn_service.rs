@@ -712,9 +712,10 @@ impl NymVpnService {
     async fn handle_config_changes(&mut self) {
         if self.config_manager.has_config_changed() {
             // Save the configuratio to file
-            self.config_manager.write_to_file().unwrap_or_else(|e| {
-                tracing::error!("Failed to write config to file: {}", e);
-            });
+            match self.config_manager.write_to_file() {
+                Ok(_) => tracing::info!("Config changes have been saved to file"),
+                Err(e) => tracing::error!("Failed to write config to file: {e}"),
+            }
 
             if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
                 // Reconnect the tunnel, if it's currently connecting/connected.
@@ -775,19 +776,16 @@ impl NymVpnService {
         entry_point: EntryPoint,
     ) -> Result<(), SetConfigError> {
         self.config_manager.set_entry_point(entry_point);
-
         Ok(())
     }
 
     async fn handle_set_exit_point(&mut self, exit_point: ExitPoint) -> Result<(), SetConfigError> {
         self.config_manager.set_exit_point(exit_point);
-
         Ok(())
     }
 
     async fn handle_set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<(), SetConfigError> {
         self.config_manager.set_disable_ipv6(disable_ipv6);
-
         Ok(())
     }
 
@@ -796,13 +794,11 @@ impl NymVpnService {
         enable_two_hop: bool,
     ) -> Result<(), SetConfigError> {
         self.config_manager.set_enable_two_hop(enable_two_hop);
-
         Ok(())
     }
 
     async fn handle_set_netstack(&mut self, netstack: bool) -> Result<(), SetConfigError> {
         self.config_manager.set_netstack(netstack);
-
         Ok(())
     }
 
@@ -916,9 +912,9 @@ impl NymVpnService {
             enable_two_hop: options.enable_two_hop,
             netstack: options.netstack,
             dns: options.dns,
-            min_mixnode_performance: options.min_mixnode_performance,
-            min_gateway_mixnet_performance: options.min_gateway_mixnet_performance,
-            min_gateway_vpn_performance: options.min_gateway_vpn_performance,
+            min_mixnode_performance: None,
+            min_gateway_mixnet_performance: None,
+            min_gateway_vpn_performance: None,
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
         });

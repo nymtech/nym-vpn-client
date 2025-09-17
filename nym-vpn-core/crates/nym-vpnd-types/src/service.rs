@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, Percent};
+use nym_gateway_directory::{EntryPoint, ExitPoint};
 use nym_sdk::UserAgent;
 use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 use std::{fmt, net::IpAddr};
@@ -25,9 +25,6 @@ pub struct ConnectOptions {
     pub disable_poisson_rate: bool,
     pub disable_background_cover_traffic: bool,
     pub enable_credentials_mode: bool,
-    pub min_mixnode_performance: Option<Percent>,
-    pub min_gateway_mixnet_performance: Option<Percent>,
-    pub min_gateway_vpn_performance: Option<Percent>,
     pub user_agent: Option<UserAgent>,
 }
 
@@ -41,9 +38,9 @@ pub struct VpnServiceConfig {
     pub netstack: bool,
     pub disable_poisson_rate: bool,
     pub disable_background_cover_traffic: bool,
-    pub min_mixnode_performance: Option<Percent>,
-    pub min_gateway_mixnet_performance: Option<Percent>,
-    pub min_gateway_vpn_performance: Option<Percent>,
+    pub min_mixnode_performance: Option<u8>,
+    pub min_gateway_mixnet_performance: Option<u8>,
+    pub min_gateway_vpn_performance: Option<u8>,
 }
 
 impl fmt::Display for VpnServiceConfig {
