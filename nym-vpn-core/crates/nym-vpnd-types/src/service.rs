@@ -23,7 +23,7 @@ impl std::fmt::Display for TargetState {
             TargetState::Unsecured => "Unsecured",
             TargetState::Secured => "Secured",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
