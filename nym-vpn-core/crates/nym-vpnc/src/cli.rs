@@ -1,10 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::{net::IpAddr, ops::Deref};
 
 use anyhow::{Result, anyhow};
-use clap::{ArgAction, Args, Parser, Subcommand};
+use clap::{
+    ArgAction, Args, Parser, Subcommand,
+    builder::{PossibleValuesParser, TypedValueParser, ValueParser, ValueParserFactory},
+};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
 
@@ -66,25 +69,25 @@ pub enum Command {
         exit: CliExit,
     },
 
-    /// Enable or disable IPv6 support
+    /// Set IPv6 support state
     SetIpv6 {
-        /// Enable
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
-        enabled: bool,
+        /// Set IPv6 support state (on|off)
+        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        enabled: BooleanOption,
     },
 
-    /// Enable or disable two-hop mode.
+    /// Set two-hop mode
     SetTwoHop {
-        /// Enable
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
-        enabled: bool,
+        /// Set two-hop mode (on|off)
+        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        enabled: BooleanOption,
     },
 
     /// Set netstack based implementation for two-hop wireguard.
     SetNetstack {
-        /// Enable
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
-        enabled: bool,
+        /// Set netstack implementation (on|off)
+        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        enabled: BooleanOption,
     },
 
     /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
@@ -371,4 +374,65 @@ pub struct ConfirmZkNymDownloadedArgs {
     /// The ID of the ZK Nym to confirm.
     #[arg(short, long)]
     pub id: String,
+}
+
+/// A value parser that parses "on" or "off" into a boolean
+#[derive(Debug, Clone, Copy)]
+pub struct BooleanOption {
+    state: bool,
+    on_label: &'static str,
+    off_label: &'static str,
+}
+
+impl Deref for BooleanOption {
+    type Target = bool;
+
+    fn deref(&self) -> &Self::Target {
+        &self.state
+    }
+}
+
+impl clap::builder::ValueParserFactory for BooleanOption {
+    type Parser = ValueParser;
+
+    /// A value parser that parses "on" or "off" into a `BooleanOption`
+    fn value_parser() -> Self::Parser {
+        Self::custom_parser("on", "off")
+    }
+}
+
+impl BooleanOption {
+    /// A value parser that parses `on_label` and `off_label` into a `BooleanOption`
+    fn custom_parser(on_label: &'static str, off_label: &'static str) -> ValueParser {
+        assert!(on_label != off_label);
+
+        ValueParser::new(
+            PossibleValuesParser::new([on_label, off_label])
+                .map(move |val| Self::with_labels(val == on_label, on_label, off_label)),
+        )
+    }
+
+    fn with_labels(state: bool, on_label: &'static str, off_label: &'static str) -> Self {
+        Self {
+            state,
+            on_label,
+            off_label,
+        }
+    }
+}
+
+impl From<bool> for BooleanOption {
+    fn from(state: bool) -> Self {
+        Self::with_labels(state, "on", "off")
+    }
+}
+
+impl std::fmt::Display for BooleanOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.state {
+            self.on_label.fmt(f)
+        } else {
+            self.off_label.fmt(f)
+        }
+    }
 }
