@@ -31,26 +31,55 @@ extension GRPCManager {
     func resetTunnelStateChangeObserver() {
         setup()
         tunnelStatus = .unknown
+        guard isServing else { return }
         isServing = false
     }
 
-    func pingDaemonInitialStatus() {
-        Task {
-            guard !isServing
-            else {
-                try? await Task.sleep(for: .seconds(5))
-                pingDaemonInitialStatus()
-                return
-            }
+    func startDaemonInitialStatusPingerIfNeeded() {
+        guard versionPingTask == nil || versionPingTask?.isCancelled == true else { return }
 
+        versionPingTask = Task { [weak self] in
+            guard let self else { return }
+            await self.pingDaemonInitialStatus()
+        }
+    }
+
+    func stopInitialStatusPinger() {
+        versionPingTask?.cancel()
+        versionPingTask = nil
+    }
+
+    @MainActor func pingDaemonInitialStatus() async {
+        var retryCount = 0
+        while !isServing {
             do {
                 try await version()
                 let tunnelState = try await client.getTunnelState(Google_Protobuf_Empty())
-                Task { @MainActor in
+                await MainActor.run {
                     updateTunnelStatus(with: tunnelState)
                 }
+            } catch is CancellationError {
+                return
             } catch {
-                pingDaemonInitialStatus()
+                 logger.debug("pingDaemonInitialStatus error: \(error)")
+            }
+
+            if !isServing {
+                retryCount += 1
+                if retryCount == 2 {
+                    daemonVersion = "update"
+                }
+                do {
+                    try await Task.sleep(for: .seconds(5))
+                } catch is CancellationError {
+                    logger.debug("pingDaemonInitialStatus cancelled during sleep")
+                    return
+                } catch {
+                    logger.debug("Ping Daemon initial status: \(error)")
+                }
+            }
+            if isServing {
+                stopInitialStatusPinger()
             }
         }
     }

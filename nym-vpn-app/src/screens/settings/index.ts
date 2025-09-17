@@ -6,3 +6,4 @@ export * from './legal';
 export * from './support';
 export * from './dev';
 export * from './data-privacy';
+export * from './anti-censorship';

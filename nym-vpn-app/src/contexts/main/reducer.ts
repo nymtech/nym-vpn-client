@@ -14,6 +14,7 @@ import {
   Country,
   DaemonInfo,
   DaemonStatus,
+  FeatureFlags,
   Gateway,
   NetworkCompat,
   NodeHop,
@@ -68,7 +69,10 @@ export type StateAction =
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-syncing'; syncing: boolean }
   | { type: 'set-welcome-checked'; checked: boolean }
-  | { type: 'set-account-error'; error: AppError | null };
+  | { type: 'set-account-error'; error: AppError | null }
+  | { type: 'set-backend-flags'; flags: FeatureFlags | null }
+  | { type: 'set-quic'; enabled: boolean }
+  | { type: 'set-domain-fronting'; enabled: boolean };
 
 export const initialState: AppState = {
   initialized: false,
@@ -98,6 +102,8 @@ export const initialState: AppState = {
   ipv6Support: true,
   networkStats: false,
   welcomeChecked: false,
+  quic: false,
+  domainFronting: false,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -326,6 +332,21 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         welcomeChecked: action.checked,
+      };
+    case 'set-backend-flags':
+      return {
+        ...state,
+        backendFlags: action.flags,
+      };
+    case 'set-quic':
+      return {
+        ...state,
+        quic: action.enabled,
+      };
+    case 'set-domain-fronting':
+      return {
+        ...state,
+        domainFronting: action.enabled,
       };
 
     case 'reset':

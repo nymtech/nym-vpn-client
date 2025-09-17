@@ -104,9 +104,9 @@ impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
             nym_gateway_directory::ExitPoint::Gateway { identity } => {
                 ExitPoint::Gateway { identity }
             }
-            nym_gateway_directory::ExitPoint::Location { location } => ExitPoint::Location {
-                location: location.clone(),
-            },
+            nym_gateway_directory::ExitPoint::Location { location } => {
+                ExitPoint::Location { location }
+            }
             nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
         }
     }

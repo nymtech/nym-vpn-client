@@ -17,32 +17,50 @@ trap 'error_handler $LINENO' ERR
 BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
 
 # -----------------------------------------------------------------------------
-# 0) Determine build tag
+# 0) Determine build tag (default from git branch)
+#    This may be overridden by FETCHCORE_TAG/FETCHCORE_FOLDER from FetchCore.sh
 # -----------------------------------------------------------------------------
 current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-
 if [[ "$current_branch" =~ ^release/ ]]; then
   TAG="$current_branch"
-  TAG_URL="${BASE_URL}/${TAG}"
-  ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_ios_universal\.zip'
 else
   TAG="develop"
-  TAG_URL="${BASE_URL}/${TAG}"
+fi
+
+# Orchestrator override
+OVERRIDDEN="0"
+if [[ -n "${FETCHCORE_TAG:-}" && -n "${FETCHCORE_FOLDER:-}" ]]; then
+  TAG="${FETCHCORE_TAG}"
+  latest_folder="${FETCHCORE_FOLDER}"
+  OVERRIDDEN="1"
+  echo "Override: Using TAG=${TAG}, FOLDER=${latest_folder} from FetchCore.sh"
+fi
+
+TAG_URL="${BASE_URL}/${TAG}"
+
+# Choose the iOS asset pattern after TAG is finalized
+if [[ "$TAG" =~ ^release/ ]]; then
+  # release builds may omit -dev/-beta timestamp
+  ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_ios_universal\.zip'
+else
+  # nightly/dev builds include -dev/-beta + 12-digit timestamp
   ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-(?:dev|beta)\.[0-9]{12}_ios_universal\.zip'
 fi
 
 echo "Using build tag: ${TAG}"
-echo "Fetching folder listing from: ${TAG_URL}"
+echo "Base folder: ${TAG_URL}"
 
 # -----------------------------------------------------------------------------
-# 1) Find latest timestamp folder
+# 1) Find latest timestamp folder (unless orchestrator provided it)
 # -----------------------------------------------------------------------------
-folder_listing="$(curl -Ls "$TAG_URL")"
-
-latest_folder="$(echo "$folder_listing" | grep -Eo '[0-9]{12}/' | tr -d '/' | sort | tail -n 1)"
-if [[ -z "${latest_folder}" ]]; then
-  echo "❌ Error: Could not determine the latest timestamp folder from ${TAG_URL}"
-  exit 1
+if [[ "$OVERRIDDEN" != "1" ]]; then
+  echo "Fetching folder listing from: ${TAG_URL}"
+  folder_listing="$(curl -Ls "$TAG_URL")"
+  latest_folder="$(echo "$folder_listing" | grep -Eo '[0-9]{12}/' | tr -d '/' | sort | tail -n 1)"
+  if [[ -z "${latest_folder}" ]]; then
+    echo "❌ Error: Could not determine the latest timestamp folder from ${TAG_URL}"
+    exit 1
+  fi
 fi
 
 echo "Latest timestamp folder: ${latest_folder}"

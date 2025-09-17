@@ -189,6 +189,12 @@
 	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
 	<!-- Main Screen -->
 	<string name="main_get_started_button">Get started</string>
+	<string name="connection_state_resolving_addresses">Resolving API IP addresses</string>
+	<string name="connection_state_awaiting_readiness">Awaiting account readiness</string>
+	<string name="connection_state_refreshing_gateways">Refreshing gateways</string>
+	<string name="connection_state_selecting_gateways">Selecting gateways</string>
+	<string name="connection_state_connecting_mixnet_client">Connecting mixnet client</string>
+	<string name="connection_state_connecting_tunnel">Connecting tunnel</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>

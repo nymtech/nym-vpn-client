@@ -7,8 +7,8 @@ use crate::state::app::VpnMode;
 use crate::sys::DisplayServer;
 use crate::sys::OsInfo;
 use crate::{
-    APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
-    MAIN_WINDOW_LABEL, env,
+    APP_NAME, DEFAULT_DOMAIN_FRONTING, DEFAULT_NETSTATS_ENABLED, DEFAULT_QUIC,
+    DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH, MAIN_WINDOW_LABEL, env,
 };
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
@@ -49,14 +49,17 @@ enum UiMode {
 
 #[derive(Serialize, Deserialize, Debug, Default, TS)]
 #[serde(rename_all = "camelCase")]
-#[ts(export)]
+#[ts(export, export_to = "JsEnv.ts", rename = "JsEnv")]
 pub struct WindowInitEnv {
     pub dev_mode: bool,
     pub updater_enabled: bool,
     pub no_splash: bool,
+    #[ts(inline)]
     pub default_vpn_mode: VpnMode,
-    pub default_sentry_enabled: bool,
-    pub default_netstats_enabled: bool,
+    pub default_sentry: bool,
+    pub default_netstats: bool,
+    pub default_quic: bool,
+    pub default_domain_fronting: bool,
     pub startup_error: Option<StartupError>,
 }
 
@@ -333,8 +336,10 @@ impl WindowInitEnv {
             updater_enabled: *UPDATER_ENABLED,
             no_splash,
             default_vpn_mode: Default::default(),
-            default_sentry_enabled: DEFAULT_SENTRY_ENABLED,
-            default_netstats_enabled: DEFAULT_NETSTATS_ENABLED,
+            default_sentry: DEFAULT_SENTRY_ENABLED,
+            default_netstats: DEFAULT_NETSTATS_ENABLED,
+            default_quic: DEFAULT_QUIC,
+            default_domain_fronting: DEFAULT_DOMAIN_FRONTING,
             startup_error,
         }
     }

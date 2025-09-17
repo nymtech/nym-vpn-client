@@ -10,8 +10,8 @@ import { StateDispatch } from '../types';
 import { Button, Link, PageAnim, Switch } from '../ui';
 import SettingsGroup from './settings/SettingsGroup';
 
-const defaultSentry = window._APP.defaultSentryEnabled;
-const defaultNetstats = window._APP.defaultNetstatsEnabled;
+const defaultSentry = window._APP.defaultSentry;
+const defaultNetstats = window._APP.defaultNetstats;
 
 function Welcome() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);

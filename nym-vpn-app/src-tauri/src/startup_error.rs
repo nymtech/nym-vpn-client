@@ -23,8 +23,9 @@ pub enum ErrorKey {
 }
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
-#[ts(export)]
+#[ts(export, export_to = "JsEnv.ts")]
 pub struct StartupError {
+    #[ts(inline)]
     pub key: ErrorKey,
     pub detail: Option<String>,
 }

@@ -43,7 +43,7 @@ private extension GRPCManager {
             location.twoLetterIsoCountryCode = country.code
             entryNode.location = location
         case let .gateway(node):
-            var gateway = NymVpnService_Gateway()
+            var gateway = NymVpnService_GatewayId()
             gateway.id = node.id
             entryNode.gateway = gateway
         case .random:
@@ -60,7 +60,7 @@ private extension GRPCManager {
             location.twoLetterIsoCountryCode = country.code
             exitNode.location = location
         case let .gateway(node):
-            var gateway = NymVpnService_Gateway()
+            var gateway = NymVpnService_GatewayId()
             gateway.id = node.id
             exitNode.gateway = gateway
         }

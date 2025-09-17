@@ -74,7 +74,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			val connectionState = when {
 				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
-				else -> ConnectionState.from(managerState.tunnelState)
+				else -> ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
 			}
 			val stateMessage = when (val event = managerState.backendUiEvent) {
 				is BackendUiEvent.BandwidthAlert, null -> connectionState.stateMessage

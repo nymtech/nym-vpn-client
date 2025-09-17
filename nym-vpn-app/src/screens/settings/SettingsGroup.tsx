@@ -12,17 +12,26 @@ type Setting = {
   className?: string;
   'data-testid'?: string;
 };
+function isSettingItem(item: Setting | undefined | boolean): item is Setting {
+  return (
+    item !== undefined &&
+    item !== false &&
+    (item as Setting).title !== undefined
+  );
+}
 
 type Props = {
-  settings: Setting[];
+  settings: (Setting | undefined | boolean)[];
   className?: string;
   'data-testid'?: string;
 };
 
 function SettingsGroup({ settings, className, ...rest }: Props) {
+  const items = settings.filter((v) => isSettingItem(v));
+
   return (
     <RadioGroup className={clsx([className])} {...rest}>
-      {settings.map((setting, index) => {
+      {items.map((setting, index) => {
         const testId = setting['data-testid'];
 
         return (
@@ -36,13 +45,13 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
               'hover:bg-white/60 dark:hover:bg-charcoal/85',
               'transition duration-75',
               index === 0 && 'rounded-t-lg',
-              index === settings.length - 1 &&
-                settings.length === 2 &&
+              index === items.length - 1 &&
+                items.length === 2 &&
                 'border-t border-faded-lavender dark:border-ash',
               index !== 0 &&
-                index !== settings.length - 1 &&
+                index !== items.length - 1 &&
                 'border-y border-faded-lavender dark:border-ash',
-              index === settings.length - 1 && 'rounded-b-lg',
+              index === items.length - 1 && 'rounded-b-lg',
               setting.desc ? 'py-2' : 'py-4',
               setting.disabled &&
                 'opacity-50 pointer-events-none cursor-default!',

@@ -7,7 +7,7 @@ type LinkProps = {
   text: string;
   url: string;
   icon?: boolean | string;
-  color?: 'malachite' | 'iron';
+  color?: 'primary' | 'malachite' | 'iron';
   className?: string;
   textClassName?: string;
   'data-testid'?: string;
@@ -33,6 +33,7 @@ function Link({
         'inline-flex flex-row items-center gap-1',
         color === 'malachite' && 'text-malachite-moss dark:text-malachite',
         color === 'iron' && 'text-iron dark:text-bombay',
+        color === 'primary' && 'text-baltic-sea dark:text-white',
         className && className,
       ])}
       onClick={() => openUrl(url)}

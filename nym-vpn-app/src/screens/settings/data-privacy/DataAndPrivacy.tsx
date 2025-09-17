@@ -53,17 +53,15 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay">
-            {t('privacy.network-stats.desc1')}
-          </p>
-          <p className="text-sm text-iron dark:text-bombay">
-            {t('privacy.network-stats.desc2')}
+          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+            {t('privacy.network-stats.desc')}
           </p>
           <Link
-            className="w-fit text-sm text-iron dark:text-bombay"
+            className="w-fit text-sm"
             text={t('privacy.network-stats.link')}
             url={AnonNetworkStatsUrl}
-            color="iron"
+            color="primary"
+            icon
           />
         </div>
       </SettingsMenuCardBig>
@@ -79,14 +77,15 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay">
+          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
             {t('privacy.error-monitoring.desc')}
           </p>
           <Link
-            className="w-fit text-sm text-iron dark:text-bombay"
+            className="w-fit text-sm"
             text={t('privacy.error-monitoring.link')}
             url={SentryPrivacyPolicyUrl}
-            color="iron"
+            color="primary"
+            icon
           />
         </div>
       </SettingsMenuCardBig>

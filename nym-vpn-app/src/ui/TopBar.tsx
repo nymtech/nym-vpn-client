@@ -121,6 +121,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/anti-censorship': {
+        title: t('anti-censorship.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/feedback': {
         title: t('feedback'),
         leftIcon: 'arrow_back',
