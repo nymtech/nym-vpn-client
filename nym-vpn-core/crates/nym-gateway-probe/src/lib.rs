@@ -17,7 +17,6 @@ use nym_authenticator_client::{
     AuthClientMixnetListener, AuthenticatorResponse, AuthenticatorVersion, ClientMessage,
 };
 use nym_authenticator_requests::{v2, v3, v4, v5};
-use nym_bandwidth_controller::error::BandwidthControllerError;
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     NymNetworkDetails,
@@ -38,11 +37,11 @@ use nym_ip_packet_requests::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
 };
+use nym_sdk::bandwidth::BandwidthImporter;
 use nym_sdk::mixnet::{
-    DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder, MixnetClientStorage,
+    Ephemeral, EphemeralCredentialStorage, MixnetClient, MixnetClientBuilder, MixnetClientStorage,
     NodeIdentity, ReconstructedMessage,
 };
-use nym_validator_client::nyxd::error::NyxdError;
 use nym_wireguard_types::PeerPublicKey;
 use tokio::sync::Mutex;
 use tokio_util::{codec::Decoder, sync::CancellationToken};
@@ -58,9 +57,11 @@ use netstack::{NetstackRequest, NetstackRequestGo};
 
 mod error;
 mod icmp;
+mod monorepo_ns_client_types;
 mod netstack;
 mod types;
 
+use crate::monorepo_ns_client_types::AttachedTicketMaterials;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
@@ -102,7 +103,19 @@ pub struct NetstackArgs {
 #[derive(Args)]
 pub struct CredentialArgs {
     #[arg(long)]
-    mnemonic: String,
+    ticket_materials: String,
+
+    #[arg(long)]
+    ticket_materials_revision: u8,
+}
+
+impl CredentialArgs {
+    fn decode_attached_ticket_materials(&self) -> Result<AttachedTicketMaterials> {
+        Ok(AttachedTicketMaterials::from_serialised_string(
+            &self.ticket_materials,
+            self.ticket_materials_revision,
+        )?)
+    }
 }
 
 #[derive(Default, Debug)]
@@ -165,6 +178,55 @@ pub async fn fetch_gateways_with_ipr(
     Ok(lookup_gateways(gateway_config).await?.into_exit_gateways())
 }
 
+async fn import_bandwidth(
+    bandwidth_importer: BandwidthImporter<'_, EphemeralCredentialStorage>,
+    attached_ticket_materials: AttachedTicketMaterials,
+) -> Result<()> {
+    // 1. import all auxiliary data
+    for master_vk in attached_ticket_materials.master_verification_keys {
+        let key = master_vk.try_unpack()?;
+        info!(
+            "importing master verification key for epoch {}",
+            key.epoch_id
+        );
+        bandwidth_importer
+            .import_master_verification_key(&key)
+            .await?;
+    }
+    for coin_index_signatures in attached_ticket_materials.coin_indices_signatures {
+        let sigs = coin_index_signatures.try_unpack()?;
+        info!("importing coin index signatures epoch {}", sigs.epoch_id);
+        bandwidth_importer
+            .import_coin_index_signatures(&sigs)
+            .await?;
+    }
+    for expiration_date_signatures in attached_ticket_materials.expiration_date_signatures {
+        let sigs = expiration_date_signatures.try_unpack()?;
+        info!(
+            "importing expiration date signatures epoch {} and expiration {}",
+            sigs.epoch_id, sigs.expiration_date
+        );
+        bandwidth_importer
+            .import_expiration_date_signatures(&sigs)
+            .await?;
+    }
+
+    // 2. import actual tickets
+    for ticket in attached_ticket_materials.attached_tickets {
+        let ticketbook = ticket.ticketbook.try_unpack()?;
+        info!(
+            "importing partial ticketbook {}. index to use: {}",
+            ticketbook.ticketbook_type(),
+            ticket.usable_index
+        );
+        bandwidth_importer
+            .import_partial_ticketbook(&ticketbook, ticket.usable_index, ticket.usable_index)
+            .await?;
+    }
+
+    Ok(())
+}
+
 pub struct Probe {
     entrypoint: EntryPoint,
     tested_node: TestedNode,
@@ -193,107 +255,14 @@ impl Probe {
         self
     }
 
-    async fn acquire_bandwidth(
-        &self,
-        disconnected_mixnet_client: &DisconnectedMixnetClient<Ephemeral>,
-        ticketbook_type: TicketType,
-    ) -> anyhow::Result<()> {
-        // TODO: make it configurable
-        const MAX_RETRIES: usize = 50;
-        for i in 0..MAX_RETRIES {
-            let attempt = i + 1; // since humans usually don't count from 0 in this instance
-            info!(
-                "attempt {attempt}/{MAX_RETRIES} for attempting to acquire {ticketbook_type} bandwidth"
-            );
-            let bw_client = disconnected_mixnet_client
-                .create_bandwidth_client(self.credentials_args.mnemonic.clone(), ticketbook_type)
-                .await?;
-            info!("Calling bandwidth controller acquire() for {ticketbook_type}");
-            match bw_client.acquire().await {
-                Ok(_) => {
-                    if i > 0 {
-                        info!(
-                            "managed to acquire {ticketbook_type} bandwidth after {attempt} attempts",
-                        );
-                    }
-                    return Ok(());
-                }
-                Err(nym_sdk::Error::CredentialIssuanceError { source }) => match source {
-                    nym_credential_utils::errors::Error::BandwidthControllerError(
-                        BandwidthControllerError::Nyxd(nyxd_error),
-                    ) => match nyxd_error {
-                        // happens when sequence issue occurs during tx delivery
-                        NyxdError::BroadcastTxErrorDeliverTx {
-                            hash,
-                            height,
-                            code,
-                            raw_log,
-                        } => {
-                            // unfortunately at this point we have to do string matching as the log
-                            // is returned from the go nyxd binary
-                            if raw_log.contains("account sequence mismatch") {
-                                error!(
-                                    "another process is using the same mnemonic. we failed to broadcast transaction {hash} due to mismatched sequence number"
-                                )
-                            } else {
-                                return Err(NyxdError::BroadcastTxErrorDeliverTx {
-                                    hash,
-                                    height,
-                                    code,
-                                    raw_log,
-                                }
-                                .into());
-                            }
-                        }
-                        // happens when sequence issue occurs during tx simulate
-                        NyxdError::AbciError {
-                            code,
-                            log,
-                            pretty_log,
-                        } => {
-                            // unfortunately at this point we have to do string matching as the log
-                            // is returned from the go nyxd binary
-                            if log.contains("account sequence mismatch") {
-                                error!(
-                                    "another process is using the same mnemonic. we failed to simulate transaction due to mismatched sequence number"
-                                )
-                            } else {
-                                return Err(NyxdError::AbciError {
-                                    code,
-                                    log,
-                                    pretty_log,
-                                }
-                                .into());
-                            }
-                        }
-                        other => {
-                            return Err(other)
-                                .context("another nyxd failure during bandwidth acquisition");
-                        }
-                    },
-                    other => {
-                        return Err(other.into());
-                    }
-                },
-                Err(other) => {
-                    return Err(other.into());
-                }
-            }
-
-            // add a bit of backoff as if the rpc node is slightly out of sync,
-            // we might use our retry budget for abci queries to the simulate endpoint
-            tokio::time::sleep(Duration::from_secs(1)).await;
-        }
-
-        bail!("failed to acquire bandwidth after {MAX_RETRIES} attempts")
-    }
-
     pub async fn probe(
         self,
         gateway_config: GatewayDirectoryConfig,
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
+        let tickets_materials = self.credentials_args.decode_attached_ticket_materials()?;
+
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
 
@@ -334,14 +303,8 @@ impl Probe {
             .credentials_mode(true)
             .build()?;
 
-        for ticketbook_type in [
-            TicketType::V1MixnetEntry,
-            TicketType::V1WireguardEntry,
-            TicketType::V1WireguardExit,
-        ] {
-            self.acquire_bandwidth(&disconnected_mixnet_client, ticketbook_type)
-                .await?;
-        }
+        let bandwidth_import = disconnected_mixnet_client.begin_bandwidth_import();
+        import_bandwidth(bandwidth_import, tickets_materials).await?;
 
         let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
 

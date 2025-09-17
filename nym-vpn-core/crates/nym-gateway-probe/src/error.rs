@@ -8,6 +8,18 @@ pub enum Error {
         #[from]
         source: bincode::Error,
     },
+
+    #[error("failed to decode attached tickets: {source}")]
+    FailedToDecodeAttachedTickets {
+        #[from]
+        source: nym_credentials::Error,
+    },
+
+    #[error("failed to import attached tickets: {source}")]
+    TicketsImportFailure {
+        #[from]
+        source: nym_sdk::Error,
+    },
 }
 
 // Result type based on our error type
