@@ -715,7 +715,10 @@ impl NymVpnService {
             // Save the configuration to file
             self.config_manager.write_to_file();
 
-            if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
+            if matches!(
+                self.tunnel_state,
+                TunnelState::Connecting { .. } | TunnelState::Connected { .. }
+            ) {
                 // Reconnect the tunnel, if it's currently connecting/connected.
                 if let Err(e) = self.connect().await {
                     tracing::error!("Failed to reconnect tunnel after config change: {e}");
