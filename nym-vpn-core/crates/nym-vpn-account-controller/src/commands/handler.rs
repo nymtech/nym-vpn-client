@@ -122,6 +122,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     Ok(())
 }
 
+// TODO: With the erorr rework we are now losing information about the original error cause, this needs to be addressed, but errors rework is a pretty gnarly thing to do, so we need to plan it a bit more carefully
 pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
@@ -141,7 +142,8 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .vpn_api_client
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
-    {
+    {   
+        #[allow(clippy::unnecessary_fallible_conversions)]
         match NymErrorResponse::try_from(e) {
             Ok(nym_error)
                 if nym_error.code_reference_id

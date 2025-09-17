@@ -30,6 +30,7 @@ impl StatisticsApiClient {
                     .build()
             })
             .map(|c| Self { inner: c })
+            .map_err(Box::new)
             .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }
 
@@ -56,6 +57,7 @@ impl StatisticsApiClient {
     {
         self.post_query(routes::REPORT_ROUTE, &body)
             .await
+            .map_err(Box::new)
             .map_err(StatisticsApiClientError::ReportSending)
     }
 }

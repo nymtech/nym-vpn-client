@@ -174,10 +174,14 @@ impl Discovery {
 
     pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
-        let client = nym_http_api_client::Client::builder(self.nym_api_url.clone())?.build()?;
+        let client = nym_http_api_client::Client::builder(self.nym_api_url.clone())
+            .map_err(Box::new)?
+            .build()
+            .map_err(Box::new)?;
         let network_details = client
             .get_network_details()
             .await
+            .map_err(Box::new)
             .map_err(Error::GetNetworkDetails)?;
 
         if network_details.network.network_name == self.network_name {
@@ -306,11 +310,15 @@ pub(crate) async fn fetch_nym_network_details(
     nym_api_url: Url,
 ) -> Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
-    let client = nym_http_api_client::Client::builder(nym_api_url)?.build()?;
+    let client = nym_http_api_client::Client::builder(nym_api_url)
+        .map_err(Box::new)?
+        .build()
+        .map_err(Box::new)?;
 
     client
         .get_network_details()
         .await
+        .map_err(Box::new)
         .map_err(Error::GetNetworkDetails)
 }
 

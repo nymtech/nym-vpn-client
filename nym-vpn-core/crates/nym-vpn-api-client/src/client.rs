@@ -61,7 +61,7 @@ impl VpnApiClient {
             let err: HttpClientError = HttpClientError::GenericRequestFailure(
                 "No VPN API URLs configured in network details".to_string(),
             );
-            VpnApiClientError::CreateVpnApiClient(err)
+            VpnApiClientError::CreateVpnApiClient(Box::new(err))
         })?;
 
         // Use the first URL as base
@@ -71,14 +71,14 @@ impl VpnApiClient {
                 let err: HttpClientError = HttpClientError::GenericRequestFailure(
                     "VPN API URLs list is empty".to_string(),
                 );
-                VpnApiClientError::CreateVpnApiClient(err)
+                VpnApiClientError::CreateVpnApiClient(Box::new(err))
             })?
             .url
             .parse()
             .map_err(|e| {
                 let err: HttpClientError =
                     HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                VpnApiClientError::CreateVpnApiClient(err)
+                VpnApiClientError::CreateVpnApiClient(Box::new(err))
             })?;
 
         // Build client with domain fronting support from network details
@@ -88,7 +88,7 @@ impl VpnApiClient {
                 v.url.parse().map_err(|e| {
                     let err: HttpClientError =
                         HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                    VpnApiClientError::CreateVpnApiClient(err)
+                    VpnApiClientError::CreateVpnApiClient(Box::new(err))
                 })
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -106,7 +106,7 @@ impl VpnApiClient {
             .build()
             .map_err(|e| {
                 let err: HttpClientError = HttpClientError::GenericRequestFailure(e.to_string());
-                VpnApiClientError::CreateVpnApiClient(err)
+                VpnApiClientError::CreateVpnApiClient(Box::new(err))
             })?;
 
         Ok(Self {
@@ -124,23 +124,23 @@ impl VpnApiClient {
     ) -> Result<Self> {
         // Get VPN API URLs from network details
         let vpn_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
-            VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 "No VPN API URLs configured in network details".to_string(),
-            ))
+            )))
         })?;
 
         // Get the first URL
         let first_url = vpn_urls.first().ok_or_else(|| {
-            VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 "VPN API URLs list is empty".to_string(),
-            ))
+            )))
         })?;
 
         // Parse the URL string into a Url type
         let base_url: Url = first_url.url.parse().map_err(|e| {
-            VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(format!(
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(format!(
                 "Invalid VPN API URL: {e}"
-            )))
+            ))))
         })?;
 
         // Build client with domain fronting support from network details
@@ -150,7 +150,7 @@ impl VpnApiClient {
                 v.url.parse().map_err(|e| {
                     let err: HttpClientError =
                         HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                    VpnApiClientError::CreateVpnApiClient(err)
+                    VpnApiClientError::CreateVpnApiClient(Box::new(err))
                 })
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -184,6 +184,7 @@ impl VpnApiClient {
 
         let inner = builder
             .build()
+            .map_err(Box::new)
             .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
         Ok(Self {
@@ -248,6 +249,7 @@ impl VpnApiClient {
                 user_agent,
                 network_details: None,
             })
+            .map_err(Box::new)
             .map_err(VpnApiClientError::CreateVpnApiClient)
     }
 
@@ -684,6 +686,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(crate::error::VpnApiClientError::GetAccount)
     }
 
@@ -709,12 +712,14 @@ impl VpnApiClient {
             &body,
         )
         .await
+        .map_err(Box::new)
         .map_err(crate::error::VpnApiClientError::PostAccount)
     }
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
+            .map_err(Box::new)
             .map_err(crate::error::VpnApiClientError::GetHealth)
     }
 
@@ -730,6 +735,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(Box::new)
             .map_err(crate::error::VpnApiClientError::GetWellknownEnvs)
     }
 
@@ -749,6 +755,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(Box::new)
             .map_err(crate::error::VpnApiClientError::GetWellknownDiscovery)
     }
 
@@ -768,6 +775,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetAccountSummary)
     }
 
@@ -790,6 +798,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
     }
 
@@ -808,6 +817,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDevices)
     }
 
@@ -834,6 +844,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::RegisterDevice)
     }
 
@@ -854,6 +865,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetActiveDevices)
     }
 
@@ -875,6 +887,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDeviceById)
     }
 
@@ -902,6 +915,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::UpdateDevice)
     }
 
@@ -926,6 +940,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDeviceZkNyms)
     }
 
@@ -962,6 +977,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::RequestZkNym)
     }
 
@@ -985,6 +1001,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDeviceZkNyms)
     }
 
@@ -1009,6 +1026,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetZkNymById)
     }
 
@@ -1033,6 +1051,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::ConfirmZkNymDownloadById)
     }
 
@@ -1054,6 +1073,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetFreePasses)
     }
 
@@ -1077,6 +1097,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::ApplyFreepass)
     }
 
@@ -1098,6 +1119,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetSubscriptions)
     }
 
@@ -1120,6 +1142,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::CreateSubscription)
     }
 
@@ -1140,6 +1163,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetActiveSubscriptions)
     }
 
@@ -1156,6 +1180,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetUsage)
     }
 
@@ -1175,6 +1200,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetGateways)
     }
 
@@ -1218,6 +1244,7 @@ impl VpnApiClient {
             &params,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetVpnGateways)
     }
 
@@ -1238,6 +1265,7 @@ impl VpnApiClient {
             &params,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetVpnGatewayCountries)
     }
 
@@ -1256,6 +1284,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetGatewayCountries)
     }
 
@@ -1274,6 +1303,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetEntryGateways)
     }
 
@@ -1293,6 +1323,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetEntryGatewayCountries)
     }
 
@@ -1311,6 +1342,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetExitGateways)
     }
 
@@ -1330,6 +1362,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetExitGatewayCountries)
     }
 
@@ -1350,6 +1383,7 @@ impl VpnApiClient {
             NO_PARAMS,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 
@@ -1366,6 +1400,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(Box::new)
             .map_err(VpnApiClientError::GetVpnNetworkDetails)
     }
 }

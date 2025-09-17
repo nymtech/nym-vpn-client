@@ -507,6 +507,7 @@ impl TunnelStateHandler for ConnectingState {
                 self.resolve_config_fut = async move {
                     nym_gateway_directory::resolve_config(&gateway_config)
                         .await
+                        .map_err(Box::new)
                         .map_err(Error::ResolveApiHostnames)
                 }
                 .boxed()

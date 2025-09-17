@@ -200,7 +200,7 @@ impl TryFrom<EntryPointExtV1> for gateway_directory::EntryPoint {
         match value {
             EntryPointExtV1::Gateway { ref identity } => {
                 gateway_directory::EntryPoint::from_base58_string(identity)
-                    .map_err(|e| ConfigSetupError::EntryPoint { error: e })
+                    .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) })
             }
             EntryPointExtV1::Location { location } => {
                 Ok(gateway_directory::EntryPoint::Location { location })
@@ -247,10 +247,10 @@ impl TryFrom<ExitPointExtV1> for gateway_directory::ExitPoint {
             ExitPointExtV1::Address { address } => {
                 let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
                     ConfigSetupError::ExitPoint {
-                        error: gateway_directory::Error::RecipientFormattingError {
+                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
                             address: address.clone(),
                             source: e,
-                        },
+                        }),
                     }
                 })?;
                 Ok(gateway_directory::ExitPoint::Address {
@@ -261,10 +261,10 @@ impl TryFrom<ExitPointExtV1> for gateway_directory::ExitPoint {
                 let node_identity =
                     gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
                         ConfigSetupError::ExitPoint {
-                            error: gateway_directory::Error::NodeIdentityFormattingError {
+                            error: Box::new(gateway_directory::Error::NodeIdentityFormattingError {
                                 identity: identity.clone(),
                                 source: e,
-                            },
+                            }),
                         }
                     })?;
                 Ok(gateway_directory::ExitPoint::Gateway {
@@ -389,12 +389,12 @@ pub enum ConfigSetupError {
     #[error("failed to convert entry point")]
     EntryPoint {
         #[source]
-        error: gateway_directory::Error,
+        error: Box<gateway_directory::Error>,
     },
     #[error("failed to convert exit point")]
     ExitPoint {
         #[source]
-        error: gateway_directory::Error,
+        error: Box<gateway_directory::Error>,
     },
 }
 

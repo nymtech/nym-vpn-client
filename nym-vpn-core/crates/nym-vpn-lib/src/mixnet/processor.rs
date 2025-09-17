@@ -15,6 +15,7 @@ use nym_ip_packet_requests::{
 use nym_sdk::mixnet::{
     InputMessage, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient,
 };
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::{TaskClient, TaskManager, connections::TransmissionLane};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};
@@ -109,6 +110,7 @@ impl MixnetProcessor {
         }
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn run(
         self,
         mut task_client_mix_processor: TaskClient,
@@ -381,6 +383,7 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
     }
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub async fn start_processor(
     config: MixnetProcessorConfig,
     dev: AsyncDevice,

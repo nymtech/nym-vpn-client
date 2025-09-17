@@ -649,7 +649,7 @@ pub enum Error {
     SetFirewallPolicy(#[source] nym_firewall::Error),
 
     #[error("failed to resolve API hostnames")]
-    ResolveApiHostnames(#[source] nym_gateway_directory::Error),
+    ResolveApiHostnames(#[source] Box<nym_gateway_directory::Error>),
 
     #[cfg(target_os = "macos")]
     #[error("failed to start local dns resolver")]
