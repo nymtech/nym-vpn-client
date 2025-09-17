@@ -84,7 +84,7 @@ function Node({ node }: { node: NodeHop }) {
 
   const handleNodeDetails = (node: UiGateway | UiCountry) => {
     nodeDetailsRef.current = node;
-    setNodeDetailsOpen(true);
+    navigate(routes.nodeDetails, { state: { gateway: node } });
   };
 
   if (error) {
