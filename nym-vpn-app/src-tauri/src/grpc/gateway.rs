@@ -20,7 +20,7 @@ pub enum GatewayType {
 #[serde(rename_all = "kebab-case")]
 pub enum Score {
     #[default]
-    None,
+    Offline,
     Low,
     Medium,
     High,
@@ -58,7 +58,7 @@ impl Gateway {
                     .inspect_err(|e| error!("failed to parse proto gw mixnet score: {}", e))
             })
             .transpose()?
-            .unwrap_or(p::Score::None);
+            .unwrap_or(p::Score::Offline);
 
         let wg_score = gateway
             .wg_score
@@ -67,7 +67,7 @@ impl Gateway {
                     .inspect_err(|e| error!("failed to parse proto gw wireguard score: {}", e))
             })
             .transpose()?
-            .unwrap_or(p::Score::None);
+            .unwrap_or(p::Score::Offline);
 
         Ok(Self {
             id: id.id,
@@ -83,7 +83,7 @@ impl Gateway {
 impl Score {
     fn from(score: p::Score) -> Self {
         match score {
-            p::Score::None => Score::None,
+            p::Score::Offline => Score::Offline,
             p::Score::Low => Score::Low,
             p::Score::Medium => Score::Medium,
             p::Score::High => Score::High,
