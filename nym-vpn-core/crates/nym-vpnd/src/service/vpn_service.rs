@@ -553,7 +553,7 @@ impl NymVpnService {
     }
 
     fn set_target_state(&mut self, new_state: TargetState) -> bool {
-        if self.target_state != new_state || matches!(self.tunnel_state, TunnelState::Error(_)) {
+        if self.target_state != new_state || self.tunnel_state.is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
 
@@ -750,10 +750,7 @@ impl NymVpnService {
             // Save the configuration to file
             self.config_manager.write_to_file();
 
-            if matches!(
-                self.tunnel_state,
-                TunnelState::Connecting { .. } | TunnelState::Connected { .. }
-            ) {
+            if self.target_state == TargetState::Secured {
                 // Reconnect the tunnel, if it's currently connecting/connected.
                 if let Err(e) = self.connect().await {
                     tracing::error!("Failed to reconnect tunnel after config change: {e}");
