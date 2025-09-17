@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use bip39::Mnemonic;
-use futures::{FutureExt, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt};
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
@@ -182,6 +182,9 @@ pub struct NymVpnService {
 
     // Last known tunnel state
     tunnel_state: TunnelState,
+
+    // Timer used to throttle reconnects when changing settings
+    reconnect_throttle: Fuse<tokio::time::Sleep>,
 
     // Command channel for state machine
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
@@ -481,12 +484,6 @@ impl NymVpnService {
     }
 
     pub async fn run(mut self) -> anyhow::Result<()> {
-        let mut tick = interval_at(
-            Instant::now() + Duration::from_secs(1),
-            Duration::from_secs(1),
-        );
-        tick.set_missed_tick_behavior(MissedTickBehavior::Delay);
-
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
@@ -495,8 +492,8 @@ impl NymVpnService {
                 Some(event) = self.event_receiver.recv() => {
                     self.handle_tunnel_event(event);
                 }
-                _ = tick.tick() => {
-                    self.handle_config_changes().await;
+                _ = &mut self.reconnect_throttle => {
+                    self.reconnect_on_config_change().await;
                 }
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("Received shutdown signal");
@@ -562,6 +559,8 @@ impl NymVpnService {
                     let _ = self.command_sender.send(TunnelCommand::Connect);
                 }
                 TargetState::Unsecured => {
+                    self.reconnect_throttle = Fuse::terminated();
+
                     let _ = self.command_sender.send(TunnelCommand::Disconnect);
                 }
             }
@@ -579,6 +578,12 @@ impl NymVpnService {
                 true
             }
             TargetState::Unsecured => false,
+        }
+    }
+
+    fn reconnect_with_throttle(&mut self) {
+        if self.target_state == TargetState::Secured {
+            self.reconnect_throttle = tokio::time::sleep(Duration::from_secs(1)).fuse();
         }
     }
 
@@ -745,20 +750,6 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_config_changes(&mut self) {
-        if self.config_manager.has_config_changed() {
-            // Save the configuration to file
-            self.config_manager.write_to_file();
-
-            if self.target_state == TargetState::Secured {
-                // Reconnect the tunnel, if it's currently connecting/connected.
-                if let Err(e) = self.connect().await {
-                    tracing::error!("Failed to reconnect tunnel after config change: {e}");
-                }
-            }
-        }
-    }
-
     async fn connect(&mut self) -> Result<()> {
         self.statistics_event_sender
             .report(StatisticsEvent::new_connecting(
@@ -778,6 +769,16 @@ impl NymVpnService {
             Err(e) => {
                 tracing::error!("Failed to send command to set tunnel options: {}", e);
                 Ok(())
+            }
+        }
+    }
+
+    async fn reconnect_on_config_change(&mut self) {
+        tracing::debug!("Reconnecting due to config chnage");
+
+        if self.target_state == TargetState::Secured {
+            if let Err(e) = self.connect().await {
+                trace_err_chain!(e, "Failed to reconnect tunnel after config change");
             }
         }
     }
@@ -803,38 +804,38 @@ impl NymVpnService {
     async fn handle_set_entry_point(
         &mut self,
         entry_point: EntryPoint,
-    ) -> Result<(), ConfigSetupError> {
+    ) {
         self.config_manager.set_entry_point(entry_point);
-        Ok(())
+        self.reconnect_with_throttle();
     }
 
     async fn handle_set_exit_point(
         &mut self,
         exit_point: ExitPoint,
-    ) -> Result<(), ConfigSetupError> {
+    ) {
         self.config_manager.set_exit_point(exit_point);
-        Ok(())
+        self.reconnect_with_throttle();
     }
 
     async fn handle_set_disable_ipv6(
         &mut self,
         disable_ipv6: bool,
-    ) -> Result<(), ConfigSetupError> {
+    ) {
         self.config_manager.set_disable_ipv6(disable_ipv6);
-        Ok(())
+        self.reconnect_with_throttle();
     }
 
     async fn handle_set_enable_two_hop(
         &mut self,
         enable_two_hop: bool,
-    ) -> Result<(), ConfigSetupError> {
+    ) {
         self.config_manager.set_enable_two_hop(enable_two_hop);
-        Ok(())
+        self.reconnect_with_throttle();
     }
 
-    async fn handle_set_netstack(&mut self, netstack: bool) -> Result<(), ConfigSetupError> {
+    async fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack);
-        Ok(())
+        self.reconnect_with_throttle();
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {

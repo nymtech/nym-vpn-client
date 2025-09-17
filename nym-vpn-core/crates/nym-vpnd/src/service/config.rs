@@ -122,70 +122,66 @@ impl VpnServiceConfigManager {
 
     pub fn set_config(&mut self, config: VpnServiceConfig) {
         self.config = config;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_entry_point(&mut self, entry_point: EntryPoint) {
         self.config.entry_point = entry_point;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_exit_point(&mut self, exit_point: ExitPoint) {
         self.config.exit_point = exit_point;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_dns(&mut self, dns: Option<IpAddr>) {
         self.config.dns = dns;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
         self.config.disable_ipv6 = disable_ipv6;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config.enable_two_hop = enable_two_hop;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_netstack(&mut self, netstack: bool) {
         self.config.netstack = netstack;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         self.config.disable_poisson_rate = disable_poisson_rate;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_disable_background_cover_traffic(&mut self, disable: bool) {
         self.config.disable_background_cover_traffic = disable;
-        self.config_changed = true;
+        let _ = self.write_to_file();
     }
 
     pub fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
-        self.config.min_mixnode_performance = min_mixnode_performance;
-        self.config_changed = true;
+        self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
+        let _ = self.write_to_file();
     }
 
     pub fn set_min_gateway_mixnet_performance(
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
     ) {
-        self.config.min_gateway_mixnet_performance = min_gateway_mixnet_performance;
-        self.config_changed = true;
+        self.config.min_gateway_mixnet_performance =
+            min_gateway_mixnet_performance.map(|u| u.min(100));
+        let _ = self.write_to_file();
     }
 
     pub fn set_min_gateway_vpn_performance(&mut self, min_gateway_vpn_performance: Option<u8>) {
-        self.config.min_gateway_vpn_performance = min_gateway_vpn_performance;
-        self.config_changed = true;
-    }
-
-    /// Has the configuration changed since the last time a `TunnelSettings` was generated?
-    pub fn has_config_changed(&self) -> bool {
-        self.config_changed
+        self.config.min_gateway_vpn_performance = min_gateway_vpn_performance.map(|u| u.min(100));
+        let _ = self.write_to_file();
     }
 
     fn read_from_file(
@@ -216,7 +212,9 @@ impl VpnServiceConfigManager {
     }
 
     pub fn write_to_file(&self) -> bool {
-        let ext_config = match VpnServiceConfigExt::try_from(&self.config) {
+        let ext_config = match VpnServiceConfigExt::try_from(&self.config)
+            .map_err(Error::ConfigSetup)
+        {
             Ok(ext_config) => ext_config,
             Err(e) => {
                 tracing::error!("Failed to convert service config to external representation: {e}");
@@ -224,7 +222,9 @@ impl VpnServiceConfigManager {
             }
         };
 
-        match write_json_config_file(&self.json_config_path, &ext_config) {
+        match write_json_config_file(&self.json_config_path, &ext_config)
+            .map_err(Error::ConfigSetup)
+        {
             Ok(_) => {
                 tracing::info!(
                     "Service config has been saved to file {}",
@@ -246,21 +246,15 @@ impl VpnServiceConfigManager {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
-            mixnet_min_performance: self
-                .config
-                .min_gateway_mixnet_performance
-                .map(|u| u.min(100)),
-            vpn_min_performance: self.config.min_gateway_vpn_performance.map(|u| u.min(100)),
+            mixnet_min_performance: self.config.min_gateway_mixnet_performance,
+            vpn_min_performance: self.config.min_gateway_vpn_performance,
         };
 
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: self.config.disable_poisson_rate,
             disable_background_cover_traffic: self.config.disable_background_cover_traffic,
-            min_mixnode_performance: self.config.min_mixnode_performance.map(|u| u.min(100)),
-            min_gateway_performance: self
-                .config
-                .min_gateway_mixnet_performance
-                .map(|u| u.min(100)),
+            min_mixnode_performance: self.config.min_mixnode_performance,
+            min_gateway_performance: self.config.min_gateway_mixnet_performance,
         };
 
         let tunnel_type = if self.config.enable_two_hop {
@@ -295,12 +289,6 @@ impl VpnServiceConfigManager {
             dns,
             user_agent: None,
         })
-    }
-}
-
-impl Drop for VpnServiceConfigManager {
-    fn drop(&mut self) {
-        self.write_to_file();
     }
 }
 
