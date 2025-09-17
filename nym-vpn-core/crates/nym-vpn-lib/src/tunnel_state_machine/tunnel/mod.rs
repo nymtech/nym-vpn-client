@@ -142,7 +142,6 @@ pub async fn select_gateways(
 
 #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub async fn connect_mixnet(
-    task_manager: &TaskManager,
     options: MixnetConnectOptions,
     network_env: &Network,
     gateway_cache_handle: GatewayCacheHandle,
