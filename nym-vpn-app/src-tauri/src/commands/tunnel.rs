@@ -51,7 +51,7 @@ pub async fn connect(
     let dns = app_state
         .dns_server
         .clone()
-        .map(|ip| nym_vpn_proto::proto::Dns { ip });
+        .map(|ip| nym_vpn_proto::proto::Dns { ip: Some(ip) });
     let credentials_mode = app_state.credentials_mode;
     // release the lock
     drop(app_state);
