@@ -541,6 +541,8 @@ mod test {
     }
 
     #[tokio::test]
+    // TODO: Ignore until mainnet gets the new data on the VPN API
+    #[ignore]
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
