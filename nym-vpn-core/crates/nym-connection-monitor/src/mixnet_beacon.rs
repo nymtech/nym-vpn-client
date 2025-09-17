@@ -4,10 +4,8 @@
 use std::time::Duration;
 
 use nym_common::trace_err_chain;
-use nym_sdk::{
-    TaskClient,
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
-};
+use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
+use nym_task::TaskClient;
 use nym_task::connections::TransmissionLane;
 use tokio::task::JoinHandle;
 use tracing::{debug, trace};

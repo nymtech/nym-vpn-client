@@ -8,7 +8,7 @@ use std::{
 
 use futures::{StreamExt, channel::mpsc};
 use nym_common::trace_err_chain;
-use nym_sdk::TaskClient;
+use nym_task::TaskClient;
 use tokio::task::JoinHandle;
 
 use crate::error::Result;
