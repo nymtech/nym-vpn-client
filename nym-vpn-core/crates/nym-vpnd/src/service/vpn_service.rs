@@ -31,9 +31,7 @@ use nym_vpn_lib::{
     gateway_directory::{
         self, EntryPoint, ExitPoint, GatewayCache, GatewayCacheHandle, GatewayClient,
     },
-    tunnel_state_machine::{
-        NymConfig, TunnelCommand, TunnelConstants, TunnelSettings, TunnelStateMachine,
-    },
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
