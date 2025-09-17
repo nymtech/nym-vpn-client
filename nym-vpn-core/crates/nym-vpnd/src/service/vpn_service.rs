@@ -711,10 +711,9 @@ impl NymVpnService {
 
     async fn handle_config_changes(&mut self) {
         if self.config_manager.has_config_changed() {
-            // Save the configuratio to file
-            match self.config_manager.write_to_file() {
-                Ok(_) => tracing::info!("Config changes have been saved to file"),
-                Err(e) => tracing::error!("Failed to write config to file: {e}"),
+            // Save the configuration to file
+            if let Err(e) = self.config_manager.write_to_file() {
+                tracing::error!("Failed to write config to file: {e}");
             }
 
             if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
@@ -727,10 +726,6 @@ impl NymVpnService {
     }
 
     async fn connect(&mut self) -> Result<()> {
-        if self.tunnel_state.is_connected() || self.tunnel_state.is_connecting() {
-            self.command_sender.send(TunnelCommand::Disconnect).ok();
-        }
-
         self.statistics_event_sender
             .report(StatisticsEvent::new_connecting(
                 self.config_manager.config().enable_two_hop,

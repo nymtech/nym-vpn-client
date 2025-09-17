@@ -215,6 +215,12 @@ impl VpnServiceConfigManager {
         }
 
         let ext_config = VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup)?;
+
+        tracing::info!(
+            "Writing service config to {}",
+            self.json_config_path.display()
+        );
+
         write_json_config_file(&self.json_config_path, &ext_config).map_err(Error::ConfigSetup)
     }
 
