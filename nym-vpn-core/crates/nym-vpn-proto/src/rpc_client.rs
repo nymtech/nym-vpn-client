@@ -72,8 +72,7 @@ impl RpcClient {
     }
 
     pub async fn set_exit_point(&mut self, exit_point: ExitPoint) -> Result<()> {
-        let exit_node =
-            proto::ExitNode::try_from(exit_point.clone()).map_err(Error::InvalidRequest)?;
+        let exit_node = proto::ExitNode::try_from(exit_point).map_err(Error::InvalidRequest)?;
 
         self.0
             .set_exit_point(exit_node)

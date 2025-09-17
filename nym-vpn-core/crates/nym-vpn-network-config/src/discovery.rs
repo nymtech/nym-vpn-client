@@ -354,9 +354,10 @@ mod tests {
         ] {
             let fetched = Discovery::fetch(&discovery.network_name)
                 .await
-                .unwrap_or_else(|_| {
-                    panic!("failed to fetch discovery for {}", discovery.network_name)
-                });
+                .expect(&format!(
+                    "failed to fetch discovery for {}",
+                    discovery.network_name
+                ));
 
             // Only compare the base fields
             assert_eq!(discovery.network_name, fetched.network_name);

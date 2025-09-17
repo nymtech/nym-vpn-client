@@ -669,16 +669,9 @@ service NymVpnService {
   // Set the VPN service configuration
   rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
   rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
-  //rpc SetDns(OptionalDns) returns (google.protobuf.Empty) {}
   rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  //rpc SetDisablePoissonRate(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  //rpc SetDisableBackgroundCoverTraffic(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  //rpc SetEnableCredentialsMode(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  //rpc SetMinMixNodePerformance(OptionalPercent) returns (google.protobuf.Empty) {}
-  //rpc SetMinGatewayMixNodePerformance(OptionalPercent) returns (google.protobuf.Empty) {}
-  //rpc SetMinGatewayVpnPerformance(OptionalPercent) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
