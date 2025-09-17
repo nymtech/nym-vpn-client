@@ -139,6 +139,7 @@ where
         .network_details(setup_options.network_env.nym_network.network.clone())
         .debug_config(debug_config)
         .custom_shutdown(task_client)
+        .credentials_mode(true)
         .with_remember_me(remember_me)
         .custom_topology_provider(Box::new(setup_options.custom_topology_provider));
 

@@ -4,7 +4,7 @@
 use super::error::{Error, Result};
 use nym_vpn_lib::{
     MixnetClientConfig,
-    gateway_directory::{self, ContractsCommonError, EntryPoint, ExitPoint},
+    gateway_directory::{self, EntryPoint, ExitPoint},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
         WireguardMultihopMode, WireguardTunnelOptions,
@@ -637,11 +637,6 @@ pub enum ConfigSetupError {
     IpAddress {
         #[source]
         error: Box<std::net::AddrParseError>,
-    },
-    #[error("failed to convert percentage")]
-    Percent {
-        #[source]
-        error: Box<ContractsCommonError>,
     },
     #[error("failed to convert user agent {user_agent}")]
     UserAgent {

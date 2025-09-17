@@ -21,9 +21,6 @@ pub enum ConversionError {
     #[error("failed to encode string as utf8: {}", _0.display())]
     Utf8Encoding(std::ffi::OsString),
 
-    #[error("failed to parse percent {0}")]
-    ParsePercent(f32, #[source] nym_gateway_directory::ContractsCommonError),
-
     #[error("failed to parse user agent {0}")]
     ParseUserAgent(String),
 }

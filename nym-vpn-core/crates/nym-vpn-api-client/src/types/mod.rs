@@ -14,4 +14,4 @@ pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType, ScoreThresholds};
 pub use platform::Platform;
 
-pub use nym_contracts_common::{ContractsCommonError, NaiveFloat, Percent};
+pub use nym_contracts_common::{NaiveFloat, Percent};
