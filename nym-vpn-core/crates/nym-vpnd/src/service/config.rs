@@ -166,7 +166,7 @@ impl VpnServiceConfigManager {
     }
 
     pub fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
-        self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
+        self.config.min_mixnode_performance = min_mixnode_performance;
         self.config_changed = true;
     }
 
@@ -174,13 +174,12 @@ impl VpnServiceConfigManager {
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
     ) {
-        self.config.min_gateway_mixnet_performance =
-            min_gateway_mixnet_performance.map(|u| u.min(100));
+        self.config.min_gateway_mixnet_performance = min_gateway_mixnet_performance;
         self.config_changed = true;
     }
 
     pub fn set_min_gateway_vpn_performance(&mut self, min_gateway_vpn_performance: Option<u8>) {
-        self.config.min_gateway_vpn_performance = min_gateway_vpn_performance.map(|u| u.min(100));
+        self.config.min_gateway_vpn_performance = min_gateway_vpn_performance;
         self.config_changed = true;
     }
 
@@ -247,15 +246,21 @@ impl VpnServiceConfigManager {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
-            mixnet_min_performance: self.config.min_gateway_mixnet_performance,
-            vpn_min_performance: self.config.min_gateway_vpn_performance,
+            mixnet_min_performance: self
+                .config
+                .min_gateway_mixnet_performance
+                .map(|u| u.min(100)),
+            vpn_min_performance: self.config.min_gateway_vpn_performance.map(|u| u.min(100)),
         };
 
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: self.config.disable_poisson_rate,
             disable_background_cover_traffic: self.config.disable_background_cover_traffic,
-            min_mixnode_performance: self.config.min_mixnode_performance,
-            min_gateway_performance: self.config.min_gateway_mixnet_performance,
+            min_mixnode_performance: self.config.min_mixnode_performance.map(|u| u.min(100)),
+            min_gateway_performance: self
+                .config
+                .min_gateway_mixnet_performance
+                .map(|u| u.min(100)),
         };
 
         let tunnel_type = if self.config.enable_two_hop {

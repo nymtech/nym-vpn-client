@@ -440,6 +440,9 @@ impl TryFrom<proto::ConnectRequest> for ConnectOptions {
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             enable_credentials_mode: value.enable_credentials_mode,
+            min_mixnode_performance: None,
+            min_gateway_mixnet_performance: None,
+            min_gateway_vpn_performance: None,
             user_agent: value.user_agent.map(UserAgent::from),
         })
     }
@@ -480,15 +483,11 @@ impl TryFrom<proto::VpnServiceConfig> for VpnServiceConfig {
 
             disable_background_cover_traffic: value.disable_background_cover_traffic,
 
-            min_mixnode_performance: value.min_mixnode_performance.map(|u| u.min(100) as u8),
+            min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u8),
 
-            min_gateway_mixnet_performance: value
-                .min_gateway_mixnet_performance
-                .map(|u| u.min(100) as u8),
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
 
-            min_gateway_vpn_performance: value
-                .min_gateway_vpn_performance
-                .map(|u| u.min(100) as u8),
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
         };
         Ok(config)
     }
@@ -509,13 +508,9 @@ impl TryFrom<VpnServiceConfig> for proto::VpnServiceConfig {
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-            min_mixnode_performance: value.min_mixnode_performance.map(|u| u.min(100) as u32),
-            min_gateway_mixnet_performance: value
-                .min_gateway_mixnet_performance
-                .map(|u| u.min(100) as u32),
-            min_gateway_vpn_performance: value
-                .min_gateway_vpn_performance
-                .map(|u| u.min(100) as u32),
+            min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
         };
 
         Ok(config)
@@ -775,7 +770,7 @@ impl From<nym_vpnd_types::gateway::Country> for proto::Location {
 mod tests {
     use super::*;
     use crate::proto;
-    use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
+    use nym_gateway_directory::{EntryPoint, ExitPoint, NaiveFloat, NodeIdentity};
     use std::str::FromStr;
 
     #[test]
