@@ -16,6 +16,7 @@ use nym_sdk::{
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 use tokio_util::sync::CancellationToken;
+use tracing::debug;
 
 use super::{MixnetError, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
@@ -70,13 +71,13 @@ pub async fn setup_mixnet_client(
         match storage.is_mnemonic_stored().await {
             Ok(is_stored) if !is_stored => {
                 tracing::error!("No account stored");
-                task_client.disarm();
+                cancellation_token.cancel();
                 return Err(MixnetError::InvalidCredential);
             }
             Ok(_) => {}
             Err(err) => {
                 tracing::error!("failed to check credential: {:?}", err);
-                task_client.disarm();
+                cancellation_token.cancel();
                 return Err(MixnetError::InvalidCredential);
             }
         }
@@ -94,7 +95,6 @@ pub async fn setup_mixnet_client(
             builder,
             setup_options,
             debug_config,
-            task_client,
             cancellation_token,
         ))
         .await?
@@ -105,7 +105,6 @@ pub async fn setup_mixnet_client(
             builder,
             setup_options,
             debug_config,
-            task_client,
             cancellation_token,
         ))
         .await?
@@ -119,7 +118,6 @@ async fn build_and_connect_mixnet_client<S>(
     builder: MixnetClientBuilder<S>,
     setup_options: SetupMixnetClientOptions,
     debug_config: DebugConfig,
-    task_client: nym_task::TaskClient,
     cancellation_token: CancellationToken,
 ) -> Result<MixnetClient, MixnetError>
 where
@@ -138,15 +136,6 @@ where
         RememberMe::new_mixnet()
     };
 
-    tokio::spawn({
-        let mut client = task_client.clone();
-        let token = cancellation_token.clone();
-        async move {
-            client.recv().await; // Wait for TaskClient shutdown
-            token.cancel(); // Cancel the token
-        }
-    });
-
     let builder = builder
         .with_user_agent(user_agent)
         .request_gateway(setup_options.mixnet_entry_gateway.to_string())
@@ -160,12 +149,15 @@ where
     #[cfg(unix)]
     let builder = builder.with_connection_fd_callback(setup_options.connection_fd_callback.clone());
 
-    builder
+    let mixnet_client = builder
         .build()
         .map_err(|err| MixnetError::BuildMixnetClient(Box::new(err)))?
         .connect_to_mixnet()
         .await
-        .map_err(map_mixnet_connect_error)
+        .map_err(map_mixnet_connect_error);
+
+    debug!("### Mixnet client connected successfully");
+    mixnet_client
 }
 
 fn apply_mixnet_client_config(
