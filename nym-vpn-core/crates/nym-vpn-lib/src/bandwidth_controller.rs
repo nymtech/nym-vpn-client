@@ -13,7 +13,7 @@ use nym_common::ErrorExt;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{Gateway, GatewayCacheHandle};
-use nym_sdk::{TaskClient, mixnet::CredentialStorage as Storage};
+use nym_sdk::mixnet::CredentialStorage as Storage;
 use nym_validator_client::{
     QueryHttpRpcNyxdClient,
     nyxd::{Config as NyxdClientConfig, NyxdClient},
