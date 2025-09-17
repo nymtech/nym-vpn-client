@@ -375,7 +375,7 @@ impl NymVpnService {
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
-        let tunnel_settings = TunnelSettings::default();
+        let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
         let api_url = parameters.network_env.api_url();
 
@@ -581,16 +581,10 @@ impl NymVpnService {
     }
 
     fn update_tunnel_settings(&self) {
-        match self.config_manager.generate_tunnel_settings() {
-            Ok(tunnel_settings) => {
-                self.command_sender
-                    .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
-                    .ok();
-            }
-            Err(err) => {
-                tracing::error!("Failed to generate tunnel settings: {}", err);
-            }
-        }
+        let tunnel_settings = self.config_manager.generate_tunnel_settings();
+        self.command_sender
+            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
+            .ok();
     }
 
     fn update_tunnel_settings_with_throttle(&mut self) {
@@ -931,7 +925,7 @@ impl NymVpnService {
                 self.config_manager.config().enable_two_hop,
             ));
 
-        let tunnel_settings = self.config_manager.generate_tunnel_settings()?;
+        let tunnel_settings = self.config_manager.generate_tunnel_settings();
 
         self.command_sender
             .send(TunnelCommand::SetTunnelSettings(tunnel_settings))

@@ -239,7 +239,7 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub fn generate_tunnel_settings(&self) -> Result<TunnelSettings> {
+    pub fn generate_tunnel_settings(&self) -> TunnelSettings {
         tracing::debug!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -266,7 +266,7 @@ impl VpnServiceConfigManager {
             .map(|addr| DnsOptions::Custom(vec![addr]))
             .unwrap_or_default();
 
-        Ok(TunnelSettings {
+        TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
@@ -283,7 +283,7 @@ impl VpnServiceConfigManager {
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
             user_agent: None,
-        })
+        }
     }
 }
 
