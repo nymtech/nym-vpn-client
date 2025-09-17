@@ -293,7 +293,9 @@ enum SyncError {
     // TODO: Find why this is now unused, since its the only retryable error we had before
     #[allow(dead_code)]
     ApiRequestError,
-    ApiResponseError { code_reference_id: Option<String> },
+    ApiResponseError {
+        code_reference_id: Option<String>,
+    },
     DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,

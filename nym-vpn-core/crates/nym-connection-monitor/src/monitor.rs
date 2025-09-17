@@ -8,7 +8,8 @@ use std::{
 
 use futures::{StreamExt, channel::mpsc};
 use nym_common::trace_err_chain;
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskClient;
 use tokio::task::JoinHandle;
 

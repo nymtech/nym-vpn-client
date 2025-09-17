@@ -3,8 +3,8 @@
 
 use std::error::Error;
 
-pub use nym_http_api_client::HttpClientError;
 use crate::response::NymErrorResponse;
+pub use nym_http_api_client::HttpClientError;
 // Error code id to allow error catching. These are emitted by the backend and are unique.
 
 // https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/route.ts#L218

@@ -138,9 +138,9 @@ impl VpnApiClient {
 
         // Parse the URL string into a Url type
         let base_url: Url = first_url.url.parse().map_err(|e| {
-            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(format!(
-                "Invalid VPN API URL: {e}"
-            ))))
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
+                format!("Invalid VPN API URL: {e}"),
+            )))
         })?;
 
         // Build client with domain fronting support from network details
