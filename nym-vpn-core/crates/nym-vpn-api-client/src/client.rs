@@ -57,6 +57,7 @@ impl VpnApiClient {
         user_agent: UserAgent,
     ) -> Result<Self> {
         // Get VPN API URLs from network details
+        #[allow(deprecated)]
         let vpn_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
             let err: HttpClientError = HttpClientError::GenericRequestFailure(
                 "No VPN API URLs configured in network details".to_string(),
@@ -65,6 +66,7 @@ impl VpnApiClient {
         })?;
 
         // Use the first URL as base
+        #[allow(deprecated)]
         let base_url = vpn_urls
             .first()
             .ok_or_else(|| {
@@ -82,6 +84,7 @@ impl VpnApiClient {
             })?;
 
         // Build client with domain fronting support from network details
+        #[allow(deprecated)]
         let nym_vpn_api_urls = vpn_urls
             .iter()
             .map(|v| {
@@ -95,6 +98,7 @@ impl VpnApiClient {
 
         // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
         // nym_http_api_client::ClientBuilder::from_network(network)
+        #[allow(deprecated)]
         let inner = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
             // .map_err(|e| {
             //     let err: HttpClientError =
@@ -123,6 +127,7 @@ impl VpnApiClient {
         static_addresses: Option<&[SocketAddr]>,
     ) -> Result<Self> {
         // Get VPN API URLs from network details
+        #[allow(deprecated)]
         let vpn_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
             VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 "No VPN API URLs configured in network details".to_string(),
@@ -130,6 +135,7 @@ impl VpnApiClient {
         })?;
 
         // Get the first URL
+        #[allow(deprecated)]
         let first_url = vpn_urls.first().ok_or_else(|| {
             VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 "VPN API URLs list is empty".to_string(),
@@ -137,6 +143,7 @@ impl VpnApiClient {
         })?;
 
         // Parse the URL string into a Url type
+        #[allow(deprecated)]
         let base_url: Url = first_url.url.parse().map_err(|e| {
             VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 format!("Invalid VPN API URL: {e}"),
@@ -144,6 +151,7 @@ impl VpnApiClient {
         })?;
 
         // Build client with domain fronting support from network details
+        #[allow(deprecated)]
         let nym_vpn_api_urls = vpn_urls
             .iter()
             .map(|v| {
@@ -400,6 +408,7 @@ impl VpnApiClient {
             Ok(response_text) => {
                 if status.is_success() {
                     tracing::info!("Response: {:#?}", response_text);
+                    #[allow(deprecated)]
                     let response_json = serde_json::from_str(&response_text)
                         .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
                     Ok(response_json)
