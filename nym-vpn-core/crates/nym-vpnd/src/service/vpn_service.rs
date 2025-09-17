@@ -2,11 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use bip39::Mnemonic;
-use futures::{
-    FutureExt,
-    future::{BoxFuture, Fuse},
-    pin_mut,
-};
+use futures::{FutureExt, future::Fuse, pin_mut};
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
