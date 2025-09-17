@@ -74,7 +74,7 @@ constructor(
 				onComplete?.invoke()
 			} else {
 				SnackbarController.showMessage(
-					StringValue.StringResource(R.string.action_requires_tunnel_down)
+					StringValue.StringResource(R.string.action_requires_tunnel_down),
 				)
 			}
 		}.onFailure { Timber.e(it) }

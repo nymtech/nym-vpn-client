@@ -89,7 +89,6 @@ fun SettingsScreen(
 	)
 
 	Box(modifier = Modifier.fillMaxSize()) {
-
 		Column(
 			horizontalAlignment = Alignment.Start,
 			verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
@@ -130,8 +129,8 @@ fun SettingsScreen(
 			Box(
 				modifier = Modifier
 					.fillMaxSize()
-					.background(color = Color.Black.copy(alpha = 0.5f)) // semi-transparent overlay
-					.clickable(enabled = false) {}, // blocks interactions
+					.background(color = Color.Black.copy(alpha = 0.5f))
+					.clickable(enabled = false) {},
 			) {
 				CircularProgressIndicator(
 					modifier = Modifier.align(Alignment.Center),

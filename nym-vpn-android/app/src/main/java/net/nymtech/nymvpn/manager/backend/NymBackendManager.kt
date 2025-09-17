@@ -234,14 +234,13 @@ class NymBackendManager @Inject constructor(
 					accountId = accountId,
 					accountLinks = accountLinks,
 					tunnelState = tunnelState,
-					backendUiEvent = null, // 👈 clear any lingering message
+					backendUiEvent = null,
 				)
 			}
 		} catch (e: Exception) {
 			Timber.e(e, "Backend refresh failed")
 		}
 	}
-
 
 	private fun emitMnemonicStored(stored: Boolean) {
 		_state.update {
