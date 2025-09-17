@@ -49,7 +49,7 @@ extension GRPCManager {
         versionPingTask = nil
     }
 
-    func pingDaemonInitialStatus() async {
+    @MainActor func pingDaemonInitialStatus() async {
         var retryCount = 0
         while !isServing {
             do {
@@ -67,9 +67,7 @@ extension GRPCManager {
             if !isServing {
                 retryCount += 1
                 if retryCount == 2 {
-                    Task { @MainActor in
-                        daemonVersion = "update"
-                    }
+                    daemonVersion = "update"
                 }
                 do {
                     try await Task.sleep(for: .seconds(5))
