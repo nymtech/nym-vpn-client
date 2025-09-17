@@ -5,6 +5,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage.*
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.StringValue.*
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.EstablishConnectionState
 
 sealed class ConnectionState(val status: StringValue) {
 	abstract val stateMessage: StateMessage
@@ -42,7 +43,7 @@ sealed class ConnectionState(val status: StringValue) {
 	}
 
 	companion object {
-		fun from(tunnelState: Tunnel.State): ConnectionState {
+		fun from(tunnelState: Tunnel.State, establishConnectionState: EstablishConnectionState?): ConnectionState {
 			return when (tunnelState) {
 				Tunnel.State.Down -> Disconnected
 				Tunnel.State.Up -> Connected
@@ -55,12 +56,24 @@ sealed class ConnectionState(val status: StringValue) {
 						),
 					)
 
-				Tunnel.State.EstablishingConnection ->
+				Tunnel.State.EstablishingConnection -> {
+					val message = establishConnectionState?.let {
+						when (it) {
+							EstablishConnectionState.RESOLVING_API_ADDRESSES -> R.string.connection_state_resolving_addresses
+							EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> R.string.connection_state_awaiting_readiness
+							EstablishConnectionState.REFRESHING_GATEWAYS -> R.string.connection_state_refreshing_gateways
+							EstablishConnectionState.SELECTING_GATEWAYS -> R.string.connection_state_selecting_gateways
+							EstablishConnectionState.CONNECTING_MIXNET_CLIENT -> R.string.connection_state_connecting_mixnet_client
+							EstablishConnectionState.CONNECTING_TUNNEL -> R.string.connection_state_connecting_tunnel
+						}
+					} ?: R.string.establishing_connection
+
 					Connecting(
 						Status(
-							StringResource(R.string.establishing_connection),
+							StringResource(message),
 						),
 					)
+				}
 
 				Tunnel.State.Disconnecting -> Disconnecting
 				Tunnel.State.Offline -> WaitingForConnection

@@ -31,6 +31,7 @@ fun ExitPoint.asString(): String {
 		is ExitPoint.Gateway -> exit.identity
 		is ExitPoint.Location -> exit.location.lowercase()
 		is ExitPoint.Address -> exit.address
+		is ExitPoint.Random -> "random"
 	}
 }
 
