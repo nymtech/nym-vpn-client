@@ -143,17 +143,14 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
     {
-        #[allow(clippy::unnecessary_fallible_conversions)]
-        match NymErrorResponse::try_from(e) {
-            Ok(nym_error)
-                if nym_error.code_reference_id
-                    == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string()) =>
-            {
-                // Device didn't exist in the first place so we're good
-                Ok(())
-            }
-            Ok(nym_error) => Err(VpnApiError::Response(nym_error.into()))?,
-            Err(e) => Err(AccountCommandError::internal(e.to_string())),
+        let nym_error = NymErrorResponse::from(e);
+        if nym_error.code_reference_id
+            == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string())
+        {
+            // Device didn't exist in the first place so we're good
+            Ok(())
+        } else {
+            Err(VpnApiError::Response(nym_error.into()))?
         }
     } else {
         Ok(())
