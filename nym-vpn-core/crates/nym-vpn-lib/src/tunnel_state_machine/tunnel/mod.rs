@@ -110,7 +110,6 @@ pub struct MixnetConnectOptions {
     pub resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
-    pub enable_credentials_mode: bool,
     pub selected_gateways: SelectedGateways,
     pub user_agent: Option<UserAgent>,
     pub custom_topology_provider: VpnTopologyProvider,
@@ -160,7 +159,6 @@ pub async fn connect_mixnet(
     let setup_mixnet_options = crate::mixnet::SetupMixnetClientOptions {
         network_env: network_env.clone(),
         mixnet_entry_gateway: options.selected_gateways.entry.identity(),
-        enable_credentials_mode: options.enable_credentials_mode,
         two_hop_mode: options.tunnel_type == TunnelType::Wireguard,
         custom_topology_provider: options.custom_topology_provider.clone(),
         #[cfg(unix)]

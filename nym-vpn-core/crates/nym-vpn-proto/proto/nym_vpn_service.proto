@@ -60,12 +60,10 @@ message ConnectedStateDetails {
 }
 
 message Dns {
-  string ip = 1;
+  optional string ip = 1;
 }
 
-message Url {
-  string url = 1;
-}
+message Url { string url = 1; }
 
 message ApiUrl {
   string url = 1;
@@ -173,6 +171,10 @@ message NetworkCompatibility {
   string android = 5;
 }
 
+message GetConfigResponse {
+  VpnServiceConfig config = 1;
+}
+
 message GetSystemMessagesResponse {
   repeated SystemMessage messages = 1;
 }
@@ -205,6 +207,20 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   UserAgent user_agent = 12;
+}
+
+message VpnServiceConfig {
+  EntryNode entry_point = 1;
+  ExitNode exit_point = 2;
+  Dns dns = 3;
+  bool disable_ipv6 = 14;
+  bool enable_two_hop = 5;
+  bool netstack = 13;
+  bool disable_poisson_rate = 6;
+  bool disable_background_cover_traffic = 7;
+  optional uint32 min_mixnode_performance = 8;
+  optional uint32 min_gateway_mixnet_performance = 9;
+  optional uint32 min_gateway_vpn_performance = 10;
 }
 
 message AsEntry {
@@ -645,6 +661,16 @@ service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
+  // Get the VPN service configuration
+  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
+
+  // Set the VPN service configuration
+  rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
+  rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
+  rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 
@@ -657,11 +683,17 @@ service NymVpnService {
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
-  // Connect the tunnel
+  // Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
   rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
 
+  // Connect the tunnel (Configuration is owned by daemon)
+  rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Reconnect the tunnel if it had been established.
+  rpc ReconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
   // Disconnect the tunnel
-  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
@@ -719,7 +751,6 @@ service NymVpnService {
 
   // Get the list of active devices associated with this account from the nym-vpn-api
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
-
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
 

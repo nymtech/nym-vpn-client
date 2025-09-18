@@ -52,6 +52,12 @@ pub enum TunnelState {
     },
 }
 
+impl TunnelState {
+    pub fn is_error_state(&self) -> bool {
+        matches!(self, Self::Error(_))
+    }
+}
+
 impl std::fmt::Display for TunnelState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

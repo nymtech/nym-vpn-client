@@ -181,9 +181,6 @@ pub struct GatewayPerformanceOptions {
 pub struct MixnetTunnelOptions {
     /// Overrides tunnel interface MTU.
     pub mtu: Option<u16>,
-
-    /// Enable the credentials mode between the client and the gateways.
-    pub enable_credentials_mode: bool,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
