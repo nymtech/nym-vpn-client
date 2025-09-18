@@ -16,6 +16,9 @@ mod certs;
 use certs::*;
 pub use nym_vpn_lib_types::bridges::*;
 
+const LENGTH_DELIMITER_BYTELEN: usize = 2;
+const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
+
 #[derive(thiserror::Error, Debug)]
 pub enum TransportError {
     #[error("quic conn error: {0}")]
@@ -64,12 +67,12 @@ impl BridgeConn {
                 let conn = transport_conn(&opts).await?;
                 let endpoint = conn.remote_address();
                 // .context("failed to connect to transport conn")?;
-                let (wr, rd) = conn.open_bi().await?;
+                let (writer, reader) = conn.open_bi().await?;
                 // .context("failed to connect to transport stream")?;
                 info!("quic transport connected in {:?}", start.elapsed());
                 Ok(Self {
-                    reader: Box::new(rd),
-                    writer: Box::new(wr),
+                    reader: Box::new(reader),
+                    writer: Box::new(writer),
                     params,
                     endpoint,
                 })
@@ -110,8 +113,8 @@ impl UdpForwarder {
 }
 
 pub async fn process_udp<R, W>(
-    rd: R,
-    wr: W,
+    reader: R,
+    writer: W,
     sock: Arc<UdpSocket>,
     mtu: u16,
     // close_hook: Option<fn(SocketAddr)>,
@@ -124,43 +127,50 @@ pub async fn process_udp<R, W>(
 
     let mut dn_buf = BytesMut::with_capacity(mtu as usize);
 
-    let mut wrf = LengthDelimitedCodec::builder()
-        .length_field_length(2)
-        .new_write(wr);
+    let mut framed_writer = LengthDelimitedCodec::builder()
+        .length_field_length(LENGTH_DELIMITER_BYTELEN)
+        .new_write(writer);
 
-    let rdf = LengthDelimitedCodec::builder()
-        .length_field_length(2)
-        .new_read(rd);
+    let framed_reader = LengthDelimitedCodec::builder()
+        .length_field_length(LENGTH_DELIMITER_BYTELEN)
+        .new_read(reader);
 
     // receive (and forward) a first message to establish a consistent peer address
-    let fw_addr = match tokio::time::timeout(
-        Duration::from_secs(10),
-        sock.recv_buf_from(&mut dn_buf),
-    )
-    .await
-    {
-        Ok(Ok((len, src))) => {
-            trace!(" <- [fw] read {len}B");
-            if let Err(e) = wrf.send(dn_buf.copy_to_bytes(len)).await {
-                debug!("error sending to transport connection: {e}");
-                token.cancel();
-                return;
-            };
-            trace!("[tr] <- wrote {len}B");
-            src
-        }
-        Ok(Err(e)) => {
-            debug!("error receiving from egress socket: {e}");
-            token.cancel();
+    let fwd_initial_recv_fut =
+        tokio::time::timeout(INITIAL_CONNECTION_TIMEOUT, sock.recv_buf_from(&mut dn_buf));
+    let fwd_addr = tokio::select!(
+        _ = token.cancelled() => {
+            debug!("forwarder cancelled before initial receive");
             return;
         }
-        Err(_) => {
-            debug!("forwarder timed out");
-            token.cancel();
-            return;
+        res = fwd_initial_recv_fut => {
+            match res {
+                Ok(Ok((len, src))) => {
+                    trace!(" <- [fw] read {len}B");
+                    if let Err(e) = framed_writer.send(dn_buf.copy_to_bytes(len)).await {
+                        debug!("error sending to transport connection: {e}");
+                        token.cancel();
+                        return;
+                    };
+                    trace!("[tr] <- wrote {len}B");
+                    // keep track of the address of the sender for the initial write
+                    src
+                }
+                Ok(Err(e)) => {
+                    debug!("error receiving from egress socket: {e}");
+                    token.cancel();
+                    return;
+                }
+                Err(_) => {
+                    debug!("forwarder timed out");
+                    token.cancel();
+                    return;
+                }
+            }
         }
-    };
-    if let Err(e) = sock.connect(fw_addr).await {
+    );
+
+    if let Err(e) = sock.connect(fwd_addr).await {
         error!("udp sock config failure: {e}");
         token.cancel();
         return;
@@ -169,15 +179,15 @@ pub async fn process_udp<R, W>(
     let mut tasks = tokio::task::JoinSet::new();
     tasks.spawn(udp_to_transport_task(
         sock.clone(),
-        wrf,
-        fw_addr,
+        framed_writer,
+        fwd_addr,
         mtu,
         token.clone(),
     ));
     tasks.spawn(transport_to_udp_task(
-        rdf,
+        framed_reader,
         sock.clone(),
-        fw_addr,
+        fwd_addr,
         token.clone(),
     ));
 
@@ -189,9 +199,8 @@ pub async fn process_udp<R, W>(
 
 async fn udp_to_transport_task<W>(
     sock: Arc<UdpSocket>,
-    mut wrf: W,
-    // wr: W,
-    fw_addr: SocketAddr,
+    mut framed_writer: W,
+    fwd_addr: SocketAddr,
     mtu: u16,
     token: CancellationToken,
 ) -> Result<(), io::Error>
@@ -210,13 +219,13 @@ where
                     e
                 })?;
 
-                if !address_match(fw_addr, src) {
+                if !address_match(fwd_addr, src) {
                     debug!("received {len}B from alt addr {src} -- ignoring");
                     continue;
                 }
 
-                trace!(" <-{fw_addr} read {len}B");
-                wrf.send(dn_buf.copy_to_bytes(len)).await.map_err(|e| {
+                trace!(" <-{fwd_addr} read {len}B");
+                framed_writer.send(dn_buf.copy_to_bytes(len)).await.map_err(|e| {
                     error!("error sending to transport connection: {e}");
                     token.cancel();
                     e
@@ -230,7 +239,7 @@ where
                 }
             }
             _ = token.cancelled() => {
-                debug!("end io copy from {fw_addr}<->[tr]");
+                debug!("end io copy from {fwd_addr}<->[tr]");
                 break;
             }
         }
@@ -239,9 +248,9 @@ where
 }
 
 async fn transport_to_udp_task<R>(
-    mut rdf: R,
+    mut framed_reader: R,
     sock: Arc<UdpSocket>,
-    fw_addr: SocketAddr,
+    fwd_addr: SocketAddr,
     token: CancellationToken,
 ) -> Result<(), io::Error>
 where
@@ -249,7 +258,7 @@ where
 {
     loop {
         tokio::select! {
-            res = rdf.next() => {
+            res = framed_reader.next() => {
                 match res {
                     None => {
                         info!("connection closed");
@@ -261,13 +270,13 @@ where
                         let mut sent = 0;
                         let mut sends = 1;
                         while sent < len {
-                            let len_sent = sock.send_to(&buf[sent..len], fw_addr).await.map_err(|e| {
+                            let len_sent = sock.send_to(&buf[sent..len], fwd_addr).await.map_err(|e| {
                                 error!("error sending to egress socket: {e}");
                                 token.cancel();
                                 e
                             })?;
                             sent += len_sent;
-                            trace!(" ->{fw_addr} wrote {len_sent}B {sends} send");
+                            trace!(" ->{fwd_addr} wrote {len_sent}B {sends} send");
                             sends +=1;
                         }
                     }
