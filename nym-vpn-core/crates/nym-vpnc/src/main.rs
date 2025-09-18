@@ -427,7 +427,7 @@ async fn list_gateways(
     println!("Gateways available for: {gw_type}");
     println!("Total gateways: {}", gateways.len());
     for gateway in gateways {
-        println!("  {gateway}");
+        println!("  {gateway:?}");
     }
     Ok(())
 }

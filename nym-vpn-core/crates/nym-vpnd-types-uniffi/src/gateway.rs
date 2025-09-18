@@ -7,7 +7,7 @@ pub struct Gateway {
     pub moniker: String,
     pub location: Option<GatewayLocation>,
     pub mixnet_score: Option<GatewayScore>,
-    pub wg_score: Option<GatewayScore>,
+    pub wg_performance: Option<GatewayPerformance>,
 }
 
 #[derive(uniffi::Enum)]
@@ -15,19 +15,64 @@ pub enum GatewayScore {
     High,
     Medium,
     Low,
-    None,
+    Offline,
+}
+
+#[derive(uniffi::Record)]
+pub struct GatewayPerformance {
+    pub last_updated_utc: String,
+    pub score: GatewayScore,
+    pub load: GatewayScore,
+    pub uptime_percentage_last_24_hours: f32,
+}
+
+#[derive(uniffi::Enum)]
+pub enum AsnKind {
+    Residential,
+    Other,
+}
+
+#[derive(uniffi::Record)]
+pub struct Asn {
+    pub asn: String,
+    pub name: String,
+    pub kind: AsnKind,
 }
 
 #[derive(uniffi::Record)]
 pub struct GatewayLocation {
     pub two_letter_iso_country_code: String,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
+    pub latitude: f64,
+    pub longitude: f64,
+
+    pub city: String,
+    pub region: String,
+
+    pub asn: Option<Asn>,
 }
 
 #[derive(uniffi::Record)]
 pub struct GatewayCountry {
     pub iso_code: String,
+}
+
+impl From<nym_vpnd_types::gateway::AsnKind> for AsnKind {
+    fn from(value: nym_vpnd_types::gateway::AsnKind) -> Self {
+        match value {
+            nym_vpnd_types::gateway::AsnKind::Residential => AsnKind::Residential,
+            nym_vpnd_types::gateway::AsnKind::Other => AsnKind::Other,
+        }
+    }
+}
+
+impl From<nym_vpnd_types::gateway::Asn> for Asn {
+    fn from(value: nym_vpnd_types::gateway::Asn) -> Self {
+        Asn {
+            asn: value.asn,
+            name: value.name,
+            kind: value.kind.into(),
+        }
+    }
 }
 
 impl From<nym_vpnd_types::gateway::Location> for GatewayLocation {
@@ -36,6 +81,9 @@ impl From<nym_vpnd_types::gateway::Location> for GatewayLocation {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,
+            city: location.city,
+            region: location.region,
+            asn: location.asn.map(Into::into),
         }
     }
 }
@@ -46,7 +94,18 @@ impl From<nym_vpnd_types::gateway::Score> for GatewayScore {
             nym_vpnd_types::gateway::Score::High => GatewayScore::High,
             nym_vpnd_types::gateway::Score::Medium => GatewayScore::Medium,
             nym_vpnd_types::gateway::Score::Low => GatewayScore::Low,
-            nym_vpnd_types::gateway::Score::None => GatewayScore::None,
+            nym_vpnd_types::gateway::Score::Offline => GatewayScore::Offline,
+        }
+    }
+}
+
+impl From<nym_vpnd_types::gateway::Performance> for GatewayPerformance {
+    fn from(gateway: nym_vpnd_types::gateway::Performance) -> Self {
+        GatewayPerformance {
+            last_updated_utc: gateway.last_updated_utc,
+            score: gateway.score.into(),
+            load: gateway.load.into(),
+            uptime_percentage_last_24_hours: gateway.uptime_percentage_last_24_hours,
         }
     }
 }
@@ -58,7 +117,7 @@ impl From<nym_vpnd_types::gateway::Gateway> for Gateway {
             moniker: gateway.moniker,
             location: gateway.location.map(GatewayLocation::from),
             mixnet_score: gateway.mixnet_score.map(GatewayScore::from),
-            wg_score: gateway.wg_score.map(GatewayScore::from),
+            wg_performance: gateway.wg_performance.map(GatewayPerformance::from),
         }
     }
 }
