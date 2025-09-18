@@ -12,8 +12,7 @@ use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
 
 #[derive(Parser)]
-#[clap(author = "Nymtech", version, about)]
-pub struct CliArgs {
+#[clap(version, about)]
 pub struct LegacyCliArgs {
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
