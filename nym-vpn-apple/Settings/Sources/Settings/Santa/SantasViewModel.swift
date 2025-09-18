@@ -22,8 +22,6 @@ public final class SantasViewModel: ObservableObject {
 
     let title = "🎅 Santa's menu 🎅"
 
-    @Published var isZknymEnabled = false
-
     var actualEnv: String {
 #if os(iOS)
         let result = try? currentEnvironment()
