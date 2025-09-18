@@ -76,6 +76,11 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
 
+    @AppStorage(AppSettingKey.censorshipIsEnabled.rawValue)
+    public var isCensorshipEnabled = false
+    @AppStorage(AppSettingKey.censorshipQuicEnabled.rawValue)
+    public var isCensorshipQuicEnabled = false
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
     @Published public var isCredentialImportedPublisher = false
@@ -120,4 +125,6 @@ public enum AppSettingKey: String {
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
+    case censorshipIsEnabled
+    case censorshipQuicEnabled
 }
