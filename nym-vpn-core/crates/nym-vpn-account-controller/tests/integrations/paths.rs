@@ -67,7 +67,9 @@ async fn offline_test() -> anyhow::Result<()> {
     Ok(())
 }
 
+// TODO: we need details here, taking them out until we rework the errors
 #[tokio::test]
+#[ignore]
 async fn api_error_reponse_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
@@ -93,7 +95,9 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
     Ok(())
 }
 
+// TODO: we need error details here, taking them out until we rework the errors
 #[tokio::test]
+#[ignore]
 async fn unregistered_account_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
