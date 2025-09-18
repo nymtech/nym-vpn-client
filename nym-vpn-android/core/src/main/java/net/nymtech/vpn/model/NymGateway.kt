@@ -23,7 +23,7 @@ data class NymGateway(
 				name = gateway.moniker,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
 				mixnetScore = gateway.mixnetScore,
-				wgScore = gateway.wgScore,
+				wgScore = gateway.wgPerformance?.score,
 			)
 		}
 

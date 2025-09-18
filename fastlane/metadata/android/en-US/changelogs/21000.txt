@@ -1,0 +1,5 @@
+What's new:
+- Added support for themed icons
+- Connecting status now shows more detailed info
+- Server name is displayed below the country on the Main Screen
+- Fixed UI updates after logout
