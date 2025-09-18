@@ -88,26 +88,25 @@ impl VpnServiceConfigManager {
     pub fn new(network_config_dir: &Path) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
-        let config = Self::read_from_file(&toml_config_path, &json_config_path)?;
-
-        // If the deprecated TOML file exists, then remove it
-        let toml_config_exists = toml_config_path.exists();
-        if toml_config_exists {
-            tracing::info!(
-                "Removing deprecated config file {}",
-                toml_config_path.display()
-            );
-            let _ = fs::remove_file(&toml_config_path);
-        }
+        let (config, version) = Self::read_from_file(&toml_config_path, &json_config_path)?;
 
         let config_manager = Self {
             json_config_path,
             config,
         };
 
-        if toml_config_exists {
-            // Save the configuration to file, as we've just migrated it from TOML to JSON
+        // If we didn't read the latest version then write the config straight back to file
+        if version != LATEST_CONFIG_VERSION {
             config_manager.write_to_file();
+        }
+
+        // If the deprecated TOML file exists, then remove it
+        if toml_config_path.exists() {
+            tracing::info!(
+                "Removing deprecated config file {}",
+                toml_config_path.display()
+            );
+            let _ = fs::remove_file(&toml_config_path);
         }
 
         Ok(config_manager)
@@ -181,34 +180,42 @@ impl VpnServiceConfigManager {
         let _ = self.write_to_file();
     }
 
+    /// Returns the configuration as well as the version read from file.
     fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
-    ) -> Result<VpnServiceConfig> {
-        let config = if json_config_path.exists() {
+    ) -> Result<(VpnServiceConfig, u8)> {
+        let (config, version) = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Loaded service config {}", json_config_path.display());
 
-            VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?
+            let version = match &ext_config {
+                VpnServiceConfigExt::V1(_) => 1,
+                VpnServiceConfigExt::V2(_) => 2,
+            };
+
+            let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
+            (config, version)
         } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Loaded service config {}", toml_config_path.display());
 
-            VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?
+            let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
+            (config, 0)
         } else {
             tracing::info!("Using default service config");
 
-            VpnServiceConfig::default()
+            (VpnServiceConfig::default(), 0)
         };
 
-        Ok(config)
+        Ok((config, version))
     }
 
-    pub fn write_to_file(&self) -> bool {
+    fn write_to_file(&self) -> bool {
         let ext_config = match VpnServiceConfigExt::try_from(&self.config)
             .map_err(Error::ConfigSetup)
         {
@@ -224,7 +231,7 @@ impl VpnServiceConfigManager {
         {
             Ok(_) => {
                 tracing::info!(
-                    "Service config has been saved to file {}",
+                    "Saved service config to file {}",
                     self.json_config_path.display()
                 );
                 true
@@ -291,13 +298,15 @@ impl VpnServiceConfigManager {
 // External, versioned, representation of the vpn service config file.
 //
 
-type VpnServiceConfigExtLatest = VpnServiceConfigExtV1;
+type VpnServiceConfigExtLatest = VpnServiceConfigExtV2;
+const LATEST_CONFIG_VERSION: u8 = 2;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "version")]
 #[serde(rename_all = "snake_case")]
 enum VpnServiceConfigExt {
     V1(VpnServiceConfigExtV1),
+    V2(VpnServiceConfigExtV2),
 }
 
 impl TryFrom<VpnServiceConfigExt> for VpnServiceConfig {
@@ -306,6 +315,7 @@ impl TryFrom<VpnServiceConfigExt> for VpnServiceConfig {
     fn try_from(value: VpnServiceConfigExt) -> Result<Self, Self::Error> {
         match value {
             VpnServiceConfigExt::V1(v1) => VpnServiceConfig::try_from(v1),
+            VpnServiceConfigExt::V2(v2) => VpnServiceConfig::try_from(v2),
         }
     }
 }
@@ -324,6 +334,40 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExt {
 struct VpnServiceConfigExtV1 {
     entry_point: EntryPointExtV1,
     exit_point: ExitPointExtV1,
+}
+
+impl Default for VpnServiceConfigExtV1 {
+    fn default() -> Self {
+        Self {
+            entry_point: EntryPointExtV1::Random,
+            exit_point: ExitPointExtV1::Random,
+        }
+    }
+}
+
+impl From<VpnServiceConfigExtV1> for VpnServiceConfigExt {
+    fn from(v1: VpnServiceConfigExtV1) -> Self {
+        VpnServiceConfigExt::V1(v1)
+    }
+}
+
+impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: VpnServiceConfigExtV1) -> Result<Self, Self::Error> {
+        let config = VpnServiceConfig {
+            entry_point: EntryPoint::try_from(value.entry_point)?,
+            exit_point: ExitPoint::try_from(value.exit_point)?,
+            ..Default::default()
+        };
+        Ok(config)
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct VpnServiceConfigExtV2 {
+    entry_point: EntryPointExtV1,
+    exit_point: ExitPointExtV1,
     dns: Option<String>,
     disable_ipv6: bool,
     enable_two_hop: bool,
@@ -335,7 +379,7 @@ struct VpnServiceConfigExtV1 {
     min_gateway_vpn_performance: Option<u8>,
 }
 
-impl Default for VpnServiceConfigExtV1 {
+impl Default for VpnServiceConfigExtV2 {
     fn default() -> Self {
         Self {
             entry_point: EntryPointExtV1::Random,
@@ -353,16 +397,16 @@ impl Default for VpnServiceConfigExtV1 {
     }
 }
 
-impl From<VpnServiceConfigExtV1> for VpnServiceConfigExt {
-    fn from(v1: VpnServiceConfigExtV1) -> Self {
-        VpnServiceConfigExt::V1(v1)
+impl From<VpnServiceConfigExtV2> for VpnServiceConfigExt {
+    fn from(v2: VpnServiceConfigExtV2) -> Self {
+        VpnServiceConfigExt::V2(v2)
     }
 }
 
-impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
+impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
     type Error = ConfigSetupError;
 
-    fn try_from(value: VpnServiceConfigExtV1) -> Result<Self, Self::Error> {
+    fn try_from(value: VpnServiceConfigExtV2) -> Result<Self, Self::Error> {
         let dns = value
             .dns
             .map(|addr| {
@@ -816,9 +860,10 @@ mod tests {
     use std::fs;
     use tempfile::tempdir;
 
-    fn run_migrate_test(
+    // Test migrating from TOML to the latest JSON version
+    fn run_migrate_toml_test(
         toml_content: &str,
-        json_content: &str,
+        json_latest_content: &str,
         entry_point: gateway_directory::EntryPoint,
         exit_point: gateway_directory::ExitPoint,
     ) {
@@ -835,7 +880,7 @@ mod tests {
         // Write the TOML config file
         fs::write(&toml_path, toml_content).unwrap();
 
-        // Read the TOML config and migrate it to JSON
+        // Read the TOML config and migrate it to latest JSON
         let config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
         let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
@@ -855,7 +900,32 @@ mod tests {
 
         // Check the JSON is the right version and all snake-case
         let read_json_content = fs::read_to_string(&json_path).unwrap();
-        assert_eq!(json_content, read_json_content);
+        assert_eq!(json_latest_content, read_json_content);
+    }
+
+    // Test migrating from JSON v1 to the latest JSON version
+    fn run_migrate_json_v1_test(json_v1_content: &str, json_latest_content: &str) {
+        let temp_dir = tempdir().unwrap();
+        let config_path = temp_dir.path();
+
+        println!("Using config dir: {config_path:?}");
+
+        let network_config_path = config_path.join("tulips");
+        let _ = fs::create_dir_all(&network_config_path);
+        let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
+
+        // Write the JSON v1 config file
+        fs::write(&json_path, json_v1_content).unwrap();
+
+        // Read the JSON v1 config and migrate it to latest JSON.  The latest version of the
+        // JSON will be written straight back to disk.
+        let _config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
+
+        // Check the JSON is the right version and all snake-case (ignore whitespace/order)
+        let read_json_content = fs::read_to_string(&json_path).unwrap();
+        let expected: serde_json::Value = serde_json::from_str(json_latest_content).unwrap();
+        let actual: serde_json::Value = serde_json::from_str(&read_json_content).unwrap();
+        assert_eq!(expected, actual);
     }
 
     fn run_serialize_test(config: VpnServiceConfig) {
@@ -875,7 +945,7 @@ mod tests {
     }
 
     #[test]
-    fn test_service_config_migrate_location() {
+    fn test_service_config_migrate_toml_location() {
         let toml_content = r#"
 [entry_point.Location]
 location = "FR"
@@ -885,7 +955,7 @@ location = "BE"
 "#;
 
         let json_content = r#"{
-  "version": "v1",
+  "version": "v2",
   "entry_point": {
     "location": {
       "location": "FR"
@@ -915,7 +985,7 @@ location = "BE"
             location: "BE".to_string(),
         };
 
-        run_migrate_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
     }
 
     #[test]
@@ -929,7 +999,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
         let json_content = r#"{
-  "version": "v1",
+  "version": "v2",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -965,12 +1035,12 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
             .unwrap(),
         };
 
-        run_migrate_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
     }
 
     #[test]
     #[ignore] // Temporarily disabled due to issues with ExitPoint::Address (de)serialisation.
-    fn test_service_config_migrate_address() {
+    fn test_service_config_migrate_toml_address() {
         let toml_content = r#"
 [entry_point.Gateway]
 identity = [92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107]
@@ -980,7 +1050,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
 "#;
 
         let json_content = r#"{
-  "version": "v1",
+  "version": "v2",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -988,7 +1058,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   },
   "exit_point": {
     "address": {
-      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e
+            "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
     }
   },
   "dns": null,
@@ -1015,18 +1085,18 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
             )
         };
 
-        run_migrate_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
     }
 
     #[test]
-    fn test_service_config_migrate_random() {
+    fn test_service_config_migrate_toml_random() {
         let toml_content = r#"
 entry_point = "Random"
 exit_point = "Random"
 "#;
 
         let json_content = r#"{
-  "version": "v1",
+  "version": "v2",
   "entry_point": "random",
   "exit_point": "random",
   "dns": null,
@@ -1044,7 +1114,49 @@ exit_point = "Random"
 
         let exit_point = gateway_directory::ExitPoint::Random;
 
-        run_migrate_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
+    }
+
+    #[test]
+    fn test_service_config_migrate_from_v1() {
+        let json_v1_content = r#"{
+  "version": "v1",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  }
+}"#;
+
+        let json_latest_content = r#"{
+  "version": "v2",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "dns": null,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null
+}"#;
+
+        run_migrate_json_v1_test(json_v1_content, json_latest_content);
     }
 
     #[test]
