@@ -43,7 +43,8 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             Reason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             Reason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            Reason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
+            Reason::CredentialWastedOnEntryGateway => Self::CredentialWastedOnEntryGateway,
+            Reason::CredentialWastedOnExitGateway => Self::CredentialWastedOnExitGateway,
             Reason::BandwidthExceeded => Self::BandwidthExceeded,
             Reason::InactiveAccount => Self::InactiveAccount,
             Reason::InactiveSubscription => Self::InactiveSubscription,
@@ -96,8 +97,12 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
                 reason: Reason::InvalidExitGatewayCountry.into(),
                 message: None,
             },
-            ErrorStateReason::BadBandwidthIncrease => Self {
-                reason: Reason::BadBandwidthIncrease.into(),
+            ErrorStateReason::CredentialWastedOnEntryGateway => Self {
+                reason: Reason::CredentialWastedOnEntryGateway.into(),
+                message: None,
+            },
+            ErrorStateReason::CredentialWastedOnExitGateway => Self {
+                reason: Reason::CredentialWastedOnExitGateway.into(),
                 message: None,
             },
             ErrorStateReason::BandwidthExceeded => Self {
