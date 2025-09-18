@@ -16,6 +16,8 @@ public enum Constants: String {
     case anonymousStatsURL = "https://nym.com/anonymous-stats"
     case sentryPrivacyURL = "https://sentry.io/privacy/"
     case sentryURL = "https://sentry.io"
+    case stealthConnectURL = "https://nym.com/features/stealth-connect"
+    case stealhApiConnectURL = "https://nym.com/features/stealth-api-connect"
 
     case telegramLink = "https://nym.com/go/telegram"
     case discordLink = "https://nym.com/go/discord"
