@@ -117,7 +117,6 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
 		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
 		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
-		ErrorStateReason.BadBandwidthIncrease -> context.getString(R.string.error_bad_bandwidth)
 		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
 		ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
 		ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
@@ -125,6 +124,8 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
 		ErrorStateReason.TunDevice -> context.getString(R.string.error_tun_device)
 		ErrorStateReason.TunnelProvider -> context.getString(R.string.error_tunnel_provider)
+		ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_bandwidth_entry)
+		ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)
 	}
 }
 
