@@ -446,7 +446,7 @@ impl TryFrom<ConnectArgs> for proto::ConnectRequest {
             }),
             disable_ipv6: value.options.disable_ipv6,
             enable_two_hop: value.options.enable_two_hop,
-            circumvention_transports: value.options.circumvention_transports,
+            enable_bridges: value.options.enable_bridges,
             netstack: value.options.netstack,
             disable_poisson_rate: value.options.disable_poisson_rate,
             disable_background_cover_traffic: value.options.disable_background_cover_traffic,
@@ -474,7 +474,7 @@ impl TryFrom<proto::ConnectRequest> for ConnectOptions {
             dns,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
-            circumvention_transports: value.circumvention_transports,
+            enable_bridges: value.enable_bridges,
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
@@ -513,6 +513,8 @@ impl TryFrom<proto::VpnServiceConfig> for VpnServiceConfig {
 
             enable_two_hop: value.enable_two_hop,
 
+            enable_bridges: value.enable_bridges,
+
             netstack: value.netstack,
 
             disable_poisson_rate: value.disable_poisson_rate,
@@ -541,6 +543,7 @@ impl TryFrom<VpnServiceConfig> for proto::VpnServiceConfig {
             }),
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
+            enable_bridges: value.enable_bridges,
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,
             disable_background_cover_traffic: value.disable_background_cover_traffic,
@@ -861,6 +864,7 @@ mod tests {
             dns: Some(std::net::IpAddr::from_str("192.168.50.1").unwrap()),
             disable_ipv6: false,
             enable_two_hop: false,
+            enable_bridges: false,
             netstack: false,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,

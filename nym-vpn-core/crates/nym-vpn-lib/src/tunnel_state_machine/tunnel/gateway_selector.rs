@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_gateway_directory::{
-    CachingGatewayClient, EntryPoint, ExitPoint, Gateway, GatewayList, GatewayType,
+    EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList, GatewayType,
 };
 
 use crate::{
@@ -19,12 +19,12 @@ pub struct SelectedGateways {
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
     tunnel_settings: &TunnelSettings,
-    entry_point: Box<EntryPoint>,
-    exit_point: Box<ExitPoint>,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
+    let entry_point = tunnel_settings.entry_point.as_ref();
+    let exit_point = tunnel_settings.exit_point.as_ref();
     if let (
         EntryPoint::Gateway {
             identity: entry_identity,
@@ -32,7 +32,7 @@ pub async fn select_gateways(
         ExitPoint::Gateway {
             identity: exit_identity,
         },
-    ) = (entry_point.as_ref(), &exit_point.as_ref())
+    ) = (entry_point, &exit_point)
         && entry_identity == exit_identity
     {
         return Err(GatewayDirectoryError::SameEntryAndExitGateway {

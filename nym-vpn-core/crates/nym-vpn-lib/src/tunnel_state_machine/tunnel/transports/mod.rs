@@ -193,8 +193,6 @@ pub async fn process_udp<R, W>(
 
     // Wait for both tasks to complete
     let _ = tasks.join_all().await;
-
-    drop(sock);
 }
 
 async fn udp_to_transport_task<W>(
@@ -332,8 +330,13 @@ impl TryFrom<&QuicClientOptions> for ClientOptions {
         let mut pubkey_bytes = [0u8; 32];
         BASE64_STANDARD
             .decode_slice(&value.id_pubkey, &mut pubkey_bytes)
-            .unwrap();
-        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes).unwrap();
+            .map_err(|e| {
+                TransportError::config_err(format!(
+                    "failed to decode Quic bridge public key as base64: {e}"
+                ))
+            })?;
+        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes)
+            .map_err(|e| TransportError::config_err(format!("bad Quic bridge public key: {e}")))?;
 
         Ok(Self {
             addresses: value.addresses.clone(),
@@ -345,12 +348,7 @@ impl TryFrom<&QuicClientOptions> for ClientOptions {
 
 impl ClientOptions {
     fn get_ipv4(&self) -> Option<SocketAddr> {
-        for addr in &self.addresses {
-            if addr.is_ipv4() {
-                return Some(*addr);
-            }
-        }
-        None
+        self.addresses.iter().find(|s| s.is_ipv4()).cloned()
     }
 }
 

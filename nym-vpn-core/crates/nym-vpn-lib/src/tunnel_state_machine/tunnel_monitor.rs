@@ -348,8 +348,6 @@ impl TunnelMonitor {
                 let new_gateways = tunnel::select_gateways(
                     self.gateway_cache_handle.clone(),
                     &self.tunnel_parameters.tunnel_settings,
-                    self.tunnel_parameters.tunnel_settings.entry_point.clone(),
-                    self.tunnel_parameters.tunnel_settings.exit_point.clone(),
                     self.shutdown_token.child_token(),
                 )
                 .await?;
