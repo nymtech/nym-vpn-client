@@ -598,6 +598,32 @@ impl fmt::Display for StatusOk {
 }
 
 pub fn extract_error_response(err: VpnApiClientError) -> NymErrorResponse {
+    // Try to extract the HttpClientError and parse structured error response
+    if let Some(http_err) = err.http_client_error() {
+        // Check if it's an EndpointFailure with a parseable error
+        if let nym_http_api_client::HttpClientError::EndpointFailure { error, .. } = http_err {
+            // Try to parse the error string as NymErrorResponse
+            if let Ok(parsed) = serde_json::from_str::<NymErrorResponse>(error) {
+                return parsed;
+            }
+
+            // Try to parse as UnexpectedError and convert
+            if let Ok(unexpected) = serde_json::from_str::<UnexpectedError>(error) {
+                return NymErrorResponse {
+                    message: unexpected.message,
+                    ..Default::default()
+                };
+            }
+
+            // If it's not JSON at all, use the raw error text as the message
+            return NymErrorResponse {
+                message: error.clone(),
+                ..Default::default()
+            };
+        }
+    }
+
+    // Fallback to string representation of the full error
     NymErrorResponse {
         message: err.to_string(),
         ..Default::default()
