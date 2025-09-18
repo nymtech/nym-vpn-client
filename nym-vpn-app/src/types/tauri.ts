@@ -95,7 +95,7 @@ export type AccountLinks = {
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
-export type Score = 'none' | 'low' | 'medium' | 'high';
+export type Score = 'offline' | 'low' | 'medium' | 'high';
 
 export type Gateway = {
   id: string;
