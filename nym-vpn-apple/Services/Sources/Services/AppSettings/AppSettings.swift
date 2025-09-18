@@ -76,6 +76,9 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
 
+    @AppStorage(AppSettingKey.quic.rawValue)
+    public var isQuicEnabled = false
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
     @Published public var isCredentialImportedPublisher = false
@@ -120,4 +123,5 @@ public enum AppSettingKey: String {
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
+    case quic
 }
