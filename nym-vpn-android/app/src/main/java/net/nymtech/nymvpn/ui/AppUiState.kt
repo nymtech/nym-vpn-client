@@ -5,6 +5,7 @@ import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
+import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
@@ -24,6 +25,32 @@ data class AppUiState(
 		is ExitPoint.Address -> null
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
 		is ExitPoint.Location -> exit.location
+		else -> null
+	}
+
+	val entryPointGatewayName = when (val entry = settings.entryPoint) {
+		is EntryPoint.Location -> {
+			if (managerState.tunnelState == Tunnel.State.Up) {
+				managerState.connectionData?.let { data ->
+					gateways.entryGateways.firstOrNull { it.identity == data.entryGateway.id }?.name
+				}
+			} else {
+				null
+			}
+		}
+		else -> null
+	}
+
+	val exitPointGatewayName = when (val exit = settings.exitPoint) {
+		is ExitPoint.Location -> {
+			if (managerState.tunnelState == Tunnel.State.Up) {
+				managerState.connectionData?.let { data ->
+					gateways.exitGateways.firstOrNull { it.identity == data.exitGateway.id }?.name
+				}
+			} else {
+				null
+			}
+		}
 		else -> null
 	}
 

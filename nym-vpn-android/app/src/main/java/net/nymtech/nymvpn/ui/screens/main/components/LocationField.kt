@@ -28,7 +28,15 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LocationField(value: String, label: String, countryCode: String?, onClick: () -> Unit, enabled: Boolean, modifier: Modifier = Modifier) {
+fun LocationField(
+	value: String,
+	label: String,
+	countryCode: String?,
+	gatewayName: String?,
+	onClick: () -> Unit,
+	enabled: Boolean,
+	modifier: Modifier = Modifier,
+) {
 	val context = LocalContext.current
 	val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 	val indication = if (enabled) ripple() else null
@@ -51,7 +59,16 @@ fun LocationField(value: String, label: String, countryCode: String?, onClick: (
 			)
 		},
 		trailing = { Icon(trailingIcon, stringResource(R.string.go), tint = MaterialTheme.colorScheme.onSurface) },
-		singleLine = true,
+		singleLine = gatewayName.isNullOrEmpty(),
+		subtitle = {
+			if (!gatewayName.isNullOrEmpty()) {
+				Text(
+					text = gatewayName,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+				)
+			}
+		},
 		modifier = modifier
 			.fillMaxWidth()
 			.height(60.dp.scaledHeight())
