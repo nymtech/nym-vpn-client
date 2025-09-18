@@ -135,6 +135,7 @@ impl From<VpnApiClientError> for NymErrorResponse {
 impl VpnApiClientError {
     pub fn http_client_error(&self) -> Option<&HttpClientError> {
         self.source()
-            .and_then(|source| source.downcast_ref::<HttpClientError>())
+            .and_then(|source| source.downcast_ref::<Box<HttpClientError>>())
+            .map(|boxed| boxed.as_ref())
     }
 }
