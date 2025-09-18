@@ -99,10 +99,10 @@ impl SpecificGatewayError {
             SpecificGatewayError::RequestCredential { source, .. } => source,
             _ => return false,
         };
-        match **more_specific_inner {
-            nym_wg_gateway_client::Error::NoRetry { .. } => true,
-            _ => false,
-        }
+        matches!(
+            **more_specific_inner,
+            nym_wg_gateway_client::Error::NoRetry { .. }
+        )
     }
 }
 
