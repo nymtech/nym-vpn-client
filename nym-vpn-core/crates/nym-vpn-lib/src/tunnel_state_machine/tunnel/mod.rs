@@ -14,7 +14,7 @@ use std::os::fd::RawFd;
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
+use nym_gateway_directory::GatewayCacheHandle;
 use nym_sdk::UserAgent;
 #[allow(deprecated)]
 // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
@@ -128,8 +128,6 @@ pub struct MixnetConnectOptions {
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
     tunnel_settings: &TunnelSettings,
-    entry_point: Box<EntryPoint>,
-    exit_point: Box<ExitPoint>,
     wg_score_thresholds: Option<ScoreThresholds>,
     mix_score_thresholds: Option<ScoreThresholds>,
     cancel_token: CancellationToken,
@@ -137,11 +135,10 @@ pub async fn select_gateways(
     let select_gateways_fut = gateway_selector::select_gateways(
         gateway_cache_handle,
         tunnel_settings,
-        entry_point,
-        exit_point,
         wg_score_thresholds,
         mix_score_thresholds,
     );
+
     cancel_token
         .run_until_cancelled(select_gateways_fut)
         .await

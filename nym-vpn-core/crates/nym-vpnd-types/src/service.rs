@@ -41,6 +41,7 @@ pub struct ConnectOptions {
     pub dns: Option<IpAddr>,
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
+    pub enable_bridges: bool,
     pub netstack: bool,
     pub disable_poisson_rate: bool,
     pub disable_background_cover_traffic: bool,
