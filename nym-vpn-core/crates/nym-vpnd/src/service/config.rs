@@ -340,15 +340,6 @@ struct VpnServiceConfigExtV1 {
     exit_point: ExitPointExtV1,
 }
 
-impl Default for VpnServiceConfigExtV1 {
-    fn default() -> Self {
-        Self {
-            entry_point: EntryPointExtV1::Random,
-            exit_point: ExitPointExtV1::Random,
-        }
-    }
-}
-
 impl From<VpnServiceConfigExtV1> for VpnServiceConfigExt {
     fn from(v1: VpnServiceConfigExtV1) -> Self {
         VpnServiceConfigExt::V1(v1)
@@ -385,24 +376,6 @@ struct VpnServiceConfigExtV2 {
     min_mixnode_performance: Option<u8>,
     min_gateway_mixnet_performance: Option<u8>,
     min_gateway_vpn_performance: Option<u8>,
-}
-
-impl Default for VpnServiceConfigExtV2 {
-    fn default() -> Self {
-        Self {
-            entry_point: EntryPointExtV1::Random,
-            exit_point: ExitPointExtV1::Random,
-            dns: None,
-            disable_ipv6: false,
-            enable_two_hop: false,
-            netstack: false,
-            disable_poisson_rate: false,
-            disable_background_cover_traffic: false,
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
-        }
-    }
 }
 
 impl From<VpnServiceConfigExtV2> for VpnServiceConfigExt {
