@@ -795,7 +795,6 @@ impl tunnel::Error {
             | Self::Wireguard(_)
             | Self::Cancelled
             | Self::Transport(_)
-            | Self::Io(_)
             | Self::MixnetClientDisposed => None,
             #[cfg(target_os = "ios")]
             Self::ResolveDns64(_) => None,
