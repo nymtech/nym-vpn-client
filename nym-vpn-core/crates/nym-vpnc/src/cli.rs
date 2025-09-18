@@ -31,24 +31,24 @@ pub enum Command {
     /// Connect to the Nym network (deprecated)
     Connect(Box<ConnectArgs>),
 
-    /// Connect the tunnel if it had been disconnected.
+    /// Connect the tunnel if it had been disconnected
     ConnectV2 {
         /// Blocks until the connection is established or failed
         #[arg(short, long)]
         wait: bool,
     },
 
-    /// Reconnect the tunnel if it had been connected.
+    /// Reconnect the tunnel if it had been connected
     Reconnect,
 
-    /// Disconnect from the Nym network.
+    /// Disconnect the tunnel
     Disconnect {
         /// Blocks until disconnected.
         #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
         wait: bool,
     },
 
-    /// Get the current status of the connection.
+    /// Get the current connection status
     Status {
         /// Monitor tunnel state continuously until ctrl+c.
         #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
@@ -73,21 +73,21 @@ pub enum Command {
         exit: CliExit,
     },
 
-    /// Set IPv6 support state
+    /// Enable or disable IPv6 in the tunnel
     SetIpv6 {
         /// Set IPv6 support state (on|off)
         #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
         enabled: BooleanOption,
     },
 
-    /// Set two-hop mode
+    /// Enable or disable two-hop mode
     SetTwoHop {
         /// Set two-hop mode (on|off)
         #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
         enabled: BooleanOption,
     },
 
-    /// Set netstack based implementation for two-hop wireguard.
+    /// Enable or disable netstack based implementation for WireGuard
     SetNetstack {
         /// Set netstack implementation (on|off)
         #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
