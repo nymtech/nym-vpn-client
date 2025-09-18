@@ -94,9 +94,10 @@ export type TunnelError =
   | { key: 'ipv6-unavailable'; message: string | null }
   | { key: 'tun-device'; message: string | null }
   | { key: 'tunnel-provider'; message: string | null }
-  | { key: 'bad-bandwidth-increase'; message: string | null }
   | { key: 'inactive-account'; message: string | null }
-  | { key: 'device-logged-out'; message: string | null };
+  | { key: 'device-logged-out'; message: string | null }
+  | { key: 'credential-wasted-on-entry-gateway'; message: string | null }
+  | { key: 'credential-wasted-on-exit-gateway'; message: string | null };
 
 export type TunnelStateEvent = {
   state: TunnelState;

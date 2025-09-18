@@ -30,8 +30,6 @@ function useI18nError() {
             return fmtErr(t('tunnel.tun-device'), message);
           case 'tunnel-provider':
             return fmtErr(t('tunnel.tunnel-provider'), message);
-          case 'bad-bandwidth-increase':
-            return fmtErr(t('tunnel.bad-bandwidth-increase'), message);
           case 'inactive-account':
             return fmtErr(t('tunnel.inactive-account'), message);
           case 'device-logged-out':
@@ -60,6 +58,13 @@ function useI18nError() {
             return fmtErr(t('tunnel.device-time-out-of-sync'), message);
           case 'ipv6-unavailable':
             return fmtErr(t('tunnel.ipv6-unavailable'), message);
+          case 'credential-wasted-on-entry-gateway':
+            return fmtErr(
+              t('tunnel.entry-gateway-bandwidth-increase'),
+              message,
+            );
+          case 'credential-wasted-on-exit-gateway':
+            return fmtErr(t('tunnel.exit-gateway-bandwidth-increase'), message);
         }
       }
       // not a tunnel error
