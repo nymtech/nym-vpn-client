@@ -16,7 +16,7 @@ public final class FeatureFlagsManager: ObservableObject {
 
     public static let shared = FeatureFlagsManager()
 
-    public var isDomainFrontingEnabled: Bool {
+    public var isStealthAPIEnabled: Bool {
         featureFlags.contains(where: { $0.name == "domain_fronting.enabled" && $0.isEnabled })
     }
 
