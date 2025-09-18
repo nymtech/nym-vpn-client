@@ -18,7 +18,7 @@ use nym_vpn_network_config::{
 };
 use nym_vpnd_types::{
     AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
-    gateway::{Score, Performance},
+    gateway::{Performance, Score},
     log_path::LogPath,
     service::{ConnectArgs, ConnectOptions, VpnServiceConfig, VpnServiceInfo},
 };
