@@ -57,7 +57,7 @@ function DataAndPrivacy() {
             {t('privacy.network-stats.desc')}
           </p>
           <Link
-            className="w-fit text-sm"
+            className="w-fit text-sm mt-2"
             text={t('privacy.network-stats.link')}
             url={AnonNetworkStatsUrl}
             color="primary"
@@ -81,7 +81,7 @@ function DataAndPrivacy() {
             {t('privacy.error-monitoring.desc')}
           </p>
           <Link
-            className="w-fit text-sm"
+            className="w-fit text-sm mt-2"
             text={t('privacy.error-monitoring.link')}
             url={SentryPrivacyPolicyUrl}
             color="primary"

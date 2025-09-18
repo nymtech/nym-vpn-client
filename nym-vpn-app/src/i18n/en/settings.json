@@ -47,7 +47,7 @@
     "stealth-api": {
       "label": "Stealth API connect",
       "warning": "Changes will apply after reconnect",
-      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking.",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
       "link": "How the Stealth API connect mode works"
     }
   },

@@ -22,9 +22,10 @@ pub enum TunnelError {
     Ipv6Unavailable(Option<String>),
     TunDevice(Option<String>),
     TunnelProvider(Option<String>),
-    BadBandwidthIncrease(Option<String>),
     InactiveAccount(Option<String>),
     DeviceLoggedOut(Option<String>),
+    CredentialWastedOnEntryGateway(Option<String>),
+    CredentialWastedOnExitGateway(Option<String>),
 }
 
 impl From<ProtoTunnelError> for TunnelError {
@@ -54,11 +55,14 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::SetRouting => TunnelError::SetRouting(error.message),
             ErrorStateReason::TunDevice => TunnelError::TunDevice(error.message),
             ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider(error.message),
-            ErrorStateReason::BadBandwidthIncrease => {
-                TunnelError::BadBandwidthIncrease(error.message)
-            }
             ErrorStateReason::InactiveAccount => TunnelError::InactiveAccount(error.message),
             ErrorStateReason::DeviceLoggedOut => TunnelError::DeviceLoggedOut(error.message),
+            ErrorStateReason::CredentialWastedOnEntryGateway => {
+                TunnelError::CredentialWastedOnEntryGateway(error.message)
+            }
+            ErrorStateReason::CredentialWastedOnExitGateway => {
+                TunnelError::CredentialWastedOnExitGateway(error.message)
+            }
         }
     }
 }
