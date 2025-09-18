@@ -55,7 +55,7 @@ use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     MixnetEvent, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
-    WireguardNode, WrappedWireguardConnectionData,
+    WireguardNode,
 };
 
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
@@ -65,7 +65,6 @@ use super::tunnel::wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOp
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -348,7 +347,7 @@ impl TunnelMonitor {
 
                 let new_gateways = tunnel::select_gateways(
                     self.gateway_cache_handle.clone(),
-                    self.tunnel_parameters.tunnel_settings.tunnel_type,
+                    &self.tunnel_parameters.tunnel_settings,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
                     self.shutdown_token.child_token(),
@@ -441,7 +440,7 @@ impl TunnelMonitor {
                 self.start_mixnet_tunnel(task_manager, connected_mixnet)
                     .await?
             }
-            TunnelType::Wireguard | TunnelType::WrappedWireguard => {
+            TunnelType::Wireguard => {
                 match self
                     .tunnel_parameters
                     .tunnel_settings
@@ -764,11 +763,7 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_circumvention_transport = matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        );
-
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
@@ -776,7 +771,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                use_circumvention_transport,
+                use_bridges,
             )
             .await?;
 
@@ -802,21 +797,11 @@ impl TunnelMonitor {
 
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
-        let tunnel_conn_data = if use_circumvention_transport {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            TunnelConnectionData::WrappedWireguard(WrappedWireguardConnectionData {
-                entry_bridge_addr,
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        } else {
-            TunnelConnectionData::Wireguard(WireguardConnectionData {
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        };
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
@@ -839,7 +824,7 @@ impl TunnelMonitor {
             .run(
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_circumvention_transport,
+                !use_bridges,
             )
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
@@ -860,11 +845,7 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_circumvention_transport = matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        );
-
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
@@ -872,7 +853,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                use_circumvention_transport,
+                use_bridges,
             )
             .await?;
 
@@ -905,21 +886,11 @@ impl TunnelMonitor {
             ipv6_gateway: Some(conn_data.entry.private_ipv6),
         };
 
-        let tunnel_conn_data = if use_circumvention_transport {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            TunnelConnectionData::WrappedWireguard(WrappedWireguardConnectionData {
-                entry_bridge_addr,
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        } else {
-            TunnelConnectionData::Wireguard(WireguardConnectionData {
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        };
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
@@ -936,7 +907,7 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_circumvention_transport,
+                !use_bridges,
             )
             .await?;
 
@@ -984,11 +955,7 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_circumvention_transport = matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        );
-
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
@@ -996,7 +963,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                use_circumvention_transport,
+                use_bridges,
             )
             .await?;
 
@@ -1069,24 +1036,11 @@ impl TunnelMonitor {
         };
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
-        let tunnel_conn_data = if matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        ) {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            TunnelConnectionData::WrappedWireguard(WrappedWireguardConnectionData {
-                entry_bridge_addr,
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        } else {
-            TunnelConnectionData::Wireguard(WireguardConnectionData {
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        };
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
@@ -1099,7 +1053,7 @@ impl TunnelMonitor {
             .run(
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_circumvention_transport,
+                !use_bridges,
             )
             .await?;
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
@@ -1122,11 +1076,7 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_circumvention_transport = matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        );
-
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
@@ -1134,7 +1084,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                use_circumvention_transport,
+                use_bridges,
             )
             .await?;
 
@@ -1181,21 +1131,11 @@ impl TunnelMonitor {
             ipv6_gateway: self.enable_ipv6().then_some(conn_data.entry.private_ipv6),
         };
 
-        let tunnel_conn_data = if use_circumvention_transport {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            TunnelConnectionData::WrappedWireguard(WrappedWireguardConnectionData {
-                entry_bridge_addr,
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        } else {
-            TunnelConnectionData::Wireguard(WireguardConnectionData {
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        };
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
@@ -1213,7 +1153,7 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_circumvention_transport,
+                !use_bridges,
             )
             .await?;
 
@@ -1288,11 +1228,7 @@ impl TunnelMonitor {
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_circumvention_transport = matches!(
-            self.tunnel_parameters.tunnel_settings.tunnel_type,
-            TunnelType::WrappedWireguard
-        );
-
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 task_manager,
@@ -1300,7 +1236,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
                 entry_metadata_rx,
                 exit_metadata_rx,
-                use_circumvention_transport,
+                use_bridges,
             )
             .await?;
 
@@ -1316,6 +1252,18 @@ impl TunnelMonitor {
                 conn_data.exit.private_ipv6,
             )));
         }
+
+        let entry_endpoint = if use_bridges {
+            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
+                "missing bridge address after connect", // this should not be possible
+            ))?;
+            packet_tunnel_settings
+                .remote_addresses
+                .push(entry_bridge_addr.ip());
+        } else {
+            conn_data.entry.endpoint.ip()
+        };
+
         let mut packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
             dns_servers: self
                 .tunnel_parameters
@@ -1324,18 +1272,9 @@ impl TunnelMonitor {
                 .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
                 .to_vec(),
             interface_addresses,
-            remote_addresses: vec![conn_data.entry.endpoint.ip()],
+            remote_addresses: vec![entry_endpoint],
             mtu,
         };
-
-        if use_circumvention_transport {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            packet_tunnel_settings
-                .remote_addresses
-                .push(entry_bridge_addr.ip());
-        }
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
         let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
@@ -1353,21 +1292,11 @@ impl TunnelMonitor {
 
         tracing::info!("Created tun device: {}", tunnel_metadata.interface);
 
-        let tunnel_conn_data = if use_circumvention_transport {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            TunnelConnectionData::WrappedWireguard(WrappedWireguardConnectionData {
-                entry_bridge_addr,
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        } else {
-            TunnelConnectionData::Wireguard(WireguardConnectionData {
-                entry: WireguardNode::from(conn_data.entry.clone()),
-                exit: WireguardNode::from(conn_data.exit.clone()),
-            })
-        };
+        let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
+            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry: WireguardNode::from(conn_data.entry.clone()),
+            exit: WireguardNode::from(conn_data.exit.clone()),
+        });
 
         let dns_servers = self
             .tunnel_parameters
@@ -1388,7 +1317,7 @@ impl TunnelMonitor {
                 self.tun_provider.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
-                !use_circumvention_transport,
+                !use_bridges,
             )
             .await?;
 

@@ -1,4 +1,4 @@
-use std::net::{IpAddr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -7,6 +7,7 @@ use bytes::{Buf, BytesMut};
 use futures::{Sink, SinkExt, Stream, StreamExt};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::UdpSocket;
+use tokio::task::JoinHandle;
 use tokio_util::codec::LengthDelimitedCodec;
 use tokio_util::sync::CancellationToken;
 use tracing::*;
@@ -23,8 +24,8 @@ pub enum TransportError {
     #[error("quic proto error: {0}")]
     QuicProto(#[from] quinn::ConnectionError),
 
-    #[error("io error")]
-    Io(#[from] std::io::Error),
+    #[error("transport socket io error")]
+    SocketIo(#[source] std::io::Error),
 
     #[error("insufficient or broken transport params: {0}")]
     Config(String),
@@ -77,41 +78,34 @@ impl BridgeConn {
     }
 }
 
-pub struct UdpForwarder {
-    socket: Arc<UdpSocket>,
-}
+pub struct UdpForwarder {}
 
 impl UdpForwarder {
-    pub async fn new(
+    pub async fn launch(
         egress_conn: BridgeConn,
         bind_addr: Option<SocketAddr>,
         token: CancellationToken,
-    ) -> Result<Self, TransportError> {
-        let bind_addr = bind_addr.unwrap_or((Ipv6Addr::LOCALHOST, 0).into());
-        let socket = UdpSocket::bind(&bind_addr).await?;
-        let socket = Arc::new(socket);
+    ) -> Result<(SocketAddr, JoinHandle<()>), TransportError> {
+        let bind_addr = bind_addr.unwrap_or(match egress_conn.endpoint.is_ipv4() {
+            true => (Ipv4Addr::LOCALHOST, 0).into(),
+            false => (Ipv6Addr::LOCALHOST, 0).into(),
+        });
+        let socket = make_socket(Some(bind_addr)).map_err(TransportError::SocketIo)?;
+        let socket = Arc::new(UdpSocket::from_std(socket).map_err(TransportError::SocketIo)?);
+        let local_addr = socket.local_addr().map_err(TransportError::SocketIo)?;
 
-        info!(
-            "udp forwarder started listening on: {}",
-            socket.local_addr()?
-        );
+        info!("udp forwarder started listening on: {local_addr}",);
 
-        tokio::spawn(process_udp(
-            egress_conn.reader,
-            egress_conn.writer,
-            socket.clone(),
-            ETHERNET_V2_MTU,
-            token,
-        ));
-        // conn.close(0u32.into(), b"done");
-        // debug!("stats: {:?}", conn.stats());
-        // info!("end session");
-
-        Ok(Self { socket })
-    }
-
-    pub fn local_addr(&self) -> std::io::Result<SocketAddr> {
-        self.socket.local_addr()
+        Ok((
+            local_addr,
+            tokio::spawn(process_udp(
+                egress_conn.reader,
+                egress_conn.writer,
+                socket.clone(),
+                ETHERNET_V2_MTU,
+                token,
+            )),
+        ))
     }
 }
 
@@ -377,15 +371,22 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
 
     let client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
-    let socket = make_socket(None)?;
+    let bind_addr = match transport_endpoint.is_ipv4() {
+        true => (Ipv4Addr::UNSPECIFIED, 0).into(),
+        false => (Ipv6Addr::UNSPECIFIED, 0).into(),
+    };
+    let socket = make_socket(Some(bind_addr)).map_err(TransportError::SocketIo)?;
     let runtime =
-        quinn::default_runtime().ok_or_else(|| io::Error::other("no async runtime found"))?;
+        quinn::default_runtime().ok_or_else(|| TransportError::other("no async runtime found"))?;
     let mut endpoint = quinn::Endpoint::new_with_abstract_socket(
         Default::default(),
         None,
-        runtime.wrap_udp_socket(socket)?,
+        runtime
+            .wrap_udp_socket(socket)
+            .map_err(TransportError::SocketIo)?,
         runtime,
-    )?;
+    )
+    .map_err(TransportError::SocketIo)?;
     endpoint.set_default_client_config(client_config);
 
     // If no hostname is provided use the IP address of the remote server as the hostname.
@@ -398,9 +399,9 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .map_err(TransportError::QuicProto)
 }
 
-use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 #[cfg(target_os = "linux")]
 use crate::TUNNEL_FWMARK;
+use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 #[cfg(target_os = "linux")]
@@ -409,7 +410,7 @@ use std::os::fd::AsFd;
 use std::io;
 
 fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {
-    let addr = addr.unwrap_or((Ipv6Addr::UNSPECIFIED, 0).into());
+    let addr = addr.unwrap_or((Ipv4Addr::UNSPECIFIED, 0).into());
     let socket = std::net::UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
     #[cfg(target_os = "linux")]

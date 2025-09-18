@@ -332,7 +332,6 @@ message GetAccountLinksRequest {
 enum TunnelType {
   MIXNET = 0;
   WIREGUARD = 1;
-  WRAPPED_WIREGUARD = 2;
 }
 
 enum EstablishConnectionState {
@@ -369,6 +368,7 @@ message MixnetConnectionData {
 message WireguardConnectionData {
   WireguardNode entry = 1;
   WireguardNode exit = 2;
+  optional string entry_bridge_addr = 3;
 }
 
 message WireguardNode {

@@ -5,7 +5,10 @@ use nym_gateway_directory::{
     CachingGatewayClient, EntryPoint, ExitPoint, Gateway, GatewayList, GatewayType,
 };
 
-use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
+use crate::{
+    GatewayDirectoryError,
+    tunnel_state_machine::{TunnelSettings, TunnelType},
+};
 
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
@@ -15,7 +18,7 @@ pub struct SelectedGateways {
 
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
-    tunnel_type: TunnelType,
+    tunnel_settings: &TunnelSettings,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
@@ -37,28 +40,25 @@ pub async fn select_gateways(
         });
     };
 
-    let (mut entry_gateways, exit_gateways) = match tunnel_type {
+    let (mut entry_gateways, exit_gateways) = match tunnel_settings.tunnel_type {
         TunnelType::Wireguard => {
             let all_gateways = gateway_cache_handle
                 .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
-            (all_gateways.clone(), all_gateways)
-        }
-        TunnelType::WrappedWireguard => {
-            // if configured to use Transport connection filter entry gateways
-            // to select from gateways that support the transport connection.
-            let all_gateways = gateway_cache_handle
-                .lookup_gateways(GatewayType::Wg)
-                .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
-            let entry_gateways = GatewayList::new(
-                all_gateways
-                    .clone()
-                    .into_iter()
-                    .filter(|gw| gw.bridge_params.is_some())
-                    .collect(),
-            );
+
+            let entry_gateways = if tunnel_settings.bridges_enabled() {
+                GatewayList::new(
+                    all_gateways
+                        .clone()
+                        .into_iter()
+                        .filter(|gw| gw.bridge_params.is_some())
+                        .collect(),
+                )
+            } else {
+                all_gateways.clone()
+            };
+
             (entry_gateways, all_gateways)
         }
         TunnelType::Mixnet => {

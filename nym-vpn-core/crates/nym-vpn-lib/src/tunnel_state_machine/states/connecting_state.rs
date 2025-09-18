@@ -177,6 +177,7 @@ impl ConnectingState {
                         #[cfg(target_os = "windows")]
                         AllowedClients::current_exe(),
                     );
+
                     peer_endpoints.push(peer_ws_endpoint);
                     let peer_tr_endpoint = AllowedEndpoint::new(
                         Endpoint::new(*ip, 4443, TransportProtocol::Udp),
@@ -187,6 +188,23 @@ impl ConnectingState {
                     );
                     peer_endpoints.push(peer_tr_endpoint);
                 });
+        }
+
+        if shared_state.tunnel_settings.bridges_enabled() {
+            if let Some(entry) = entry_gateway {
+                if let Some(params) = &entry.bridge_params {
+                    params.get_addrs().iter().for_each(|addr| {
+                        let tr_endpoint = AllowedEndpoint::new(
+                            Endpoint::new(addr.ip(), addr.port(), TransportProtocol::Udp),
+                            #[cfg(any(target_os = "linux", target_os = "macos"))]
+                            AllowedClients::Root,
+                            #[cfg(target_os = "windows")]
+                            AllowedClients::current_exe(),
+                        );
+                        peer_endpoints.push(tr_endpoint);
+                    });
+                }
+            }
         }
 
         if let Some(wg_entry_endpoint) = wg_entry_endpoint {
