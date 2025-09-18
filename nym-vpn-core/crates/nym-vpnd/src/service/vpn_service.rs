@@ -923,7 +923,12 @@ impl NymVpnService {
 
         self.update_tunnel_settings();
 
-        let _ = self.set_target_state(TargetState::Secured);
+        // Ensure to always reconnect to maintain the legacy behavior
+        if self.target_state == TargetState::Secured {
+            let _ = self.command_sender.send(TunnelCommand::Connect);
+        } else {
+            let _ = self.set_target_state(TargetState::Secured);
+        }
 
         Ok(())
     }
