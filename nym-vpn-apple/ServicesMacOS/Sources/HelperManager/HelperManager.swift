@@ -3,11 +3,10 @@ import SecurityFoundation
 import ServiceManagement
 import AppVersionProvider
 import GRPCManager
-import Shell
 import Logging
 import NymLogger
 
-// Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
+// Any changes made to Info.plist - are used to create daemon in nym-vpnd.
 
 public final class HelperManager: ObservableObject {
     private let grpcManager: GRPCManager
@@ -71,7 +70,6 @@ public final class HelperManager: ObservableObject {
 private extension HelperManager {
     func setup() {
         Task {
-            try? await grpcManager.version()
             updateDaemonState()
             setupGrpcManagerObservers()
             registerDaemonIfNeeded()
@@ -106,7 +104,11 @@ private extension HelperManager {
         case .notRegistered, .notFound:
             newState = .unknown
         case .enabled:
-            guard grpcManager.isServing else { return daemonState = .unknown }
+            guard grpcManager.isServing
+            else {
+                checkIfDaemonNeedsForcedUpdate()
+                return
+            }
             if grpcManager.daemonVersion != "unknown" || grpcManager.daemonVersion != "noVersion" {
                 newState = isInstalledAndUpToDate ? .running : .requiresUpdate
             } else {
@@ -120,7 +122,7 @@ private extension HelperManager {
 
         if requiresDaemonMigration() {
             newState = .requiresManualRemoval
-            starPolling()
+            startPolling()
         } else {
             pollingTask?.cancel()
             pollingTask = nil
@@ -130,6 +132,16 @@ private extension HelperManager {
         guard newState != daemonState else { return }
         daemonState = newState
         logger.info("State changed to: \(newState)")
+    }
+
+    // Version 2.6.0, change of vpn service update
+    func checkIfDaemonNeedsForcedUpdate() {
+        if grpcManager.daemonVersion == "update" {
+            daemonState = .requiresUpdate
+            try? updateDaemonIfNeeded()
+        } else {
+            daemonState = .unknown
+        }
     }
 
     func updateDaemonIfNeeded() throws {
@@ -164,7 +176,7 @@ private extension HelperManager {
 
 // MARK: - Polling -
 private extension HelperManager {
-    func starPolling() {
+    func startPolling() {
         pollingTask = Task { [weak self] in
             guard let self else { return }
             while pollingTask != nil {

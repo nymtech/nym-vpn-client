@@ -1,5 +1,5 @@
 use nym_vpn_proto::proto::{
-    EntryNode, ExitNode, Gateway as ProtoGateway, Location, entry_node::EntryNodeEnum,
+    EntryNode, ExitNode, GatewayId as ProtoGateway, Location, entry_node::EntryNodeEnum,
     exit_node::ExitNodeEnum,
 };
 use serde::{Deserialize, Serialize};
@@ -23,8 +23,6 @@ impl From<Country> for EntryNode {
         EntryNode {
             entry_node_enum: Some(EntryNodeEnum::Location(Location {
                 two_letter_iso_country_code: country.code,
-                latitude: None,
-                longitude: None,
             })),
         }
     }
@@ -35,8 +33,6 @@ impl From<Country> for ExitNode {
         ExitNode {
             exit_node_enum: Some(ExitNodeEnum::Location(Location {
                 two_letter_iso_country_code: country.code,
-                latitude: None,
-                longitude: None,
             })),
         }
     }

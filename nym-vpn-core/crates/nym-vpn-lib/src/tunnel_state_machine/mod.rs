@@ -41,7 +41,7 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{
-    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint,
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayCacheHandle,
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
@@ -49,7 +49,6 @@ use nym_vpn_lib_types::{
     EstablishConnectionData, EstablishConnectionState, MixnetEvent, TunnelEvent, TunnelState,
     TunnelType,
 };
-use nym_wg_gateway_client::Error as WgGatewayClientError;
 
 use tunnel::SelectedGateways;
 #[cfg(windows)]
@@ -186,9 +185,6 @@ pub struct GatewayPerformanceOptions {
 pub struct MixnetTunnelOptions {
     /// Overrides tunnel interface MTU.
     pub mtu: Option<u16>,
-
-    /// Enable the credentials mode between the client and the gateways.
-    pub enable_credentials_mode: bool,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -450,7 +446,7 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
-    gateway_directory: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     topology_provider: VpnTopologyProvider,
 }
 
@@ -488,7 +484,7 @@ impl TunnelStateMachine {
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
-        gateway_directory: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
         topology_provider: VpnTopologyProvider,
         connectivity_handle: ConnectivityHandle,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
@@ -544,7 +540,7 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             statistics_event_sender,
-            gateway_directory,
+            gateway_cache_handle,
             topology_provider,
         };
 
@@ -767,24 +763,20 @@ impl tunnel::Error {
                 ) => Some(ErrorStateReason::InvalidExitGatewayCountry),
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
-                source,
-                ..
-            }) => match *source {
-                WgGatewayClientError::NoRetry { .. } => {
-                    Some(ErrorStateReason::BadBandwidthIncrease)
+            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
+                if error.is_no_retry() {
+                    Some(ErrorStateReason::CredentialWastedOnEntryGateway)
+                } else {
+                    None
                 }
-                _ => None,
-            },
-            Self::BandwidthController(BandwidthControllerError::RequestCredential {
-                source,
-                ..
-            }) => match *source {
-                WgGatewayClientError::NoRetry { .. } => {
-                    Some(ErrorStateReason::BadBandwidthIncrease)
+            }
+            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
+                if error.is_no_retry() {
+                    Some(ErrorStateReason::CredentialWastedOnExitGateway)
+                } else {
+                    None
                 }
-                _ => None,
-            },
+            }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(
                 "Failed to dup tunnel fd".to_owned(),
             )),

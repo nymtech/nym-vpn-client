@@ -16,6 +16,7 @@ let package = Package(
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
+        .library(name: "FeatureFlagModels", targets: ["FeatureFlagModels"]),
         .library(name: "ErrorReason", targets: ["ErrorReason"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "MessageModels", targets: ["MessageModels"]),
@@ -29,7 +30,9 @@ let package = Package(
     targets: [
         .target(
             name: "AppVersionProvider",
-            dependencies: [],
+            dependencies: [
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
+            ],
             path: "Sources/AppVersionProvider"
         ),
         .target(
@@ -59,6 +62,12 @@ let package = Package(
                 "Constants"
             ],
             path: "Sources/DarwinNotificationCenter"
+        ),
+        .target(
+            name: "FeatureFlagModels",
+            dependencies: [
+            ],
+            path: "Sources/FeatureFlagModels"
         ),
         .target(
             name: "ErrorReason",

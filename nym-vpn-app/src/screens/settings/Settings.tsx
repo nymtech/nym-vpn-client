@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support } = useMainState();
+  const { desktopNotifications, ipv6Support, backendFlags } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -21,6 +21,7 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
+  const showAntiCensorship = backendFlags?.quic || backendFlags?.domainFronting;
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
@@ -98,6 +99,12 @@ function Settings() {
               />
             ),
             disabled: true,
+          },
+          showAntiCensorship && {
+            title: t('anti-censorship.title', { ns: 'settings' }),
+            leadingIcon: 'dns',
+            onClick: () => navigate(routes.antiCensorship),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
         ]}
       />

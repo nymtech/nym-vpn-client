@@ -24,7 +24,7 @@ pub type JsonValue = Value;
 #[derive(Deserialize, Serialize, AsRefStr, EnumIter, Debug, Clone, Copy, TS)]
 #[strum(serialize_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
-#[ts(export)]
+#[ts(export, export_to = "DbKey.ts", rename = "DbKey")]
 pub enum Key {
     UiTheme,
     UiRootFontSize,
@@ -35,14 +35,16 @@ pub enum Key {
     WelcomeScreenSeen,
     DesktopNotifications,
     LastNetworkEnv,
+    DisableIpv6,
+    NetworkStatsEnabled,
+    QuicEnabled,
+    DomainFrontingEnabled,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,
     CacheWgGateways,
     CacheAccountId,
     CacheDeviceId,
-    DisableIpv6,
-    NetworkStatsEnabled,
 }
 
 impl Display for Key {
@@ -178,7 +180,7 @@ impl Db {
     }
 
     /// Insert a key to a new JSON value returning the previous value if any
-    #[instrument(skip(self))]
+    #[instrument(skip(self, value))]
     pub fn insert<T>(&self, key: &str, value: T) -> Result<Option<JsonValue>, DbError>
     where
         T: Serialize + fmt::Debug,
@@ -198,7 +200,12 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
-        debug!("set key [{key}]");
+        if key.starts_with("cache-") {
+            // some cached data like gateways list are BIG, skip them
+            debug!("set key [{key}]");
+        } else {
+            debug!("set key [{key}] value={:?}", value);
+        }
         self.discard_deserialize(key, res)
     }
 

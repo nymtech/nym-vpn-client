@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 
+use nym_gateway_directory::{EntryPoint, ExitPoint};
 use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
@@ -10,11 +11,10 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{AccountControllerState, AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest,
+    AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::VpnServiceInfo,
+    service::{ConnectArgs, VpnServiceConfig, VpnServiceInfo},
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -42,6 +42,72 @@ impl RpcClient {
         let response = self.0.info(()).await.map_err(Error::Rpc)?.into_inner();
 
         VpnServiceInfo::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_config(&mut self) -> Result<VpnServiceConfig> {
+        let response = self
+            .0
+            .get_config(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let config = response
+            .config
+            .ok_or_else(|| Error::Rpc(tonic::Status::internal("Missing config in response")))?;
+
+        VpnServiceConfig::try_from(config).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn set_entry_point(&mut self, entry_point: EntryPoint) -> Result<()> {
+        let entry_node = proto::EntryNode::try_from(entry_point).map_err(Error::InvalidRequest)?;
+
+        self.0
+            .set_entry_point(entry_node)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(())
+    }
+
+    pub async fn set_exit_point(&mut self, exit_point: ExitPoint) -> Result<()> {
+        let exit_node = proto::ExitNode::try_from(exit_point).map_err(Error::InvalidRequest)?;
+
+        self.0
+            .set_exit_point(exit_node)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(())
+    }
+
+    pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<()> {
+        self.0
+            .set_disable_ipv6(disable_ipv6)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_enable_two_hop(&mut self, enable_two_hop: bool) -> Result<()> {
+        self.0
+            .set_enable_two_hop(enable_two_hop)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
+        self.0
+            .set_netstack(netstack)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
     }
 
     pub async fn set_network(&mut self, network: String) -> Result<()> {
@@ -98,7 +164,23 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn disconnect_tunnel(&mut self) -> Result<()> {
+    pub async fn connect_tunnel_v2(&mut self) -> Result<bool> {
+        self.0
+            .connect_tunnel_v2(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn reconnect_tunnel(&mut self) -> Result<bool> {
+        self.0
+            .reconnect_tunnel(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
         self.0
             .disconnect_tunnel(())
             .await

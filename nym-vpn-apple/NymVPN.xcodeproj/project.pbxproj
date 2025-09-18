@@ -99,6 +99,10 @@
 		D9CDF2DC2BF49909007E5DAF /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9CDF2DB2BF49909007E5DAF /* Home */; };
 		D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */; };
 		D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */; };
+		D9D336672E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
+		D9D336682E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
+		D9D3366A2E7B0D7700590D81 /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D336692E7B0D7700590D81 /* FeatureFlagsManager */; };
+		D9D381332E7B1683006DAFBB /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D381322E7B1683006DAFBB /* FeatureFlagsManager */; };
 		D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */ = {isa = PBXBuildFile; productRef = D9D483572BEBA72F0005A41C /* UIComponents */; };
 		D9DE893E2CFE54CD006C4071 /* launchLogo@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = D9DE893D2CFE54CD006C4071 /* launchLogo@3x.png */; };
 		D9DE893F2CFE54CD006C4071 /* launchLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = D9DE893B2CFE54CD006C4071 /* launchLogo.png */; };
@@ -237,6 +241,7 @@
 		D9CF05E22BA1CDAA00489055 /* libnetworkextension.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libnetworkextension.tbd; path = usr/lib/libnetworkextension.tbd; sourceTree = SDKROOT; };
 		D9CF05E32BA1CDAA00489055 /* libswiftNetwork.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftNetwork.tbd; path = usr/lib/swift/libswiftNetwork.tbd; sourceTree = SDKROOT; };
 		D9CF05E42BA1CDAA00489055 /* ThreadNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ThreadNetwork.framework; path = System/Library/Frameworks/ThreadNetwork.framework; sourceTree = SDKROOT; };
+		D9D336662E7A8EDE00590D81 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		D9DE893B2CFE54CD006C4071 /* launchLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = launchLogo.png; sourceTree = "<group>"; };
 		D9DE893C2CFE54CD006C4071 /* launchLogo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "launchLogo@2x.png"; sourceTree = "<group>"; };
 		D9DE893D2CFE54CD006C4071 /* launchLogo@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "launchLogo@3x.png"; sourceTree = "<group>"; };
@@ -248,7 +253,6 @@
 		D9F744742D79BF5900DD9277 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.nymtech.vpn.helper.plist; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
-		D9FB33F22BEE320B009C3419 /* Launchd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Launchd.plist; sourceTree = "<group>"; };
 		D9FB33F32BEE320B009C3419 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -281,6 +285,7 @@
 				D93214412B84D29200FFDC5E /* Logging in Frameworks */,
 				D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */,
 				D98E52312D4005ED00AE92C3 /* ErrorReason in Frameworks */,
+				D9D381332E7B1683006DAFBB /* FeatureFlagsManager in Frameworks */,
 				D96740232B56A67A001F6891 /* Tunnels in Frameworks */,
 				D9F699E02B4C1862005576A9 /* Settings in Frameworks */,
 				D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */,
@@ -320,6 +325,7 @@
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
+				D9D3366A2E7B0D7700590D81 /* FeatureFlagsManager in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
 				D9144C5F2CC105B20021A617 /* CountriesManager in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
@@ -407,6 +413,7 @@
 			isa = PBXGroup;
 			children = (
 				D9E9F1A12C3D51650056EB8C /* README.md */,
+				D9D336652E7A8E9300590D81 /* SharedResources */,
 				D9FB33F02BEE31E2009C3419 /* Daemon */,
 				D99A14782B357E9900F2728B /* NymVPN */,
 				D9BEF2D12BEB63310036C566 /* NymVPNDaemon */,
@@ -477,6 +484,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		D9D336652E7A8E9300590D81 /* SharedResources */ = {
+			isa = PBXGroup;
+			children = (
+				D9D336662E7A8EDE00590D81 /* AppIcon.icon */,
+			);
+			path = SharedResources;
+			sourceTree = "<group>";
+		};
 		D9DE89442CFE54F7006C4071 /* LaunchLogo */ = {
 			isa = PBXGroup;
 			children = (
@@ -500,7 +515,6 @@
 			children = (
 				D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */,
 				D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */,
-				D9FB33F22BEE320B009C3419 /* Launchd.plist */,
 				D9FB33F32BEE320B009C3419 /* Info.plist */,
 				D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */,
 			);
@@ -591,6 +605,7 @@
 				D9391F082E461E16002BE10F /* MessagesManager */,
 				D9391F0E2E4624D6002BE10F /* MessageModels */,
 				D93466CC2E57A1FE00BEF458 /* NymVPNLib */,
+				D9D381322E7B1683006DAFBB /* FeatureFlagsManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -640,6 +655,7 @@
 				D9C5EDE32DF0612700C0D991 /* PurchasesManager */,
 				D9391F0A2E461E1C002BE10F /* MessagesManager */,
 				D9391F0C2E4624CD002BE10F /* MessageModels */,
+				D9D336692E7B0D7700590D81 /* FeatureFlagsManager */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -748,6 +764,7 @@
 				D9CACB0C2D67B7090004F9E0 /* gatewaysEntry.json in Resources */,
 				D9CACB0D2D67B7090004F9E0 /* gatewaysExit.json in Resources */,
 				D9CACB0E2D67B7090004F9E0 /* gatewaysVpn.json in Resources */,
+				D9D336672E7A8EDE00590D81 /* AppIcon.icon in Resources */,
 				D9879AF72CFE166400CF1B5D /* LaunchScreen.storyboard in Resources */,
 				D9CACB082D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
@@ -779,6 +796,7 @@
 				D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
 				D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
+				D9D336682E7A8EDE00590D81 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1623,6 +1641,14 @@
 		D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TunnelStatus;
+		};
+		D9D336692E7B0D7700590D81 /* FeatureFlagsManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FeatureFlagsManager;
+		};
+		D9D381322E7B1683006DAFBB /* FeatureFlagsManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FeatureFlagsManager;
 		};
 		D9D483572BEBA72F0005A41C /* UIComponents */ = {
 			isa = XCSwiftPackageProductDependency;

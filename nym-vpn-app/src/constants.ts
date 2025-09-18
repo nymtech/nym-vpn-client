@@ -39,3 +39,6 @@ export const GatewaysCacheDuration = 300; // 5min
 export const NymVpnPricingUrl = 'https://nym.com/pricing';
 export const SentryPrivacyPolicyUrl = 'https://sentry.io/privacy/';
 export const AnonNetworkStatsUrl = 'https://nym.com/anonymous-stats';
+// TODO
+export const QuicUrl = '';
+export const DomainFrontingUrl = '';

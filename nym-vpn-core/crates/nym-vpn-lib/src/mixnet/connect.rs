@@ -25,7 +25,6 @@ const MOBILE_LOOP_COVER_STREAM_AVERAGE_DELAY: Duration = Duration::from_secs(10)
 pub struct SetupMixnetClientOptions {
     pub network_env: Network,
     pub mixnet_entry_gateway: NodeIdentity,
-    pub enable_credentials_mode: bool,
     pub two_hop_mode: bool,
     pub custom_topology_provider: VpnTopologyProvider,
     #[cfg(unix)]
@@ -140,7 +139,7 @@ where
         .network_details(setup_options.network_env.nym_network.network.clone())
         .debug_config(debug_config)
         .custom_shutdown(task_client)
-        .credentials_mode(setup_options.enable_credentials_mode)
+        .credentials_mode(true)
         .with_remember_me(remember_me)
         .custom_topology_provider(Box::new(setup_options.custom_topology_provider));
 

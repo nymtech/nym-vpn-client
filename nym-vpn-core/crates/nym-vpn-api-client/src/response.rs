@@ -302,6 +302,23 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScoreValue {
+    Offline,
+    Low,
+    Medium,
+    High,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct DVpnGatewayPerformance {
+    pub last_updated_utc: String,
+    pub score: ScoreValue,
+    pub load: ScoreValue,
+    pub uptime_percentage_last_24_hours: f32,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGateway {
     pub identity_key: String,
     pub name: String,
@@ -317,6 +334,9 @@ pub struct NymDirectoryGateway {
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
+    // Node performance information needed by the NymVPN UI / Explorer to show more information
+    // about the node in a user-friendly way
+    pub performance_v2: Option<DVpnGatewayPerformance>,
     pub build_information: Option<BuildInformation>,
 }
 
@@ -425,11 +445,30 @@ impl NymDirectoryGateway {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AsnKind {
+    Residential,
+    Other,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Asn {
+    pub asn: String,
+    pub name: String,
+    pub kind: AsnKind,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
     pub longitude: f64,
+
+    pub city: String,
+    pub region: String,
+
+    pub asn: Option<Asn>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

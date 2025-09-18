@@ -5,35 +5,11 @@ pub mod gateway;
 pub mod log_path;
 pub mod service;
 
-use std::net::IpAddr;
-
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayType, Percent};
+use nym_gateway_directory::GatewayType;
 use nym_sdk::UserAgent;
 
 #[derive(Debug)]
-pub struct ConnectArgs {
-    pub entry: Option<EntryPoint>,
-    pub exit: Option<ExitPoint>,
-    pub options: ConnectOptions,
-}
 
-#[derive(Default, Debug, Clone)]
-pub struct ConnectOptions {
-    pub dns: Option<IpAddr>,
-    pub disable_ipv6: bool,
-    pub enable_two_hop: bool,
-    pub circumvention_transports: bool,
-    pub netstack: bool,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub enable_credentials_mode: bool,
-    pub min_mixnode_performance: Option<Percent>,
-    pub min_gateway_mixnet_performance: Option<Percent>,
-    pub min_gateway_vpn_performance: Option<Percent>,
-    pub user_agent: Option<UserAgent>,
-}
-
-#[derive(Debug)]
 pub struct ListGatewaysOptions {
     pub gw_type: GatewayType,
     #[allow(unused)]

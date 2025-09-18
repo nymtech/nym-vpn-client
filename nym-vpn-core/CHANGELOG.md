@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
+- Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
+
 ### Fixed
 
 - Fix edgecase where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
 - Fix Sentry extra metadata tag when there is no OS extra info
   (https://github.com/nymtech/nym-vpn-client/pull/3411)
+
+### Changed
+
+- [macOS] Skip filtering loopback traffic to optimize performance
+- Differentiate between entry and exit gateway errors (https://github.com/nymtech/nym-vpn-client/pull/3458)
+
 
 ## [1.15.0] - 2025-09-10
 

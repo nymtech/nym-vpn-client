@@ -5,6 +5,7 @@ import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
+  FeatureFlags,
   MixnetEventPayload,
   StateDispatch,
   TAccountState,
@@ -46,7 +47,7 @@ export function useTauriEvents(
           await CCache.del('cache-device-id');
         }
 
-        // refresh account status
+        // when (re)connected to daemon, refresh some state
         if (isVpndOk(status) || isVpndNonCompat(status)) {
           try {
             const stored = await invoke<boolean | undefined>(
@@ -59,6 +60,13 @@ export function useTauriEvents(
               locale: i18n.language,
             });
             dispatch({ type: 'set-account-links', links });
+          } catch {}
+          try {
+            const flags = await invoke<FeatureFlags>('feature_flags');
+            dispatch({
+              type: 'set-backend-flags',
+              flags,
+            });
           } catch {}
         }
       },

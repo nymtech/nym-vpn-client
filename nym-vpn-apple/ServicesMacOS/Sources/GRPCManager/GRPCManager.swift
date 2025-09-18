@@ -27,20 +27,11 @@ public final class GRPCManager: ObservableObject {
         agent.platform = AppVersionProvider.platform
         return agent
     }
+    var versionPingTask: Task<Void, Never>?
 
     public static let shared = GRPCManager()
 
-    @Published public var isServing = false {
-        didSet {
-            guard isServing
-            else {
-                if daemonVersion == "noVersion" {
-                    daemonVersion = "unknown"
-                }
-                return
-            }
-        }
-    }
+    @Published public var isServing = false
     @Published public var tunnelStatus: TunnelStatus = .unknown
     @Published public var errorReason: Error?
     @Published public var connectedDate: Date?
@@ -74,11 +65,13 @@ public final class GRPCManager: ObservableObject {
     deinit {
         try? channel.close().wait()
         try? group.syncShutdownGracefully()
+        stopInitialStatusPinger()
     }
 
     func setup() {
         setupListenToTunnelStateChangesObserver()
-        pingDaemonInitialStatus()
+        stopInitialStatusPinger()
+        startDaemonInitialStatusPingerIfNeeded()
     }
 }
 

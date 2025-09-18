@@ -14,6 +14,7 @@ import {
   AccountLinks,
   CodeDependency,
   Country,
+  FeatureFlags,
   Gateway,
   InitState,
   NetworkCompat,
@@ -25,6 +26,9 @@ import {
 } from '../types';
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
+
+const defaultQuic = window._APP.defaultQuic;
+const defaultDomFront = window._APP.defaultDomainFronting;
 
 // initialize connection state
 const getInitialTunnelState = async () => {
@@ -113,6 +117,19 @@ export async function initFirstBatch(
         type: 'set-account',
         stored: stored || false,
       });
+    },
+  };
+
+  const getFeatureFlagsRq: TauriReq<() => Promise<FeatureFlags | undefined>> = {
+    name: 'getFeatureFlagsRq',
+    request: () => invoke<FeatureFlags>('feature_flags'),
+    onFulfilled: (flags) => {
+      if (flags) {
+        dispatch({
+          type: 'set-backend-flags',
+          flags,
+        });
+      }
     },
   };
 
@@ -208,6 +225,25 @@ export async function initFirstBatch(
     },
   };
 
+  const getQuicRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getQuicRq',
+    request: () => kvGet<boolean>('quic-enabled'),
+    onFulfilled: (enabled) => {
+      dispatch({ type: 'set-quic', enabled: enabled || defaultQuic });
+    },
+  };
+
+  const getDomainFrontingRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getDomainFrontingRq',
+    request: () => kvGet<boolean>('domain-fronting-enabled'),
+    onFulfilled: (enabled) => {
+      dispatch({
+        type: 'set-domain-fronting',
+        enabled: enabled || defaultDomFront,
+      });
+    },
+  };
+
   const getNetworkStatsRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getNetworkStats',
     request: () => kvGet<boolean>('network-stats-enabled'),
@@ -230,6 +266,8 @@ export async function initFirstBatch(
     getDesktopNotificationsRq,
     getIpv6SupportRq,
     getNetworkStatsRq,
+    getQuicRq,
+    getDomainFrontingRq,
   ];
 
   if (initState.vpnd !== 'down') {
@@ -237,6 +275,7 @@ export async function initFirstBatch(
       initStateRq,
       getStoredAccountRq,
       getAccountStateRq,
+      getFeatureFlagsRq,
       ...requests,
     ];
   }

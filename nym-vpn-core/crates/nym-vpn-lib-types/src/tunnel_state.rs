@@ -52,6 +52,12 @@ pub enum TunnelState {
     },
 }
 
+impl TunnelState {
+    pub fn is_error_state(&self) -> bool {
+        matches!(self, Self::Error(_))
+    }
+}
+
 impl std::fmt::Display for TunnelState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -200,9 +206,13 @@ pub enum ErrorStateReason {
     /// Invalid country set for exit gateway
     InvalidExitGatewayCountry,
 
-    /// Gateway is not responding or responding badly to a bandwidth
+    /// Entry gateway is not responding or responding badly to a bandwidth
     /// increase request, causing credential waste
-    BadBandwidthIncrease,
+    CredentialWastedOnEntryGateway,
+
+    /// Exit gateway is not responding or responding badly to a bandwidth
+    /// increase request, causing credential waste
+    CredentialWastedOnExitGateway,
 
     /// Bandwidth Exceeded
     BandwidthExceeded,

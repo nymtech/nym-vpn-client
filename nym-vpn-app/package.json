@@ -8,7 +8,7 @@
     "zane <zanecschepke@gmail.com>",
     "nym"
   ],
-  "description": "Nym VPN Desktop Client",
+  "description": "NymVPN desktop client",
   "license": "GPL-3.0-only",
   "scripts": {
     "dev": "vite",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@base-ui-components/react": "^1.0.0-alpha.8",
     "@headlessui/react": "^2.1.2",
-    "@lottiefiles/dotlottie-react": "^0.15.0",
+    "@lottiefiles/dotlottie-react": "^0.17.0",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-slider": "^1.2.2",
     "@radix-ui/react-toast": "^1.2.6",
@@ -69,7 +69,7 @@
     "@types/react-dom": "^19.0.2",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-window": "^1.8.8",
-    "@vitejs/plugin-react-swc": "^3.7.2",
+    "@vitejs/plugin-react-swc": "^4.1.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",

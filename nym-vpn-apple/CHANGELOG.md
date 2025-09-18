@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Connecting states
+- Liquid glass icon
 
 ### Fixed
 
 - UI glitches in gateway/country list view
+- macOS: daemon not able to update after vpnd service migration
 
 ## [2.9.0] - 2025-09-03
 

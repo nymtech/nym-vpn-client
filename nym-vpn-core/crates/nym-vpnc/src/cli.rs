@@ -1,10 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::{net::IpAddr, ops::Deref};
 
 use anyhow::{Result, anyhow};
-use clap::{ArgAction, Args, Parser, Subcommand};
+use clap::{
+    ArgAction, Args, Parser, Subcommand,
+    builder::{PossibleValuesParser, TypedValueParser, ValueParser, ValueParserFactory},
+};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
 
@@ -25,8 +28,18 @@ fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
 
 #[derive(Subcommand)]
 pub enum Command {
-    /// Connect to the Nym network.
+    /// Connect to the Nym network (deprecated)
     Connect(Box<ConnectArgs>),
+
+    /// Connect the tunnel if it had been disconnected.
+    ConnectV2 {
+        /// Blocks until the connection is established or failed
+        #[arg(short, long)]
+        wait: bool,
+    },
+
+    /// Reconnect the tunnel if it had been connected.
+    Reconnect,
 
     /// Disconnect from the Nym network.
     Disconnect {
@@ -44,6 +57,42 @@ pub enum Command {
 
     /// Get info about the current client. Things like version and network details.
     Info,
+
+    /// Get the current VPN service configuration.
+    GetConfig,
+
+    /// Set the entry gateway node
+    SetEntry {
+        #[command(flatten)]
+        entry: CliEntry,
+    },
+
+    /// Set the exit gateway node
+    SetExit {
+        #[command(flatten)]
+        exit: CliExit,
+    },
+
+    /// Set IPv6 support state
+    SetIpv6 {
+        /// Set IPv6 support state (on|off)
+        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        enabled: BooleanOption,
+    },
+
+    /// Set two-hop mode
+    SetTwoHop {
+        /// Set two-hop mode (on|off)
+        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        enabled: BooleanOption,
+    },
+
+    /// Set netstack based implementation for two-hop wireguard.
+    SetNetstack {
+        /// Set netstack implementation (on|off)
+        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        enabled: BooleanOption,
+    },
 
     /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
     SetNetwork(SetNetworkArgs),
@@ -174,44 +223,11 @@ pub struct ConnectArgs {
 
 impl ConnectArgs {
     pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
-        if let Some(ref entry_gateway_id) = self.entry.entry_id {
-            Ok(Some(EntryPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(entry_gateway_id)
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            }))
-        } else if let Some(ref entry_gateway_country) = self.entry.entry_country {
-            Ok(Some(EntryPoint::Location {
-                location: entry_gateway_country.alpha2.to_string(),
-            }))
-        } else if self.entry.entry_random {
-            Ok(Some(EntryPoint::Random))
-        } else {
-            Ok(None)
-        }
+        self.entry.entry_point()
     }
 
     pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
-        if let Some(ref exit_router_address) = self.exit.exit_ipr_address {
-            Ok(Some(ExitPoint::Address {
-                address: Box::new(
-                    Recipient::try_from_base58_string(exit_router_address)
-                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
-                ),
-            }))
-        } else if let Some(ref exit_router_id) = self.exit.exit_id {
-            Ok(Some(ExitPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            }))
-        } else if let Some(ref exit_gateway_country) = self.exit.exit_country {
-            Ok(Some(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
-            }))
-        } else if self.exit.exit_random {
-            Ok(Some(ExitPoint::Random))
-        } else {
-            Ok(None)
-        }
+        self.exit.exit_point()
     }
 }
 
@@ -229,6 +245,25 @@ pub struct CliEntry {
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
     pub entry_random: bool,
+}
+
+impl CliEntry {
+    pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
+        if let Some(ref entry_gateway_id) = self.entry_id {
+            Ok(Some(EntryPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(entry_gateway_id)
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            }))
+        } else if let Some(ref entry_gateway_country) = self.entry_country {
+            Ok(Some(EntryPoint::Location {
+                location: entry_gateway_country.alpha2.to_string(),
+            }))
+        } else if self.entry_random {
+            Ok(Some(EntryPoint::Random))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 #[derive(Args)]
@@ -250,6 +285,60 @@ pub struct CliExit {
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-gateway-random")]
     pub exit_random: bool,
+}
+
+impl CliExit {
+    pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
+        if let Some(ref exit_router_address) = self.exit_ipr_address {
+            Ok(Some(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            }))
+        } else if let Some(ref exit_router_id) = self.exit_id {
+            Ok(Some(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            }))
+        } else if let Some(ref exit_gateway_country) = self.exit_country {
+            Ok(Some(ExitPoint::Location {
+                location: exit_gateway_country.alpha2.to_string(),
+            }))
+        } else if self.exit_random {
+            Ok(Some(ExitPoint::Random))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl TryFrom<CliExit> for ExitPoint {
+    type Error = anyhow::Error;
+
+    fn try_from(value: CliExit) -> std::result::Result<Self, Self::Error> {
+        if let Some(ref exit_router_address) = value.exit_ipr_address {
+            Ok(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            })
+        } else if let Some(ref exit_router_id) = value.exit_id {
+            Ok(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            })
+        } else if let Some(ref exit_gateway_country) = value.exit_country {
+            Ok(ExitPoint::Location {
+                location: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if value.exit_random {
+            Ok(ExitPoint::Random)
+        } else {
+            Err(anyhow!("Invalid Exit Point value"))
+        }
+    }
 }
 
 #[derive(Args)]
@@ -294,4 +383,65 @@ pub struct ConfirmZkNymDownloadedArgs {
     /// The ID of the ZK Nym to confirm.
     #[arg(short, long)]
     pub id: String,
+}
+
+/// A value parser that parses "on" or "off" into a boolean
+#[derive(Debug, Clone, Copy)]
+pub struct BooleanOption {
+    state: bool,
+    on_label: &'static str,
+    off_label: &'static str,
+}
+
+impl Deref for BooleanOption {
+    type Target = bool;
+
+    fn deref(&self) -> &Self::Target {
+        &self.state
+    }
+}
+
+impl clap::builder::ValueParserFactory for BooleanOption {
+    type Parser = ValueParser;
+
+    /// A value parser that parses "on" or "off" into a `BooleanOption`
+    fn value_parser() -> Self::Parser {
+        Self::custom_parser("on", "off")
+    }
+}
+
+impl BooleanOption {
+    /// A value parser that parses `on_label` and `off_label` into a `BooleanOption`
+    fn custom_parser(on_label: &'static str, off_label: &'static str) -> ValueParser {
+        assert!(on_label != off_label);
+
+        ValueParser::new(
+            PossibleValuesParser::new([on_label, off_label])
+                .map(move |val| Self::with_labels(val == on_label, on_label, off_label)),
+        )
+    }
+
+    fn with_labels(state: bool, on_label: &'static str, off_label: &'static str) -> Self {
+        Self {
+            state,
+            on_label,
+            off_label,
+        }
+    }
+}
+
+impl From<bool> for BooleanOption {
+    fn from(state: bool) -> Self {
+        Self::with_labels(state, "on", "off")
+    }
+}
+
+impl std::fmt::Display for BooleanOption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.state {
+            self.on_label.fmt(f)
+        } else {
+            self.off_label.fmt(f)
+        }
+    }
 }

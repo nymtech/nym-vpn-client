@@ -74,9 +74,11 @@ impl From<url::Url> for proto::Url {
 impl From<&nym_sdk::mixnet::NodeIdentity> for proto::EntryNode {
     fn from(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         Self {
-            entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(proto::Gateway {
-                id: identity.to_base58_string(),
-            })),
+            entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(
+                proto::GatewayId {
+                    id: identity.to_base58_string(),
+                },
+            )),
         }
     }
 }
@@ -84,7 +86,7 @@ impl From<&nym_sdk::mixnet::NodeIdentity> for proto::EntryNode {
 impl From<&nym_sdk::mixnet::NodeIdentity> for proto::ExitNode {
     fn from(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         Self {
-            exit_node_enum: Some(proto::exit_node::ExitNodeEnum::Gateway(proto::Gateway {
+            exit_node_enum: Some(proto::exit_node::ExitNodeEnum::Gateway(proto::GatewayId {
                 id: identity.to_base58_string(),
             })),
         }
@@ -104,7 +106,9 @@ impl From<&nym_sdk::mixnet::Recipient> for proto::ExitNode {
 
 impl From<std::net::IpAddr> for proto::Dns {
     fn from(ip: std::net::IpAddr) -> Self {
-        Self { ip: ip.to_string() }
+        Self {
+            ip: Some(ip.to_string()),
+        }
     }
 }
 

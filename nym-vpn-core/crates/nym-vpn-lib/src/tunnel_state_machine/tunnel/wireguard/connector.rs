@@ -8,7 +8,7 @@ use nym_vpn_network_config::Network;
 use nym_authenticator_client::{
     AuthClientMixnetListener, AuthClientMixnetListenerHandle, AuthenticatorVersion,
 };
-use nym_gateway_directory::{CachingGatewayClient, Gateway, Recipient};
+use nym_gateway_directory::{Gateway, GatewayCacheHandle, Recipient};
 use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
@@ -64,19 +64,19 @@ pub struct ConnectionData {
 
 pub struct Connector {
     mixnet_client: SharedMixnetClient,
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     use_bridge: bool,
 }
 
 impl Connector {
     pub fn new(
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
         use_bridge: bool,
     ) -> Self {
         Self {
             mixnet_client,
-            gateway_directory_client,
+            gateway_cache_handle,
             use_bridge,
         }
     }
@@ -96,7 +96,7 @@ impl Connector {
             task_manager,
             network,
             self.mixnet_client.clone(),
-            self.gateway_directory_client.clone(),
+            self.gateway_cache_handle.clone(),
             selected_gateways,
             data_path,
             cancel_token,
@@ -128,7 +128,7 @@ impl Connector {
         task_manager: &TaskManager,
         network: &Network,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
@@ -189,7 +189,7 @@ impl Connector {
 
             let (bw, connection_data) = BandwidthController::register_and_create(
                 controller,
-                &gateway_directory_client,
+                &gateway_cache_handle,
                 &selected_gateways,
                 &mut wg_entry_gateway_client,
                 &mut wg_exit_gateway_client,
@@ -207,7 +207,7 @@ impl Connector {
             let controller = nym_bandwidth_controller::BandwidthController::new(storage, client);
             let (bw, connection_data) = BandwidthController::register_and_create(
                 controller,
-                &gateway_directory_client,
+                &gateway_cache_handle,
                 &selected_gateways,
                 &mut wg_entry_gateway_client,
                 &mut wg_exit_gateway_client,

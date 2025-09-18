@@ -30,7 +30,7 @@ use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{
-    CachingGatewayClient, GatewayClient, GatewayMinPerformance, ResolvedConfig,
+    GatewayCacheHandle, GatewayClient, GatewayMinPerformance, ResolvedConfig,
 };
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -53,7 +53,7 @@ use super::{
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
-    ConnectionData, ErrorStateReason, EstablishConnectionData, Gateway, MixnetConnectionData,
+    ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     MixnetEvent, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
     WireguardNode,
 };
@@ -207,7 +207,7 @@ pub struct TunnelMonitor {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_controller_state: AccountStateReceiver,
-    gateway_directory_client: CachingGatewayClient,
+    gateway_cache_handle: GatewayCacheHandle,
     custom_topology_provider: VpnTopologyProvider,
     shutdown_token: CancellationToken,
 }
@@ -216,7 +216,7 @@ impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
         account_controller_state: AccountStateReceiver,
-        gateway_directory_client: CachingGatewayClient,
+        gateway_cache_handle: GatewayCacheHandle,
         custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
@@ -235,7 +235,7 @@ impl TunnelMonitor {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_controller_state,
-            gateway_directory_client,
+            gateway_cache_handle,
             custom_topology_provider,
             shutdown_token: shutdown_token.clone(),
         };
@@ -318,6 +318,7 @@ impl TunnelMonitor {
             }
         }
 
+        // todo: user_agent must not be a part of tunnel_settings
         let user_agent = self
             .tunnel_parameters
             .tunnel_settings
@@ -326,7 +327,7 @@ impl TunnelMonitor {
             .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
             gateway_config.clone(),
-            user_agent,
+            user_agent.clone(),
             self.tunnel_parameters
                 .resolved_gateway_config
                 .nym_vpn_api_socket_addrs
@@ -334,10 +335,10 @@ impl TunnelMonitor {
         )
         .unwrap();
 
-        self.gateway_directory_client
-            .update_client(gateway_directory_client)
-            .await;
-        self.gateway_directory_client.refresh_all().await;
+        self.gateway_cache_handle
+            .replace_gateway_client(gateway_directory_client)
+            .ok();
+        self.gateway_cache_handle.refresh_all().await.ok();
 
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
@@ -346,7 +347,7 @@ impl TunnelMonitor {
                 self.send_event(TunnelMonitorEvent::SelectingGateways);
 
                 let new_gateways = tunnel::select_gateways(
-                    self.gateway_directory_client.clone(),
+                    self.gateway_cache_handle.clone(),
                     &self.tunnel_parameters.tunnel_settings,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
@@ -380,13 +381,8 @@ impl TunnelMonitor {
                 .mixnet_client_config
                 .clone(),
             tunnel_type: self.tunnel_parameters.tunnel_settings.tunnel_type,
-            enable_credentials_mode: self
-                .tunnel_parameters
-                .tunnel_settings
-                .mixnet_tunnel_options
-                .enable_credentials_mode,
             selected_gateways: selected_gateways.clone(),
-            user_agent: None, // todo: provide user-agent
+            user_agent: Some(user_agent),
             custom_topology_provider: self.custom_topology_provider.clone(),
         };
 
@@ -415,7 +411,7 @@ impl TunnelMonitor {
             task_manager,
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
-            self.gateway_directory_client.clone(),
+            self.gateway_cache_handle.clone(),
             self.shutdown_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
@@ -477,8 +473,8 @@ impl TunnelMonitor {
         };
 
         let establishing_connection_data = EstablishConnectionData {
-            entry_gateway: Gateway::from(*selected_gateways.entry.clone()),
-            exit_gateway: Gateway::from(*selected_gateways.exit.clone()),
+            entry_gateway: GatewayId::from(*selected_gateways.entry.clone()),
+            exit_gateway: GatewayId::from(*selected_gateways.exit.clone()),
             tunnel: Some(tunnel_conn_data.clone()),
         };
 
@@ -518,8 +514,8 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
 
         let connection_data = ConnectionData {
-            entry_gateway: Gateway::from(*selected_gateways.entry),
-            exit_gateway: Gateway::from(*selected_gateways.exit),
+            entry_gateway: GatewayId::from(*selected_gateways.entry),
+            exit_gateway: GatewayId::from(*selected_gateways.exit),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
         };

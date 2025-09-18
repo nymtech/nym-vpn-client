@@ -81,6 +81,7 @@ impl Firewall {
 
     pub fn apply_policy(&mut self, policy: FirewallPolicy) -> Result<()> {
         self.enable()?;
+        self.set_skip_loopback_filtering()?;
         self.add_anchor()?;
         self.set_rules(&policy)?;
 
@@ -195,6 +196,7 @@ impl Firewall {
         // the first error it encountered, if any.
         self.remove_rules()
             .and(self.remove_anchor())
+            .and(self.reset_loopback_filtering())
             .and(self.restore_state())
     }
 
@@ -218,7 +220,6 @@ impl Firewall {
     fn set_rules(&mut self, policy: &FirewallPolicy) -> Result<()> {
         let mut new_filter_rules = vec![];
 
-        new_filter_rules.append(&mut self.get_allow_loopback_rules()?);
         new_filter_rules.append(&mut self.get_allow_dhcp_client_rules()?);
         new_filter_rules.append(&mut self.get_allow_ndp_rules()?);
         new_filter_rules.append(&mut self.get_policy_specific_rules(policy)?);
@@ -758,16 +759,6 @@ impl Firewall {
         })
     }
 
-    fn get_allow_loopback_rules(&self) -> Result<Vec<pfctl::FilterRule>> {
-        let lo0_rule = self
-            .create_rule_builder(FilterRuleAction::Pass)
-            .quick(true)
-            .interface("lo0")
-            .keep_state(pfctl::StatePolicy::Keep)
-            .build()?;
-        Ok(vec![lo0_rule])
-    }
-
     fn get_allow_lan_rules(&self) -> Result<Vec<pfctl::FilterRule>> {
         let mut rules = vec![];
         for net in &*ALLOWED_LAN_NETS {
@@ -1020,6 +1011,18 @@ impl Firewall {
             .is_enabled()
             .inspect_err(|err| tracing::error!("Unable to determine if pf is enabled: {err}"))
             .unwrap_or(false)
+    }
+
+    /// Disable filtering on loopback interface.
+    fn set_skip_loopback_filtering(&mut self) -> Result<()> {
+        self.pf
+            .set_interface_flag(pfctl::Interface::from("lo0"), pfctl::InterfaceFlags::Skip)
+    }
+
+    /// Reset filtering on loopback interface.
+    fn reset_loopback_filtering(&mut self) -> Result<()> {
+        self.pf
+            .clear_interface_flag(pfctl::Interface::from("lo0"), pfctl::InterfaceFlags::Skip)
     }
 
     fn restore_state(&mut self) -> Result<()> {

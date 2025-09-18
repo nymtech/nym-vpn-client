@@ -1,6 +1,9 @@
 package net.nymtech.nymvpn.ui.screens.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -9,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -71,45 +77,66 @@ fun SettingsScreen(
 		show = showLogoutDialog,
 		onDismiss = { showLogoutDialog = false },
 		onConfirm = {
-			appViewModel.logout()
 			showLogoutDialog = false
 			loggingOut = true
+			appViewModel.logout {
+				navController.navigate(Route.Main()) {
+					popUpTo(0) { inclusive = true }
+					launchSingleTop = true
+				}
+			}
 		},
 	)
 
-	Column(
-		horizontalAlignment = Alignment.Start,
-		verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
-		modifier = Modifier
-			.verticalScroll(rememberScrollState())
-			.fillMaxSize()
-			.padding(top = 24.dp)
-			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(bottom = padding.calculateBottomPadding()),
-	) {
-		LoginSection(
-			appUiState = appUiState,
-			onLoginClick = { navController.navigate(Route.Login) },
-		)
-		AccountSection(appUiState = appUiState, context = context)
-		SupportSection(navController = navController)
-		VpnSettingsSection(appUiState = appUiState, viewModel = viewModel, context = context)
-		AppearanceSection(appUiState = appUiState, viewModel = viewModel, context = context)
-		LegalSection()
-		LogoutSection(
-			appUiState,
-			loggingOut = loggingOut,
-			onLogoutClick = {
-				if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
-					snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
-				} else {
-					showLogoutDialog = true
-				}
-			},
-		)
-		if (appUiState.managerState.accountId != null) {
-			AccountId(clipboardManager, appUiState.managerState.accountId)
+	Box(modifier = Modifier.fillMaxSize()) {
+		Column(
+			horizontalAlignment = Alignment.Start,
+			verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+			modifier = Modifier
+				.verticalScroll(rememberScrollState())
+				.fillMaxSize()
+				.padding(top = 24.dp)
+				.padding(horizontal = 24.dp.scaledWidth())
+				.padding(bottom = padding.calculateBottomPadding()),
+		) {
+			LoginSection(
+				appUiState = appUiState,
+				onLoginClick = { navController.navigate(Route.Login) },
+			)
+			AccountSection(appUiState = appUiState, context = context)
+			SupportSection(navController = navController)
+			VpnSettingsSection(appUiState = appUiState, viewModel = viewModel, context = context)
+			AppearanceSection(appUiState = appUiState, viewModel = viewModel, context = context)
+			LegalSection()
+			LogoutSection(
+				appUiState,
+				loggingOut = loggingOut,
+				onLogoutClick = {
+					if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
+						snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
+					} else {
+						showLogoutDialog = true
+					}
+				},
+			)
+			if (appUiState.managerState.accountId != null) {
+				AccountId(clipboardManager, appUiState.managerState.accountId)
+			}
+			AppVersion(clipboardManager, navController)
 		}
-		AppVersion(clipboardManager, navController)
+
+		if (loggingOut) {
+			Box(
+				modifier = Modifier
+					.fillMaxSize()
+					.background(color = Color.Black.copy(alpha = 0.5f))
+					.clickable(enabled = false) {},
+			) {
+				CircularProgressIndicator(
+					modifier = Modifier.align(Alignment.Center),
+					color = MaterialTheme.colorScheme.primary,
+				)
+			}
+		}
 	}
 }

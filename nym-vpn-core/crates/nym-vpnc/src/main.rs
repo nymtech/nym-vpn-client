@@ -3,7 +3,7 @@
 
 mod cli;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::Parser;
 use cli::Internal;
 use nym_gateway_directory::GatewayType;
@@ -11,13 +11,13 @@ use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
-    ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
-    service::VpnServiceInfo,
+    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
 };
 use sysinfo::System;
 use tokio_stream::StreamExt;
 
-use crate::cli::Command;
+use crate::cli::{CliEntry, CliExit, Command};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -35,9 +35,17 @@ async fn main() -> Result<()> {
 
     match args.command {
         Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await?,
+        Command::ConnectV2 { wait } => connect_v2(rpc_client, wait).await?,
+        Command::Reconnect => reconnect(rpc_client).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
+        Command::GetConfig => get_config(rpc_client).await?,
+        Command::SetEntry { entry } => set_entry_point(rpc_client, entry).await?,
+        Command::SetExit { exit } => set_exit_point(rpc_client, exit).await?,
+        Command::SetIpv6 { enabled } => set_disable_ipv6(rpc_client, !*enabled).await?,
+        Command::SetTwoHop { enabled } => set_enable_two_hop(rpc_client, *enabled).await?,
+        Command::SetNetstack { enabled } => set_netstack(rpc_client, *enabled).await?,
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
         Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await?,
         Command::IsAccountStored => is_account_stored(rpc_client).await?,
@@ -112,9 +120,6 @@ async fn connect(
             disable_poisson_rate: connect_args.disable_poisson_rate,
             disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
             enable_credentials_mode: connect_args.enable_credentials_mode,
-            min_gateway_mixnet_performance: None,
-            min_mixnode_performance: None,
-            min_gateway_vpn_performance: None,
             user_agent: Some(user_agent),
         },
     };
@@ -127,6 +132,22 @@ async fn connect(
     } else {
         Ok(())
     }
+}
+
+async fn connect_v2(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
+    rpc_client.connect_tunnel_v2().await?;
+
+    if wait {
+        println!("Waiting until connected or failed");
+        wait_until_connected(rpc_client).await
+    } else {
+        Ok(())
+    }
+}
+
+async fn reconnect(mut rpc_client: RpcClient) -> Result<()> {
+    let _accepted = rpc_client.reconnect_tunnel().await?;
+    Ok(())
 }
 
 async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
@@ -212,6 +233,49 @@ async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
 async fn info(mut rpc_client: RpcClient) -> Result<()> {
     let service_info = rpc_client.get_info().await?;
     print_service_info(service_info);
+    Ok(())
+}
+
+async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
+    let config = rpc_client.get_config().await?;
+    println!("{config:#?}");
+    Ok(())
+}
+
+async fn set_entry_point(mut rpc_client: RpcClient, entry: CliEntry) -> Result<()> {
+    if let Some(entry_point) = entry.entry_point()? {
+        rpc_client.set_entry_point(entry_point).await?;
+        Ok(())
+    } else {
+        Err(anyhow!(
+            "You must specify at least one of --entry-id, --entry-country, or --entry-random"
+        ))
+    }
+}
+
+async fn set_exit_point(mut rpc_client: RpcClient, exit: CliExit) -> Result<()> {
+    if let Some(exit_point) = exit.exit_point()? {
+        rpc_client.set_exit_point(exit_point).await?;
+        Ok(())
+    } else {
+        Err(anyhow!(
+            "You must specify at least one of --exit-id, --exit-country, --exit-ipr-address, or --exit-random"
+        ))
+    }
+}
+
+async fn set_disable_ipv6(mut rpc_client: RpcClient, disable_ipv6: bool) -> Result<()> {
+    rpc_client.set_disable_ipv6(disable_ipv6).await?;
+    Ok(())
+}
+
+async fn set_enable_two_hop(mut rpc_client: RpcClient, enable_two_hop: bool) -> Result<()> {
+    rpc_client.set_enable_two_hop(enable_two_hop).await?;
+    Ok(())
+}
+
+async fn set_netstack(mut rpc_client: RpcClient, netstack: bool) -> Result<()> {
+    rpc_client.set_netstack(netstack).await?;
     Ok(())
 }
 
@@ -364,7 +428,7 @@ async fn list_gateways(
     println!("Gateways available for: {gw_type}");
     println!("Total gateways: {}", gateways.len());
     for gateway in gateways {
-        println!("  {gateway}");
+        println!("  {gateway:?}");
     }
     Ok(())
 }

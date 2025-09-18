@@ -3528,6 +3528,83 @@
         }
       }
     },
+    "censorship.quic.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How QUIC improves connections"
+          }
+        }
+      }
+    },
+    "censorship.quic.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        }
+      }
+    },
+    "censorship.quic.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        }
+      }
+    },
+    "censorship.quic.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced connection (QUIC)"
+          }
+        }
+      }
+    },
+    "censorship.stealhapi.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How the Stealth API connect mode works"
+          }
+        }
+      }
+    },
+    "censorship.stealhapi.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disguises API requests behind popular, allowed domains to bypass VPN blocking."
+          }
+        }
+      }
+    },
+    "censorship.stealhapi.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stealth API connect"
+          }
+        }
+      }
+    },
     "checkFAQ" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4331,7 +4408,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "作为您的登录"
+            "value" : "作为您的登录凭据"
           }
         }
       }
@@ -5745,7 +5822,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "启用自我保管"
+            "value" : "启用自主托管"
           }
         }
       }
@@ -5863,13 +5940,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "es" : {
@@ -5905,7 +5982,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -8977,7 +9054,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建凭据存储失败."
+            "value" : "创建凭据存储区域失败。"
           }
         }
       }
@@ -13320,7 +13397,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "创建永远不离开您设备的密钥"
+            "value" : "创建存储在设备本地的密钥"
           }
         }
       }
@@ -13421,7 +13498,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "建立匿名网络凭据"
+            "value" : "正在生成匿名网络凭据"
           }
         }
       }
@@ -13522,7 +13599,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在用您的设备密钥加密凭据。只有您才能解锁它们。"
+            "value" : "正在使用设备密钥加密凭据。只有您才能解锁它们"
           }
         }
       }
@@ -13825,7 +13902,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本地正在保护您的凭据..."
+            "value" : "正在保存您的凭据到本地..."
           }
         }
       }
@@ -14644,19 +14721,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -14698,7 +14775,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -22309,7 +22386,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "永远不要与任何人分享，包括Nym Support。"
+            "value" : "永远不要与任何人分享，包括Nym团队。"
           }
         }
       }
@@ -22511,7 +22588,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制密码"
+            "value" : "复制口令"
           }
         }
       }
@@ -22612,7 +22689,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Face ID 访问密码"
+            "value" : "使用 Face ID 访问口令"
           }
         }
       }
@@ -22713,7 +22790,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我已经安全地保存了这24个单词，永远不会分享它"
+            "value" : "我已经安全地保存了这24个单词并且永远不会分享它们"
           }
         }
       }
@@ -22814,7 +22891,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : ":警告：丢失这些单词 = 永远失去您的帐户。"
+            "value" : "⚠️丢失这些单词 = 永远失去您的帐户。"
           }
         }
       }
@@ -22915,7 +22992,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔒您的主帐户密码短语：24个单词让您从任何设备访问您的帐户。"
+            "value" : "🔒您的主帐户密码短语：24个单词是您从任何设备访问您的帐户的唯一方式。"
           }
         }
       }
@@ -23016,7 +23093,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用Optic ID访问密码"
+            "value" : "使用Optic ID访问口令"
           }
         }
       }
@@ -23117,7 +23194,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入您的密码来访问密码"
+            "value" : "输入您的密码来访问助记词"
           }
         }
       }
@@ -23218,7 +23295,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入您的密码以访问密码"
+            "value" : "输入您的密码以访问助记词"
           }
         }
       }
@@ -23319,7 +23396,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存到密钥"
+            "value" : "保存到keychain"
           }
         }
       }
@@ -23521,7 +23598,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用 Touch ID 访问密码"
+            "value" : "使用 Touch ID 访问口令"
           }
         }
       }
@@ -23622,7 +23699,84 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的账户密码"
+            "value" : "您的账户密码口令"
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous network stats"
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only network performance data is shared – never your browsing activity or personal data."
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn exactly what's shared"
+          }
+        }
+      }
+    },
+    "privacyData.errorCrashReports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error & crash reports"
+          }
+        }
+      }
+    },
+    "privacyData.errorCrashReports.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        }
+      }
+    },
+    "privacyData.errorCrashReports.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Sentry Privacy Policy"
           }
         }
       }
@@ -23668,8 +23822,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : " "
+            "state" : "translated",
+            "value" : ""
           }
         },
         "it" : {
@@ -23824,7 +23978,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "我们正在验证您的订阅——没有任何个人信息与您的身份关联"
+            "value" : "我们正在验证您的订阅—请放心，不会涉及任何与您的真实身份关联的个人信息"
           }
         }
       }
@@ -23925,7 +24079,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些零知识凭据证明您可以访问，但不透露您是谁。"
+            "value" : "这些零知识凭据在不透露真实身份证明您拥有NymVPN的使用权"
           }
         }
       }
@@ -24026,7 +24180,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的匿名访问凭据现已安全存储、私密、加密并在您的控制中"
+            "value" : "您的匿名访问凭据现已安全地加密保存并在您的控制下"
           }
         }
       }
@@ -24228,7 +24382,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "付款已确认"
+            "value" : "付款已验证"
           }
         }
       }
@@ -24352,7 +24506,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
           }
         },
         "es" : {
@@ -24364,7 +24518,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
           }
         },
         "fr" : {
@@ -24424,7 +24578,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
           }
         },
         "zh-Hans" : {
@@ -24453,7 +24607,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "value" : "Saving your zk-nyms on the device..."
           }
         },
         "es" : {
@@ -24465,7 +24619,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "value" : "Saving your zk-nyms on the device..."
           }
         },
         "fr" : {
@@ -24525,13 +24679,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "value" : "Saving your zk-nyms on the device..."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在设备上保存您的zk-nyms..."
+            "value" : "正在保存您的zk-nyms到设备本地..."
           }
         }
       }
@@ -25036,7 +25190,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的连接是隐私的。"
+            "value" : "您的连接是私密的。"
           }
         }
       }
@@ -25137,7 +25291,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的身份仍然是您的。"
+            "value" : "您的身份始终在您的控制之下。"
           }
         }
       }
@@ -25339,7 +25493,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "您的安全 NymVPN 账户已准备好🎉"
+            "value" : "您的 NymVPN 账户已准备好🎉"
           }
         }
       }
@@ -27869,6 +28023,17 @@
         }
       }
     },
+    "settings.censorship.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censorship"
+          }
+        }
+      }
+    },
     "settings.chatOnTelegram" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28471,6 +28636,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始"
+          }
+        }
+      }
+    },
+    "settings.ipv6.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable to only use IPv4"
+          }
+        }
+      }
+    },
+    "settings.ipv6.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 traffic tunneling"
           }
         }
       }
@@ -29279,6 +29466,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "口令"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy & data"
           }
         }
       }
@@ -30233,8 +30431,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Awaiting account readiness"
+            "state" : "translated",
+            "value" : "खाते की तैयारी की प्रतीक्षा हो रही है"
           }
         },
         "it" : {
@@ -30288,7 +30486,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "等待帐户准备状态"
+            "value" : "正在准备账号"
           }
         }
       }
@@ -30334,8 +30532,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting mixnet client"
+            "state" : "translated",
+            "value" : "Mixnet क्लाइंट से कनेक्ट हो रहा है"
           }
         },
         "it" : {
@@ -30365,7 +30563,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подключение клиента mixnet"
+            "value" : "Подключение клиента микснета"
           }
         },
         "tr" : {
@@ -30377,7 +30575,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Підключення клієнта mixnet"
+            "value" : "Підключення клієнта мікнет"
           }
         },
         "vi" : {
@@ -30435,8 +30633,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting tunnel"
+            "state" : "translated",
+            "value" : "टनल से कनेक्ट हो रहा है"
           }
         },
         "it" : {
@@ -30478,7 +30676,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Підключення тунелю"
+            "value" : "З'єднувальний тунель"
           }
         },
         "vi" : {
@@ -30490,7 +30688,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接隧道中"
+            "value" : "正在连接到VPN隧道"
           }
         }
       }
@@ -30536,8 +30734,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Refreshing gateways"
+            "state" : "translated",
+            "value" : "गेटवे लिस्ट को ताज़ा किया जा रहा है"
           }
         },
         "it" : {
@@ -30637,8 +30835,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Resolving API IP addresses"
+            "state" : "translated",
+            "value" : "API IP पतों का समाधान कर रहा है"
           }
         },
         "it" : {
@@ -30680,7 +30878,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вирішення API IP-адрес"
+            "value" : "Визначення IP-адрес API"
           }
         },
         "vi" : {
@@ -30738,8 +30936,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selecting gateways"
+            "state" : "translated",
+            "value" : "गेटवे का चयन हो रहा हैं"
           }
         },
         "it" : {
@@ -30793,7 +30991,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择网关"
+            "value" : "正在选择网关"
           }
         }
       }
@@ -31303,6 +31501,17 @@
         }
       }
     },
+    "welcome.analytics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share anonymous product analytics"
+          }
+        }
+      }
+    },
     "welcome.continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31500,7 +31709,40 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此为实验性软件。请勿依赖其提供强匿名性服务（目前阶段）。"
+            "value" : "此为实验性软件，请勿（在目前阶段）依赖其提供强匿名性服务。"
+          }
+        }
+      }
+    },
+    "welcome.privacyPolicy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy policy"
+          }
+        }
+      }
+    },
+    "welcome.privacyPolicy1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By continuing, you agree to NymVPN's"
+          }
+        }
+      }
+    },
+    "welcome.privacyPolicy2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and acknowledge NymVPN's"
           }
         }
       }
@@ -31803,7 +32045,29 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "）及数据分析——您可以随时退出。\n感谢您的支持！"
+            "value" : "）及数据分析——您可以随时关闭这些选项。\n感谢您的支持！"
+          }
+        }
+      }
+    },
+    "welcome.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        }
+      }
+    },
+    "welcome.termsOfUse" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of use"
           }
         }
       }

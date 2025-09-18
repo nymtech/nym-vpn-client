@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 // Represents the identity of a gateway
-message Gateway {
+message GatewayId {
   string id = 1;
 }
 
@@ -17,15 +17,33 @@ message Address {
   string gateway_id = 2;
 }
 
+enum AsnKind {
+    RESIDENTIAL = 0;
+    OTHER = 1;
+}
+
+message Asn {
+  string asn = 1;
+  string name = 2;
+  AsnKind kind = 3;
+}
+
 message Location {
   string two_letter_iso_country_code = 1;
-  optional double latitude = 2;
-  optional double longitude = 3;
+}
+
+message RichLocation {
+  string two_letter_iso_country_code = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string city = 4;
+  string region = 5;
+  optional Asn asn = 6;
 }
 
 message EntryNode {
   oneof entry_node_enum {
-    Gateway gateway = 1;
+    GatewayId gateway = 1;
     Location location = 2;
     google.protobuf.Empty random = 4;
   }
@@ -34,7 +52,7 @@ message EntryNode {
 message ExitNode {
   oneof exit_node_enum {
     Address address = 1;
-    Gateway gateway = 2;
+    GatewayId gateway = 2;
     Location location = 3;
     google.protobuf.Empty random = 4;
   }
@@ -60,12 +78,10 @@ message ConnectedStateDetails {
 }
 
 message Dns {
-  string ip = 1;
+  optional string ip = 1;
 }
 
-message Url {
-  string url = 1;
-}
+message Url { string url = 1; }
 
 message ApiUrl {
   string url = 1;
@@ -173,6 +189,10 @@ message NetworkCompatibility {
   string android = 5;
 }
 
+message GetConfigResponse {
+  VpnServiceConfig config = 1;
+}
+
 message GetSystemMessagesResponse {
   repeated SystemMessage messages = 1;
 }
@@ -208,6 +228,20 @@ message ConnectRequest {
   UserAgent user_agent = 12;
 }
 
+message VpnServiceConfig {
+  EntryNode entry_point = 1;
+  ExitNode exit_point = 2;
+  Dns dns = 3;
+  bool disable_ipv6 = 14;
+  bool enable_two_hop = 5;
+  bool netstack = 13;
+  bool disable_poisson_rate = 6;
+  bool disable_background_cover_traffic = 7;
+  optional uint32 min_mixnode_performance = 8;
+  optional uint32 min_gateway_mixnet_performance = 9;
+  optional uint32 min_gateway_vpn_performance = 10;
+}
+
 message AsEntry {
   bool can_connect = 1;
   bool can_route = 2;
@@ -241,16 +275,27 @@ message Probe {
 }
 
 message GatewayResponse {
-  Gateway id = 1;
-  Location location = 2;
+  GatewayId id = 1;
+  RichLocation location = 2;
   Probe last_probe = 3;
-  optional Score wg_score = 4;
+  optional Performance wg_performance = 4;
   optional Score mixnet_score = 5;
   string moniker = 6;
+  repeated string exit_ipv4s = 7;
+  repeated string exit_ipv6s = 8;
+  optional string build_version = 9;
+
+}
+
+message Performance {
+  string last_updated_utc = 1;
+  Score score = 2;
+  Score load = 3;
+  float uptime_percentage_last_24_hours = 4;
 }
 
 enum Score {
-  NONE = 0;
+  OFFLINE = 0;
   LOW = 1;
   MEDIUM = 2;
   HIGH = 3;
@@ -299,14 +344,14 @@ enum EstablishConnectionState {
 }
 
 message EstablishConnectionData {
-  Gateway entry_gateway = 1;
-  Gateway exit_gateway = 2;
+  GatewayId entry_gateway = 1;
+  GatewayId exit_gateway = 2;
   optional TunnelConnectionData tunnel = 3;
 }
 
 message ConnectionData {
-  Gateway entry_gateway = 1;
-  Gateway exit_gateway = 2;
+  GatewayId entry_gateway = 1;
+  GatewayId exit_gateway = 2;
   google.protobuf.Timestamp connected_at = 3;
   TunnelConnectionData tunnel = 4;
 }
@@ -358,14 +403,15 @@ message TunnelState {
     SAME_ENTRY_AND_EXIT_GATEWAY = 6;
     INVALID_ENTRY_GATEWAY_COUNTRY = 7;
     INVALID_EXIT_GATEWAY_COUNTRY = 8;
-    BAD_BANDWIDTH_INCREASE = 9;
-    BANDWIDTH_EXCEEDED = 10;
-    INACTIVE_SUBSCRIPTION = 11;
-    INACTIVE_ACCOUNT = 12;
-    MAX_DEVICES_REACHED = 13;
-    DEVICE_TIME_OUT_OF_SYNC = 14;
-    DEVICE_LOGGED_OUT = 15;
-    INTERNAL = 16;
+    CREDENTIAL_WASTED_ON_ENTRY_GATEWAY = 9;
+    CREDENTIAL_WASTED_ON_EXIT_GATEWAY = 10;
+    BANDWIDTH_EXCEEDED = 11;
+    INACTIVE_SUBSCRIPTION = 12;
+    INACTIVE_ACCOUNT = 13;
+    MAX_DEVICES_REACHED = 14;
+    DEVICE_TIME_OUT_OF_SYNC = 15;
+    DEVICE_LOGGED_OUT = 16;
+    INTERNAL = 17;
   }
 
   enum ActionAfterDisconnect {
@@ -643,6 +689,16 @@ service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
+  // Get the VPN service configuration
+  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
+
+  // Set the VPN service configuration
+  rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
+  rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
+  rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 
@@ -655,11 +711,17 @@ service NymVpnService {
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
-  // Connect the tunnel
+  // Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
   rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
 
+  // Connect the tunnel (Configuration is owned by daemon)
+  rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Reconnect the tunnel if it had been established.
+  rpc ReconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
   // Disconnect the tunnel
-  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
@@ -717,7 +779,6 @@ service NymVpnService {
 
   // Get the list of active devices associated with this account from the nym-vpn-api
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
-
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
 

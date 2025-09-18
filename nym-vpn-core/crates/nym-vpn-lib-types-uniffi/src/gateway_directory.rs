@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 
 use super::error::UniffiConversionError;
@@ -53,12 +55,27 @@ impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
     }
 }
 
+impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
+    fn from(value: nym_gateway_directory::EntryPoint) -> Self {
+        match value {
+            nym_gateway_directory::EntryPoint::Gateway { identity } => {
+                EntryPoint::Gateway { identity }
+            }
+            nym_gateway_directory::EntryPoint::Location { location } => {
+                EntryPoint::Location { location }
+            }
+            nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
+        }
+    }
+}
+
 #[derive(uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
     Address { address: Recipient },
     Gateway { identity: NodeIdentity },
     Location { location: String },
+    Random,
 }
 
 impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
@@ -73,6 +90,24 @@ impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
             ExitPoint::Location { location } => {
                 nym_gateway_directory::ExitPoint::Location { location }
             }
+            ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
+        }
+    }
+}
+
+impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
+    fn from(value: nym_gateway_directory::ExitPoint) -> Self {
+        match value {
+            nym_gateway_directory::ExitPoint::Address { address } => {
+                ExitPoint::Address { address: *address }
+            }
+            nym_gateway_directory::ExitPoint::Gateway { identity } => {
+                ExitPoint::Gateway { identity }
+            }
+            nym_gateway_directory::ExitPoint::Location { location } => {
+                ExitPoint::Location { location }
+            }
+            nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
         }
     }
 }
@@ -82,7 +117,7 @@ pub enum Score {
     High,
     Medium,
     Low,
-    None,
+    Offline,
 }
 
 impl From<nym_gateway_directory::Score> for Score {
@@ -91,7 +126,37 @@ impl From<nym_gateway_directory::Score> for Score {
             nym_gateway_directory::Score::High(_) => Score::High,
             nym_gateway_directory::Score::Medium(_) => Score::Medium,
             nym_gateway_directory::Score::Low(_) => Score::Low,
-            nym_gateway_directory::Score::None => Score::None,
+            nym_gateway_directory::Score::None => Score::Offline,
+        }
+    }
+}
+
+impl From<nym_gateway_directory::ScoreValue> for Score {
+    fn from(value: nym_gateway_directory::ScoreValue) -> Self {
+        match value {
+            nym_gateway_directory::ScoreValue::Offline => Score::Offline,
+            nym_gateway_directory::ScoreValue::Low => Score::Low,
+            nym_gateway_directory::ScoreValue::Medium => Score::Medium,
+            nym_gateway_directory::ScoreValue::High => Score::High,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct Performance {
+    pub last_updated_utc: String,
+    pub score: Score,
+    pub load: Score,
+    pub uptime_percentage_last_24_hours: f32,
+}
+
+impl From<nym_gateway_directory::Performance> for Performance {
+    fn from(value: nym_gateway_directory::Performance) -> Self {
+        Performance {
+            last_updated_utc: value.last_updated_utc,
+            score: value.score.into(),
+            load: value.load.into(),
+            uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
     }
 }
@@ -100,19 +165,83 @@ impl From<nym_gateway_directory::Score> for Score {
 pub struct GatewayInfo {
     pub id: NodeIdentity,
     pub moniker: String,
-    pub location: Option<Location>,
+    pub location: Option<RichLocation>,
     pub mixnet_score: Option<Score>,
-    pub wg_score: Option<Score>,
+    pub wg_performance: Option<Performance>,
+    pub exit_ipv4s: Vec<Ipv4Addr>,
+    pub exit_ipv6s: Vec<Ipv6Addr>,
+    pub build_version: Option<String>,
 }
 
 impl From<nym_gateway_directory::Gateway> for GatewayInfo {
     fn from(value: nym_gateway_directory::Gateway) -> Self {
+        let (exit_ipv4s, exit_ipv6s) = value.split_ips();
         GatewayInfo {
             moniker: value.moniker,
-            location: value.location.map(Location::from),
+            location: value.location.map(RichLocation::from),
             id: value.identity,
             mixnet_score: value.mixnet_score.map(Score::from),
-            wg_score: value.wg_score.map(Score::from),
+            wg_performance: value.wg_performance.map(Performance::from),
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version: value.version,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Enum, Clone)]
+pub enum AsnKind {
+    Residential,
+    Other,
+}
+
+impl From<nym_gateway_directory::AsnKind> for AsnKind {
+    fn from(value: nym_gateway_directory::AsnKind) -> Self {
+        match value {
+            nym_gateway_directory::AsnKind::Residential => AsnKind::Residential,
+            nym_gateway_directory::AsnKind::Other => AsnKind::Other,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct Asn {
+    pub asn: String,
+    pub name: String,
+    pub kind: AsnKind,
+}
+
+impl From<nym_gateway_directory::Asn> for Asn {
+    fn from(value: nym_gateway_directory::Asn) -> Self {
+        Asn {
+            asn: value.asn,
+            name: value.name,
+            kind: value.kind.into(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct RichLocation {
+    pub two_letter_iso_country_code: String,
+    pub latitude: f64,
+    pub longitude: f64,
+
+    pub city: String,
+    pub region: String,
+
+    pub asn: Option<Asn>,
+}
+
+impl From<nym_gateway_directory::Location> for RichLocation {
+    fn from(value: nym_gateway_directory::Location) -> Self {
+        RichLocation {
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+            latitude: value.latitude,
+            longitude: value.longitude,
+            city: value.city,
+            region: value.region,
+            asn: value.asn.map(Into::into),
         }
     }
 }
@@ -120,14 +249,6 @@ impl From<nym_gateway_directory::Gateway> for GatewayInfo {
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
-}
-
-impl From<nym_gateway_directory::Location> for Location {
-    fn from(value: nym_gateway_directory::Location) -> Self {
-        Location {
-            two_letter_iso_country_code: value.two_letter_iso_country_code,
-        }
-    }
 }
 
 impl From<nym_gateway_directory::Country> for Location {

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Show the picked gateway name the tunnel is connected to, when
+  connecting/connected and the selected node is a country
+- Add QUIC mode and Domain-fronting (aka stealth API) settings options
+
+### Fixed
+
+- [Linux] Fix deb package version for prerelease builds, and description
+
 ## [1.15.0] - 2025-09-10
 
 ### Added

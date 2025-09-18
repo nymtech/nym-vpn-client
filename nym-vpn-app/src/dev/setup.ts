@@ -4,7 +4,9 @@ import { emit } from '@tauri-apps/api/event';
 import {
   AccountLinks,
   Cli,
+  Country,
   DbKey,
+  Gateway,
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
@@ -29,7 +31,7 @@ type ArgsObj<T> = Record<string, T>;
 const appVersion = '0.0.0';
 const uiTheme: UiTheme = 'dark';
 const lang = 'en';
-const showWelcome = true;
+const showWelcome = false;
 // const daemon: VpndStatus = 'down';
 const daemon: VpndStatus = {
   ok: {
@@ -37,8 +39,8 @@ const daemon: VpndStatus = {
     network: 'mainnet',
   },
 };
-const tunnelState: TunnelStateIpc = 'disconnected';
-// const tunnelState: TunnelStateIpc = { connected: wgTunnel };
+// const tunnelState: TunnelStateIpc = 'disconnected';
+const tunnelState: TunnelStateIpc = { connected: wgTunnel };
 // const tunnelState: TunnelStateIpc = { connecting: null };
 // const tunnelState: TunnelStateIpc = { disconnecting: null };
 // const tunnelState: TunnelStateIpc = { offline: { reconnect: false } };
@@ -51,6 +53,21 @@ let autostart = true;
 const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
+};
+const savedEntry: Country = {
+  code: 'FR',
+  name: 'France',
+};
+const savedExit: Gateway = {
+  country: {
+    code: 'RU',
+    name: 'Russian Federation',
+  },
+  id: '72SCrUZ3u81QrryUVL65pr8jWfQC3LpC3CyQgqLgJnrQ',
+  mxScore: 'high',
+  name: 'Mikhaïl Boulgakov 😼',
+  type: 'wg',
+  wgScore: 'high',
 };
 
 export function mockTauriIPC() {
@@ -119,6 +136,12 @@ export function mockTauriIPC() {
         return;
       }
       switch ((args as ArgsObj<DbKey>).key) {
+        case 'entry-node':
+          res = savedEntry;
+          break;
+        case 'exit-node':
+          res = savedExit;
+          break;
         case 'ui-root-font-size':
           res = 12;
           break;
