@@ -23,7 +23,6 @@ pub use account::{
 pub use connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
-    WrappedWireguardConnectionData,
 };
 pub use service::VpnServiceConfig;
 pub use tunnel_event::{

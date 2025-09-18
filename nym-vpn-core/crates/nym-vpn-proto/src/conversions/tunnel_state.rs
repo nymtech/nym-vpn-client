@@ -10,7 +10,6 @@ use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
     EstablishConnectionState, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
     TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
-    WrappedWireguardConnectionData,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -226,7 +225,6 @@ impl From<proto::TunnelType> for TunnelType {
         match value {
             proto::TunnelType::Mixnet => Self::Mixnet,
             proto::TunnelType::Wireguard => Self::Wireguard,
-            proto::TunnelType::WrappedWireguard => Self::WrappedWireguard,
         }
     }
 }
@@ -236,7 +234,6 @@ impl From<TunnelType> for proto::TunnelType {
         match value {
             TunnelType::Mixnet => Self::Mixnet,
             TunnelType::Wireguard => Self::Wireguard,
-            TunnelType::WrappedWireguard => Self::WrappedWireguard,
         }
     }
 }
@@ -394,13 +391,6 @@ impl From<TunnelConnectionData> for proto::TunnelConnectionData {
                     },
                 )
             }
-            TunnelConnectionData::WrappedWireguard(data) => {
-                proto::tunnel_connection_data::State::Wireguard(
-                    proto::tunnel_connection_data::Wireguard {
-                        data: Some(proto::WireguardConnectionData::from(data)),
-                    },
-                )
-            }
         };
 
         proto::TunnelConnectionData { state: Some(state) }
@@ -471,6 +461,9 @@ impl TryFrom<proto::WireguardConnectionData> for WireguardConnectionData {
                     .exit
                     .ok_or(ConversionError::NoValueSet("WireguardConnectionData.exit"))?,
             )?,
+            entry_bridge_addr: value
+                .entry_bridge_addr
+                .and_then(|str| SocketAddr::from_str(&str).ok()),
         })
     }
 }
@@ -480,18 +473,7 @@ impl From<WireguardConnectionData> for proto::WireguardConnectionData {
         proto::WireguardConnectionData {
             entry: Some(proto::WireguardNode::from(value.entry)),
             exit: Some(proto::WireguardNode::from(value.exit)),
-        }
-    }
-}
-
-impl From<WrappedWireguardConnectionData> for proto::WireguardConnectionData {
-    fn from(value: WrappedWireguardConnectionData) -> proto::WireguardConnectionData {
-        let mut entry = proto::WireguardNode::from(value.entry);
-        entry.endpoint = value.entry_bridge_addr.to_string();
-
-        proto::WireguardConnectionData {
-            entry: Some(entry),
-            exit: Some(proto::WireguardNode::from(value.exit)),
+            entry_bridge_addr: value.entry_bridge_addr.map(|s| s.to_string()),
         }
     }
 }

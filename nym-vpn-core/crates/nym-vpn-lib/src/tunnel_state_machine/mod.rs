@@ -176,6 +176,11 @@ impl TunnelSettings {
             .copied()
             .collect()
     }
+
+    pub fn bridges_enabled(&self) -> bool {
+        matches!(self.tunnel_type, TunnelType::Wireguard)
+            && self.wireguard_tunnel_options.enable_bridges
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
@@ -217,6 +222,7 @@ impl Default for WireguardMultihopMode {
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
+    pub enable_bridges: bool,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
