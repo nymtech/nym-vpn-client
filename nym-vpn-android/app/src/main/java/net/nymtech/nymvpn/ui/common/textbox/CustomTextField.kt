@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.common.textbox
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,6 +43,7 @@ fun CustomTextField(
 	isError: Boolean = false,
 	readOnly: Boolean = false,
 	enabled: Boolean = true,
+	subtitle: @Composable (() -> Unit)? = null,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	val isFocused by interactionSource.collectIsFocusedAsState()
@@ -67,22 +69,25 @@ fun CustomTextField(
 		OutlinedTextFieldDefaults.DecorationBox(
 			value = space + value,
 			innerTextField = {
-				if (value.isEmpty() && !isFocused) {
-					if (placeholder != null) {
-						placeholder()
-					}
-				} else {
-					if (singleLine) {
-						Text(
-							value,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis,
-							style = MaterialTheme.typography.bodyLarge,
-							modifier = Modifier.offset(x = (-4).dp.scaledWidth()),
-						)
+				Column {
+					if (value.isEmpty() && !isFocused) {
+						if (placeholder != null) {
+							placeholder()
+						}
 					} else {
-						it.invoke()
+						if (singleLine) {
+							Text(
+								value,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis,
+								style = MaterialTheme.typography.bodyLarge,
+								modifier = Modifier.offset(x = (-4).dp.scaledWidth()),
+							)
+						} else {
+							it.invoke()
+						}
 					}
+					subtitle?.invoke()
 				}
 			},
 			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp, bottom = 0.dp),
