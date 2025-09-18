@@ -1,7 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{
+    sync::{Arc, OnceLock},
+    time::Duration,
+};
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
@@ -16,7 +19,10 @@ use nym_vpn_store::{
 };
 use wiremock::{Mock, MockServer};
 
-use tokio::{sync::watch, task::JoinHandle};
+use tokio::{
+    sync::{OwnedSemaphorePermit, Semaphore, watch},
+    task::JoinHandle,
+};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 use crate::common::credential_proxy::MockCredentialProxy;
@@ -24,6 +30,15 @@ use crate::common::credential_proxy::MockCredentialProxy;
 pub mod account_summary;
 pub mod credential_proxy;
 pub mod endpoints;
+
+// Global semaphore to ensure only a single TestBench instance is active at any given time.
+static TESTBENCH_SEMAPHORE: OnceLock<Arc<Semaphore>> = OnceLock::new();
+
+fn global_testbench_semaphore() -> Arc<Semaphore> {
+    TESTBENCH_SEMAPHORE
+        .get_or_init(|| Arc::new(Semaphore::new(1)))
+        .clone()
+}
 
 pub fn mock_user_agent() -> nym_http_api_client::UserAgent {
     nym_http_api_client::UserAgent {
@@ -154,6 +169,9 @@ pub struct TestBench {
 
     /// DropGuard to stop the account controller when the testbench is dropped
     _drop_guard: DropGuard,
+
+    /// Permit held for the lifetime of the TestBench to guarantee global exclusivity
+    _global_permit: OwnedSemaphorePermit,
 }
 
 impl TestBench {
@@ -168,6 +186,12 @@ impl TestBench {
     }
 
     async fn new_with_credential(credential_enabled: bool) -> anyhow::Result<TestBench> {
+        // Acquire the global permit to ensure exclusivity of TestBench instances
+        let permit = global_testbench_semaphore()
+            .acquire_owned()
+            .await
+            .expect("semaphore not to be closed");
+
         // Setup storage
         let storage = MockEphemeralStorage::default();
 
@@ -213,6 +237,7 @@ impl TestBench {
             vpn_api_server,
             credential_proxy,
             _drop_guard: shutdown_token.drop_guard(),
+            _global_permit: permit,
         })
     }
 
