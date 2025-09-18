@@ -391,7 +391,7 @@ impl<St: Storage> BandwidthController<St> {
             ConnectionData {
                 entry,
                 exit,
-                bridge: None,
+                entry_bridge_addr: None,
             },
         ))
     }

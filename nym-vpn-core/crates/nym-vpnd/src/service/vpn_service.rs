@@ -728,11 +728,7 @@ impl NymVpnService {
         };
 
         let tunnel_type = if options.enable_two_hop {
-            if options.circumvention_transports {
-                TunnelType::WrappedWireguard
-            } else {
-                TunnelType::Wireguard
-            }
+            TunnelType::Wireguard
         } else {
             TunnelType::Mixnet
         };
@@ -755,6 +751,7 @@ impl NymVpnService {
                 } else {
                     WireguardMultihopMode::TunTun
                 },
+                enable_bridges: options.circumvention_transports,
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),

@@ -57,7 +57,7 @@ pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
 pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
 
 pub struct ConnectionData {
-    pub bridge: Option<SocketAddr>,
+    pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: GatewayData,
     pub exit: GatewayData,
 }
@@ -105,13 +105,7 @@ impl Connector {
             self.use_bridge,
         ))
         .await?;
-        Ok(ConnectedTunnel::new(
-            connect_result.entry_gateway_client,
-            connect_result.exit_gateway_client,
-            connect_result.connection_data,
-            connect_result.bandwidth_controller_handle,
-            connect_result.auth_client_mixnet_listener_handle,
-        ))
+        Ok(connect_result.into())
     }
 
     fn get_recipient_and_version(gateway: &Gateway) -> Result<(Recipient, AuthenticatorVersion)> {
@@ -228,6 +222,7 @@ impl Connector {
             (connection_data, bandwidth_controller_handle)
         };
 
+        let mut transport_fwd_handle = None;
         if use_bridge {
             let entry_bridge_params = selected_gateways.entry.get_bridge_params().ok_or(
                 transports::TransportError::config_err(
@@ -241,10 +236,10 @@ impl Connector {
             tracing::info!("Establishing DVPN QUIC transport tunnel");
             let udp_fwd_cancel = cancel_token.child_token();
             let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
-            connection_data.bridge = Some(bridge_conn.endpoint);
-            let local_fwd =
-                transports::UdpForwarder::new(bridge_conn, None, udp_fwd_cancel.clone()).await?;
-            let local_fwd_listen_addr = local_fwd.local_addr().map_err(Error::Io)?;
+            connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
+            let (local_fwd_listen_addr, fwd_handle) =
+                transports::UdpForwarder::launch(bridge_conn, None, udp_fwd_cancel.clone()).await?;
+            transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
             );
@@ -256,6 +251,7 @@ impl Connector {
             exit_gateway_client: wg_exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
+            transport_fwd_handle,
             auth_client_mixnet_listener_handle: mixnet_listener,
         })
     }
@@ -266,5 +262,19 @@ struct ConnectResult {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
+    transport_fwd_handle: Option<JoinHandle<()>>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+}
+
+impl From<ConnectResult> for ConnectedTunnel {
+    fn from(val: ConnectResult) -> Self {
+        ConnectedTunnel::new(
+            val.entry_gateway_client,
+            val.exit_gateway_client,
+            val.connection_data,
+            val.bandwidth_controller_handle,
+            val.transport_fwd_handle,
+            val.auth_client_mixnet_listener_handle,
+        )
+    }
 }

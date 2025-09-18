@@ -90,9 +90,12 @@ impl ConnectedState {
         connection_data: &ConnectionData,
     ) -> Result<()> {
         let wg_entry_endpoint = match connection_data.tunnel {
-            TunnelConnectionData::WrappedWireguard(ref data) => Some(data.entry_bridge_addr),
             TunnelConnectionData::Wireguard(ref wireguard_data) => {
-                Some(wireguard_data.entry.endpoint)
+                match shared_state.tunnel_settings.bridges_enabled() {
+                    // this will be som if we get to the connected state with bridges enabled.
+                    true => wireguard_data.entry_bridge_addr,
+                    false => Some(wireguard_data.entry.endpoint),
+                }
             }
             TunnelConnectionData::Mixnet(_) => None,
         };
@@ -115,19 +118,6 @@ impl ConnectedState {
             );
             peer_endpoints.push(ws_endpoint);
         });
-
-        if let Some(bridges) = &self.selected_gateways.entry.bridge_params {
-            bridges.get_addrs().iter().for_each(|addr| {
-                let tr_endpoint = AllowedEndpoint::new(
-                    Endpoint::new(addr.ip(), addr.port(), TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
-                    AllowedClients::Root,
-                    #[cfg(target_os = "windows")]
-                    AllowedClients::current_exe(),
-                );
-                peer_endpoints.push(tr_endpoint);
-            });
-        }
 
         if let Some(wg_peer_endpoint) = wg_entry_endpoint {
             let allowed_endpoint = AllowedEndpoint::new(

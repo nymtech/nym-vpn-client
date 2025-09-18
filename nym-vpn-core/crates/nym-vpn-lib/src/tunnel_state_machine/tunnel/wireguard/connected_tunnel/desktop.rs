@@ -43,6 +43,7 @@ pub struct ConnectedTunnel {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
+    transport_fwd_handle: Option<JoinHandle<()>>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }
 
@@ -52,6 +53,7 @@ impl ConnectedTunnel {
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
+        transport_fwd_handle: Option<JoinHandle<()>>,
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
@@ -59,6 +61,7 @@ impl ConnectedTunnel {
             exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
+            transport_fwd_handle,
             auth_client_mixnet_listener_handle,
         }
     }
@@ -224,6 +227,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            transport_fwd_handle: self.transport_fwd_handle,
             auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
@@ -362,6 +366,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            transport_fwd_handle: self.transport_fwd_handle,
             auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: None,
@@ -488,6 +493,7 @@ pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
+    transport_fwd_handle: Option<JoinHandle<()>>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
@@ -510,6 +516,12 @@ impl TunnelHandle {
         }
 
         let _ = self.auth_client_mixnet_listener_handle.wait().await;
+
+        if let Some(handle) = self.transport_fwd_handle {
+            if let Err(e) = handle.await {
+                tracing::error!("Failed to join on transport forwarder: {}", e);
+            }
+        }
 
         self.event_handler_task.await
     }

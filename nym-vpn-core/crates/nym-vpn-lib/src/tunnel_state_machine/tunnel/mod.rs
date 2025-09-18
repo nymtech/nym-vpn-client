@@ -30,7 +30,7 @@ use super::{MixnetEvent, TunnelType};
 use crate::{
     GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::wireguard::connector::MetadataReceiver,
+    tunnel_state_machine::{TunnelSettings, tunnel::wireguard::connector::MetadataReceiver},
 };
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
@@ -88,8 +88,11 @@ impl ConnectedMixnet {
         exit_metadata_rx: MetadataReceiver,
         use_bridge: bool,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
-        let connector =
-            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_directory_client, use_bridge);
+        let connector = wireguard::connector::Connector::new(
+            self.mixnet_client,
+            self.gateway_directory_client,
+            use_bridge,
+        );
 
         connector
             .connect(
@@ -120,14 +123,14 @@ pub struct MixnetConnectOptions {
 
 pub async fn select_gateways(
     gateway_directory_client: CachingGatewayClient,
-    tunnel_type: TunnelType,
+    tunnel_settings: &TunnelSettings,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
     let select_gateways_fut = gateway_selector::select_gateways(
         gateway_directory_client,
-        tunnel_type,
+        tunnel_settings,
         entry_point,
         exit_point,
     );
@@ -151,7 +154,7 @@ pub async fn connect_mixnet(
 
     match options.tunnel_type {
         TunnelType::Mixnet => {}
-        TunnelType::Wireguard | TunnelType::WrappedWireguard => {
+        TunnelType::Wireguard => {
             // Always disable poisson process for outbound traffic in wireguard.
             mixnet_client_config.disable_poisson_rate = true;
             // Always disable background cover traffic in wireguard.
