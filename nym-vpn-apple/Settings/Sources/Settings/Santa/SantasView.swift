@@ -20,7 +20,6 @@ public struct SantasView: View {
                     enivironmentDetails()
                     santasSpacer()
                     environmentSection()
-                    featureFlagsSection()
                 }
                 Spacer()
             }
@@ -81,20 +80,6 @@ private extension SantasView {
                         viewModel.changeEnvironment(to: env)
                     }
                 }
-            }
-        }
-    }
-
-    @ViewBuilder
-    func featureFlagsSection() -> some View {
-        VStack {
-            Text("Feature flags:")
-                .foregroundStyle(NymColor.accent)
-                .bold()
-                .padding(4)
-
-            HStack {
-                Toggle("zknym", isOn: $viewModel.isZknymEnabled)
             }
         }
     }

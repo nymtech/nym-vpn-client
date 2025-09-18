@@ -3528,6 +3528,83 @@
         }
       }
     },
+    "censorship.quic.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How QUIC improves connections"
+          }
+        }
+      }
+    },
+    "censorship.quic.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        }
+      }
+    },
+    "censorship.quic.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        }
+      }
+    },
+    "censorship.quic.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhanced connection (QUIC)"
+          }
+        }
+      }
+    },
+    "censorship.stealhapi.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How the Stealth API connect mode works"
+          }
+        }
+      }
+    },
+    "censorship.stealhapi.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disguises API requests behind popular, allowed domains to bypass VPN blocking."
+          }
+        }
+      }
+    },
+    "censorship.stealhapi.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stealth API connect"
+          }
+        }
+      }
+    },
     "checkFAQ" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5863,13 +5940,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "es" : {
@@ -5905,7 +5982,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -14644,19 +14721,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -14698,7 +14775,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -23627,6 +23704,83 @@
         }
       }
     },
+    "privacyData.anonymousStats" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous network stats"
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only network performance data is shared – never your browsing activity or personal data."
+          }
+        }
+      }
+    },
+    "privacyData.anonymousStats.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn exactly what's shared"
+          }
+        }
+      }
+    },
+    "privacyData.errorCrashReports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error & crash reports"
+          }
+        }
+      }
+    },
+    "privacyData.errorCrashReports.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        }
+      }
+    },
+    "privacyData.errorCrashReports.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Sentry Privacy Policy"
+          }
+        }
+      }
+    },
     "processingAccount.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -24352,7 +24506,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
           }
         },
         "es" : {
@@ -24364,7 +24518,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
           }
         },
         "fr" : {
@@ -24424,7 +24578,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
           }
         },
         "zh-Hans" : {
@@ -24453,7 +24607,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "value" : "Saving your zk-nyms on the device..."
           }
         },
         "es" : {
@@ -24465,7 +24619,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "value" : "Saving your zk-nyms on the device..."
           }
         },
         "fr" : {
@@ -24525,7 +24679,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "value" : "Saving your zk-nyms on the device..."
           }
         },
         "zh-Hans" : {
@@ -27869,6 +28023,17 @@
         }
       }
     },
+    "settings.censorship.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censorship"
+          }
+        }
+      }
+    },
     "settings.chatOnTelegram" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28471,6 +28636,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始"
+          }
+        }
+      }
+    },
+    "settings.ipv6.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable to only use IPv4"
+          }
+        }
+      }
+    },
+    "settings.ipv6.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 traffic tunneling"
           }
         }
       }
@@ -29279,6 +29466,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "口令"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy & data"
           }
         }
       }
@@ -31303,6 +31501,17 @@
         }
       }
     },
+    "welcome.analytics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share anonymous product analytics"
+          }
+        }
+      }
+    },
     "welcome.continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31501,6 +31710,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此为实验性软件，请勿（在目前阶段）依赖其提供强匿名性服务。"
+          }
+        }
+      }
+    },
+    "welcome.privacyPolicy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy policy"
+          }
+        }
+      }
+    },
+    "welcome.privacyPolicy1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By continuing, you agree to NymVPN's"
+          }
+        }
+      }
+    },
+    "welcome.privacyPolicy2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and acknowledge NymVPN's"
           }
         }
       }
@@ -31804,6 +32046,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "）及数据分析——您可以随时关闭这些选项。\n感谢您的支持！"
+          }
+        }
+      }
+    },
+    "welcome.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        }
+      }
+    },
+    "welcome.termsOfUse" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of use"
           }
         }
       }
