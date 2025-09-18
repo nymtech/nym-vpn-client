@@ -100,7 +100,7 @@ impl VpnServiceConfigManager {
             config_manager.write_to_file();
         }
 
-        // If the deprecated TOML file exists, then remove it
+        // If the deprecated TOML file exists then remove it
         if toml_config_path.exists() {
             tracing::info!(
                 "Removing deprecated config file {}",
@@ -189,7 +189,7 @@ impl VpnServiceConfigManager {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .map_err(Error::ConfigSetup)?;
 
-            tracing::info!("Loaded service config {}", json_config_path.display());
+            tracing::info!("Loaded service config from {}", json_config_path.display());
 
             let version = match &ext_config {
                 VpnServiceConfigExt::V1(_) => 1,
@@ -202,7 +202,7 @@ impl VpnServiceConfigManager {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .map_err(Error::ConfigSetup)?;
 
-            tracing::info!("Loaded service config {}", toml_config_path.display());
+            tracing::info!("Loaded service config from {}", toml_config_path.display());
 
             let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
             (config, 0)
@@ -231,14 +231,14 @@ impl VpnServiceConfigManager {
         {
             Ok(_) => {
                 tracing::info!(
-                    "Saved service config to file {}",
+                    "Saved service config to {}",
                     self.json_config_path.display()
                 );
                 true
             }
             Err(e) => {
                 tracing::error!(
-                    "Failed to write service config to file {}: {e}",
+                    "Failed to write service config to {}: {e}",
                     self.json_config_path.display()
                 );
                 false
@@ -324,11 +324,15 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExt {
     type Error = ConfigSetupError;
 
     fn try_from(value: &VpnServiceConfig) -> Result<Self, Self::Error> {
-        // Always construct the latest external representation, writing to disk
+        // Always construct the latest external representation
         let latest = VpnServiceConfigExtLatest::try_from(value)?;
         Ok(latest.into())
     }
 }
+
+//
+// v1
+//
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct VpnServiceConfigExtV1 {
@@ -363,6 +367,10 @@ impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
         Ok(config)
     }
 }
+
+//
+// v2
+//
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct VpnServiceConfigExtV2 {
@@ -431,6 +439,10 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
         Ok(config)
     }
 }
+
+//
+// Latest (v2)
+//
 
 impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
     type Error = ConfigSetupError;
