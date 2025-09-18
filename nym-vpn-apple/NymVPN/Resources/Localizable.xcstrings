@@ -3589,7 +3589,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disguises API requests behind popular, allowed domains to bypass VPN blocking."
+            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
           }
         }
       }
