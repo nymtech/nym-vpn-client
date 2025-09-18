@@ -280,9 +280,13 @@ pub enum ErrorStateReason {
     /// Invalid country set for exit gateway
     InvalidExitGatewayCountry,
 
-    /// Gateway is not responding or responding badly to a bandwidth
+    /// Entry gateway is not responding or responding badly to a bandwidth
     /// increase request, causing credential waste
-    BadBandwidthIncrease,
+    CredentialWastedOnEntryGateway,
+
+    /// Exit gateway is not responding or responding badly to a bandwidth
+    /// increase request, causing credential waste
+    CredentialWastedOnExitGateway,
 
     /// Bandwidth Exceeded
     BandwidthExceeded,
@@ -422,7 +426,12 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             nym_vpn_lib_types::ErrorStateReason::InvalidExitGatewayCountry => {
                 Self::InvalidExitGatewayCountry
             }
-            nym_vpn_lib_types::ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
+            nym_vpn_lib_types::ErrorStateReason::CredentialWastedOnEntryGateway => {
+                Self::CredentialWastedOnEntryGateway
+            }
+            nym_vpn_lib_types::ErrorStateReason::CredentialWastedOnExitGateway => {
+                Self::CredentialWastedOnExitGateway
+            }
             nym_vpn_lib_types::ErrorStateReason::BandwidthExceeded => Self::BandwidthExceeded,
             nym_vpn_lib_types::ErrorStateReason::InactiveAccount => Self::InactiveAccount,
             nym_vpn_lib_types::ErrorStateReason::InactiveSubscription => Self::InactiveSubscription,

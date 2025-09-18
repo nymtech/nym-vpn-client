@@ -200,9 +200,13 @@ pub enum ErrorStateReason {
     /// Invalid country set for exit gateway
     InvalidExitGatewayCountry,
 
-    /// Gateway is not responding or responding badly to a bandwidth
+    /// Entry gateway is not responding or responding badly to a bandwidth
     /// increase request, causing credential waste
-    BadBandwidthIncrease,
+    CredentialWastedOnEntryGateway,
+
+    /// Exit gateway is not responding or responding badly to a bandwidth
+    /// increase request, causing credential waste
+    CredentialWastedOnExitGateway,
 
     /// Bandwidth Exceeded
     BandwidthExceeded,

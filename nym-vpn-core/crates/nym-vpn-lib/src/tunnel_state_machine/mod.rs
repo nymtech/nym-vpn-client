@@ -49,7 +49,6 @@ use nym_vpn_lib_types::{
     EstablishConnectionData, EstablishConnectionState, MixnetEvent, TunnelEvent, TunnelState,
     TunnelType,
 };
-use nym_wg_gateway_client::Error as WgGatewayClientError;
 
 use tunnel::SelectedGateways;
 #[cfg(windows)]
@@ -761,24 +760,20 @@ impl tunnel::Error {
                 ) => Some(ErrorStateReason::InvalidExitGatewayCountry),
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
-                source,
-                ..
-            }) => match *source {
-                WgGatewayClientError::NoRetry { .. } => {
-                    Some(ErrorStateReason::BadBandwidthIncrease)
+            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
+                if error.is_no_retry() {
+                    Some(ErrorStateReason::CredentialWastedOnEntryGateway)
+                } else {
+                    None
                 }
-                _ => None,
-            },
-            Self::BandwidthController(BandwidthControllerError::RequestCredential {
-                source,
-                ..
-            }) => match *source {
-                WgGatewayClientError::NoRetry { .. } => {
-                    Some(ErrorStateReason::BadBandwidthIncrease)
+            }
+            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
+                if error.is_no_retry() {
+                    Some(ErrorStateReason::CredentialWastedOnExitGateway)
+                } else {
+                    None
                 }
-                _ => None,
-            },
+            }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(
                 "Failed to dup tunnel fd".to_owned(),
             )),
