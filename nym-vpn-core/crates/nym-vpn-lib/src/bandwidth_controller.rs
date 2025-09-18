@@ -34,6 +34,21 @@ const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same 
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("entry gateway error")]
+    EntryGateway(SpecificGatewayError),
+
+    #[error("exit gateway error")]
+    ExitGateway(SpecificGatewayError),
+
+    #[error("nyxd client error")]
+    Nyxd(#[from] CredentialNyxdClientError),
+
+    #[error("connection cancelled")]
+    Cancelled,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum SpecificGatewayError {
     #[error("failed to lookup gateway ip for {gateway_id}")]
     LookupGatewayIp {
         gateway_id: String,
@@ -73,17 +88,23 @@ pub enum Error {
         source: Box<nym_wg_metadata_client::error::MetadataClientError>,
     },
 
-    #[error("nyxd client error")]
-    Nyxd(#[from] CredentialNyxdClientError),
-
-    #[error("connection cancelled")]
-    Cancelled,
-
     #[error("internal error: {reason}")]
     Internal { reason: String },
 }
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+impl SpecificGatewayError {
+    pub fn is_no_retry(&self) -> bool {
+        let more_specific_inner = match self {
+            SpecificGatewayError::RegisterWireguard { source, .. } => source,
+            SpecificGatewayError::RequestCredential { source, .. } => source,
+            _ => return false,
+        };
+        matches!(
+            **more_specific_inner,
+            nym_wg_gateway_client::Error::NoRetry { .. }
+        )
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialNyxdClientError {
@@ -94,7 +115,7 @@ pub enum CredentialNyxdClientError {
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 }
 
-pub(crate) fn get_nyxd_client(network: &Network) -> Result<QueryHttpRpcNyxdClient> {
+pub(crate) fn get_nyxd_client(network: &Network) -> Result<QueryHttpRpcNyxdClient, Error> {
     let config = NyxdClientConfig::try_from_nym_network_details(&network.nym_network.network)
         .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
 
@@ -121,13 +142,13 @@ impl DepletionRate {
         &mut self,
         current_period: Duration,
         remaining_bandwidth: u64,
-    ) -> Result<Option<Duration>> {
+    ) -> Result<Option<Duration>, SpecificGatewayError> {
         let Some(new_depletion_rate) = self
             .available_bandwidth
             .saturating_sub(remaining_bandwidth)
             .checked_div(current_period.as_secs())
         else {
-            return Err(Error::Internal {
+            return Err(SpecificGatewayError::Internal {
                 reason: "check interval shouldn't be 0".to_string(),
             });
         };
@@ -147,7 +168,7 @@ impl DepletionRate {
         let Some(estimated_depletion_secs) =
             remaining_bandwidth.checked_div(self.current_depletion_rate)
         else {
-            return Err(Error::Internal {
+            return Err(SpecificGatewayError::Internal {
                 reason: "depletion rate shouldn't be 0".to_string(),
             });
         };
@@ -240,13 +261,13 @@ impl TemporaryBandwidthClient {
         &mut self,
         credential: nym_credentials_interface::CredentialSpendingData,
         ticketbook_type: TicketType,
-    ) -> Result<i64> {
+    ) -> Result<i64, SpecificGatewayError> {
         match self {
             TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
                 wg_gateway_light_client
                     .top_up(credential)
                     .await
-                    .map_err(|source| Error::DeprecatedTopUpWireguard {
+                    .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
                         gateway_id: self.gateway_id().to_string(),
                         ticketbook_type,
                         source: Box::new(source),
@@ -255,7 +276,7 @@ impl TemporaryBandwidthClient {
             TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
                 .topup_bandwidth(credential)
                 .await
-                .map_err(|source| Error::TopUpWireguard {
+                .map_err(|source| SpecificGatewayError::TopUpWireguard {
                     gateway_id: self.gateway_id().to_string(),
                     ticketbook_type,
                     source: Box::new(source),
@@ -340,7 +361,7 @@ impl<St: Storage> BandwidthController<St> {
         gateway_metadata_update_version: Option<semver::Version>,
         shutdown: TaskClient,
         cancel_token: CancellationToken,
-    ) -> Result<(BandwidthController<St>, ConnectionData)>
+    ) -> Result<(BandwidthController<St>, ConnectionData), Error>
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
@@ -357,11 +378,13 @@ impl<St: Storage> BandwidthController<St> {
             wg_exit_gateway_client,
         );
 
-        let (entry, exit) = Box::pin(
-            cancel_token.run_until_cancelled(async { tokio::try_join!(entry_fut, exit_fut) }),
-        )
-        .await
-        .ok_or(Error::Cancelled)??;
+        let (entry, exit) =
+            Box::pin(cancel_token.run_until_cancelled(async { tokio::join!(entry_fut, exit_fut) }))
+                .await
+                .ok_or(Error::Cancelled)?;
+
+        let entry = entry.map_err(Error::EntryGateway)?;
+        let exit = exit.map_err(Error::ExitGateway)?;
 
         let wg_entry_client = Self::construct_bandwidth_client(
             entry.private_ipv4.into(),
@@ -394,7 +417,7 @@ impl<St: Storage> BandwidthController<St> {
         ticketbook_type: TicketType,
         gateway_cache_handle: &GatewayCacheHandle,
         wg_gateway_client: &mut WgGatewayClient,
-    ) -> Result<GatewayData>
+    ) -> Result<GatewayData, SpecificGatewayError>
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
@@ -406,14 +429,14 @@ impl<St: Storage> BandwidthController<St> {
         let gateway_host = gateway_cache_handle
             .lookup_gateway_ip(gateway_id.to_base58_string())
             .await
-            .map_err(|source| Error::LookupGatewayIp {
+            .map_err(|source| SpecificGatewayError::LookupGatewayIp {
                 gateway_id: gateway_id.to_base58_string(),
                 source: Box::new(source),
             })?;
         let wg_gateway_data = wg_gateway_client
             .register_wireguard(gateway_host, controller, ticketbook_type)
             .await
-            .map_err(|source| Error::RegisterWireguard {
+            .map_err(|source| SpecificGatewayError::RegisterWireguard {
                 gateway_id: gateway_id.to_base58_string(),
                 authenticator_address: Box::new(authenticator_address),
                 source: Box::new(source),
@@ -427,14 +450,14 @@ impl<St: Storage> BandwidthController<St> {
         controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
         ticketbook_type: TicketType,
         wg_client: &mut TemporaryBandwidthClient,
-    ) -> Result<i64>
+    ) -> Result<i64, SpecificGatewayError>
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
         let credential =
             WgGatewayClient::request_bandwidth(wg_client.gateway_id(), controller, ticketbook_type)
                 .await
-                .map_err(|source| Error::RequestCredential {
+                .map_err(|source| SpecificGatewayError::RequestCredential {
                     gateway_id: wg_client.gateway_id().to_string(),
                     ticketbook_type,
                     source: Box::new(source),
