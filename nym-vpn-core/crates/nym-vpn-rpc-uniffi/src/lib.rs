@@ -12,14 +12,14 @@ use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcC
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types_uniffi::{
-    AccountCommandError, AccountControllerState, AccountLinks, FeatureFlags, GatewayType,
-    NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState,
+    AccountCommandError, AccountControllerState, AccountLinks, EntryPoint, ExitPoint, FeatureFlags,
+    GatewayType, NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState,
 };
 use nym_vpnd_types_uniffi::{
     gateway::{Gateway, GatewayCountry},
     log_path::LogPath,
     nym_vpn_api::{NymVpnDevice, NymVpnUsage},
-    service::VpnServiceInfo,
+    service::{VpnServiceConfig, VpnServiceInfo},
 };
 
 #[derive(Clone, uniffi::Object)]
@@ -43,6 +43,47 @@ impl RpcClient {
             .get_info()
             .await
             .map(VpnServiceInfo::from)?)
+    }
+
+    pub async fn get_config(&self) -> Result<VpnServiceConfig> {
+        Ok(self
+            .inner
+            .clone()
+            .get_config()
+            .await
+            .map(VpnServiceConfig::from)?)
+    }
+
+    pub async fn set_entry_point(&self, entry_point: EntryPoint) -> Result<()> {
+        let entry_point = nym_gateway_directory::EntryPoint::from(entry_point);
+
+        self.inner.clone().set_entry_point(entry_point).await?;
+        Ok(())
+    }
+
+    pub async fn set_exit_point(&self, exit_point: ExitPoint) -> Result<()> {
+        let exit_point = nym_gateway_directory::ExitPoint::from(exit_point);
+
+        self.inner.clone().set_exit_point(exit_point).await?;
+        Ok(())
+    }
+
+    pub async fn set_disable_ipv6(&self, disable_ipv6: bool) -> Result<()> {
+        self.inner.clone().set_disable_ipv6(disable_ipv6).await?;
+        Ok(())
+    }
+
+    pub async fn set_enable_two_hop(&self, enable_two_hop: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_enable_two_hop(enable_two_hop)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn set_netstack(&self, netstack: bool) -> Result<()> {
+        self.inner.clone().set_netstack(netstack).await?;
+        Ok(())
     }
 
     pub async fn set_network(&self, network: String) -> Result<()> {
@@ -75,6 +116,11 @@ impl RpcClient {
             .get_feature_flags()
             .await
             .map(FeatureFlags::from)?)
+    }
+
+    pub async fn connect_tunnel(&self) -> Result<()> {
+        self.inner.clone().connect_tunnel_v2().await?;
+        Ok(())
     }
 
     pub async fn disconnect_tunnel(&self) -> Result<()> {
