@@ -846,6 +846,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(windows)]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &mut self,
         task_manager: &TaskManager,
@@ -1215,6 +1216,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &self,
         task_manager: &TaskManager,
