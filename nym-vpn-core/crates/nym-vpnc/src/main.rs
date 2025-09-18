@@ -108,6 +108,10 @@ async fn connect(
     connect_args: cli::ConnectArgs,
     user_agent: UserAgent,
 ) -> Result<()> {
+    println!(
+        "This call is deprecated and going to be removed soon. Please switch to using connect_v2"
+    );
+
     let options = ConnectArgs {
         entry: connect_args.entry_point()?,
         exit: connect_args.exit_point()?,
