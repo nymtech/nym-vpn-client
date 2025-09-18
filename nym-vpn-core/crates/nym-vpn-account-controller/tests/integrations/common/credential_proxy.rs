@@ -133,7 +133,7 @@ impl MockCredentialProxy {
         for auth_keypair in &self.authorities_keypairs {
             let blind_signature = issue(
                 auth_keypair.secret_key(),
-                user_key.clone(),
+                user_key,
                 &req,
                 expiration_date,
                 t_type,

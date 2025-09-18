@@ -43,7 +43,9 @@ function RadioGroup<K extends Key>({
   disabled = false,
   ...rest
 }: RadioGroupProps<K>) {
-  const [selected, setSelected] = useState(defaultValue || options[0]);
+  const [selected, setSelected] = useState<K | undefined>(
+    defaultValue || options[0]?.key,
+  );
   const testId = rest['data-testid'] || 'radio-group';
 
   const handleChange = (value: K) => {

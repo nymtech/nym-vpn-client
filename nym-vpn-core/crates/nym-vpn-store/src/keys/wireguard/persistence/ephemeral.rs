@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 
 use crate::keys::wireguard::{WireguardKeyStore, WireguardKeys, persistence::random_keys};
 
+#[allow(dead_code)]
 #[derive(Default)]
 pub struct InMemEphemeralKeys {
     keys: Mutex<HashMap<String, WireguardKeys>>,

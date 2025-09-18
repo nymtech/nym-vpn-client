@@ -55,6 +55,20 @@ impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
     }
 }
 
+impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
+    fn from(value: nym_gateway_directory::EntryPoint) -> Self {
+        match value {
+            nym_gateway_directory::EntryPoint::Gateway { identity } => {
+                EntryPoint::Gateway { identity }
+            }
+            nym_gateway_directory::EntryPoint::Location { location } => {
+                EntryPoint::Location { location }
+            }
+            nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
+        }
+    }
+}
+
 #[derive(uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
@@ -77,6 +91,23 @@ impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
                 nym_gateway_directory::ExitPoint::Location { location }
             }
             ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
+        }
+    }
+}
+
+impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
+    fn from(value: nym_gateway_directory::ExitPoint) -> Self {
+        match value {
+            nym_gateway_directory::ExitPoint::Address { address } => {
+                ExitPoint::Address { address: *address }
+            }
+            nym_gateway_directory::ExitPoint::Gateway { identity } => {
+                ExitPoint::Gateway { identity }
+            }
+            nym_gateway_directory::ExitPoint::Location { location } => {
+                ExitPoint::Location { location }
+            }
+            nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
         }
     }
 }

@@ -143,6 +143,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 				is ExitPoint.Gateway -> exitPoint.identity.truncateWithEllipsis(3)
 				is ExitPoint.Location -> exitPoint.toDisplayCountry()
 				is ExitPoint.Address -> exitPoint.address.truncateWithEllipsis(3)
+				else -> this@VpnQuickTile.getString(R.string.unknown)
 			}
 
 			setTileDescription(

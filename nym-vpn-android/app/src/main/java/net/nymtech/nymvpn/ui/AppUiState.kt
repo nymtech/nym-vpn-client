@@ -24,6 +24,7 @@ data class AppUiState(
 		is ExitPoint.Address -> null
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
 		is ExitPoint.Location -> exit.location
+		else -> null
 	}
 
 	val entryPointName: String = when (val entry = settings.entryPoint) {
@@ -40,12 +41,14 @@ data class AppUiState(
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
 		is ExitPoint.Location -> exit.toDisplayCountry()
+		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
 	}
 
-	val exitPointId: String = when (val exit = settings.exitPoint) {
+	val exitPointId = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Gateway -> exit.identity
 		is ExitPoint.Location -> exit.location.lowercase()
+		else -> null
 	}
 
 	val entryPointId = when (val entry = settings.entryPoint) {

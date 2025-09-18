@@ -382,11 +382,6 @@ impl TunnelMonitor {
                 .mixnet_client_config
                 .clone(),
             tunnel_type: self.tunnel_parameters.tunnel_settings.tunnel_type,
-            enable_credentials_mode: self
-                .tunnel_parameters
-                .tunnel_settings
-                .mixnet_tunnel_options
-                .enable_credentials_mode,
             selected_gateways: selected_gateways.clone(),
             user_agent: Some(user_agent),
             custom_topology_provider: self.custom_topology_provider.clone(),
