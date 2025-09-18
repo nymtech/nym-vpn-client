@@ -15,7 +15,7 @@ use super::{
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto::{
     AccountControllerState, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
-    Location, StoreAccountRequest, TunnelState as PTunnelState, UserAgent,
+    RichLocation, StoreAccountRequest, TunnelState as PTunnelState, UserAgent,
     nym_vpn_service_client::NymVpnServiceClient, tunnel_event::Event,
 };
 use once_cell::sync::Lazy;
@@ -684,10 +684,10 @@ async fn connect(socket_path: PathBuf) -> Result<Channel> {
         .await?)
 }
 
-impl TryFrom<&Location> for Country {
+impl TryFrom<&RichLocation> for Country {
     type Error = anyhow::Error;
 
-    fn try_from(location: &Location) -> Result<Country, Self::Error> {
+    fn try_from(location: &RichLocation) -> Result<Country, Self::Error> {
         Country::try_new_from_code(&location.two_letter_iso_country_code).ok_or_else(|| {
             let msg = format!(
                 "invalid country code {}",

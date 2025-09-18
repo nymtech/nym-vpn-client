@@ -17,10 +17,28 @@ message Address {
   string gateway_id = 2;
 }
 
+enum AsnKind {
+    RESIDENTIAL = 0;
+    OTHER = 1;
+}
+
+message Asn {
+  string asn = 1;
+  string name = 2;
+  AsnKind kind = 3;
+}
+
 message Location {
   string two_letter_iso_country_code = 1;
-  optional double latitude = 2;
-  optional double longitude = 3;
+}
+
+message RichLocation {
+  string two_letter_iso_country_code = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string city = 4;
+  string region = 5;
+  optional Asn asn = 6;
 }
 
 message EntryNode {
@@ -241,9 +259,9 @@ message Probe {
 
 message GatewayResponse {
   GatewayId id = 1;
-  Location location = 2;
+  RichLocation location = 2;
   Probe last_probe = 3;
-  optional Score wg_score = 4;
+  optional Performance wg_performance = 4;
   optional Score mixnet_score = 5;
   string moniker = 6;
   repeated string exit_ipv4s = 7;
@@ -252,8 +270,15 @@ message GatewayResponse {
 
 }
 
+message Performance {
+  string last_updated_utc = 1;
+  Score score = 2;
+  Score load = 3;
+  float uptime_percentage_last_24_hours = 4;
+}
+
 enum Score {
-  NONE = 0;
+  OFFLINE = 0;
   LOW = 1;
   MEDIUM = 2;
   HIGH = 3;

@@ -18,25 +18,33 @@ use nym_vpn_network_config::{
 };
 use nym_vpnd_types::{
     AccountCommandResponse, ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest, gateway::Score, log_path::LogPath, service::VpnServiceInfo,
+    StoreAccountRequest,
+    gateway::{Performance, Score},
+    log_path::LogPath,
+    service::VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
 
-impl From<proto::Location> for nym_vpnd_types::gateway::Location {
-    fn from(location: proto::Location) -> Self {
-        Self {
+impl TryFrom<proto::RichLocation> for nym_vpnd_types::gateway::Location {
+    type Error = ConversionError;
+
+    fn try_from(location: proto::RichLocation) -> Result<Self, Self::Error> {
+        Ok(Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,
-        }
+            city: location.city,
+            region: location.region,
+            asn: location.asn.map(TryInto::try_into).transpose()?,
+        })
     }
 }
 
 impl From<proto::Score> for Score {
     fn from(score: proto::Score) -> Self {
         match score {
-            proto::Score::None => nym_vpnd_types::gateway::Score::None,
+            proto::Score::Offline => nym_vpnd_types::gateway::Score::Offline,
             proto::Score::Low => nym_vpnd_types::gateway::Score::Low,
             proto::Score::Medium => nym_vpnd_types::gateway::Score::Medium,
             proto::Score::High => nym_vpnd_types::gateway::Score::High,
@@ -50,7 +58,35 @@ impl From<Score> for proto::Score {
             Score::High => proto::Score::High,
             Score::Medium => proto::Score::Medium,
             Score::Low => proto::Score::Low,
-            Score::None => proto::Score::None,
+            Score::Offline => proto::Score::Offline,
+        }
+    }
+}
+
+impl TryFrom<proto::Performance> for nym_vpnd_types::gateway::Performance {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::Performance) -> Result<Self, Self::Error> {
+        Ok(Self {
+            last_updated_utc: value.last_updated_utc,
+            score: proto::Score::try_from(value.score)
+                .map_err(|err| ConversionError::Decode("Performance.score", err))?
+                .into(),
+            load: proto::Score::try_from(value.load)
+                .map_err(|err| ConversionError::Decode("Performance.load", err))?
+                .into(),
+            uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
+        })
+    }
+}
+
+impl From<nym_vpnd_types::gateway::Performance> for proto::Performance {
+    fn from(value: nym_vpnd_types::gateway::Performance) -> Self {
+        Self {
+            last_updated_utc: value.last_updated_utc,
+            score: proto::Score::from(value.score).into(),
+            load: proto::Score::from(value.load).into(),
+            uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
     }
 }
@@ -159,6 +195,7 @@ impl From<nym_vpnd_types::gateway::Probe> for proto::Probe {
 
 impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
     type Error = ConversionError;
+
     fn try_from(gateway: proto::GatewayResponse) -> Result<Self, Self::Error> {
         let identity_key = gateway
             .id
@@ -167,17 +204,22 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
         let moniker = gateway.moniker;
         let location = gateway
             .location
-            .map(nym_vpnd_types::gateway::Location::from);
+            .map(nym_vpnd_types::gateway::Location::try_from)
+            .transpose()?;
         let last_probe = gateway
             .last_probe
             .map(nym_vpnd_types::gateway::Probe::try_from)
             .transpose()?;
         let mixnet_score = gateway
             .mixnet_score
-            .map(nym_vpnd_types::gateway::Score::from_i32);
-        let wg_score = gateway
-            .wg_score
-            .map(nym_vpnd_types::gateway::Score::from_i32);
+            .map(proto::Score::try_from)
+            .transpose()
+            .map_err(|err| ConversionError::Decode("GatewayResponse.mixnet_score", err))?
+            .map(Score::from);
+        let wg_performance = gateway
+            .wg_performance
+            .map(Performance::try_from)
+            .transpose()?;
 
         let exit_ipv4s = gateway
             .exit_ipv4s
@@ -197,7 +239,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             moniker,
             location,
             last_probe,
-            wg_score,
+            wg_performance,
             mixnet_score,
             exit_ipv4s,
             exit_ipv6s,
@@ -211,7 +253,7 @@ impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
         let id = Some(proto::GatewayId {
             id: gateway.identity_key.to_string(),
         });
-        let location = gateway.location.map(proto::Location::from);
+        let location = gateway.location.map(proto::RichLocation::from);
         let last_probe = gateway.last_probe.map(proto::Probe::from);
         let moniker = gateway.moniker;
         let exit_ipv4s = gateway.exit_ipv4s.iter().map(|ip| ip.to_string()).collect();
@@ -221,12 +263,10 @@ impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
             id,
             location,
             last_probe,
-            wg_score: gateway
-                .wg_score
-                .map(|score| proto::Score::from(score) as i32),
             mixnet_score: gateway
                 .mixnet_score
                 .map(|score| proto::Score::from(score) as i32),
+            wg_performance: gateway.wg_performance.map(Into::into),
             moniker,
             exit_ipv4s,
             exit_ipv6s,
@@ -494,8 +534,6 @@ impl TryFrom<nym_gateway_directory::EntryPoint> for proto::EntryNode {
                 entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Location(
                     proto::Location {
                         two_letter_iso_country_code: location,
-                        latitude: None,
-                        longitude: None,
                     },
                 )),
             }),
@@ -562,8 +600,6 @@ impl TryFrom<nym_gateway_directory::ExitPoint> for proto::ExitNode {
             nym_gateway_directory::ExitPoint::Location { location } => {
                 proto::exit_node::ExitNodeEnum::Location(proto::Location {
                     two_letter_iso_country_code: location,
-                    latitude: None,
-                    longitude: None,
                 })
             }
             nym_gateway_directory::ExitPoint::Random => proto::exit_node::ExitNodeEnum::Random(()),
@@ -680,12 +716,57 @@ impl TryFrom<AccountCommandResponse> for proto::AccountCommandResponse {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Location> for proto::Location {
+impl From<nym_vpnd_types::gateway::AsnKind> for proto::AsnKind {
+    fn from(value: nym_vpnd_types::gateway::AsnKind) -> Self {
+        match value {
+            nym_vpnd_types::gateway::AsnKind::Residential => proto::AsnKind::Residential,
+            nym_vpnd_types::gateway::AsnKind::Other => proto::AsnKind::Other,
+        }
+    }
+}
+
+impl From<proto::AsnKind> for nym_vpnd_types::gateway::AsnKind {
+    fn from(value: proto::AsnKind) -> Self {
+        match value {
+            proto::AsnKind::Residential => nym_vpnd_types::gateway::AsnKind::Residential,
+            proto::AsnKind::Other => nym_vpnd_types::gateway::AsnKind::Other,
+        }
+    }
+}
+
+impl From<nym_vpnd_types::gateway::Asn> for proto::Asn {
+    fn from(value: nym_vpnd_types::gateway::Asn) -> Self {
+        proto::Asn {
+            asn: value.asn,
+            name: value.name,
+            kind: proto::AsnKind::from(value.kind).into(),
+        }
+    }
+}
+
+impl TryFrom<proto::Asn> for nym_vpnd_types::gateway::Asn {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::Asn) -> Result<Self, Self::Error> {
+        Ok(nym_vpnd_types::gateway::Asn {
+            asn: value.asn,
+            name: value.name,
+            kind: proto::AsnKind::try_from(value.kind)
+                .map_err(|err| ConversionError::Decode("AsnKind", err))?
+                .into(),
+        })
+    }
+}
+
+impl From<nym_vpnd_types::gateway::Location> for proto::RichLocation {
     fn from(location: nym_vpnd_types::gateway::Location) -> Self {
-        proto::Location {
+        proto::RichLocation {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,
+            city: location.city,
+            region: location.region,
+            asn: location.asn.map(Into::into),
         }
     }
 }
@@ -694,8 +775,6 @@ impl From<nym_vpnd_types::gateway::Country> for proto::Location {
     fn from(country: nym_vpnd_types::gateway::Country) -> Self {
         proto::Location {
             two_letter_iso_country_code: country.iso_code().to_string(),
-            latitude: None,
-            longitude: None,
         }
     }
 }
