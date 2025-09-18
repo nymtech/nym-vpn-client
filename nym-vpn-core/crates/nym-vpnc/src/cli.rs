@@ -177,10 +177,10 @@ pub enum Internal {
 #[derive(Args)]
 pub struct ConnectArgs {
     #[command(flatten)]
-    pub entry: CliEntry,
+    pub entry: LegacyCliEntry,
 
     #[command(flatten)]
-    pub exit: CliExit,
+    pub exit: LegacyCliExit,
 
     /// Set the IP address of the DNS server to use.
     #[arg(long)]
@@ -227,8 +227,118 @@ impl ConnectArgs {
 }
 
 #[derive(Args)]
-#[group(multiple = false)]
+#[group(multiple = false, required = true)]
 pub struct CliEntry {
+    /// Mixnet public ID of the entry gateway.
+    #[arg(long)]
+    pub id: Option<String>,
+
+    /// Auto-select entry gateway by country ISO.
+    #[arg(long)]
+    pub country: Option<celes::Country>,
+
+    /// Auto-select entry gateway randomly.
+    #[arg(long)]
+    pub random: bool,
+}
+
+impl CliEntry {
+    pub fn entry_point(&self) -> Result<EntryPoint> {
+        if let Some(ref entry_gateway_id) = self.id {
+            Ok(EntryPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(entry_gateway_id)
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            })
+        } else if let Some(ref entry_gateway_country) = self.country {
+            Ok(EntryPoint::Location {
+                location: entry_gateway_country.alpha2.to_string(),
+            })
+        } else if self.random {
+            Ok(EntryPoint::Random)
+        } else {
+            unreachable!()
+        }
+    }
+}
+
+#[derive(Args)]
+#[group(multiple = false, required = true)]
+pub struct CliExit {
+    /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
+    /// useful when connecting to standalone IPRs.
+    #[clap(long, hide = true)]
+    pub ipr_address: Option<String>,
+
+    /// Mixnet public ID of the exit gateway.
+    #[clap(long)]
+    pub id: Option<String>,
+
+    /// Auto-select exit gateway by country ISO.
+    #[clap(long)]
+    pub country: Option<celes::Country>,
+
+    /// Auto-select exit gateway randomly.
+    #[clap(long)]
+    pub random: bool,
+}
+
+impl CliExit {
+    pub fn exit_point(&self) -> Result<ExitPoint> {
+        if let Some(ref exit_router_address) = self.ipr_address {
+            Ok(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            })
+        } else if let Some(ref exit_router_id) = self.id {
+            Ok(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            })
+        } else if let Some(ref exit_gateway_country) = self.country {
+            Ok(ExitPoint::Location {
+                location: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if self.random {
+            Ok(ExitPoint::Random)
+        } else {
+            unreachable!()
+        }
+    }
+}
+
+impl TryFrom<CliExit> for ExitPoint {
+    type Error = anyhow::Error;
+
+    fn try_from(value: CliExit) -> std::result::Result<Self, Self::Error> {
+        if let Some(ref exit_router_address) = value.ipr_address {
+            Ok(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            })
+        } else if let Some(ref exit_router_id) = value.id {
+            Ok(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            })
+        } else if let Some(ref exit_gateway_country) = value.country {
+            Ok(ExitPoint::Location {
+                location: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if value.random {
+            Ok(ExitPoint::Random)
+        } else {
+            Err(anyhow!("Invalid Exit Point value"))
+        }
+    }
+}
+
+#[derive(Args)]
+#[group(multiple = false)]
+pub struct LegacyCliEntry {
     /// Mixnet public ID of the entry gateway.
     #[arg(long, alias = "entry-gateway-id")]
     pub entry_id: Option<String>,
@@ -242,7 +352,7 @@ pub struct CliEntry {
     pub entry_random: bool,
 }
 
-impl CliEntry {
+impl LegacyCliEntry {
     pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
         if let Some(ref entry_gateway_id) = self.entry_id {
             Ok(Some(EntryPoint::Gateway {
@@ -263,7 +373,7 @@ impl CliEntry {
 
 #[derive(Args)]
 #[group(multiple = false)]
-pub struct CliExit {
+pub struct LegacyCliExit {
     /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
     /// useful when connecting to standalone IPRs.
     #[clap(long, hide = true, alias = "exit-router-address")]
@@ -282,7 +392,7 @@ pub struct CliExit {
     pub exit_random: bool,
 }
 
-impl CliExit {
+impl LegacyCliExit {
     pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
         if let Some(ref exit_router_address) = self.exit_ipr_address {
             Ok(Some(ExitPoint::Address {
@@ -308,10 +418,10 @@ impl CliExit {
     }
 }
 
-impl TryFrom<CliExit> for ExitPoint {
+impl TryFrom<LegacyCliExit> for ExitPoint {
     type Error = anyhow::Error;
 
-    fn try_from(value: CliExit) -> std::result::Result<Self, Self::Error> {
+    fn try_from(value: LegacyCliExit) -> std::result::Result<Self, Self::Error> {
         if let Some(ref exit_router_address) = value.exit_ipr_address {
             Ok(ExitPoint::Address {
                 address: Box::new(

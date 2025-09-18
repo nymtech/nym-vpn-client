@@ -3,7 +3,7 @@
 
 mod cli;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use cli::Internal;
 use nym_gateway_directory::GatewayType;
@@ -242,25 +242,13 @@ async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn set_entry_point(mut rpc_client: RpcClient, entry: CliEntry) -> Result<()> {
-    if let Some(entry_point) = entry.entry_point()? {
-        rpc_client.set_entry_point(entry_point).await?;
-        Ok(())
-    } else {
-        Err(anyhow!(
-            "You must specify at least one of --entry-id, --entry-country, or --entry-random"
-        ))
-    }
+    rpc_client.set_entry_point(entry.entry_point()?).await?;
+    Ok(())
 }
 
 async fn set_exit_point(mut rpc_client: RpcClient, exit: CliExit) -> Result<()> {
-    if let Some(exit_point) = exit.exit_point()? {
-        rpc_client.set_exit_point(exit_point).await?;
-        Ok(())
-    } else {
-        Err(anyhow!(
-            "You must specify at least one of --exit-id, --exit-country, --exit-ipr-address, or --exit-random"
-        ))
-    }
+    rpc_client.set_exit_point(exit.exit_point()?).await?;
+    Ok(())
 }
 
 async fn set_disable_ipv6(mut rpc_client: RpcClient, disable_ipv6: bool) -> Result<()> {
