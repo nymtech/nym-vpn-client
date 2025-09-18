@@ -1,6 +1,5 @@
 import GRPC
 import SwiftProtobuf
-import Shell
 
 extension GRPCManager {
     public func version() async throws {

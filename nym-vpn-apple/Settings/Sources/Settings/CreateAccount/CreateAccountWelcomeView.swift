@@ -124,7 +124,6 @@ private extension CreateAccountWelcomeView {
                 .foregroundStyle(NymColor.gray1)
                 .padding(.bottom, 24)
                 .environment(\.openURL, OpenURLAction { url in
-                    print(url.absoluteString)
                     guard url.absoluteString == "login" else { return .discarded }
                     navigateToLogin()
                     return .handled
