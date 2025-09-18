@@ -188,15 +188,12 @@ impl VpnServiceConfigManager {
         let (config, version) = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .map_err(Error::ConfigSetup)?;
+            let version = ext_config.version();
 
             tracing::info!("Loaded service config from {}", json_config_path.display());
 
-            let version = match &ext_config {
-                VpnServiceConfigExt::V1(_) => 1,
-                VpnServiceConfigExt::V2(_) => 2,
-            };
-
             let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
+
             (config, version)
         } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
@@ -205,6 +202,7 @@ impl VpnServiceConfigManager {
             tracing::info!("Loaded service config from {}", toml_config_path.display());
 
             let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
+
             (config, 0)
         } else {
             tracing::info!("Using default service config");
@@ -307,6 +305,15 @@ const LATEST_CONFIG_VERSION: u8 = 2;
 enum VpnServiceConfigExt {
     V1(VpnServiceConfigExtV1),
     V2(VpnServiceConfigExtV2),
+}
+
+impl VpnServiceConfigExt {
+    fn version(&self) -> u8 {
+        match self {
+            VpnServiceConfigExt::V1(_) => 1,
+            VpnServiceConfigExt::V2(_) => 2,
+        }
+    }
 }
 
 impl TryFrom<VpnServiceConfigExt> for VpnServiceConfig {
