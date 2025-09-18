@@ -617,7 +617,13 @@ impl TunnelStateHandler for ConnectingState {
            }
             Some(command) = command_rx.recv() => {
                 match command {
-                    TunnelCommand::Connect => NextTunnelState::SameState(self),
+                    TunnelCommand::Connect => {
+                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                            Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                        } else {
+                            NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, None, shared_state).await)
+                        }
+                    },
                     TunnelCommand::Disconnect => {
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                             Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await

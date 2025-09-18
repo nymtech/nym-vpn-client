@@ -181,7 +181,7 @@ pub struct NymVpnService {
     tunnel_state: TunnelState,
 
     // Timer used to throttle changes to tunnel settings
-    tunnel_settings_throttle: Pin<Box<Fuse<tokio::time::Sleep>>>,
+    tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
 
     // Command channel for state machine
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
@@ -461,7 +461,7 @@ impl NymVpnService {
             log_path: parameters.log_path,
             target_state: TargetState::Unsecured,
             tunnel_state: TunnelState::Disconnected,
-            tunnel_settings_throttle: Box::pin(Fuse::terminated()),
+            tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
             tunnel_state_sender: broadcast::Sender::new(10),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -489,7 +489,7 @@ impl NymVpnService {
                 Some(event) = self.event_receiver.recv() => {
                     self.handle_tunnel_event(event);
                 }
-                _ = &mut self.tunnel_settings_throttle => {
+                _ = &mut self.tunnel_settings_update_timer => {
                     self.update_tunnel_settings();
                 }
                 _ = self.shutdown_token.cancelled() => {
@@ -556,8 +556,6 @@ impl NymVpnService {
                     let _ = self.command_sender.send(TunnelCommand::Connect);
                 }
                 TargetState::Unsecured => {
-                    self.tunnel_settings_throttle.set(Fuse::terminated());
-
                     let _ = self.command_sender.send(TunnelCommand::Disconnect);
                 }
             }
@@ -589,7 +587,7 @@ impl NymVpnService {
         match self.target_state {
             TargetState::Secured => {
                 let timer = tokio::time::sleep(Duration::from_secs(1)).fuse();
-                self.tunnel_settings_throttle.set(timer);
+                self.tunnel_settings_update_timer.set(timer);
             }
             TargetState::Unsecured => self.update_tunnel_settings(),
         }
@@ -923,15 +921,9 @@ impl NymVpnService {
                 self.config_manager.config().enable_two_hop,
             ));
 
-        let tunnel_settings = self.config_manager.generate_tunnel_settings();
+        self.update_tunnel_settings();
 
-        self.command_sender
-            .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
-            .ok();
-
-        if self.target_state == TargetState::Unsecured {
-            self.command_sender.send(TunnelCommand::Connect).ok();
-        }
+        let _ = self.set_target_state(TargetState::Secured);
 
         Ok(())
     }
