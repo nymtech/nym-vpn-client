@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub mod schema;
+
 use super::error::{Error, Result};
 use nym_vpn_lib::{
     MixnetClientConfig,
@@ -22,6 +24,11 @@ use std::{
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+
+use schema::{
+    EntryPointExtV1, ExitPointExtV1, MigrationStatus, VpnServiceConfigExt,
+    VpnServiceConfigExtLatest,
+};
 
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
@@ -88,16 +95,19 @@ impl VpnServiceConfigManager {
     pub fn new(network_config_dir: &Path) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
-        let (config, version) = Self::read_from_file(&toml_config_path, &json_config_path)?;
+        let (config, migration_status) =
+            Self::read_from_file(&toml_config_path, &json_config_path)?;
 
         let config_manager = Self {
             json_config_path,
             config,
         };
 
-        // If we didn't read the latest version then write the config straight back to file
-        if version != LATEST_CONFIG_VERSION {
-            config_manager.write_to_file();
+        match migration_status {
+            MigrationStatus::Migrated | MigrationStatus::UseDefault => {
+                config_manager.write_to_file();
+            }
+            MigrationStatus::UpToDate => {}
         }
 
         // If the deprecated TOML file exists then remove it
@@ -180,51 +190,39 @@ impl VpnServiceConfigManager {
         let _ = self.write_to_file();
     }
 
-    /// Returns the configuration as well as the version read from file.
+    /// Returns the configuration reading it from file and performing migration if needed.
     fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
-    ) -> Result<(VpnServiceConfig, u8)> {
-        let (config, version) = if json_config_path.exists() {
+    ) -> Result<(VpnServiceConfig, MigrationStatus)> {
+        if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Loaded service config from {}", json_config_path.display());
 
-            let version = match &ext_config {
-                VpnServiceConfigExt::V1(_) => 1,
-                VpnServiceConfigExt::V2(_) => 2,
-            };
+            let result = schema::migrate_if_needed(ext_config);
+            let config = VpnServiceConfig::try_from(result.config).map_err(Error::ConfigSetup)?;
 
-            let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
-            (config, version)
+            Ok((config, result.status))
         } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Loaded service config from {}", toml_config_path.display());
 
-            let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
-            (config, 0)
+            let config = VpnServiceConfig::from(legacy_config);
+
+            Ok((config, MigrationStatus::Migrated))
         } else {
             tracing::info!("Using default service config");
 
-            (VpnServiceConfig::default(), 0)
-        };
-
-        Ok((config, version))
+            Ok((VpnServiceConfig::default(), MigrationStatus::UseDefault))
+        }
     }
 
     fn write_to_file(&self) -> bool {
-        let ext_config = match VpnServiceConfigExt::try_from(&self.config)
-            .map_err(Error::ConfigSetup)
-        {
-            Ok(ext_config) => ext_config,
-            Err(e) => {
-                tracing::error!("Failed to convert service config to external representation: {e}");
-                return false;
-            }
-        };
+        let ext_config = VpnServiceConfigExt::from(&self.config);
 
         match write_json_config_file(&self.json_config_path, &ext_config)
             .map_err(Error::ConfigSetup)
@@ -294,100 +292,34 @@ impl VpnServiceConfigManager {
     }
 }
 
-//
-// External, versioned, representation of the vpn service config file.
-//
-
-type VpnServiceConfigExtLatest = VpnServiceConfigExtV2;
-const LATEST_CONFIG_VERSION: u8 = 2;
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "version")]
-#[serde(rename_all = "snake_case")]
-enum VpnServiceConfigExt {
-    V1(VpnServiceConfigExtV1),
-    V2(VpnServiceConfigExtV2),
-}
-
-impl TryFrom<VpnServiceConfigExt> for VpnServiceConfig {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: VpnServiceConfigExt) -> Result<Self, Self::Error> {
-        match value {
-            VpnServiceConfigExt::V1(v1) => VpnServiceConfig::try_from(v1),
-            VpnServiceConfigExt::V2(v2) => VpnServiceConfig::try_from(v2),
+impl From<&VpnServiceConfig> for VpnServiceConfigExtLatest {
+    fn from(value: &VpnServiceConfig) -> Self {
+        Self {
+            entry_point: EntryPointExtV1::from(&value.entry_point),
+            exit_point: ExitPointExtV1::from(&value.exit_point),
+            dns: value.dns.map(|addr| addr.to_string()),
+            disable_ipv6: value.disable_ipv6,
+            enable_two_hop: value.enable_two_hop,
+            netstack: value.netstack,
+            disable_poisson_rate: value.disable_poisson_rate,
+            disable_background_cover_traffic: value.disable_background_cover_traffic,
+            min_mixnode_performance: value.min_mixnode_performance,
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance,
         }
     }
 }
 
-impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExt {
+impl From<&VpnServiceConfig> for VpnServiceConfigExt {
+    fn from(value: &VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::from(VpnServiceConfigExtLatest::from(value))
+    }
+}
+
+impl TryFrom<VpnServiceConfigExtLatest> for VpnServiceConfig {
     type Error = ConfigSetupError;
 
-    fn try_from(value: &VpnServiceConfig) -> Result<Self, Self::Error> {
-        // Always construct the latest external representation
-        let latest = VpnServiceConfigExtLatest::try_from(value)?;
-        Ok(latest.into())
-    }
-}
-
-//
-// v1
-//
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct VpnServiceConfigExtV1 {
-    entry_point: EntryPointExtV1,
-    exit_point: ExitPointExtV1,
-}
-
-impl From<VpnServiceConfigExtV1> for VpnServiceConfigExt {
-    fn from(v1: VpnServiceConfigExtV1) -> Self {
-        VpnServiceConfigExt::V1(v1)
-    }
-}
-
-impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: VpnServiceConfigExtV1) -> Result<Self, Self::Error> {
-        let config = VpnServiceConfig {
-            entry_point: EntryPoint::try_from(value.entry_point)?,
-            exit_point: ExitPoint::try_from(value.exit_point)?,
-            ..Default::default()
-        };
-        Ok(config)
-    }
-}
-
-//
-// v2
-//
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct VpnServiceConfigExtV2 {
-    entry_point: EntryPointExtV1,
-    exit_point: ExitPointExtV1,
-    dns: Option<String>,
-    disable_ipv6: bool,
-    enable_two_hop: bool,
-    netstack: bool,
-    disable_poisson_rate: bool,
-    disable_background_cover_traffic: bool,
-    min_mixnode_performance: Option<u8>,
-    min_gateway_mixnet_performance: Option<u8>,
-    min_gateway_vpn_performance: Option<u8>,
-}
-
-impl From<VpnServiceConfigExtV2> for VpnServiceConfigExt {
-    fn from(v2: VpnServiceConfigExtV2) -> Self {
-        VpnServiceConfigExt::V2(v2)
-    }
-}
-
-impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: VpnServiceConfigExtV2) -> Result<Self, Self::Error> {
+    fn try_from(value: VpnServiceConfigExtLatest) -> Result<Self, Self::Error> {
         let dns = value
             .dns
             .map(|addr| {
@@ -413,43 +345,6 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
     }
 }
 
-//
-// Latest (v2)
-//
-
-impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: &VpnServiceConfig) -> Result<Self, Self::Error> {
-        let ext_config = VpnServiceConfigExtLatest {
-            entry_point: EntryPointExtV1::try_from(&value.entry_point)?,
-            exit_point: ExitPointExtV1::try_from(&value.exit_point)?,
-            dns: value.dns.map(|addr| addr.to_string()),
-            disable_ipv6: value.disable_ipv6,
-            enable_two_hop: value.enable_two_hop,
-            netstack: value.netstack,
-            disable_poisson_rate: value.disable_poisson_rate,
-            disable_background_cover_traffic: value.disable_background_cover_traffic,
-            min_mixnode_performance: value.min_mixnode_performance,
-            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
-            min_gateway_vpn_performance: value.min_gateway_vpn_performance,
-        };
-        Ok(ext_config)
-    }
-}
-
-//
-// EntryPointExtV1
-//
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum EntryPointExtV1 {
-    Gateway { identity: String },
-    Location { location: String },
-    Random,
-}
-
 impl TryFrom<EntryPointExtV1> for EntryPoint {
     type Error = ConfigSetupError;
 
@@ -463,33 +358,18 @@ impl TryFrom<EntryPointExtV1> for EntryPoint {
     }
 }
 
-impl TryFrom<&EntryPoint> for EntryPointExtV1 {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: &EntryPoint) -> Result<Self, Self::Error> {
+impl From<&EntryPoint> for EntryPointExtV1 {
+    fn from(value: &EntryPoint) -> Self {
         match value {
-            EntryPoint::Gateway { identity } => Ok(EntryPointExtV1::Gateway {
+            EntryPoint::Gateway { identity } => EntryPointExtV1::Gateway {
                 identity: identity.to_base58_string(),
-            }),
-            EntryPoint::Location { location } => Ok(EntryPointExtV1::Location {
+            },
+            EntryPoint::Location { location } => EntryPointExtV1::Location {
                 location: location.clone(),
-            }),
-            EntryPoint::Random => Ok(EntryPointExtV1::Random),
+            },
+            EntryPoint::Random => EntryPointExtV1::Random,
         }
     }
-}
-
-//
-// ExitPointExtV1
-//
-
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-enum ExitPointExtV1 {
-    Address { address: String },
-    Gateway { identity: String },
-    Location { location: String },
-    Random,
 }
 
 impl TryFrom<ExitPointExtV1> for ExitPoint {
@@ -532,21 +412,19 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
     }
 }
 
-impl TryFrom<&ExitPoint> for ExitPointExtV1 {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: &ExitPoint) -> Result<Self, Self::Error> {
+impl From<&ExitPoint> for ExitPointExtV1 {
+    fn from(value: &ExitPoint) -> Self {
         match value {
-            ExitPoint::Address { address } => Ok(ExitPointExtV1::Address {
+            ExitPoint::Address { address } => ExitPointExtV1::Address {
                 address: address.to_string(),
-            }),
-            ExitPoint::Gateway { identity } => Ok(ExitPointExtV1::Gateway {
+            },
+            ExitPoint::Gateway { identity } => ExitPointExtV1::Gateway {
                 identity: identity.to_string(),
-            }),
-            ExitPoint::Location { location } => Ok(ExitPointExtV1::Location {
+            },
+            ExitPoint::Location { location } => ExitPointExtV1::Location {
                 location: location.clone(),
-            }),
-            ExitPoint::Random => Ok(ExitPointExtV1::Random),
+            },
+            ExitPoint::Random => ExitPointExtV1::Random,
         }
     }
 }
@@ -562,15 +440,13 @@ struct LegacyVpnServiceConfig {
     exit_point: ExitPoint,
 }
 
-impl TryFrom<LegacyVpnServiceConfig> for VpnServiceConfig {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: LegacyVpnServiceConfig) -> Result<Self, Self::Error> {
-        Ok(Self {
+impl From<LegacyVpnServiceConfig> for VpnServiceConfig {
+    fn from(value: LegacyVpnServiceConfig) -> Self {
+        Self {
             entry_point: value.entry_point,
             exit_point: value.exit_point,
             ..Default::default()
-        })
+        }
     }
 }
 
