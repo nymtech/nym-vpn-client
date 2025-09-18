@@ -22,9 +22,10 @@
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4",
     "tun-device": "TUN device error",
     "tunnel-provider": "Tunnel provider error",
-    "bad-bandwidth-increase": "Invalid bandwidth increase value",
     "inactive-account": "Your account is inactive",
-    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN."
+    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN.",
+    "entry-gateway-bandwidth-increase": "Entry gateway is not responding or responding badly to a bandwidth increase.",
+    "exit-gateway-bandwidth-increase": "Exit gateway is not responding or responding badly to a bandwidth increase."
   },
   "account": {
     "internal": "Internal account error",
