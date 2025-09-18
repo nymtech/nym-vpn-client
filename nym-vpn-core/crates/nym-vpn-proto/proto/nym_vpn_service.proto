@@ -220,7 +220,7 @@ message ConnectRequest {
   Dns dns = 3;
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
-  bool circumvention_transports = 21;
+  bool enable_bridges = 21;
   bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
@@ -234,6 +234,7 @@ message VpnServiceConfig {
   Dns dns = 3;
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
+  bool enable_bridges = 21;
   bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;

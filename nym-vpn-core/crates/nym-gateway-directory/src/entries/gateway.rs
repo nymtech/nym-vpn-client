@@ -7,7 +7,7 @@ use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters},
-    types::{NaiveFloat, Percent, ScoreThresholds, ScoreThresholds},
+    types::{Percent, ScoreThresholds},
 };
 use rand::seq::IteratorRandom;
 use std::{
