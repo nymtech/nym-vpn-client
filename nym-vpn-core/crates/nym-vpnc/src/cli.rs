@@ -14,6 +14,7 @@ use nym_http_api_client::UserAgent;
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
 pub struct CliArgs {
+pub struct LegacyCliArgs {
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<UserAgent>,

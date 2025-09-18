@@ -21,7 +21,7 @@ use crate::cli::{CliEntry, CliExit, Command};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = cli::CliArgs::parse();
+    let args = cli::LegacyCliArgs::parse();
     let mut rpc_client = RpcClient::new()
         .await
         .context("Failed to create RPC client")?;
