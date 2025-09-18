@@ -60,7 +60,7 @@ function AntiCensorship() {
               {t('anti-censorship.quic.content')}
             </p>
             <Link
-              className="w-fit text-sm"
+              className="w-fit text-sm mt-2"
               text={t('anti-censorship.quic.link')}
               url={QuicUrl}
               color="primary"
@@ -74,10 +74,11 @@ function AntiCensorship() {
           header={
             <CardSwitch
               header={t('anti-censorship.stealth-api.label')}
-              subheader={t('anti-censorship.stealth-api.warning')}
               subheaderColor="king-nacho"
-              checked={domainFronting}
+              // TODO keep it always ON for now
+              checked={true}
               onClick={onDomainFrontingChange}
+              disabled
             />
           }
         >
@@ -86,7 +87,7 @@ function AntiCensorship() {
               {t('anti-censorship.stealth-api.content')}
             </p>
             <Link
-              className="w-fit text-sm"
+              className="w-fit text-sm mt-2"
               text={t('anti-censorship.stealth-api.link')}
               url={DomainFrontingUrl}
               color="primary"
