@@ -8,7 +8,7 @@ mod tombstone;
 pub mod wireguard;
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
 use tokio_util::sync::CancellationToken;
 
 use super::TunnelType;

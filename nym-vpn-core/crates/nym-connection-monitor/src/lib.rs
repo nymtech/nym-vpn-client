@@ -57,7 +57,6 @@ impl ConnectionMonitorTask {
         self.icmp_beacon_identifier
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub fn start(
         self,
         mixnet_client_sender: MixnetClientSender,
