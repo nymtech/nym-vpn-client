@@ -250,9 +250,6 @@ pub enum Error {
     #[error("failed to dup tunnel file descriptor")]
     DupFd(#[source] std::io::Error),
 
-    #[error("io error")]
-    Io(#[from] std::io::Error),
-
     #[cfg(windows)]
     #[error("failed to add default route listener")]
     AddDefaultRouteListener(#[source] route_handler::Error),
