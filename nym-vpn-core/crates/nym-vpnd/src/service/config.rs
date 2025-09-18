@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::error::{Error, Result};
+use nym_common::trace_err_chain;
 use nym_vpn_lib::{
     MixnetClientConfig,
     gateway_directory::{self, EntryPoint, ExitPoint},
@@ -106,7 +107,9 @@ impl VpnServiceConfigManager {
                 "Removing deprecated config file {}",
                 toml_config_path.display()
             );
-            let _ = fs::remove_file(&toml_config_path);
+            if let Err(e) = fs::remove_file(&toml_config_path) {
+                trace_err_chain!(e, "Failed to remove deprecated config file");
+            }
         }
 
         Ok(config_manager)
