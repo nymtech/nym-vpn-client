@@ -7,7 +7,7 @@ extension GatewayNode {
         self.init(
             id: gatewayInfo.id,
             countryCode: gatewayInfo.location?.twoLetterIsoCountryCode ?? "",
-            wgScore: GatewayNodeScore(with: gatewayInfo.wgScore ?? .none),
+            wgScore: GatewayNodeScore(with: gatewayInfo.wgPerformance?.score),
             mixnetScore: GatewayNodeScore(with: gatewayInfo.mixnetScore ?? .none),
             moniker: gatewayInfo.moniker
         )

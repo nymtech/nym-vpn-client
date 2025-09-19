@@ -3,5 +3,5 @@ public enum GatewayNodeScore: Codable {
     case low
     case medium
     case high
-    case unrecognized(Int)
+    case offline
 }
