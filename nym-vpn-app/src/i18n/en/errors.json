@@ -16,7 +16,7 @@
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
-    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
     "subscription-expired": "Subscription has expired. Kill switch protects you. Tap Stop and renew your plan.",
     "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4",
@@ -30,7 +30,7 @@
   "account": {
     "internal": "Internal account error",
     "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Bandwidth exceeded. Please upgrade your account plan.",
+    "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
     "invalid-recovery-phrase": "Invalid access code",
     "storage": "Storage backend error",
     "is-connected": "Unable to proceed while connected",
