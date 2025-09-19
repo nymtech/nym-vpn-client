@@ -48,6 +48,7 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -210,14 +211,12 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.EntryLocation> {
 									HopScreen(
 										gatewayLocation = GatewayLocation.ENTRY,
-										appViewModel,
 										appState,
 									)
 								}
 								composable<Route.ExitLocation> {
 									HopScreen(
 										gatewayLocation = GatewayLocation.EXIT,
-										appViewModel,
 										appState,
 									)
 								}
@@ -256,6 +255,12 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.SelectPlan> {
 									SelectPlanScreen()
+								}
+								composable<Route.ServerDetails> {
+									val args = it.toRoute<Route.ServerDetails>()
+									runCatching {
+										DetailsScreen(appState, args.id, args.type, args.location)
+									}
 								}
 							}
 						}

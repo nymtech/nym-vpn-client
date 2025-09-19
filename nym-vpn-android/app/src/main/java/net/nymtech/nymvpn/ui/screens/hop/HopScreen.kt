@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
@@ -52,36 +51,32 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
-import net.nymtech.nymvpn.ui.screens.hop.components.GatewayDetailsModal
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
+fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
-	val context = LocalContext.current
 
 	var refreshing by remember { mutableStateOf(false) }
-	var selectedGateway by remember { mutableStateOf<NymGateway?>(null) }
-	var showGatewayDetailsModal by remember { mutableStateOf(false) }
 	val pullRefreshState = rememberPullToRefreshState()
 
 	val gatewayType = remember {
@@ -119,15 +114,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	LaunchedEffect(refreshing) {
 		if (refreshing) viewModel.updateCountryCache(gatewayType)
 		refreshing = false
-	}
-
-	if (showGatewayDetailsModal) {
-		selectedGateway?.let {
-			GatewayDetailsModal(it, gatewayType, {
-				selectedGateway = null
-				showGatewayDetailsModal = false
-			})
-		}
 	}
 
 	PullToRefreshBox(
@@ -245,8 +231,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						navController.safePopBackStack()
 					},
 					onGatewayDetails = { gateway ->
-						selectedGateway = gateway
-						showGatewayDetailsModal = true
+						navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation))
 					},
 					modifier = Modifier
 						.padding(top = if (uiState.countries.indexOf(country) == 0) 24.dp.scaledHeight() else 0.dp)
@@ -281,8 +266,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 									Box(
 										modifier = Modifier
 											.clickable {
-												selectedGateway = gateway
-												showGatewayDetailsModal = true
+												navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation))
 											}
 											.fillMaxHeight(),
 										contentAlignment = Alignment.Center,
