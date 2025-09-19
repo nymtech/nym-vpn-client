@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Themed icons support (https://github.com/nymtech/nym-vpn-client/pull/3429)
 - Random option added for EntryPoint (https://github.com/nymtech/nym-vpn-client/pull/3448)
+- Server details screen (https://github.com/nymtech/nym-vpn-client/pull/3472)
 
 ### Changed
 - Detailed info status for Connecting state (https://github.com/nymtech/nym-vpn-client/pull/3448)
