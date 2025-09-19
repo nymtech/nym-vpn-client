@@ -9059,6 +9059,28 @@
         }
       }
     },
+    "errorReason.credentialWastedOnEntryGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry gateway is not responding or responding badly to a bandwidth."
+          }
+        }
+      }
+    },
+    "errorReason.credentialWastedOnExitGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit gateway is not responding or responding badly to a bandwidth."
+          }
+        }
+      }
+    },
     "errorReason.deviceTimeOutOfSync" : {
       "extractionState" : "manual",
       "localizations" : {
