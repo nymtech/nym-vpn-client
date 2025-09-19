@@ -497,11 +497,20 @@ struct NymVpnService_Dns: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var ip: String = String()
+  var ip: String {
+    get {return _ip ?? String()}
+    set {_ip = newValue}
+  }
+  /// Returns true if `ip` has been explicitly set.
+  var hasIp: Bool {return self._ip != nil}
+  /// Clears the value of `ip`. Subsequent reads from it will return its default value.
+  mutating func clearIp() {self._ip = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+
+  fileprivate var _ip: String? = nil
 }
 
 struct NymVpnService_Url: Sendable {
@@ -948,6 +957,27 @@ struct NymVpnService_NetworkCompatibility: Sendable {
   init() {}
 }
 
+struct NymVpnService_GetConfigResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var config: NymVpnService_VpnServiceConfig {
+    get {return _config ?? NymVpnService_VpnServiceConfig()}
+    set {_config = newValue}
+  }
+  /// Returns true if `config` has been explicitly set.
+  var hasConfig: Bool {return self._config != nil}
+  /// Clears the value of `config`. Subsequent reads from it will return its default value.
+  mutating func clearConfig() {self._config = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _config: NymVpnService_VpnServiceConfig? = nil
+}
+
 struct NymVpnService_GetSystemMessagesResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1080,6 +1110,87 @@ struct NymVpnService_ConnectRequest: Sendable {
   fileprivate var _exit: NymVpnService_ExitNode? = nil
   fileprivate var _dns: NymVpnService_Dns? = nil
   fileprivate var _userAgent: NymVpnService_UserAgent? = nil
+}
+
+struct NymVpnService_VpnServiceConfig: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var entryPoint: NymVpnService_EntryNode {
+    get {return _entryPoint ?? NymVpnService_EntryNode()}
+    set {_entryPoint = newValue}
+  }
+  /// Returns true if `entryPoint` has been explicitly set.
+  var hasEntryPoint: Bool {return self._entryPoint != nil}
+  /// Clears the value of `entryPoint`. Subsequent reads from it will return its default value.
+  mutating func clearEntryPoint() {self._entryPoint = nil}
+
+  var exitPoint: NymVpnService_ExitNode {
+    get {return _exitPoint ?? NymVpnService_ExitNode()}
+    set {_exitPoint = newValue}
+  }
+  /// Returns true if `exitPoint` has been explicitly set.
+  var hasExitPoint: Bool {return self._exitPoint != nil}
+  /// Clears the value of `exitPoint`. Subsequent reads from it will return its default value.
+  mutating func clearExitPoint() {self._exitPoint = nil}
+
+  var dns: NymVpnService_Dns {
+    get {return _dns ?? NymVpnService_Dns()}
+    set {_dns = newValue}
+  }
+  /// Returns true if `dns` has been explicitly set.
+  var hasDns: Bool {return self._dns != nil}
+  /// Clears the value of `dns`. Subsequent reads from it will return its default value.
+  mutating func clearDns() {self._dns = nil}
+
+  var disableIpv6: Bool = false
+
+  var enableTwoHop: Bool = false
+
+  var netstack: Bool = false
+
+  var disablePoissonRate: Bool = false
+
+  var disableBackgroundCoverTraffic: Bool = false
+
+  var minMixnodePerformance: UInt32 {
+    get {return _minMixnodePerformance ?? 0}
+    set {_minMixnodePerformance = newValue}
+  }
+  /// Returns true if `minMixnodePerformance` has been explicitly set.
+  var hasMinMixnodePerformance: Bool {return self._minMixnodePerformance != nil}
+  /// Clears the value of `minMixnodePerformance`. Subsequent reads from it will return its default value.
+  mutating func clearMinMixnodePerformance() {self._minMixnodePerformance = nil}
+
+  var minGatewayMixnetPerformance: UInt32 {
+    get {return _minGatewayMixnetPerformance ?? 0}
+    set {_minGatewayMixnetPerformance = newValue}
+  }
+  /// Returns true if `minGatewayMixnetPerformance` has been explicitly set.
+  var hasMinGatewayMixnetPerformance: Bool {return self._minGatewayMixnetPerformance != nil}
+  /// Clears the value of `minGatewayMixnetPerformance`. Subsequent reads from it will return its default value.
+  mutating func clearMinGatewayMixnetPerformance() {self._minGatewayMixnetPerformance = nil}
+
+  var minGatewayVpnPerformance: UInt32 {
+    get {return _minGatewayVpnPerformance ?? 0}
+    set {_minGatewayVpnPerformance = newValue}
+  }
+  /// Returns true if `minGatewayVpnPerformance` has been explicitly set.
+  var hasMinGatewayVpnPerformance: Bool {return self._minGatewayVpnPerformance != nil}
+  /// Clears the value of `minGatewayVpnPerformance`. Subsequent reads from it will return its default value.
+  mutating func clearMinGatewayVpnPerformance() {self._minGatewayVpnPerformance = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _entryPoint: NymVpnService_EntryNode? = nil
+  fileprivate var _exitPoint: NymVpnService_ExitNode? = nil
+  fileprivate var _dns: NymVpnService_Dns? = nil
+  fileprivate var _minMixnodePerformance: UInt32? = nil
+  fileprivate var _minGatewayMixnetPerformance: UInt32? = nil
+  fileprivate var _minGatewayVpnPerformance: UInt32? = nil
 }
 
 struct NymVpnService_AsEntry: Sendable {
@@ -3619,21 +3730,25 @@ extension NymVpnService_Dns: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.ip) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self._ip) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.ip.isEmpty {
-      try visitor.visitSingularStringField(value: self.ip, fieldNumber: 1)
-    }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._ip {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: NymVpnService_Dns, rhs: NymVpnService_Dns) -> Bool {
-    if lhs.ip != rhs.ip {return false}
+    if lhs._ip != rhs._ip {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4357,6 +4472,42 @@ extension NymVpnService_NetworkCompatibility: SwiftProtobuf.Message, SwiftProtob
   }
 }
 
+extension NymVpnService_GetConfigResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".GetConfigResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "config"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._config) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._config {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_GetConfigResponse, rhs: NymVpnService_GetConfigResponse) -> Bool {
+    if lhs._config != rhs._config {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension NymVpnService_GetSystemMessagesResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetSystemMessagesResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -4612,6 +4763,102 @@ extension NymVpnService_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._Me
     if lhs.disableBackgroundCoverTraffic != rhs.disableBackgroundCoverTraffic {return false}
     if lhs.enableCredentialsMode != rhs.enableCredentialsMode {return false}
     if lhs._userAgent != rhs._userAgent {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_VpnServiceConfig: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".VpnServiceConfig"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "entry_point"),
+    2: .standard(proto: "exit_point"),
+    3: .same(proto: "dns"),
+    14: .standard(proto: "disable_ipv6"),
+    5: .standard(proto: "enable_two_hop"),
+    13: .same(proto: "netstack"),
+    6: .standard(proto: "disable_poisson_rate"),
+    7: .standard(proto: "disable_background_cover_traffic"),
+    8: .standard(proto: "min_mixnode_performance"),
+    9: .standard(proto: "min_gateway_mixnet_performance"),
+    10: .standard(proto: "min_gateway_vpn_performance"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._entryPoint) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._exitPoint) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._dns) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.enableTwoHop) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.disablePoissonRate) }()
+      case 7: try { try decoder.decodeSingularBoolField(value: &self.disableBackgroundCoverTraffic) }()
+      case 8: try { try decoder.decodeSingularUInt32Field(value: &self._minMixnodePerformance) }()
+      case 9: try { try decoder.decodeSingularUInt32Field(value: &self._minGatewayMixnetPerformance) }()
+      case 10: try { try decoder.decodeSingularUInt32Field(value: &self._minGatewayVpnPerformance) }()
+      case 13: try { try decoder.decodeSingularBoolField(value: &self.netstack) }()
+      case 14: try { try decoder.decodeSingularBoolField(value: &self.disableIpv6) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._entryPoint {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._exitPoint {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._dns {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if self.enableTwoHop != false {
+      try visitor.visitSingularBoolField(value: self.enableTwoHop, fieldNumber: 5)
+    }
+    if self.disablePoissonRate != false {
+      try visitor.visitSingularBoolField(value: self.disablePoissonRate, fieldNumber: 6)
+    }
+    if self.disableBackgroundCoverTraffic != false {
+      try visitor.visitSingularBoolField(value: self.disableBackgroundCoverTraffic, fieldNumber: 7)
+    }
+    try { if let v = self._minMixnodePerformance {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 8)
+    } }()
+    try { if let v = self._minGatewayMixnetPerformance {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 9)
+    } }()
+    try { if let v = self._minGatewayVpnPerformance {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 10)
+    } }()
+    if self.netstack != false {
+      try visitor.visitSingularBoolField(value: self.netstack, fieldNumber: 13)
+    }
+    if self.disableIpv6 != false {
+      try visitor.visitSingularBoolField(value: self.disableIpv6, fieldNumber: 14)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_VpnServiceConfig, rhs: NymVpnService_VpnServiceConfig) -> Bool {
+    if lhs._entryPoint != rhs._entryPoint {return false}
+    if lhs._exitPoint != rhs._exitPoint {return false}
+    if lhs._dns != rhs._dns {return false}
+    if lhs.disableIpv6 != rhs.disableIpv6 {return false}
+    if lhs.enableTwoHop != rhs.enableTwoHop {return false}
+    if lhs.netstack != rhs.netstack {return false}
+    if lhs.disablePoissonRate != rhs.disablePoissonRate {return false}
+    if lhs.disableBackgroundCoverTraffic != rhs.disableBackgroundCoverTraffic {return false}
+    if lhs._minMixnodePerformance != rhs._minMixnodePerformance {return false}
+    if lhs._minGatewayMixnetPerformance != rhs._minGatewayMixnetPerformance {return false}
+    if lhs._minGatewayVpnPerformance != rhs._minGatewayVpnPerformance {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

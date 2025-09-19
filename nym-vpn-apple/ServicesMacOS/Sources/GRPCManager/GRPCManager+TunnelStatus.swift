@@ -168,12 +168,14 @@ extension GRPCManager {
             ErrorReason.tunDevice
         case .tunnelProvider:
             ErrorReason.tunnelProvider
-        case .badBandwidthIncrease:
-            ErrorReason.badBandwidthIncrease
         case .inactiveAccount:
             ErrorReason.inactiveAccount
         case .deviceLoggedOut:
             ErrorReason.deviceLoggedOut
+        case .credentialWastedOnEntryGateway:
+            ErrorReason.credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            ErrorReason.credentialWastedOnExitGateway
         }
     }
 }
@@ -200,8 +202,6 @@ extension ErrorReason {
             self = .ipv6Unavailable
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
         case .bandwidthExceeded:
             self = .bandwidthExceeded
         case .inactiveSubscription:
@@ -218,6 +218,10 @@ extension ErrorReason {
             self = .internalUnknown
         case .UNRECOGNIZED:
             self = .internalUnknown
+        case .credentialWastedOnEntryGateway:
+            self = .credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            self = .credentialWastedOnExitGateway
         }
     }
 }

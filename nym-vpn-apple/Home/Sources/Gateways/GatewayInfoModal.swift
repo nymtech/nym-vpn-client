@@ -97,20 +97,23 @@ private extension GatewayInfoModal {
     }
 
     func scoreImageName() -> String {
-        let score: GatewayNodeScore
+        let score: GatewayNodeScore?
         switch connectionManager.connectionType {
         case .mixnet5hop:
             score = server.mixnetScore
         case .wireguard:
             score = server.wgScore
         }
+        guard let score else { return "scoreLow" }
         switch score {
-        case .low, .noScore, .unrecognized:
+        case .low, .noScore:
             return "scoreLow"
         case .medium:
             return "scoreMedium"
         case .high:
             return "scoreHigh"
+        case .offline:
+            return "scoreLow"
         }
     }
 
