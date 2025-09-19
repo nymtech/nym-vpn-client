@@ -93,7 +93,6 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
     Ok(())
 }
 
-// TODO: we need error details here, taking them out until we rework the errors
 #[tokio::test]
 async fn unregistered_account_test() -> anyhow::Result<()> {
     // Get the test_bench

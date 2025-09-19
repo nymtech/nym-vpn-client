@@ -344,12 +344,7 @@ impl VpnApiClient {
         match self.get_query::<T>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure {
-                    url: _,
-                    status: _,
-                    headers: _,
-                    error,
-                } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -518,12 +513,7 @@ impl VpnApiClient {
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure {
-                    url: _,
-                    status: _,
-                    headers: _,
-                    error,
-                } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -585,12 +575,7 @@ impl VpnApiClient {
         match self.delete_query::<T>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure {
-                    url: _,
-                    status: _,
-                    headers: _,
-                    error,
-                } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -657,12 +642,7 @@ impl VpnApiClient {
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure {
-                    url: _,
-                    status: _,
-                    headers: _,
-                    error,
-                } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
