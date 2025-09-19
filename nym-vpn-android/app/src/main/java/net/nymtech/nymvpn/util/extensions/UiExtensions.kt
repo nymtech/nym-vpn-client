@@ -3,6 +3,10 @@ package net.nymtech.nymvpn.util.extensions
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -26,6 +30,9 @@ import nym_vpn_lib_types.Score
 import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib.VpnException
 import timber.log.Timber
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun Dp.scaledHeight(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
@@ -44,6 +51,16 @@ fun TextUnit.scaled(previewScale: Float = 1f): TextUnit = if (NymVpn.isInitializ
 	NymVpn.instance.resizeHeight(this)
 } else {
 	this * previewScale
+}
+
+fun Modifier.topBorder(color: Color, height: Dp) = this.drawWithContent {
+	drawContent()
+	drawLine(
+		color = color,
+		start = Offset(0f, 0f),
+		end = Offset(size.width, 0f),
+		strokeWidth = height.toPx(),
+	)
 }
 
 fun NavController.navigateAndForget(route: Route) {
@@ -160,11 +177,35 @@ fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String>
 		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> mixnetScore
 		GatewayType.WG -> wgScore
 	}
+	return score?.let {
+		getScoreIcon(score)
+	} ?: Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+}
+
+@Composable
+fun getScoreIcon(score: Score): Pair<ImageVector, String> {
 	return when (score) {
 		Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
 		Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 		Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
 		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
-		null -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+	}
+}
+
+fun String.capitalizeFirstLowerRest(): String {
+	return this.lowercase()
+		.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+}
+
+fun formatUtcString(utcString: String?): String {
+	return try {
+		utcString?.let {
+			val instant = Instant.parse(it)
+			val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' HH:mm", Locale.getDefault())
+				.withZone(ZoneId.systemDefault())
+			formatter.format(instant)
+		} ?: "--"
+	} catch (e: Exception) {
+		"--"
 	}
 }
