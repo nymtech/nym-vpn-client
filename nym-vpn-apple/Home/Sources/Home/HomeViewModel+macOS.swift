@@ -28,6 +28,7 @@ extension HomeViewModel {
             .store(in: &cancellables)
 
         grpcManager.$tunnelConnectingState
+            .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { state in
                 MainActor.assumeIsolated {
@@ -42,6 +43,12 @@ extension HomeViewModel {
                     )
                 }
             }
+            .store(in: &cancellables)
+
+        grpcManager.$connectionInfoData
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.connectionInfoData, on: self)
             .store(in: &cancellables)
     }
 }

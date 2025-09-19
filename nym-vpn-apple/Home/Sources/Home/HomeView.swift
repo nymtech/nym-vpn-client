@@ -150,42 +150,28 @@ private extension HomeView {
 
     @ViewBuilder
     func entryHop() -> some View {
-        HopButton(
-            viewModel:
-                HopButtonViewModel(
-                    hopType: .entry,
-                    entryGateway: $viewModel.connectionManager.entryGateway,
-                    exitRouter: $viewModel.connectionManager.exitRouter
-                )
-        )
-        .animation(.default, value: viewModel.connectionManager.entryGateway)
-        .onTapGesture {
-            viewModel.navigateToEntryGateways()
-        }
-        .accessibilityAction {
-            viewModel.navigateToEntryGateways()
-        }
+        HopButton(hopType: .entry)
+            .animation(.default, value: viewModel.connectionManager.entryGateway)
+            .onTapGesture {
+                viewModel.navigateToEntryGateways()
+            }
+            .accessibilityAction {
+                viewModel.navigateToEntryGateways()
+            }
         Spacer()
             .frame(height: 20)
     }
 
     @ViewBuilder
     func exitHop() -> some View {
-        HopButton(
-            viewModel:
-                HopButtonViewModel(
-                    hopType: .exit,
-                    entryGateway: $viewModel.connectionManager.entryGateway,
-                    exitRouter: $viewModel.connectionManager.exitRouter
-                )
-        )
-        .animation(.default, value: viewModel.connectionManager.exitRouter)
-        .onTapGesture {
-            viewModel.navigateToExitGateways()
-        }
-        .accessibilityAction {
-            viewModel.navigateToExitGateways()
-        }
+        HopButton(hopType: .exit)
+            .animation(.default, value: viewModel.connectionManager.exitRouter)
+            .onTapGesture {
+                viewModel.navigateToExitGateways()
+            }
+            .accessibilityAction {
+                viewModel.navigateToExitGateways()
+            }
     }
 
     @ViewBuilder

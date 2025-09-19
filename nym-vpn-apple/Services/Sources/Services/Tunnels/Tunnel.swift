@@ -11,6 +11,7 @@ public final class Tunnel: NSObject, ObservableObject {
     @Published public var afterDisconnectAction: AfterDisconnectAction?
     @Published public var lastError: Error?
     @Published public var tunnelConnectingState: TunnelConnectingState?
+    @Published public var connectionInfoData: ConnectionInfoData?
 
     private var logger: Logger
     private var isPolling = false
@@ -152,6 +153,7 @@ private extension Tunnel {
         retryAttempt = decodedResponse.retryAttempt
         afterDisconnectAction = decodedResponse.afterDisconnectAction
         tunnelConnectingState = decodedResponse.tunnelConnectingState
+        connectionInfoData = decodedResponse.connectionInfoData
 
         guard isPolling else { return }
         if let newError = decodedResponse.lastError {

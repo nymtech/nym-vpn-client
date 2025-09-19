@@ -5,7 +5,7 @@ import NymVPNLib
 import CountriesManagerTypes
 
 extension GatewayManager {
-    func fetchGateways() async {
+    @MainActor func fetchGateways() async {
         Task {
             do {
                 let entryNodes = try getGateways(gwType: .mixnetEntry)
