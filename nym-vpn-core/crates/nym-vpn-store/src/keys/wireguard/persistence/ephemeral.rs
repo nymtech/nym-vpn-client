@@ -9,7 +9,6 @@ use crate::keys::wireguard::{WireguardKeyStore, WireguardKeys, persistence::rand
 
 #[allow(dead_code)]
 #[derive(Default)]
-#[allow(dead_code)]
 pub struct InMemEphemeralKeys {
     keys: Mutex<HashMap<String, WireguardKeys>>,
 }
