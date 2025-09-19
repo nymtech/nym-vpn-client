@@ -1318,7 +1318,7 @@ impl TunnelMonitor {
             conn_data.entry.endpoint.ip()
         };
 
-        let mut packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
+        let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
             dns_servers: self
                 .tunnel_parameters
                 .tunnel_settings

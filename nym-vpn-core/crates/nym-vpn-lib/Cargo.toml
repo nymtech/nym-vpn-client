@@ -84,6 +84,18 @@ nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
 nym-platform-metadata.workspace = true
 
+ed25519-dalek = { workspace = true, features = ["pkcs8", "alloc", "pem", "rand_core"]}
+quinn.workspace = true
+rustls = { workspace = true, default-features = false, features = ["std", "ring", "logging"] }
+rustls-pki-types.workspace = true
+tokio-rustls = { workspace = true, features = ["ring", "tls12", "logging"], default-features=false}
+quinn-proto.workspace =true
+rcgen.workspace =true
+webpki-roots.workspace =true
+x509-parser = { workspace = true, features = ["verify"] }
+bs58.workspace = true
+base64.workspace = true
+
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = [
     "socket",
@@ -92,20 +104,6 @@ nix = { workspace = true, features = [
     "signal",
     "ioctl",
 ] }
-
-ed25519-dalek = { workspace = true, features = ["pkcs8", "alloc", "pem", "rand_core"]}
-quinn.workspace = true
-rustls = { workspace = true, default-features = false, features = ["std", "ring", "logging"] }
-rustls-pki-types.workspace = true
-tokio-rustls = { workspace = true, features = ["ring", "tls12", "logging"], default-features=false}
-quinn-proto.workspace =true
-rand.workspace = true
-rcgen.workspace =true
-webpki-roots.workspace =true
-x509-parser = { workspace = true, features = ["verify"] }
-bs58.workspace = true
-base64.workspace = true
-
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
