@@ -86,6 +86,9 @@ pub(super) async fn start_state_machine(
 
     let tunnel_settings = TunnelSettings {
         enable_ipv6: true,
+        // ios: not used because vpn configuration is configured separately
+        // todo: consider guarding with target_os
+        allow_lan: true,
         tunnel_type,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),

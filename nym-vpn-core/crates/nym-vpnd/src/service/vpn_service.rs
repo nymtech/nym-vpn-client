@@ -66,6 +66,7 @@ pub enum VpnServiceCommand {
     SetDisableIPv6(oneshot::Sender<()>, bool),
     SetEnableTwoHop(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
+    SetAllowLan(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -629,24 +630,28 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::SetEntryPoint(tx, entry_point) => {
-                let result = self.handle_set_entry_point(entry_point).await;
-                let _ = tx.send(result);
+                self.handle_set_entry_point(entry_point).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetExitPoint(tx, exit_point) => {
-                let result = self.handle_set_exit_point(exit_point).await;
-                let _ = tx.send(result);
+                self.handle_set_exit_point(exit_point).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetDisableIPv6(tx, disable_ipv6) => {
-                let result = self.handle_set_disable_ipv6(disable_ipv6).await;
-                let _ = tx.send(result);
+                self.handle_set_disable_ipv6(disable_ipv6).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableTwoHop(tx, enable_two_hop) => {
-                let result = self.handle_set_enable_two_hop(enable_two_hop).await;
-                let _ = tx.send(result);
+                self.handle_set_enable_two_hop(enable_two_hop).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
-                let result = self.handle_set_netstack(netstack).await;
-                let _ = tx.send(result);
+                self.handle_set_netstack(netstack).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
+                self.handle_set_allow_lan(allow_lan).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
@@ -799,6 +804,11 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
+    async fn handle_set_allow_lan(&mut self, allow_lan: bool) {
+        self.config_manager.set_allow_lan(allow_lan);
+        self.update_tunnel_settings_with_throttle();
+    }
+
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config = GlobalConfig::read_from_default_config_dir().map_err(|source| {
             SetNetworkError::ReadConfig {
@@ -909,6 +919,7 @@ impl NymVpnService {
             enable_two_hop: options.enable_two_hop,
             netstack: options.netstack,
             dns: options.dns,
+            allow_lan: true, // always true to support legacy behavior
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,

@@ -22,7 +22,7 @@ impl DisconnectedState {
         #[cfg(target_os = "macos")]
         Self::reset_dns(shared_state).await;
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_firewall_policy(shared_state);
 
         let _ = shared_state
@@ -44,14 +44,14 @@ impl DisconnectedState {
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Failed to reset DNS");
@@ -74,6 +74,13 @@ impl TunnelStateHandler for DisconnectedState {
                         NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
+                    TunnelCommand::SetAllowLan(allow_lan) => {
+                        if shared_state.set_allow_lan(allow_lan) {
+                            todo!()
+                        } else {
+                            NextTunnelState::SameState(self)
+                        }
+                    },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
@@ -88,7 +95,7 @@ impl TunnelStateHandler for DisconnectedState {
                 }
             }
             _ = shutdown_token.cancelled() => {
-                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 Self::reset_dns(shared_state).await;
                 NextTunnelState::Finished
             }

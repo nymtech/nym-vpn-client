@@ -46,6 +46,7 @@ async fn main() -> Result<()> {
         Command::SetIpv6 { enabled } => set_disable_ipv6(rpc_client, !*enabled).await?,
         Command::SetTwoHop { enabled } => set_enable_two_hop(rpc_client, *enabled).await?,
         Command::SetNetstack { enabled } => set_netstack(rpc_client, *enabled).await?,
+        Command::SetAllowLan { allow } => set_allow_lan(rpc_client, *allow).await?,
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
         Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await?,
         Command::IsAccountStored => is_account_stored(rpc_client).await?,
@@ -267,6 +268,11 @@ async fn set_enable_two_hop(mut rpc_client: RpcClient, enable_two_hop: bool) -> 
 
 async fn set_netstack(mut rpc_client: RpcClient, netstack: bool) -> Result<()> {
     rpc_client.set_netstack(netstack).await?;
+    Ok(())
+}
+
+async fn set_allow_lan(mut rpc_client: RpcClient, allow_lan: bool) -> Result<()> {
+    rpc_client.set_allow_lan(allow_lan).await?;
     Ok(())
 }
 

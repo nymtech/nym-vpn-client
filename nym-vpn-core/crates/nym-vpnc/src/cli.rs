@@ -6,7 +6,7 @@ use std::{net::IpAddr, ops::Deref};
 use anyhow::{Result, anyhow};
 use clap::{
     ArgAction, Args, Parser, Subcommand,
-    builder::{PossibleValuesParser, TypedValueParser, ValueParser, ValueParserFactory},
+    builder::{PossibleValuesParser, TypedValueParser, ValueParser},
 };
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
@@ -75,23 +75,30 @@ pub enum Command {
 
     /// Enable or disable IPv6 in the tunnel
     SetIpv6 {
-        /// Set IPv6 support state (on|off)
-        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        /// Set IPv6 support state
+        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         enabled: BooleanOption,
     },
 
     /// Enable or disable two-hop mode
     SetTwoHop {
-        /// Set two-hop mode (on|off)
-        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        /// Set two-hop mode
+        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         enabled: BooleanOption,
     },
 
     /// Enable or disable netstack based implementation for WireGuard
     SetNetstack {
-        /// Set netstack implementation (on|off)
-        #[arg(value_parser = BooleanOption::value_parser(), value_name = "on|off")]
+        /// Set netstack implementation
+        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         enabled: BooleanOption,
+    },
+
+    /// Enable or disable local network access
+    SetAllowLan {
+        /// Allow or disallow local network access
+        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
+        allow: BooleanOption,
     },
 
     /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)

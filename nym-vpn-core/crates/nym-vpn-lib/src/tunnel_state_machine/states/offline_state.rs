@@ -4,16 +4,16 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::FirewallPolicy;
 
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result};
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
@@ -42,7 +42,7 @@ impl OfflineState {
             return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, _shared_state)).await;
         }
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if let Err(e) = Self::set_firewall_policy(_shared_state) {
             trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
@@ -56,11 +56,10 @@ impl OfflineState {
         )
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn set_firewall_policy(shared_state: &mut SharedState) -> Result<()> {
         let policy = FirewallPolicy::Blocked {
-            // todo: fetch from config
-            allow_lan: true,
+            allow_lan: shared_state.tunnel_settings.allow_lan,
             allowed_endpoints: Vec::new(),
         };
 
@@ -70,14 +69,14 @@ impl OfflineState {
             .map_err(Error::SetFirewallPolicy)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Unable to reset DNS");
@@ -131,6 +130,13 @@ impl TunnelStateHandler for OfflineState {
                             NextTunnelState::SameState(self)
                         }
                     },
+                    TunnelCommand::SetAllowLan(allow_lan) => {
+                        if shared_state.set_allow_lan(allow_lan) {
+                            todo!()
+                        } else {
+                            NextTunnelState::SameState(self)
+                        }
+                    },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
@@ -161,7 +167,7 @@ impl TunnelStateHandler for OfflineState {
                 }
             }
             _ = shutdown_token.cancelled() => {
-                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 {
                     Self::reset_dns(shared_state).await;
                     Self::reset_firewall_policy(shared_state);

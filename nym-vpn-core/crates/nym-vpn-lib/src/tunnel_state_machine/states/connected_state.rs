@@ -9,9 +9,9 @@ use tokio_util::sync::CancellationToken;
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
 use nym_common::trace_err_chain;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
 use crate::tunnel_state_machine::{
@@ -21,13 +21,13 @@ use crate::tunnel_state_machine::{
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
 };
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result};
 
 use super::ErrorState;
 
 /// Default websocket port used as a fallback
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 const DEFAULT_WS_PORT: u16 = 80;
 
 pub struct ConnectedState {
@@ -54,7 +54,7 @@ impl ConnectedState {
             tunnel_interface,
         };
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if let Err(e) = connected_state
             .set_firewall_policy(shared_state, &connection_data)
             .await
@@ -83,7 +83,7 @@ impl ConnectedState {
         )
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn set_firewall_policy(
         &self,
         shared_state: &mut SharedState,
@@ -134,8 +134,7 @@ impl ConnectedState {
         let policy = FirewallPolicy::Connected {
             peer_endpoints,
             tunnel: nym_firewall::TunnelInterface::from(self.tunnel_interface.clone()),
-            // todo: fetch this from config
-            allow_lan: true,
+            allow_lan: shared_state.tunnel_settings.allow_lan,
             dns_config,
             // todo: split tunneling
             #[cfg(target_os = "macos")]
@@ -148,7 +147,7 @@ impl ConnectedState {
             .map_err(Error::SetFirewallPolicy)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn set_dns(&self, shared_state: &mut SharedState) -> Result<()> {
         let dns_config = shared_state.tunnel_settings.resolved_dns_config();
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
@@ -200,7 +199,7 @@ impl ConnectedState {
         }
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn reset_routes(shared_state: &mut SharedState) {
         shared_state.route_handler.remove_routes().await
     }
@@ -210,7 +209,7 @@ impl ConnectedState {
         after_disconnect: PrivateActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             Self::reset_dns(shared_state).await;
             Self::reset_routes(shared_state).await;
@@ -232,7 +231,7 @@ impl ConnectedState {
             tracing::info!("Tunnel closed. Reconnecting.");
         }
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             Self::reset_dns(shared_state).await;
             Self::reset_routes(shared_state).await;
@@ -265,6 +264,13 @@ impl TunnelStateHandler for ConnectedState {
                     },
                     TunnelCommand::Disconnect => {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
+                    },
+                    TunnelCommand::SetAllowLan(allow_lan) => {
+                        if shared_state.set_allow_lan(allow_lan) {
+                            todo!()
+                        } else {
+                            NextTunnelState::SameState(self)
+                        }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
