@@ -60,7 +60,7 @@ function NodeDetails() {
     label: string;
   }) => (
     <div className="w-full flex justify-between items-center">
-      <p className="text-iron dark:text-bombay truncate">{label}</p>
+      <p className="text-iron dark:text-bombay truncate select-none">{label}</p>
       <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
         {children}
       </div>
@@ -87,7 +87,7 @@ function NodeDetails() {
 
     return (
       <DataRow label={label}>
-        <div className="flex gap-1 items-center overflow-hidden">
+        <div className="flex gap-1 items-center overflow-hidden select-none">
           <MsIcon className={clsx('text-lg', color)} icon={icon} />
           <p className={clsx('font-medium truncate', color)}>{iconLabel}</p>
         </div>
@@ -95,7 +95,7 @@ function NodeDetails() {
     );
   };
 
-  const IdentityKey = () => (
+  const identityKey = (
     <div className="w-full flex flex-col gap-2">
       <p className="text-iron dark:text-bombay truncate">
         {t('node-details.data.identity-key')}
@@ -137,10 +137,117 @@ function NodeDetails() {
   console.log(gateway);
   console.log('-_-_-_');
 
+  const card1 = [
+    {
+      row: featureRow(
+        t('node-details.data.advanced-privacy'),
+        t('node-details.data.with-mixnet'),
+      ),
+      key: 'privacy',
+    },
+    {
+      row: featureRow(
+        t('node-details.data.ip-type'),
+        isGoodIp
+          ? t('node-details.data.ip-residential')
+          : t('node-details.data.ip-datacenter'),
+        isGoodIp ? 'green' : 'orange',
+      ),
+      key: 'ip-type',
+    },
+  ];
+  const card2 = [
+    {
+      row: scoreRow(
+        t('node-details.data.overall-performance'),
+        gateway.type === 'wg' ? gateway.wgScore : gateway.mxScore,
+      ),
+      key: 'overall-perf',
+    },
+    serverLoad && {
+      row: scoreRow(t('node-details.data.server-load'), serverLoad),
+      key: 'load-score',
+    },
+    uptime !== undefined && {
+      row: (
+        <DataRow label={t('node-details.data.uptime')}>
+          <p className="font-medium">{`${uptime * 100}%`}</p>
+        </DataRow>
+      ),
+      key: 'uptime',
+    },
+  ];
+  const card3 = [
+    exitIpv4 && {
+      row: (
+        <DataRow label={t('node-details.data.exit-ipv4')}>
+          <Link
+            text={exitIpv4}
+            url={`${IpInfoIoUrl}/${exitIpv4}`}
+            color="primary"
+            iconClassName="text-lg"
+            icon
+            selectable
+          />
+        </DataRow>
+      ),
+      key: 'exitIpv4',
+    },
+    exitIpv6 && {
+      row: (
+        <DataRow label={t('node-details.data.exit-ipv6')}>
+          <Link
+            text={exitIpv6}
+            url={`${IpInfoIoUrl}/${exitIpv6}`}
+            color="primary"
+            textClassName="select-text"
+            iconClassName="text-lg"
+            icon
+            selectable
+          />
+        </DataRow>
+      ),
+      key: 'exitIpv6',
+    },
+    asnValue && {
+      row: (
+        <DataRow label={t('node-details.data.asn')}>
+          <div className="truncate">{asnValue}</div>
+        </DataRow>
+      ),
+      key: 'asn-value',
+    },
+    asnName && {
+      row: (
+        <DataRow label={t('node-details.data.asn-name')}>
+          <div className="truncate">{asnName}</div>
+        </DataRow>
+      ),
+      key: 'asn-name',
+    },
+  ];
+  const card4 = [
+    buildVersion && {
+      row: (
+        <DataRow label={t('node-details.data.build-version')}>
+          <div className="truncate">{buildVersion}</div>
+        </DataRow>
+      ),
+      key: 'build-version',
+    },
+    { row: identityKey, key: 'id-key' },
+  ];
+
+  const card2Footer = lastUpdate
+    ? t('node-details.notes.performance_with_date', {
+        date: lastUpdate,
+      })
+    : t('node-details.notes.performance');
+
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
+    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 cursor-default">
       <h1 className="text-lg font-medium dark:text-white">{gateway.name}</h1>
-      <div className="flex flex-row items-center gap-2">
+      <div className="flex flex-row items-center gap-2 select-none">
         <FlagIcon
           code={country.code.toLowerCase() as countryCode}
           alt={country.code}
@@ -150,108 +257,37 @@ function NodeDetails() {
           {getCountryName(country.code) || country.name}
         </div>
       </div>
-      <DataCard>
-        {featureRow(
-          t('node-details.data.advanced-privacy'),
-          t('node-details.data.with-mixnet'),
-        )}
-        {featureRow(
-          t('node-details.data.ip-type'),
-          isGoodIp
-            ? t('node-details.data.ip-residential')
-            : t('node-details.data.ip-datacenter'),
-          isGoodIp ? 'green' : 'orange',
-        )}
-      </DataCard>
-      <DataCard
-        footer={
-          lastUpdate
-            ? t('node-details.notes.performance_with_date', {
-                date: lastUpdate,
-              })
-            : t('node-details.notes.performance')
-        }
-      >
-        {scoreRow(
-          t('node-details.data.overall-performance'),
-          gateway.type === 'wg' ? gateway.wgScore : gateway.mxScore,
-        )}
-        {serverLoad && scoreRow(t('node-details.data.server-load'), serverLoad)}
-        {uptime && (
-          <DataRow label={t('node-details.data.uptime')}>
-            <p className="font-medium">{`${uptime * 100}%`}</p>
-          </DataRow>
-        )}
-      </DataCard>
-      {showCard3 && (
-        <DataCard>
-          {exitIpv4 && (
-            <DataRow label={t('node-details.data.exit-ipv4')}>
-              <Link
-                text={exitIpv4}
-                url={`${IpInfoIoUrl}/${exitIpv4}`}
-                color="primary"
-                iconClassName="text-lg"
-                icon
-              />
-            </DataRow>
-          )}
-          {exitIpv6 && (
-            <DataRow label={t('node-details.data.exit-ipv6')}>
-              <Link
-                text={exitIpv6}
-                url={`${IpInfoIoUrl}/${exitIpv6}`}
-                color="primary"
-                iconClassName="text-lg"
-                icon
-              />
-            </DataRow>
-          )}
-          {asnValue && (
-            <DataRow label={t('node-details.data.asn')}>
-              <div className="truncate">{asnValue}</div>
-            </DataRow>
-          )}
-          {asnName && (
-            <DataRow label={t('node-details.data.asn-name')}>
-              <div className="truncate">{asnName}</div>
-            </DataRow>
-          )}
-        </DataCard>
-      )}
-      <DataCard>
-        {buildVersion && (
-          <DataRow label={t('node-details.data.build-version')}>
-            <div className="truncate">{buildVersion}</div>
-          </DataRow>
-        )}
-        <IdentityKey />
-      </DataCard>
-      <Link
-        text={t('node-details.links.missing-info')}
-        url={SupportServerLocationUrl}
-        className="text-baltic-sea dark:text-white"
-        iconClassName="text-lg"
-        color="iron"
-        icon
-      />
-      <p className="text-iron dark:text-bombay">
-        <Trans
-          i18nKey="node-details.links.explorer"
-          ns="nodeLocation"
-          components={{
-            networkExplorerLink: (
-              <Link
-                text="Network Explorer"
-                url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
-                color="primary"
-                iconClassName="text-lg"
-                icon
-              />
-            ),
-          }}
+      <DataCard rows={card1} />
+      <DataCard rows={card2} footer={card2Footer} />
+      {showCard3 && <DataCard rows={card3} />}
+      <DataCard rows={card4} />
+      <div className="flex flex-col gap-2 select-none">
+        <Link
+          text={t('node-details.links.missing-info')}
+          url={SupportServerLocationUrl}
+          className="text-baltic-sea dark:text-white"
+          iconClassName="text-lg"
+          color="iron"
+          icon
         />
-      </p>
+        <p className="text-iron dark:text-bombay">
+          <Trans
+            i18nKey="node-details.links.explorer"
+            ns="nodeLocation"
+            components={{
+              networkExplorerLink: (
+                <Link
+                  text="Network Explorer"
+                  url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
+                  color="primary"
+                  iconClassName="text-lg"
+                  icon
+                />
+              ),
+            }}
+          />
+        </p>
+      </div>
       {!isSelected && (
         <Button onClick={handleSelect}>
           {t('node-details.select-button')}
