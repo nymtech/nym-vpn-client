@@ -298,6 +298,7 @@ impl GrpcClient {
             entry: Some(entry_node.into()),
             exit: Some(exit_node.into()),
             enable_two_hop: two_hop_mod,
+            enable_bridges: false,
             netstack,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,
