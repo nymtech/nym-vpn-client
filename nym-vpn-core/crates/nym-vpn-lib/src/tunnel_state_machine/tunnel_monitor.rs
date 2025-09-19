@@ -1069,6 +1069,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(windows)]
+    #[allow(deprecated)]
     async fn start_wireguard_tunnel(
         &mut self,
         task_manager: &TaskManager,
