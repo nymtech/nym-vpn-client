@@ -133,10 +133,6 @@ function NodeDetails() {
     navigate(routes.root);
   };
 
-  console.log('-_-_-_');
-  console.log(gateway);
-  console.log('-_-_-_');
-
   const card1 = [
     {
       row: featureRow(
