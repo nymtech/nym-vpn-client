@@ -225,8 +225,8 @@ impl TestBench {
         // Enable logging as early as possible so setup emits logs if needed
         init_tracing();
 
-        // Acquire the global permit to ensure exclusivity of TestBench instances
         let permit = if MAINTAIN_SINGLE_TESTBENCH {
+            // Acquire the global permit to ensure exclusivity of TestBench instances
             Some(
                 global_testbench_semaphore()
                     .acquire_owned()
