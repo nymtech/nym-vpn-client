@@ -916,6 +916,15 @@ impl TunnelMonitor {
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
 
+        #[cfg(not(target_os = "linux"))]
+        let entry_endpoint = if use_bridges {
+            conn_data.entry_bridge_addr.ok_or(TransportError::other(
+                "missing bridge address after connect", // this should not be possible
+            ))?
+        } else {
+            conn_data.entry.endpoint
+        };
+
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
@@ -947,15 +956,6 @@ impl TunnelMonitor {
             Some(exit_mtu),
             self.enable_ipv6().then_some(exit_mtu),
         )?;
-
-        #[cfg(not(target_os = "linux"))]
-        let entry_endpoint = if use_bridges {
-            conn_data.entry_bridge_addr.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?
-        } else {
-            conn_data.entry.endpoint
-        };
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: wintun_exit_interface.name.clone(),
@@ -1140,7 +1140,7 @@ impl TunnelMonitor {
         let exit_gateway_address = conn_data.exit.endpoint.ip();
         let entry_gateway_address = if use_bridges {
             conn_data
-                .bridge
+                .entry_bridge_addr
                 .ok_or(TransportError::other(
                     "missing bridge address after connect", // this should not be possible
                 ))?
