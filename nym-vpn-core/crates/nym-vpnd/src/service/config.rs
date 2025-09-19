@@ -4,7 +4,7 @@
 use super::error::{Error, Result};
 use nym_common::trace_err_chain;
 use nym_vpn_lib::{
-    MixnetClientConfig,
+    MixnetClientConfig, NodeIdentity,
     gateway_directory::{self, EntryPoint, ExitPoint},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
@@ -467,7 +467,9 @@ impl TryFrom<EntryPointExtV1> for EntryPoint {
         match value {
             EntryPointExtV1::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
                 .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
-            EntryPointExtV1::Location { location } => Ok(EntryPoint::Location { location }),
+            EntryPointExtV1::Location { location } => Ok(EntryPoint::Country {
+                two_letter_iso_country_code: location,
+            }),
             EntryPointExtV1::Random => Ok(EntryPoint::Random),
         }
     }
@@ -481,9 +483,12 @@ impl TryFrom<&EntryPoint> for EntryPointExtV1 {
             EntryPoint::Gateway { identity } => Ok(EntryPointExtV1::Gateway {
                 identity: identity.to_base58_string(),
             }),
-            EntryPoint::Location { location } => Ok(EntryPointExtV1::Location {
-                location: location.clone(),
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => Ok(EntryPointExtV1::Location {
+                location: two_letter_iso_country_code.clone(),
             }),
+            EntryPoint::Region { .. } => Err(ConfigSetupError::DowngradeEntryPoint),
             EntryPoint::Random => Ok(EntryPointExtV1::Random),
         }
     }
@@ -536,7 +541,9 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
                     identity: node_identity,
                 })
             }
-            ExitPointExtV1::Location { location } => Ok(ExitPoint::Location { location }),
+            ExitPointExtV1::Location { location } => Ok(ExitPoint::Country {
+                two_letter_iso_country_code: location,
+            }),
             ExitPointExtV1::Random => Ok(ExitPoint::Random),
         }
     }
@@ -553,9 +560,12 @@ impl TryFrom<&ExitPoint> for ExitPointExtV1 {
             ExitPoint::Gateway { identity } => Ok(ExitPointExtV1::Gateway {
                 identity: identity.to_string(),
             }),
-            ExitPoint::Location { location } => Ok(ExitPointExtV1::Location {
-                location: location.clone(),
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => Ok(ExitPointExtV1::Location {
+                location: two_letter_iso_country_code.clone(),
             }),
+            ExitPoint::Region { .. } => Err(ConfigSetupError::DowngradeExitPoint),
             ExitPoint::Random => Ok(ExitPointExtV1::Random),
         }
     }
@@ -565,11 +575,67 @@ impl TryFrom<&ExitPoint> for ExitPointExtV1 {
 // Legacy TOML version of config file.
 //
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum LegacyEntryPoint {
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+    Random,
+}
+
+impl TryFrom<LegacyEntryPoint> for EntryPoint {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: LegacyEntryPoint) -> Result<Self, Self::Error> {
+        match value {
+            LegacyEntryPoint::Gateway { identity } => Ok(EntryPoint::Gateway { identity }),
+            LegacyEntryPoint::Location { location } => Ok(EntryPoint::Country {
+                two_letter_iso_country_code: location,
+            }),
+            LegacyEntryPoint::Random => Ok(EntryPoint::Random),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+enum LegacyExitPoint {
+    Address { address: String },
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+    Random,
+}
+
+impl TryFrom<LegacyExitPoint> for ExitPoint {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: LegacyExitPoint) -> Result<Self, Self::Error> {
+        match value {
+            LegacyExitPoint::Address { address } => {
+                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
+                    ConfigSetupError::ExitPoint {
+                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
+                            address: address.clone(),
+                            source: e,
+                        }),
+                    }
+                })?;
+                Ok(ExitPoint::Address {
+                    address: Box::new(recipient),
+                })
+            }
+            LegacyExitPoint::Gateway { identity } => Ok(ExitPoint::Gateway { identity }),
+            LegacyExitPoint::Location { location } => Ok(ExitPoint::Country {
+                two_letter_iso_country_code: location,
+            }),
+            LegacyExitPoint::Random => Ok(ExitPoint::Random),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 struct LegacyVpnServiceConfig {
-    entry_point: EntryPoint,
-    exit_point: ExitPoint,
+    entry_point: LegacyEntryPoint,
+    exit_point: LegacyExitPoint,
 }
 
 impl TryFrom<LegacyVpnServiceConfig> for VpnServiceConfig {
@@ -577,8 +643,8 @@ impl TryFrom<LegacyVpnServiceConfig> for VpnServiceConfig {
 
     fn try_from(value: LegacyVpnServiceConfig) -> Result<Self, Self::Error> {
         Ok(Self {
-            entry_point: value.entry_point,
-            exit_point: value.exit_point,
+            entry_point: value.entry_point.try_into()?,
+            exit_point: value.exit_point.try_into()?,
             ..Default::default()
         })
     }
@@ -655,16 +721,25 @@ pub enum ConfigSetupError {
         #[source]
         error: Box<gateway_directory::Error>,
     },
+
     #[error("failed to convert exit point")]
     ExitPoint {
         #[source]
         error: Box<gateway_directory::Error>,
     },
+
+    #[error("failed to downgrade entry point")]
+    DowngradeEntryPoint,
+
+    #[error("failed to downgrade exit point")]
+    DowngradeExitPoint,
+
     #[error("failed to convert IP address")]
     IpAddress {
         #[source]
         error: Box<std::net::AddrParseError>,
     },
+
     #[error("failed to convert user agent {user_agent}")]
     UserAgent {
         user_agent: String, // Importing UserAgentError seems impossible.
@@ -972,12 +1047,12 @@ location = "BE"
   "min_gateway_vpn_performance": null
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Location {
-            location: "FR".to_string(),
+        let entry_point = gateway_directory::EntryPoint::Country {
+            two_letter_iso_country_code: "FR".to_string(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Location {
-            location: "BE".to_string(),
+        let exit_point = gateway_directory::ExitPoint::Country {
+            two_letter_iso_country_code: "BE".to_string(),
         };
 
         run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
@@ -1163,8 +1238,8 @@ exit_point = "Random"
     #[test]
     fn test_service_config_serialize_full() {
         let config = VpnServiceConfig {
-            entry_point: gateway_directory::EntryPoint::Location {
-                location: "US".to_string(),
+            entry_point: gateway_directory::EntryPoint::Country {
+                two_letter_iso_country_code: "US".to_string(),
             },
             exit_point: gateway_directory::ExitPoint::Gateway {
                 identity: gateway_directory::NodeIdentity::from_str(

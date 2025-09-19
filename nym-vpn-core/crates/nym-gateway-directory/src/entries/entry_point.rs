@@ -16,8 +16,10 @@ use crate::{Error, error::Result};
 pub enum EntryPoint {
     // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },
-    // Select a random entry gateway in a specific location.
-    Location { location: String },
+    // Select a random entry gateway in a specific country.
+    Country { two_letter_iso_country_code: String },
+    // Select a random entry gateway in a specific region/state.
+    Region { region: String },
     // Select an entry gateway at random.
     Random,
 }
@@ -26,7 +28,10 @@ impl Display for EntryPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             EntryPoint::Gateway { identity } => write!(f, "Gateway: {identity}"),
-            EntryPoint::Location { location } => write!(f, "Location: {location}"),
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => write!(f, "Country: {two_letter_iso_country_code}"),
+            EntryPoint::Region { region } => write!(f, "Region/state: {region}"),
             EntryPoint::Random => write!(f, "Random"),
         }
     }
@@ -43,14 +48,10 @@ impl EntryPoint {
         Ok(EntryPoint::Gateway { identity })
     }
 
-    pub fn is_location(&self) -> bool {
-        matches!(self, EntryPoint::Location { .. })
-    }
-
     pub async fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
-                debug!("Selecting gateway by identity: {}", identity);
+                debug!("Selecting gateway by identity: {identity}");
                 gateways
                     .gateway_with_identity(identity)
                     .ok_or_else(|| Error::NoMatchingGateway {
@@ -58,12 +59,23 @@ impl EntryPoint {
                     })
                     .cloned()
             }
-            EntryPoint::Location { location } => {
-                debug!("Selecting gateway by location: {}", location);
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => {
+                debug!("Selecting gateway by country: {two_letter_iso_country_code}");
                 gateways
-                    .random_gateway_located_at(location.to_string())
+                    .random_gateway_located_at_country(two_letter_iso_country_code.to_string())
                     .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
-                        requested_location: location.clone(),
+                        requested_location: two_letter_iso_country_code.clone(),
+                        available_countries: gateways.all_iso_codes(),
+                    })
+            }
+            EntryPoint::Region { region } => {
+                debug!("Selecting gateway by region/state: {region}");
+                gateways
+                    .random_gateway_located_at_region(region.to_string())
+                    .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
+                        requested_location: region.clone(),
                         available_countries: gateways.all_iso_codes(),
                     })
             }

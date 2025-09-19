@@ -64,6 +64,10 @@ impl Gateway {
             .map(|l| l.two_letter_iso_country_code.as_str())
     }
 
+    pub fn region(&self) -> Option<&str> {
+        self.location.as_ref().map(|l| l.region.as_str())
+    }
+
     pub fn is_two_letter_iso_country_code(&self, code: &str) -> bool {
         self.two_letter_iso_country_code() == Some(code)
     }
@@ -471,11 +475,19 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
-    pub fn gateways_located_at(&self, code: String) -> impl Iterator<Item = &Gateway> {
+    pub fn gateways_located_at_country(&self, code: String) -> impl Iterator<Item = &Gateway> {
         self.gateways.iter().filter(move |gateway| {
             gateway
                 .two_letter_iso_country_code()
                 .is_some_and(|gw_code| gw_code == code)
+        })
+    }
+
+    pub fn gateways_located_at_region(&self, region: String) -> impl Iterator<Item = &Gateway> {
+        self.gateways.iter().filter(move |gateway| {
+            gateway
+                .region()
+                .is_some_and(|gw_region| gw_region == region)
         })
     }
 
@@ -486,8 +498,14 @@ impl GatewayList {
             .cloned()
     }
 
-    pub fn random_gateway_located_at(&self, code: String) -> Option<Gateway> {
-        self.gateways_located_at(code)
+    pub fn random_gateway_located_at_country(&self, code: String) -> Option<Gateway> {
+        self.gateways_located_at_country(code)
+            .choose(&mut rand::thread_rng())
+            .cloned()
+    }
+
+    pub fn random_gateway_located_at_region(&self, region: String) -> Option<Gateway> {
+        self.gateways_located_at_region(region)
             .choose(&mut rand::thread_rng())
             .cloned()
     }

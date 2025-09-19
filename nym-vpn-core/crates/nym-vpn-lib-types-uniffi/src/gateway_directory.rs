@@ -37,7 +37,8 @@ uniffi::custom_type!(BoxedRecepient, String, {
 #[derive(uniffi::Enum)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
-    Location { location: String },
+    Country { two_letter_iso_country_code: String },
+    Region { region: String },
     Random,
 }
 
@@ -47,9 +48,12 @@ impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
             EntryPoint::Gateway { identity } => {
                 nym_gateway_directory::EntryPoint::Gateway { identity }
             }
-            EntryPoint::Location { location } => {
-                nym_gateway_directory::EntryPoint::Location { location }
-            }
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => nym_gateway_directory::EntryPoint::Country {
+                two_letter_iso_country_code,
+            },
+            EntryPoint::Region { region } => nym_gateway_directory::EntryPoint::Region { region },
             EntryPoint::Random => nym_gateway_directory::EntryPoint::Random,
         }
     }
@@ -61,9 +65,12 @@ impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
             nym_gateway_directory::EntryPoint::Gateway { identity } => {
                 EntryPoint::Gateway { identity }
             }
-            nym_gateway_directory::EntryPoint::Location { location } => {
-                EntryPoint::Location { location }
-            }
+            nym_gateway_directory::EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => EntryPoint::Country {
+                two_letter_iso_country_code,
+            },
+            nym_gateway_directory::EntryPoint::Region { region } => EntryPoint::Region { region },
             nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
         }
     }
@@ -74,7 +81,8 @@ impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
 pub enum ExitPoint {
     Address { address: Recipient },
     Gateway { identity: NodeIdentity },
-    Location { location: String },
+    Country { two_letter_iso_country_code: String },
+    Region { region: String },
     Random,
 }
 
@@ -87,9 +95,12 @@ impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
             ExitPoint::Gateway { identity } => {
                 nym_gateway_directory::ExitPoint::Gateway { identity }
             }
-            ExitPoint::Location { location } => {
-                nym_gateway_directory::ExitPoint::Location { location }
-            }
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => nym_gateway_directory::ExitPoint::Country {
+                two_letter_iso_country_code,
+            },
+            ExitPoint::Region { region } => nym_gateway_directory::ExitPoint::Region { region },
             ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
         }
     }
@@ -104,9 +115,12 @@ impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
             nym_gateway_directory::ExitPoint::Gateway { identity } => {
                 ExitPoint::Gateway { identity }
             }
-            nym_gateway_directory::ExitPoint::Location { location } => {
-                ExitPoint::Location { location }
-            }
+            nym_gateway_directory::ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => ExitPoint::Country {
+                two_letter_iso_country_code,
+            },
+            nym_gateway_directory::ExitPoint::Region { region } => ExitPoint::Region { region },
             nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
         }
     }

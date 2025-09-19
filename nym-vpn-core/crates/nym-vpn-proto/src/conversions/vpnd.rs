@@ -274,8 +274,8 @@ impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
     }
 }
 
-impl From<proto::Location> for nym_vpnd_types::gateway::Country {
-    fn from(location: proto::Location) -> Self {
+impl From<proto::Country> for nym_vpnd_types::gateway::Country {
+    fn from(location: proto::Country) -> Self {
         Self {
             iso_code: location.two_letter_iso_country_code,
         }
@@ -560,17 +560,23 @@ impl TryFrom<proto::EntryNode> for nym_gateway_directory::EntryPoint {
             .ok_or(ConversionError::NoValueSet("EntryNode.entry_node_enum"))?;
 
         Ok(match entry_enum_value {
-            proto::entry_node::EntryNodeEnum::Location(location) => {
-                nym_gateway_directory::EntryPoint::Location {
-                    location: location.two_letter_iso_country_code.to_string(),
-                }
-            }
             proto::entry_node::EntryNodeEnum::Gateway(gateway) => {
                 let identity = nym_gateway_directory::NodeIdentity::from_base58_string(&gateway.id)
                     .map_err(|err| {
                         ConversionError::Generic(format!("failed to parse gateway id: {err}"))
                     })?;
                 nym_gateway_directory::EntryPoint::Gateway { identity }
+            }
+
+            proto::entry_node::EntryNodeEnum::Country(country) => {
+                nym_gateway_directory::EntryPoint::Country {
+                    two_letter_iso_country_code: country.two_letter_iso_country_code.to_string(),
+                }
+            }
+            proto::entry_node::EntryNodeEnum::Region(region) => {
+                nym_gateway_directory::EntryPoint::Region {
+                    region: region.region.to_string(),
+                }
             }
             proto::entry_node::EntryNodeEnum::Random(_) => {
                 nym_gateway_directory::EntryPoint::Random
@@ -590,12 +596,17 @@ impl TryFrom<nym_gateway_directory::EntryPoint> for proto::EntryNode {
                     },
                 )),
             }),
-            nym_gateway_directory::EntryPoint::Location { location } => Ok(proto::EntryNode {
-                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Location(
-                    proto::Location {
-                        two_letter_iso_country_code: location,
-                    },
-                )),
+            nym_gateway_directory::EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => Ok(proto::EntryNode {
+                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Country(proto::Country {
+                    two_letter_iso_country_code,
+                })),
+            }),
+            nym_gateway_directory::EntryPoint::Region { region } => Ok(proto::EntryNode {
+                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Region(proto::Region {
+                    region,
+                })),
             }),
             nym_gateway_directory::EntryPoint::Random => Ok(proto::EntryNode {
                 entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Random(())),
@@ -631,9 +642,14 @@ impl TryFrom<proto::ExitNode> for nym_gateway_directory::ExitPoint {
                     })?;
                 nym_gateway_directory::ExitPoint::Gateway { identity }
             }
-            proto::exit_node::ExitNodeEnum::Location(location) => {
-                nym_gateway_directory::ExitPoint::Location {
-                    location: location.two_letter_iso_country_code.to_string(),
+            proto::exit_node::ExitNodeEnum::Country(country) => {
+                nym_gateway_directory::ExitPoint::Country {
+                    two_letter_iso_country_code: country.two_letter_iso_country_code.to_string(),
+                }
+            }
+            proto::exit_node::ExitNodeEnum::Region(region) => {
+                nym_gateway_directory::ExitPoint::Region {
+                    region: region.region.to_string(),
                 }
             }
             proto::exit_node::ExitNodeEnum::Random(_) => nym_gateway_directory::ExitPoint::Random,
@@ -657,10 +673,13 @@ impl TryFrom<nym_gateway_directory::ExitPoint> for proto::ExitNode {
                     id: identity.to_base58_string(),
                 })
             }
-            nym_gateway_directory::ExitPoint::Location { location } => {
-                proto::exit_node::ExitNodeEnum::Location(proto::Location {
-                    two_letter_iso_country_code: location,
-                })
+            nym_gateway_directory::ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => proto::exit_node::ExitNodeEnum::Country(proto::Country {
+                two_letter_iso_country_code,
+            }),
+            nym_gateway_directory::ExitPoint::Region { region } => {
+                proto::exit_node::ExitNodeEnum::Region(proto::Region { region })
             }
             nym_gateway_directory::ExitPoint::Random => proto::exit_node::ExitNodeEnum::Random(()),
         };
@@ -831,9 +850,9 @@ impl From<nym_vpnd_types::gateway::Location> for proto::RichLocation {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Country> for proto::Location {
+impl From<nym_vpnd_types::gateway::Country> for proto::Country {
     fn from(country: nym_vpnd_types::gateway::Country) -> Self {
-        proto::Location {
+        proto::Country {
             two_letter_iso_country_code: country.iso_code().to_string(),
         }
     }
@@ -849,8 +868,8 @@ mod tests {
     #[test]
     fn test_vpn_service_config_conversion() {
         let internal = VpnServiceConfig {
-            entry_point: EntryPoint::Location {
-                location: "US".to_string(),
+            entry_point: EntryPoint::Country {
+                two_letter_iso_country_code: "US".to_string(),
             },
             exit_point: ExitPoint::Gateway {
                 identity: NodeIdentity::from_str("7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj")

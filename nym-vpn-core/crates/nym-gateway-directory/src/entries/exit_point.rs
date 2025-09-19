@@ -21,8 +21,11 @@ pub enum ExitPoint {
     // embedded on a gateway.
     Gateway { identity: NodeIdentity },
 
-    // NOTE: Consider using a crate with strongly typed country codes instead of strings
-    Location { location: String },
+    // Select a random entry gateway in a specific country.
+    Country { two_letter_iso_country_code: String },
+
+    // Select a random entry gateway in a specific region/state.
+    Region { region: String },
 
     // Select an exit gateway at random.
     Random,
@@ -33,17 +36,16 @@ impl Display for ExitPoint {
         match self {
             ExitPoint::Address { address } => write!(f, "Address: {address}"),
             ExitPoint::Gateway { identity } => write!(f, "Gateway: {identity}"),
-            ExitPoint::Location { location } => write!(f, "Location: {location}"),
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => write!(f, "Country: {two_letter_iso_country_code}"),
+            ExitPoint::Region { region } => write!(f, "Region/state: {region}"),
             ExitPoint::Random => write!(f, "Random"),
         }
     }
 }
 
 impl ExitPoint {
-    pub fn is_location(&self) -> bool {
-        matches!(self, ExitPoint::Location { .. })
-    }
-
     pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             ExitPoint::Address { address } => {
@@ -72,12 +74,23 @@ impl ExitPoint {
                     })
                     .cloned()
             }
-            ExitPoint::Location { location } => {
-                tracing::debug!("Selecting gateway by location: {location}");
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => {
+                tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
                 gateways
-                    .random_gateway_located_at(location.to_string())
+                    .random_gateway_located_at_country(two_letter_iso_country_code.to_string())
                     .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
-                        requested_location: location.clone(),
+                        requested_location: two_letter_iso_country_code.clone(),
+                        available_countries: gateways.all_iso_codes(),
+                    })
+            }
+            ExitPoint::Region { region } => {
+                tracing::debug!("Selecting gateway by region/state: {region}");
+                gateways
+                    .random_gateway_located_at_region(region.to_string())
+                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+                        requested_location: region.clone(),
                         available_countries: gateways.all_iso_codes(),
                     })
             }
