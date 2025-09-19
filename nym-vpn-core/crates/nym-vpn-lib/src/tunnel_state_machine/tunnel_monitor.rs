@@ -1308,12 +1308,12 @@ impl TunnelMonitor {
         }
 
         let entry_endpoint = if use_bridges {
-            let entry_bridge_addr = conn_data.bridge.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?;
-            packet_tunnel_settings
-                .remote_addresses
-                .push(entry_bridge_addr.ip());
+            conn_data
+                .entry_bridge_addr
+                .ok_or(TransportError::other(
+                    "missing bridge address after connect", // this should not be possible
+                ))?
+                .ip()
         } else {
             conn_data.entry.endpoint.ip()
         };
