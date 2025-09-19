@@ -6,9 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
 - Themed icons support (https://github.com/nymtech/nym-vpn-client/pull/3429)
-- UI state updates after logout (https://github.com/nymtech/nym-vpn-client/pull/3448)
 - Random option added for EntryPoint (https://github.com/nymtech/nym-vpn-client/pull/3448)
+- Server details screen (https://github.com/nymtech/nym-vpn-client/pull/3472)
+
+### Changed
 - Detailed info status for Connecting state (https://github.com/nymtech/nym-vpn-client/pull/3448)
 - Server name now displayed below Country on Main Screen (https://github.com/nymtech/nym-vpn-client/pull/3465)
 
