@@ -3531,10 +3531,100 @@
     "censorship.quic.link" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كيف يحسن QUIC الاتصالات"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie QUIC die Verbindungen verbessert"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "How QUIC improves connections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo mejora la calidad de las conexiones"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How QUIC improves connections"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment QUIC améliore les connexions"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How QUIC improves connections"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come QUIC migliora le connessioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUICの改善方法"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como o QUIC melhora as conexões"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como o QUIC melhora as conexões"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как QUIC улучшает соединения"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How QUIC improves connections"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Як QUIC покращує з'єднання"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How QUIC improves connections"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC如何改善连接"
           }
         }
       }
@@ -3542,10 +3632,100 @@
     "censorship.quic.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3) للظهور كتصفح منتظم على شبكة الإنترنت."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken durch das Einwickeln des WireGuard-Datenverkehrs in QUIC (HTTP/3) um als reguläres Surfen im Internet zu erscheinen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejora la fiabilidad del modo Rápido en redes restrictivas envolviendo el tráfico de Wirex en QUIC (HTTP/3) para que aparezca como navegación normal por la web."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Améliore la fiabilité du mode rapide dans les réseaux restrictifs en enveloppant le trafic WireGuard dans QUIC (HTTP/3) pour qu'il apparaisse comme une navigation Web ordinaire."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Migliora l'affidabilità della modalità veloce nelle reti restrittive avvolgendo il traffico WireGuard in QUIC (HTTP/3) per apparire come normale navigazione web."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WireGuard トラフィックを QUIC (HTTP/3) でラップすることで、制限的なネットワークにおける高速モードの信頼性を向上させ、通常の Web ブラウジングとして表示させます。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повышает надёжность Быстрого режима в сетях с ограниченным доступом, оборачивая трафик WireGuard в QUIC (HTTP/3), чтобы он выглядел как обычный веб-сёрфинг."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покращує надійність швидкого режиму в обмежених мережах, обертаючи трафік WireGuard в QUIC (HTTP/3), щоб він виглядав як звичайний веб-перегляд."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 QUIC (HTTP/3) 包装无线保真流量以作为常规浏览器来提高限制性网络中的快速模式可靠性。"
           }
         }
       }
@@ -3553,10 +3733,100 @@
     "censorship.quic.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ملاحظة: الحد من خيارات خادم الدخول إلى البوابات المتوافقة مع QUIC-فقط."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinweis: Nur QUIC-kompatible Gateways für Eintragsserver Optionen einschränken."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota: Limita las opciones del servidor de entradas a las pasarelas compatibles con QUIC."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: Limite les options du serveur d'entrée aux passerelles compatibles QUIC."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota: Limita le opzioni del server di entrata solo ai gateway compatibili con QUIC."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注: QUIC互換ゲートウェイのみエントリサーバーオプションを制限します。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Примечание: ограничивает выбор входных серверов только шлюзами, совместимыми с QUIC."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Примітка: обмежує параметри сервера входу тільки шлюзами, сумісними з QUIC."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注意：将条目服务器选项限制为只兼容QUIC网关。"
           }
         }
       }
@@ -3564,10 +3834,100 @@
     "censorship.quic.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحسين الاتصال (QUIC)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterte Verbindung (QUIC)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enhanced connection (QUIC)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexión mejorada (QUIC)"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enhanced connection (QUIC)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion améliorée (QUIC)"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enhanced connection (QUIC)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connessione migliorata (QUIC)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続強化（QUIC）"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexão aprimorada (QUIC)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexão aprimorada (QUIC)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Расширенное соединение (QUIC)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enhanced connection (QUIC)"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Покращене з'єднання (QUIC)"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enhanced connection (QUIC)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增强连接 (QUIC)"
           }
         }
       }
@@ -3575,10 +3935,100 @@
     "censorship.stealhapi.link" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كيف يعمل واجهة برمجة تطبيقات ستثنى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie der Stealth-API-Verbindungsmodus funktioniert"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "How the Stealth API connect mode works"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo funciona el modo de conexión de API de sigilo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How the Stealth API connect mode works"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comment fonctionne le mode de connexion de l'API furtive"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How the Stealth API connect mode works"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come funziona la modalità di connessione Stealth API"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ステルスAPI接続モードの仕組み"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como funciona o modo de conexão de API furtiva"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Como funciona o modo de conexão de API furtiva"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Как работает режим подключения Stealth API"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How the Stealth API connect mode works"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Як працює режим підключення Stealth API"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "How the Stealth API connect mode works"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SteomAPI连接模式工作方式"
           }
         }
       }
@@ -3586,10 +4036,100 @@
     "censorship.stealhapi.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم NymVPN تلقائياً عندما تفشل محاولات اتصال API القياسية."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch von NymVPN verwendet, wenn Standard-API-Verbindungsversuche fehlschlagen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilizado automáticamente por NymVPN cuando la conexión estándar de la API falla."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisé automatiquement par NymVPN lorsque la connexion à l'API standard échoue."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usato automaticamente da NymVPN quando la connessione API standard tenta di fallire."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標準 API 接続の失敗時に自動的に NymVPN で使用されます。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usado automaticamente pela NymVPN quando a tentativa de conexão de API padrão falhar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usado automaticamente pela NymVPN quando a tentativa de conexão de API padrão falhar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматически используется NymVPN, когда стандартные попытки подключения по API не удаются."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматично використовується NymVPN при помилках стандартних API з'єднання."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当标准 API 连接尝试失败时，NymVPN 会自动使用。"
           }
         }
       }
@@ -3597,10 +4137,100 @@
     "censorship.stealhapi.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توصيل API الثري"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stealth-API-Verbindung"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stealth API connect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexión API de sigilo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Stealth API connect"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion API furtive"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Stealth API connect"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stealth API connect"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ステルスAPI接続"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexão à API Furtiva"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexão à API Furtiva"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подключение по Stealth API"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Stealth API connect"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приховане підключення API"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Stealth API connect"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐身API连接"
           }
         }
       }
@@ -5940,13 +6570,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "es" : {
@@ -5982,7 +6612,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -8792,7 +9422,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erreur de forfait de données"
+            "value" : "Augmentation de la bande passante incorrecte"
           }
         },
         "hi" : {
@@ -11121,7 +11751,7 @@
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "संगन को कॉन्फ़िगर करने में विफल"
+            "value" : "टनल डिवाइस को कॉन्फ़िगर करने में विफल"
           }
         },
         "it" : {
@@ -13337,7 +13967,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Création de clés qui ne quittent jamais votre appareil"
+            "value" : "Génération de clés qui restent toujours sur votre appareil"
           }
         },
         "hi" : {
@@ -13640,7 +14270,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Génération des claviers cryptographiques..."
+            "value" : "Génération des paires de clés cryptographiques..."
           }
         },
         "hi" : {
@@ -14721,19 +15351,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -14775,7 +15405,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -22528,7 +23158,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copier le mot de passe"
+            "value" : "Copier la phrase de passe"
           }
         },
         "hi" : {
@@ -22932,7 +23562,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "🔒Votre phrase de passe de compte maître: 24 mots qui vous permettent d'accéder à votre compte depuis n'importe quel appareil."
+            "value" : "🔒Votre phrase secrète principale : 24 mots qui vous permettent d\\'accéder à votre compte depuis n\\'importe quel appareil."
           }
         },
         "hi" : {
@@ -23707,10 +24337,100 @@
     "privacyData.anonymousStats" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إحصائيات الشبكة المجهولة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonyme Netzwerkstatistiken"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anonymous network stats"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estadísticas de red anónimas"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آمار ناشناس شبکه"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statistiques réseau anonymes"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anonymous network stats"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statistiche di rete anonime"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匿名のネットワーク統計"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estatísticas de rede anônimas"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estatísticas de rede anônimas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Анонимная статистика сети"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonim ağ istatistikleri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Анонімна статистика мережі"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thống kê mạng ẩn danh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匿名数据报告"
           }
         }
       }
@@ -23718,10 +24438,100 @@
     "privacyData.anonymousStats.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ساعدنا على بناء شبكة أسرع من خلال مشاركة بيانات الأداء المجهولة من منطقتك. نحن نستخدم هذا لتحسين السرعة، وتقليل قطع الاتصالات، وتوجيه تغطية الخوادم حيث هي في أمس الحاجة إليها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayúdanos a construir una red más rápida compartiendo datos de rendimiento anónimos de tu región. Utilizamos esto para optimizar velocidades, reducir desconexiones y dirigir la cobertura del servidor donde más se necesita."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "به ما از طریق اشتراک گذاری داده های عملکرد به صورت ناشناس از منطقه خود، کمک کنید تا شبکه ای سریع تر بسازیم. ما از این داده ها برای بهینه‌سازی سرعت ها، کاهش قطع ارتباط، و هدایت پوشش سرورها به مناطقی که بیشترین نیاز را دارند استفاده می کنیم. هرگز فعالیت مرورگر یا داده های شخصی شما به اشتراک گذاشته نمی شود – فقط داده های عملکرد شبکه."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aidez-nous à construire un réseau plus rapide en partageant des données de performances anonymisées dans votre région. Nous les utilisons afin de réduire le taux de déconnexion et orienter nos déploiements de serveurs où cela se révèle nécessaire."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aiutaci a costruire una rete più veloce condividendo dati anonimi sulle prestazioni della tua regione. Usiamo questo per ottimizzare le velocità, ridurre le disconnessioni e sterzare la copertura del server dove è più necessario."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お住まいの地域から匿名のパフォーマンスデータを共有することで、より高速なネットワークを構築することができます。 これを使用して、スピードを最適化し、切断を減らし、最も必要とされるサーバーカバレッジを管理します。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajude-nos a construir uma rede mais rápida, compartilhando dados de desempenho anônimos de sua região. Usamos isto para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde ele mais precisa."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajude-nos a construir uma rede mais rápida, compartilhando dados de desempenho anônimos de sua região. Usamos isto para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde ele mais precisa."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Помогите нам создать более быструю сеть, делясь анонимными данными о производительности из вашего региона. Мы используем эту информацию для оптимизации скорости, уменьшения разрывов соединения и улучшения покрытия серверов там, где это необходимо больше всего."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bölgenizden anonim performans verilerini paylaşarak daha hızlı bir ağ oluşturmamıza yardımcı olun. Bu verileri, hızı optimize etmek, bağlantı kopmalarını azaltmak ve sunucu kapsamını en çok ihtiyaç duyulan yerlere yönlendirmek için kullanıyoruz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Допоможіть нам створити швидшу мережу, поділившись анонімними даними про продуктивність у вашому регіоні. Ми використовуємо ці дані для оптимізації швидкості, зменшення кількості розривів з'єднання та спрямування покриття сервером туди, де це найбільш потрібно."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy giúp chúng tôi xây dựng một mạng lưới nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất một cách ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu hóa tốc độ, giảm tình trạng ngắt kết nối và mở rộng độ phủ máy chủ tại những khu vực cần thiết nhất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过分享您所在地区的匿名性能数据，帮助我们构建更快速的网络。 我们将利用这些数据优化速度、减少断线，并将服务器资源精准部署到最需要的区域。"
           }
         }
       }
@@ -23729,10 +24539,100 @@
     "privacyData.anonymousStats.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتم مشاركة بيانات أداء الشبكة فقط - لا نشاط التصفح الخاص بك أو البيانات الشخصية أبدا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es werden nur Daten über die Netzwerkleistung geteilt – niemals Ihre Surfaktivität oder Ihre persönlichen Daten."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only network performance data is shared – never your browsing activity or personal data."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sólo los datos de rendimiento de la red son compartidos – nunca su actividad de navegación o datos personales."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هرگز فعالیت وب گردی یا داده‌های شخصی شما به اشتراک گذاشته نمی‌شود – تنها داده‌های عملکرد شبکه."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seules les données de performance du réseau sont partagées — jamais de données personnelles ou liées à vos activités en ligne."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only network performance data is shared – never your browsing activity or personal data."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo i dati sulle prestazioni di rete sono condivisi – mai la tua attività di navigazione o i tuoi dati personali."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ネットワークパフォーマンスデータのみが共有されます – ブラウジング活動や個人データは共有されません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas dados de desempenho de rede são compartilhados – nunca sua atividade de navegação ou dados pessoais."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas dados de desempenho de rede são compartilhados – nunca sua atividade de navegação ou dados pessoais."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Передаются лишь данные о работе сети – при этом ваша активность в интернете и личные данные остаются конфиденциальными."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşılan sadece ağ performans verileridir ve asla tarama etkinliğiniz veya kişisel bilgileriniz paylaşılmaz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поширюються лише дані про продуктивність мережі – ніколи ваша активність у мережі або особисті дані."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ có dữ liệu hiệu suất mạng được chia sẻ - không bao giờ chia sẻ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我们仅共享网络性能数据，绝不涉及您的浏览活动或个人信息。"
           }
         }
       }
@@ -23740,10 +24640,100 @@
     "privacyData.anonymousStats.subtitle3" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعلم بالضبط ما هو مشترك"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erfahren Sie genau, was geteilt wird"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Learn exactly what's shared"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprende exactamente lo que es compartido"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apprenez en détail ce qui est partagé"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Learn exactly what's shared"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impara esattamente cosa è condiviso"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共有されているものを正確に学ぶ"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saiba exatamente o que é compartilhado"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saiba exatamente o que é compartilhado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Узнайте точно, какие данные передаются"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşılan verilerin tam olarak neler olduğunu öğrenin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Дізнайтеся, що саме публікується"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm hiểu chính xác những gì được chia sẻ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "了解何种数据会被收集"
           }
         }
       }
@@ -23751,10 +24741,100 @@
     "privacyData.errorCrashReports" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقارير الأخطاء و الأعطال"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehler & Absturzberichte"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Error & crash reports"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informes de errores"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گزارش‌های خطا و خرابی"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rapports d'erreurs et de crashs"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Error & crash reports"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segnalazioni di errore e crash"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エラーとクラッシュレポート"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relatórios de erros e erros"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relatórios de erros e erros"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёты об ошибках и сбоях"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hata & çökme raporları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Звіти про помилки та збої"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Báo cáo lỗi & sự cố"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误和崩溃报告"
           }
         }
       }
@@ -23762,9 +24842,99 @@
     "privacyData.errorCrashReports.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sende Absturzinformationen, um uns zu helfen, Fehler schneller zu beheben.\nBerichte gehen durch das sichere System von Sentry und enthalten nur technische Debuggingdaten."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envíanos información de errores para ayudarnos a corregir errores más rápido.\nLos informes pasan por el sistema seguro de Sentry e incluyen solo datos técnicos de depuración."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyez des informations de plantage pour nous aider à corriger les bugs plus rapidement.\nLes rapports passent par le système sécurisé de Sentry et n'incluent que des données techniques de débogage."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invia informazioni sul crash per aiutarci a correggere i bug più velocemente.\nRapporti passano attraverso il sistema sicuro di Sentry e includono solo dati tecnici di debug."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バグを迅速に修正するためにクラッシュ情報を送信します。\nSentryの安全なシステムを通過し、技術的なデバッグデータのみを含めます。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправить информацию о сбоях, чтобы помочь нам быстрее исправлять ошибки.\nОтчеты передаются через безопасную систему Sentry и содержат только технические данные для отладки."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Надішліть інформацію про збій, щоб допомогти нам швидше виправити помилки.\nЗвіти проходять через безпечну систему Sentry і містять лише технічні дані для усунення помилок."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
           }
         }
@@ -23773,10 +24943,100 @@
     "privacyData.errorCrashReports.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عرض سياسة خصوصية الحراسة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sentry-Datenschutzerklärung anzeigen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "View Sentry Privacy Policy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver política de privacidad de centinela"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشاهده سیاست حفظ حریم خصوصی Sentry"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir la politique de traitement des données de Sentry"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "View Sentry Privacy Policy"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualizza Informativa Sulla Privacy Della Sentry"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sentry プライバシーポリシーを表示"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver Política de Privacidade de Sentry"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver Política de Privacidade de Sentry"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Посмотреть политику конфиденциальности Sentry"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sentry Gizlilik Politikasını Görüntüle"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переглянути політику конфіденційності Sentry"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem Chính sách quyền riêng tư của Sentry"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看Sentry隐私政策"
           }
         }
       }
@@ -24506,7 +25766,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "es" : {
@@ -24518,7 +25778,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "fr" : {
@@ -24578,7 +25838,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "zh-Hans" : {
@@ -24607,7 +25867,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "es" : {
@@ -24619,7 +25879,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "fr" : {
@@ -24679,7 +25939,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "zh-Hans" : {
@@ -24732,7 +25992,7 @@
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plan Activated"
+            "value" : "असली गोपनीयता में आपका स्वागत है 🎉"
           }
         },
         "it" : {
@@ -28026,10 +29286,100 @@
     "settings.censorship.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مكافحة الرقابة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-Zensur"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anti-censorship"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anticensura"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anti-censorship"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censure"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anti-censorship"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検閲対策"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Антицензура"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anti-censorship"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проти цензури"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anti-censorship"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "反检查"
           }
         }
       }
@@ -28643,10 +29993,100 @@
     "settings.ipv6.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعطيل لاستخدام IPv4 فقط"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deaktivieren, um nur IPv4 zu verwenden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disable to only use IPv4"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivar para usar solo IPv4"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غیرفعال کردن، فقط برای استفاده از IPv4"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivez pour utiliser uniquement IPv4"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disable to only use IPv4"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabilita per usare solo IPv4"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4のみ使用するよう無効にする"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desabilitar para usar somente IPv4"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desabilitar para usar somente IPv4"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключить, чтобы использовать только IPv4"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yalnızca IPv4 kullanmak için devre dışı bırakın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вимкнути, щоб використовувати тільки IPv4"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vô hiệu hóa để chỉ sử dụng IPv4"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭以仅使用IPv4"
           }
         }
       }
@@ -28654,10 +30094,100 @@
     "settings.ipv6.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نفق حركة مرور IPv6"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 Verkehrstunnel"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "IPv6 traffic tunneling"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Túnel de tráfico IPv6"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تونل‌زنی ترافیک IPv6"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise en tunnel du trafic IPv6"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "IPv6 traffic tunneling"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunneling traffico IPv6"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 トラフィックトンネル"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tunelamento de tráfego IPv6"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tunelamento de tráfego IPv6"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Туннелирование трафика IPv6"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 trafiğini tünelleme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тунелювання трафіку IPv6"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunneling lưu lượng IPv6"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6隧道传输"
           }
         }
       }
@@ -29473,10 +31003,100 @@
     "settings.privacyAndData" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الخصوصية والبيانات"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutz & Daten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Privacy & data"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidad y datos"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حریم خصوصی و داده‌ها"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confidentialité et données"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Privacy & data"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy & dati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシーとデータ"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidade e dados"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidade e dados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Конфиденциальность & данные"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizlilik & Veri"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Конфіденційність та дані"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quyền riêng tư & dữ liệu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私和数据"
           }
         }
       }
@@ -31504,10 +33124,100 @@
     "welcome.analytics" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشاركة تحليلات المنتجات المجهولة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonyme Produktanalytik teilen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Share anonymous product analytics"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir análisis de productos anónimos"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "به اشتراک‌گذاشتن اطلاعات تحلیلی محصول به صورت ناشناس"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partager les rapports d'analyses anonymes"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Share anonymous product analytics"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condividi l'analisi anonima dei prodotti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匿名の製品分析を共有"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartilhar análise de produto anônima"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartilhar análise de produto anônima"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделиться анонимной аналитикой продукта"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonim ürün analizlerini paylaş"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поділитися анонімною аналітикою продукту"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ phân tích sản phẩm ẩn danh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享匿名的产品数据"
           }
         }
       }
@@ -31649,7 +33359,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN est un logiciel expérimental. Il ne garantit pas (encore) une anonymité forte."
+            "value" : "Il s'agit d'un logiciel expérimental : ne l'utilisez pas pour garantir un anonymat total (pour l'instant)."
           }
         },
         "hi" : {
@@ -31717,10 +33427,100 @@
     "welcome.privacyPolicy" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سياسة الخصوصية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutzerklärung"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Privacy policy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سیاست حفظ حریم خصوصی"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Politique de confidentialité"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Privacy policy"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informativa sulla privacy"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライバシーポリシー"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidade"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidade"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Политика конфиденциальности"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizlilik politikası"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Політика конфіденційності"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chính sách Quyền Riêng Tư"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私政策"
           }
         }
       }
@@ -31728,10 +33528,100 @@
     "welcome.privacyPolicy1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بالمتابعة، أنت توافق على NymVPN"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indem du fortfährst, stimmst du den NymVPN's zu"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "By continuing, you agree to NymVPN's"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al continuar, acepta NymVPN"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "با ادامه دادن، شما NymVPN موافقت میکنید"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En continuant, vous acceptez les conditions d'utilisation de NymVPN"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "By continuing, you agree to NymVPN's"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuando accetti di NymVPN"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続行することで、NymVPNに同意したことになります"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao continuar, você concorda com a NymVPN"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao continuar, você concorda com a NymVPN"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжая, вы даёте согласие NymVPN на"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devam ederek, NymVPN'in şartlarını kabul etmiş olursunuz"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продовжуючи, ви погоджуєтеся з умовами NymVPN"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bằng cách tiếp tục, bạn đồng ý với"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击“继续”代表你同意NymVPN的"
           }
         }
       }
@@ -31739,10 +33629,100 @@
     "welcome.privacyPolicy2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "واعترف بـ NymVPN"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "und Anerkennung der NymVPN's"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "and acknowledge NymVPN's"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "y reconocer NymVPN"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "با دانش و آگاهی از NymVPN"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "et reconnaissez les conditions d'utilisation de NymVPN"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and acknowledge NymVPN's"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e riconosce NymVPN"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPNを承認する"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e reconhecer o NymVPN"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e reconhecer o NymVPN"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "и подтверждаете доступ NymVPN к"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ve NymVPN'in tanı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "та визнаєте NymVPN"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "và thừa nhận với NymVPN"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "并且同意NymVPN的"
           }
         }
       }
@@ -32053,10 +34033,100 @@
     "welcome.subtitle3" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا برنامج تجريبي. لا تعتمد عليه لمجهول الهوية (حتى الآن)."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dies ist experimentelle Software. Verlassen Sie sich (noch) nicht auf diese Software für eine starke Anonymität."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía)."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این نرم‌افزار در مرحله آزمایشی است. برای ناشناسی کامل (فعلا!) به آن اتکاء نکنید."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il s'agit d'un logiciel expérimental : ne l'utilisez pas pour garantir un anonymat total (pour l'instant)."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह प्रयोगात्मक सॉफ़्टवेयर है। (फ़िलहाल) इसके लिए मजबूत गुमनामी पर भरोसा न करें।"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo è un software sperimentale. Non affidarti ad esso per un forte anonimato (ancora)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これは実験的なソフトウェアです。現時点では強力な匿名性を期待しないでください。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este é um software experimental. Não confie nele para um forte anonimato (ainda)."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este é um software experimental. Não confie nele para obter um anonimato forte (ainda)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это экспериментальное ПО. Не полагайтесь на него для обеспечения полной анонимности (пока что)."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu deneysel bir yazılımdır. Şu an için güçlü anonimlik için güvenmeyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Це експериментальне програмне забезпечення. Не покладайтеся на нього для забезпечення повної анонімності (поки що)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đây là phần mềm thử nghiệm. Không nên dựa vào nó để đạt được ẩn danh mạnh (ít nhất là hiện tại)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此为实验性软件，请勿（在目前阶段）依赖其提供强匿名性服务。"
           }
         }
       }
@@ -32064,10 +34134,100 @@
     "welcome.termsOfUse" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شروط الاستخدام"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutzungsbedingungen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terms of use"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Términos de uso"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شرایط استفاده از"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conditions générales"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "उपयोग की शर्तें"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termini di utilizzo"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "利用規約"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termos de Utilização"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termos de uso"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Правила пользования"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kullanım şartları"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Умови використання"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điều khoản sử dụng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用条款"
           }
         }
       }
