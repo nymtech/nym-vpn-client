@@ -42,6 +42,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
+    @ObservedObject private var gatewayManager = GatewayManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -94,6 +95,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
             .environmentObject(featureFlagsManager)
+            .environmentObject(gatewayManager)
             .environmentObject(grpcManager)
             .environmentObject(nymLogger.logFileManager)
         }

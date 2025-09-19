@@ -10,7 +10,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 
-public final class GatewayManager {
+public final class GatewayManager: ObservableObject {
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager
 #if os(macOS)
@@ -61,6 +61,12 @@ public final class GatewayManager {
         updateGateways()
         setupAutoUpdates()
         configureEnvironmentChange()
+    }
+
+    public func moniker(with gatewayId: String?) -> String? {
+        entry.first(where: { $0.id == gatewayId })?.moniker
+        ?? exit.first(where: { $0.id == gatewayId })?.moniker
+        ?? vpn.first(where: { $0.id == gatewayId })?.moniker
     }
 }
 
