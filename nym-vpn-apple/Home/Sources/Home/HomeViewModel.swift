@@ -60,6 +60,9 @@ public class HomeViewModel: HomeFlowState {
     /// Use updateStatusInfoState(with:) to update the statusInfoState
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
 
+    /// Info from connecting/connected data, current gatewayId, that tunnel is connecting/connected to
+    @MainActor @Published var connectionInfoData: ConnectionInfoData?
+
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
     @MainActor @Published var isOfflineOverlayDisplayed = false

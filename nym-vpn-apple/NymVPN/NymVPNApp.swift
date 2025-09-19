@@ -32,8 +32,9 @@ struct NymVPNApp: App {
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var credentialsManager = CredentialsManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
-    @ObservedObject private var purchasesManager = PurchasesManager()
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
+    @ObservedObject private var gatewayManager = GatewayManager.shared
+    @ObservedObject private var purchasesManager = PurchasesManager()
 
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -77,6 +78,7 @@ struct NymVPNApp: App {
             .environmentObject(countriesManager)
             .environmentObject(credentialsManager)
             .environmentObject(featureFlagsManager)
+            .environmentObject(gatewayManager)
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
             .environmentObject(purchasesManager)
