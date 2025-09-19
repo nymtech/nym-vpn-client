@@ -66,6 +66,8 @@ use super::tunnel::wireguard::connected_tunnel::{
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
+#[cfg(not(target_os = "linux"))]
+use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -787,11 +789,20 @@ impl TunnelMonitor {
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
+        #[cfg(not(target_os = "linux"))]
+        let entry_endpoint = if use_bridges {
+            conn_data.entry_bridge_addr.ok_or(TransportError::other(
+                "missing bridge address after connect", // this should not be possible
+            ))?
+        } else {
+            conn_data.entry.endpoint
+        };
+
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: exit_tun_name.clone(),
             exit_tun_mtu,
             #[cfg(not(target_os = "linux"))]
-            entry_gateway_address: conn_data.entry.endpoint.ip(),
+            entry_gateway_address: entry_endpoint.ip(),
         };
 
         self.set_routes(routing_config, self.enable_ipv6()).await?;
@@ -923,11 +934,20 @@ impl TunnelMonitor {
             self.enable_ipv6().then_some(exit_mtu),
         )?;
 
+        #[cfg(not(target_os = "linux"))]
+        let entry_endpoint = if use_bridges {
+            conn_data.entry_bridge_addr.ok_or(TransportError::other(
+                "missing bridge address after connect", // this should not be possible
+            ))?
+        } else {
+            conn_data.entry.endpoint
+        };
+
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: wintun_exit_interface.name.clone(),
             exit_tun_mtu: exit_mtu,
             #[cfg(not(target_os = "linux"))]
-            entry_gateway_address: conn_data.entry.endpoint.ip(),
+            entry_gateway_address: entry_endpoint.ip(),
         };
 
         if let Err(err) = self.set_routes(routing_config, self.enable_ipv6()).await {
@@ -1020,6 +1040,15 @@ impl TunnelMonitor {
                 .then_some(conn_data.entry.private_ipv6),
         };
 
+        #[cfg(not(target_os = "linux"))]
+        let entry_endpoint = if use_bridges {
+            conn_data.entry_bridge_addr.ok_or(TransportError::other(
+                "missing bridge address after connect", // this should not be possible
+            ))?
+        } else {
+            conn_data.entry.endpoint
+        };
+
         let routing_config = RoutingConfig::Wireguard {
             entry_tun_name: entry_tunnel_metadata.interface.clone(),
             exit_tun_name: exit_tunnel_metadata.interface.clone(),
@@ -1030,7 +1059,7 @@ impl TunnelMonitor {
                 .tunnel_constants
                 .private_entry_gateway_address,
             #[cfg(not(target_os = "linux"))]
-            entry_gateway_address: conn_data.entry.endpoint.ip(),
+            entry_gateway_address: entry_endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
         };
         self.set_routes(routing_config, self.enable_ipv6()).await?;
@@ -1092,8 +1121,17 @@ impl TunnelMonitor {
         let entry_tun_mtu = connected_tunnel.entry_mtu();
         let exit_tun_mtu = connected_tunnel.exit_mtu();
 
-        let entry_gateway_address = conn_data.entry.endpoint.ip();
         let exit_gateway_address = conn_data.exit.endpoint.ip();
+        let entry_gateway_address = if use_bridges {
+            conn_data
+                .bridge
+                .ok_or(TransportError::other(
+                    "missing bridge address after connect", // this should not be possible
+                ))?
+                .ip()
+        } else {
+            conn_data.entry.endpoint.ip()
+        };
 
         let entry_adapter_config = WintunAdapterConfig {
             interface_ipv4: conn_data.entry.private_ipv4,
