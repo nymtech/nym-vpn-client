@@ -8756,107 +8756,6 @@
         }
       }
     },
-    "errorReason.badBandwidthIncrease" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "زيادة سيئة في عرض النطاق الترددي"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fehlerhafte Bandbreite erhöhen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bad bandwidth increase"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aumento de ancho de banda incorrecto"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "افزایش غیر عادی مصرف ترافیک"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur de forfait de données"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "बुरी बैंडविड्थ वृद्धि"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Incremento larghezza di banda errata"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不正な帯域幅です。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aumentar banda mal larga"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aumento de largura de banda inválido"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Проблемы с увеличением пропускной способности"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kötü bant genişliği artışı"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Погіршення пропускної здатності"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tăng băng thông không hợp lệ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "带宽扩容失败"
-          }
-        }
-      }
-    },
     "errorReason.bandwidthExceeded" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9055,6 +8954,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "创建凭据存储区域失败。"
+          }
+        }
+      }
+    },
+    "errorReason.credentialWastedOnEntryGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry gateway is not responding or responding badly to a bandwidth."
+          }
+        }
+      }
+    },
+    "errorReason.credentialWastedOnExitGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit gateway is not responding or responding badly to a bandwidth."
           }
         }
       }

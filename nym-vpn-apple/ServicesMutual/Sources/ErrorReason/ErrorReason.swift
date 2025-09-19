@@ -32,9 +32,10 @@ public enum ErrorReason: LocalizedError, Codable {
     case inactiveSubscription
     case tunDevice
     case tunnelProvider
-    case badBandwidthIncrease
     case inactiveAccount
     case deviceLoggedOut
+    case credentialWastedOnEntryGateway
+    case credentialWastedOnExitGateway
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -72,12 +73,14 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .tunDevice
         case .tunnelProvider:
             self = .tunnelProvider
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
         case .inactiveAccount:
             self = .inactiveAccount
         case .deviceLoggedOut:
             self = .deviceLoggedOut
+        case .credentialWastedOnEntryGateway:
+            self = .credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            self = .credentialWastedOnExitGateway
         }
     }
 #endif
@@ -137,8 +140,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .tunDevice
         case .tunnelProvider:
             self = .tunnelProvider
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
         case .inactiveAccount:
             self = .inactiveAccount
         case .deviceLoggedOut:
@@ -147,6 +148,10 @@ public enum ErrorReason: LocalizedError, Codable {
         case .existingAccount:
             self = .existingAccount
 #endif
+        case .credentialWastedOnEntryGateway:
+            self = .credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            self = .credentialWastedOnExitGateway
         }
     }
 
@@ -221,17 +226,18 @@ private extension ErrorReason {
             "errorReason.tunDevice".localizedString
         case .tunnelProvider:
             "errorReason.tunProvider".localizedString
-        case .badBandwidthIncrease:
-            "errorReason.badBandwidthIncrease".localizedString
         case .inactiveAccount:
             "errorReason.inactiveAccount".localizedString
         case .deviceLoggedOut:
             "".localizedString
+        case .credentialWastedOnEntryGateway:
+            "errorReason.credentialWastedOnEntryGateway".localizedString
+        case .credentialWastedOnExitGateway:
+            "errorReason.credentialWastedOnExitGateway".localizedString
 #if os(macOS)
         case .existingAccount:
             "errorReason.existingAccount".localizedString
 #endif
-
         }
     }
 }
@@ -269,9 +275,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case inactiveSubscription
     case tunDevice
     case tunnelProvider
-    case badBandwidthIncrease
     case inactiveAccount
     case deviceLoggedOut
+    case credentialWastedOnEntryGateway
+    case credentialWastedOnExitGateway
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -321,12 +328,14 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .tunDevice
         case .tunnelProvider:
             self = .tunnelProvider
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
         case .inactiveAccount:
             self = .inactiveAccount
         case .deviceLoggedOut:
             self = .deviceLoggedOut
+        case .credentialWastedOnEntryGateway:
+            self = .credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            self = .credentialWastedOnExitGateway
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount
