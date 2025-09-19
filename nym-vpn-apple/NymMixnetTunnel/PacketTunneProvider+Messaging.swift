@@ -1,9 +1,11 @@
+// swiftlint:disable:next file_name
 import Foundation
 import NymVPNLib
 import Tunnels
 import TunnelStatus
 
 extension PacketTunnelProvider {
+    // swiftlint:disable:next function_body_length
     override func handleAppMessage(_ messageData: Data) async -> Data? {
         guard let message = try? TunnelProviderMessage(messageData: messageData)
         else {
@@ -16,22 +18,34 @@ extension PacketTunnelProvider {
                 var retryAttempt: Int?
                 var afterDisconnectAction: AfterDisconnectAction?
                 var tunnelConnectingState: TunnelConnectingState?
+                var connectionInfoData: ConnectionInfoData?
 
                 switch tunnelState {
                 case let .connecting(
                     retryAttempt: attempt,
                     state: establishConnectionState,
                     tunnelType: _,
-                    connectionData: _
+                    connectionData: connectionData
                 ):
                     retryAttempt = Int(attempt)
                     tunnelConnectingState = TunnelConnectingState(with: establishConnectionState)
+                    connectionInfoData = ConnectionInfoData(
+                        entryGatewayId: connectionData?.entryGateway.id,
+                        exitGatewayId: connectionData?.exitGateway.id
+                    )
+                case let .connected(connectionData: connectionData):
+                    connectionInfoData = ConnectionInfoData(
+                        entryGatewayId: connectionData.entryGateway.id,
+                        exitGatewayId: connectionData.exitGateway.id
+                    )
                 case let .disconnecting(afterDisconnect: action):
                     afterDisconnectAction = AfterDisconnectAction.convert(from: action)
+                    connectionInfoData = nil
                 default:
                     retryAttempt = nil
                     afterDisconnectAction = nil
                     tunnelConnectingState = nil
+                    connectionInfoData = nil
                 }
 
                 let statusResponse = await TunnelStatusResponse(
@@ -39,7 +53,8 @@ extension PacketTunnelProvider {
                     retryAttempt: retryAttempt,
                     afterDisconnectAction: afterDisconnectAction,
                     lastError: tunnelActor.lastError,
-                    tunnelConnectingState: tunnelConnectingState
+                    tunnelConnectingState: tunnelConnectingState,
+                    connectionInfoData: connectionInfoData
                 )
                 return try JSONEncoder().encode(statusResponse)
             } catch {

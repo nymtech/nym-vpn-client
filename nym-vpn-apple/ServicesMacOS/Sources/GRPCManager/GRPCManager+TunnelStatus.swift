@@ -91,12 +91,21 @@ extension GRPCManager {
         case let .connected(details):
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
             tunnelStatus = .connected
+            connectionInfoData = ConnectionInfoData(
+                entryGatewayId: details.connectionData.entryGateway.id,
+                exitGatewayId: details.connectionData.exitGateway.id
+            )
         case let .connecting(details):
             connectionRetryAttempt = Int(details.retryAttempt)
             tunnelStatus = .connecting
             tunnelConnectingState = TunnelConnectingState(with: details.state)
+            connectionInfoData = ConnectionInfoData(
+                entryGatewayId: details.connectionData.entryGateway.id,
+                exitGatewayId: details.connectionData.exitGateway.id
+            )
         case .disconnected:
             tunnelStatus = .disconnected
+            connectionInfoData = nil
         case let .disconnecting(details):
             switch details.afterDisconnect {
             case .nothing, .UNRECOGNIZED, .error:
@@ -111,6 +120,7 @@ extension GRPCManager {
             } else {
                 tunnelStatus = .disconnecting
             }
+            connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
             errorReason = resolveError(with: details)

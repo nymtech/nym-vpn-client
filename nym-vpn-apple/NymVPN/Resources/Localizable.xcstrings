@@ -8862,7 +8862,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "لا توجد بيانات متبقية. الرجاء ترقية خطة حسابك."
           }
         },
@@ -8875,36 +8875,36 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "No quedan datos. Por favor, actualiza el plan de tu cuenta."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ترافیک شما تمام شده است. لطفاً حساب خود را شارژ کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "La forfait de données mensuel a été dépassé. Veuillez mettre à niveau l'abonnement de votre compte."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Nessun dato rimanente. Si prega di aggiornare il piano dell'account."
           }
         },
@@ -8916,43 +8916,43 @@
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Limite de dados faltando. Por favor, atualize o seu plano de conta."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Sem dados restantes. Por favor, faça o upgrade do seu plano."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Превышен месячный лимит трафика. Пожалуйста, обновите ваш тарифный план."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Veri kotanız doldu. Devam etmek için lütfen hesap planınızı yükseltin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не залишилося лімітів даних. Будь ласка, оновіть свій тарифний план."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "已超出每月带宽。请升级您的账户计划。"
           }
         }
@@ -19057,6 +19057,9 @@
           }
         }
       }
+    },
+    "Key" : {
+      "extractionState" : "manual"
     },
     "lastHopSelection" : {
       "extractionState" : "manual",
@@ -29982,6 +29985,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "支持&反馈"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.enableNetworkStats" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable network stats"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.helpImprove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help improve NymVPN by sharing anonymous network stats from your region. "
+          }
+        }
+      }
+    },
+    "statisticsOverlay.notNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.snackbar.helpImprove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help improve your connection speed"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.snackbar.improveNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Improve now"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.upgradeExperience" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade your experience"
+          }
+        }
+      }
+    },
+    "statisticsOverlay.yourData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your data stays private and secure."
           }
         }
       }
