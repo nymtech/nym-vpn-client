@@ -58,10 +58,9 @@ use nym_vpn_lib_types::{
     WireguardNode,
 };
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use super::tunnel::wireguard::connected_tunnel::{
-    NetstackTunnelOptions, TunTunTunnelOptions, TunnelOptions,
-};
+#[cfg(not(any(target_os = "ios", target_os = "android")))]
+use super::tunnel::wireguard::connected_tunnel::TunTunTunnelOptions;
+use super::tunnel::wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions};
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -1272,14 +1271,18 @@ impl TunnelMonitor {
             .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
             .to_vec();
 
+        let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
+            metadata_proxy_tx: entry_metadata_tx,
+            exit_tun: tun_device,
+            dns: dns_servers,
+        });
+
         let tunnel_handle = connected_tunnel
             .run(
-                tun_device,
-                dns_servers,
-                self.tunnel_parameters.tunnel_constants,
-                entry_metadata_tx,
                 #[cfg(target_os = "android")]
                 self.tun_provider.clone(),
+                tunnel_options,
+                self.tunnel_parameters.tunnel_constants,
             )
             .await
             .map_err(Box::new)?;
