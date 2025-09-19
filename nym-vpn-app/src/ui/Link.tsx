@@ -11,6 +11,7 @@ type LinkProps = {
   className?: string;
   textClassName?: string;
   'data-testid'?: string;
+  iconClassName?: string;
 };
 
 function Link({
@@ -20,6 +21,7 @@ function Link({
   color = 'malachite',
   className,
   textClassName,
+  iconClassName,
   ...rest
 }: LinkProps) {
   const testId =
@@ -54,7 +56,10 @@ function Link({
           </span>
           {icon && (
             <MsIcon
-              className="no-underline! hover:no-underline!"
+              className={clsx(
+                'no-underline! hover:no-underline!',
+                iconClassName,
+              )}
               icon={typeof icon === 'string' ? icon : 'open_in_new'}
               data-testid={`${testId}-icon`}
             />

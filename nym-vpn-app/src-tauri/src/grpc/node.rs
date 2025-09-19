@@ -13,6 +13,7 @@ use crate::country::Country;
 #[serde(rename_all = "lowercase")]
 #[serde(untagged)]
 #[ts(export)]
+#[allow(clippy::large_enum_variant)]
 pub enum NodeConnect {
     Country(Country),
     Gateway(Gateway),

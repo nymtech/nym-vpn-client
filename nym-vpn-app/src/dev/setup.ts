@@ -6,7 +6,6 @@ import {
   Cli,
   Country,
   DbKey,
-  Gateway,
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
@@ -39,8 +38,8 @@ const daemon: VpndStatus = {
     network: 'mainnet',
   },
 };
-// const tunnelState: TunnelStateIpc = 'disconnected';
-const tunnelState: TunnelStateIpc = { connected: wgTunnel };
+const tunnelState: TunnelStateIpc = 'disconnected';
+// const tunnelState: TunnelStateIpc = { connected: wgTunnel };
 // const tunnelState: TunnelStateIpc = { connecting: null };
 // const tunnelState: TunnelStateIpc = { disconnecting: null };
 // const tunnelState: TunnelStateIpc = { offline: { reconnect: false } };
@@ -58,17 +57,7 @@ const savedEntry: Country = {
   code: 'FR',
   name: 'France',
 };
-const savedExit: Gateway = {
-  country: {
-    code: 'RU',
-    name: 'Russian Federation',
-  },
-  id: '72SCrUZ3u81QrryUVL65pr8jWfQC3LpC3CyQgqLgJnrQ',
-  mxScore: 'high',
-  name: 'Mikhaïl Boulgakov 😼',
-  type: 'wg',
-  wgScore: 'high',
-};
+const savedExit = (wgGwJson as GatewaysByCountry[])[2].gateways[0];
 
 export function mockTauriIPC() {
   mockWindows('main');

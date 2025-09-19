@@ -19,7 +19,6 @@ import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
-import NodeDetailsDialog from './NodeDetailsDialog';
 
 function Node({ node }: { node: NodeHop }) {
   const { vpnMode } = useMainState();
@@ -28,7 +27,6 @@ function Node({ node }: { node: NodeHop }) {
   const { isOpen, close } = useDialog();
   const { nodes, loading, gateways, error } = useNodesState();
   const { tE } = useI18nError();
-  const [nodeDetailsOpen, setNodeDetailsOpen] = useState(false);
   const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
@@ -82,9 +80,9 @@ function Node({ node }: { node: NodeHop }) {
     navigate(routes.root);
   };
 
-  const handleNodeDetails = (node: UiGateway | UiCountry) => {
-    nodeDetailsRef.current = node;
-    navigate(routes.nodeDetails, { state: { gateway: node } });
+  const handleNodeDetails = (selected: UiGateway | UiCountry) => {
+    nodeDetailsRef.current = selected;
+    navigate(routes.nodeDetails, { state: { gateway: selected, hop: node } });
   };
 
   if (error) {
@@ -114,11 +112,6 @@ function Node({ node }: { node: NodeHop }) {
 
   return (
     <>
-      <NodeDetailsDialog
-        isOpen={nodeDetailsOpen}
-        onClose={() => setNodeDetailsOpen(false)}
-        ref={nodeDetailsRef}
-      />
       <LocationDetailsDialog
         isOpen={isOpen('location-info')}
         onClose={() => close('location-info')}
