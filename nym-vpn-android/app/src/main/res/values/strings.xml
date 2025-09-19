@@ -177,7 +177,6 @@
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
-	<string name="error_bad_bandwidth">Gateway is not responding or responding badly to a bandwidth.</string>
 	<string name="error_device_logged_out">Device is logged out.</string>
 	<string name="error_inactive_account">Account status is not "Active".</string>
 	<string name="error_set_dns">Failed to configure dns.</string>
@@ -187,6 +186,8 @@
 	<string name="error_tunnel_provider">Failed to configure packet tunnel provider.</string>
 	<string name="error_kill_switch">Kill switch protects you. Tap Stop and \nrenew your plan.</string>
 	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
+	<string name="error_bandwidth_entry">Entry gateway is not responding or responding badly to a bandwidth increase.</string>
+	<string name="error_bandwidth_exit">Exit gateway is not responding or responding badly to a bandwidth increase.</string>
 	<!-- Main Screen -->
 	<string name="main_get_started_button">Get started</string>
 	<string name="connection_state_resolving_addresses">Resolving API IP addresses</string>
