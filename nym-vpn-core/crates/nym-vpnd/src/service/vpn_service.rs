@@ -419,9 +419,11 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let validator_client = nym_http_api_client::Client::builder(api_url)?
+        let validator_client = nym_http_api_client::Client::builder(api_url)
+            .map_err(Box::new)?
             .with_user_agent(parameters.user_agent.clone())
-            .build()?;
+            .build()
+            .map_err(Box::new)?;
         let topology_provider = VpnTopologyProvider::new(
             parameters.network_env.api_url(),
             validator_client,

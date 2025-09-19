@@ -56,7 +56,7 @@ pub enum Error {
     MixnetSetup(#[from] MixnetError),
 
     #[error("HTTP Client Error: {0}")]
-    HttpClient(#[from] HttpClientError),
+    HttpClient(#[from] Box<HttpClientError>),
 }
 
 #[derive(Clone, Debug, thiserror::Error)]
