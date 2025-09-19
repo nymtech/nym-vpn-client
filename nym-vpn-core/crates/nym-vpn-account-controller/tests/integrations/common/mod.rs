@@ -5,6 +5,7 @@ use std::{
     sync::{Arc, OnceLock},
     time::Duration,
 };
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
@@ -30,6 +31,41 @@ use crate::common::credential_proxy::MockCredentialProxy;
 pub mod account_summary;
 pub mod credential_proxy;
 pub mod endpoints;
+
+// Ensure tracing is only initialised once for the whole test suite.
+static TEST_TRACING: OnceLock<()> = OnceLock::new();
+
+/// Initialise tracing for integration tests. This sets up a compact formatter that
+/// defaults to INFO for our crate, but honours `RUST_LOG` if it's set.
+///
+/// Usage: call `init_tracing()` at the start of any test (it's idempotent) or during
+/// shared test bench construction.
+pub fn init_tracing() {
+    TEST_TRACING.get_or_init(|| {
+        // Build env filter: if user provided RUST_LOG we honour it, otherwise fall back.
+        let env_filter = if std::env::var("RUST_LOG").is_ok() {
+            EnvFilter::from_default_env()
+        } else {
+            // Show INFO for our crates by default; DEBUG can be enabled with RUST_LOG.
+            EnvFilter::new("info,nym_vpn_account_controller=info,nym_vpn_api_client=info")
+        };
+
+        let fmt_layer = fmt::layer()
+            .with_target(false)
+            .compact()
+            .with_thread_ids(true)
+            .with_thread_names(true);
+
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(fmt_layer)
+            .init();
+        // no return value; OnceLock just stores the unit
+    });
+}
+
+// Whether to maintain a single TestBench instance at a time
+const MAINTAIN_SINGLE_TESTBENCH: bool = false;
 
 // Global semaphore to ensure only a single TestBench instance is active at any given time.
 static TESTBENCH_SEMAPHORE: OnceLock<Arc<Semaphore>> = OnceLock::new();
@@ -171,7 +207,7 @@ pub struct TestBench {
     _drop_guard: DropGuard,
 
     /// Permit held for the lifetime of the TestBench to guarantee global exclusivity
-    _global_permit: OwnedSemaphorePermit,
+    _global_permit: Option<OwnedSemaphorePermit>,
 }
 
 impl TestBench {
@@ -186,11 +222,20 @@ impl TestBench {
     }
 
     async fn new_with_credential(credential_enabled: bool) -> anyhow::Result<TestBench> {
+        // Enable logging as early as possible so setup emits logs if needed
+        init_tracing();
+
         // Acquire the global permit to ensure exclusivity of TestBench instances
-        let permit = global_testbench_semaphore()
-            .acquire_owned()
-            .await
-            .expect("semaphore not to be closed");
+        let permit = if MAINTAIN_SINGLE_TESTBENCH {
+            Some(
+                global_testbench_semaphore()
+                    .acquire_owned()
+                    .await
+                    .expect("semaphore not to be closed"),
+            )
+        } else {
+            None
+        };
 
         // Setup storage
         let storage = MockEphemeralStorage::default();
