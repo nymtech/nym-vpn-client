@@ -3,3 +3,4 @@ What's new:
 - Connecting status now shows more detailed info
 - Server name is displayed below the country on the Main Screen
 - Fixed UI updates after logout
+- Server details screen added
