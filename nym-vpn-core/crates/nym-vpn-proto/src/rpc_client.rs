@@ -110,6 +110,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_allow_lan(&mut self, allow_lan: bool) -> Result<()> {
+        self.0
+            .set_allow_lan(allow_lan)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)

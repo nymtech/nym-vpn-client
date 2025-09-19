@@ -154,6 +154,11 @@ impl VpnServiceConfigManager {
         let _ = self.write_to_file();
     }
 
+    pub fn set_allow_lan(&mut self, allow_lan: bool) {
+        self.config.allow_lan = allow_lan;
+        let _ = self.write_to_file();
+    }
+
     pub fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         self.config.disable_poisson_rate = disable_poisson_rate;
         let _ = self.write_to_file();
@@ -276,6 +281,7 @@ impl VpnServiceConfigManager {
 
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
+            allow_lan: self.config.allow_lan,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
@@ -378,6 +384,7 @@ struct VpnServiceConfigExtV2 {
     entry_point: EntryPointExtV2,
     exit_point: ExitPointExtV2,
     dns: Option<String>,
+    allow_lan: bool,
     disable_ipv6: bool,
     enable_two_hop: bool,
     netstack: bool,
@@ -410,6 +417,7 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
             entry_point: EntryPoint::try_from(value.entry_point)?,
             exit_point: ExitPoint::try_from(value.exit_point)?,
             dns,
+            allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             netstack: value.netstack,
@@ -435,6 +443,7 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             entry_point: EntryPointExtV2::try_from(&value.entry_point)?,
             exit_point: ExitPointExtV2::try_from(&value.exit_point)?,
             dns: value.dns.map(|addr| addr.to_string()),
+            allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             netstack: value.netstack,
@@ -1336,6 +1345,7 @@ exit_point = "Random"
                 .unwrap(),
             },
             dns: Some(IpAddr::from_str("192.168.50.1").unwrap()),
+            allow_lan: true,
             disable_ipv6: true,
             enable_two_hop: true,
             netstack: true,
