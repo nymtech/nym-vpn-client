@@ -59,10 +59,10 @@
     "react-window": "^1.8.10"
   },
   "devDependencies": {
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^9.36.0",
     "@tailwindcss/vite": "^4.0.5",
     "@tauri-apps/cli": "=2.8.4",
-    "@types/eslint__js": "^8.42.3",
+    "@types/eslint__js": "^9.14.0",
     "@types/lodash-es": "^4.17.0",
     "@types/node": "^22.5.0",
     "@types/react": "^19.0.2",
