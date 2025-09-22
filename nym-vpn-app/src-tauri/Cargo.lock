@@ -3398,7 +3398,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.16.0-dragonfruit-rc1"
+version = "1.16.0-dragonfruit-rc2"
 dependencies = [
  "anyhow",
  "build-info",
