@@ -21,21 +21,55 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+enum NymVpnService_AsnKind: SwiftProtobuf.Enum, Swift.CaseIterable {
+  typealias RawValue = Int
+  case residential // = 0
+  case other // = 1
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .residential
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .residential
+    case 1: self = .other
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .residential: return 0
+    case .other: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [NymVpnService_AsnKind] = [
+    .residential,
+    .other,
+  ]
+
+}
+
 enum NymVpnService_Score: SwiftProtobuf.Enum, Swift.CaseIterable {
   typealias RawValue = Int
-  case none // = 0
+  case offline // = 0
   case low // = 1
   case medium // = 2
   case high // = 3
   case UNRECOGNIZED(Int)
 
   init() {
-    self = .none
+    self = .offline
   }
 
   init?(rawValue: Int) {
     switch rawValue {
-    case 0: self = .none
+    case 0: self = .offline
     case 1: self = .low
     case 2: self = .medium
     case 3: self = .high
@@ -45,7 +79,7 @@ enum NymVpnService_Score: SwiftProtobuf.Enum, Swift.CaseIterable {
 
   var rawValue: Int {
     switch self {
-    case .none: return 0
+    case .offline: return 0
     case .low: return 1
     case .medium: return 2
     case .high: return 3
@@ -55,7 +89,7 @@ enum NymVpnService_Score: SwiftProtobuf.Enum, Swift.CaseIterable {
 
   // The compiler won't synthesize support with the UNRECOGNIZED case.
   static let allCases: [NymVpnService_Score] = [
-    .none,
+    .offline,
     .low,
     .medium,
     .high,
@@ -213,6 +247,22 @@ struct NymVpnService_Address: Sendable {
   init() {}
 }
 
+struct NymVpnService_Asn: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var asn: String = String()
+
+  var name: String = String()
+
+  var kind: NymVpnService_AsnKind = .residential
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct NymVpnService_Location: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -220,30 +270,40 @@ struct NymVpnService_Location: Sendable {
 
   var twoLetterIsoCountryCode: String = String()
 
-  var latitude: Double {
-    get {return _latitude ?? 0}
-    set {_latitude = newValue}
-  }
-  /// Returns true if `latitude` has been explicitly set.
-  var hasLatitude: Bool {return self._latitude != nil}
-  /// Clears the value of `latitude`. Subsequent reads from it will return its default value.
-  mutating func clearLatitude() {self._latitude = nil}
+  var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  var longitude: Double {
-    get {return _longitude ?? 0}
-    set {_longitude = newValue}
+  init() {}
+}
+
+struct NymVpnService_RichLocation: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var twoLetterIsoCountryCode: String = String()
+
+  var latitude: Double = 0
+
+  var longitude: Double = 0
+
+  var city: String = String()
+
+  var region: String = String()
+
+  var asn: NymVpnService_Asn {
+    get {return _asn ?? NymVpnService_Asn()}
+    set {_asn = newValue}
   }
-  /// Returns true if `longitude` has been explicitly set.
-  var hasLongitude: Bool {return self._longitude != nil}
-  /// Clears the value of `longitude`. Subsequent reads from it will return its default value.
-  mutating func clearLongitude() {self._longitude = nil}
+  /// Returns true if `asn` has been explicitly set.
+  var hasAsn: Bool {return self._asn != nil}
+  /// Clears the value of `asn`. Subsequent reads from it will return its default value.
+  mutating func clearAsn() {self._asn = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _latitude: Double? = nil
-  fileprivate var _longitude: Double? = nil
+  fileprivate var _asn: NymVpnService_Asn? = nil
 }
 
 struct NymVpnService_EntryNode: Sendable {
@@ -959,82 +1019,67 @@ struct NymVpnService_Threshold: Sendable {
   init() {}
 }
 
-struct NymVpnService_ConnectRequest: @unchecked Sendable {
+struct NymVpnService_ConnectRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   var entry: NymVpnService_EntryNode {
-    get {return _storage._entry ?? NymVpnService_EntryNode()}
-    set {_uniqueStorage()._entry = newValue}
+    get {return _entry ?? NymVpnService_EntryNode()}
+    set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
-  var hasEntry: Bool {return _storage._entry != nil}
+  var hasEntry: Bool {return self._entry != nil}
   /// Clears the value of `entry`. Subsequent reads from it will return its default value.
-  mutating func clearEntry() {_uniqueStorage()._entry = nil}
+  mutating func clearEntry() {self._entry = nil}
 
   var exit: NymVpnService_ExitNode {
-    get {return _storage._exit ?? NymVpnService_ExitNode()}
-    set {_uniqueStorage()._exit = newValue}
+    get {return _exit ?? NymVpnService_ExitNode()}
+    set {_exit = newValue}
   }
   /// Returns true if `exit` has been explicitly set.
-  var hasExit: Bool {return _storage._exit != nil}
+  var hasExit: Bool {return self._exit != nil}
   /// Clears the value of `exit`. Subsequent reads from it will return its default value.
-  mutating func clearExit() {_uniqueStorage()._exit = nil}
+  mutating func clearExit() {self._exit = nil}
 
   var dns: NymVpnService_Dns {
-    get {return _storage._dns ?? NymVpnService_Dns()}
-    set {_uniqueStorage()._dns = newValue}
+    get {return _dns ?? NymVpnService_Dns()}
+    set {_dns = newValue}
   }
   /// Returns true if `dns` has been explicitly set.
-  var hasDns: Bool {return _storage._dns != nil}
+  var hasDns: Bool {return self._dns != nil}
   /// Clears the value of `dns`. Subsequent reads from it will return its default value.
-  mutating func clearDns() {_uniqueStorage()._dns = nil}
+  mutating func clearDns() {self._dns = nil}
 
-  var disableIpv6: Bool {
-    get {return _storage._disableIpv6}
-    set {_uniqueStorage()._disableIpv6 = newValue}
-  }
+  var disableIpv6: Bool = false
 
-  var enableTwoHop: Bool {
-    get {return _storage._enableTwoHop}
-    set {_uniqueStorage()._enableTwoHop = newValue}
-  }
+  var enableTwoHop: Bool = false
 
-  var netstack: Bool {
-    get {return _storage._netstack}
-    set {_uniqueStorage()._netstack = newValue}
-  }
+  var netstack: Bool = false
 
-  var disablePoissonRate: Bool {
-    get {return _storage._disablePoissonRate}
-    set {_uniqueStorage()._disablePoissonRate = newValue}
-  }
+  var disablePoissonRate: Bool = false
 
-  var disableBackgroundCoverTraffic: Bool {
-    get {return _storage._disableBackgroundCoverTraffic}
-    set {_uniqueStorage()._disableBackgroundCoverTraffic = newValue}
-  }
+  var disableBackgroundCoverTraffic: Bool = false
 
-  var enableCredentialsMode: Bool {
-    get {return _storage._enableCredentialsMode}
-    set {_uniqueStorage()._enableCredentialsMode = newValue}
-  }
+  var enableCredentialsMode: Bool = false
 
   var userAgent: NymVpnService_UserAgent {
-    get {return _storage._userAgent ?? NymVpnService_UserAgent()}
-    set {_uniqueStorage()._userAgent = newValue}
+    get {return _userAgent ?? NymVpnService_UserAgent()}
+    set {_userAgent = newValue}
   }
   /// Returns true if `userAgent` has been explicitly set.
-  var hasUserAgent: Bool {return _storage._userAgent != nil}
+  var hasUserAgent: Bool {return self._userAgent != nil}
   /// Clears the value of `userAgent`. Subsequent reads from it will return its default value.
-  mutating func clearUserAgent() {_uniqueStorage()._userAgent = nil}
+  mutating func clearUserAgent() {self._userAgent = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
+  fileprivate var _entry: NymVpnService_EntryNode? = nil
+  fileprivate var _exit: NymVpnService_ExitNode? = nil
+  fileprivate var _dns: NymVpnService_Dns? = nil
+  fileprivate var _userAgent: NymVpnService_UserAgent? = nil
 }
 
 struct NymVpnService_AsEntry: Sendable {
@@ -1177,8 +1222,8 @@ struct NymVpnService_GatewayResponse: @unchecked Sendable {
   /// Clears the value of `id`. Subsequent reads from it will return its default value.
   mutating func clearID() {_uniqueStorage()._id = nil}
 
-  var location: NymVpnService_Location {
-    get {return _storage._location ?? NymVpnService_Location()}
+  var location: NymVpnService_RichLocation {
+    get {return _storage._location ?? NymVpnService_RichLocation()}
     set {_uniqueStorage()._location = newValue}
   }
   /// Returns true if `location` has been explicitly set.
@@ -1195,17 +1240,17 @@ struct NymVpnService_GatewayResponse: @unchecked Sendable {
   /// Clears the value of `lastProbe`. Subsequent reads from it will return its default value.
   mutating func clearLastProbe() {_uniqueStorage()._lastProbe = nil}
 
-  var wgScore: NymVpnService_Score {
-    get {return _storage._wgScore ?? .none}
-    set {_uniqueStorage()._wgScore = newValue}
+  var wgPerformance: NymVpnService_Performance {
+    get {return _storage._wgPerformance ?? NymVpnService_Performance()}
+    set {_uniqueStorage()._wgPerformance = newValue}
   }
-  /// Returns true if `wgScore` has been explicitly set.
-  var hasWgScore: Bool {return _storage._wgScore != nil}
-  /// Clears the value of `wgScore`. Subsequent reads from it will return its default value.
-  mutating func clearWgScore() {_uniqueStorage()._wgScore = nil}
+  /// Returns true if `wgPerformance` has been explicitly set.
+  var hasWgPerformance: Bool {return _storage._wgPerformance != nil}
+  /// Clears the value of `wgPerformance`. Subsequent reads from it will return its default value.
+  mutating func clearWgPerformance() {_uniqueStorage()._wgPerformance = nil}
 
   var mixnetScore: NymVpnService_Score {
-    get {return _storage._mixnetScore ?? .none}
+    get {return _storage._mixnetScore ?? .offline}
     set {_uniqueStorage()._mixnetScore = newValue}
   }
   /// Returns true if `mixnetScore` has been explicitly set.
@@ -1242,6 +1287,24 @@ struct NymVpnService_GatewayResponse: @unchecked Sendable {
   init() {}
 
   fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+struct NymVpnService_Performance: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var lastUpdatedUtc: String = String()
+
+  var score: NymVpnService_Score = .offline
+
+  var load: NymVpnService_Score = .offline
+
+  var uptimePercentageLast24Hours: Float = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
 }
 
 struct NymVpnService_ListGatewaysRequest: Sendable {
@@ -1677,14 +1740,15 @@ struct NymVpnService_TunnelState: Sendable {
     case sameEntryAndExitGateway // = 6
     case invalidEntryGatewayCountry // = 7
     case invalidExitGatewayCountry // = 8
-    case badBandwidthIncrease // = 9
-    case bandwidthExceeded // = 10
-    case inactiveSubscription // = 11
-    case inactiveAccount // = 12
-    case maxDevicesReached // = 13
-    case deviceTimeOutOfSync // = 14
-    case deviceLoggedOut // = 15
-    case `internal` // = 16
+    case credentialWastedOnEntryGateway // = 9
+    case credentialWastedOnExitGateway // = 10
+    case bandwidthExceeded // = 11
+    case inactiveSubscription // = 12
+    case inactiveAccount // = 13
+    case maxDevicesReached // = 14
+    case deviceTimeOutOfSync // = 15
+    case deviceLoggedOut // = 16
+    case `internal` // = 17
     case UNRECOGNIZED(Int)
 
     init() {
@@ -1702,14 +1766,15 @@ struct NymVpnService_TunnelState: Sendable {
       case 6: self = .sameEntryAndExitGateway
       case 7: self = .invalidEntryGatewayCountry
       case 8: self = .invalidExitGatewayCountry
-      case 9: self = .badBandwidthIncrease
-      case 10: self = .bandwidthExceeded
-      case 11: self = .inactiveSubscription
-      case 12: self = .inactiveAccount
-      case 13: self = .maxDevicesReached
-      case 14: self = .deviceTimeOutOfSync
-      case 15: self = .deviceLoggedOut
-      case 16: self = .internal
+      case 9: self = .credentialWastedOnEntryGateway
+      case 10: self = .credentialWastedOnExitGateway
+      case 11: self = .bandwidthExceeded
+      case 12: self = .inactiveSubscription
+      case 13: self = .inactiveAccount
+      case 14: self = .maxDevicesReached
+      case 15: self = .deviceTimeOutOfSync
+      case 16: self = .deviceLoggedOut
+      case 17: self = .internal
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1725,14 +1790,15 @@ struct NymVpnService_TunnelState: Sendable {
       case .sameEntryAndExitGateway: return 6
       case .invalidEntryGatewayCountry: return 7
       case .invalidExitGatewayCountry: return 8
-      case .badBandwidthIncrease: return 9
-      case .bandwidthExceeded: return 10
-      case .inactiveSubscription: return 11
-      case .inactiveAccount: return 12
-      case .maxDevicesReached: return 13
-      case .deviceTimeOutOfSync: return 14
-      case .deviceLoggedOut: return 15
-      case .internal: return 16
+      case .credentialWastedOnEntryGateway: return 9
+      case .credentialWastedOnExitGateway: return 10
+      case .bandwidthExceeded: return 11
+      case .inactiveSubscription: return 12
+      case .inactiveAccount: return 13
+      case .maxDevicesReached: return 14
+      case .deviceTimeOutOfSync: return 15
+      case .deviceLoggedOut: return 16
+      case .internal: return 17
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1748,7 +1814,8 @@ struct NymVpnService_TunnelState: Sendable {
       .sameEntryAndExitGateway,
       .invalidEntryGatewayCountry,
       .invalidExitGatewayCountry,
-      .badBandwidthIncrease,
+      .credentialWastedOnEntryGateway,
+      .credentialWastedOnExitGateway,
       .bandwidthExceeded,
       .inactiveSubscription,
       .inactiveAccount,
@@ -2930,9 +2997,16 @@ struct NymVpnService_DeleteLogFileResponse: Sendable {
 
 fileprivate let _protobuf_package = "nym_vpn_service"
 
+extension NymVpnService_AsnKind: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "RESIDENTIAL"),
+    1: .same(proto: "OTHER"),
+  ]
+}
+
 extension NymVpnService_Score: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "NONE"),
+    0: .same(proto: "OFFLINE"),
     1: .same(proto: "LOW"),
     2: .same(proto: "MEDIUM"),
     3: .same(proto: "HIGH"),
@@ -3035,12 +3109,54 @@ extension NymVpnService_Address: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
+extension NymVpnService_Asn: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Asn"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "asn"),
+    2: .same(proto: "name"),
+    3: .same(proto: "kind"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.asn) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.asn.isEmpty {
+      try visitor.visitSingularStringField(value: self.asn, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    if self.kind != .residential {
+      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_Asn, rhs: NymVpnService_Asn) -> Bool {
+    if lhs.asn != rhs.asn {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.kind != rhs.kind {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension NymVpnService_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Location"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "two_letter_iso_country_code"),
-    2: .same(proto: "latitude"),
-    3: .same(proto: "longitude"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3050,8 +3166,48 @@ extension NymVpnService_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.twoLetterIsoCountryCode) }()
-      case 2: try { try decoder.decodeSingularDoubleField(value: &self._latitude) }()
-      case 3: try { try decoder.decodeSingularDoubleField(value: &self._longitude) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.twoLetterIsoCountryCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.twoLetterIsoCountryCode, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_Location, rhs: NymVpnService_Location) -> Bool {
+    if lhs.twoLetterIsoCountryCode != rhs.twoLetterIsoCountryCode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_RichLocation: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".RichLocation"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "two_letter_iso_country_code"),
+    2: .same(proto: "latitude"),
+    3: .same(proto: "longitude"),
+    4: .same(proto: "city"),
+    5: .same(proto: "region"),
+    6: .same(proto: "asn"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.twoLetterIsoCountryCode) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.latitude) }()
+      case 3: try { try decoder.decodeSingularDoubleField(value: &self.longitude) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.city) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.region) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._asn) }()
       default: break
       }
     }
@@ -3065,19 +3221,31 @@ extension NymVpnService_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if !self.twoLetterIsoCountryCode.isEmpty {
       try visitor.visitSingularStringField(value: self.twoLetterIsoCountryCode, fieldNumber: 1)
     }
-    try { if let v = self._latitude {
-      try visitor.visitSingularDoubleField(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._longitude {
-      try visitor.visitSingularDoubleField(value: v, fieldNumber: 3)
+    if self.latitude.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.latitude, fieldNumber: 2)
+    }
+    if self.longitude.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.longitude, fieldNumber: 3)
+    }
+    if !self.city.isEmpty {
+      try visitor.visitSingularStringField(value: self.city, fieldNumber: 4)
+    }
+    if !self.region.isEmpty {
+      try visitor.visitSingularStringField(value: self.region, fieldNumber: 5)
+    }
+    try { if let v = self._asn {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: NymVpnService_Location, rhs: NymVpnService_Location) -> Bool {
+  static func ==(lhs: NymVpnService_RichLocation, rhs: NymVpnService_RichLocation) -> Bool {
     if lhs.twoLetterIsoCountryCode != rhs.twoLetterIsoCountryCode {return false}
-    if lhs._latitude != rhs._latitude {return false}
-    if lhs._longitude != rhs._longitude {return false}
+    if lhs.latitude != rhs.latitude {return false}
+    if lhs.longitude != rhs.longitude {return false}
+    if lhs.city != rhs.city {return false}
+    if lhs.region != rhs.region {return false}
+    if lhs._asn != rhs._asn {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4374,134 +4542,76 @@ extension NymVpnService_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._Me
     12: .standard(proto: "user_agent"),
   ]
 
-  fileprivate class _StorageClass {
-    var _entry: NymVpnService_EntryNode? = nil
-    var _exit: NymVpnService_ExitNode? = nil
-    var _dns: NymVpnService_Dns? = nil
-    var _disableIpv6: Bool = false
-    var _enableTwoHop: Bool = false
-    var _netstack: Bool = false
-    var _disablePoissonRate: Bool = false
-    var _disableBackgroundCoverTraffic: Bool = false
-    var _enableCredentialsMode: Bool = false
-    var _userAgent: NymVpnService_UserAgent? = nil
-
-    #if swift(>=5.10)
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _entry = source._entry
-      _exit = source._exit
-      _dns = source._dns
-      _disableIpv6 = source._disableIpv6
-      _enableTwoHop = source._enableTwoHop
-      _netstack = source._netstack
-      _disablePoissonRate = source._disablePoissonRate
-      _disableBackgroundCoverTraffic = source._disableBackgroundCoverTraffic
-      _enableCredentialsMode = source._enableCredentialsMode
-      _userAgent = source._userAgent
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._entry) }()
-        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._exit) }()
-        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._dns) }()
-        case 5: try { try decoder.decodeSingularBoolField(value: &_storage._enableTwoHop) }()
-        case 6: try { try decoder.decodeSingularBoolField(value: &_storage._disablePoissonRate) }()
-        case 7: try { try decoder.decodeSingularBoolField(value: &_storage._disableBackgroundCoverTraffic) }()
-        case 8: try { try decoder.decodeSingularBoolField(value: &_storage._enableCredentialsMode) }()
-        case 12: try { try decoder.decodeSingularMessageField(value: &_storage._userAgent) }()
-        case 13: try { try decoder.decodeSingularBoolField(value: &_storage._netstack) }()
-        case 14: try { try decoder.decodeSingularBoolField(value: &_storage._disableIpv6) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._entry) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._exit) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._dns) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.enableTwoHop) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.disablePoissonRate) }()
+      case 7: try { try decoder.decodeSingularBoolField(value: &self.disableBackgroundCoverTraffic) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self.enableCredentialsMode) }()
+      case 12: try { try decoder.decodeSingularMessageField(value: &self._userAgent) }()
+      case 13: try { try decoder.decodeSingularBoolField(value: &self.netstack) }()
+      case 14: try { try decoder.decodeSingularBoolField(value: &self.disableIpv6) }()
+      default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      try { if let v = _storage._entry {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      } }()
-      try { if let v = _storage._exit {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._dns {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      } }()
-      if _storage._enableTwoHop != false {
-        try visitor.visitSingularBoolField(value: _storage._enableTwoHop, fieldNumber: 5)
-      }
-      if _storage._disablePoissonRate != false {
-        try visitor.visitSingularBoolField(value: _storage._disablePoissonRate, fieldNumber: 6)
-      }
-      if _storage._disableBackgroundCoverTraffic != false {
-        try visitor.visitSingularBoolField(value: _storage._disableBackgroundCoverTraffic, fieldNumber: 7)
-      }
-      if _storage._enableCredentialsMode != false {
-        try visitor.visitSingularBoolField(value: _storage._enableCredentialsMode, fieldNumber: 8)
-      }
-      try { if let v = _storage._userAgent {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-      } }()
-      if _storage._netstack != false {
-        try visitor.visitSingularBoolField(value: _storage._netstack, fieldNumber: 13)
-      }
-      if _storage._disableIpv6 != false {
-        try visitor.visitSingularBoolField(value: _storage._disableIpv6, fieldNumber: 14)
-      }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._entry {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._exit {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._dns {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if self.enableTwoHop != false {
+      try visitor.visitSingularBoolField(value: self.enableTwoHop, fieldNumber: 5)
+    }
+    if self.disablePoissonRate != false {
+      try visitor.visitSingularBoolField(value: self.disablePoissonRate, fieldNumber: 6)
+    }
+    if self.disableBackgroundCoverTraffic != false {
+      try visitor.visitSingularBoolField(value: self.disableBackgroundCoverTraffic, fieldNumber: 7)
+    }
+    if self.enableCredentialsMode != false {
+      try visitor.visitSingularBoolField(value: self.enableCredentialsMode, fieldNumber: 8)
+    }
+    try { if let v = self._userAgent {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+    } }()
+    if self.netstack != false {
+      try visitor.visitSingularBoolField(value: self.netstack, fieldNumber: 13)
+    }
+    if self.disableIpv6 != false {
+      try visitor.visitSingularBoolField(value: self.disableIpv6, fieldNumber: 14)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: NymVpnService_ConnectRequest, rhs: NymVpnService_ConnectRequest) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._entry != rhs_storage._entry {return false}
-        if _storage._exit != rhs_storage._exit {return false}
-        if _storage._dns != rhs_storage._dns {return false}
-        if _storage._disableIpv6 != rhs_storage._disableIpv6 {return false}
-        if _storage._enableTwoHop != rhs_storage._enableTwoHop {return false}
-        if _storage._netstack != rhs_storage._netstack {return false}
-        if _storage._disablePoissonRate != rhs_storage._disablePoissonRate {return false}
-        if _storage._disableBackgroundCoverTraffic != rhs_storage._disableBackgroundCoverTraffic {return false}
-        if _storage._enableCredentialsMode != rhs_storage._enableCredentialsMode {return false}
-        if _storage._userAgent != rhs_storage._userAgent {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
+    if lhs._entry != rhs._entry {return false}
+    if lhs._exit != rhs._exit {return false}
+    if lhs._dns != rhs._dns {return false}
+    if lhs.disableIpv6 != rhs.disableIpv6 {return false}
+    if lhs.enableTwoHop != rhs.enableTwoHop {return false}
+    if lhs.netstack != rhs.netstack {return false}
+    if lhs.disablePoissonRate != rhs.disablePoissonRate {return false}
+    if lhs.disableBackgroundCoverTraffic != rhs.disableBackgroundCoverTraffic {return false}
+    if lhs.enableCredentialsMode != rhs.enableCredentialsMode {return false}
+    if lhs._userAgent != rhs._userAgent {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4753,7 +4863,7 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
     1: .same(proto: "id"),
     2: .same(proto: "location"),
     3: .standard(proto: "last_probe"),
-    4: .standard(proto: "wg_score"),
+    4: .standard(proto: "wg_performance"),
     5: .standard(proto: "mixnet_score"),
     6: .same(proto: "moniker"),
     7: .standard(proto: "exit_ipv4s"),
@@ -4763,9 +4873,9 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
 
   fileprivate class _StorageClass {
     var _id: NymVpnService_GatewayId? = nil
-    var _location: NymVpnService_Location? = nil
+    var _location: NymVpnService_RichLocation? = nil
     var _lastProbe: NymVpnService_Probe? = nil
-    var _wgScore: NymVpnService_Score? = nil
+    var _wgPerformance: NymVpnService_Performance? = nil
     var _mixnetScore: NymVpnService_Score? = nil
     var _moniker: String = String()
     var _exitIpv4S: [String] = []
@@ -4788,7 +4898,7 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
       _id = source._id
       _location = source._location
       _lastProbe = source._lastProbe
-      _wgScore = source._wgScore
+      _wgPerformance = source._wgPerformance
       _mixnetScore = source._mixnetScore
       _moniker = source._moniker
       _exitIpv4S = source._exitIpv4S
@@ -4815,7 +4925,7 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
         case 1: try { try decoder.decodeSingularMessageField(value: &_storage._id) }()
         case 2: try { try decoder.decodeSingularMessageField(value: &_storage._location) }()
         case 3: try { try decoder.decodeSingularMessageField(value: &_storage._lastProbe) }()
-        case 4: try { try decoder.decodeSingularEnumField(value: &_storage._wgScore) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._wgPerformance) }()
         case 5: try { try decoder.decodeSingularEnumField(value: &_storage._mixnetScore) }()
         case 6: try { try decoder.decodeSingularStringField(value: &_storage._moniker) }()
         case 7: try { try decoder.decodeRepeatedStringField(value: &_storage._exitIpv4S) }()
@@ -4842,8 +4952,8 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
       try { if let v = _storage._lastProbe {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       } }()
-      try { if let v = _storage._wgScore {
-        try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
+      try { if let v = _storage._wgPerformance {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
       } }()
       try { if let v = _storage._mixnetScore {
         try visitor.visitSingularEnumField(value: v, fieldNumber: 5)
@@ -4872,7 +4982,7 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
         if _storage._id != rhs_storage._id {return false}
         if _storage._location != rhs_storage._location {return false}
         if _storage._lastProbe != rhs_storage._lastProbe {return false}
-        if _storage._wgScore != rhs_storage._wgScore {return false}
+        if _storage._wgPerformance != rhs_storage._wgPerformance {return false}
         if _storage._mixnetScore != rhs_storage._mixnetScore {return false}
         if _storage._moniker != rhs_storage._moniker {return false}
         if _storage._exitIpv4S != rhs_storage._exitIpv4S {return false}
@@ -4882,6 +4992,56 @@ extension NymVpnService_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
       }
       if !storagesAreEqual {return false}
     }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_Performance: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Performance"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "last_updated_utc"),
+    2: .same(proto: "score"),
+    3: .same(proto: "load"),
+    4: .standard(proto: "uptime_percentage_last_24_hours"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.lastUpdatedUtc) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.score) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.load) }()
+      case 4: try { try decoder.decodeSingularFloatField(value: &self.uptimePercentageLast24Hours) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.lastUpdatedUtc.isEmpty {
+      try visitor.visitSingularStringField(value: self.lastUpdatedUtc, fieldNumber: 1)
+    }
+    if self.score != .offline {
+      try visitor.visitSingularEnumField(value: self.score, fieldNumber: 2)
+    }
+    if self.load != .offline {
+      try visitor.visitSingularEnumField(value: self.load, fieldNumber: 3)
+    }
+    if self.uptimePercentageLast24Hours.bitPattern != 0 {
+      try visitor.visitSingularFloatField(value: self.uptimePercentageLast24Hours, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_Performance, rhs: NymVpnService_Performance) -> Bool {
+    if lhs.lastUpdatedUtc != rhs.lastUpdatedUtc {return false}
+    if lhs.score != rhs.score {return false}
+    if lhs.load != rhs.load {return false}
+    if lhs.uptimePercentageLast24Hours != rhs.uptimePercentageLast24Hours {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5626,14 +5786,15 @@ extension NymVpnService_TunnelState.ErrorStateReason: SwiftProtobuf._ProtoNamePr
     6: .same(proto: "SAME_ENTRY_AND_EXIT_GATEWAY"),
     7: .same(proto: "INVALID_ENTRY_GATEWAY_COUNTRY"),
     8: .same(proto: "INVALID_EXIT_GATEWAY_COUNTRY"),
-    9: .same(proto: "BAD_BANDWIDTH_INCREASE"),
-    10: .same(proto: "BANDWIDTH_EXCEEDED"),
-    11: .same(proto: "INACTIVE_SUBSCRIPTION"),
-    12: .same(proto: "INACTIVE_ACCOUNT"),
-    13: .same(proto: "MAX_DEVICES_REACHED"),
-    14: .same(proto: "DEVICE_TIME_OUT_OF_SYNC"),
-    15: .same(proto: "DEVICE_LOGGED_OUT"),
-    16: .same(proto: "INTERNAL"),
+    9: .same(proto: "CREDENTIAL_WASTED_ON_ENTRY_GATEWAY"),
+    10: .same(proto: "CREDENTIAL_WASTED_ON_EXIT_GATEWAY"),
+    11: .same(proto: "BANDWIDTH_EXCEEDED"),
+    12: .same(proto: "INACTIVE_SUBSCRIPTION"),
+    13: .same(proto: "INACTIVE_ACCOUNT"),
+    14: .same(proto: "MAX_DEVICES_REACHED"),
+    15: .same(proto: "DEVICE_TIME_OUT_OF_SYNC"),
+    16: .same(proto: "DEVICE_LOGGED_OUT"),
+    17: .same(proto: "INTERNAL"),
   ]
 }
 
