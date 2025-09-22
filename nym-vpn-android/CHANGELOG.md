@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Themed icons support (https://github.com/nymtech/nym-vpn-client/pull/3429)
 - Random option added for EntryPoint (https://github.com/nymtech/nym-vpn-client/pull/3448)
 - Server details screen (https://github.com/nymtech/nym-vpn-client/pull/3472)
-- UI for Domain fronting
-- UI for QUIC
-- Feature flag support
+- UI for Domain fronting (https://github.com/nymtech/nym-vpn-client/pull/3490)
+- UI for QUIC (https://github.com/nymtech/nym-vpn-client/pull/3490)
+- Feature flag support (https://github.com/nymtech/nym-vpn-client/pull/3490)
 
 ### Changed
 - Detailed info status for Connecting state (https://github.com/nymtech/nym-vpn-client/pull/3448)
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - UI state updates after logout (https://github.com/nymtech/nym-vpn-client/pull/3448)
-- UI fixes for Privacy Screen
+- UI fixes for (https://github.com/nymtech/nym-vpn-client/pull/3490)
 
 ## [2.0.0] - 2025-09-10
 
