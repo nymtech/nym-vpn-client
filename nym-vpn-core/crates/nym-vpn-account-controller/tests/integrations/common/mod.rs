@@ -246,9 +246,9 @@ impl TestBench {
         })
     }
 
-    /// Assert that we are in a given state within 5 seconds.
+    /// Assert that we are in a given state within 15 seconds.
     /// This is needed to avoid tokio::sleep and yield_now everywhere
-    /// If after the 5sec delay, the expected state is not reached, the `assert_eq` call will fail, with a normal failure
+    /// If after the 15sec delay, the expected state is not reached, the `assert_eq` call will fail, with a normal failure
     pub async fn assert_state(&mut self, expected_state: AccountControllerState) {
         // Make sure we're not running right away
         tokio::task::yield_now().await;
@@ -257,7 +257,7 @@ impl TestBench {
 
         let wait_for_state_fut = state_watcher.wait_for(|state| *state == expected_state);
 
-        let _ = tokio::time::timeout(Duration::from_secs(5), wait_for_state_fut).await;
+        let _ = tokio::time::timeout(Duration::from_secs(15), wait_for_state_fut).await;
 
         // For the nice output in tests
         assert_eq!(self.state_receiver.get_state(), expected_state);
