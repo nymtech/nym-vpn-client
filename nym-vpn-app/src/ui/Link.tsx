@@ -10,6 +10,8 @@ type LinkProps = {
   color?: 'primary' | 'malachite' | 'iron';
   className?: string;
   textClassName?: string;
+  iconClassName?: string;
+  selectable?: boolean;
   'data-testid'?: string;
 };
 
@@ -20,6 +22,8 @@ function Link({
   color = 'malachite',
   className,
   textClassName,
+  iconClassName,
+  selectable,
   ...rest
 }: LinkProps) {
   const testId =
@@ -35,6 +39,7 @@ function Link({
         color === 'iron' && 'text-iron dark:text-bombay',
         color === 'primary' && 'text-baltic-sea dark:text-white',
         className && className,
+        selectable && '!select-text',
       ])}
       onClick={() => openUrl(url)}
       data-testid={testId}
@@ -54,7 +59,10 @@ function Link({
           </span>
           {icon && (
             <MsIcon
-              className="no-underline! hover:no-underline!"
+              className={clsx(
+                'no-underline! hover:no-underline!',
+                iconClassName,
+              )}
               icon={typeof icon === 'string' ? icon : 'open_in_new'}
               data-testid={`${testId}-icon`}
             />

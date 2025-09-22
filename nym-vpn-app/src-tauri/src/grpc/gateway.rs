@@ -1,4 +1,5 @@
 use crate::country::Country;
+
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto as p;
 use serde::{Deserialize, Serialize};
@@ -26,6 +27,46 @@ pub enum Score {
     High,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TS, Default)]
+#[ts(export)]
+#[serde(rename_all = "kebab-case")]
+pub enum AsnType {
+    #[default]
+    Other,
+    Residential,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct Asn {
+    pub asn: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub kind: AsnType,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct Location {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub city: String,
+    pub region: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct Performance {
+    pub score: Score,
+    pub load: Score,
+    pub last_updated_utc: String,
+    /// uptime percentage on the last 24 hours
+    pub uptime_24h: f32,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
@@ -35,8 +76,14 @@ pub struct Gateway {
     pub kind: GatewayType,
     pub name: String,
     pub country: Country,
+    pub location: Location,
+    pub asn: Option<Asn>,
     pub mx_score: Score,
     pub wg_score: Score,
+    pub wg_performance: Option<Performance>,
+    pub exit_ipv4: Option<String>,
+    pub exit_ipv6: Option<String>,
+    pub build_version: Option<String>,
 }
 
 impl Gateway {
@@ -62,6 +109,7 @@ impl Gateway {
 
         let wg_score = gateway
             .wg_performance
+            .as_ref()
             .map(|s| {
                 p::Score::try_from(s.score)
                     .inspect_err(|e| error!("failed to parse proto gw wireguard score: {}", e))
@@ -69,13 +117,23 @@ impl Gateway {
             .transpose()?
             .unwrap_or(p::Score::Offline);
 
+        let asn = location.asn.clone().map(|a| a.into());
+        let exit_ipv4 = gateway.exit_ipv4s.first().cloned();
+        let exit_ipv6 = gateway.exit_ipv6s.first().cloned();
+
         Ok(Self {
             id: id.id,
             kind: gw_type,
             name: gateway.moniker,
             country: Country::try_from(&location)?,
+            location: location.into(),
+            asn,
             mx_score: Score::from(mx_score),
             wg_score: Score::from(wg_score),
+            wg_performance: gateway.wg_performance.map(|p| p.into()),
+            exit_ipv4,
+            exit_ipv6,
+            build_version: gateway.build_version,
         })
     }
 }
@@ -107,6 +165,42 @@ impl From<GatewayType> for p::GatewayType {
             GatewayType::MxEntry => p::GatewayType::MixnetEntry,
             GatewayType::MxExit => p::GatewayType::MixnetExit,
             GatewayType::Wg => p::GatewayType::Wg,
+        }
+    }
+}
+
+impl From<p::RichLocation> for Location {
+    fn from(proto: p::RichLocation) -> Self {
+        Location {
+            latitude: proto.latitude,
+            longitude: proto.longitude,
+            city: proto.city,
+            region: proto.region,
+        }
+    }
+}
+
+impl From<p::Asn> for Asn {
+    fn from(proto: p::Asn) -> Self {
+        let asn_kind = &proto.kind();
+        Asn {
+            asn: proto.asn,
+            name: proto.name,
+            kind: match asn_kind {
+                p::AsnKind::Residential => AsnType::Residential,
+                p::AsnKind::Other => AsnType::Other,
+            },
+        }
+    }
+}
+
+impl From<p::Performance> for Performance {
+    fn from(proto: p::Performance) -> Self {
+        Performance {
+            score: Score::from(proto.score()),
+            load: Score::from(proto.load()),
+            last_updated_utc: proto.last_updated_utc,
+            uptime_24h: proto.uptime_percentage_last_24_hours,
         }
     }
 }
