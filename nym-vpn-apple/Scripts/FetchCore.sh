@@ -15,24 +15,101 @@ trap 'error_handler $LINENO' ERR
 BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
 
 # -----------------------------------------------------------------------------
-# 0) Determine build tag
-#    - If an argument is passed, use it as the branch/tag (e.g., 'release/1.16.0' or 'develop')
-#    - Otherwise, detect from current git branch: release/* -> that branch, else 'develop'
+# 0) Determine build tag (branch to fetch from)
+#    Priority:
+#      1) CI base branch (Bitrise: BITRISE_GIT_BRANCH_DEST / BITRISEIO_GIT_BRANCH_DEST)
+#      2) If detached on a PR merge ref, infer base from HEAD's 2nd parent SHA
+#      3) Local fallback: if current branch matches release/* -> that branch, else develop
 # -----------------------------------------------------------------------------
-BRANCH_OVERRIDE="${1:-}"
 
-if [[ -n "$BRANCH_OVERRIDE" ]]; then
-  TAG="$BRANCH_OVERRIDE"
-  echo "Using override branch: ${TAG}"
-else
+# --- helpers ---------------------------------------------------------------
+
+get_ci_base_branch() {
+  # Bitrise exposes the PR target as one of these:
+  if [[ -n "${BITRISE_GIT_BRANCH_DEST:-}" ]]; then
+    echo "${BITRISE_GIT_BRANCH_DEST}"
+    return 0
+  fi
+  if [[ -n "${BITRISEIO_GIT_BRANCH_DEST:-}" ]]; then
+    echo "${BITRISEIO_GIT_BRANCH_DEST}"
+    return 0
+  fi
+  return 1
+}
+
+resolve_base_from_merge_ref() {
+  # Works when CI checks out refs/pull/*/merge (detached HEAD)
+  if ! git rev-parse -q --verify HEAD >/dev/null; then
+    return 1
+  fi
+
+  # Get second parent (the base side of the merge)
+  local base_sha
+  base_sha="$(git cat-file -p HEAD | awk '/^parent /{print $2}' | sed -n '2p' || true)"
+  if [[ -z "$base_sha" ]]; then
+    return 1
+  fi
+
+  # Ensure we have that commit locally (safe even with shallow clones)
+  if ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+    git fetch --no-tags --depth=1 origin "${base_sha}" >/dev/null 2>&1 || true
+  fi
+
+  # Prefer an exact remote ref pointing at the SHA
+  local exact
+  exact="$(git for-each-ref --format='%(refname:short) %(objectname)' refs/remotes/origin \
+            | awk -v h="$base_sha" '$2==h {print $1}' \
+            | sed 's|^origin/||' \
+            | grep -v '^HEAD$' \
+            | head -n1)"
+  if [[ -n "$exact" ]]; then
+    echo "$exact"
+    return 0
+  fi
+
+  # Fallback: any remote branch that contains the base SHA
+  local containing
+  containing="$(git branch -r --contains "$base_sha" 2>/dev/null \
+              | sed 's|^[ *]*origin/||' \
+              | grep -v '^HEAD$' \
+              | sort -u)"
+  if [[ -n "$containing" ]]; then
+    # Prefer release/*, then develop/main/master, then anything
+    echo "$containing" | (grep -E '^release/' || true) | head -n1 && return 0
+    echo "$containing" | (grep -E '^(develop|main|master)$' || true) | head -n1 && return 0
+    echo "$containing" | head -n1 && return 0
+  fi
+
+  return 1
+}
+
+determine_tag() {
+  # 1) CI-provided base branch
+  if ci_base="$(get_ci_base_branch)"; then
+    echo "$ci_base"
+    return 0
+  fi
+
+  # 2) Try to infer from PR merge ref’s second parent (detached HEAD in CI)
+  git fetch origin --quiet || true
+  if inferred_base="$(resolve_base_from_merge_ref)"; then
+    echo "$inferred_base"
+    return 0
+  fi
+
+  # 3) Local fallback: release/* → that branch, else develop
+  local current_branch
   current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
   if [[ "$current_branch" =~ ^release/ ]]; then
-    TAG="$current_branch"
+    echo "$current_branch"
   else
-    TAG="develop"
+    echo "develop"
   fi
-  echo "Auto-detected branch/tag: ${TAG}"
-fi
+}
+
+# Decide TAG
+TAG="$(determine_tag)"
+echo "Using build tag: ${TAG}"
 
 TAG_URL="${BASE_URL}/${TAG}"
 echo "Fetching folder listing from: ${TAG_URL}"
