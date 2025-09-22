@@ -21,6 +21,9 @@ sealed class Route {
 	data class Settings(val showVpnSettings: Boolean) : Route()
 
 	@Serializable
+	data object Censorship : Route()
+
+	@Serializable
 	data object Appearance : Route()
 
 	@Serializable

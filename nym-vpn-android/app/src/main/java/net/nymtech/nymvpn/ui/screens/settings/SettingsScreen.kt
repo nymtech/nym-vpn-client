@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -62,6 +63,7 @@ fun SettingsScreen(
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
+	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 	if (showVpnSettings) {
 		LaunchedEffect(Unit) {
@@ -105,7 +107,7 @@ fun SettingsScreen(
 			)
 			AccountSection(appUiState = appUiState, context = context)
 			SupportSection(navController = navController)
-			VpnSettingsSection(appUiState = appUiState, viewModel = viewModel, context = context)
+			VpnSettingsSection(appUiState = appUiState, viewModel = viewModel, context = context, showCensorshipSection = uiState.showCensorshipSection)
 			AppearanceSection(appUiState = appUiState, viewModel = viewModel, context = context)
 			LegalSection()
 			LogoutSection(

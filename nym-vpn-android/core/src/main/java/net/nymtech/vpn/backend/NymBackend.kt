@@ -46,6 +46,7 @@ import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
+import nym_vpn_lib_types.NetworkEnvironment
 import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
@@ -263,6 +264,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			initialized.await()
 			forgetAccount()
 		}
+	}
+
+	override suspend fun getCurrentEnvironment(): NetworkEnvironment {
+		return nym_vpn_lib.currentEnvironment()
 	}
 
 	override suspend fun getSystemMessages(): List<SystemMessage> {
