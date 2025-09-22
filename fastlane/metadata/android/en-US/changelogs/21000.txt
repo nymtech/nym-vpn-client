@@ -4,3 +4,4 @@ What's new:
 - Server name is displayed below the country on the Main Screen
 - Fixed UI updates after logout
 - Server details screen added
+- Anti-censorship updates
