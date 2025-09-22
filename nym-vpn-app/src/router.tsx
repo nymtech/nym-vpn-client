@@ -17,6 +17,7 @@ import {
   Login,
   Logs,
   MainLayout,
+  NodeDetails,
   NodeEntry,
   SelectPlan,
   Settings,
@@ -48,6 +49,7 @@ export const routes = {
   dev: '/settings/dev',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
+  nodeDetails: '/node-details',
   hideout: '/hideout',
   welcome: '/hideout/welcome',
 } as const;
@@ -57,94 +59,94 @@ export const routes = {
 const router = createBrowserRouter([
   {
     path: routes.root,
-    element: <MainLayout />,
+    Component: MainLayout,
     children: [
       {
-        element: <Home />,
+        Component: Home,
         errorElement: <Error />,
         index: true,
       },
       {
         path: routes.login,
-        element: <Login />,
+        Component: Login,
         errorElement: <Error />,
       },
       {
         path: routes.account,
-        element: <AccountRouteIndex />,
+        Component: AccountRouteIndex,
         errorElement: <Error />,
         children: [
           {
             path: routes.selectPlan,
-            element: <SelectPlan />,
+            Component: SelectPlan,
             errorElement: <Error />,
           },
         ],
       },
       {
         path: routes.settings,
-        element: <SettingsRouteIndex />,
+        Component: SettingsRouteIndex,
         errorElement: <Error />,
         children: [
           {
-            element: <Settings />,
+            Component: Settings,
             errorElement: <Error />,
             index: true,
           },
           {
             path: routes.dev,
-            element: <Dev />,
+            Component: Dev,
             errorElement: <Error />,
           },
           {
             path: routes.appearance,
-            element: <AppearanceRouteIndex />,
+            Component: AppearanceRouteIndex,
             errorElement: <Error />,
             children: [
               {
-                element: <Appearance />,
+                Component: Appearance,
                 errorElement: <Error />,
                 index: true,
               },
               {
                 path: routes.lang,
-                element: <Lang />,
+                Component: Lang,
                 errorElement: <Error />,
               },
               {
                 path: routes.display,
-                element: <Display />,
+                Component: Display,
                 errorElement: <Error />,
               },
             ],
           },
           {
             path: routes.dataPrivacy,
-            element: <DataAndPrivacy />,
+            Component: DataAndPrivacy,
             errorElement: <Error />,
           },
           {
             path: routes.logs,
-            element: <Logs />,
+            Component: Logs,
             errorElement: <Error />,
           },
           {
             path: routes.antiCensorship,
-            element: <AntiCensorship />,
+            Component: AntiCensorship,
             errorElement: <Error />,
           },
           {
             path: routes.support,
-            element: <Support />,
+            Component: Support,
             errorElement: <Error />,
           },
           {
             path: routes.legal,
-            element: <LegalRouteIndex />,
+            Component: LegalRouteIndex,
             errorElement: <Error />,
             children: [
               {
-                element: <Legal />,
+                Component: Legal,
                 errorElement: <Error />,
                 index: true,
               },
@@ -160,7 +162,7 @@ const router = createBrowserRouter([
               },
               {
                 path: routes.licenseDetails,
-                element: <LicenseDetails />,
+                Component: LicenseDetails,
                 errorElement: <Error />,
               },
             ],
@@ -177,6 +179,11 @@ const router = createBrowserRouter([
         element: <NodeEntry node="exit" />,
         errorElement: <Error />,
       },
+      {
+        path: routes.nodeDetails,
+        Component: NodeDetails,
+        errorElement: <Error />,
+      },
     ],
   },
   {
@@ -185,7 +192,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: routes.welcome,
-        element: <Welcome />,
+        Component: Welcome,
         errorElement: <Error />,
       },
     ],

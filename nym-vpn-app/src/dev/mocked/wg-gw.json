@@ -10,11 +10,31 @@
           "code": "YY",
           "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
         },
+        "location": {
+          "city": "Sydney",
+          "latitude": -33.8678,
+          "longitude": 151.2073,
+          "region": "New South Wales"
+        },
         "id": "VERYLONNNNNGGGGG4h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA2",
         "mxScore": "low",
         "name": "__anon__",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.256",
+        "exitIpv6": null
       }
     ]
   },
@@ -29,33 +49,93 @@
           "code": "FR",
           "name": "France"
         },
+        "location": {
+          "city": "Sydney",
+          "latitude": -33.8678,
+          "longitude": 151.2073,
+          "region": "New South Wales"
+        },
         "id": "3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB",
         "mxScore": "high",
         "name": "la porte en bois",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.256",
+        "exitIpv6": null
       },
       {
         "country": {
           "code": "FR",
           "name": "France"
+        },
+        "location": {
+          "city": "Sydney",
+          "latitude": -33.8678,
+          "longitude": 151.2073,
+          "region": "New South Wales"
         },
         "id": "4ksetqeuV9uDXzgVqqwHUnaSLaS69zVSpKGAp4DFNMgC",
         "mxScore": "high",
         "name": "Le comté est le roi des fromages",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.256",
+        "exitIpv6": null
       },
       {
         "country": {
           "code": "FR",
           "name": "France"
         },
+        "location": {
+          "city": "Sydney",
+          "latitude": -33.8678,
+          "longitude": 151.2073,
+          "region": "New South Wales"
+        },
         "id": "5XhDUMyN9AZfMJD7kLNVFAxrUePV5yZY1MEsc7g7Acrh",
         "mxScore": "high",
         "name": "Bonjour",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.256",
+        "exitIpv6": null
       }
     ],
     "type": "wg"
@@ -71,22 +151,62 @@
           "code": "RU",
           "name": "Russian Federation"
         },
-        "id": "4namLaLcqCZ6irhn9yoUpLjk5hZeRcjqoLFSS89iGmQp",
+        "location": {
+          "city": "Elektrozavodsk",
+          "region": "Northwestern Economic Region",
+          "latitude": 10.0,
+          "longitude": 10.0
+        },
+        "id": "72SCrUZ3u81QrryUVL65pr8jWfQC3LpC3CyQgqLgJnrQ",
         "mxScore": "high",
-        "name": "Пётр",
+        "name": "Mikhaïl Boulgakov 😼",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "medium",
+          "score": "high",
+          "uptime24h": 1.0
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.1.256.256",
+        "exitIpv6": "ff:00:11:ee"
       },
       {
         "country": {
           "code": "RU",
           "name": "Russian Federation"
         },
-        "id": "72SCrUZ3u81QrryUVL65pr8jWfQC3LpC3CyQgqLgJnrQ",
+        "location": {
+          "city": "Chernogorsk",
+          "region": "Northwestern Economic Region",
+          "latitude": 10.0,
+          "longitude": 10.0
+        },
+        "id": "4namLaLcqCZ6irhn9yoUpLjk5hZeRcjqoLFSS89iGmQp",
         "mxScore": "high",
-        "name": "Mikhaïl Boulgakov 😼",
+        "name": "Пётр",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.255",
+        "exitIpv6": null
       }
     ],
     "type": "wg"
@@ -95,6 +215,12 @@
     "country": {
       "code": "US",
       "name": "United States of America"
+    },
+    "location": {
+      "city": "Sydney",
+      "latitude": -33.8678,
+      "longitude": 151.2073,
+      "region": "New South Wales"
     },
     "gateways": [
       {
@@ -106,18 +232,52 @@
         "mxScore": "high",
         "name": "High speed gateway",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.256",
+        "exitIpv6": null
       },
       {
         "country": {
           "code": "US",
           "name": "United States of America"
         },
+        "location": {
+          "city": "Sydney",
+          "latitude": -33.8678,
+          "longitude": 151.2073,
+          "region": "New South Wales"
+        },
         "id": "2eRyEtCzjvDNZNY1JmTQVDqfEgjjXsUYQEuiDtLUZvvp",
         "mxScore": "high",
         "name": "BLAZINGLY FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAST",
         "type": "wg",
-        "wgScore": "high"
+        "wgScore": "high",
+        "wgPerformance": {
+          "lastUpdatedUtc": "2025-09-19T11:19:27Z",
+          "load": "low",
+          "score": "high",
+          "uptime24h": 1
+        },
+        "asn": {
+          "asn": "AS63949",
+          "name": "Akamai Connected Cloud",
+          "type": "other"
+        },
+        "buildVersion": "1.18.0",
+        "exitIpv4": "11.01.256.256",
+        "exitIpv6": null
       }
     ],
     "type": "wg"

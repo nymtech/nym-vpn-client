@@ -7,6 +7,7 @@ import { MsIcon } from './index';
 
 export type ButtonIconProps = {
   icon: string;
+  color?: 'malachite' | 'chalk';
   clickedIcon?: string;
   onClick: () => void;
   clickFeedback?: boolean;
@@ -15,12 +16,14 @@ export type ButtonIconProps = {
   iconClassName?: string;
   clickedIconClassName?: string;
   clickDuration?: number;
+  noDefaultSize?: boolean;
   'data-testid'?: string;
 };
 
 function ButtonIcon({
   onClick,
   icon,
+  color = 'malachite',
   clickedIcon = 'check',
   clickFeedback = false,
   disabled,
@@ -28,6 +31,7 @@ function ButtonIcon({
   iconClassName,
   clickedIconClassName,
   clickDuration = 500,
+  noDefaultSize,
   ...rest
 }: ButtonIconProps) {
   const [isClicked, click] = useTransition();
@@ -42,13 +46,20 @@ function ButtonIcon({
   return (
     <HuButton
       className={clsx([
-        'rounded-full w-10 h-10 min-w-10 min-h-10',
-        'text-malachite-moss/80 data-hover:text-malachite-moss',
-        'dark:text-malachite/80 data-hover:dark:text-malachite',
+        'rounded-full',
+        color === 'malachite' && [
+          'text-malachite-moss/80 data-hover:text-malachite-moss',
+          'dark:text-malachite/80 data-hover:dark:text-malachite',
+        ],
+        color === 'chalk' && [
+          'text-baltic-sea/70 data-hover:text-baltic-sea',
+          'dark:text-white/80 data-hover:dark:text-white',
+        ],
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',
         'cursor-default select-none',
         className && className,
+        !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
       ])}
       onClick={() => {
         if (clickFeedback) {
@@ -74,7 +85,8 @@ function ButtonIcon({
           <MsIcon
             icon={clickedIcon}
             className={clsx([
-              'text-2xl w-10 h-10 min-w-10 min-h-10',
+              'text-2xl',
+              !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
               clickedIconClassName,
             ])}
             data-testid={`${testId}-clicked-icon`}
@@ -84,7 +96,8 @@ function ButtonIcon({
         <MsIcon
           icon={icon}
           className={clsx([
-            'text-2xl w-10 h-10 min-w-10 min-h-10',
+            'text-2xl',
+            !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
             iconClassName,
           ])}
           data-testid={`${testId}-icon`}
