@@ -18,6 +18,7 @@ use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, h
 use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
 
 pub type NymNode = Gateway;
+const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -505,6 +506,13 @@ impl GatewayList {
     }
 
     pub fn random_gateway_located_at_region(&self, region: String) -> Option<Gateway> {
+        // check that the region is a US state that we have in the gateway list
+        if !self
+            .gateways_located_at_country(String::from(COUNTRY_WITH_REGION_SELECTOR))
+            .any(|g| g.region() == Some(&region))
+        {
+            return None;
+        }
         self.gateways_located_at_region(region)
             .choose(&mut rand::thread_rng())
             .cloned()
