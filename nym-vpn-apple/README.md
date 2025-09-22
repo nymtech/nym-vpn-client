@@ -121,4 +121,3 @@ NymVPN.dmg - dmg file containing App Store/Sparkle signed app. App Store signing
 - Checkout repo
 - `websites/nym/www/public/.wellknown/macos-vpn/appcast.xml` update the appcast.xml with new content. url - needs to be input from GH release manually.
 - Create a PR.
-
