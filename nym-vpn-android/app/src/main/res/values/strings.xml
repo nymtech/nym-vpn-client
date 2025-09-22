@@ -196,6 +196,8 @@
 	<string name="connection_state_selecting_gateways">Selecting gateways</string>
 	<string name="connection_state_connecting_mixnet_client">Connecting mixnet client</string>
 	<string name="connection_state_connecting_tunnel">Connecting tunnel</string>
+	<!-- Settings Screen -->
+	<string name="settings_censorship_title">Anti-censorship</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -203,16 +205,16 @@
 	<string name="battery_opt">Battery optimization</string>
 	<string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 	<!-- Data & Privacy screen -->
-	<string name="data_privacy">Data &amp; Privacy</string>
-	<string name="title_anonymous_stats">Anonymous network stats</string>
-	<string name="descr_anonymous_stats">Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it\'s needed most. \n\nOnly network performance data is shared – never your browsing activity or personal data.</string>
-	<string name="link_anonymous_stats_text">Learn exactly what\'s shared</string>
-	<string name="link_anonymous_stats">https://nym.com/anonymous-stats</string>
-	<string name="title_error_reports">Error &amp; crash reports</string>
-	<string name="descr_error_reports">Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only.</string>
-	<string name="link_error_reports_text">View Sentry Privacy Policy</string>
-	<string name="link_error_reports">https://sentry.io/privacy/</string>
-	<string name="restart_error_reports">Changes will apply after app restart.</string>
+	<string name="privacy_title">Data &amp; Privacy</string>
+	<string name="privacy_anonymous_stats_title">Anonymous network stats</string>
+	<string name="privacy_anonymous_stats_description">Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it\'s needed most. \n\nOnly network performance data is shared – never your browsing activity or personal data.</string>
+	<string name="privacy_anonymous_stats_link_text">Learn exactly what\'s shared</string>
+	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
+	<string name="privacy_error_reports_title">Error &amp; crash reports</string>
+	<string name="privacy_error_reports_description">Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only.</string>
+	<string name="privacy_error_reports_link_text">View Sentry Privacy Policy</string>
+	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
+	<string name="privacy_error_reports_restart">Changes will apply after app restart.</string>
 	<string name="modal_network_stats_title">Upgrade your experience</string>
 	<string name="modal_network_stats_descr">Help improve NymVPN by sharing anonymous network stats from your region. \n\nYour data stays private and secure.</string>
 	<string name="modal_network_stats_enable_button">Enable network stats</string>
@@ -263,4 +265,15 @@
 	<string name="details_more_details_start">More details in the</string>
 	<string name="details_more_details_end">Nym Network Explorer</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
+	<!-- Censorship screen -->
+	<string name="censorship_description">Enable these features if you\'re experiencing connection issues or NymVPN blocking in your location.</string>
+	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
+	<string name="censorship_quic_changes">Changes will apply after reconnect</string>
+	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing. Note: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_link_text">How QUIC improves connections</string>
+	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+	<string name="censorship_stealth_title">Stealth API connect</string>
+	<string name="censorship_stealth_description">Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail.</string>
+	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
+	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 </resources>

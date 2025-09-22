@@ -33,7 +33,7 @@ fun SettingsSection(
 				leading = {
 					Icon(
 						Icons.Outlined.BarChart,
-						stringResource(R.string.title_anonymous_stats),
+						stringResource(R.string.privacy_anonymous_stats_title),
 						modifier = Modifier.size(iconSize.scaledWidth()),
 					)
 				},
@@ -45,7 +45,7 @@ fun SettingsSection(
 				},
 				title = {
 					Text(
-						stringResource(R.string.title_anonymous_stats),
+						stringResource(R.string.privacy_anonymous_stats_title),
 						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 					)
 				},
@@ -54,7 +54,7 @@ fun SettingsSection(
 				leading = {
 					Icon(
 						Icons.Outlined.BugReport,
-						stringResource(R.string.title_error_reports),
+						stringResource(R.string.privacy_error_reports_title),
 						modifier = Modifier.size(iconSize.scaledWidth()),
 					)
 				},
@@ -66,7 +66,7 @@ fun SettingsSection(
 				},
 				title = {
 					Text(
-						stringResource(R.string.title_error_reports),
+						stringResource(R.string.privacy_error_reports_title),
 						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 					)
 				},

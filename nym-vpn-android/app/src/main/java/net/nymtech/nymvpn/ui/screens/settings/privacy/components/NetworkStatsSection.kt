@@ -20,11 +20,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
+import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
@@ -52,7 +55,7 @@ fun NetworkStatsSection(
 				verticalAlignment = Alignment.CenterVertically,
 			) {
 				Text(
-					text = stringResource(R.string.title_anonymous_stats),
+					text = stringResource(R.string.privacy_anonymous_stats_title),
 					style = MaterialTheme.typography.titleMedium,
 				)
 				ScaledSwitch(
@@ -62,8 +65,10 @@ fun NetworkStatsSection(
 			}
 
 			Text(
-				text = stringResource(R.string.descr_anonymous_stats),
-				style = MaterialTheme.typography.bodyMedium,
+				text = stringResource(R.string.privacy_anonymous_stats_description),
+				style = Typography.bodySmall,
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 16.dp),
@@ -79,11 +84,11 @@ fun NetworkStatsSection(
 						interactionSource = interactionSource,
 						indication = null,
 					) {
-						context.openWebUrl(context.getString(R.string.link_anonymous_stats))
+						context.openWebUrl(context.getString(R.string.privacy_anonymous_stats_link))
 					},
 			) {
 				Text(
-					text = stringResource(R.string.link_anonymous_stats_text),
+					text = stringResource(R.string.privacy_anonymous_stats_link_text),
 					style = MaterialTheme.typography.bodyMedium.copy(
 						textDecoration = TextDecoration.Underline,
 					),
