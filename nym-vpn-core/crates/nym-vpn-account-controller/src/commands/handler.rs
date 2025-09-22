@@ -143,7 +143,7 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
     {
-        let nym_error = NymErrorResponse::from(e);
+        let nym_error = NymErrorResponse::try_from(e)?;
         if nym_error.code_reference_id == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string()) {
             // Device didn't exist in the first place so we're good
             Ok(())

@@ -156,7 +156,7 @@ impl SyncingState {
             }
 
             Err(e) => {
-                let error_response = NymErrorResponse::from(e);
+                let error_response = NymErrorResponse::try_from(e)?;
                 // SW Use UUID when it will be available
                 if error_response.status == "access_denied"
                     && error_response.message == "Account not found"
@@ -312,9 +312,11 @@ impl SyncError {
 
 impl From<VpnApiClientError> for SyncError {
     fn from(value: VpnApiClientError) -> Self {
-        let error_response = NymErrorResponse::from(value);
-        SyncError::ApiResponseError {
-            code_reference_id: error_response.code_reference_id,
+        match NymErrorResponse::try_from(value) {
+            Ok(error_response) => SyncError::ApiResponseError {
+                code_reference_id: error_response.code_reference_id,
+            },
+            Err(e) => SyncError::Internal(e.to_string()),
         }
     }
 }
