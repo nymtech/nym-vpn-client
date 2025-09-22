@@ -64,7 +64,7 @@ impl EntryPoint {
             } => {
                 debug!("Selecting gateway by country: {two_letter_iso_country_code}");
                 gateways
-                    .random_gateway_located_at_country(two_letter_iso_country_code.to_string())
+                    .random_gateway_located_at_country(two_letter_iso_country_code)
                     .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
                         requested_location: two_letter_iso_country_code.clone(),
                         available_countries: gateways.all_iso_codes(),
@@ -73,7 +73,7 @@ impl EntryPoint {
             EntryPoint::Region { region } => {
                 debug!("Selecting gateway by region/state: {region}");
                 gateways
-                    .random_gateway_located_at_region(region.to_string())
+                    .random_gateway_located_at_region(region)
                     .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
                         requested_location: region.clone(),
                         available_countries: gateways.all_iso_codes(),

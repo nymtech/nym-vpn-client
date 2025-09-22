@@ -476,7 +476,7 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
-    pub fn gateways_located_at_country(&self, code: String) -> impl Iterator<Item = &Gateway> {
+    pub fn gateways_located_at_country(&self, code: &str) -> impl Iterator<Item = &Gateway> {
         self.gateways.iter().filter(move |gateway| {
             gateway
                 .two_letter_iso_country_code()
@@ -484,7 +484,7 @@ impl GatewayList {
         })
     }
 
-    pub fn gateways_located_at_region(&self, region: String) -> impl Iterator<Item = &Gateway> {
+    pub fn gateways_located_at_region(&self, region: &str) -> impl Iterator<Item = &Gateway> {
         self.gateways.iter().filter(move |gateway| {
             gateway
                 .region()
@@ -499,16 +499,16 @@ impl GatewayList {
             .cloned()
     }
 
-    pub fn random_gateway_located_at_country(&self, code: String) -> Option<Gateway> {
+    pub fn random_gateway_located_at_country(&self, code: &str) -> Option<Gateway> {
         self.gateways_located_at_country(code)
             .choose(&mut rand::thread_rng())
             .cloned()
     }
 
-    pub fn random_gateway_located_at_region(&self, region: String) -> Option<Gateway> {
+    pub fn random_gateway_located_at_region(&self, region: &str) -> Option<Gateway> {
         // check that the region is a US state that we have in the gateway list
         if !self
-            .gateways_located_at_country(String::from(COUNTRY_WITH_REGION_SELECTOR))
+            .gateways_located_at_country(COUNTRY_WITH_REGION_SELECTOR)
             .any(|g| g.region() == Some(&region))
         {
             return None;
