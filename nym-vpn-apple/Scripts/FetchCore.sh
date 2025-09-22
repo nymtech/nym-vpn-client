@@ -15,18 +15,26 @@ trap 'error_handler $LINENO' ERR
 BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
 
 # -----------------------------------------------------------------------------
-# 0) Determine build tag from git branch (matches your other scripts)
+# 0) Determine build tag
+#    - If an argument is passed, use it as the branch/tag (e.g., 'release/1.16.0' or 'develop')
+#    - Otherwise, detect from current git branch: release/* -> that branch, else 'develop'
 # -----------------------------------------------------------------------------
-current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+BRANCH_OVERRIDE="${1:-}"
 
-if [[ "$current_branch" =~ ^release/ ]]; then
-  TAG="$current_branch"
+if [[ -n "$BRANCH_OVERRIDE" ]]; then
+  TAG="$BRANCH_OVERRIDE"
+  echo "Using override branch: ${TAG}"
 else
-  TAG="develop"
+  current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  if [[ "$current_branch" =~ ^release/ ]]; then
+    TAG="$current_branch"
+  else
+    TAG="develop"
+  fi
+  echo "Auto-detected branch/tag: ${TAG}"
 fi
 
 TAG_URL="${BASE_URL}/${TAG}"
-echo "Using build tag: ${TAG}"
 echo "Fetching folder listing from: ${TAG_URL}"
 
 # -----------------------------------------------------------------------------
@@ -91,7 +99,6 @@ fi
 
 # -----------------------------------------------------------------------------
 # 4) Export TAG and FOLDER so the platform scripts can use the SAME folder
-#    (Optional, but ensures both scripts are perfectly in sync.)
 # -----------------------------------------------------------------------------
 export FETCHCORE_TAG="$TAG"
 export FETCHCORE_FOLDER="$latest_folder"
