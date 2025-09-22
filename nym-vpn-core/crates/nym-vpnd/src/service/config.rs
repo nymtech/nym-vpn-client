@@ -375,8 +375,8 @@ impl TryFrom<VpnServiceConfigExtV1> for VpnServiceConfig {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct VpnServiceConfigExtV2 {
-    entry_point: EntryPointExtV1,
-    exit_point: ExitPointExtV1,
+    entry_point: EntryPointExtV2,
+    exit_point: ExitPointExtV2,
     dns: Option<String>,
     disable_ipv6: bool,
     enable_two_hop: bool,
@@ -432,8 +432,8 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
 
     fn try_from(value: &VpnServiceConfig) -> Result<Self, Self::Error> {
         let ext_config = VpnServiceConfigExtLatest {
-            entry_point: EntryPointExtV1::try_from(&value.entry_point)?,
-            exit_point: ExitPointExtV1::try_from(&value.exit_point)?,
+            entry_point: EntryPointExtV2::try_from(&value.entry_point)?,
+            exit_point: ExitPointExtV2::try_from(&value.exit_point)?,
             dns: value.dns.map(|addr| addr.to_string()),
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
@@ -445,6 +445,141 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
         };
         Ok(ext_config)
+    }
+}
+
+//
+// EntryPointExtV2
+//
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum EntryPointExtV2 {
+    Gateway { identity: String },
+    Country { two_letter_iso_country_code: String },
+    Region { region: String },
+    Random,
+}
+
+impl TryFrom<EntryPointExtV2> for EntryPoint {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: EntryPointExtV2) -> Result<Self, Self::Error> {
+        match value {
+            EntryPointExtV2::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
+                .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
+            EntryPointExtV2::Country {
+                two_letter_iso_country_code,
+            } => Ok(EntryPoint::Country {
+                two_letter_iso_country_code,
+            }),
+            EntryPointExtV2::Region { region } => Ok(EntryPoint::Region { region }),
+            EntryPointExtV2::Random => Ok(EntryPoint::Random),
+        }
+    }
+}
+
+impl TryFrom<&EntryPoint> for EntryPointExtV2 {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: &EntryPoint) -> Result<Self, Self::Error> {
+        match value {
+            EntryPoint::Gateway { identity } => Ok(EntryPointExtV2::Gateway {
+                identity: identity.to_base58_string(),
+            }),
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => Ok(EntryPointExtV2::Country {
+                two_letter_iso_country_code: two_letter_iso_country_code.clone(),
+            }),
+            EntryPoint::Region { region } => Ok(EntryPointExtV2::Region {
+                region: region.clone(),
+            }),
+            EntryPoint::Random => Ok(EntryPointExtV2::Random),
+        }
+    }
+}
+
+//
+// ExitPointExtV2
+//
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ExitPointExtV2 {
+    Address { address: String },
+    Gateway { identity: String },
+    Country { two_letter_iso_country_code: String },
+    Region { region: String },
+    Random,
+}
+
+impl TryFrom<ExitPointExtV2> for ExitPoint {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: ExitPointExtV2) -> Result<Self, Self::Error> {
+        match value {
+            ExitPointExtV2::Address { address } => {
+                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
+                    ConfigSetupError::ExitPoint {
+                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
+                            address: address.clone(),
+                            source: e,
+                        }),
+                    }
+                })?;
+                Ok(ExitPoint::Address {
+                    address: Box::new(recipient),
+                })
+            }
+            ExitPointExtV2::Gateway { identity } => {
+                let node_identity =
+                    gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
+                        ConfigSetupError::ExitPoint {
+                            error: Box::new(
+                                gateway_directory::Error::NodeIdentityFormattingError {
+                                    identity: identity.clone(),
+                                    source: e,
+                                },
+                            ),
+                        }
+                    })?;
+                Ok(ExitPoint::Gateway {
+                    identity: node_identity,
+                })
+            }
+            ExitPointExtV2::Country {
+                two_letter_iso_country_code,
+            } => Ok(ExitPoint::Country {
+                two_letter_iso_country_code,
+            }),
+            ExitPointExtV2::Region { region } => Ok(ExitPoint::Region { region }),
+            ExitPointExtV2::Random => Ok(ExitPoint::Random),
+        }
+    }
+}
+
+impl TryFrom<&ExitPoint> for ExitPointExtV2 {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: &ExitPoint) -> Result<Self, Self::Error> {
+        match value {
+            ExitPoint::Address { address } => Ok(ExitPointExtV2::Address {
+                address: address.to_string(),
+            }),
+            ExitPoint::Gateway { identity } => Ok(ExitPointExtV2::Gateway {
+                identity: identity.to_string(),
+            }),
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => Ok(ExitPointExtV2::Country {
+                two_letter_iso_country_code: two_letter_iso_country_code.clone(),
+            }),
+            ExitPoint::Region { region } => Ok(ExitPointExtV2::Region {
+                region: region.clone(),
+            }),
+            ExitPoint::Random => Ok(ExitPointExtV2::Random),
+        }
     }
 }
 
@@ -471,25 +606,6 @@ impl TryFrom<EntryPointExtV1> for EntryPoint {
                 two_letter_iso_country_code: location,
             }),
             EntryPointExtV1::Random => Ok(EntryPoint::Random),
-        }
-    }
-}
-
-impl TryFrom<&EntryPoint> for EntryPointExtV1 {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: &EntryPoint) -> Result<Self, Self::Error> {
-        match value {
-            EntryPoint::Gateway { identity } => Ok(EntryPointExtV1::Gateway {
-                identity: identity.to_base58_string(),
-            }),
-            EntryPoint::Country {
-                two_letter_iso_country_code,
-            } => Ok(EntryPointExtV1::Location {
-                location: two_letter_iso_country_code.clone(),
-            }),
-            EntryPoint::Region { .. } => Err(ConfigSetupError::DowngradeEntryPoint),
-            EntryPoint::Random => Ok(EntryPointExtV1::Random),
         }
     }
 }
@@ -545,28 +661,6 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
                 two_letter_iso_country_code: location,
             }),
             ExitPointExtV1::Random => Ok(ExitPoint::Random),
-        }
-    }
-}
-
-impl TryFrom<&ExitPoint> for ExitPointExtV1 {
-    type Error = ConfigSetupError;
-
-    fn try_from(value: &ExitPoint) -> Result<Self, Self::Error> {
-        match value {
-            ExitPoint::Address { address } => Ok(ExitPointExtV1::Address {
-                address: address.to_string(),
-            }),
-            ExitPoint::Gateway { identity } => Ok(ExitPointExtV1::Gateway {
-                identity: identity.to_string(),
-            }),
-            ExitPoint::Country {
-                two_letter_iso_country_code,
-            } => Ok(ExitPointExtV1::Location {
-                location: two_letter_iso_country_code.clone(),
-            }),
-            ExitPoint::Region { .. } => Err(ConfigSetupError::DowngradeExitPoint),
-            ExitPoint::Random => Ok(ExitPointExtV1::Random),
         }
     }
 }
@@ -727,12 +821,6 @@ pub enum ConfigSetupError {
         #[source]
         error: Box<gateway_directory::Error>,
     },
-
-    #[error("failed to downgrade entry point")]
-    DowngradeEntryPoint,
-
-    #[error("failed to downgrade exit point")]
-    DowngradeExitPoint,
 
     #[error("failed to convert IP address")]
     IpAddress {
@@ -1027,13 +1115,13 @@ location = "BE"
         let json_content = r#"{
   "version": "v2",
   "entry_point": {
-    "location": {
-      "location": "FR"
+    "country": {
+      "two_letter_iso_country_code": "FR"
     }
   },
   "exit_point": {
-    "location": {
-      "location": "BE"
+    "country": {
+      "two_letter_iso_country_code": "BE"
     }
   },
   "dns": null,
