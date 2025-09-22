@@ -121,6 +121,15 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+			currentRoute.startsWith(Route.Censorship::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.settings_censorship_title)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
 			currentRoute.startsWith(Route.Appearance::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.appearance)) },
 				show = true,
@@ -131,7 +140,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				},
 			)
 			currentRoute.startsWith(Route.Privacy::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.data_privacy)) },
+				title = { NavTitle(stringResource(R.string.privacy_title)) },
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {

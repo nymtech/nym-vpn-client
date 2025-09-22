@@ -34,6 +34,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
 	private val welcomeScreenCompleted = booleanPreferencesKey("WELCOME_SCREEN_COMPLETE")
+	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -177,6 +178,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		return dataStoreManager.getFromStore(welcomeScreenCompleted) ?: Settings.FLAG_WELCOME_SCREEN_COMPLETED
 	}
 
+	override suspend fun getQUICEnabled(): Boolean {
+		return dataStoreManager.getFromStore(quicEnabled) ?: Settings.DEFAULT_QUIC_ENABLED
+	}
+
+	override suspend fun setQUICEnabled(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.quicEnabled, enabled)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -203,6 +212,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
 						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
 						welcomeScreenCompleted = pref[welcomeScreenCompleted] ?: Settings.FLAG_WELCOME_SCREEN_COMPLETED,
+						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

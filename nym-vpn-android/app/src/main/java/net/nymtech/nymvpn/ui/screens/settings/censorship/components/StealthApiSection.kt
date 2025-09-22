@@ -1,6 +1,6 @@
-package net.nymtech.nymvpn.ui.screens.settings.privacy.components
+package net.nymtech.nymvpn.ui.screens.settings.censorship.components
 
-import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -19,25 +19,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun MonitoringSection(
-	sentryEnabled: Boolean,
-	onMonitoringEnable: (enabled: Boolean) -> Unit,
-	context: Context,
-	shape: Shape = RoundedCornerShape(8.dp),
-) {
+fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
+	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
@@ -55,25 +54,18 @@ fun MonitoringSection(
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = Alignment.CenterVertically,
 			) {
-				Column {
-					Text(
-						text = stringResource(R.string.privacy_error_reports_title),
-						style = MaterialTheme.typography.titleMedium,
-					)
-					Text(
-						text = stringResource(R.string.privacy_error_reports_restart),
-						style = MaterialTheme.typography.bodySmall,
-						color = CustomColors.warning,
-					)
-				}
+				Text(
+					text = stringResource(R.string.censorship_stealth_title),
+					style = MaterialTheme.typography.titleMedium,
+				)
 				ScaledSwitch(
-					checked = sentryEnabled,
-					onClick = { onMonitoringEnable(it) },
+					checked = true,
+					enabled = false,
+					onClick = {},
 				)
 			}
-
 			Text(
-				text = stringResource(R.string.privacy_error_reports_description),
+				text = stringResource(R.string.censorship_stealth_description),
 				style = Typography.bodySmall,
 				color = MaterialTheme.colorScheme.outline,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -92,11 +84,11 @@ fun MonitoringSection(
 						interactionSource = interactionSource,
 						indication = null,
 					) {
-						context.openWebUrl(context.getString(R.string.privacy_error_reports_link))
+						context.openWebUrl(context.getString(R.string.censorship_stealth_link))
 					},
 			) {
 				Text(
-					text = stringResource(R.string.privacy_error_reports_link_text),
+					text = stringResource(R.string.censorship_stealth_link_text),
 					style = MaterialTheme.typography.bodyMedium.copy(
 						textDecoration = TextDecoration.Underline,
 					),
@@ -104,5 +96,13 @@ fun MonitoringSection(
 				)
 			}
 		}
+	}
+}
+
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+internal fun PreviewStealthApiSection() {
+	NymVPNTheme(Theme.default()) {
+		StealthApiSection()
 	}
 }

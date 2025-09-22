@@ -59,7 +59,7 @@ fun AppearanceSection(appUiState: AppUiState, viewModel: SettingsViewModel, cont
 			leading = {
 				Icon(
 					Icons.Outlined.PrivacyTip,
-					stringResource(R.string.data_privacy),
+					stringResource(R.string.privacy_title),
 					modifier = Modifier.size(iconSize.scaledWidth()),
 				)
 			},
@@ -72,7 +72,7 @@ fun AppearanceSection(appUiState: AppUiState, viewModel: SettingsViewModel, cont
 			},
 			title = {
 				Text(
-					stringResource(R.string.data_privacy),
+					stringResource(R.string.privacy_title),
 					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 				)
 			},
