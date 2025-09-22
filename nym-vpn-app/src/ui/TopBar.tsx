@@ -210,6 +210,13 @@ export default function TopBar() {
           show('location-info');
         },
       },
+      '/node-details': {
+        title: t('server-details'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/account/select-a-plan': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {

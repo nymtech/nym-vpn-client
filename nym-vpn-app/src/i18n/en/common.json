@@ -24,5 +24,6 @@
     "light": "Light mode"
   },
   "appearance": "Appearance",
-  "language": "Language"
+  "language": "Language",
+  "server-details": "Server details"
 }

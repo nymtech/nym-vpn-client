@@ -41,3 +41,7 @@ export const SentryPrivacyPolicyUrl = 'https://sentry.io/privacy/';
 export const AnonNetworkStatsUrl = 'https://nym.com/anonymous-stats';
 export const QuicUrl = 'https://nym.com/features/quic';
 export const DomainFrontingUrl = 'https://nym.com/features/stealth-api-connect';
+export const IpInfoIoUrl = 'https://ipinfo.io';
+export const SupportServerLocationUrl =
+  'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
+export const NetworkExplorerNodeUrl = 'https://nym.com/explorer/nym-node';

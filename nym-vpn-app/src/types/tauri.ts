@@ -97,13 +97,35 @@ export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
 export type Score = 'offline' | 'low' | 'medium' | 'high';
 
+export type AsnType = 'other' | 'residential';
+export type Asn = { asn: string; name: string; type: AsnType };
+export type Performance = {
+  score: Score;
+  load: Score;
+  lastUpdatedUtc: string;
+  // uptime percentage on the last 24 hours
+  uptime24h: number;
+};
+export type Location = {
+  latitude: number;
+  longitude: number;
+  city: string;
+  region: string;
+};
+
 export type Gateway = {
   id: string;
   type: GatewayType;
   name: string;
   country: Country;
+  location: Location;
+  asn: Asn | null;
   mxScore: Score;
   wgScore: Score;
+  wgPerformance: Performance | null;
+  exitIpv4: string | null;
+  exitIpv6: string | null;
+  buildVersion: string | null;
 };
 
 export type GatewaysByCountry = {

@@ -1,0 +1,296 @@
+import React from 'react';
+import clsx from 'clsx';
+import * as H from 'history';
+import { Trans, useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router';
+import { UiGateway, useMainDispatch } from '../../../contexts';
+import {
+  Button,
+  ButtonIcon,
+  FlagIcon,
+  Link,
+  MsIcon,
+  PageAnim,
+  countryCode,
+} from '../../../ui';
+import { useClipboard, useLang, useScore } from '../../../hooks';
+import { Score, StateDispatch } from '../../../types';
+import {
+  IpInfoIoUrl,
+  NetworkExplorerNodeUrl,
+  SupportServerLocationUrl,
+} from '../../../constants';
+import { kvSet } from '../../../kvStore';
+import { uiNodeToRaw } from '../../../contexts/nodes/util';
+import { routes } from '../../../router';
+import DataCard from './DataCard';
+
+type RouteState = {
+  gateway: UiGateway;
+  hop: 'entry' | 'exit';
+};
+
+function NodeDetails() {
+  const dispatch = useMainDispatch() as StateDispatch;
+  const location = useLocation() as H.Location<RouteState>;
+  const { t } = useTranslation('nodeLocation');
+  const navigate = useNavigate();
+
+  const { getCountryName } = useLang();
+  const { copy } = useClipboard();
+  const { style } = useScore();
+
+  const { gateway, hop } = location.state;
+  const { country, exitIpv4, exitIpv6, asn, buildVersion } = gateway;
+  const isGoodIp = asn?.type === 'residential';
+  const serverLoad = gateway?.wgPerformance?.load;
+  const uptime = gateway?.wgPerformance?.uptime24h;
+  const lastUpdate = gateway.wgPerformance?.lastUpdatedUtc;
+  const asnValue = asn?.asn;
+  const asnName = asn?.name;
+  const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
+  const isSelected =
+    gateway.isSelected === 'exit' || gateway.isSelected === 'entry';
+
+  const DataRow = ({
+    children,
+    label,
+  }: {
+    children: React.ReactNode;
+    label: string;
+  }) => (
+    <div className="w-full flex justify-between items-center">
+      <p className="text-iron dark:text-bombay truncate select-none">{label}</p>
+      <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
+        {children}
+      </div>
+    </div>
+  );
+
+  const featureRow = (
+    label: string,
+    feature: string,
+    status: 'green' | 'orange' = 'green',
+  ) => (
+    <DataRow label={label}>
+      {status === 'green' ? (
+        <MsIcon className="text-malachite text-xl" icon="check" />
+      ) : (
+        <MsIcon className="text-cheddar text-xl" icon="circle" />
+      )}
+      <p className="whitespace-nowrap truncate">{feature}</p>
+    </DataRow>
+  );
+
+  const scoreRow = (label: string, score: Score) => {
+    const { icon, color, label: iconLabel } = style(score);
+
+    return (
+      <DataRow label={label}>
+        <div className="flex gap-1 items-center overflow-hidden select-none">
+          <MsIcon className={clsx('text-lg', color)} icon={icon} />
+          <p className={clsx('font-medium truncate', color)}>{iconLabel}</p>
+        </div>
+      </DataRow>
+    );
+  };
+
+  const identityKey = (
+    <div className="w-full flex flex-col gap-2">
+      <p className="text-iron dark:text-bombay truncate">
+        {t('node-details.data.identity-key')}
+      </p>
+      <div className="flex justify-between gap-3 break-words">
+        <p className="font-mono text-sm flex-wrap text-wrap break-words overflow-hidden">
+          {gateway.id}
+        </p>
+        <ButtonIcon
+          className="self-start"
+          iconClassName="!text-xl"
+          clickedIconClassName="!text-xl"
+          icon="content_copy"
+          color="chalk"
+          onClick={() => copy(gateway.id, false)}
+          clickFeedback
+          noDefaultSize
+        />
+      </div>
+    </div>
+  );
+
+  const handleSelect = async () => {
+    if (isSelected) {
+      return;
+    }
+    await kvSet(
+      hop === 'entry' ? 'entry-node' : 'exit-node',
+      uiNodeToRaw(gateway),
+    );
+    dispatch({
+      type: 'set-node',
+      payload: { hop, node: gateway },
+    });
+    navigate(routes.root);
+  };
+
+  const card1 = [
+    {
+      row: featureRow(
+        t('node-details.data.advanced-privacy'),
+        t('node-details.data.with-mixnet'),
+      ),
+      key: 'privacy',
+    },
+    {
+      row: featureRow(
+        t('node-details.data.ip-type'),
+        isGoodIp
+          ? t('node-details.data.ip-residential')
+          : t('node-details.data.ip-datacenter'),
+        isGoodIp ? 'green' : 'orange',
+      ),
+      key: 'ip-type',
+    },
+  ];
+  const card2 = [
+    {
+      row: scoreRow(
+        t('node-details.data.overall-performance'),
+        gateway.type === 'wg' ? gateway.wgScore : gateway.mxScore,
+      ),
+      key: 'overall-perf',
+    },
+    serverLoad && {
+      row: scoreRow(t('node-details.data.server-load'), serverLoad),
+      key: 'load-score',
+    },
+    uptime !== undefined && {
+      row: (
+        <DataRow label={t('node-details.data.uptime')}>
+          <p className="font-medium">{`${uptime * 100}%`}</p>
+        </DataRow>
+      ),
+      key: 'uptime',
+    },
+  ];
+  const card3 = [
+    exitIpv4 && {
+      row: (
+        <DataRow label={t('node-details.data.exit-ipv4')}>
+          <Link
+            text={exitIpv4}
+            url={`${IpInfoIoUrl}/${exitIpv4}`}
+            color="primary"
+            iconClassName="text-lg"
+            icon
+            selectable
+          />
+        </DataRow>
+      ),
+      key: 'exitIpv4',
+    },
+    exitIpv6 && {
+      row: (
+        <DataRow label={t('node-details.data.exit-ipv6')}>
+          <Link
+            text={exitIpv6}
+            url={`${IpInfoIoUrl}/${exitIpv6}`}
+            color="primary"
+            textClassName="select-text"
+            iconClassName="text-lg"
+            icon
+            selectable
+          />
+        </DataRow>
+      ),
+      key: 'exitIpv6',
+    },
+    asnValue && {
+      row: (
+        <DataRow label={t('node-details.data.asn')}>
+          <div className="truncate">{asnValue}</div>
+        </DataRow>
+      ),
+      key: 'asn-value',
+    },
+    asnName && {
+      row: (
+        <DataRow label={t('node-details.data.asn-name')}>
+          <div className="truncate">{asnName}</div>
+        </DataRow>
+      ),
+      key: 'asn-name',
+    },
+  ];
+  const card4 = [
+    buildVersion && {
+      row: (
+        <DataRow label={t('node-details.data.build-version')}>
+          <div className="truncate">{buildVersion}</div>
+        </DataRow>
+      ),
+      key: 'build-version',
+    },
+    { row: identityKey, key: 'id-key' },
+  ];
+
+  const card2Footer = lastUpdate
+    ? t('node-details.notes.performance_with_date', {
+        date: lastUpdate,
+      })
+    : t('node-details.notes.performance');
+
+  return (
+    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 cursor-default">
+      <h1 className="text-lg font-medium dark:text-white">{gateway.name}</h1>
+      <div className="flex flex-row items-center gap-2 select-none">
+        <FlagIcon
+          code={country.code.toLowerCase() as countryCode}
+          alt={country.code}
+          className="h-6"
+        />
+        <div className="text-lg" data-testid="node-details-country-name">
+          {getCountryName(country.code) || country.name}
+        </div>
+      </div>
+      <DataCard rows={card1} />
+      <DataCard rows={card2} footer={card2Footer} />
+      {showCard3 && <DataCard rows={card3} />}
+      <DataCard rows={card4} />
+      <div className="flex flex-col gap-2 select-none">
+        <Link
+          text={t('node-details.links.missing-info')}
+          url={SupportServerLocationUrl}
+          className="text-baltic-sea dark:text-white"
+          iconClassName="text-lg"
+          color="iron"
+          icon
+        />
+        <p className="text-iron dark:text-bombay">
+          <Trans
+            i18nKey="node-details.links.explorer"
+            ns="nodeLocation"
+            components={{
+              networkExplorerLink: (
+                <Link
+                  text="Network Explorer"
+                  url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
+                  color="primary"
+                  iconClassName="text-lg"
+                  icon
+                />
+              ),
+            }}
+          />
+        </p>
+      </div>
+      {!isSelected && (
+        <Button onClick={handleSelect}>
+          {t('node-details.select-button')}
+        </Button>
+      )}
+    </PageAnim>
+  );
+}
+
+export default NodeDetails;
