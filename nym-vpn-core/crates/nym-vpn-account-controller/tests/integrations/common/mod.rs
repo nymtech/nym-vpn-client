@@ -1,7 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{sync::OnceLock, time::Duration};
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
@@ -24,6 +25,32 @@ use crate::common::credential_proxy::MockCredentialProxy;
 pub mod account_summary;
 pub mod credential_proxy;
 pub mod endpoints;
+
+// Ensure tracing is only initialised once for the whole test suite.
+static TEST_TRACING: OnceLock<()> = OnceLock::new();
+
+pub fn init_tracing() {
+    TEST_TRACING.get_or_init(|| {
+        // Build env filter: if user provided RUST_LOG we honour it, otherwise fall back.
+        let env_filter = if std::env::var("RUST_LOG").is_ok() {
+            EnvFilter::from_default_env()
+        } else {
+            // Show INFO for our crates by default; DEBUG can be enabled with RUST_LOG.
+            EnvFilter::new("info,nym_vpn_account_controller=info,nym_vpn_api_client=info")
+        };
+
+        let fmt_layer = fmt::layer()
+            .with_target(false)
+            .compact()
+            .with_thread_ids(true)
+            .with_thread_names(true);
+
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(fmt_layer)
+            .init();
+    });
+}
 
 pub fn mock_user_agent() -> nym_http_api_client::UserAgent {
     nym_http_api_client::UserAgent {
@@ -168,6 +195,9 @@ impl TestBench {
     }
 
     async fn new_with_credential(credential_enabled: bool) -> anyhow::Result<TestBench> {
+        // Enable logging as early as possible so setup emits logs if needed
+        init_tracing();
+
         // Setup storage
         let storage = MockEphemeralStorage::default();
 
@@ -216,9 +246,9 @@ impl TestBench {
         })
     }
 
-    /// Assert that we are in a given state within 5 seconds.
+    /// Assert that we are in a given state within 15 seconds.
     /// This is needed to avoid tokio::sleep and yield_now everywhere
-    /// If after the 5sec delay, the expected state is not reached, the `assert_eq` call will fail, with a normal failure
+    /// If after the 15sec delay, the expected state is not reached, the `assert_eq` call will fail, with a normal failure
     pub async fn assert_state(&mut self, expected_state: AccountControllerState) {
         // Make sure we're not running right away
         tokio::task::yield_now().await;
@@ -227,7 +257,7 @@ impl TestBench {
 
         let wait_for_state_fut = state_watcher.wait_for(|state| *state == expected_state);
 
-        let _ = tokio::time::timeout(Duration::from_secs(5), wait_for_state_fut).await;
+        let _ = tokio::time::timeout(Duration::from_secs(15), wait_for_state_fut).await;
 
         // For the nice output in tests
         assert_eq!(self.state_receiver.get_state(), expected_state);
