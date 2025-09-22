@@ -263,12 +263,24 @@ struct NymVpnService_Asn: Sendable {
   init() {}
 }
 
-struct NymVpnService_Location: Sendable {
+struct NymVpnService_Country: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   var twoLetterIsoCountryCode: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct NymVpnService_Region: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var region: String = String()
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -321,12 +333,20 @@ struct NymVpnService_EntryNode: Sendable {
     set {entryNodeEnum = .gateway(newValue)}
   }
 
-  var location: NymVpnService_Location {
+  var country: NymVpnService_Country {
     get {
-      if case .location(let v)? = entryNodeEnum {return v}
-      return NymVpnService_Location()
+      if case .country(let v)? = entryNodeEnum {return v}
+      return NymVpnService_Country()
     }
-    set {entryNodeEnum = .location(newValue)}
+    set {entryNodeEnum = .country(newValue)}
+  }
+
+  var region: NymVpnService_Region {
+    get {
+      if case .region(let v)? = entryNodeEnum {return v}
+      return NymVpnService_Region()
+    }
+    set {entryNodeEnum = .region(newValue)}
   }
 
   var random: SwiftProtobuf.Google_Protobuf_Empty {
@@ -341,7 +361,8 @@ struct NymVpnService_EntryNode: Sendable {
 
   enum OneOf_EntryNodeEnum: Equatable, Sendable {
     case gateway(NymVpnService_GatewayId)
-    case location(NymVpnService_Location)
+    case country(NymVpnService_Country)
+    case region(NymVpnService_Region)
     case random(SwiftProtobuf.Google_Protobuf_Empty)
 
   }
@@ -372,12 +393,20 @@ struct NymVpnService_ExitNode: Sendable {
     set {exitNodeEnum = .gateway(newValue)}
   }
 
-  var location: NymVpnService_Location {
+  var country: NymVpnService_Country {
     get {
-      if case .location(let v)? = exitNodeEnum {return v}
-      return NymVpnService_Location()
+      if case .country(let v)? = exitNodeEnum {return v}
+      return NymVpnService_Country()
     }
-    set {exitNodeEnum = .location(newValue)}
+    set {exitNodeEnum = .country(newValue)}
+  }
+
+  var region: NymVpnService_Region {
+    get {
+      if case .region(let v)? = exitNodeEnum {return v}
+      return NymVpnService_Region()
+    }
+    set {exitNodeEnum = .region(newValue)}
   }
 
   var random: SwiftProtobuf.Google_Protobuf_Empty {
@@ -393,7 +422,8 @@ struct NymVpnService_ExitNode: Sendable {
   enum OneOf_ExitNodeEnum: Equatable, Sendable {
     case address(NymVpnService_Address)
     case gateway(NymVpnService_GatewayId)
-    case location(NymVpnService_Location)
+    case country(NymVpnService_Country)
+    case region(NymVpnService_Region)
     case random(SwiftProtobuf.Google_Protobuf_Empty)
 
   }
@@ -1481,7 +1511,7 @@ struct NymVpnService_ListCountriesResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var countries: [NymVpnService_Location] = []
+  var countries: [NymVpnService_Country] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3264,8 +3294,8 @@ extension NymVpnService_Asn: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 }
 
-extension NymVpnService_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".Location"
+extension NymVpnService_Country: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Country"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "two_letter_iso_country_code"),
   ]
@@ -3289,8 +3319,40 @@ extension NymVpnService_Location: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: NymVpnService_Location, rhs: NymVpnService_Location) -> Bool {
+  static func ==(lhs: NymVpnService_Country, rhs: NymVpnService_Country) -> Bool {
     if lhs.twoLetterIsoCountryCode != rhs.twoLetterIsoCountryCode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension NymVpnService_Region: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Region"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "region"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.region) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.region.isEmpty {
+      try visitor.visitSingularStringField(value: self.region, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: NymVpnService_Region, rhs: NymVpnService_Region) -> Bool {
+    if lhs.region != rhs.region {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3366,7 +3428,8 @@ extension NymVpnService_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._Message
   static let protoMessageName: String = _protobuf_package + ".EntryNode"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "gateway"),
-    2: .same(proto: "location"),
+    2: .same(proto: "country"),
+    3: .same(proto: "region"),
     4: .same(proto: "random"),
   ]
 
@@ -3390,16 +3453,29 @@ extension NymVpnService_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._Message
         }
       }()
       case 2: try {
-        var v: NymVpnService_Location?
+        var v: NymVpnService_Country?
         var hadOneofValue = false
         if let current = self.entryNodeEnum {
           hadOneofValue = true
-          if case .location(let m) = current {v = m}
+          if case .country(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.entryNodeEnum = .location(v)
+          self.entryNodeEnum = .country(v)
+        }
+      }()
+      case 3: try {
+        var v: NymVpnService_Region?
+        var hadOneofValue = false
+        if let current = self.entryNodeEnum {
+          hadOneofValue = true
+          if case .region(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.entryNodeEnum = .region(v)
         }
       }()
       case 4: try {
@@ -3430,9 +3506,13 @@ extension NymVpnService_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._Message
       guard case .gateway(let v)? = self.entryNodeEnum else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .location?: try {
-      guard case .location(let v)? = self.entryNodeEnum else { preconditionFailure() }
+    case .country?: try {
+      guard case .country(let v)? = self.entryNodeEnum else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .region?: try {
+      guard case .region(let v)? = self.entryNodeEnum else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .random?: try {
       guard case .random(let v)? = self.entryNodeEnum else { preconditionFailure() }
@@ -3455,8 +3535,9 @@ extension NymVpnService_ExitNode: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "address"),
     2: .same(proto: "gateway"),
-    3: .same(proto: "location"),
-    4: .same(proto: "random"),
+    3: .same(proto: "country"),
+    4: .same(proto: "region"),
+    5: .same(proto: "random"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3492,19 +3573,32 @@ extension NymVpnService_ExitNode: SwiftProtobuf.Message, SwiftProtobuf._MessageI
         }
       }()
       case 3: try {
-        var v: NymVpnService_Location?
+        var v: NymVpnService_Country?
         var hadOneofValue = false
         if let current = self.exitNodeEnum {
           hadOneofValue = true
-          if case .location(let m) = current {v = m}
+          if case .country(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.exitNodeEnum = .location(v)
+          self.exitNodeEnum = .country(v)
         }
       }()
       case 4: try {
+        var v: NymVpnService_Region?
+        var hadOneofValue = false
+        if let current = self.exitNodeEnum {
+          hadOneofValue = true
+          if case .region(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.exitNodeEnum = .region(v)
+        }
+      }()
+      case 5: try {
         var v: SwiftProtobuf.Google_Protobuf_Empty?
         var hadOneofValue = false
         if let current = self.exitNodeEnum {
@@ -3536,13 +3630,17 @@ extension NymVpnService_ExitNode: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       guard case .gateway(let v)? = self.exitNodeEnum else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
-    case .location?: try {
-      guard case .location(let v)? = self.exitNodeEnum else { preconditionFailure() }
+    case .country?: try {
+      guard case .country(let v)? = self.exitNodeEnum else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .region?: try {
+      guard case .region(let v)? = self.exitNodeEnum else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
     case .random?: try {
       guard case .random(let v)? = self.exitNodeEnum else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }
