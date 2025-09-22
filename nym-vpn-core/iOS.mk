@@ -37,7 +37,7 @@ build: $(LIBWG_BUILD_DIR)/libwg.a
 swift-package: $(LIBWG_BUILD_DIR)/libwg.a
 	cd $(LIB_CRATE_DIR); \
 	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG) ; \
-	sed -i '' -e '/.macOS(.v10_15)/d' "NymVPNLib/Package.swift"
+	sed -i '' -e '/\.macOS(.*v10_15.*)/d' "NymVPNLib/Package.swift"
 
 libwg: $(LIBWG_BUILD_DIR)/libwg.a
 
