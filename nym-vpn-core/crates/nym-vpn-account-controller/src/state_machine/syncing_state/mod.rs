@@ -201,12 +201,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage))},
                             Err(e) if e.is_retryable() => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {
+                                    tracing::error!("Error trying to get account summary, exhausted retries : {}", e.to_string());
                                     NextAccountControllerState::NewState(ErrorState::enter(e.into()))
                                 } else {
+                                    tracing::error!("Error trying to get account summary, retrying : {}", e.to_string());
                                     NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
                                 }
                             },
-                            Err(e) => {NextAccountControllerState::NewState(ErrorState::enter(e.into()))},
+                            Err(e) => {
+                                tracing::error!("Error trying to get account summary, not retrying : {}", e.to_string());
+                                NextAccountControllerState::NewState(ErrorState::enter(e.into()))
+                            },
                         }
                     }
                     Err(e) => {
@@ -284,18 +289,14 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, strum::Display)]
 enum SyncError {
     Internal(String),
     InactiveAccount(String),
     UnregisteredAccount,
     InactiveSubscription,
-    // TODO: Find why this is now unused, since its the only retryable error we had before
-    #[allow(dead_code)]
-    ApiRequestError,
-    ApiResponseError {
-        code_reference_id: Option<String>,
-    },
+    ApiRequestError(String),
+    ApiResponseError { code_reference_id: Option<String> },
     DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,
@@ -305,7 +306,7 @@ impl SyncError {
     fn is_retryable(&self) -> bool {
         matches!(
             self,
-            SyncError::ApiRequestError | SyncError::DeviceTimeDesynced
+            SyncError::ApiRequestError(_) | SyncError::DeviceTimeDesynced
         )
     }
 }
@@ -316,7 +317,7 @@ impl From<VpnApiClientError> for SyncError {
             Ok(error_response) => SyncError::ApiResponseError {
                 code_reference_id: error_response.code_reference_id,
             },
-            Err(e) => SyncError::Internal(e.to_string()),
+            Err(e) => SyncError::ApiRequestError(e.to_string()),
         }
     }
 }
@@ -334,9 +335,9 @@ impl From<SyncError> for AccountControllerErrorStateReason {
                 status: "unregistered".into(),
             },
             InactiveSubscription => Self::InactiveSubscription,
-            ApiRequestError => Self::ApiFailure {
+            ApiRequestError(e) => Self::ApiFailure {
                 context: SYNCING_STATE_CONTEXT.into(),
-                details: "".into(),
+                details: e,
             },
             ApiResponseError { code_reference_id } => Self::ApiFailure {
                 context: SYNCING_STATE_CONTEXT.into(),
