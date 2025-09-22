@@ -68,8 +68,22 @@ impl fmt::Display for VpnServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "entry point: {}, exit point: {}",
-            self.entry_point, self.exit_point
+            "entry point: {}, exit point: {}, dns: {}, allow LAN: {}, disable IPv6: {}, two-hop: {}, netstack: {}, poisson: {}, background cover traffic: {}, min mixnode performance: {:?}, min gateway mixnet performance: {:?}, min gateway VPN performance: {:?}",
+            self.entry_point,
+            self.exit_point,
+            self.dns.map_or("None".to_string(), |ip| ip.to_string()),
+            self.allow_lan,
+            self.disable_ipv6,
+            self.enable_two_hop,
+            self.netstack,
+            self.disable_poisson_rate,
+            self.disable_background_cover_traffic,
+            self.min_mixnode_performance
+                .map_or("None".to_string(), |f| f.to_string()),
+            self.min_gateway_mixnet_performance
+                .map_or("None".to_string(), |f| f.to_string()),
+            self.min_gateway_vpn_performance
+                .map_or("None".to_string(), |f| f.to_string())
         )
     }
 }
@@ -80,10 +94,10 @@ impl Default for VpnServiceConfig {
             entry_point: EntryPoint::Random,
             exit_point: ExitPoint::Random,
             dns: None,
+            allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: false,
             netstack: false,
-            allow_lan: false,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,
             min_mixnode_performance: None,

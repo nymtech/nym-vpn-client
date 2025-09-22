@@ -13,13 +13,13 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types_uniffi::{
     AccountCommandError, AccountControllerState, AccountLinks, EntryPoint, ExitPoint, FeatureFlags,
-    GatewayType, NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState,
+    GatewayType, NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig,
 };
 use nym_vpnd_types_uniffi::{
     gateway::{Gateway, GatewayCountry},
     log_path::LogPath,
     nym_vpn_api::{NymVpnDevice, NymVpnUsage},
-    service::{VpnServiceConfig, VpnServiceInfo},
+    service::VpnServiceInfo,
 };
 
 #[derive(Clone, uniffi::Object)]

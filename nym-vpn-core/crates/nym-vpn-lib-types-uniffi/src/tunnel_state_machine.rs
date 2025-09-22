@@ -3,12 +3,14 @@
 
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
+use crate::service::{BoxedVpnServiceConfig, VpnServiceConfig};
 use time::OffsetDateTime;
 
 #[derive(uniffi::Enum)]
 pub enum TunnelEvent {
     NewState(TunnelState),
     MixnetState(MixnetEvent),
+    ConfigChanged(BoxedVpnServiceConfig),
 }
 
 impl From<nym_vpn_lib_types::TunnelEvent> for TunnelEvent {
@@ -20,6 +22,9 @@ impl From<nym_vpn_lib_types::TunnelEvent> for TunnelEvent {
             nym_vpn_lib_types::TunnelEvent::MixnetState(event) => {
                 Self::MixnetState(MixnetEvent::from(event))
             }
+            nym_vpn_lib_types::TunnelEvent::ConfigChanged(new_config) => Self::ConfigChanged(
+                BoxedVpnServiceConfig::new(VpnServiceConfig::from(*new_config)),
+            ),
         }
     }
 }

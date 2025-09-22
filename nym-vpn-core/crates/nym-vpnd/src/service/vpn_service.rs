@@ -33,13 +33,15 @@ use nym_vpn_lib::{
     },
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
-use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerState, TunnelEvent, TunnelState, VpnServiceConfig,
+};
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::{ConnectArgs, TargetState, VpnServiceConfig, VpnServiceInfo},
+    service::{ConnectArgs, TargetState, VpnServiceInfo},
 };
 
 use super::{
@@ -605,6 +607,7 @@ impl NymVpnService {
                 let _ = self.tunnel_state_sender.send(new_state);
             }
             TunnelEvent::MixnetState(_) => {}
+            TunnelEvent::ConfigChanged(_) => {}
         }
     }
 

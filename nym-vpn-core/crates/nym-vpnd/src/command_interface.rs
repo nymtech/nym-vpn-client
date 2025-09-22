@@ -83,9 +83,7 @@ impl NymVpnService for CommandInterface {
         let config = self.send_and_wait(VpnServiceCommand::GetConfig, ()).await?;
 
         let response = proto::GetConfigResponse {
-            config: Some(proto::VpnServiceConfig::try_from(config).map_err(|e| {
-                tonic::Status::internal(format!("Failed to convert VPN service config: {e}"))
-            })?),
+            config: Some(proto::VpnServiceConfig::from(config)),
         };
 
         Ok(tonic::Response::new(response))

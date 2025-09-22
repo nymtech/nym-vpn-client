@@ -23,6 +23,12 @@ impl TryFrom<proto::TunnelEvent> for TunnelEvent {
             proto::tunnel_event::Event::MixnetEvent(mixnet_event) => {
                 TunnelEvent::MixnetState(MixnetEvent::try_from(mixnet_event)?)
             }
+            proto::tunnel_event::Event::ConfigChangedEvent(config_changed_event) => {
+                let new_config = config_changed_event
+                    .new_config
+                    .ok_or(ConversionError::NoValueSet("ConfigChangedEvent.new_config"))?;
+                TunnelEvent::ConfigChanged(Box::new(new_config.try_into()?))
+            }
         })
     }
 }
@@ -35,6 +41,11 @@ impl From<TunnelEvent> for proto::TunnelEvent {
             }
             TunnelEvent::MixnetState(mixnet_event) => {
                 proto::tunnel_event::Event::MixnetEvent(proto::MixnetEvent::from(mixnet_event))
+            }
+            TunnelEvent::ConfigChanged(new_config) => {
+                proto::tunnel_event::Event::ConfigChangedEvent(proto::ConfigChangedEvent {
+                    new_config: Some((*new_config).into()),
+                })
             }
         };
         Self { event: Some(event) }

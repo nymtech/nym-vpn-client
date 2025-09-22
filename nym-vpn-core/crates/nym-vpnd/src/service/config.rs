@@ -11,8 +11,7 @@ use nym_vpn_lib::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_vpn_lib_types::TunnelType;
-use nym_vpnd_types::service::VpnServiceConfig;
+use nym_vpn_lib_types::{TunnelType, service::VpnServiceConfig};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt, fs,
@@ -198,7 +197,10 @@ impl VpnServiceConfigManager {
                 .map_err(Error::ConfigSetup)?;
             let version = ext_config.version();
 
-            tracing::info!("Loaded service config from {}", json_config_path.display());
+            tracing::info!(
+                "Read service config version {version} from {}",
+                json_config_path.display()
+            );
 
             let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
 
@@ -207,7 +209,7 @@ impl VpnServiceConfigManager {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .map_err(Error::ConfigSetup)?;
 
-            tracing::info!("Loaded service config from {}", toml_config_path.display());
+            tracing::info!("Read service config from {}", toml_config_path.display());
 
             let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
 
@@ -222,29 +224,29 @@ impl VpnServiceConfigManager {
     }
 
     fn write_to_file(&self) -> bool {
-        let ext_config = match VpnServiceConfigExt::try_from(&self.config)
-            .map_err(Error::ConfigSetup)
-        {
-            Ok(ext_config) => ext_config,
-            Err(e) => {
-                tracing::error!("Failed to convert service config to external representation: {e}");
-                return false;
-            }
-        };
+        let ext_config =
+            match VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup) {
+                Ok(ext_config) => ext_config,
+                Err(e) => {
+                    tracing::error!("Failed to convert service config to JSON: {e}");
+                    return false;
+                }
+            };
+        let version = ext_config.version();
 
         match write_json_config_file(&self.json_config_path, &ext_config)
             .map_err(Error::ConfigSetup)
         {
             Ok(_) => {
                 tracing::info!(
-                    "Saved service config to {}",
+                    "Writing service config version {version} to {}",
                     self.json_config_path.display()
                 );
                 true
             }
             Err(e) => {
                 tracing::error!(
-                    "Failed to write service config to {}: {e}",
+                    "Failed to write service config version {version} to {}: {e}",
                     self.json_config_path.display()
                 );
                 false
@@ -1049,13 +1051,12 @@ mod tests {
         // Write the TOML config file
         fs::write(&toml_path, toml_content).unwrap();
 
-        // Read the TOML config and migrate it to latest JSON
+        // Read the TOML config and migrate it to latest JSON version.  The latest version of the
+        // JSON will be written straight back to disk.
         let config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
         let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
-
-        assert!(config_manager.write_to_file());
 
         // The TOML file should be deleted and replaced with a JSON version
         assert!(!toml_path.exists());
@@ -1099,16 +1100,20 @@ mod tests {
 
     fn run_serialize_test(config: VpnServiceConfig) {
         let temp_dir = tempdir().unwrap();
-        let network_config_path = temp_dir.path();
+        let config_path = temp_dir.path();
+
+        println!("Using config dir: {config_path:?}");
+
+        let network_config_path = config_path.join("tulips");
 
         // Write the config to disk
-        let mut config_manager = VpnServiceConfigManager::new(network_config_path).unwrap();
+        let mut config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
         config_manager.set_config(config.clone());
         assert!(config_manager.write_to_file());
         drop(config_manager);
 
         // Read it back and compare it
-        let config_manager = VpnServiceConfigManager::new(network_config_path).unwrap();
+        let config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
         let read_config = config_manager.config();
         assert_eq!(&config, read_config);
     }
