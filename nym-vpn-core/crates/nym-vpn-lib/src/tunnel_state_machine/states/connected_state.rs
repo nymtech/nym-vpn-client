@@ -310,3 +310,110 @@ impl TunnelStateHandler for ConnectedState {
         }
     }
 }
+
+/// Firewall policy configuration when connecting
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Debug, Clone)]
+struct ConnectedPolicyParameters {
+    /// Whether IPv6 is enabled
+    enable_ipv6: bool,
+
+    /// Whether to allow LAN traffic
+    allow_lan: bool,
+
+    /// WireGuard entry endpoint
+    wg_entry_endpoint: Option<SocketAddr>,
+
+    /// Entry gateway websocket endpoints
+    ws_entry_endpoints: Vec<SocketAddr>,
+
+    /// API endpoints
+    api_endpoints: Vec<SocketAddr>,
+
+    /// DNS servers
+    dns_servers: Vec<IpAddr>,
+
+    /// Tunnel interface
+    tunnel_interface: Option<TunnelInterface>,
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+impl ConnectedPolicyParameters {
+    pub fn as_policy(&self) -> FirewallPolicy {
+        // Allow websocket entry endpoints
+        let mut peer_endpoints = self
+            .ws_entry_endpoints
+            .iter()
+            .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
+            .map(|addr| {
+                AllowedEndpoint::new(
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                )
+            })
+            .collect::<Vec<_>>();
+
+        // Allow WireGuard entry endpoint
+        if let Some(addr) = self.wg_entry_endpoint {
+            if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
+                let allow_wg_endpoint = AllowedEndpoint::new(
+                    Endpoint::from_socket_address(addr, TransportProtocol::Udp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                );
+
+                peer_endpoints.push(allow_wg_endpoint);
+            } else {
+                tracing::warn!("WireGuard endpoint contains IPv6 address, but IPv6 is disabled!");
+            }
+        }
+
+        // Allow API endpoints
+        let allowed_endpoints = self
+            .api_endpoints
+            .iter()
+            .filter(|ip| ip.is_ipv4() || (self.enable_ipv6 && ip.is_ipv6()))
+            .map(|addr| {
+                AllowedEndpoint::new(
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                )
+            })
+            .collect::<Vec<_>>();
+
+        let tunnel = self
+            .tunnel_interface
+            .clone()
+            .map(nym_firewall::TunnelInterface::from);
+
+        // Set non-tunnel DNS to allow api client to use those DNS servers.
+        let dns_config = DnsConfig::from_addresses(&[], &self.dns_servers).resolve(
+            // pass empty because we already override the config with non-tunnel addresses.
+            &[],
+            #[cfg(target_os = "macos")]
+            53,
+        );
+
+        FirewallPolicy::Connecting {
+            peer_endpoints,
+            tunnel,
+            allow_lan: self.allow_lan,
+            dns_config,
+            allowed_endpoints,
+            // todo: only allow connection towards entry endpoint?
+            allowed_entry_tunnel_traffic: AllowedTunnelTraffic::All,
+            allowed_exit_tunnel_traffic: AllowedTunnelTraffic::All,
+            // todo: split tunneling
+            #[cfg(target_os = "macos")]
+            redirect_interface: None,
+        }
+    }
+}
