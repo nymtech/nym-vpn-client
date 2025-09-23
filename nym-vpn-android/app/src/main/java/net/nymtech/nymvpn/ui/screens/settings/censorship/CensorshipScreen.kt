@@ -21,7 +21,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.StealthApiSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -63,7 +62,7 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 				.padding(top = 16.dp),
 		)
 		if (showQUICSection) {
-			//QuicSection(quicEnabled, onQuicEnable)
+			// QuicSection(quicEnabled, onQuicEnable)
 		}
 		if (showDomainFrontingSection) {
 			StealthApiSection()
