@@ -509,7 +509,7 @@ impl GatewayList {
         // check that the region is a US state that we have in the gateway list
         if !self
             .gateways_located_at_country(COUNTRY_WITH_REGION_SELECTOR)
-            .any(|g| g.region() == Some(&region))
+            .any(|g| g.region() == Some(region))
         {
             return None;
         }
