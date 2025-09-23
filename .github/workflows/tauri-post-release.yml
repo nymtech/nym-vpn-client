@@ -14,24 +14,24 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'App release tag'
+        description: "App release tag"
         type: string
         required: true
-        default: 'nym-vpn-app-v1.2.3'
+        default: "nym-vpn-app-v1.2.3"
       version:
-        description: 'Semver app version'
+        description: "Semver app version"
         type: string
         required: true
-        default: '1.2.3'
+        default: "1.2.3"
       core_release_tag:
-        description: 'vpn-core release tag'
+        description: "vpn-core release tag"
         type: string
         required: true
-        default: 'nym-vpn-core-v1.2.3'
+        default: "nym-vpn-core-v1.2.3"
 
 jobs:
   post-release:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     continue-on-error: true
     permissions:
       contents: write

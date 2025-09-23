@@ -18,7 +18,7 @@ jobs:
 
   build-linux:
     needs: build-wireguard-go-linux
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     outputs:
       UPLOAD_DIR_DEB: ${{ env.UPLOAD_DIR_DEB }}
     steps:
