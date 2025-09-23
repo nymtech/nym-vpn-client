@@ -110,7 +110,7 @@ async fn connect(
     user_agent: UserAgent,
 ) -> Result<()> {
     println!(
-        "This call is deprecated and going to be removed soon. Please switch to using connect_v2"
+        "This call is deprecated and going to be removed soon. Please switch to using: nym-vpnc connect-v2"
     );
 
     let options = ConnectArgs {
