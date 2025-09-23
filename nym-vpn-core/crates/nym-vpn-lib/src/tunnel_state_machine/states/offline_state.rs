@@ -12,7 +12,7 @@ use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, error_state::BlockedPolicyParameters};
+use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
