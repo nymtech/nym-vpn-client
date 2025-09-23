@@ -5,7 +5,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest-dind
     steps:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
