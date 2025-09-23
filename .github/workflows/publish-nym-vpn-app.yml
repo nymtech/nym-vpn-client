@@ -70,7 +70,7 @@ jobs:
       - build-linux
       - build-windows
       - generate-build-info-nym-vpn-app
-    runs-on: arc-ubuntu-22.04
+    runs-on: ubuntu-22.04
     outputs:
       release_tag: ${{ steps.set_tag.outputs.tag }}
       release_id: ${{ steps.create_release.outputs.id }}
@@ -257,7 +257,7 @@ jobs:
       core_release_tag: ${{ inputs.core_release_tag }}
 
   zulip-notify:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     needs: publish
     continue-on-error: true
     env:
