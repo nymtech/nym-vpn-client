@@ -173,7 +173,7 @@
 	<string name="unexpected_error">An unexpected error occurred:</string>
 	<string name="selected_exit_unavailable">Selected exit country is unavailable. Please select a different exit country.</string>
 	<string name="selected_entry_unavailable">Selected entry country is unavailable. Please select a different entry country.</string>
-	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
+	<string name="bandwidth_error">Monthly data limit reached. Contact Support for a quick data boost.</string>
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
