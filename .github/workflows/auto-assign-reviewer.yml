@@ -7,7 +7,7 @@ on:
 
 jobs:
   assign_reviewer:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     # do not run while in draft mode
     if: github.event.pull_request.draft == false
     steps:
