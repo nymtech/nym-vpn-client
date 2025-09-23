@@ -7,8 +7,9 @@ use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
-    RegistrationClientNymNode, RegistrationResult, WireguardRegistrationResult,
+    RegistrationResult, WireguardRegistrationResult,
 };
+use nym_registration_common::NymNode as RegistrationNymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
 use nym_vpn_network_config::start_background_file_refresh;
@@ -76,7 +77,9 @@ use crate::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
             mixnet,
-            wireguard::{self, ConnectionData as WgConnectionData, MetadataEvent},
+            wireguard::{
+                self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+            },
         },
     },
 };
@@ -416,7 +419,7 @@ impl TunnelMonitor {
             })
             .map_err(Box::new)?;
 
-        let entry_node = RegistrationClientNymNode {
+        let entry_node = RegistrationNymNode {
             identity: selected_gateways.entry.identity,
             ipr_address: selected_gateways.entry.ipr_address.map(Into::into),
             authenticator_address: selected_gateways
@@ -427,7 +430,7 @@ impl TunnelMonitor {
             version: selected_gateways.entry.version.clone().into(),
         };
 
-        let exit_node = RegistrationClientNymNode {
+        let exit_node = RegistrationNymNode {
             identity: selected_gateways.exit.identity,
             ipr_address: selected_gateways.exit.ipr_address.map(Into::into),
             authenticator_address: selected_gateways.exit.authenticator_address.map(Into::into),
@@ -484,73 +487,15 @@ impl TunnelMonitor {
             }
             RegistrationResult::Wireguard(inner_result) => {
                 // As a first step, spin the bw controller here
+                let connected_tunnel = self
+                    .start_bandwidth_controller(
+                        *inner_result,
+                        entry_metadata_rx,
+                        exit_metadata_rx,
+                        selected_gateways.clone(),
+                    )
+                    .await?;
 
-                let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
-                let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
-
-                let _metadata_event_handler = tokio::spawn(async move {
-                    if let Ok(entry) = entry_metadata_rx.await {
-                        entry_signal_tx.send(entry.into()).ok();
-                    }
-                    if let Ok(exit) = exit_metadata_rx.await {
-                        exit_signal_tx.send(exit.into()).ok();
-                    }
-                });
-
-                let WireguardRegistrationResult {
-                    entry_gateway_client,
-                    exit_gateway_client,
-                    entry_gateway_data,
-                    exit_gateway_data,
-                    authenticator_listener_handle,
-                    bw_controller,
-                } = *inner_result;
-
-                let (entry_legacy_client, entry_wg_keypair) =
-                    entry_gateway_client.into_legacy_and_keypair();
-                let (exit_legacy_client, exit_wg_keypair) =
-                    exit_gateway_client.into_legacy_and_keypair();
-
-                let bw = BandwidthController::create(
-                    bw_controller,
-                    selected_gateways.clone(),
-                    entry_legacy_client,
-                    exit_legacy_client,
-                    entry_gateway_data.clone(),
-                    exit_gateway_data.clone(),
-                    entry_signal_rx,
-                    exit_signal_rx,
-                    self.tunnel_parameters
-                        .nym_config
-                        .network_env
-                        .gw_update_version(),
-                    self.shutdown_token.clone(),
-                )
-                .await
-                .map_err(|e| Box::new(tunnel::Error::from(e)))?;
-
-                let authenticator_listener_handle = if bw.is_using_latest_client() {
-                    // We don't need the mixnet client anymore
-                    tracing::info!(
-                        "Disconnecting mixnet client as we are using the latest bandwidth controller"
-                    );
-                    authenticator_listener_handle.stop().await;
-                    None
-                } else {
-                    Some(authenticator_listener_handle)
-                };
-                let bandwidth_controller_handle = tokio::spawn(bw.run());
-
-                let connected_tunnel = wireguard::connected_tunnel::ConnectedTunnel::new(
-                    entry_wg_keypair,
-                    exit_wg_keypair,
-                    WgConnectionData {
-                        entry: entry_gateway_data,
-                        exit: exit_gateway_data,
-                    },
-                    bandwidth_controller_handle,
-                    authenticator_listener_handle,
-                );
                 match self
                     .tunnel_parameters
                     .tunnel_settings
@@ -651,7 +596,8 @@ impl TunnelMonitor {
             }
         }
 
-        self.recv_error(fused_background_error).await;
+        self.recv_error(tunnel_handle.mixnet_client_token(), fused_background_error)
+            .await;
 
         tracing::info!("Wait for tunnel to exit");
         tunnel_handle.cancel();
@@ -675,8 +621,21 @@ impl TunnelMonitor {
         Ok(tun_devices)
     }
 
-    async fn recv_error(&self, background_error_rx: Fuse<impl Future<Output = Option<()>>>) {
+    async fn recv_error(
+        &self,
+        mixnet_cancel_token: Option<CancellationToken>,
+        background_error_rx: Fuse<impl Future<Output = Option<()>>>,
+    ) {
         tokio::select! {
+            // Watch on the mixnet client of nothing if it doesn't exist
+            _  = async {
+                match &mixnet_cancel_token {
+                    Some(token) => token.cancelled().await,
+                    None => std::future::pending().await,
+                    }
+            } => {
+                tracing::error!("MixnetClient exited unexpectedly");
+            }
             _ = self.shutdown_token.cancelled() => {}
             ret = background_error_rx => {
                 if ret.is_some() {
@@ -706,7 +665,6 @@ impl TunnelMonitor {
         let assigned_addresses = registration_result.assigned_addresses;
         let connected_tunnel = mixnet::connected_tunnel::ConnectedTunnel::new(
             registration_result.mixnet_client,
-            registration_result.mixnet_shutdown_manager,
             assigned_addresses,
             self.shutdown_token.clone(),
         );
@@ -836,6 +794,80 @@ impl TunnelMonitor {
             tunnel_conn_data,
             tunnel_handle,
         })
+    }
+
+    async fn start_bandwidth_controller(
+        &self,
+        registration_result: WireguardRegistrationResult,
+        entry_metadata_rx: MetadataReceiver,
+        exit_metadata_rx: MetadataReceiver,
+        selected_gateways: SelectedGateways,
+    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
+        let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
+        let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
+
+        let _metadata_event_handler = tokio::spawn(async move {
+            if let Ok(entry) = entry_metadata_rx.await {
+                entry_signal_tx.send(entry.into()).ok();
+            }
+            if let Ok(exit) = exit_metadata_rx.await {
+                exit_signal_tx.send(exit.into()).ok();
+            }
+        });
+
+        let WireguardRegistrationResult {
+            entry_gateway_client,
+            exit_gateway_client,
+            entry_gateway_data,
+            exit_gateway_data,
+            authenticator_listener_handle,
+            bw_controller,
+        } = registration_result;
+
+        let (entry_legacy_client, entry_wg_keypair) =
+            entry_gateway_client.into_legacy_and_keypair();
+        let (exit_legacy_client, exit_wg_keypair) = exit_gateway_client.into_legacy_and_keypair();
+
+        let bw = BandwidthController::create(
+            bw_controller,
+            selected_gateways,
+            entry_legacy_client,
+            exit_legacy_client,
+            entry_gateway_data.clone(),
+            exit_gateway_data.clone(),
+            entry_signal_rx,
+            exit_signal_rx,
+            self.tunnel_parameters
+                .nym_config
+                .network_env
+                .gw_update_version(),
+            self.shutdown_token.clone(),
+        )
+        .await
+        .map_err(|e| Box::new(tunnel::Error::from(e)))?;
+
+        let authenticator_listener_handle = if bw.is_using_latest_client() {
+            // We don't need the mixnet client anymore
+            tracing::info!(
+                "Disconnecting mixnet client as we are using the latest bandwidth controller"
+            );
+            authenticator_listener_handle.stop().await;
+            None
+        } else {
+            Some(authenticator_listener_handle)
+        };
+        let bandwidth_controller_handle = tokio::spawn(bw.run());
+
+        Ok(wireguard::connected_tunnel::ConnectedTunnel::new(
+            entry_wg_keypair,
+            exit_wg_keypair,
+            WgConnectionData {
+                entry: entry_gateway_data,
+                exit: exit_gateway_data,
+            },
+            bandwidth_controller_handle,
+            authenticator_listener_handle,
+        ))
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]

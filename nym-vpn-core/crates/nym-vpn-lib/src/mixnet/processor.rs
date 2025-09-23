@@ -12,12 +12,9 @@ use nym_ip_packet_requests::{
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
 };
-use nym_sdk::{
-    ShutdownManager,
-    mixnet::{
-        InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
-        MixnetMessageSinkTranslator, Recipient, TransmissionLane,
-    },
+use nym_sdk::mixnet::{
+    InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
+    MixnetMessageSinkTranslator, Recipient, TransmissionLane,
 };
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};
@@ -75,9 +72,6 @@ struct MixnetProcessor {
     // The mixnet client for sending and receiving messages from the mixnet
     mixnet_client: MixnetClient,
 
-    // Mixnet_shutdown_manager to lister to mixnet failure
-    mixnet_shutdown_manager: ShutdownManager,
-
     // The connection monitor for sending connection events
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
 
@@ -99,7 +93,6 @@ impl MixnetProcessor {
     fn new(
         device: AsyncDevice,
         mixnet_client: MixnetClient,
-        mixnet_shutdown_manager: ShutdownManager,
         connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: IpPair,
@@ -108,7 +101,6 @@ impl MixnetProcessor {
         MixnetProcessor {
             device,
             mixnet_client,
-            mixnet_shutdown_manager,
             connection_event_tx: connection_monitor.event_sender(),
             ip_packet_router_address,
             our_ips,
@@ -133,11 +125,7 @@ impl MixnetProcessor {
                 self.mixnet_client.shared_lane_queue_lengths(),
             )
         };
-        let mixnet_client_shutdown_token = self
-            .mixnet_shutdown_manager
-            .child_shutdown_token()
-            .inner()
-            .clone();
+        let mixnet_client_shutdown_token = self.mixnet_client.cancellation_token().child_token();
 
         let message_creator = MessageCreator::new(self.ip_packet_router_address.into());
 
@@ -145,7 +133,6 @@ impl MixnetProcessor {
         tracing::debug!("Starting mixnet listener");
         let mut mixnet_listener_handle = super::mixnet_listener::MixnetListener::spawn(
             self.mixnet_client,
-            self.mixnet_shutdown_manager,
             tun_device_sink,
             self.icmp_beacon_identifier,
             self.our_ips,
@@ -386,7 +373,6 @@ pub async fn start_processor(
     config: MixnetProcessorConfig,
     dev: AsyncDevice,
     mixnet_client: MixnetClient,
-    mixnet_shutdown_manager: ShutdownManager,
     connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
@@ -394,7 +380,6 @@ pub async fn start_processor(
     let processor = MixnetProcessor::new(
         dev,
         mixnet_client,
-        mixnet_shutdown_manager,
         connection_monitor,
         config.ip_packet_router_address,
         config.our_ips,
