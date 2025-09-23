@@ -622,51 +622,50 @@ impl NymVpnService {
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
         match command {
             VpnServiceCommand::Info(tx, ()) => {
-                let result = self.handle_info().await;
+                let result = self.handle_info();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetConfig(tx, ()) => {
-                let result = self.handle_get_config().await;
+                let result = self.handle_get_config();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::SetEntryPoint(tx, entry_point) => {
-                self.handle_set_entry_point(entry_point).await;
+                self.handle_set_entry_point(entry_point);
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetExitPoint(tx, exit_point) => {
-                self.handle_set_exit_point(exit_point).await;
+                self.handle_set_exit_point(exit_point);
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetDisableIPv6(tx, disable_ipv6) => {
-                self.handle_set_disable_ipv6(disable_ipv6).await;
+                self.handle_set_disable_ipv6(disable_ipv6);
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableTwoHop(tx, enable_two_hop) => {
-                self.handle_set_enable_two_hop(enable_two_hop).await;
+                self.handle_set_enable_two_hop(enable_two_hop);
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
-                self.handle_set_netstack(netstack).await;
+                self.handle_set_netstack(netstack);
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
-                self.handle_set_allow_lan(allow_lan).await;
-                let _ = tx.send(());
+                self.handle_set_allow_lan(allow_lan, tx);
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
-                let result = self.handle_set_network(network).await;
+                let result = self.handle_set_network(network);
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetSystemMessages(tx, ()) => {
-                let result = self.handle_get_system_messages().await;
+                let result = self.handle_get_system_messages();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetNetworkCompatibility(tx, ()) => {
-                let result = self.handle_get_network_compatibility().await;
+                let result = self.handle_get_network_compatibility();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetFeatureFlags(tx, ()) => {
-                let result = self.handle_get_feature_flags().await;
+                let result = self.handle_get_feature_flags();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::ListGateways(tx, options) => {
@@ -711,7 +710,7 @@ impl NymVpnService {
                 let _ = tx.send(self.handle_get_account_links(locale).await);
             }
             VpnServiceCommand::GetAccountState(tx, ()) => {
-                let _ = tx.send(self.handle_get_account_state().await);
+                let _ = tx.send(self.handle_get_account_state());
             }
             VpnServiceCommand::SubscribeToAccountControllerState(tx, ()) => {
                 let rx = self.handle_subscribe_to_account_controller_state();
@@ -747,21 +746,21 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::IsSentryEnabled(tx, ()) => {
-                let _ = tx.send(self.handle_is_sentry_enabled().await);
+                let _ = tx.send(self.handle_is_sentry_enabled());
             }
             VpnServiceCommand::ToggleSentry(tx, enable) => {
-                let _ = tx.send(self.handle_toggle_sentry(enable).await);
+                let _ = tx.send(self.handle_toggle_sentry(enable));
             }
             VpnServiceCommand::IsCollectNetStatsEnabled(tx, ()) => {
-                let _ = tx.send(self.handle_is_collect_network_stats_enabled().await);
+                let _ = tx.send(self.handle_is_collect_network_stats_enabled());
             }
             VpnServiceCommand::ToggleCollectNetStats(tx, enable) => {
-                let _ = tx.send(self.handle_toggle_collect_network_stats(enable).await);
+                let _ = tx.send(self.handle_toggle_collect_network_stats(enable));
             }
         }
     }
 
-    async fn handle_info(&self) -> VpnServiceInfo {
+    fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
 
         VpnServiceInfo {
@@ -775,41 +774,43 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_get_config(&self) -> VpnServiceConfig {
+    fn handle_get_config(&self) -> VpnServiceConfig {
         self.config_manager.config().clone()
     }
 
-    async fn handle_set_entry_point(&mut self, entry_point: EntryPoint) {
+    fn handle_set_entry_point(&mut self, entry_point: EntryPoint) {
         self.config_manager.set_entry_point(entry_point);
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_exit_point(&mut self, exit_point: ExitPoint) {
+    fn handle_set_exit_point(&mut self, exit_point: ExitPoint) {
         self.config_manager.set_exit_point(exit_point);
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_disable_ipv6(&mut self, disable_ipv6: bool) {
+    fn handle_set_disable_ipv6(&mut self, disable_ipv6: bool) {
         self.config_manager.set_disable_ipv6(disable_ipv6);
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
+    fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config_manager.set_enable_two_hop(enable_two_hop);
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_netstack(&mut self, netstack: bool) {
+    fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack);
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_allow_lan(&mut self, allow_lan: bool) {
+    fn handle_set_allow_lan(&mut self, allow_lan: bool, complete_tx: oneshot::Sender<()>) {
         self.config_manager.set_allow_lan(allow_lan);
-        self.update_tunnel_settings_with_throttle();
+        _ = self
+            .command_sender
+            .send(TunnelCommand::SetAllowLan(allow_lan, complete_tx));
     }
 
-    async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
+    fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config = GlobalConfig::read_from_default_config_dir().map_err(|source| {
             SetNetworkError::ReadConfig {
                 source: source.into(),
@@ -833,18 +834,18 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_get_system_messages(&self) -> SystemMessages {
+    fn handle_get_system_messages(&self) -> SystemMessages {
         self.network_env.nym_vpn_network.system_messages.clone()
     }
 
-    async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
+    fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
         self.network_env
             .system_configuration
             .as_ref()
             .and_then(|sc| sc.min_supported_app_versions.clone())
     }
 
-    async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
+    fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
         self.network_env.feature_flags.clone()
     }
 
@@ -1013,7 +1014,7 @@ impl NymVpnService {
             })
     }
 
-    async fn handle_get_account_state(&self) -> AccountControllerState {
+    fn handle_get_account_state(&self) -> AccountControllerState {
         self.account_state_rx.get_state()
     }
 
@@ -1076,7 +1077,7 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_is_sentry_enabled(&self) -> bool {
+    fn handle_is_sentry_enabled(&self) -> bool {
         GlobalConfig::read_from_default_config_dir()
             .inspect_err(|e| {
                 tracing::error!("Failed to read global config file: {}", e);
@@ -1087,7 +1088,7 @@ impl NymVpnService {
             .unwrap_or(self.sentry_enabled)
     }
 
-    async fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
+    fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
         let mut config = GlobalConfig::read_from_default_config_dir()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.sentry_monitoring = enable;
@@ -1105,11 +1106,11 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_is_collect_network_stats_enabled(&self) -> bool {
+    fn handle_is_collect_network_stats_enabled(&self) -> bool {
         self.network_statistics_enabled
     }
 
-    async fn handle_toggle_collect_network_stats(
+    fn handle_toggle_collect_network_stats(
         &mut self,
         enable: bool,
     ) -> Result<(), GlobalConfigError> {
