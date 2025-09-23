@@ -63,7 +63,7 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 				.padding(top = 16.dp),
 		)
 		if (showQUICSection) {
-			QuicSection(quicEnabled, onQuicEnable)
+			//QuicSection(quicEnabled, onQuicEnable)
 		}
 		if (showDomainFrontingSection) {
 			StealthApiSection()
