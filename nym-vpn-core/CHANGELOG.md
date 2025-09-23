@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
 - Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
 - Allow for random selection inside a US state (https://github.com/nymtech/nym-vpn-client/pull/3489)
+- Add control over LAN sharing when device connection is secured (https://github.com/nymtech/nym-vpn-client/pull/3496)
 
 ### Fixed
 
