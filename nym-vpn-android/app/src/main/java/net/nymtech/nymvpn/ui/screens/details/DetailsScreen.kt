@@ -53,13 +53,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 
 @Composable
-fun DetailsScreen(
-	appUiState: AppUiState,
-	id: String,
-	type: GatewayType,
-	gatewayLocation: String,
-	viewModel: DetailsViewModel = hiltViewModel(),
-) {
+fun DetailsScreen(appUiState: AppUiState, id: String, type: GatewayType, gatewayLocation: String, viewModel: DetailsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val location = GatewayLocation.valueOf(gatewayLocation)
 	val initialGateways = remember {
