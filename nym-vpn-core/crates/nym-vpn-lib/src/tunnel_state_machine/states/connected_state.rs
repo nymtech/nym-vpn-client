@@ -22,13 +22,12 @@ use nym_vpn_lib_types::TunnelConnectionData;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
-    gateway_ext::GatewayExt,
     states::{ConnectingState, DisconnectingState},
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result};
+use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
 
 use super::ErrorState;
 
@@ -51,7 +50,7 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        let dns_config = shared_state.tunnel_settings.resolved_dns_config();
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = ConnectedPolicyParameters {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
@@ -63,7 +62,7 @@ impl ConnectedState {
                 None
             },
             ws_entry_endpoints: selected_gateways.entry.endpoints(),
-            dns_config,
+            dns_config: shared_state.tunnel_settings.resolved_dns_config(),
             tunnel_interface: tunnel_interface.clone(),
         };
 
@@ -72,6 +71,7 @@ impl ConnectedState {
             tunnel_monitor_event_receiver,
             selected_gateways,
             tunnel_interface,
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
         };
 
@@ -236,11 +236,14 @@ impl TunnelStateHandler for ConnectedState {
                     },
                     TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
                         if shared_state.set_allow_lan(allow_lan) {
-                            self.firewall_policy_params.allow_lan = allow_lan;
-                            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                trace_err_chain!(e, "failed to set firewall policy");
-                                _ = complete_tx.send(());
-                                return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                            {
+                                self.firewall_policy_params.allow_lan = allow_lan;
+                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(e, "failed to set firewall policy");
+                                    _ = complete_tx.send(());
+                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                                }
                             }
                         }
                         _ = complete_tx.send(());

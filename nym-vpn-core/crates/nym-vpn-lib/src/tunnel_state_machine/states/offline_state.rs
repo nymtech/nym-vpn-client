@@ -12,12 +12,12 @@ use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result};
+use crate::tunnel_state_machine::{Error, Result, error_state::BlockedPolicyParameters};
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, error_state::BlockedPolicyParameters},
+    states::{ConnectingState, DisconnectedState},
     tunnel::SelectedGateways,
 };
 
@@ -57,6 +57,7 @@ impl OfflineState {
             Box::new(Self {
                 reconnect,
                 selected_gateways,
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 firewall_policy_params,
             }),
             PrivateTunnelState::Offline { reconnect },
