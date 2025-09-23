@@ -443,7 +443,7 @@ impl NymVpnService {
             gateway_cache_handle.clone(),
             topology_provider,
             connectivity_handle,
-            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             state_machine_shutdown_token.child_token(),
         )

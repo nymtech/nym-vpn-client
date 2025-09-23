@@ -83,7 +83,7 @@ const DHCPV6_CLIENT_PORT: u16 = 546;
 const ROOT_UID: u32 = 0;
 
 /// Allowed TCP ports to DNS servers when connecting.
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 const DNS_TCP_PORTS: [u16; 2] = [443, 853];
 
 /// Returns whether an address belongs to a private subnet.
