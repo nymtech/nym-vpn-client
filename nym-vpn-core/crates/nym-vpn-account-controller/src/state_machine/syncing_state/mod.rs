@@ -201,15 +201,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage))},
                             Err(e) if e.is_retryable() => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {
-                                    tracing::error!("Error trying to get account summary, exhausted retries : {}", e.to_string());
+                                    tracing::debug!("Error trying to get account summary, exhausted retries : {}", e.to_string());
                                     NextAccountControllerState::NewState(ErrorState::enter(e.into()))
                                 } else {
-                                    tracing::error!("Error trying to get account summary, retrying : {}", e.to_string());
+                                    tracing::debug!("Error trying to get account summary, retrying : {}", e.to_string());
                                     NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
                                 }
                             },
                             Err(e) => {
-                                tracing::error!("Error trying to get account summary, not retrying : {}", e.to_string());
+                                tracing::debug!("Error trying to get account summary, not retrying : {}", e.to_string());
                                 NextAccountControllerState::NewState(ErrorState::enter(e.into()))
                             },
                         }
