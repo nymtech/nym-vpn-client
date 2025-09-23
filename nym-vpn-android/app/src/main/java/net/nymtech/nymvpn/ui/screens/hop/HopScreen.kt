@@ -231,7 +231,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 						navController.safePopBackStack()
 					},
 					onGatewayDetails = { gateway ->
-						navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation))
+						navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
 					},
 					modifier = Modifier
 						.padding(top = if (uiState.countries.indexOf(country) == 0) 24.dp.scaledHeight() else 0.dp)
@@ -266,7 +266,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 									Box(
 										modifier = Modifier
 											.clickable {
-												navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation))
+												navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
 											}
 											.fillMaxHeight(),
 										contentAlignment = Alignment.Center,

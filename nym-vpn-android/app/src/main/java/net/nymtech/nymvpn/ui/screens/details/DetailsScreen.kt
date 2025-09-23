@@ -57,10 +57,11 @@ fun DetailsScreen(
 	appUiState: AppUiState,
 	id: String,
 	type: GatewayType,
-	gatewayLocation: GatewayLocation,
+	gatewayLocation: String,
 	viewModel: DetailsViewModel = hiltViewModel(),
 ) {
 	val navController = LocalNavController.current
+	val location = GatewayLocation.valueOf(gatewayLocation)
 	val initialGateways = remember {
 		when (type) {
 			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
@@ -75,7 +76,7 @@ fun DetailsScreen(
 	DetailsScreen(
 		detailsUiState = uiState,
 		onSelectServerClick = {
-			viewModel.onSelected(uiState.identity, gatewayLocation)
+			viewModel.onSelected(uiState.identity, location)
 			navController.navigateAndForget(Route.Main())
 		},
 	)
