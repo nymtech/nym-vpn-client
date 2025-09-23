@@ -31,7 +31,7 @@ jobs:
           ls -la ./
 
       - name: Install system dependencies
-        if: contains(matrix.os, 'ubuntu')
+        if: contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev \
@@ -54,7 +54,7 @@ jobs:
       - name: Set env
         shell: bash
         run: |
-          if ${{ startsWith(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest') }}; then
+          if ${{ contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest') }}; then
             ubuntu_release=$(lsb_release -r)
             ubuntu_version=$(cut -f2 <<< "$ubuntu_release")
             platform_arch=ubuntu-$ubuntu_version_x86_64
