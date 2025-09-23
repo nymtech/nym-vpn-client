@@ -250,8 +250,8 @@ impl CliEntry {
                     .map_err(|_| anyhow!("Failed to parse gateway id"))?,
             })
         } else if let Some(ref entry_gateway_country) = self.country {
-            Ok(EntryPoint::Location {
-                location: entry_gateway_country.alpha2.to_string(),
+            Ok(EntryPoint::Country {
+                two_letter_iso_country_code: entry_gateway_country.alpha2.to_string(),
             })
         } else if self.random {
             Ok(EntryPoint::Random)
@@ -277,6 +277,10 @@ pub struct CliExit {
     #[clap(long)]
     pub country: Option<celes::Country>,
 
+    /// Auto-select exit gateway by region.
+    #[clap(long)]
+    pub region: Option<String>,
+
     /// Auto-select exit gateway randomly.
     #[clap(long)]
     pub random: bool,
@@ -297,8 +301,12 @@ impl CliExit {
                     .map_err(|_| anyhow!("Failed to parse gateway id"))?,
             })
         } else if let Some(ref exit_gateway_country) = self.country {
-            Ok(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
+            Ok(ExitPoint::Country {
+                two_letter_iso_country_code: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if let Some(ref exit_gateway_region) = self.region {
+            Ok(ExitPoint::Region {
+                region: exit_gateway_region.to_string(),
             })
         } else if self.random {
             Ok(ExitPoint::Random)
@@ -325,8 +333,12 @@ impl TryFrom<CliExit> for ExitPoint {
                     .map_err(|_| anyhow!("Failed to parse gateway id"))?,
             })
         } else if let Some(ref exit_gateway_country) = value.country {
-            Ok(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
+            Ok(ExitPoint::Country {
+                two_letter_iso_country_code: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if let Some(ref exit_gateway_region) = value.region {
+            Ok(ExitPoint::Region {
+                region: exit_gateway_region.to_string(),
             })
         } else if value.random {
             Ok(ExitPoint::Random)
@@ -360,8 +372,8 @@ impl LegacyCliEntry {
                     .map_err(|_| anyhow!("Failed to parse gateway id"))?,
             }))
         } else if let Some(ref entry_gateway_country) = self.entry_country {
-            Ok(Some(EntryPoint::Location {
-                location: entry_gateway_country.alpha2.to_string(),
+            Ok(Some(EntryPoint::Country {
+                two_letter_iso_country_code: entry_gateway_country.alpha2.to_string(),
             }))
         } else if self.entry_random {
             Ok(Some(EntryPoint::Random))
@@ -387,6 +399,10 @@ pub struct LegacyCliExit {
     #[clap(long, alias = "exit-gateway-country")]
     pub exit_country: Option<celes::Country>,
 
+    /// Auto-select exit gateway by region.
+    #[clap(long, alias = "exit-gateway-region")]
+    pub exit_region: Option<String>,
+
     /// Auto-select exit gateway randomly.
     #[clap(long, alias = "exit-gateway-random")]
     pub exit_random: bool,
@@ -407,8 +423,12 @@ impl LegacyCliExit {
                     .map_err(|_| anyhow!("Failed to parse gateway id"))?,
             }))
         } else if let Some(ref exit_gateway_country) = self.exit_country {
-            Ok(Some(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
+            Ok(Some(ExitPoint::Country {
+                two_letter_iso_country_code: exit_gateway_country.alpha2.to_string(),
+            }))
+        } else if let Some(ref exit_gateway_region) = self.exit_region {
+            Ok(Some(ExitPoint::Region {
+                region: exit_gateway_region.to_string(),
             }))
         } else if self.exit_random {
             Ok(Some(ExitPoint::Random))
@@ -435,8 +455,12 @@ impl TryFrom<LegacyCliExit> for ExitPoint {
                     .map_err(|_| anyhow!("Failed to parse gateway id"))?,
             })
         } else if let Some(ref exit_gateway_country) = value.exit_country {
-            Ok(ExitPoint::Location {
-                location: exit_gateway_country.alpha2.to_string(),
+            Ok(ExitPoint::Country {
+                two_letter_iso_country_code: exit_gateway_country.alpha2.to_string(),
+            })
+        } else if let Some(ref exit_gateway_region) = value.exit_region {
+            Ok(ExitPoint::Region {
+                region: exit_gateway_region.to_string(),
             })
         } else if value.exit_random {
             Ok(ExitPoint::Random)

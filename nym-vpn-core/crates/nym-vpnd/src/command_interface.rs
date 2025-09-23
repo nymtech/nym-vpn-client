@@ -341,7 +341,7 @@ impl NymVpnService for CommandInterface {
             })?;
 
         let response = proto::ListCountriesResponse {
-            countries: countries.into_iter().map(proto::Location::from).collect(),
+            countries: countries.into_iter().map(proto::Country::from).collect(),
         };
 
         Ok(tonic::Response::new(response))

@@ -18,6 +18,7 @@ use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, h
 use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
 
 pub type NymNode = Gateway;
+const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -62,6 +63,10 @@ impl Gateway {
         self.location
             .as_ref()
             .map(|l| l.two_letter_iso_country_code.as_str())
+    }
+
+    pub fn region(&self) -> Option<&str> {
+        self.location.as_ref().map(|l| l.region.as_str())
     }
 
     pub fn is_two_letter_iso_country_code(&self, code: &str) -> bool {
@@ -471,11 +476,19 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
-    pub fn gateways_located_at(&self, code: String) -> impl Iterator<Item = &Gateway> {
+    pub fn gateways_located_at_country(&self, code: &str) -> impl Iterator<Item = &Gateway> {
         self.gateways.iter().filter(move |gateway| {
             gateway
                 .two_letter_iso_country_code()
                 .is_some_and(|gw_code| gw_code == code)
+        })
+    }
+
+    pub fn gateways_located_at_region(&self, region: &str) -> impl Iterator<Item = &Gateway> {
+        self.gateways.iter().filter(move |gateway| {
+            gateway
+                .region()
+                .is_some_and(|gw_region| gw_region == region)
         })
     }
 
@@ -486,8 +499,21 @@ impl GatewayList {
             .cloned()
     }
 
-    pub fn random_gateway_located_at(&self, code: String) -> Option<Gateway> {
-        self.gateways_located_at(code)
+    pub fn random_gateway_located_at_country(&self, code: &str) -> Option<Gateway> {
+        self.gateways_located_at_country(code)
+            .choose(&mut rand::thread_rng())
+            .cloned()
+    }
+
+    pub fn random_gateway_located_at_region(&self, region: &str) -> Option<Gateway> {
+        // check that the region is a US state that we have in the gateway list
+        if !self
+            .gateways_located_at_country(COUNTRY_WITH_REGION_SELECTOR)
+            .any(|g| g.region() == Some(region))
+        {
+            return None;
+        }
+        self.gateways_located_at_region(region)
             .choose(&mut rand::thread_rng())
             .cloned()
     }
