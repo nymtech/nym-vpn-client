@@ -367,7 +367,8 @@ impl NymVpnService {
         )
         .await;
 
-        let config_manager = VpnServiceConfigManager::new(&config_dir)?;
+        let config_manager =
+            VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone()))?;
 
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
