@@ -178,7 +178,7 @@ jobs:
           append_body: true
 
   publish-nym-fdroid:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     needs:
       - publish-github
     if: inputs.release_type == 'release'
@@ -191,7 +191,7 @@ jobs:
           event-type: fdroid-update
 
   publish-accrescent:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -250,7 +250,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     defaults:
       run:
         working-directory: nym-vpn-android
