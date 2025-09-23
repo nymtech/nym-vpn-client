@@ -103,8 +103,8 @@ impl ConnectingState {
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
-            trace_err_chain!(e, "failed to set firewall policy");
+        if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+            trace_err_chain!(err, "failed to set firewall policy");
             return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
         }
 
@@ -247,8 +247,9 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
-            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                trace_err_chain!(e, "failed to set firewall policy");
+            if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
+            {
+                trace_err_chain!(err, "failed to set firewall policy");
                 return NextTunnelState::NewState(
                     ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await,
                 );
@@ -519,17 +520,19 @@ impl TunnelStateHandler for ConnectingState {
                             NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
                     },
-                    TunnelCommand::SetAllowLan(allow_lan) => {
+                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
                         if shared_state.set_allow_lan(allow_lan) {
                             #[cfg(not(any(target_os = "android", target_os = "ios")))]
                             {
                                 self.firewall_policy_params.allow_lan = allow_lan;
                                 if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
                                     trace_err_chain!(e, "failed to set firewall policy");
+                                    _ = complete_tx.send(());
                                     return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                                 }
                             }
                         }
+                        _ = complete_tx.send(());
 
                         NextTunnelState::SameState(self)
                     },

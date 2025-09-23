@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use std::net::{IpAddr, SocketAddr};
+use std::net::SocketAddr;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -31,10 +31,6 @@ use crate::tunnel_state_machine::{
 use crate::tunnel_state_machine::{Error, Result};
 
 use super::ErrorState;
-
-/// Default websocket port used as a fallback
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-const DEFAULT_WS_PORT: u16 = 80;
 
 pub struct ConnectedState {
     tunnel_monitor_handle: TunnelMonitorHandle,
@@ -80,9 +76,8 @@ impl ConnectedState {
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(e) = connected_state
-            .set_firewall_policy(shared_state, &connected_state.firewall_policy_params)
-            .await
+        if let Err(e) =
+            Self::set_firewall_policy(shared_state, &connected_state.firewall_policy_params)
         {
             trace_err_chain!(e, "failed to apply firewall policy");
             return DisconnectingState::enter(
@@ -109,8 +104,7 @@ impl ConnectedState {
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    async fn set_firewall_policy(
-        &self,
+    fn set_firewall_policy(
         shared_state: &mut SharedState,
         params: &ConnectedPolicyParameters,
     ) -> Result<()> {
@@ -240,12 +234,17 @@ impl TunnelStateHandler for ConnectedState {
                     TunnelCommand::Disconnect => {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
-                    TunnelCommand::SetAllowLan(allow_lan) => {
+                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
                         if shared_state.set_allow_lan(allow_lan) {
-                            todo!()
-                        } else {
-                            NextTunnelState::SameState(self)
+                            self.firewall_policy_params.allow_lan = allow_lan;
+                            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                trace_err_chain!(e, "failed to set firewall policy");
+                                _ = complete_tx.send(());
+                                return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                            }
                         }
+                        _ = complete_tx.send(());
+                        NextTunnelState::SameState(self)
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
@@ -286,7 +285,7 @@ impl TunnelStateHandler for ConnectedState {
     }
 }
 
-/// Firewall policy configuration when connecting
+/// Firewall policy configuration when connected
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[derive(Debug, Clone)]
 struct ConnectedPolicyParameters {

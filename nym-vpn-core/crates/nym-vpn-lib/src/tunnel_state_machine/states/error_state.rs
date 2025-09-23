@@ -47,7 +47,10 @@ const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
     )),
 ];
 
-pub struct ErrorState;
+pub struct ErrorState {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    firewall_policy_params: BlockedPolicyParameters,
+}
 
 impl ErrorState {
     pub async fn enter(
@@ -68,22 +71,33 @@ impl ErrorState {
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(e) = Self::set_firewall_policy(shared_state) {
-            trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
+        let firewall_policy_params = BlockedPolicyParameters {
+            allow_lan: shared_state.tunnel_settings.allow_lan,
+        };
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+            trace_err_chain!(err, "failed to set firewall policy");
         }
+
+        let blocked_state = Self {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            firewall_policy_params,
+        };
+
         let _ = shared_state
             .account_command_tx
             .set_vpn_api_firewall_up()
             .await;
-        (Box::new(Self), PrivateTunnelState::Error(reason))
+        (Box::new(blocked_state), PrivateTunnelState::Error(reason))
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn set_firewall_policy(shared_state: &mut SharedState) -> Result<()> {
-        let policy = FirewallPolicy::Blocked {
-            allow_lan: shared_state.tunnel_settings.allow_lan,
-            allowed_endpoints: Vec::new(),
-        };
+    fn set_firewall_policy(
+        shared_state: &mut SharedState,
+        params: &BlockedPolicyParameters,
+    ) -> Result<()> {
+        let policy = params.as_policy();
 
         shared_state
             .firewall
@@ -179,12 +193,19 @@ impl TunnelStateHandler for ErrorState {
                             NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
                     },
-                    TunnelCommand::SetAllowLan(allow_lan) => {
+                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
                         if shared_state.set_allow_lan(allow_lan) {
-                            todo!()
-                        } else {
-                            NextTunnelState::SameState(self)
+                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                            {
+                                self.firewall_policy_params.allow_lan = allow_lan;
+                                if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(err, "failed to set firewall policy");
+                                }
+                            }
                         }
+
+                        _ = complete_tx.send(());
+                        NextTunnelState::SameState(self)
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;
@@ -200,6 +221,24 @@ impl TunnelStateHandler for ErrorState {
                 }
                 NextTunnelState::Finished
             }
+        }
+    }
+}
+
+// Firewall policy configuration when blocked
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Debug, Clone)]
+pub struct BlockedPolicyParameters {
+    /// Whether to allow LAN traffic
+    pub allow_lan: bool,
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+impl BlockedPolicyParameters {
+    pub fn as_policy(&self) -> FirewallPolicy {
+        FirewallPolicy::Blocked {
+            allow_lan: self.allow_lan,
+            allowed_endpoints: Vec::new(),
         }
     }
 }

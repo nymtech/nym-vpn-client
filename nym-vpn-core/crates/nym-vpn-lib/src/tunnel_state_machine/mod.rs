@@ -34,7 +34,10 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
-use tokio::{sync::mpsc, task::JoinHandle};
+use tokio::{
+    sync::{mpsc, oneshot},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -251,7 +254,7 @@ impl DnsOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum TunnelCommand {
     /// Connect the tunnel.
     Connect,
@@ -263,7 +266,7 @@ pub enum TunnelCommand {
     SetTunnelSettings(TunnelSettings),
 
     /// Allow LAN connections outside of tunnel.
-    SetAllowLan(bool),
+    SetAllowLan(bool, oneshot::Sender<()>),
 }
 
 impl From<PrivateTunnelState> for TunnelState {
