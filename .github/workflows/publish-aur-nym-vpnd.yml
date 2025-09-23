@@ -41,7 +41,7 @@ on:
 jobs:
   aur-publish:
     name: Publish package in AUR
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     continue-on-error: true
     strategy:
       fail-fast: false

@@ -21,40 +21,40 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: 'Build channel'
+        description: "Build channel"
         type: choice
         options:
           - stable
           - dev
         required: true
-        default: 'stable'
+        default: "stable"
       version:
-        description: 'Semver app version'
+        description: "Semver app version"
         type: string
         required: true
-        default: '0.0.0'
+        default: "0.0.0"
       platform:
-        description: 'Platform to update (Windows or Linux x64)'
+        description: "Platform to update (Windows or Linux x64)"
         type: choice
         options:
           - windows-x86_64
           - linux-x86_64
         required: true
-        default: 'windows-x86_64'
+        default: "windows-x86_64"
       url:
-        description: 'URL link to the executable (for Windows *setup.exe)'
+        description: "URL link to the executable (for Windows *setup.exe)"
         type: string
         required: true
-        default: 'https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v0.0.0/NymVPN_0.0.0_x64-setup.exe'
+        default: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v0.0.0/NymVPN_0.0.0_x64-setup.exe"
       signature:
-        description: 'Signature of the update bundle (for Windows content of *setup.exe.sig)'
+        description: "Signature of the update bundle (for Windows content of *setup.exe.sig)"
         type: string
         required: true
-        default: ''
+        default: ""
 
 jobs:
   update-metadata:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     permissions:
       contents: write
       pull-requests: write
@@ -64,7 +64,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          ref: 'develop'
+          ref: "develop"
 
       - name: Install yq
         run: |
@@ -86,8 +86,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          GIT_BRANCH: 'tauri-updater-${{ inputs.channel }}-${{ inputs.platform }}-${{ inputs.version }}'
-          COMMIT_MSG: 'tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}'
+          GIT_BRANCH: "tauri-updater-${{ inputs.channel }}-${{ inputs.platform }}-${{ inputs.version }}"
+          COMMIT_MSG: "tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}"
           PR_TITLE: "tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}"
           PR_BODY: |
             Update tauri updater metadata
