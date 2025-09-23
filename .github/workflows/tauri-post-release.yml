@@ -31,7 +31,7 @@ on:
 
 jobs:
   post-release:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     continue-on-error: true
     permissions:
       contents: write
