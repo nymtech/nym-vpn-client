@@ -3,8 +3,8 @@
 
 use super::error::{Error, Result};
 use nym_common::trace_err_chain;
+use nym_registration_client::MixnetClientConfig;
 use nym_vpn_lib::{
-    MixnetClientConfig,
     gateway_directory::{self, EntryPoint, ExitPoint},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
