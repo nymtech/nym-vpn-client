@@ -1,7 +1,5 @@
-use nym_vpn_proto::proto::{
-    EntryNode, ExitNode, GatewayId as ProtoGateway, Location, entry_node::EntryNodeEnum,
-    exit_node::ExitNodeEnum,
-};
+use nym_vpn_proto::proto as p;
+use p::{EntryNode, ExitNode, GatewayId, entry_node::EntryNodeEnum, exit_node::ExitNodeEnum};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use ts_rs::TS;
@@ -22,7 +20,7 @@ pub enum NodeConnect {
 impl From<Country> for EntryNode {
     fn from(country: Country) -> Self {
         EntryNode {
-            entry_node_enum: Some(EntryNodeEnum::Location(Location {
+            entry_node_enum: Some(EntryNodeEnum::Country(p::Country {
                 two_letter_iso_country_code: country.code,
             })),
         }
@@ -32,7 +30,7 @@ impl From<Country> for EntryNode {
 impl From<Country> for ExitNode {
     fn from(country: Country) -> Self {
         ExitNode {
-            exit_node_enum: Some(ExitNodeEnum::Location(Location {
+            exit_node_enum: Some(ExitNodeEnum::Country(p::Country {
                 two_letter_iso_country_code: country.code,
             })),
         }
@@ -42,7 +40,7 @@ impl From<Country> for ExitNode {
 impl From<Gateway> for EntryNode {
     fn from(gateway: Gateway) -> Self {
         EntryNode {
-            entry_node_enum: Some(EntryNodeEnum::Gateway(ProtoGateway { id: gateway.id })),
+            entry_node_enum: Some(EntryNodeEnum::Gateway(GatewayId { id: gateway.id })),
         }
     }
 }
@@ -50,7 +48,7 @@ impl From<Gateway> for EntryNode {
 impl From<Gateway> for ExitNode {
     fn from(gateway: Gateway) -> Self {
         ExitNode {
-            exit_node_enum: Some(ExitNodeEnum::Gateway(ProtoGateway { id: gateway.id })),
+            exit_node_enum: Some(ExitNodeEnum::Gateway(GatewayId { id: gateway.id })),
         }
     }
 }
