@@ -4,6 +4,7 @@
 mod account;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod dns_handler;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod gateway_ext;
 mod ipv6_availability;
 #[cfg(target_os = "macos")]

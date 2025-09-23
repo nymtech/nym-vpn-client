@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
+use std::net::IpAddr;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
-use std::{net::IpAddr, time::Duration};
+use std::time::Duration;
 
 use futures::{
     FutureExt,
