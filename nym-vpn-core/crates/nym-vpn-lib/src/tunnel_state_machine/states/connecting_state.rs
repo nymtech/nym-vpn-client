@@ -103,11 +103,9 @@ impl ConnectingState {
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
-                trace_err_chain!(e, "failed to set firewall policy");
-                return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
-            }
+        if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+            trace_err_chain!(e, "failed to set firewall policy");
+            return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
         }
 
         // If that fails, it's not really important
@@ -166,12 +164,6 @@ impl ConnectingState {
         shared_state
             .firewall
             .apply_policy(policy)
-            .inspect_err(|error| {
-                trace_err_chain!(
-                    error,
-                    "Failed to apply firewall policy for connecting state"
-                );
-            })
             .map_err(Error::SetFirewallPolicy)
     }
 
