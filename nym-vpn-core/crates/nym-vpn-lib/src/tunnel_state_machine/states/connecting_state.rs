@@ -23,12 +23,13 @@ use nym_firewall::{
 use nym_gateway_directory::ResolvedConfig;
 use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
     Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
-    gateway_ext::GatewayExt,
     states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
     tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
@@ -89,6 +90,7 @@ impl ConnectingState {
             return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = ConnectingPolicyParameters {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
@@ -143,6 +145,7 @@ impl ConnectingState {
             connection_data: initial_connection_data.clone(),
             resolve_api_addrs_fut: resolve_config_fut,
             reconnect_delay_fut,
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
         };
 
