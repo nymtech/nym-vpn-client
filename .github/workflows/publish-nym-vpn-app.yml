@@ -70,7 +70,7 @@ jobs:
       - build-linux
       - build-windows
       - generate-build-info-nym-vpn-app
-    runs-on: ubuntu-22.04
+    runs-on: arc-linux-latest
     outputs:
       release_tag: ${{ steps.set_tag.outputs.tag }}
       release_id: ${{ steps.create_release.outputs.id }}
