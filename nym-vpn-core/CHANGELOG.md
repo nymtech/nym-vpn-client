@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
 - Allow for random selection inside a US state (https://github.com/nymtech/nym-vpn-client/pull/3489)
 - Add control over LAN sharing when device connection is secured (https://github.com/nymtech/nym-vpn-client/pull/3496)
-- The `nym-vpnc status --listen` command now prints the daemon configuration when other clients have made them (TODO URL) (https://github.com/nymtech/nym-vpn-client/pull/3503).
+- The `nym-vpnc status --listen` command now prints the daemon configuration when it's changed by other clients (https://github.com/nymtech/nym-vpn-client/pull/3503).
 
 ### Fixed
 
