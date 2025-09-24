@@ -1023,9 +1023,11 @@ fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use pretty_assertions::assert_eq;
     use std::fs;
     use tempfile::tempdir;
+
+    use super::*;
 
     // Test migrating from TOML to the latest JSON version
     fn run_migrate_toml_test(
@@ -1134,6 +1136,7 @@ location = "BE"
     }
   },
   "dns": null,
+  "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": false,
   "netstack": false,
@@ -1178,6 +1181,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     }
   },
   "dns": null,
+  "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": false,
   "netstack": false,
@@ -1267,6 +1271,7 @@ exit_point = "Random"
   "entry_point": "random",
   "exit_point": "random",
   "dns": null,
+  "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": false,
   "netstack": false,
@@ -1313,6 +1318,7 @@ exit_point = "Random"
     }
   },
   "dns": null,
+  "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": false,
   "netstack": false,
