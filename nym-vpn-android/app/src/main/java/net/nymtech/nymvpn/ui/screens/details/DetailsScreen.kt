@@ -1,14 +1,18 @@
 package net.nymtech.nymvpn.ui.screens.details
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -79,9 +83,12 @@ fun DetailsScreen(appUiState: AppUiState, id: String, type: GatewayType, gateway
 @Composable
 fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit) {
 	Column(
+		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.Start,
 		modifier = Modifier
-			.fillMaxSize(),
+			.fillMaxSize()
+			.background(MaterialTheme.colorScheme.background)
+			.padding(WindowInsets.systemBars.asPaddingValues()),
 	) {
 		Column(
 			modifier = Modifier
@@ -156,7 +163,7 @@ internal fun PreviewPrivacyScreen() {
 			countryCode = "DE",
 			mixnetScore = Score.HIGH,
 			score = Score.HIGH,
-			load = Score.MEDIUM,
+			load = Score.HIGH,
 			uptime = 89f,
 			lastUpdated = "September 11, 2025 at 13:31",
 			asnName = "Google LLC",

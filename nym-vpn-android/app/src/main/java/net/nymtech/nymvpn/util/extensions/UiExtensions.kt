@@ -21,6 +21,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.EntryPoint
@@ -189,6 +190,26 @@ fun getScoreIcon(score: Score): Pair<ImageVector, String> {
 		Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 		Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
 		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+	}
+}
+
+@Composable
+fun Score.colorLoad(): Color {
+	return when (this) {
+		Score.HIGH -> Color.Red
+		Score.MEDIUM -> CustomColors.warning
+		Score.LOW -> Color.Green
+		Score.OFFLINE -> Color.Gray
+	}
+}
+
+@Composable
+fun Score.colorPerformance(): Color {
+	return when (this) {
+		Score.HIGH -> Color.Green
+		Score.MEDIUM -> CustomColors.warning
+		Score.LOW -> Color.Red
+		Score.OFFLINE -> Color.Gray
 	}
 }
 
