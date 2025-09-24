@@ -237,6 +237,7 @@ message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
   Dns dns = 3;
+  bool allow_lan = 4;
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
   bool netstack = 13;
@@ -702,6 +703,7 @@ service NymVpnService {
   rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

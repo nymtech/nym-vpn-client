@@ -506,21 +506,14 @@ impl TryFrom<proto::VpnServiceConfig> for VpnServiceConfig {
                 ),
                 None => None,
             },
-
+            allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
-
             enable_two_hop: value.enable_two_hop,
-
             netstack: value.netstack,
-
             disable_poisson_rate: value.disable_poisson_rate,
-
             disable_background_cover_traffic: value.disable_background_cover_traffic,
-
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u8),
-
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
-
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
         };
         Ok(config)
@@ -537,6 +530,7 @@ impl TryFrom<VpnServiceConfig> for proto::VpnServiceConfig {
             dns: value.dns.map(|ip| proto::Dns {
                 ip: Some(ip.to_string()),
             }),
+            allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             netstack: value.netstack,
@@ -876,6 +870,7 @@ mod tests {
                     .unwrap(),
             },
             dns: Some(std::net::IpAddr::from_str("192.168.50.1").unwrap()),
+            allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: false,
             netstack: false,

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show the picked gateway name the tunnel is connected to, when
   connecting/connected and the selected node is a country
 - Add QUIC mode and Domain-fronting (aka stealth API) settings options
+  Note: disabled for now
 - Add a new screen for gateway details
 
 ### Fixed

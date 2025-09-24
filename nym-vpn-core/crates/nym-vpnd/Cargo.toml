@@ -81,6 +81,9 @@ features = [
     "Win32_System_Threading",
 ]
 
+[dev-dependencies]
+pretty_assertions.workspace = true
+
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",

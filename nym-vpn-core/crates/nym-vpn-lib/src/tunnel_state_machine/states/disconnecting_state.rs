@@ -79,6 +79,7 @@ impl TunnelStateHandler for DisconnectingState {
                             }
                             _ => PrivateActionAfterDisconnect::Reconnect,
                         };
+                        NextTunnelState::SameState(self)
                     },
                     TunnelCommand::Disconnect => {
                         self.after_disconnect = match self.after_disconnect {
@@ -87,12 +88,18 @@ impl TunnelStateHandler for DisconnectingState {
                             }
                             _ => PrivateActionAfterDisconnect::Nothing
                         };
+                        NextTunnelState::SameState(self)
                     }
+                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
+                        _ = shared_state.set_allow_lan(allow_lan);
+                        _ = complete_tx.send(());
+                        NextTunnelState::SameState(self)
+                    },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;
+                        NextTunnelState::SameState(self)
                     }
                 }
-                NextTunnelState::SameState(self)
             }
             _ = shutdown_token.cancelled() => {
                 let tombstone = if self.tunnel_wait_handle.is_terminated() {
