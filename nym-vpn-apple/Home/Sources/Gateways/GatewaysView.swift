@@ -61,13 +61,6 @@ public struct GatewaysView: View {
                 .animation(.easeInOut, value: viewModel.isGeolocationModalDisplayed)
             }
         }
-        .overlay {
-            if viewModel.isServerInfoModalDisplayed, let server = viewModel.serverInfoModalServer {
-                GatewayInfoModal(server: server, isDisplayed: $viewModel.isServerInfoModalDisplayed)
-                    .transition(.opacity)
-                    .animation(.easeInOut, value: viewModel.isServerInfoModalDisplayed)
-            }
-        }
         .onTapGesture {
             isSearchFocused = false
         }
@@ -99,9 +92,10 @@ private extension GatewaysView {
                     servers: viewModel.gatewaysInCountry(with: country.code),
                     type: viewModel.type,
                     path: $viewModel.path,
-                    isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
-                    serverInfoModalServer: $viewModel.serverInfoModalServer,
-                    scrollToServer: $viewModel.scrollToServer
+                    scrollToServer: $viewModel.scrollToServer,
+                    infoButtonTapCompletion: { gateway in
+                        viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
+                    }
                 )
             }
         }
@@ -177,9 +171,10 @@ private extension GatewaysView {
                 servers: viewModel.gatewaysInCountry(with: country.code),
                 type: viewModel.type,
                 path: $viewModel.path,
-                isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
-                serverInfoModalServer: $viewModel.serverInfoModalServer,
                 scrollToServer: $viewModel.scrollToServer,
+                infoButtonTapCompletion: { gateway in
+                    viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
+                },
                 isSearching: true
             )
         }
@@ -194,9 +189,10 @@ private extension GatewaysView {
                 server: server,
                 type: viewModel.type,
                 path: $viewModel.path,
-                isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
-                serverInfoModalServer: $viewModel.serverInfoModalServer,
-                isSearching: true
+                isSearching: true,
+                infoButtonTapCompletion: { gateway in
+                    viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
+                }
             )
         }
     }

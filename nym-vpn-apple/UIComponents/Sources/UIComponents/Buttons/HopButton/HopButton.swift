@@ -35,7 +35,13 @@ public struct HopButton: View {
     }
 
     private var subtitleText: String? {
-        gatewayManager.moniker(with: gatewayId) ?? gatewayId
+        switch hopType {
+        case .entry:
+            guard connectionManager.entryGateway.isCountry else { return nil }
+        case .exit:
+            guard connectionManager.exitRouter.isCountry else { return nil }
+        }
+        return gatewayManager.moniker(with: gatewayId) ?? gatewayId
     }
 
     private var hopCountryCode: String? {
