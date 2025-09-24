@@ -27,3 +27,5 @@ dist-ssr
 yarn.lock
 
 public/licenses-*.json
+
+coverage
