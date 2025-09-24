@@ -72,61 +72,52 @@ pub async fn select_gateways(
     tracing::info!("Found {} entry gateways", entry_gateways.len());
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
-    tracing::info!("Score thresholds: wg: {wg_score_thresholds:?}, mix: {mix_score_thresholds:?}");
-
     let (min_wg_performance, min_mixnet_performance) =
         high_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
     let exit_gateway = exit_point
         .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
-            if err.is_no_matching_gateway() && !exit_point.is_specific_gateway_constraint() {
+            if err.is_no_matching_gateway_for_non_specific_gateway() {
                 let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
-                tracing::debug!("Could not locate high quality exit gateway. Lowering performance tier and trying again");
+                tracing::debug!("Could not locate high quality exit gateway. Lowering performance filter to medium and trying again");
 
                 exit_point.lookup_gateway(
                     &exit_gateways,
                     min_wg_performance,
                     min_mixnet_performance,
-                )
+                ).map_err(GatewayDirectoryError::PerformantExitGatewayUnavailable)
             } else {
-                Err(err)
+                Err(GatewayDirectoryError::SelectExitGateway(err))
             }
-        })
-        .map_err(GatewayDirectoryError::SelectExitGateway)?;
+        })?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
+
+    // If there are no more entry gateways left, it means that entry and exit match.
+    if entry_gateways.is_empty() {
+        return Err(GatewayDirectoryError::SameEntryAndExitGateway {
+            identity: exit_gateway.identity.to_string(),
+        });
+    }
 
     let entry_gateway = entry_point
         .lookup_gateway(&entry_gateways, min_wg_performance, min_mixnet_performance)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
-            if err.is_no_matching_gateway() && !entry_point.is_specific_gateway_constraint() {
+            if err.is_no_matching_gateway_for_non_specific_gateway() {
                 let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
-                tracing::debug!("Could not locate high quality entry gateway. Lowering performance tier and trying again");
+                tracing::debug!("Could not locate high quality entry gateway. Lowering performance filter to medium and trying again");
 
                 entry_point.lookup_gateway(
                     &entry_gateways,
                     min_wg_performance,
                     min_mixnet_performance,
-                )
+                ).map_err(GatewayDirectoryError::PerformantEntryGatewayUnavailable)
             } else {
-                Err(err)
+                 Err(GatewayDirectoryError::SelectEntryGateway(err))
             }
-        })
-        .map_err(|source| match source {
-            nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
-                requested_location,
-                available_countries: _,
-            } if Some(requested_location.as_str())
-                == exit_gateway.two_letter_iso_country_code() =>
-            {
-                GatewayDirectoryError::SameEntryAndExitGateway {
-                    identity: exit_gateway.identity.to_string(),
-                }
-            }
-            _ => GatewayDirectoryError::SelectEntryGateway(source),
         })?;
 
     tracing::info!(

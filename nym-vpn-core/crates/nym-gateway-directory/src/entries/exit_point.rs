@@ -46,11 +46,6 @@ impl Display for ExitPoint {
 }
 
 impl ExitPoint {
-    /// Returns true if the exit point is a specific address or gateway.
-    pub fn is_specific_gateway_constraint(&self) -> bool {
-        matches!(self, Self::Address { .. } | Self::Gateway { .. })
-    }
-
     pub fn lookup_gateway(
         &self,
         gateways: &GatewayList,

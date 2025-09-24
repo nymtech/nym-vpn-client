@@ -106,12 +106,12 @@ pub enum Error {
 
 impl Error {
     /// Returns true when no gateways matching the search criteria could be found, except when the gateway is constrained to identity
-    pub fn is_no_matching_gateway(&self) -> bool {
+    pub fn is_no_matching_gateway_for_non_specific_gateway(&self) -> bool {
         matches!(
             self,
             Error::NoMatchingEntryGatewayForLocation { .. }
-                | Error::FailedToSelectGatewayRandomly
                 | Error::NoMatchingExitGatewayForLocation { .. }
+                | Error::FailedToSelectGatewayRandomly
         )
     }
 }

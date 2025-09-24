@@ -48,11 +48,6 @@ impl EntryPoint {
         Ok(EntryPoint::Gateway { identity })
     }
 
-    /// Returns true if the entry point is a specific address or gateway.
-    pub fn is_specific_gateway_constraint(&self) -> bool {
-        matches!(self, Self::Gateway { .. })
-    }
-
     pub fn lookup_gateway(
         &self,
         gateways: &GatewayList,
