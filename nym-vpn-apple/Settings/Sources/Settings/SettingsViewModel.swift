@@ -157,9 +157,6 @@ private extension SettingsViewModel {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
 
-    @MainActor func navigateToCensorship() {
-        path.append(SettingLink.censorship)
-    }
 #if os(macOS)
     @MainActor func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in
@@ -321,20 +318,6 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        if featureFlagsManager.isQuicEnabled || featureFlagsManager.isStealthAPIEnabled {
-            viewModels.append(
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.censorship.title".localizedString,
-                    imageName: "domain",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToCensorship()
-                        }
-                    }
-                )
-            )
-        }
         return .killSwitch(viewModels: viewModels)
     }
 

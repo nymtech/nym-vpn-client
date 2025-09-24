@@ -58,8 +58,6 @@ struct SettingsFlowCoordinator<Content: View>: View {
 #endif
         case .privacyAndData:
             PrivacyAndDataView(path: $flowState.path)
-        case .censorship:
-            CensorshipView(path: $flowState.path)
         }
     }
 }

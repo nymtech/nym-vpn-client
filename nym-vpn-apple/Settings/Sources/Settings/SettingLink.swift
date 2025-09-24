@@ -18,7 +18,6 @@ public enum SettingLink: Hashable, Identifiable {
     case licence(details: LicenceDetails)
     case santasMenu
     case privacyAndData
-    case censorship
 #if os(macOS)
     case installHelper(afterInstallAction: HelperAfterInstallAction)
     case appMode
