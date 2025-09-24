@@ -15,8 +15,8 @@ static EXCLUDED_ERRORS: [&str; 6] = [
     "connection timed out",
 ];
 
-pub fn init_sentry() -> Option<ClientInitGuard> {
-    if !GlobalConfig::sentry_enabled() {
+pub async fn init_sentry() -> Option<ClientInitGuard> {
+    if !GlobalConfig::sentry_enabled().await {
         return None;
     }
 

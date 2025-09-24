@@ -63,7 +63,7 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
     // It would be better to call `init_sentry()` much later, as it forces a double-read
     // of the global configuration file, however there is a chicken-and-egg problem WRT
     // logging setup and reading the config file.
-    let _sentry_guard = sentry::init_sentry();
+    let _sentry_guard = sentry::init_sentry().await;
     let sentry_enabled = _sentry_guard.is_some();
 
     let shutdown_token = CancellationToken::new();
@@ -142,7 +142,7 @@ async fn run_standalone(
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
-    let global_config_file = setup_global_config(parameters.network)?;
+    let global_config_file = setup_global_config(parameters.network).await?;
 
     // Migrate global configuration here, where we will have more information about the environment.
 
@@ -236,11 +236,11 @@ async fn setup_vpn_service(
     ))
 }
 
-fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfig> {
-    let mut global_config_file = GlobalConfig::read_from_default_config_dir()?;
+async fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfig> {
+    let mut global_config_file = GlobalConfig::read_from_default_config_dir().await?;
     if let Some(network) = network {
         global_config_file.network_name = network;
-        global_config_file.write_to_default_config_dir()?;
+        global_config_file.write_to_default_config_dir().await?;
     }
     Ok(global_config_file)
 }

@@ -24,12 +24,12 @@ impl Default for GlobalConfig {
 }
 
 impl GlobalConfig {
-    pub fn read_from_default_config_dir() -> anyhow::Result<Self> {
+    pub async fn read_from_default_config_dir() -> anyhow::Result<Self> {
         let config_dir = crate::service::config_dir();
-        Self::read_from_config_dir(&config_dir)
+        Self::read_from_config_dir(&config_dir).await
     }
 
-    pub fn read_from_config_dir(config_dir: &Path) -> anyhow::Result<Self> {
+    pub async fn read_from_config_dir(config_dir: &Path) -> anyhow::Result<Self> {
         let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
         let json_config_exists = json_config_path.exists();
         let toml_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
@@ -38,6 +38,7 @@ impl GlobalConfig {
         let config = if json_config_exists {
             let ext_config =
                 crate::service::read_json_config_file::<GlobalConfigExt>(&json_config_path)
+                    .await
                     .context(anyhow!(
                         "Failed to read global config file {}",
                         json_config_path.display()
@@ -49,6 +50,7 @@ impl GlobalConfig {
         } else if toml_config_exists {
             let legacy_config =
                 crate::service::read_toml_config_file::<LegacyGlobalConfig>(&toml_config_path)
+                    .await
                     .context(anyhow!(
                         "Failed to read global config file {}",
                         toml_config_path.display()
@@ -71,32 +73,36 @@ impl GlobalConfig {
 
         // Always write back config file back using the latest JSON version
         // TODO: Avoid doing this as it's double-writing the config file.
-        config.write_to_config_dir(config_dir)?;
+        config.write_to_config_dir(config_dir).await?;
 
         Ok(config)
     }
 
-    pub fn write_to_default_config_dir(&self) -> anyhow::Result<()> {
+    pub async fn write_to_default_config_dir(&self) -> anyhow::Result<()> {
         let config_dir = crate::service::config_dir();
-        self.write_to_config_dir(&config_dir)
+        self.write_to_config_dir(&config_dir).await
     }
 
-    pub fn write_to_config_dir(&self, config_dir: &Path) -> anyhow::Result<()> {
+    pub async fn write_to_config_dir(&self, config_dir: &Path) -> anyhow::Result<()> {
         let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
 
         let ext_config = GlobalConfigExt::try_from(self).context(anyhow!(
             "Failed to convert global config to external representation for writing"
         ))?;
 
-        crate::service::write_json_config_file(&json_config_path, &ext_config).context(anyhow!(
-            "Failed to write global config file {}",
-            json_config_path.display()
-        ))
+        crate::service::write_json_config_file(&json_config_path, &ext_config)
+            .await
+            .context(anyhow!(
+                "Failed to write global config file {}",
+                json_config_path.display()
+            ))
     }
 
     // Calling this means the global configuration file is read twice 😒
-    pub fn sentry_enabled() -> bool {
-        let config = Self::read_from_default_config_dir().unwrap_or_default();
+    pub async fn sentry_enabled() -> bool {
+        let config = Self::read_from_default_config_dir()
+            .await
+            .unwrap_or_default();
         config.sentry_monitoring
     }
 }
@@ -233,8 +239,8 @@ mod tests {
         (temp_dir, toml_path, json_path)
     }
 
-    #[test]
-    fn test_global_config_migrate() {
+    #[tokio::test]
+    async fn test_global_config_migrate() {
         let (temp_dir, toml_path, json_path) = setup();
 
         let toml_content = r#"
@@ -254,7 +260,9 @@ collect_network_statistics = true
         fs::write(&toml_path, toml_content).unwrap();
 
         // Read the TOML config and migrate it to JSON
-        let config = GlobalConfig::read_from_config_dir(temp_dir.path()).unwrap();
+        let config = GlobalConfig::read_from_config_dir(temp_dir.path())
+            .await
+            .unwrap();
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
         assert!(config.collect_network_statistics);
@@ -264,7 +272,9 @@ collect_network_statistics = true
         assert!(json_path.exists());
 
         // Read the JSON config
-        let config = GlobalConfig::read_from_config_dir(temp_dir.path()).unwrap();
+        let config = GlobalConfig::read_from_config_dir(temp_dir.path())
+            .await
+            .unwrap();
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
         assert!(config.collect_network_statistics);

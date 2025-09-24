@@ -14,12 +14,16 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{TunnelEvent, TunnelType, service::VpnServiceConfig};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
-    fmt, fs,
+    fmt,
     net::IpAddr,
     path::{Path, PathBuf},
     str::FromStr,
 };
-use tokio::sync::broadcast;
+use tokio::{
+    fs,
+    io::{self, AsyncWriteExt},
+    sync::broadcast,
+};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -90,13 +94,13 @@ pub struct VpnServiceConfigManager {
 
 #[allow(dead_code)]
 impl VpnServiceConfigManager {
-    pub fn new(
+    pub async fn new(
         network_config_dir: &Path,
         tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
     ) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
-        let (config, version) = Self::read_from_file(&toml_config_path, &json_config_path)?;
+        let (config, version) = Self::read_from_file(&toml_config_path, &json_config_path).await?;
 
         let config_manager = Self {
             json_config_path,
@@ -106,7 +110,7 @@ impl VpnServiceConfigManager {
 
         // If we didn't read the latest version then write the config straight back to file
         if version != LATEST_CONFIG_VERSION {
-            config_manager.write_to_file();
+            config_manager.write_to_file().await;
         }
 
         // If the deprecated TOML file exists then remove it
@@ -115,7 +119,7 @@ impl VpnServiceConfigManager {
                 "Removing deprecated config file {}",
                 toml_config_path.display()
             );
-            if let Err(e) = fs::remove_file(&toml_config_path) {
+            if let Err(e) = fs::remove_file(&toml_config_path).await {
                 trace_err_chain!(e, "Failed to remove deprecated config file");
             }
         }
@@ -127,103 +131,108 @@ impl VpnServiceConfigManager {
         &self.config
     }
 
-    pub fn set_config(&mut self, config: VpnServiceConfig) {
+    pub async fn set_config(&mut self, config: VpnServiceConfig) {
         if self.config != config {
             self.config = config;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_entry_point(&mut self, entry_point: EntryPoint) {
+    pub async fn set_entry_point(&mut self, entry_point: EntryPoint) {
         if self.config.entry_point != entry_point {
             self.config.entry_point = entry_point;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_exit_point(&mut self, exit_point: ExitPoint) {
+    pub async fn set_exit_point(&mut self, exit_point: ExitPoint) {
         if self.config.exit_point != exit_point {
             self.config.exit_point = exit_point;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_dns(&mut self, dns: Option<IpAddr>) {
+    pub async fn set_dns(&mut self, dns: Option<IpAddr>) {
         if self.config.dns != dns {
             self.config.dns = dns;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
+    pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
         if self.config.disable_ipv6 != disable_ipv6 {
             self.config.disable_ipv6 = disable_ipv6;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
+    pub async fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
         if self.config.enable_two_hop != enable_two_hop {
             self.config.enable_two_hop = enable_two_hop;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_netstack(&mut self, netstack: bool) {
+    pub async fn set_netstack(&mut self, netstack: bool) {
         if self.config.netstack != netstack {
             self.config.netstack = netstack;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_allow_lan(&mut self, allow_lan: bool) {
-        self.config.allow_lan = allow_lan;
-        let _ = self.write_to_file();
+    pub async fn set_allow_lan(&mut self, allow_lan: bool) {
+        if self.config.allow_lan != allow_lan {
+            self.config.allow_lan = allow_lan;
+            self.save_config_and_send_event().await;
+        }
     }
 
-    pub fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
+    pub async fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         if self.config.disable_poisson_rate != disable_poisson_rate {
             self.config.disable_poisson_rate = disable_poisson_rate;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_disable_background_cover_traffic(&mut self, disable: bool) {
+    pub async fn set_disable_background_cover_traffic(&mut self, disable: bool) {
         if self.config.disable_background_cover_traffic != disable {
             self.config.disable_background_cover_traffic = disable;
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
+    pub async fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
         if self.config.min_mixnode_performance != min_mixnode_performance {
             self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_min_gateway_mixnet_performance(
+    pub async fn set_min_gateway_mixnet_performance(
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
     ) {
         if self.config.min_gateway_mixnet_performance != min_gateway_mixnet_performance {
             self.config.min_gateway_mixnet_performance =
                 min_gateway_mixnet_performance.map(|u| u.min(100));
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    pub fn set_min_gateway_vpn_performance(&mut self, min_gateway_vpn_performance: Option<u8>) {
+    pub async fn set_min_gateway_vpn_performance(
+        &mut self,
+        min_gateway_vpn_performance: Option<u8>,
+    ) {
         if self.config.min_gateway_vpn_performance != min_gateway_vpn_performance {
             self.config.min_gateway_vpn_performance =
                 min_gateway_vpn_performance.map(|u| u.min(100));
-            self.save_config_and_send_event();
+            self.save_config_and_send_event().await;
         }
     }
 
-    fn save_config_and_send_event(&self) {
+    async fn save_config_and_send_event(&self) {
         // This function already logs
-        let _ = self.write_to_file();
+        let _ = self.write_to_file().await;
 
         // Notify all clients that the config has changed
         if let Some(tx) = self.tunnel_event_tx.as_ref() {
@@ -239,12 +248,13 @@ impl VpnServiceConfigManager {
     }
 
     /// Returns the configuration as well as the version read from file.
-    fn read_from_file(
+    async fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
     ) -> Result<(VpnServiceConfig, u8)> {
         let (config, version) = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
+                .await
                 .map_err(Error::ConfigSetup)?;
             let version = ext_config.version();
 
@@ -258,6 +268,7 @@ impl VpnServiceConfigManager {
             (config, version)
         } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
+                .await
                 .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Read service config from {}", toml_config_path.display());
@@ -274,7 +285,7 @@ impl VpnServiceConfigManager {
         Ok((config, version))
     }
 
-    fn write_to_file(&self) -> bool {
+    async fn write_to_file(&self) -> bool {
         let ext_config =
             match VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup) {
                 Ok(ext_config) => ext_config,
@@ -286,6 +297,7 @@ impl VpnServiceConfigManager {
         let version = ext_config.version();
 
         match write_json_config_file(&self.json_config_path, &ext_config)
+            .await
             .map_err(Error::ConfigSetup)
         {
             Ok(_) => {
@@ -837,7 +849,7 @@ pub enum ConfigSetupError {
     ReadConfig {
         file: PathBuf,
         #[source]
-        error: std::io::Error,
+        error: io::Error,
     },
 
     #[error("failed to get parent directory of {file}")]
@@ -847,21 +859,18 @@ pub enum ConfigSetupError {
     CreateDirectory {
         dir: PathBuf,
         #[source]
-        error: std::io::Error,
+        error: io::Error,
     },
 
     #[error("failed to write file {file}")]
-    WriteFile {
-        file: PathBuf,
-        error: std::io::Error,
-    },
+    WriteFile { file: PathBuf, error: io::Error },
 
     #[cfg(unix)]
     #[error("failed to set permissions for directory {dir}")]
     SetPermissions {
         dir: PathBuf,
         #[source]
-        error: std::io::Error,
+        error: io::Error,
     },
 
     #[cfg(windows)]
@@ -943,37 +952,44 @@ pub fn config_dir() -> PathBuf {
         .unwrap_or_else(|_| default_config_dir())
 }
 
-pub fn read_toml_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
+pub async fn read_toml_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
 where
     C: DeserializeOwned,
 {
     let file_content =
-        fs::read_to_string(file_path).map_err(|error| ConfigSetupError::ReadConfig {
-            file: file_path.to_path_buf(),
-            error,
-        })?;
+        fs::read_to_string(file_path)
+            .await
+            .map_err(|error| ConfigSetupError::ReadConfig {
+                file: file_path.to_path_buf(),
+                error,
+            })?;
     toml::from_str(&file_content).map_err(|error| ConfigSetupError::ParseToml {
         file: file_path.to_path_buf(),
         error: Box::new(error),
     })
 }
 
-pub fn read_json_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
+pub async fn read_json_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
 where
     C: DeserializeOwned,
 {
-    let file = fs::File::open(file_path).map_err(|error| ConfigSetupError::ReadConfig {
-        file: file_path.to_path_buf(),
-        error,
-    })?;
-    let reader = std::io::BufReader::new(file);
-    serde_json::from_reader(reader).map_err(|error| ConfigSetupError::ParseJson {
+    // This is a step backwards, not using streaming in order to use async I/O, however
+    // the alternative is to use a blocking call inside a tokio::task::spawn_blocking,
+    // which seems even worse.
+    let bytes = tokio::fs::read(file_path)
+        .await
+        .map_err(|error| ConfigSetupError::ReadConfig {
+            file: file_path.to_path_buf(),
+            error,
+        })?;
+
+    serde_json::from_slice(&bytes).map_err(|error| ConfigSetupError::ParseJson {
         file: file_path.to_path_buf(),
         error: Box::new(error),
     })
 }
 
-pub fn write_json_config_file<C>(file_path: &Path, config: &C) -> Result<(), ConfigSetupError>
+pub async fn write_json_config_file<C>(file_path: &Path, config: &C) -> Result<(), ConfigSetupError>
 where
     C: Serialize,
 {
@@ -983,33 +999,57 @@ where
         .ok_or_else(|| ConfigSetupError::GetParentDirectory {
             file: file_path.to_path_buf(),
         })?;
-    fs::create_dir_all(config_dir).map_err(|error| ConfigSetupError::CreateDirectory {
-        dir: config_dir.to_path_buf(),
-        error,
-    })?;
 
-    let file = fs::File::create(file_path).map_err(|error| ConfigSetupError::WriteFile {
-        file: file_path.to_path_buf(),
-        error,
-    })?;
-    let writer = std::io::BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &config).map_err(|error| {
-        ConfigSetupError::SerializeJson {
+    fs::create_dir_all(config_dir)
+        .await
+        .map_err(|error| ConfigSetupError::CreateDirectory {
+            dir: config_dir.to_path_buf(),
+            error,
+        })?;
+
+    let file = fs::File::create(file_path)
+        .await
+        .map_err(|error| ConfigSetupError::WriteFile {
+            file: file_path.to_path_buf(),
+            error,
+        })?;
+
+    let writer = io::BufWriter::new(file);
+
+    let json_bytes =
+        serde_json::to_vec_pretty(&config).map_err(|error| ConfigSetupError::SerializeJson {
             file: file_path.to_path_buf(),
             error: Box::new(error),
-        }
-    })?;
+        })?;
+
+    let mut writer = writer;
+    writer
+        .write_all(&json_bytes)
+        .await
+        .map_err(|error| ConfigSetupError::WriteFile {
+            file: file_path.to_path_buf(),
+            error,
+        })?;
+    writer
+        .flush()
+        .await
+        .map_err(|error| ConfigSetupError::WriteFile {
+            file: file_path.to_path_buf(),
+            error,
+        })?;
 
     Ok(())
 }
 
-pub fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
+pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
     let network_data_dir = data_dir.join(network_name);
 
-    fs::create_dir_all(&network_data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
-        dir: network_data_dir.clone(),
-        error,
-    })?;
+    fs::create_dir_all(&network_data_dir)
+        .await
+        .map_err(|error| ConfigSetupError::CreateDirectory {
+            dir: network_data_dir.clone(),
+            error,
+        })?;
 
     tracing::debug!(
         "Making sure data dir exists at {}",
@@ -1076,14 +1116,12 @@ fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use pretty_assertions::assert_eq;
-    use std::fs;
     use tempfile::tempdir;
 
-    use super::*;
-
     // Test migrating from TOML to the latest JSON version
-    fn run_migrate_toml_test(
+    async fn run_migrate_toml_test(
         toml_content: &str,
         json_latest_content: &str,
         entry_point: gateway_directory::EntryPoint,
@@ -1095,16 +1133,18 @@ mod tests {
         println!("Using config dir: {config_path:?}");
 
         let network_config_path = config_path.join("tulips");
-        let _ = fs::create_dir_all(&network_config_path);
+        let _ = fs::create_dir_all(&network_config_path).await;
         let toml_path = network_config_path.join(DEFAULT_CONFIG_FILE_TOML);
         let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
 
         // Write the TOML config file
-        fs::write(&toml_path, toml_content).unwrap();
+        fs::write(&toml_path, toml_content).await.unwrap();
 
         // Read the TOML config and migrate it to latest JSON version.  The latest version of the
         // JSON will be written straight back to disk.
-        let config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+            .await
+            .unwrap();
         let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
@@ -1114,42 +1154,46 @@ mod tests {
         assert!(json_path.exists());
 
         // Read the JSON config
-        let config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+            .await
+            .unwrap();
         let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
 
         // Check the JSON is the right version and all snake-case
-        let read_json_content = fs::read_to_string(&json_path).unwrap();
+        let read_json_content = fs::read_to_string(&json_path).await.unwrap();
         assert_eq!(json_latest_content, read_json_content);
     }
 
     // Test migrating from JSON v1 to the latest JSON version
-    fn run_migrate_json_v1_test(json_v1_content: &str, json_latest_content: &str) {
+    async fn run_migrate_json_v1_test(json_v1_content: &str, json_latest_content: &str) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
         println!("Using config dir: {config_path:?}");
 
         let network_config_path = config_path.join("tulips");
-        let _ = fs::create_dir_all(&network_config_path);
+        let _ = fs::create_dir_all(&network_config_path).await;
         let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
 
         // Write the JSON v1 config file
-        fs::write(&json_path, json_v1_content).unwrap();
+        fs::write(&json_path, json_v1_content).await.unwrap();
 
         // Read the JSON v1 config and migrate it to latest JSON.  The latest version of the
         // JSON will be written straight back to disk.
-        let _config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
+        let _config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+            .await
+            .unwrap();
 
         // Check the JSON is the right version and all snake-case (ignore whitespace/order)
-        let read_json_content = fs::read_to_string(&json_path).unwrap();
+        let read_json_content = fs::read_to_string(&json_path).await.unwrap();
         let expected: serde_json::Value = serde_json::from_str(json_latest_content).unwrap();
         let actual: serde_json::Value = serde_json::from_str(&read_json_content).unwrap();
         assert_eq!(expected, actual);
     }
 
-    fn run_serialize_test(config: VpnServiceConfig) {
+    async fn run_serialize_test(config: VpnServiceConfig) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
@@ -1158,19 +1202,23 @@ mod tests {
         let network_config_path = config_path.join("tulips");
 
         // Write the config to disk
-        let mut config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
-        config_manager.set_config(config.clone());
-        assert!(config_manager.write_to_file());
+        let mut config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+            .await
+            .unwrap();
+        config_manager.set_config(config.clone()).await;
+        assert!(config_manager.write_to_file().await);
         drop(config_manager);
 
         // Read it back and compare it
-        let config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+            .await
+            .unwrap();
         let read_config = config_manager.config();
         assert_eq!(&config, read_config);
     }
 
-    #[test]
-    fn test_service_config_migrate_toml_location() {
+    #[tokio::test]
+    async fn test_service_config_migrate_toml_location() {
         let toml_content = r#"
 [entry_point.Location]
 location = "FR"
@@ -1211,11 +1259,11 @@ location = "BE"
             two_letter_iso_country_code: "BE".to_string(),
         };
 
-        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
     }
 
-    #[test]
-    fn test_service_config_migrate_gateway() {
+    #[tokio::test]
+    async fn test_service_config_migrate_gateway() {
         let toml_content = r#"
 [entry_point.Gateway]
 identity = [ 92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107, ]
@@ -1262,12 +1310,12 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
             .unwrap(),
         };
 
-        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore] // Temporarily disabled due to issues with ExitPoint::Address (de)serialisation.
-    fn test_service_config_migrate_toml_address() {
+    async fn test_service_config_migrate_toml_address() {
         let toml_content = r#"
 [entry_point.Gateway]
 identity = [92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107]
@@ -1312,11 +1360,11 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
             )
         };
 
-        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
     }
 
-    #[test]
-    fn test_service_config_migrate_toml_random() {
+    #[tokio::test]
+    async fn test_service_config_migrate_toml_random() {
         let toml_content = r#"
 entry_point = "Random"
 exit_point = "Random"
@@ -1342,11 +1390,11 @@ exit_point = "Random"
 
         let exit_point = gateway_directory::ExitPoint::Random;
 
-        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point);
+        run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
     }
 
-    #[test]
-    fn test_service_config_migrate_from_v1() {
+    #[tokio::test]
+    async fn test_service_config_migrate_from_v1() {
         let json_v1_content = r#"{
   "version": "v1",
   "entry_point": {
@@ -1385,17 +1433,17 @@ exit_point = "Random"
   "min_gateway_vpn_performance": null
 }"#;
 
-        run_migrate_json_v1_test(json_v1_content, json_latest_content);
+        run_migrate_json_v1_test(json_v1_content, json_latest_content).await;
     }
 
-    #[test]
-    fn test_service_config_serialize_defaults() {
+    #[tokio::test]
+    async fn test_service_config_serialize_defaults() {
         let config = VpnServiceConfig::default();
-        run_serialize_test(config);
+        run_serialize_test(config).await;
     }
 
-    #[test]
-    fn test_service_config_serialize_full() {
+    #[tokio::test]
+    async fn test_service_config_serialize_full() {
         let config = VpnServiceConfig {
             entry_point: gateway_directory::EntryPoint::Country {
                 two_letter_iso_country_code: "US".to_string(),
@@ -1417,6 +1465,6 @@ exit_point = "Random"
             min_gateway_mixnet_performance: Some(64u8),
             min_gateway_vpn_performance: Some(1u8),
         };
-        run_serialize_test(config);
+        run_serialize_test(config).await;
     }
 }
