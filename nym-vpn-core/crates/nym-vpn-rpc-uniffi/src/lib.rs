@@ -142,37 +142,6 @@ impl RpcClient {
             .map(TunnelState::from)?)
     }
 
-    pub async fn listen_to_tunnel_state(
-        &self,
-        observer: Arc<dyn TunnelStateObserver>,
-    ) -> Result<StreamObserver> {
-        let cancel_token = CancellationToken::new();
-        let child_token = cancel_token.child_token();
-        let mut event_stream = self.inner.clone().listen_to_tunnel_state().await?;
-
-        tokio::spawn(async move {
-            loop {
-                match child_token
-                    .run_until_cancelled(event_stream.next())
-                    .await
-                    .flatten()
-                {
-                    Some(Ok(evt)) => {
-                        observer.on_tunnel_state_change(TunnelState::from(evt));
-                    }
-                    Some(Err(err)) => {
-                        tracing::error!("Error receiving next tunnel state: {err}");
-                        break;
-                    }
-                    None => break,
-                }
-            }
-            observer.on_close();
-        });
-
-        Ok(StreamObserver::new(cancel_token))
-    }
-
     pub async fn listen_to_events(
         &self,
         observer: Arc<dyn TunnelEventObserver>,
