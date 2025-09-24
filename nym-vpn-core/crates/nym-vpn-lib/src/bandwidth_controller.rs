@@ -255,7 +255,7 @@ impl TemporaryBandwidthClient {
 }
 
 pub(crate) struct BandwidthController {
-    inner: Box<dyn BandwidthTicketProvider>,
+    ticket_provider: Box<dyn BandwidthTicketProvider>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
     timeout_check_interval: IntervalStream,
@@ -268,7 +268,7 @@ pub(crate) struct BandwidthController {
 
 impl BandwidthController {
     pub fn new(
-        inner: Box<dyn BandwidthTicketProvider>,
+        ticket_provider: Box<dyn BandwidthTicketProvider>,
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
         shutdown_token: CancellationToken,
@@ -277,7 +277,7 @@ impl BandwidthController {
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
 
         BandwidthController {
-            inner,
+            ticket_provider,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             timeout_check_interval,
@@ -327,7 +327,7 @@ impl BandwidthController {
 
     #[allow(clippy::too_many_arguments)]
     pub(crate) async fn create(
-        bw_controller: Box<dyn BandwidthTicketProvider>,
+        ticket_provider: Box<dyn BandwidthTicketProvider>,
         selected_gateways: SelectedGateways,
         entry_auth_client: LegacyAuthenticatorClient,
         exit_auth_client: LegacyAuthenticatorClient,
@@ -354,7 +354,7 @@ impl BandwidthController {
         );
 
         let bw = Self::new(
-            bw_controller,
+            ticket_provider,
             wg_entry_client,
             wg_exit_client,
             cancel_token.clone(),
@@ -364,11 +364,11 @@ impl BandwidthController {
     }
 
     pub(crate) async fn top_up_bandwidth(
-        controller: &dyn BandwidthTicketProvider,
+        ticket_provider: &dyn BandwidthTicketProvider,
         ticketbook_type: TicketType,
         bw_client: &mut TemporaryBandwidthClient,
     ) -> Result<i64, SpecificGatewayError> {
-        let credential = controller
+        let credential = ticket_provider
             .get_ecash_ticket(
                 ticketbook_type,
                 bw_client.gateway_id(),
@@ -427,7 +427,7 @@ impl BandwidthController {
                                     TicketType::V1WireguardExit
                                 };
                                 tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
-                                if let Err(e) = Self::top_up_bandwidth(&*self.inner, ticketbook_type, wg_metadata_client)
+                                if let Err(e) = Self::top_up_bandwidth(&*self.ticket_provider, ticketbook_type, wg_metadata_client)
                                     .await
                                 {
                                     tracing::warn!("Error topping up with more bandwidth {:?}", e);
