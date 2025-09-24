@@ -85,7 +85,7 @@ function ButtonIcon({
           <MsIcon
             icon={clickedIcon}
             className={clsx([
-              'text-2xl',
+              'text-2xl text-malachite-moss dark:text-malachite',
               !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
               clickedIconClassName,
             ])}

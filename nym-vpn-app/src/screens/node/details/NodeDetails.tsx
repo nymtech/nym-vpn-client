@@ -38,7 +38,7 @@ function NodeDetails() {
 
   const { getCountryName } = useLang();
   const { copy } = useClipboard();
-  const { style } = useScore();
+  const { performance, serverLoad: serverLoadStyle } = useScore();
 
   const { gateway, hop } = location.state;
   const { country, exitIpv4, exitIpv6, asn, buildVersion } = gateway;
@@ -83,7 +83,7 @@ function NodeDetails() {
   );
 
   const scoreRow = (label: string, score: Score) => {
-    const { icon, color, label: iconLabel } = style(score);
+    const { icon, color, label: iconLabel } = performance(score);
 
     return (
       <DataRow label={label}>
@@ -91,6 +91,18 @@ function NodeDetails() {
           <MsIcon className={clsx('text-lg', color)} icon={icon} />
           <p className={clsx('font-medium truncate', color)}>{iconLabel}</p>
         </div>
+      </DataRow>
+    );
+  };
+
+  const serverLoadRow = (label: string, score: Score) => {
+    const { color, label: iconLabel } = serverLoadStyle(score);
+
+    return (
+      <DataRow label={label}>
+        <p className={clsx('font-medium truncate select-none', color)}>
+          {iconLabel}
+        </p>
       </DataRow>
     );
   };
@@ -161,7 +173,7 @@ function NodeDetails() {
       key: 'overall-perf',
     },
     serverLoad && {
-      row: scoreRow(t('node-details.data.server-load'), serverLoad),
+      row: serverLoadRow(t('node-details.data.server-load'), serverLoad),
       key: 'load-score',
     },
     uptime !== undefined && {
