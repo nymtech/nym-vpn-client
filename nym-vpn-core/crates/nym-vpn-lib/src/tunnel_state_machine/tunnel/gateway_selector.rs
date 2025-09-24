@@ -5,6 +5,10 @@ use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, 
 
 use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
 
+// Performance threshold expressed as percentage from 0 to 100
+// All gateways below this threshold will be removed
+const MIN_PERFORMANCE_THRESHOLD: u8 = 75;
+
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
     pub entry: Box<Gateway>,
@@ -35,7 +39,7 @@ pub async fn select_gateways(
         });
     };
 
-    let (mut entry_gateways, exit_gateways) = match tunnel_type {
+    let (mut entry_gateways, mut exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {
             let all_gateways = gateway_cache_handle
                 .lookup_gateways(GatewayType::Wg)
@@ -58,8 +62,48 @@ pub async fn select_gateways(
         }
     };
 
-    tracing::info!("Found {} entry gateways", entry_gateways.len());
-    tracing::info!("Found {} exit gateways", exit_gateways.len());
+    let total_entry_gateways = entry_gateways.len();
+    let total_exit_gateways = exit_gateways.len();
+
+    // Gateways to exclude from low performance filtering
+    let mut exclude_gateway_idents = vec![];
+
+    // Exclude explicitly selected exit gateway from performance filtering
+    if let ExitPoint::Gateway { identity } = exit_point.as_ref() {
+        exclude_gateway_idents.push(identity.clone());
+    } else if let ExitPoint::Address { address } = exit_point.as_ref() {
+        exclude_gateway_idents.push(address.identity().clone());
+    }
+
+    // Exclude explicitly selected entry gateway from performance filtering
+    if let EntryPoint::Gateway { identity } = entry_point.as_ref() {
+        exclude_gateway_idents.push(identity.clone());
+    }
+
+    // Remove entry and exit gateways with performance below the min threshold
+    entry_gateways.remove_gateways_with_performance_less_than(
+        tunnel_type == TunnelType::Wireguard,
+        MIN_PERFORMANCE_THRESHOLD,
+        &exclude_gateway_idents,
+    );
+    exit_gateways.remove_gateways_with_performance_less_than(
+        tunnel_type == TunnelType::Wireguard,
+        MIN_PERFORMANCE_THRESHOLD,
+        &exclude_gateway_idents,
+    );
+
+    tracing::info!(
+        "Found {} entry gateways ({} with >={}% performance)",
+        total_entry_gateways,
+        entry_gateways.len(),
+        MIN_PERFORMANCE_THRESHOLD
+    );
+    tracing::info!(
+        "Found {} exit gateways ({} with >={}% performance)",
+        total_exit_gateways,
+        exit_gateways.len(),
+        MIN_PERFORMANCE_THRESHOLD
+    );
 
     let exit_gateway = exit_point
         .lookup_gateway(&exit_gateways)

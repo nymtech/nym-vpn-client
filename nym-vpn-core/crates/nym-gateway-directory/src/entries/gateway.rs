@@ -50,6 +50,9 @@ impl fmt::Debug for Gateway {
             .field("clients_ws_port", &self.clients_ws_port)
             .field("clients_wss_port", &self.clients_wss_port)
             .field("mixnet_performance", &self.mixnet_performance)
+            .field("mixnet_score", &self.mixnet_score)
+            .field("wg_performance", &self.wg_performance)
+            .field("version", &self.version)
             .finish()
     }
 }
@@ -516,6 +519,43 @@ impl GatewayList {
         self.gateways_located_at_region(region)
             .choose(&mut rand::thread_rng())
             .cloned()
+    }
+
+    /// Remove gateways that have performance less than the given minimum threshold
+    ///
+    /// - `is_wireguard` - whether to use wireguard performance score for filtering, otherwise uses mixnet
+    /// - `min_performance_threshold` - the minimum performance threshold to keep gateways
+    /// - `exclude_gateway_idents` - a list of gateway identities to exclude from filtering
+    pub fn remove_gateways_with_performance_less_than(
+        &mut self,
+        is_wireguard: bool,
+        min_performance_threshold: u8,
+        exclude_gateway_idents: &[NodeIdentity],
+    ) {
+        self.gateways.retain(|gateway| {
+            if exclude_gateway_idents
+                .iter()
+                .any(|identity| identity == &gateway.identity)
+            {
+                true
+            } else if is_wireguard {
+                gateway
+                    .wg_performance
+                    .as_ref()
+                    .map(|performance| {
+                        let score = performance.uptime_percentage_last_24_hours * 100f32;
+                        let score_int = score as u8;
+                        score_int >= min_performance_threshold
+                    })
+                    .unwrap_or_default()
+            } else {
+                gateway
+                    .mixnet_performance
+                    .as_ref()
+                    .map(|performance| performance.round_to_integer() >= min_performance_threshold)
+                    .unwrap_or_default()
+            }
+        });
     }
 
     pub fn remove_gateway(&mut self, entry_gateway: &Gateway) {
