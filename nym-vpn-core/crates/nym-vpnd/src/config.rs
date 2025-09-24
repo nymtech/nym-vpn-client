@@ -220,28 +220,29 @@ fn default_true() -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{fs, path::PathBuf};
+    use std::path::PathBuf;
     use tempfile::tempdir;
+    use tokio::fs;
 
     // Config directory will be deleted on drop
-    fn setup() -> (tempfile::TempDir, PathBuf, PathBuf) {
+    async fn setup() -> (tempfile::TempDir, PathBuf, PathBuf) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
         println!("Using config dir: {config_path:?}");
 
         let toml_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
-        let _ = fs::remove_file(&toml_path);
+        let _ = fs::remove_file(&toml_path).await;
 
         let json_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
-        let _ = fs::remove_file(&json_path);
+        let _ = fs::remove_file(&json_path).await;
 
         (temp_dir, toml_path, json_path)
     }
 
     #[tokio::test]
     async fn test_global_config_migrate() {
-        let (temp_dir, toml_path, json_path) = setup();
+        let (temp_dir, toml_path, json_path) = setup().await;
 
         let toml_content = r#"
 network_name = "tulips"
@@ -257,7 +258,7 @@ collect_network_statistics = true
 }"#;
 
         // Write the TOML config file
-        fs::write(&toml_path, toml_content).unwrap();
+        fs::write(&toml_path, toml_content).await.unwrap();
 
         // Read the TOML config and migrate it to JSON
         let config = GlobalConfig::read_from_config_dir(temp_dir.path())
@@ -280,7 +281,7 @@ collect_network_statistics = true
         assert!(config.collect_network_statistics);
 
         // Check the JSON is the right version and all snake-case
-        let read_json_content = fs::read_to_string(&json_path).unwrap();
+        let read_json_content = fs::read_to_string(&json_path).await.unwrap();
         assert_eq!(json_content, read_json_content);
     }
 }

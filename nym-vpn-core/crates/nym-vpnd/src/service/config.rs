@@ -973,9 +973,6 @@ pub async fn read_json_config_file<C>(file_path: &Path) -> Result<C, ConfigSetup
 where
     C: DeserializeOwned,
 {
-    // This is a step backwards, not using streaming in order to use async I/O, however
-    // the alternative is to use a blocking call inside a tokio::task::spawn_blocking,
-    // which seems even worse.
     let bytes = tokio::fs::read(file_path)
         .await
         .map_err(|error| ConfigSetupError::ReadConfig {
@@ -993,7 +990,13 @@ pub async fn write_json_config_file<C>(file_path: &Path, config: &C) -> Result<(
 where
     C: Serialize,
 {
-    // Create path
+    let json_bytes =
+        serde_json::to_vec_pretty(&config).map_err(|error| ConfigSetupError::SerializeJson {
+            file: file_path.to_path_buf(),
+            error: Box::new(error),
+        })?;
+
+    // Ensure parent directory exists
     let config_dir = file_path
         .parent()
         .ok_or_else(|| ConfigSetupError::GetParentDirectory {
@@ -1014,15 +1017,8 @@ where
             error,
         })?;
 
-    let writer = io::BufWriter::new(file);
+    let mut writer = io::BufWriter::new(file);
 
-    let json_bytes =
-        serde_json::to_vec_pretty(&config).map_err(|error| ConfigSetupError::SerializeJson {
-            file: file_path.to_path_buf(),
-            error: Box::new(error),
-        })?;
-
-    let mut writer = writer;
     writer
         .write_all(&json_bytes)
         .await
@@ -1031,14 +1027,12 @@ where
             error,
         })?;
     writer
-        .flush()
+        .flush() // This is important!
         .await
         .map_err(|error| ConfigSetupError::WriteFile {
             file: file_path.to_path_buf(),
             error,
-        })?;
-
-    Ok(())
+        })
 }
 
 pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
