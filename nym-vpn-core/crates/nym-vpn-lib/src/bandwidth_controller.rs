@@ -212,8 +212,7 @@ impl TemporaryBandwidthClient {
         metadata_client: MetadataClient,
         gateway_metadata_update_version: Option<semver::Version>,
     ) -> Self {
-        if !cfg!(target_os = "ios")
-            && let Some(gateway_version) = gateway.version.as_ref()
+        if let Some(gateway_version) = gateway.version.as_ref()
             && let Ok(gateway_version) = semver::Version::parse(gateway_version)
             && let Some(update_version) = gateway_metadata_update_version
             && gateway_version >= update_version
