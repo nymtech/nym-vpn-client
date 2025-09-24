@@ -11,6 +11,7 @@ pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
     pub dns: Option<IpAddr>,
+    pub allow_lan: bool,
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
     pub netstack: bool,
@@ -34,8 +35,8 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "disable_ipv6: {}, enable_two_hop: {}, netstack: {}",
-            self.disable_ipv6, self.enable_two_hop, self.netstack
+            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {}, netstack: {}",
+            self.allow_lan, self.disable_ipv6, self.enable_two_hop, self.netstack
         )?;
         writeln!(
             f,
@@ -65,6 +66,7 @@ impl Default for VpnServiceConfig {
             entry_point: EntryPoint::Random,
             exit_point: ExitPoint::Random,
             dns: None,
+            allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: false,
             netstack: false,
