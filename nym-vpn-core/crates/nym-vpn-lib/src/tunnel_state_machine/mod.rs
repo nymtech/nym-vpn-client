@@ -58,7 +58,10 @@ use wintun::SetupWintunAdapterError;
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-use crate::{GatewayDirectoryError, VpnTopologyProvider};
+use crate::{
+    GatewayDirectoryError, VpnTopologyProvider,
+    bandwidth_controller::Error as BandwidthControllerError,
+};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -738,11 +741,29 @@ impl tunnel::Error {
                 ) => Some(ErrorStateReason::InvalidExitGatewayCountry),
                 _ => None,
             },
+            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
+                if error.is_no_retry() {
+                    Some(ErrorStateReason::CredentialWastedOnEntryGateway)
+                } else {
+                    None
+                }
+            }
+            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
+                if error.is_no_retry() {
+                    Some(ErrorStateReason::CredentialWastedOnExitGateway)
+                } else {
+                    None
+                }
+            }
+            Self::RegistrationClient(e) => match *e {
+                nym_registration_client::RegistrationClientError::EntryGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
+                nym_registration_client::RegistrationClientError::ExitGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
+                _ => None,
+            }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(
                 "Failed to dup tunnel fd".to_owned(),
             )),
             Self::NoIpAddressAnnounced { .. }
-            | Self::RegistrationClient(_)
             | Self::MixnetClient(_)
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
