@@ -5,7 +5,7 @@ use std::fmt;
 
 use si_scale::helpers::bibytes2;
 
-use crate::service::VpnServiceConfig;
+use crate::{AccountControllerState, service::VpnServiceConfig};
 
 #[cfg(feature = "nym-type-conversions")]
 use nym_bandwidth_controller::BandwidthStatusMessage;
@@ -23,6 +23,7 @@ pub enum TunnelEvent {
     NewState(TunnelState),
     MixnetState(MixnetEvent),
     ConfigChanged(Box<VpnServiceConfig>),
+    AccountState(AccountControllerState),
 }
 
 impl fmt::Display for TunnelEvent {
@@ -31,6 +32,7 @@ impl fmt::Display for TunnelEvent {
             Self::NewState(new_state) => new_state.fmt(f),
             Self::MixnetState(event) => event.fmt(f),
             Self::ConfigChanged(config) => config.fmt(f),
+            Self::AccountState(account_state) => account_state.fmt(f),
         }
     }
 }

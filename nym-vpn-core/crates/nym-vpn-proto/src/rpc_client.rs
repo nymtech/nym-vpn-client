@@ -210,23 +210,6 @@ impl RpcClient {
         TunnelState::try_from(state).map_err(Error::InvalidResponse)
     }
 
-    pub async fn listen_to_tunnel_state(
-        &mut self,
-    ) -> Result<impl Stream<Item = Result<TunnelState>> + 'static> {
-        let listener = self
-            .0
-            .listen_to_tunnel_state(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        Ok(listener.map(|item| {
-            item.map_err(Error::Rpc).and_then(|tunnel_state| {
-                TunnelState::try_from(tunnel_state).map_err(Error::InvalidResponse)
-            })
-        }))
-    }
-
     pub async fn listen_to_events(
         &mut self,
     ) -> Result<impl Stream<Item = Result<TunnelEvent>> + 'static> {
@@ -338,23 +321,6 @@ impl RpcClient {
             .into_inner();
 
         AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
-    }
-
-    pub async fn listen_to_account_controller_state(
-        &mut self,
-    ) -> Result<impl Stream<Item = Result<AccountControllerState>> + 'static> {
-        let listener = self
-            .0
-            .listen_to_account_state(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        Ok(listener.map(|item| {
-            item.map_err(Error::Rpc).and_then(|account_state| {
-                AccountControllerState::try_from(account_state).map_err(Error::InvalidResponse)
-            })
-        }))
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {

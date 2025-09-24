@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use bip39::Mnemonic;
-use futures::{FutureExt, future::Fuse, pin_mut};
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
@@ -10,10 +10,11 @@ use nym_statistics::{
 use std::{path::PathBuf, pin::Pin};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
     time::{Duration, Instant},
 };
+use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
@@ -86,7 +87,6 @@ pub enum VpnServiceCommand {
     SetTargetState(oneshot::Sender<bool>, TargetState),
     Reconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
-    SubscribeToTunnelState(oneshot::Sender<broadcast::Receiver<TunnelState>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
@@ -102,7 +102,6 @@ pub enum VpnServiceCommand {
         Locale,
     ),
     GetAccountState(oneshot::Sender<AccountControllerState>, ()),
-    SubscribeToAccountControllerState(oneshot::Sender<watch::Receiver<AccountControllerState>>, ()),
     RefreshAccountState(oneshot::Sender<()>, ()),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
@@ -173,9 +172,6 @@ pub struct NymVpnService {
 
     // Broadcast channel for sending tunnel events to the outside world
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-
-    // Channel used for propagating tunnel state to consumers
-    tunnel_state_sender: broadcast::Sender<TunnelState>,
 
     // Target state
     target_state: TargetState,
@@ -466,7 +462,6 @@ impl NymVpnService {
             target_state: TargetState::Unsecured,
             tunnel_state: TunnelState::Disconnected,
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
-            tunnel_state_sender: broadcast::Sender::new(10),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
@@ -485,6 +480,9 @@ impl NymVpnService {
     }
 
     pub async fn run(mut self) -> anyhow::Result<()> {
+        // Skip the initial account state value
+        let mut account_state_rx = WatchStream::new(self.account_state_rx.subscribe()).skip(1);
+
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
@@ -492,6 +490,9 @@ impl NymVpnService {
                 }
                 Some(event) = self.event_receiver.recv() => {
                     self.handle_tunnel_event(event);
+                }
+                Some(account_state) = account_state_rx.next() => {
+                    self.handle_account_state_change(account_state);
                 }
                 _ = &mut self.tunnel_settings_update_timer => {
                     self.update_tunnel_settings();
@@ -598,17 +599,18 @@ impl NymVpnService {
     }
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
-        if self.tunnel_event_tx.send(event.clone()).is_err() {
+        if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
         }
+    }
 
-        match event {
-            TunnelEvent::NewState(new_state) => {
-                self.tunnel_state = new_state.clone();
-                let _ = self.tunnel_state_sender.send(new_state);
-            }
-            TunnelEvent::MixnetState(_) => {}
-            TunnelEvent::ConfigChanged(_) => {}
+    fn handle_account_state_change(&mut self, account_state: AccountControllerState) {
+        if self
+            .tunnel_event_tx
+            .send(TunnelEvent::AccountState(account_state))
+            .is_err()
+        {
+            tracing::error!("Failed to send tunnel event");
         }
     }
 
@@ -694,10 +696,6 @@ impl NymVpnService {
                 let result = self.handle_get_tunnel_state();
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::SubscribeToTunnelState(tx, ()) => {
-                let rx = self.handle_subscribe_to_tunnel_state();
-                let _ = tx.send(rx);
-            }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
             }
@@ -715,10 +713,6 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetAccountState(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_state());
-            }
-            VpnServiceCommand::SubscribeToAccountControllerState(tx, ()) => {
-                let rx = self.handle_subscribe_to_account_controller_state();
-                let _ = tx.send(rx);
             }
             VpnServiceCommand::RefreshAccountState(tx, ()) => {
                 self.handle_refresh_account_state().await;
@@ -953,10 +947,6 @@ impl NymVpnService {
         self.tunnel_state.clone()
     }
 
-    fn handle_subscribe_to_tunnel_state(&self) -> broadcast::Receiver<TunnelState> {
-        self.tunnel_state_sender.subscribe()
-    }
-
     async fn handle_store_account(
         &mut self,
         store_request: StoreAccountRequest,
@@ -1020,12 +1010,6 @@ impl NymVpnService {
 
     fn handle_get_account_state(&self) -> AccountControllerState {
         self.account_state_rx.get_state()
-    }
-
-    fn handle_subscribe_to_account_controller_state(
-        &self,
-    ) -> watch::Receiver<AccountControllerState> {
-        self.account_state_rx.subscribe()
     }
 
     async fn handle_refresh_account_state(&self) {

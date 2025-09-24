@@ -15,14 +15,14 @@ use super::{
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto::{
     AccountControllerState, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
-    RichLocation, StoreAccountRequest, TunnelState as PTunnelState, UserAgent,
+    RichLocation, StoreAccountRequest, TunnelEvent, TunnelState as PTunnelState, UserAgent,
     nym_vpn_service_client::NymVpnServiceClient, tunnel_event::Event,
 };
 use once_cell::sync::Lazy;
-use std::sync::Mutex;
 use std::{
     env::consts::{ARCH, OS},
     path::PathBuf,
+    sync::Mutex,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc::{self, Sender};
@@ -32,12 +32,15 @@ use tonic::{
 };
 use tracing::{debug, error, info, instrument, trace, warn};
 
-use crate::grpc::account::{AccountState, log_account_state};
 pub use crate::grpc::network::NetworkCompatVersions;
-use crate::grpc::vpnd_event::VpndEvent;
 use crate::{
-    cli::Cli, country::Country, error::BackendError, events::AppHandleEventEmitter,
-    fs::config::AppConfig, state::SharedAppState,
+    cli::Cli,
+    country::Country,
+    error::BackendError,
+    events::AppHandleEventEmitter,
+    fs::config::AppConfig,
+    grpc::account::{AccountState, log_account_state},
+    state::SharedAppState,
 };
 
 #[cfg(target_os = "linux")]
@@ -194,18 +197,8 @@ impl GrpcClient {
             })?
             .into_inner();
 
-        let account_stream = vpnd
-            .listen_to_account_state(())
-            .await
-            .inspect_err(|e| {
-                error!("listen to account state failed: {}", e);
-            })?
-            .into_inner();
-
         let (tx, mut rx) = mpsc::channel(32);
-        let c_tx = tx.clone();
         GrpcClient::listen_to_stream(tunnel_stream, tx).await;
-        GrpcClient::listen_to_stream(account_stream, c_tx).await;
 
         while let Some(event) = rx.recv().await {
             self.handle_event(app, event).await.ok();
@@ -215,32 +208,30 @@ impl GrpcClient {
     }
 
     #[instrument(skip_all)]
-    async fn handle_event(&self, app: &AppHandle, event: VpndEvent) -> Result<()> {
+    async fn handle_event(&self, app: &AppHandle, event: TunnelEvent) -> Result<()> {
+        let Some(event) = event.event else {
+            warn!("no event data, ignoring…");
+            return Ok(());
+        };
         match event {
-            VpndEvent::Tunnel(state) => {
-                let Some(event) = state.event else {
-                    warn!("no event data, ignoring…");
-                    return Ok(());
-                };
-                match event {
-                    Event::TunnelState(state) => {
-                        debug!("tunnel state event {:?}", state);
-                        GrpcClient::handle_tunnel_update(app, state).await.ok();
-                    }
-                    Event::MixnetEvent(event) => {
-                        if let Some(e) = MixnetEvent::from_proto(event) {
-                            trace!("mixnet event [{}]", e.as_ref());
-                            app.emit_mixnet_event(e);
-                        } else {
-                            warn!("failed to parse mixnet event");
-                        }
-                    }
-                    _ => warn!("ignoring unknown tunnel event: {event:?}"),
+            Event::TunnelState(state) => {
+                debug!("tunnel state event {:?}", state);
+                GrpcClient::handle_tunnel_update(app, state).await.ok();
+            }
+            Event::MixnetEvent(event) => {
+                if let Some(e) = MixnetEvent::from_proto(event) {
+                    trace!("mixnet event [{}]", e.as_ref());
+                    app.emit_mixnet_event(e);
+                } else {
+                    warn!("failed to parse mixnet event");
                 }
             }
-            VpndEvent::Account(update) => {
-                GrpcClient::handle_account_update(app, update).await.ok();
+            Event::AccountState(account_state) => {
+                GrpcClient::handle_account_update(app, account_state)
+                    .await
+                    .ok();
             }
+            _ => warn!("ignoring unknown tunnel event: {event:?}"),
         }
         Ok(())
     }
@@ -644,9 +635,9 @@ impl GrpcClient {
         Ok(())
     }
 
-    async fn listen_to_stream<S>(mut stream: Streaming<S>, tx: Sender<VpndEvent>)
+    async fn listen_to_stream<S>(mut stream: Streaming<S>, tx: Sender<TunnelEvent>)
     where
-        S: Into<VpndEvent> + Send + 'static,
+        S: Into<TunnelEvent> + Send + 'static,
     {
         tokio::spawn(async move {
             loop {
