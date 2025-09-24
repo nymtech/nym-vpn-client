@@ -286,6 +286,12 @@ pub enum ErrorStateReason {
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
+    /// Failure to select the entry gateway that meets the performance requirements.
+    PerformantEntryGatewayUnavailable,
+
+    /// Failure to select the exit gateway that meets the performance requirements.
+    PerformantExitGatewayUnavailable,
+
     /// Invalid country set for entry gateway
     InvalidEntryGatewayCountry,
 
@@ -431,6 +437,12 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             nym_vpn_lib_types::ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             nym_vpn_lib_types::ErrorStateReason::SameEntryAndExitGateway => {
                 Self::SameEntryAndExitGateway
+            }
+            nym_vpn_lib_types::ErrorStateReason::PerformantEntryGatewayUnavailable => {
+                Self::PerformantEntryGatewayUnavailable
+            }
+            nym_vpn_lib_types::ErrorStateReason::PerformantExitGatewayUnavailable => {
+                Self::PerformantExitGatewayUnavailable
             }
             nym_vpn_lib_types::ErrorStateReason::InvalidEntryGatewayCountry => {
                 Self::InvalidEntryGatewayCountry

@@ -41,6 +41,8 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::TunnelProvider => Self::TunnelProvider,
             Reason::Ipv6Unavailable => Self::Ipv6Unavailable,
             Reason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
+            Reason::PerformantEntryGatewayUnavailable => Self::PerformantEntryGatewayUnavailable,
+            Reason::PerformantExitGatewayUnavailable => Self::PerformantExitGatewayUnavailable,
             Reason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             Reason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
             Reason::CredentialWastedOnEntryGateway => Self::CredentialWastedOnEntryGateway,
@@ -87,6 +89,14 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::SameEntryAndExitGateway => Self {
                 reason: Reason::SameEntryAndExitGateway.into(),
+                message: None,
+            },
+            ErrorStateReason::PerformantEntryGatewayUnavailable => Self {
+                reason: Reason::PerformantEntryGatewayUnavailable.into(),
+                message: None,
+            },
+            ErrorStateReason::PerformantExitGatewayUnavailable => Self {
+                reason: Reason::PerformantExitGatewayUnavailable.into(),
                 message: None,
             },
             ErrorStateReason::InvalidEntryGatewayCountry => Self {
