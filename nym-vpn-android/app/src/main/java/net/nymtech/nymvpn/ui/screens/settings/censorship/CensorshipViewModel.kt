@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings
+package net.nymtech.nymvpn.ui.screens.settings.censorship
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,33 +13,23 @@ import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel
-@Inject
-constructor(
+class CensorshipViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
-	private val _uiState = MutableStateFlow(SettingsUiState())
+	private val _uiState = MutableStateFlow(CensorshipUiState())
 	val uiState = _uiState.asStateFlow()
 
 	init {
 		viewModelScope.launch {
 			val domainFronting = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.DOMAIN_FRONTING)
 			val quic = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
-			_uiState.update { it.copy(showCensorshipSection = (domainFronting || quic)) }
+			_uiState.update { it.copy(showQUICSection = quic, showDomainSection = domainFronting) }
 		}
 	}
 
-	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
-		settingsRepository.setAutoStart(selected)
-	}
-
-	fun onAppShortcutsSelected(selected: Boolean) = viewModelScope.launch {
-		settingsRepository.setApplicationShortcuts(selected)
-	}
-
-	fun onBypassLanSelected(selected: Boolean) = viewModelScope.launch {
-		settingsRepository.setBypassLan(selected)
+	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
+		settingsRepository.setQUICEnabled(enabled)
 	}
 }

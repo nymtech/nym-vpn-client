@@ -21,24 +21,26 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State {
 fun EntryPoint.asString(): String {
 	return when (val entry = this) {
 		is EntryPoint.Gateway -> entry.identity
-		is EntryPoint.Location -> entry.location.lowercase()
+		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 		EntryPoint.Random -> "random"
+		is EntryPoint.Region -> entry.region.lowercase()
 	}
 }
 
 fun ExitPoint.asString(): String {
 	return when (val exit = this) {
 		is ExitPoint.Gateway -> exit.identity
-		is ExitPoint.Location -> exit.location.lowercase()
+		is ExitPoint.Country -> exit.twoLetterIsoCountryCode.lowercase()
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Random -> "random"
+		is ExitPoint.Region -> exit.region
 	}
 }
 
 fun String.asEntryPoint(): EntryPoint {
 	return when {
 		this == "random" -> EntryPoint.Random
-		length == 2 -> EntryPoint.Location(this.uppercase())
+		length == 2 -> EntryPoint.Country(this.uppercase())
 		Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
 		else -> EntryPoint.Random
 	}
@@ -46,7 +48,7 @@ fun String.asEntryPoint(): EntryPoint {
 
 fun String.asExitPoint(): ExitPoint {
 	return when {
-		length == 2 -> ExitPoint.Location(this.uppercase())
+		length == 2 -> ExitPoint.Country(this.uppercase())
 		length == 134 -> ExitPoint.Address(this)
 		Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 		else -> throw IllegalArgumentException("Invalid exit id")

@@ -135,13 +135,13 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 			// TODO improve to use country code of individual nodes
 			val entryText = when (entryPoint) {
 				is EntryPoint.Gateway -> entryPoint.identity.truncateWithEllipsis(3)
-				is EntryPoint.Location -> entryPoint.toDisplayCountry()
+				is EntryPoint.Country -> entryPoint.toDisplayCountry()
 				else -> this@VpnQuickTile.getString(R.string.unknown)
 			}
 
 			val exitText = when (exitPoint) {
 				is ExitPoint.Gateway -> exitPoint.identity.truncateWithEllipsis(3)
-				is ExitPoint.Location -> exitPoint.toDisplayCountry()
+				is ExitPoint.Country -> exitPoint.toDisplayCountry()
 				is ExitPoint.Address -> exitPoint.address.truncateWithEllipsis(3)
 				else -> this@VpnQuickTile.getString(R.string.unknown)
 			}

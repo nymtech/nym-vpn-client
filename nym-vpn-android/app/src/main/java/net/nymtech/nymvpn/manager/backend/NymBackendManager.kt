@@ -121,6 +121,8 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
+	override suspend fun getBackend() = backend.await()
+
 	override suspend fun stopTunnel() {
 		runCatching {
 			backend.await().stop()

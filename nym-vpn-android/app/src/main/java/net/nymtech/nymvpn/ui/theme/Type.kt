@@ -26,15 +26,15 @@ val Typography =
 		),
 		titleLarge =
 		TextStyle(
-			fontSize = 22.sp.scaled(),
-			lineHeight = 28.sp.scaled(),
+			fontSize = 24.sp.scaled(),
+			lineHeight = 28.8.sp.scaled(),
 			fontWeight = FontWeight(400),
 		),
 		titleMedium =
 		TextStyle(
 			fontSize = 16.sp.scaled(),
 			lineHeight = 24.sp.scaled(),
-			fontWeight = FontWeight(600),
+			fontWeight = FontWeight(400),
 			letterSpacing = 0.15.sp.scaled(),
 		),
 		bodyMedium =
@@ -80,5 +80,10 @@ object CustomTypography {
 		lineHeight = 24.sp.scaled(),
 		fontWeight = FontWeight(700),
 		textAlign = TextAlign.Center,
+	)
+	val titleMediumPlus = TextStyle(
+		fontSize = 20.sp.scaled(),
+		lineHeight = 24.sp.scaled(),
+		fontWeight = FontWeight(500),
 	)
 }

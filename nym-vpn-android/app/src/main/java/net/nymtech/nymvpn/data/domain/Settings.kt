@@ -21,6 +21,7 @@ data class Settings(
 	val sentryEnabled: Boolean = DEFAULT_SENTRY_ENABLED,
 	val statsDialogSkip: Boolean = FLAG_STATS_DIALOG_SKIP,
 	val welcomeScreenCompleted: Boolean = FLAG_WELCOME_SCREEN_COMPLETED,
+	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -28,11 +29,12 @@ data class Settings(
 		const val BYPASS_LAN_DEFAULT = false
 		const val DEFAULT_SENTRY_ENABLED = false
 		const val DEFAULT_STATS_ENABLED = true
+		const val DEFAULT_QUIC_ENABLED = false
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_WELCOME_SCREEN_COMPLETED = false
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
-		val DEFAULT_ENTRY_POINT = EntryPoint.Location("FR")
-		val DEFAULT_EXIT_POINT = ExitPoint.Location("FR")
+		val DEFAULT_ENTRY_POINT = EntryPoint.Country("FR")
+		val DEFAULT_EXIT_POINT = ExitPoint.Country("FR")
 	}
 }

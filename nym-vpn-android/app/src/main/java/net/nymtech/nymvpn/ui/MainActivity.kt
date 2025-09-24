@@ -48,6 +48,7 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -58,6 +59,7 @@ import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
+import net.nymtech.nymvpn.ui.screens.settings.censorship.CensorshipScreen
 import net.nymtech.nymvpn.ui.screens.settings.developer.DeveloperScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
@@ -210,14 +212,12 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.EntryLocation> {
 									HopScreen(
 										gatewayLocation = GatewayLocation.ENTRY,
-										appViewModel,
 										appState,
 									)
 								}
 								composable<Route.ExitLocation> {
 									HopScreen(
 										gatewayLocation = GatewayLocation.EXIT,
-										appViewModel,
 										appState,
 									)
 								}
@@ -232,6 +232,9 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Licenses> {
 									LicensesScreen()
+								}
+								composable<Route.Censorship> {
+									CensorshipScreen(appState)
 								}
 								composable<Route.Appearance> {
 									AppearanceScreen()
@@ -256,6 +259,12 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.SelectPlan> {
 									SelectPlanScreen()
+								}
+								composable<Route.ServerDetails> {
+									val args = it.toRoute<Route.ServerDetails>()
+									runCatching {
+										DetailsScreen(appState, args.id, args.type, args.location)
+									}
 								}
 							}
 						}

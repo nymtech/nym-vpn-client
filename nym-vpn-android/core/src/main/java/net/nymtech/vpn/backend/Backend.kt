@@ -3,6 +3,7 @@ package net.nymtech.vpn.backend
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountLinks
 import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.NetworkEnvironment
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.UserAgent
 
@@ -25,6 +26,8 @@ interface Backend {
 	suspend fun getAccountIdentity(): String
 
 	suspend fun removeMnemonic()
+
+	suspend fun getCurrentEnvironment(): NetworkEnvironment
 
 	suspend fun start(tunnel: Tunnel, userAgent: UserAgent)
 

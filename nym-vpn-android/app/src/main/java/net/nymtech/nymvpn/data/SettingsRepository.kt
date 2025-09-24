@@ -71,5 +71,9 @@ interface SettingsRepository {
 
 	suspend fun isWelcomeScreenCompleted(): Boolean
 
+	suspend fun getQUICEnabled(): Boolean
+
+	suspend fun setQUICEnabled(enabled: Boolean)
+
 	val settingsFlow: Flow<Settings>
 }
