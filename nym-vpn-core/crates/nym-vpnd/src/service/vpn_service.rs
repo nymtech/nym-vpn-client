@@ -601,6 +601,9 @@ impl NymVpnService {
     }
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
+        if let TunnelEvent::NewState(ref state) = event {
+            self.tunnel_state = state.clone();
+        }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
         }
