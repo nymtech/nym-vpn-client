@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
@@ -36,10 +36,10 @@ use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tun::Device;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use super::route_handler::{RouteHandler, RoutingConfig};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use super::tun_ipv6;
@@ -199,7 +199,7 @@ pub struct TunnelMonitor {
     tunnel_parameters: TunnelParameters,
     monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
     mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     route_handler: RouteHandler,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
@@ -219,8 +219,7 @@ impl TunnelMonitor {
         custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        route_handler: RouteHandler,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> TunnelMonitorHandle {
@@ -229,7 +228,7 @@ impl TunnelMonitor {
             tunnel_parameters,
             monitor_event_sender,
             mixnet_event_sender,
-            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
@@ -449,7 +448,7 @@ impl TunnelMonitor {
                     .wireguard_tunnel_options
                     .multihop_mode
                 {
-                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     WireguardMultihopMode::TunTun => {
                         self.start_wireguard_tunnel(
                             task_manager,
@@ -659,7 +658,7 @@ impl TunnelMonitor {
             }
         };
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let tun_device = Self::create_mixnet_device(
             assigned_addresses.interface_addresses.ipv4,
             self.enable_ipv6()
@@ -693,7 +692,7 @@ impl TunnelMonitor {
             self.create_tun_device(packet_tunnel_settings).await?
         };
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let tun_name = tun_device
             .get_ref()
             .name()
@@ -707,7 +706,7 @@ impl TunnelMonitor {
 
         tracing::info!("Created tun device: {}", tun_name);
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             let routing_config = RoutingConfig::Mixnet {
                 tun_name: tun_name.clone(),
@@ -1294,7 +1293,7 @@ impl TunnelMonitor {
         })
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn set_routes(&mut self, routing_config: RoutingConfig, enable_ipv6: bool) -> Result<()> {
         self.route_handler
             .add_routes(routing_config, enable_ipv6)
@@ -1304,7 +1303,7 @@ impl TunnelMonitor {
         Ok(())
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn create_mixnet_device(
         interface_ipv4: Ipv4Addr,
         interface_ipv6: Option<Ipv6Addr>,

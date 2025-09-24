@@ -86,6 +86,11 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_allow_lan(&self, allow_lan: bool) -> Result<()> {
+        self.inner.clone().set_allow_lan(allow_lan).await?;
+        Ok(())
+    }
+
     pub async fn set_network(&self, network: String) -> Result<()> {
         self.inner.clone().set_network(network).await?;
         Ok(())

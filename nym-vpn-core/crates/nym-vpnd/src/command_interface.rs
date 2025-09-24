@@ -157,6 +157,17 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_allow_lan(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
+        let allow_lan = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetAllowLan, allow_lan)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set allow lan: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
         let network = request.into_inner();
         let status = self
