@@ -1060,7 +1060,7 @@ pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), 
         #[cfg(unix)]
         {
             // Set directory permissions to 700 (rwx------)
-            let permissions = fs::Permissions::from_mode(0o700);
+            let permissions = std::fs::Permissions::from_mode(0o700);
             fs::set_permissions(dir_path, permissions).map_err(|error| {
                 ConfigSetupError::SetPermissions {
                     dir: dir_path.to_path_buf(),
