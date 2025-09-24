@@ -100,7 +100,18 @@ impl VpnServiceConfigManager {
     ) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
-        let (config, version) = Self::read_from_file(&toml_config_path, &json_config_path).await?;
+        let (config, version) =
+            match Self::read_from_file(&toml_config_path, &json_config_path).await {
+                Ok((config, version)) => (config, version),
+                Err(e) => {
+                    trace_err_chain!(
+                        e,
+                        "Failed to read service config file {}; using default",
+                        json_config_path.display()
+                    );
+                    (VpnServiceConfig::default(), 0)
+                }
+            };
 
         let config_manager = Self {
             json_config_path,
@@ -1160,8 +1171,8 @@ mod tests {
         assert_eq!(json_latest_content, read_json_content);
     }
 
-    // Test migrating from JSON v1 to the latest JSON version
-    async fn run_migrate_json_v1_test(json_v1_content: &str, json_latest_content: &str) {
+    // Test migrating from an old JSON version to the latest JSON version
+    async fn run_migrate_json_test(json_old_content: &str, json_latest_content: &str) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
@@ -1171,10 +1182,10 @@ mod tests {
         let _ = fs::create_dir_all(&network_config_path).await;
         let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
 
-        // Write the JSON v1 config file
-        fs::write(&json_path, json_v1_content).await.unwrap();
+        // Write the old JSON config file
+        fs::write(&json_path, json_old_content).await.unwrap();
 
-        // Read the JSON v1 config and migrate it to latest JSON.  The latest version of the
+        // Read the old JSON config and migrate it to latest JSON.  The latest version of the
         // JSON will be written straight back to disk.
         let _config_manager = VpnServiceConfigManager::new(&network_config_path, None)
             .await
@@ -1187,6 +1198,7 @@ mod tests {
         assert_eq!(expected, actual);
     }
 
+    // Test serializing and deserializing the config produces the same result
     async fn run_serialize_test(config: VpnServiceConfig) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
@@ -1209,6 +1221,28 @@ mod tests {
             .unwrap();
         let read_config = config_manager.config();
         assert_eq!(&config, read_config);
+    }
+
+    // Test reading a broken config falls back to a default config
+    async fn run_fallback_test(broken_json_content: &str) {
+        let temp_dir = tempdir().unwrap();
+        let config_path = temp_dir.path();
+
+        println!("Using config dir: {config_path:?}");
+
+        let network_config_path = config_path.join("tulips");
+        let _ = fs::create_dir_all(&network_config_path).await;
+        let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
+
+        // Write the broken JSON config file
+        fs::write(&json_path, broken_json_content).await.unwrap();
+
+        // Ensure reading the broken config falls back to default config
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+            .await
+            .unwrap();
+
+        assert_eq!(config_manager.config(), &VpnServiceConfig::default());
     }
 
     #[tokio::test]
@@ -1427,7 +1461,53 @@ exit_point = "Random"
   "min_gateway_vpn_performance": null
 }"#;
 
-        run_migrate_json_v1_test(json_v1_content, json_latest_content).await;
+        run_migrate_json_test(json_v1_content, json_latest_content).await;
+    }
+
+    #[tokio::test]
+    async fn test_service_config_fallback_default_v1() {
+        let broken_json_content = r#"{
+  "version": "v1",
+  "entrXy_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  }
+}"#;
+        run_fallback_test(broken_json_content).await;
+    }
+
+    #[tokio::test]
+    async fn test_service_config_fallback_default_v2() {
+        let broken_json_content = r#"{
+  "version": "v2",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "dns": null,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null
+}"#;
+
+        run_fallback_test(broken_json_content).await;
     }
 
     #[tokio::test]
