@@ -11,8 +11,7 @@ use nym_vpn_lib::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_vpn_lib_types::TunnelType;
-use nym_vpnd_types::service::VpnServiceConfig;
+use nym_vpn_lib_types::{TunnelEvent, TunnelType, service::VpnServiceConfig};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt, fs,
@@ -20,6 +19,7 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
+use tokio::sync::broadcast;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -82,11 +82,18 @@ impl TryFrom<&str> for NetworkEnvironments {
 pub struct VpnServiceConfigManager {
     json_config_path: PathBuf,
     config: VpnServiceConfig,
+
+    // Used to send `ConfigChanged` events when the config is updated.
+    // It's only optional to simplify testing.
+    tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
 }
 
 #[allow(dead_code)]
 impl VpnServiceConfigManager {
-    pub fn new(network_config_dir: &Path) -> Result<Self> {
+    pub fn new(
+        network_config_dir: &Path,
+        tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
+    ) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
         let (config, version) = Self::read_from_file(&toml_config_path, &json_config_path)?;
@@ -94,6 +101,7 @@ impl VpnServiceConfigManager {
         let config_manager = Self {
             json_config_path,
             config,
+            tunnel_event_tx,
         };
 
         // If we didn't read the latest version then write the config straight back to file
@@ -120,38 +128,52 @@ impl VpnServiceConfigManager {
     }
 
     pub fn set_config(&mut self, config: VpnServiceConfig) {
-        self.config = config;
-        let _ = self.write_to_file();
+        if self.config != config {
+            self.config = config;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_entry_point(&mut self, entry_point: EntryPoint) {
-        self.config.entry_point = entry_point;
-        let _ = self.write_to_file();
+        if self.config.entry_point != entry_point {
+            self.config.entry_point = entry_point;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_exit_point(&mut self, exit_point: ExitPoint) {
-        self.config.exit_point = exit_point;
-        let _ = self.write_to_file();
+        if self.config.exit_point != exit_point {
+            self.config.exit_point = exit_point;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_dns(&mut self, dns: Option<IpAddr>) {
-        self.config.dns = dns;
-        let _ = self.write_to_file();
+        if self.config.dns != dns {
+            self.config.dns = dns;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_disable_ipv6(&mut self, disable_ipv6: bool) {
-        self.config.disable_ipv6 = disable_ipv6;
-        let _ = self.write_to_file();
+        if self.config.disable_ipv6 != disable_ipv6 {
+            self.config.disable_ipv6 = disable_ipv6;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
-        self.config.enable_two_hop = enable_two_hop;
-        let _ = self.write_to_file();
+        if self.config.enable_two_hop != enable_two_hop {
+            self.config.enable_two_hop = enable_two_hop;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_netstack(&mut self, netstack: bool) {
-        self.config.netstack = netstack;
-        let _ = self.write_to_file();
+        if self.config.netstack != netstack {
+            self.config.netstack = netstack;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_allow_lan(&mut self, allow_lan: bool) {
@@ -160,32 +182,60 @@ impl VpnServiceConfigManager {
     }
 
     pub fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
-        self.config.disable_poisson_rate = disable_poisson_rate;
-        let _ = self.write_to_file();
+        if self.config.disable_poisson_rate != disable_poisson_rate {
+            self.config.disable_poisson_rate = disable_poisson_rate;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_disable_background_cover_traffic(&mut self, disable: bool) {
-        self.config.disable_background_cover_traffic = disable;
-        let _ = self.write_to_file();
+        if self.config.disable_background_cover_traffic != disable {
+            self.config.disable_background_cover_traffic = disable;
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
-        self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
-        let _ = self.write_to_file();
+        if self.config.min_mixnode_performance != min_mixnode_performance {
+            self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_min_gateway_mixnet_performance(
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
     ) {
-        self.config.min_gateway_mixnet_performance =
-            min_gateway_mixnet_performance.map(|u| u.min(100));
-        let _ = self.write_to_file();
+        if self.config.min_gateway_mixnet_performance != min_gateway_mixnet_performance {
+            self.config.min_gateway_mixnet_performance =
+                min_gateway_mixnet_performance.map(|u| u.min(100));
+            self.save_config_and_send_event();
+        }
     }
 
     pub fn set_min_gateway_vpn_performance(&mut self, min_gateway_vpn_performance: Option<u8>) {
-        self.config.min_gateway_vpn_performance = min_gateway_vpn_performance.map(|u| u.min(100));
+        if self.config.min_gateway_vpn_performance != min_gateway_vpn_performance {
+            self.config.min_gateway_vpn_performance =
+                min_gateway_vpn_performance.map(|u| u.min(100));
+            self.save_config_and_send_event();
+        }
+    }
+
+    fn save_config_and_send_event(&self) {
+        // This function already logs
         let _ = self.write_to_file();
+
+        // Notify all clients that the config has changed
+        if let Some(tx) = self.tunnel_event_tx.as_ref() {
+            match tx.send(TunnelEvent::ConfigChanged(Box::new(self.config.clone()))) {
+                Ok(recv_count) => {
+                    tracing::info!("Sent config changed event to {recv_count} receivers");
+                }
+                Err(e) => {
+                    tracing::error!("Failed to send config changed event: {e}");
+                }
+            }
+        }
     }
 
     /// Returns the configuration as well as the version read from file.
@@ -198,7 +248,10 @@ impl VpnServiceConfigManager {
                 .map_err(Error::ConfigSetup)?;
             let version = ext_config.version();
 
-            tracing::info!("Loaded service config from {}", json_config_path.display());
+            tracing::info!(
+                "Read service config version {version} from {}",
+                json_config_path.display()
+            );
 
             let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
 
@@ -207,7 +260,7 @@ impl VpnServiceConfigManager {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .map_err(Error::ConfigSetup)?;
 
-            tracing::info!("Loaded service config from {}", toml_config_path.display());
+            tracing::info!("Read service config from {}", toml_config_path.display());
 
             let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
 
@@ -222,29 +275,29 @@ impl VpnServiceConfigManager {
     }
 
     fn write_to_file(&self) -> bool {
-        let ext_config = match VpnServiceConfigExt::try_from(&self.config)
-            .map_err(Error::ConfigSetup)
-        {
-            Ok(ext_config) => ext_config,
-            Err(e) => {
-                tracing::error!("Failed to convert service config to external representation: {e}");
-                return false;
-            }
-        };
+        let ext_config =
+            match VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup) {
+                Ok(ext_config) => ext_config,
+                Err(e) => {
+                    tracing::error!("Failed to convert service config to JSON: {e}");
+                    return false;
+                }
+            };
+        let version = ext_config.version();
 
         match write_json_config_file(&self.json_config_path, &ext_config)
             .map_err(Error::ConfigSetup)
         {
             Ok(_) => {
                 tracing::info!(
-                    "Saved service config to {}",
+                    "Writing service config version {version} to {}",
                     self.json_config_path.display()
                 );
                 true
             }
             Err(e) => {
                 tracing::error!(
-                    "Failed to write service config to {}: {e}",
+                    "Failed to write service config version {version} to {}: {e}",
                     self.json_config_path.display()
                 );
                 false
@@ -1049,20 +1102,19 @@ mod tests {
         // Write the TOML config file
         fs::write(&toml_path, toml_content).unwrap();
 
-        // Read the TOML config and migrate it to latest JSON
-        let config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
+        // Read the TOML config and migrate it to latest JSON version.  The latest version of the
+        // JSON will be written straight back to disk.
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
         let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
-
-        assert!(config_manager.write_to_file());
 
         // The TOML file should be deleted and replaced with a JSON version
         assert!(!toml_path.exists());
         assert!(json_path.exists());
 
         // Read the JSON config
-        let config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
         let config = config_manager.config();
         assert_eq!(config.entry_point, entry_point);
         assert_eq!(config.exit_point, exit_point);
@@ -1088,7 +1140,7 @@ mod tests {
 
         // Read the JSON v1 config and migrate it to latest JSON.  The latest version of the
         // JSON will be written straight back to disk.
-        let _config_manager = VpnServiceConfigManager::new(&network_config_path).unwrap();
+        let _config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
 
         // Check the JSON is the right version and all snake-case (ignore whitespace/order)
         let read_json_content = fs::read_to_string(&json_path).unwrap();
@@ -1099,16 +1151,20 @@ mod tests {
 
     fn run_serialize_test(config: VpnServiceConfig) {
         let temp_dir = tempdir().unwrap();
-        let network_config_path = temp_dir.path();
+        let config_path = temp_dir.path();
+
+        println!("Using config dir: {config_path:?}");
+
+        let network_config_path = config_path.join("tulips");
 
         // Write the config to disk
-        let mut config_manager = VpnServiceConfigManager::new(network_config_path).unwrap();
+        let mut config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
         config_manager.set_config(config.clone());
         assert!(config_manager.write_to_file());
         drop(config_manager);
 
         // Read it back and compare it
-        let config_manager = VpnServiceConfigManager::new(network_config_path).unwrap();
+        let config_manager = VpnServiceConfigManager::new(&network_config_path, None).unwrap();
         let read_config = config_manager.config();
         assert_eq!(&config, read_config);
     }

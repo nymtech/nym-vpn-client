@@ -8,13 +8,15 @@ use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
 };
-use nym_vpn_lib_types::{AccountControllerState, AvailableTickets, TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{
+    AccountControllerState, AvailableTickets, TunnelEvent, TunnelState, VpnServiceConfig,
+};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::{ConnectArgs, VpnServiceConfig, VpnServiceInfo},
+    service::{ConnectArgs, VpnServiceInfo},
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -60,7 +62,7 @@ impl RpcClient {
     }
 
     pub async fn set_entry_point(&mut self, entry_point: EntryPoint) -> Result<()> {
-        let entry_node = proto::EntryNode::try_from(entry_point).map_err(Error::InvalidRequest)?;
+        let entry_node = proto::EntryNode::from(entry_point);
 
         self.0
             .set_entry_point(entry_node)
@@ -72,7 +74,7 @@ impl RpcClient {
     }
 
     pub async fn set_exit_point(&mut self, exit_point: ExitPoint) -> Result<()> {
-        let exit_node = proto::ExitNode::try_from(exit_point).map_err(Error::InvalidRequest)?;
+        let exit_node = proto::ExitNode::from(exit_point);
 
         self.0
             .set_exit_point(exit_node)

@@ -461,6 +461,7 @@ message TunnelEvent {
   oneof event {
     TunnelState tunnel_state = 1;
     MixnetEvent mixnet_event = 2;
+    ConfigChangedEvent config_changed_event = 3;
   }
 }
 
@@ -521,11 +522,14 @@ message MixnetEvent {
   }
 }
 
+message ConfigChangedEvent {
+  VpnServiceConfig new_config = 1;
+}
+
 message GetLogPathResponse {
   string dir = 1;
   string filename = 2;
 }
-
 
 message AccountCommandError {
   oneof error_detail {

@@ -4,8 +4,10 @@
 pub mod account;
 pub mod account_controller_state;
 pub mod error;
+pub mod gateway_directory;
 pub mod network_config;
 pub mod prost;
+pub mod service;
 pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpn_api_client;
@@ -14,26 +16,6 @@ pub mod vpnd;
 pub use error::ConversionError;
 
 use crate::proto;
-
-impl From<nym_gateway_directory::GatewayType> for proto::GatewayType {
-    fn from(value: nym_gateway_directory::GatewayType) -> Self {
-        match value {
-            nym_gateway_directory::GatewayType::MixnetEntry => proto::GatewayType::MixnetEntry,
-            nym_gateway_directory::GatewayType::MixnetExit => proto::GatewayType::MixnetExit,
-            nym_gateway_directory::GatewayType::Wg => proto::GatewayType::Wg,
-        }
-    }
-}
-
-impl From<proto::GatewayType> for nym_gateway_directory::GatewayType {
-    fn from(value: proto::GatewayType) -> Self {
-        match value {
-            proto::GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
-            proto::GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
-            proto::GatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
-        }
-    }
-}
 
 impl From<proto::UserAgent> for nym_sdk::UserAgent {
     fn from(user_agent: proto::UserAgent) -> Self {

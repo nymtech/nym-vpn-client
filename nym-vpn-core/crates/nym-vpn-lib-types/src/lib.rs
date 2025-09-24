@@ -5,6 +5,7 @@
 
 mod account;
 mod connection_data;
+pub mod service;
 mod tunnel_event;
 mod tunnel_state;
 
@@ -22,6 +23,7 @@ pub use connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
+pub use service::VpnServiceConfig;
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
     TunnelEvent,

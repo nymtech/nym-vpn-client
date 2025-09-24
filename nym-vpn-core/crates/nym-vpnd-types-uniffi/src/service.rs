@@ -3,40 +3,7 @@
 
 use time::OffsetDateTime;
 
-use nym_vpn_lib_types_uniffi::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
-
-#[derive(uniffi::Record)]
-pub struct VpnServiceConfig {
-    pub entry_point: EntryPoint,
-    pub exit_point: ExitPoint,
-    pub dns: Option<String>,
-    pub disable_ipv6: bool,
-    pub enable_two_hop: bool,
-    pub netstack: bool,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub min_mixnode_performance: Option<u8>,
-    pub min_gateway_mixnet_performance: Option<u8>,
-    pub min_gateway_vpn_performance: Option<u8>,
-}
-
-impl From<nym_vpnd_types::service::VpnServiceConfig> for VpnServiceConfig {
-    fn from(config: nym_vpnd_types::service::VpnServiceConfig) -> Self {
-        VpnServiceConfig {
-            entry_point: EntryPoint::from(config.entry_point),
-            exit_point: ExitPoint::from(config.exit_point),
-            dns: config.dns.map(|ip| ip.to_string()),
-            disable_ipv6: config.disable_ipv6,
-            enable_two_hop: config.enable_two_hop,
-            netstack: config.netstack,
-            disable_poisson_rate: config.disable_poisson_rate,
-            disable_background_cover_traffic: config.disable_background_cover_traffic,
-            min_mixnode_performance: config.min_mixnode_performance,
-            min_gateway_mixnet_performance: config.min_gateway_mixnet_performance,
-            min_gateway_vpn_performance: config.min_gateway_vpn_performance,
-        }
-    }
-}
+use nym_vpn_lib_types_uniffi::{NymNetworkDetails, NymVpnNetwork};
 
 #[derive(uniffi::Record)]
 pub struct VpnServiceInfo {
