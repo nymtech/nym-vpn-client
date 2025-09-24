@@ -54,36 +54,6 @@ impl TryFrom<proto::EntryNode> for nym_gateway_directory::EntryPoint {
     }
 }
 
-//impl TryFrom<nym_gateway_directory::EntryPoint> for proto::EntryNode {
-//    type Error = ConversionError;
-//    fn try_from(value: nym_gateway_directory::EntryPoint) -> Result<Self, Self::Error> {
-//        match value {
-//            nym_gateway_directory::EntryPoint::Gateway { identity } => Ok(proto::EntryNode {
-//                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(
-//                    proto::GatewayId {
-//                        id: identity.to_base58_string(),
-//                    },
-//                )),
-//            }),
-//            nym_gateway_directory::EntryPoint::Country {
-//                two_letter_iso_country_code,
-//            } => Ok(proto::EntryNode {
-//                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Country(proto::Country {
-//                    two_letter_iso_country_code,
-//                })),
-//            }),
-//            nym_gateway_directory::EntryPoint::Region { region } => Ok(proto::EntryNode {
-//                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Region(proto::Region {
-//                    region,
-//                })),
-//            }),
-//            nym_gateway_directory::EntryPoint::Random => Ok(proto::EntryNode {
-//                entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Random(())),
-//            }),
-//        }
-//    }
-//}
-
 impl From<nym_gateway_directory::EntryPoint> for proto::EntryNode {
     fn from(value: nym_gateway_directory::EntryPoint) -> Self {
         match value {
@@ -154,38 +124,6 @@ impl TryFrom<proto::ExitNode> for nym_gateway_directory::ExitPoint {
         })
     }
 }
-
-//impl TryFrom<nym_gateway_directory::ExitPoint> for proto::ExitNode {
-//    type Error = ConversionError;
-
-//    fn try_from(value: nym_gateway_directory::ExitPoint) -> Result<Self, Self::Error> {
-//        let exit_node_enum = match value {
-//            nym_gateway_directory::ExitPoint::Address { address } => {
-//                proto::exit_node::ExitNodeEnum::Address(proto::Address {
-//                    nym_address: address.to_string(),
-//                    gateway_id: address.gateway().to_base58_string(),
-//                })
-//            }
-//            nym_gateway_directory::ExitPoint::Gateway { identity } => {
-//                proto::exit_node::ExitNodeEnum::Gateway(proto::GatewayId {
-//                    id: identity.to_base58_string(),
-//                })
-//            }
-//            nym_gateway_directory::ExitPoint::Country {
-//                two_letter_iso_country_code,
-//            } => proto::exit_node::ExitNodeEnum::Country(proto::Country {
-//                two_letter_iso_country_code,
-//            }),
-//            nym_gateway_directory::ExitPoint::Region { region } => {
-//                proto::exit_node::ExitNodeEnum::Region(proto::Region { region })
-//            }
-//            nym_gateway_directory::ExitPoint::Random => proto::exit_node::ExitNodeEnum::Random(()),
-//        };
-//        Ok(proto::ExitNode {
-//            exit_node_enum: Some(exit_node_enum),
-//        })
-//    }
-//}
 
 impl From<nym_gateway_directory::ExitPoint> for proto::ExitNode {
     fn from(value: nym_gateway_directory::ExitPoint) -> Self {
