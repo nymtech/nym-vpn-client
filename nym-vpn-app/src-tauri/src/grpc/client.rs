@@ -234,7 +234,7 @@ impl GrpcClient {
                         } else {
                             warn!("failed to parse mixnet event");
                         }
-                    },
+                    }
                     _ => warn!("ignoring unknown tunnel event: {event:?}"),
                 }
             }
