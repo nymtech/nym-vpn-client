@@ -462,6 +462,7 @@ message TunnelEvent {
     TunnelState tunnel_state = 1;
     MixnetEvent mixnet_event = 2;
     ConfigChangedEvent config_changed_event = 3;
+    AccountControllerState account_state = 4;
   }
 }
 
@@ -736,9 +737,6 @@ service NymVpnService {
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
 
-  // Listen for current tunnel state and subsequent changes to it. Emits current state as the first value.
-  rpc ListenToTunnelState (google.protobuf.Empty) returns (stream TunnelState) {}
-
   /// Listen for daemon events.
   rpc ListenToEvents(google.protobuf.Empty) returns (stream TunnelEvent) {}
 
@@ -767,9 +765,6 @@ service NymVpnService {
   // Query the account state, which is synced from the nym-vpn-api account, as it
   // is known and interpreted by nym-vpnd
   rpc GetAccountState (google.protobuf.Empty) returns (AccountControllerState) {}
-
-  // Listen for current account controller state and subsequent changes to it. Emits current state as the first value.
-  rpc ListenToAccountState (google.protobuf.Empty) returns (stream AccountControllerState) {}
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.

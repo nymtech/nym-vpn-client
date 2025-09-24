@@ -287,41 +287,6 @@ impl RpcClient {
             .map(AccountControllerState::from)?)
     }
 
-    pub async fn listen_to_account_state(
-        &self,
-        observer: Arc<dyn AccountEventObserver>,
-    ) -> Result<StreamObserver> {
-        let cancel_token = CancellationToken::new();
-        let child_token = cancel_token.child_token();
-        let mut event_stream = self
-            .inner
-            .clone()
-            .listen_to_account_controller_state()
-            .await?;
-
-        tokio::spawn(async move {
-            loop {
-                match child_token
-                    .run_until_cancelled(event_stream.next())
-                    .await
-                    .flatten()
-                {
-                    Some(Ok(evt)) => {
-                        observer.on_account_state_change(AccountControllerState::from(evt));
-                    }
-                    Some(Err(err)) => {
-                        tracing::error!("Error receiving next account state: {err}");
-                        break;
-                    }
-                    None => break,
-                }
-            }
-            observer.on_close();
-        });
-
-        Ok(StreamObserver::new(cancel_token))
-    }
-
     pub async fn refresh_account_state(&self) -> Result<()> {
         self.inner.clone().refresh_account_state().await?;
         Ok(())
@@ -506,17 +471,5 @@ impl Drop for StreamObserver {
 #[uniffi::export(with_foreign)]
 pub trait TunnelEventObserver: Send + Sync {
     fn on_tunnel_event(&self, event: TunnelEvent);
-    fn on_close(&self);
-}
-
-#[uniffi::export(with_foreign)]
-pub trait TunnelStateObserver: Send + Sync {
-    fn on_tunnel_state_change(&self, new_state: TunnelState);
-    fn on_close(&self);
-}
-
-#[uniffi::export(with_foreign)]
-pub trait AccountEventObserver: Send + Sync {
-    fn on_account_state_change(&self, new_state: AccountControllerState);
     fn on_close(&self);
 }

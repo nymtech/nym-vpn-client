@@ -280,24 +280,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(tunnel_state))
     }
 
-    type ListenToTunnelStateStream = BoxStream<'static, Result<proto::TunnelState>>;
-    async fn listen_to_tunnel_state(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<Self::ListenToTunnelStateStream>> {
-        let rx = self
-            .send_and_wait(VpnServiceCommand::SubscribeToTunnelState, ())
-            .await?;
-        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|new_state| {
-            new_state
-                .map(proto::TunnelState::from)
-                .map_err(|_| tonic::Status::internal("Failed to receive tunnel state"))
-        });
-        Ok(tonic::Response::new(
-            Box::pin(stream) as Self::ListenToTunnelStateStream
-        ))
-    }
-
     type ListenToEventsStream = BoxStream<'static, Result<proto::TunnelEvent>>;
     async fn listen_to_events(
         &self,
@@ -442,21 +424,6 @@ impl NymVpnService for CommandInterface {
             .map(proto::AccountControllerState::from)?;
 
         Ok(tonic::Response::new(account_controller_state))
-    }
-
-    type ListenToAccountStateStream = BoxStream<'static, Result<proto::AccountControllerState>>;
-    async fn listen_to_account_state(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<Self::ListenToAccountStateStream>> {
-        let rx = self
-            .send_and_wait(VpnServiceCommand::SubscribeToAccountControllerState, ())
-            .await?;
-        let stream = tokio_stream::wrappers::WatchStream::new(rx)
-            .map(|new_state| Ok(proto::AccountControllerState::from(new_state)));
-        Ok(tonic::Response::new(
-            Box::pin(stream) as Self::ListenToAccountStateStream
-        ))
     }
 
     async fn refresh_account_state(

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
-    TunnelEvent, TunnelState,
+    AccountControllerState, BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent,
+    MixnetEvent, SphinxPacketRates, TunnelEvent, TunnelState,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -29,6 +29,9 @@ impl TryFrom<proto::TunnelEvent> for TunnelEvent {
                     .ok_or(ConversionError::NoValueSet("ConfigChangedEvent.new_config"))?;
                 TunnelEvent::ConfigChanged(Box::new(new_config.try_into()?))
             }
+            proto::tunnel_event::Event::AccountState(account_state) => {
+                TunnelEvent::AccountState(AccountControllerState::try_from(account_state)?)
+            }
         })
     }
 }
@@ -47,6 +50,9 @@ impl From<TunnelEvent> for proto::TunnelEvent {
                     new_config: Some((*new_config).into()),
                 })
             }
+            TunnelEvent::AccountState(account_state) => proto::tunnel_event::Event::AccountState(
+                proto::AccountControllerState::from(account_state),
+            ),
         };
         Self { event: Some(event) }
     }
