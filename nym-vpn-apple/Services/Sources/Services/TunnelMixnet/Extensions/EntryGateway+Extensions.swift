@@ -7,9 +7,9 @@ extension EntryGateway {
     var entryPoint: EntryPoint {
         switch self {
         case let .country(country):
-            return .country(twoLetterIsoCountryCode: country.code)
+            return .location(location: country.code)
         case let .lowLatencyCountry(country):
-            return .country(twoLetterIsoCountryCode: country.code)
+            return .location(location: country.code)
         case let .gateway(gateway):
             return .gateway(identity: gateway.id)
         case .random:

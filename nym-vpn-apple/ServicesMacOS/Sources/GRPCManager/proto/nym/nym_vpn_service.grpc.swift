@@ -21,36 +21,6 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_InfoResponse>
 
-  func getConfig(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetConfigResponse>
-
-  func setEntryPoint(
-    _ request: NymVpnService_EntryNode,
-    callOptions: CallOptions?
-  ) -> UnaryCall<NymVpnService_EntryNode, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setExitPoint(
-    _ request: NymVpnService_ExitNode,
-    callOptions: CallOptions?
-  ) -> UnaryCall<NymVpnService_ExitNode, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setDisableIpv6(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setEnableTwoHop(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setNetstack(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>
-
   func setNetwork(
     _ request: SwiftProtobuf.Google_Protobuf_StringValue,
     callOptions: CallOptions?
@@ -76,20 +46,10 @@ internal protocol NymVpnService_NymVpnServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<NymVpnService_ConnectRequest, SwiftProtobuf.Google_Protobuf_Empty>
 
-  func connectTunnelV2(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>
-
-  func reconnectTunnel(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>
-
   func disconnectTunnel(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
 
   func getTunnelState(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -253,114 +213,6 @@ extension NymVpnService_NymVpnServiceClientProtocol {
     )
   }
 
-  /// Get the VPN service configuration
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to GetConfig.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func getConfig(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetConfigResponse> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getConfig.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetConfigInterceptors() ?? []
-    )
-  }
-
-  /// Set the VPN service configuration
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to SetEntryPoint.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func setEntryPoint(
-    _ request: NymVpnService_EntryNode,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<NymVpnService_EntryNode, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setEntryPoint.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetEntryPointInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to SetExitPoint
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to SetExitPoint.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func setExitPoint(
-    _ request: NymVpnService_ExitNode,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<NymVpnService_ExitNode, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setExitPoint.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetExitPointInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to SetDisableIpv6
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to SetDisableIpv6.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func setDisableIpv6(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setDisableIpv6.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetDisableIpv6Interceptors() ?? []
-    )
-  }
-
-  /// Unary call to SetEnableTwoHop
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to SetEnableTwoHop.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func setEnableTwoHop(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setEnableTwoHop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetEnableTwoHopInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to SetNetstack
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to SetNetstack.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func setNetstack(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setNetstack.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetNetstackInterceptors() ?? []
-    )
-  }
-
   /// Set the network. This requires a restart to take effect
   ///
   /// - Parameters:
@@ -433,7 +285,7 @@ extension NymVpnService_NymVpnServiceClientProtocol {
     )
   }
 
-  /// Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
+  /// Connect the tunnel
   ///
   /// - Parameters:
   ///   - request: Request to send to ConnectTunnel.
@@ -451,42 +303,6 @@ extension NymVpnService_NymVpnServiceClientProtocol {
     )
   }
 
-  /// Connect the tunnel (Configuration is owned by daemon)
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to ConnectTunnelV2.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func connectTunnelV2(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.connectTunnelV2.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConnectTunnelV2Interceptors() ?? []
-    )
-  }
-
-  /// Reconnect the tunnel if it had been established.
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to ReconnectTunnel.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func reconnectTunnel(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue> {
-    return self.makeUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.reconnectTunnel.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeReconnectTunnelInterceptors() ?? []
-    )
-  }
-
   /// Disconnect the tunnel
   ///
   /// - Parameters:
@@ -496,7 +312,7 @@ extension NymVpnService_NymVpnServiceClientProtocol {
   internal func disconnectTunnel(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue> {
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
     return self.makeUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.disconnectTunnel.path,
       request: request,
@@ -1071,36 +887,6 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_InfoResponse>
 
-  func makeGetConfigCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetConfigResponse>
-
-  func makeSetEntryPointCall(
-    _ request: NymVpnService_EntryNode,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<NymVpnService_EntryNode, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeSetExitPointCall(
-    _ request: NymVpnService_ExitNode,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<NymVpnService_ExitNode, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeSetDisableIpv6Call(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeSetEnableTwoHopCall(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>
-
-  func makeSetNetstackCall(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>
-
   func makeSetNetworkCall(
     _ request: SwiftProtobuf.Google_Protobuf_StringValue,
     callOptions: CallOptions?
@@ -1126,20 +912,10 @@ internal protocol NymVpnService_NymVpnServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<NymVpnService_ConnectRequest, SwiftProtobuf.Google_Protobuf_Empty>
 
-  func makeConnectTunnelV2Call(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>
-
-  func makeReconnectTunnelCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>
-
   func makeDisconnectTunnelCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>
 
   func makeGetTunnelStateCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1299,78 +1075,6 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeGetConfigCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetConfigResponse> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getConfig.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetConfigInterceptors() ?? []
-    )
-  }
-
-  internal func makeSetEntryPointCall(
-    _ request: NymVpnService_EntryNode,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<NymVpnService_EntryNode, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setEntryPoint.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetEntryPointInterceptors() ?? []
-    )
-  }
-
-  internal func makeSetExitPointCall(
-    _ request: NymVpnService_ExitNode,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<NymVpnService_ExitNode, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setExitPoint.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetExitPointInterceptors() ?? []
-    )
-  }
-
-  internal func makeSetDisableIpv6Call(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setDisableIpv6.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetDisableIpv6Interceptors() ?? []
-    )
-  }
-
-  internal func makeSetEnableTwoHopCall(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setEnableTwoHop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetEnableTwoHopInterceptors() ?? []
-    )
-  }
-
-  internal func makeSetNetstackCall(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setNetstack.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetNetstackInterceptors() ?? []
-    )
-  }
-
   internal func makeSetNetworkCall(
     _ request: SwiftProtobuf.Google_Protobuf_StringValue,
     callOptions: CallOptions? = nil
@@ -1431,34 +1135,10 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeConnectTunnelV2Call(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.connectTunnelV2.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConnectTunnelV2Interceptors() ?? []
-    )
-  }
-
-  internal func makeReconnectTunnelCall(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue> {
-    return self.makeAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.reconnectTunnel.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeReconnectTunnelInterceptors() ?? []
-    )
-  }
-
   internal func makeDisconnectTunnelCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue> {
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty> {
     return self.makeAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.disconnectTunnel.path,
       request: request,
@@ -1806,78 +1486,6 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
     )
   }
 
-  internal func getConfig(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> NymVpnService_GetConfigResponse {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.getConfig.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetConfigInterceptors() ?? []
-    )
-  }
-
-  internal func setEntryPoint(
-    _ request: NymVpnService_EntryNode,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setEntryPoint.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetEntryPointInterceptors() ?? []
-    )
-  }
-
-  internal func setExitPoint(
-    _ request: NymVpnService_ExitNode,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setExitPoint.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetExitPointInterceptors() ?? []
-    )
-  }
-
-  internal func setDisableIpv6(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setDisableIpv6.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetDisableIpv6Interceptors() ?? []
-    )
-  }
-
-  internal func setEnableTwoHop(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setEnableTwoHop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetEnableTwoHopInterceptors() ?? []
-    )
-  }
-
-  internal func setNetstack(
-    _ request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.setNetstack.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetNetstackInterceptors() ?? []
-    )
-  }
-
   internal func setNetwork(
     _ request: SwiftProtobuf.Google_Protobuf_StringValue,
     callOptions: CallOptions? = nil
@@ -1938,34 +1546,10 @@ extension NymVpnService_NymVpnServiceAsyncClientProtocol {
     )
   }
 
-  internal func connectTunnelV2(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_BoolValue {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.connectTunnelV2.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConnectTunnelV2Interceptors() ?? []
-    )
-  }
-
-  internal func reconnectTunnel(
-    _ request: SwiftProtobuf.Google_Protobuf_Empty,
-    callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_BoolValue {
-    return try await self.performAsyncUnaryCall(
-      path: NymVpnService_NymVpnServiceClientMetadata.Methods.reconnectTunnel.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeReconnectTunnelInterceptors() ?? []
-    )
-  }
-
   internal func disconnectTunnel(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) async throws -> SwiftProtobuf.Google_Protobuf_BoolValue {
+  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty {
     return try await self.performAsyncUnaryCall(
       path: NymVpnService_NymVpnServiceClientMetadata.Methods.disconnectTunnel.path,
       request: request,
@@ -2321,24 +1905,6 @@ internal protocol NymVpnService_NymVpnServiceClientInterceptorFactoryProtocol: S
   /// - Returns: Interceptors to use when invoking 'info'.
   func makeInfoInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_InfoResponse>]
 
-  /// - Returns: Interceptors to use when invoking 'getConfig'.
-  func makeGetConfigInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetConfigResponse>]
-
-  /// - Returns: Interceptors to use when invoking 'setEntryPoint'.
-  func makeSetEntryPointInterceptors() -> [ClientInterceptor<NymVpnService_EntryNode, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'setExitPoint'.
-  func makeSetExitPointInterceptors() -> [ClientInterceptor<NymVpnService_ExitNode, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'setDisableIpv6'.
-  func makeSetDisableIpv6Interceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'setEnableTwoHop'.
-  func makeSetEnableTwoHopInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when invoking 'setNetstack'.
-  func makeSetNetstackInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>]
-
   /// - Returns: Interceptors to use when invoking 'setNetwork'.
   func makeSetNetworkInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_StringValue, SwiftProtobuf.Google_Protobuf_Empty>]
 
@@ -2354,14 +1920,8 @@ internal protocol NymVpnService_NymVpnServiceClientInterceptorFactoryProtocol: S
   /// - Returns: Interceptors to use when invoking 'connectTunnel'.
   func makeConnectTunnelInterceptors() -> [ClientInterceptor<NymVpnService_ConnectRequest, SwiftProtobuf.Google_Protobuf_Empty>]
 
-  /// - Returns: Interceptors to use when invoking 'connectTunnelV2'.
-  func makeConnectTunnelV2Interceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
-
-  /// - Returns: Interceptors to use when invoking 'reconnectTunnel'.
-  func makeReconnectTunnelInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
-
   /// - Returns: Interceptors to use when invoking 'disconnectTunnel'.
-  func makeDisconnectTunnelInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
+  func makeDisconnectTunnelInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
 
   /// - Returns: Interceptors to use when invoking 'getTunnelState'.
   func makeGetTunnelStateInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_TunnelState>]
@@ -2451,19 +2011,11 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
     fullName: "nym_vpn_service.NymVpnService",
     methods: [
       NymVpnService_NymVpnServiceClientMetadata.Methods.info,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.getConfig,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.setEntryPoint,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.setExitPoint,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.setDisableIpv6,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.setEnableTwoHop,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.setNetstack,
       NymVpnService_NymVpnServiceClientMetadata.Methods.setNetwork,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getSystemMessages,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getNetworkCompatibility,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getFeatureFlags,
       NymVpnService_NymVpnServiceClientMetadata.Methods.connectTunnel,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.connectTunnelV2,
-      NymVpnService_NymVpnServiceClientMetadata.Methods.reconnectTunnel,
       NymVpnService_NymVpnServiceClientMetadata.Methods.disconnectTunnel,
       NymVpnService_NymVpnServiceClientMetadata.Methods.getTunnelState,
       NymVpnService_NymVpnServiceClientMetadata.Methods.listenToTunnelState,
@@ -2502,42 +2054,6 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    internal static let getConfig = GRPCMethodDescriptor(
-      name: "GetConfig",
-      path: "/nym_vpn_service.NymVpnService/GetConfig",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setEntryPoint = GRPCMethodDescriptor(
-      name: "SetEntryPoint",
-      path: "/nym_vpn_service.NymVpnService/SetEntryPoint",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setExitPoint = GRPCMethodDescriptor(
-      name: "SetExitPoint",
-      path: "/nym_vpn_service.NymVpnService/SetExitPoint",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setDisableIpv6 = GRPCMethodDescriptor(
-      name: "SetDisableIpv6",
-      path: "/nym_vpn_service.NymVpnService/SetDisableIpv6",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setEnableTwoHop = GRPCMethodDescriptor(
-      name: "SetEnableTwoHop",
-      path: "/nym_vpn_service.NymVpnService/SetEnableTwoHop",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setNetstack = GRPCMethodDescriptor(
-      name: "SetNetstack",
-      path: "/nym_vpn_service.NymVpnService/SetNetstack",
-      type: GRPCCallType.unary
-    )
-
     internal static let setNetwork = GRPCMethodDescriptor(
       name: "SetNetwork",
       path: "/nym_vpn_service.NymVpnService/SetNetwork",
@@ -2565,18 +2081,6 @@ internal enum NymVpnService_NymVpnServiceClientMetadata {
     internal static let connectTunnel = GRPCMethodDescriptor(
       name: "ConnectTunnel",
       path: "/nym_vpn_service.NymVpnService/ConnectTunnel",
-      type: GRPCCallType.unary
-    )
-
-    internal static let connectTunnelV2 = GRPCMethodDescriptor(
-      name: "ConnectTunnelV2",
-      path: "/nym_vpn_service.NymVpnService/ConnectTunnelV2",
-      type: GRPCCallType.unary
-    )
-
-    internal static let reconnectTunnel = GRPCMethodDescriptor(
-      name: "ReconnectTunnel",
-      path: "/nym_vpn_service.NymVpnService/ReconnectTunnel",
       type: GRPCCallType.unary
     )
 
@@ -2757,20 +2261,6 @@ internal protocol NymVpnService_NymVpnServiceProvider: CallHandlerProvider {
   /// Get info regarding the nym-vpnd in general, like version etc.
   func info(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_InfoResponse>
 
-  /// Get the VPN service configuration
-  func getConfig(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetConfigResponse>
-
-  /// Set the VPN service configuration
-  func setEntryPoint(request: NymVpnService_EntryNode, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setExitPoint(request: NymVpnService_ExitNode, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setDisableIpv6(request: SwiftProtobuf.Google_Protobuf_BoolValue, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setEnableTwoHop(request: SwiftProtobuf.Google_Protobuf_BoolValue, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
-  func setNetstack(request: SwiftProtobuf.Google_Protobuf_BoolValue, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
-
   /// Set the network. This requires a restart to take effect
   func setNetwork(request: SwiftProtobuf.Google_Protobuf_StringValue, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 
@@ -2783,17 +2273,11 @@ internal protocol NymVpnService_NymVpnServiceProvider: CallHandlerProvider {
   /// List the feature flags fetched from the nym-vpn-api
   func getFeatureFlags(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_GetFeatureFlagsResponse>
 
-  /// Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
+  /// Connect the tunnel
   func connectTunnel(request: NymVpnService_ConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 
-  /// Connect the tunnel (Configuration is owned by daemon)
-  func connectTunnelV2(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_BoolValue>
-
-  /// Reconnect the tunnel if it had been established.
-  func reconnectTunnel(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_BoolValue>
-
   /// Disconnect the tunnel
-  func disconnectTunnel(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_BoolValue>
+  func disconnectTunnel(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<SwiftProtobuf.Google_Protobuf_Empty>
 
   /// Get the current tunnel state
   func getTunnelState(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<NymVpnService_TunnelState>
@@ -2901,60 +2385,6 @@ extension NymVpnService_NymVpnServiceProvider {
         userFunction: self.info(request:context:)
       )
 
-    case "GetConfig":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_GetConfigResponse>(),
-        interceptors: self.interceptors?.makeGetConfigInterceptors() ?? [],
-        userFunction: self.getConfig(request:context:)
-      )
-
-    case "SetEntryPoint":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_EntryNode>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetEntryPointInterceptors() ?? [],
-        userFunction: self.setEntryPoint(request:context:)
-      )
-
-    case "SetExitPoint":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_ExitNode>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetExitPointInterceptors() ?? [],
-        userFunction: self.setExitPoint(request:context:)
-      )
-
-    case "SetDisableIpv6":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetDisableIpv6Interceptors() ?? [],
-        userFunction: self.setDisableIpv6(request:context:)
-      )
-
-    case "SetEnableTwoHop":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetEnableTwoHopInterceptors() ?? [],
-        userFunction: self.setEnableTwoHop(request:context:)
-      )
-
-    case "SetNetstack":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetNetstackInterceptors() ?? [],
-        userFunction: self.setNetstack(request:context:)
-      )
-
     case "SetNetwork":
       return UnaryServerHandler(
         context: context,
@@ -3000,29 +2430,11 @@ extension NymVpnService_NymVpnServiceProvider {
         userFunction: self.connectTunnel(request:context:)
       )
 
-    case "ConnectTunnelV2":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        interceptors: self.interceptors?.makeConnectTunnelV2Interceptors() ?? [],
-        userFunction: self.connectTunnelV2(request:context:)
-      )
-
-    case "ReconnectTunnel":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        interceptors: self.interceptors?.makeReconnectTunnelInterceptors() ?? [],
-        userFunction: self.reconnectTunnel(request:context:)
-      )
-
     case "DisconnectTunnel":
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
+        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
         interceptors: self.interceptors?.makeDisconnectTunnelInterceptors() ?? [],
         userFunction: self.disconnectTunnel(request:context:)
       )
@@ -3288,38 +2700,6 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
     context: GRPCAsyncServerCallContext
   ) async throws -> NymVpnService_InfoResponse
 
-  /// Get the VPN service configuration
-  func getConfig(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> NymVpnService_GetConfigResponse
-
-  /// Set the VPN service configuration
-  func setEntryPoint(
-    request: NymVpnService_EntryNode,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  func setExitPoint(
-    request: NymVpnService_ExitNode,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  func setDisableIpv6(
-    request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  func setEnableTwoHop(
-    request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
-  func setNetstack(
-    request: SwiftProtobuf.Google_Protobuf_BoolValue,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
-
   /// Set the network. This requires a restart to take effect
   func setNetwork(
     request: SwiftProtobuf.Google_Protobuf_StringValue,
@@ -3344,29 +2724,17 @@ internal protocol NymVpnService_NymVpnServiceAsyncProvider: CallHandlerProvider,
     context: GRPCAsyncServerCallContext
   ) async throws -> NymVpnService_GetFeatureFlagsResponse
 
-  /// Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
+  /// Connect the tunnel
   func connectTunnel(
     request: NymVpnService_ConnectRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
 
-  /// Connect the tunnel (Configuration is owned by daemon)
-  func connectTunnelV2(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_BoolValue
-
-  /// Reconnect the tunnel if it had been established.
-  func reconnectTunnel(
-    request: SwiftProtobuf.Google_Protobuf_Empty,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_BoolValue
-
   /// Disconnect the tunnel
   func disconnectTunnel(
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
-  ) async throws -> SwiftProtobuf.Google_Protobuf_BoolValue
+  ) async throws -> SwiftProtobuf.Google_Protobuf_Empty
 
   /// Get the current tunnel state
   func getTunnelState(
@@ -3565,60 +2933,6 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
         wrapping: { try await self.info(request: $0, context: $1) }
       )
 
-    case "GetConfig":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<NymVpnService_GetConfigResponse>(),
-        interceptors: self.interceptors?.makeGetConfigInterceptors() ?? [],
-        wrapping: { try await self.getConfig(request: $0, context: $1) }
-      )
-
-    case "SetEntryPoint":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_EntryNode>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetEntryPointInterceptors() ?? [],
-        wrapping: { try await self.setEntryPoint(request: $0, context: $1) }
-      )
-
-    case "SetExitPoint":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<NymVpnService_ExitNode>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetExitPointInterceptors() ?? [],
-        wrapping: { try await self.setExitPoint(request: $0, context: $1) }
-      )
-
-    case "SetDisableIpv6":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetDisableIpv6Interceptors() ?? [],
-        wrapping: { try await self.setDisableIpv6(request: $0, context: $1) }
-      )
-
-    case "SetEnableTwoHop":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetEnableTwoHopInterceptors() ?? [],
-        wrapping: { try await self.setEnableTwoHop(request: $0, context: $1) }
-      )
-
-    case "SetNetstack":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        interceptors: self.interceptors?.makeSetNetstackInterceptors() ?? [],
-        wrapping: { try await self.setNetstack(request: $0, context: $1) }
-      )
-
     case "SetNetwork":
       return GRPCAsyncServerHandler(
         context: context,
@@ -3664,29 +2978,11 @@ extension NymVpnService_NymVpnServiceAsyncProvider {
         wrapping: { try await self.connectTunnel(request: $0, context: $1) }
       )
 
-    case "ConnectTunnelV2":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        interceptors: self.interceptors?.makeConnectTunnelV2Interceptors() ?? [],
-        wrapping: { try await self.connectTunnelV2(request: $0, context: $1) }
-      )
-
-    case "ReconnectTunnel":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
-        interceptors: self.interceptors?.makeReconnectTunnelInterceptors() ?? [],
-        wrapping: { try await self.reconnectTunnel(request: $0, context: $1) }
-      )
-
     case "DisconnectTunnel":
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_BoolValue>(),
+        responseSerializer: ProtobufSerializer<SwiftProtobuf.Google_Protobuf_Empty>(),
         interceptors: self.interceptors?.makeDisconnectTunnelInterceptors() ?? [],
         wrapping: { try await self.disconnectTunnel(request: $0, context: $1) }
       )
@@ -3946,30 +3242,6 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeInfoInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_InfoResponse>]
 
-  /// - Returns: Interceptors to use when handling 'getConfig'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetConfigInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, NymVpnService_GetConfigResponse>]
-
-  /// - Returns: Interceptors to use when handling 'setEntryPoint'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSetEntryPointInterceptors() -> [ServerInterceptor<NymVpnService_EntryNode, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'setExitPoint'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSetExitPointInterceptors() -> [ServerInterceptor<NymVpnService_ExitNode, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'setDisableIpv6'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSetDisableIpv6Interceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'setEnableTwoHop'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSetEnableTwoHopInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>]
-
-  /// - Returns: Interceptors to use when handling 'setNetstack'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSetNetstackInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_BoolValue, SwiftProtobuf.Google_Protobuf_Empty>]
-
   /// - Returns: Interceptors to use when handling 'setNetwork'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeSetNetworkInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_StringValue, SwiftProtobuf.Google_Protobuf_Empty>]
@@ -3990,17 +3262,9 @@ internal protocol NymVpnService_NymVpnServiceServerInterceptorFactoryProtocol: S
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeConnectTunnelInterceptors() -> [ServerInterceptor<NymVpnService_ConnectRequest, SwiftProtobuf.Google_Protobuf_Empty>]
 
-  /// - Returns: Interceptors to use when handling 'connectTunnelV2'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeConnectTunnelV2Interceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
-
-  /// - Returns: Interceptors to use when handling 'reconnectTunnel'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeReconnectTunnelInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
-
   /// - Returns: Interceptors to use when handling 'disconnectTunnel'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeDisconnectTunnelInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_BoolValue>]
+  func makeDisconnectTunnelInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, SwiftProtobuf.Google_Protobuf_Empty>]
 
   /// - Returns: Interceptors to use when handling 'getTunnelState'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -4117,19 +3381,11 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
     fullName: "nym_vpn_service.NymVpnService",
     methods: [
       NymVpnService_NymVpnServiceServerMetadata.Methods.info,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.getConfig,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.setEntryPoint,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.setExitPoint,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.setDisableIpv6,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.setEnableTwoHop,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.setNetstack,
       NymVpnService_NymVpnServiceServerMetadata.Methods.setNetwork,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getSystemMessages,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getNetworkCompatibility,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getFeatureFlags,
       NymVpnService_NymVpnServiceServerMetadata.Methods.connectTunnel,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.connectTunnelV2,
-      NymVpnService_NymVpnServiceServerMetadata.Methods.reconnectTunnel,
       NymVpnService_NymVpnServiceServerMetadata.Methods.disconnectTunnel,
       NymVpnService_NymVpnServiceServerMetadata.Methods.getTunnelState,
       NymVpnService_NymVpnServiceServerMetadata.Methods.listenToTunnelState,
@@ -4168,42 +3424,6 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    internal static let getConfig = GRPCMethodDescriptor(
-      name: "GetConfig",
-      path: "/nym_vpn_service.NymVpnService/GetConfig",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setEntryPoint = GRPCMethodDescriptor(
-      name: "SetEntryPoint",
-      path: "/nym_vpn_service.NymVpnService/SetEntryPoint",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setExitPoint = GRPCMethodDescriptor(
-      name: "SetExitPoint",
-      path: "/nym_vpn_service.NymVpnService/SetExitPoint",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setDisableIpv6 = GRPCMethodDescriptor(
-      name: "SetDisableIpv6",
-      path: "/nym_vpn_service.NymVpnService/SetDisableIpv6",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setEnableTwoHop = GRPCMethodDescriptor(
-      name: "SetEnableTwoHop",
-      path: "/nym_vpn_service.NymVpnService/SetEnableTwoHop",
-      type: GRPCCallType.unary
-    )
-
-    internal static let setNetstack = GRPCMethodDescriptor(
-      name: "SetNetstack",
-      path: "/nym_vpn_service.NymVpnService/SetNetstack",
-      type: GRPCCallType.unary
-    )
-
     internal static let setNetwork = GRPCMethodDescriptor(
       name: "SetNetwork",
       path: "/nym_vpn_service.NymVpnService/SetNetwork",
@@ -4231,18 +3451,6 @@ internal enum NymVpnService_NymVpnServiceServerMetadata {
     internal static let connectTunnel = GRPCMethodDescriptor(
       name: "ConnectTunnel",
       path: "/nym_vpn_service.NymVpnService/ConnectTunnel",
-      type: GRPCCallType.unary
-    )
-
-    internal static let connectTunnelV2 = GRPCMethodDescriptor(
-      name: "ConnectTunnelV2",
-      path: "/nym_vpn_service.NymVpnService/ConnectTunnelV2",
-      type: GRPCCallType.unary
-    )
-
-    internal static let reconnectTunnel = GRPCMethodDescriptor(
-      name: "ReconnectTunnel",
-      path: "/nym_vpn_service.NymVpnService/ReconnectTunnel",
       type: GRPCCallType.unary
     )
 

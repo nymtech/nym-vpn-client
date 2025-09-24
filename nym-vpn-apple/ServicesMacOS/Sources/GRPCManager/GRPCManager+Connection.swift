@@ -34,14 +34,14 @@ private extension GRPCManager {
         var entryNode = NymVpnService_EntryNode()
         switch entryGateway {
         case let .country(country):
-            var location = NymVpnService_Country()
+            var location = NymVpnService_Location()
             location.twoLetterIsoCountryCode = country.code
-            entryNode.country = location
+            entryNode.location = location
         case let .lowLatencyCountry(country):
             print("Add .lowLatencyCountry support")
-            var location = NymVpnService_Country()
+            var location = NymVpnService_Location()
             location.twoLetterIsoCountryCode = country.code
-            entryNode.country = location
+            entryNode.location = location
         case let .gateway(node):
             var gateway = NymVpnService_GatewayId()
             gateway.id = node.id
@@ -56,9 +56,9 @@ private extension GRPCManager {
         var exitNode = NymVpnService_ExitNode()
         switch exitRouter {
         case let .country(country):
-            var location = NymVpnService_Country()
+            var location = NymVpnService_Location()
             location.twoLetterIsoCountryCode = country.code
-            exitNode.country = location
+            exitNode.location = location
         case let .gateway(node):
             var gateway = NymVpnService_GatewayId()
             gateway.id = node.id
