@@ -163,12 +163,12 @@ fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
 	}
 }
 
-fun EntryPoint.Location.toDisplayCountry(): String {
-	return Locale(this.location, this.location).displayCountry
+fun EntryPoint.Country.toDisplayCountry(): String {
+	return Locale(this.twoLetterIsoCountryCode, this.twoLetterIsoCountryCode).displayCountry
 }
 
-fun ExitPoint.Location.toDisplayCountry(): String {
-	return Locale(this.location, this.location).displayCountry
+fun ExitPoint.Country.toDisplayCountry(): String {
+	return Locale(this.twoLetterIsoCountryCode, this.twoLetterIsoCountryCode).displayCountry
 }
 
 @Composable

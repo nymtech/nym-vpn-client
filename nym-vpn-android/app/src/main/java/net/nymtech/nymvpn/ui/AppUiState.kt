@@ -18,18 +18,18 @@ data class AppUiState(
 
 	val entryPointCountry = when (val entry = settings.entryPoint) {
 		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
-		is EntryPoint.Location -> entry.location
+		is EntryPoint.Country -> entry.twoLetterIsoCountryCode
 		else -> null
 	}
 	val exitPointCountry = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> null
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
-		is ExitPoint.Location -> exit.location
+		is ExitPoint.Country -> exit.twoLetterIsoCountryCode
 		else -> null
 	}
 
 	val entryPointGatewayName = when (val entry = settings.entryPoint) {
-		is EntryPoint.Location -> {
+		is EntryPoint.Country -> {
 			if (managerState.tunnelState == Tunnel.State.Up) {
 				managerState.connectionData?.let { data ->
 					gateways.entryGateways.firstOrNull { it.identity == data.entryGateway.id }?.name
@@ -42,7 +42,7 @@ data class AppUiState(
 	}
 
 	val exitPointGatewayName = when (val exit = settings.exitPoint) {
-		is ExitPoint.Location -> {
+		is ExitPoint.Country -> {
 			if (managerState.tunnelState == Tunnel.State.Up) {
 				managerState.connectionData?.let { data ->
 					gateways.exitGateways.firstOrNull { it.identity == data.exitGateway.id }?.name
@@ -58,7 +58,7 @@ data class AppUiState(
 		is EntryPoint.Gateway -> {
 			gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
 		}
-		is EntryPoint.Location -> entry.toDisplayCountry()
+		is EntryPoint.Country -> entry.toDisplayCountry()
 		else -> Settings.DEFAULT_ENTRY_POINT.toDisplayCountry()
 	}
 
@@ -67,20 +67,20 @@ data class AppUiState(
 		is ExitPoint.Gateway -> {
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
-		is ExitPoint.Location -> exit.toDisplayCountry()
+		is ExitPoint.Country -> exit.toDisplayCountry()
 		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
 	}
 
 	val exitPointId = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Gateway -> exit.identity
-		is ExitPoint.Location -> exit.location.lowercase()
+		is ExitPoint.Country -> exit.twoLetterIsoCountryCode.lowercase()
 		else -> null
 	}
 
 	val entryPointId = when (val entry = settings.entryPoint) {
 		is EntryPoint.Gateway -> entry.identity
-		is EntryPoint.Location -> entry.location.lowercase()
+		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 		else -> null
 	}
 }

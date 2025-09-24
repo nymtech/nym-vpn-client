@@ -3,8 +3,6 @@ package net.nymtech.vpn.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nym_vpn_lib_types.AsnKind
-import nym_vpn_lib_types.EntryPoint
-import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayInfo
 import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
@@ -64,25 +62,5 @@ data class NymGateway(
 	}
 	override fun toString(): String {
 		return Json.encodeToString(serializer(), this)
-	}
-
-	fun toLocationEntryPoint(): EntryPoint? {
-		return twoLetterCountryISO?.let {
-			EntryPoint.Location(twoLetterCountryISO)
-		}
-	}
-
-	fun toLocationExitPoint(): ExitPoint? {
-		return twoLetterCountryISO?.let {
-			ExitPoint.Location(twoLetterCountryISO)
-		}
-	}
-
-	fun toGatewayEntryPoint(): EntryPoint? {
-		return EntryPoint.Gateway(identity)
-	}
-
-	fun toGatewayExitPoint(): ExitPoint {
-		return ExitPoint.Gateway(identity)
 	}
 }

@@ -34,7 +34,7 @@ data class Settings(
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_WELCOME_SCREEN_COMPLETED = false
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
-		val DEFAULT_ENTRY_POINT = EntryPoint.Location("FR")
-		val DEFAULT_EXIT_POINT = ExitPoint.Location("FR")
+		val DEFAULT_ENTRY_POINT = EntryPoint.Country("FR")
+		val DEFAULT_EXIT_POINT = ExitPoint.Country("FR")
 	}
 }

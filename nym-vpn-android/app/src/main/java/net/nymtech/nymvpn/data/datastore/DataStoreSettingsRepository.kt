@@ -41,7 +41,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun getEntryPoint(): EntryPoint {
-		return dataStoreManager.getFromStore(entryPoint)?.asEntryPoint() ?: EntryPoint.Location("FR")
+		return dataStoreManager.getFromStore(entryPoint)?.asEntryPoint() ?: EntryPoint.Country("FR")
 	}
 
 	override suspend fun setExitPoint(exit: ExitPoint) {
@@ -49,7 +49,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun getExitPoint(): ExitPoint {
-		return dataStoreManager.getFromStore(exitPoint)?.asExitPoint() ?: ExitPoint.Location("FR")
+		return dataStoreManager.getFromStore(exitPoint)?.asExitPoint() ?: ExitPoint.Country("FR")
 	}
 
 	override suspend fun getTheme(): Theme {
