@@ -36,9 +36,15 @@
       "build-version": "Nym build version",
       "identity-key": "Identity key:"
     },
-    "score": {
+    "perf-score": {
       "high": "Good",
       "medium": "Mid",
+      "low": "Low",
+      "offline": "Offline"
+    },
+    "server-load-score": {
+      "high": "High",
+      "medium": "Medium",
       "low": "Low",
       "offline": "Offline"
     },
