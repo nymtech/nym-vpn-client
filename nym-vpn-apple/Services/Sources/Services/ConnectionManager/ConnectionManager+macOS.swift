@@ -94,6 +94,12 @@ extension ConnectionManager {
                 }
             }
             .store(in: &cancellables)
+
+        grpcManager.$connectionInfoData
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.connectionInfoData, on: self)
+            .store(in: &cancellables)
     }
 }
 

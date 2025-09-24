@@ -77,6 +77,11 @@ extension ConnectionManager {
                     self?.tunnelConnectingState = newState
                 }
             }
+
+        tunnelConnectionInfoDataCancellable = tunnel.$connectionInfoData
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.connectionInfoData, on: self)
     }
 }
 

@@ -3,7 +3,12 @@ import CountriesManagerTypes
 import NymVPNLib
 
 extension GatewayNodeScore {
-    init(with score: Score) {
+    init(with score: Score?) {
+        guard let score
+        else {
+            self = .noScore
+            return
+        }
         switch score {
         case .high:
             self = .high
@@ -11,8 +16,8 @@ extension GatewayNodeScore {
             self = .medium
         case .low:
             self = .low
-        case .none:
-            self = .noScore
+        case .offline:
+            self = .offline
         }
     }
 }

@@ -6,8 +6,8 @@ import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
+import FeatureFlagsManager
 #if os(macOS)
-import GRPCManager
 import HelperInstall
 import HelperManager
 #endif
@@ -18,8 +18,8 @@ public class SettingsViewModel: SettingsFlowState {
     private let configurationManager: ConfigurationManager
     private let connectionManager: ConnectionManager
     private let externalLinkManager: ExternalLinkManager
+    private let featureFlagsManager: FeatureFlagsManager
 #if os(macOS)
-    private let grpcManager: GRPCManager
     private let helperManager: HelperManager
 #endif
 
@@ -62,13 +62,15 @@ public class SettingsViewModel: SettingsFlowState {
         configurationManager: ConfigurationManager = .shared,
         connectionManager: ConnectionManager = .shared,
         credentialsManager: CredentialsManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared
+        externalLinkManager: ExternalLinkManager = .shared,
+        featureFlagsManager: FeatureFlagsManager = .shared
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
+        self.featureFlagsManager = featureFlagsManager
         super.init(path: path)
         setup()
     }
@@ -80,16 +82,16 @@ public class SettingsViewModel: SettingsFlowState {
         connectionManager: ConnectionManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
-        grpcManager: GRPCManager = .shared,
-        helperManager: HelperManager = .shared
+        helperManager: HelperManager = .shared,
+        featureFlagsManager: FeatureFlagsManager = .shared
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
-        self.grpcManager = grpcManager
         self.helperManager = helperManager
+        self.featureFlagsManager = featureFlagsManager
         super.init(path: path)
         setup()
     }

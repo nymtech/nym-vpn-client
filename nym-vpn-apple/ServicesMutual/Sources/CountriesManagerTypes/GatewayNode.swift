@@ -1,7 +1,7 @@
 public struct GatewayNode: Codable {
     public let id: String
     public let countryCode: String
-    public let wgScore: GatewayNodeScore
+    public let wgScore: GatewayNodeScore?
     public let mixnetScore: GatewayNodeScore
     public let moniker: String?
 

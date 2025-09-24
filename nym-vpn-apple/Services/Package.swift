@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
+        .library(name: "FeatureFlagsManager", targets: ["FeatureFlagsManager"]),
         .library(name: "GatewayManager", targets: ["GatewayManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
@@ -93,6 +94,8 @@ let package = Package(
                 "AppSettings",
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
+                .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -112,6 +115,15 @@ let package = Package(
                 .product(name: "Constants", package: "ServicesMutual")
             ],
             path: "Sources/Services/ExternalLinkManager"
+        ),
+        .target(
+            name: "FeatureFlagsManager",
+            dependencies: [
+                .product(name: "FeatureFlagModels", package: "ServicesMutual"),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
+            ],
+            path: "Sources/Services/FeatureFlagsManager"
         ),
         .target(
             name: "GatewayManager",
@@ -191,6 +203,8 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 .product(name: "MessageModels", package: "ServicesMutual"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
+                .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],

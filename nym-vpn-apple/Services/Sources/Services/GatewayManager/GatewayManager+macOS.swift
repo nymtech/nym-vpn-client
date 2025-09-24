@@ -3,7 +3,7 @@ import Foundation
 import CountriesManagerTypes
 
 extension GatewayManager {
-    func fetchGateways() async {
+    @MainActor func fetchGateways() async {
         do {
             let entryGateways = try await grpcManager.gateways(for: .entry)
             let exitGateways = try await grpcManager.gateways(for: .exit)

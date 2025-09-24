@@ -91,12 +91,21 @@ extension GRPCManager {
         case let .connected(details):
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
             tunnelStatus = .connected
+            connectionInfoData = ConnectionInfoData(
+                entryGatewayId: details.connectionData.entryGateway.id,
+                exitGatewayId: details.connectionData.exitGateway.id
+            )
         case let .connecting(details):
             connectionRetryAttempt = Int(details.retryAttempt)
             tunnelStatus = .connecting
             tunnelConnectingState = TunnelConnectingState(with: details.state)
+            connectionInfoData = ConnectionInfoData(
+                entryGatewayId: details.connectionData.entryGateway.id,
+                exitGatewayId: details.connectionData.exitGateway.id
+            )
         case .disconnected:
             tunnelStatus = .disconnected
+            connectionInfoData = nil
         case let .disconnecting(details):
             switch details.afterDisconnect {
             case .nothing, .UNRECOGNIZED, .error:
@@ -111,6 +120,7 @@ extension GRPCManager {
             } else {
                 tunnelStatus = .disconnecting
             }
+            connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
             errorReason = resolveError(with: details)
@@ -158,12 +168,14 @@ extension GRPCManager {
             ErrorReason.tunDevice
         case .tunnelProvider:
             ErrorReason.tunnelProvider
-        case .badBandwidthIncrease:
-            ErrorReason.badBandwidthIncrease
         case .inactiveAccount:
             ErrorReason.inactiveAccount
         case .deviceLoggedOut:
             ErrorReason.deviceLoggedOut
+        case .credentialWastedOnEntryGateway:
+            ErrorReason.credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            ErrorReason.credentialWastedOnExitGateway
         }
     }
 }
@@ -190,8 +202,6 @@ extension ErrorReason {
             self = .ipv6Unavailable
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
         case .bandwidthExceeded:
             self = .bandwidthExceeded
         case .inactiveSubscription:
@@ -208,6 +218,10 @@ extension ErrorReason {
             self = .internalUnknown
         case .UNRECOGNIZED:
             self = .internalUnknown
+        case .credentialWastedOnEntryGateway:
+            self = .credentialWastedOnEntryGateway
+        case .credentialWastedOnExitGateway:
+            self = .credentialWastedOnExitGateway
         }
     }
 }

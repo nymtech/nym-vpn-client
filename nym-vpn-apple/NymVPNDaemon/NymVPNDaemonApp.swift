@@ -7,6 +7,7 @@ import ConnectionManager
 import ConfigurationManager
 import Constants
 import CountriesManager
+import FeatureFlagsManager
 import GatewayManager
 import GRPCManager
 import Home
@@ -40,6 +41,8 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
+    @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
+    @ObservedObject private var gatewayManager = GatewayManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -91,6 +94,8 @@ struct NymVPNDaemonApp: App {
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
+            .environmentObject(featureFlagsManager)
+            .environmentObject(gatewayManager)
             .environmentObject(grpcManager)
             .environmentObject(nymLogger.logFileManager)
         }
@@ -135,6 +140,7 @@ private extension NymVPNDaemonApp {
         Task {
             // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup(for: .main)
+            FeatureFlagsManager.shared.setup()
             CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()

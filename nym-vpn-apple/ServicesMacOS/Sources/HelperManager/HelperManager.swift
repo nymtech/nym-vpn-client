@@ -3,7 +3,6 @@ import SecurityFoundation
 import ServiceManagement
 import AppVersionProvider
 import GRPCManager
-import Shell
 import Logging
 import NymLogger
 

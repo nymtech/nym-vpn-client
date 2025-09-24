@@ -35,8 +35,12 @@ let package = Package(
             dependencies: [
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
+                .product(name: "FeatureFlagModels", package: "ServicesMutual"),
                 .product(name: "MessageModels", package: "ServicesMutual"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "TunnelStatus", package: "ServicesMutual"),
                 .product(name: "Base58Swift", package: "Base58Swift"),
                 .product(name: "GRPC", package: "grpc-swift")
@@ -48,8 +52,7 @@ let package = Package(
             dependencies: [
                 "GRPCManager",
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Theme", package: "Theme"),
-                "Shell"
+                .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/HelperManager"
         ),

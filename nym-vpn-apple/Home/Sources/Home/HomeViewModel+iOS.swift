@@ -83,6 +83,12 @@ extension HomeViewModel {
                     )
                 }
             }
+
+        connectionManager.$connectionInfoData
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.connectionInfoData, on: self)
+            .store(in: &cancellables)
     }
 }
 #endif

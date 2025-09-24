@@ -5,6 +5,7 @@ import ConfigurationManager
 import ConnectionManager
 import CountriesManager
 import CredentialsManager
+import FeatureFlagsManager
 import GatewayManager
 import Home
 import Extensions
@@ -31,6 +32,8 @@ struct NymVPNApp: App {
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var credentialsManager = CredentialsManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+    @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
+    @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
 
     @StateObject private var homeViewModel = HomeViewModel()
@@ -74,6 +77,8 @@ struct NymVPNApp: App {
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
             .environmentObject(credentialsManager)
+            .environmentObject(featureFlagsManager)
+            .environmentObject(gatewayManager)
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
             .environmentObject(purchasesManager)
@@ -91,6 +96,7 @@ private extension NymVPNApp {
         Task {
             // Things dependant on environment being set.
             try await ConfigurationManager.shared.setup(for: .main)
+            FeatureFlagsManager.shared.setup()
             CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
