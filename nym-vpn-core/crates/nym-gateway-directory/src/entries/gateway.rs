@@ -50,11 +50,46 @@ impl fmt::Debug for Gateway {
             .field("clients_ws_port", &self.clients_ws_port)
             .field("clients_wss_port", &self.clients_wss_port)
             .field("mixnet_performance", &self.mixnet_performance)
+            .field("mixnet_score", &self.mixnet_score)
+            .field("wg_performance", &self.wg_performance)
+            .field("version", &self.version)
             .finish()
     }
 }
 
 impl Gateway {
+    /// Tests whether the gateway satisfies the minimum performance requirements.
+    ///
+    /// Both `min_wg_performance` and `min_mixnet_performance` represent a value between 0 and 100.
+    ///
+    /// - `min_wg_performance` - minimum wg performance filter when set, has no effect when None
+    /// - `min_mixnet_performance` - minimum mixnet performance filter when set, has no effect when None
+    pub fn satisfies_min_performance(
+        &self,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> bool {
+        let satisfies_wg_performance = if let Some(min_wg_performance_score) = min_wg_performance {
+            self.wg_performance.as_ref().is_some_and(|v| {
+                let percent = (v.uptime_percentage_last_24_hours * 100f32) as u8;
+                percent >= min_wg_performance_score
+            })
+        } else {
+            true
+        };
+
+        let satisfies_mixnet_performance =
+            if let Some(min_mixnet_performance_score) = min_mixnet_performance {
+                self.mixnet_performance
+                    .as_ref()
+                    .is_some_and(|v| v.round_to_integer() >= min_mixnet_performance_score)
+            } else {
+                true
+            };
+
+        satisfies_wg_performance && satisfies_mixnet_performance
+    }
+
     pub fn identity(&self) -> NodeIdentity {
         self.identity
     }
@@ -476,44 +511,84 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
-    pub fn gateways_located_at_country(&self, code: &str) -> impl Iterator<Item = &Gateway> {
-        self.gateways.iter().filter(move |gateway| {
-            gateway
-                .two_letter_iso_country_code()
-                .is_some_and(|gw_code| gw_code == code)
-        })
-    }
-
-    pub fn gateways_located_at_region(&self, region: &str) -> impl Iterator<Item = &Gateway> {
-        self.gateways.iter().filter(move |gateway| {
-            gateway
-                .region()
-                .is_some_and(|gw_region| gw_region == region)
-        })
-    }
-
-    pub fn random_gateway(&self) -> Option<Gateway> {
+    pub fn gateways_located_at_country(
+        &self,
+        code: &str,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> impl Iterator<Item = &Gateway> {
         self.gateways
             .iter()
+            .filter(move |gateway| {
+                gateway
+                    .two_letter_iso_country_code()
+                    .is_some_and(|gw_code| gw_code == code)
+            })
+            .filter(move |gateway| {
+                gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
+            })
+    }
+
+    pub fn gateways_located_at_region(
+        &self,
+        region: &str,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> impl Iterator<Item = &Gateway> {
+        self.gateways.iter().filter(move |gateway| {
+            gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
+                && gateway
+                    .region()
+                    .is_some_and(|gw_region| gw_region == region)
+        })
+    }
+
+    pub fn random_gateway(
+        &self,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> Option<Gateway> {
+        self.gateways
+            .iter()
+            .filter(|gateway| {
+                gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
+            })
             .choose(&mut rand::thread_rng())
             .cloned()
     }
 
-    pub fn random_gateway_located_at_country(&self, code: &str) -> Option<Gateway> {
-        self.gateways_located_at_country(code)
+    pub fn random_gateway_located_at_country(
+        &self,
+        code: &str,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> Option<Gateway> {
+        self.gateways_located_at_country(code, min_wg_performance, min_mixnet_performance)
+            .filter(|gateway| {
+                gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
+            })
             .choose(&mut rand::thread_rng())
             .cloned()
     }
 
-    pub fn random_gateway_located_at_region(&self, region: &str) -> Option<Gateway> {
+    pub fn random_gateway_located_at_region(
+        &self,
+        region: &str,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> Option<Gateway> {
         // check that the region is a US state that we have in the gateway list
         if !self
-            .gateways_located_at_country(COUNTRY_WITH_REGION_SELECTOR)
+            .gateways_located_at_country(
+                COUNTRY_WITH_REGION_SELECTOR,
+                min_wg_performance,
+                min_mixnet_performance,
+            )
             .any(|g| g.region() == Some(region))
         {
             return None;
         }
-        self.gateways_located_at_region(region)
+        self.gateways_located_at_region(region, min_wg_performance, min_mixnet_performance)
             .choose(&mut rand::thread_rng())
             .cloned()
     }
