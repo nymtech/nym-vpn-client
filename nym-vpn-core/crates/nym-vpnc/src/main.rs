@@ -8,7 +8,7 @@ use clap::Parser;
 use cli::Internal;
 use nym_gateway_directory::GatewayType;
 use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::TunnelState;
+use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
     ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
@@ -213,22 +213,27 @@ async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
-    if listen {
-        let mut stream = rpc_client.listen_to_tunnel_state().await?;
+    let state = rpc_client.get_tunnel_state().await?;
+    println!("State: {state}");
 
-        let initial_state = tokio::select! {
-            initial_state = rpc_client.get_tunnel_state() => initial_state,
-            Some(initial_state) = stream.next() => initial_state
-        }?;
-        println!("{initial_state}");
+    if !listen {
+        return Ok(());
+    }
 
-        while let Some(new_state) = stream.next().await {
-            let new_state = new_state?;
-            println!("{new_state}");
+    let mut stream = rpc_client.listen_to_events().await?;
+
+    while let Some(event) = stream.next().await {
+        match event {
+            Ok(TunnelEvent::NewState(new_state)) => {
+                println!("State: {new_state}");
+            }
+            Ok(TunnelEvent::ConfigChanged(new_config)) => {
+                let json = serde_json::to_string_pretty(&new_config)
+                    .context("failed to convert new config to JSON")?;
+                println!("Configuration changed:\n{json}");
+            }
+            _ => {}
         }
-    } else {
-        let new_state = rpc_client.get_tunnel_state().await?;
-        println!("{new_state}");
     }
 
     Ok(())

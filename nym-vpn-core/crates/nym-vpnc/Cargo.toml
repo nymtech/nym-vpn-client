@@ -16,6 +16,8 @@ workspace = true
 anyhow.workspace = true
 celes.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
 sysinfo.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true

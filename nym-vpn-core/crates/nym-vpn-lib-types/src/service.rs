@@ -4,8 +4,9 @@
 use std::{fmt, net::IpAddr};
 
 use nym_gateway_directory::{EntryPoint, ExitPoint};
+use serde::Serialize;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
@@ -22,11 +23,39 @@ pub struct VpnServiceConfig {
 
 impl fmt::Display for VpnServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
+        writeln!(
             f,
-            "entry point: {}, exit point: {}",
-            self.entry_point, self.exit_point
-        )
+            "entry point: {}, exit point: {}, dns: {}",
+            self.entry_point,
+            self.exit_point,
+            self.dns
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "<None>".to_string())
+        )?;
+        writeln!(
+            f,
+            "disable_ipv6: {}, enable_two_hop: {}, netstack: {}",
+            self.disable_ipv6, self.enable_two_hop, self.netstack
+        )?;
+        writeln!(
+            f,
+            "disable_poisson_rate: {}, disable_background_cover_traffic: {}",
+            self.disable_poisson_rate, self.disable_background_cover_traffic
+        )?;
+        writeln!(
+            f,
+            "min_mixnode_performance: {}, min_gateway_mixnet_performance: {}, min_gateway_vpn_performance: {}",
+            self.min_mixnode_performance
+                .map(|p| p.to_string())
+                .unwrap_or_else(|| "<None>".to_string()),
+            self.min_gateway_mixnet_performance
+                .map(|p| p.to_string())
+                .unwrap_or_else(|| "<None>".to_string()),
+            self.min_gateway_vpn_performance
+                .map(|p| p.to_string())
+                .unwrap_or_else(|| "<None>".to_string())
+        )?;
+        Ok(())
     }
 }
 
