@@ -116,7 +116,7 @@ async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
-    let global_config_file = crate::setup_global_config(run_params.network.clone())?;
+    let global_config_file = crate::setup_global_config(run_params.network.clone()).await?;
     let network_env = match crate::environment::setup_environment(
         &global_config_file,
         run_params.config_env_file.as_deref(),
