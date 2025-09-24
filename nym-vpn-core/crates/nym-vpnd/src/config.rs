@@ -6,7 +6,7 @@ use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GlobalConfig {
     pub network_name: String,
     pub sentry_monitoring: bool,
@@ -30,6 +30,22 @@ impl GlobalConfig {
     }
 
     pub async fn read_from_config_dir(config_dir: &Path) -> anyhow::Result<Self> {
+        let config = match Self::read_config(config_dir).await {
+            Ok(config) => config,
+            Err(err) => {
+                tracing::error!("Failed to read global config file; using default : {err}");
+                GlobalConfig::default()
+            }
+        };
+
+        // Always write back config file back using the latest JSON version
+        // TODO: Avoid doing this as it's double-writing the config file.
+        config.write_to_config_dir(config_dir).await?;
+
+        Ok(config)
+    }
+
+    async fn read_config(config_dir: &Path) -> anyhow::Result<Self> {
         let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
         let json_config_exists = json_config_path.exists();
         let toml_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
@@ -70,10 +86,6 @@ impl GlobalConfig {
             );
             let _ = std::fs::remove_file(&toml_config_path);
         }
-
-        // Always write back config file back using the latest JSON version
-        // TODO: Avoid doing this as it's double-writing the config file.
-        config.write_to_config_dir(config_dir).await?;
 
         Ok(config)
     }
@@ -283,5 +295,37 @@ collect_network_statistics = true
         // Check the JSON is the right version and all snake-case
         let read_json_content = fs::read_to_string(&json_path).await.unwrap();
         assert_eq!(json_content, read_json_content);
+    }
+
+    #[tokio::test]
+    async fn test_global_config_fallback_default() {
+        let (temp_dir, toml_path, json_path) = setup().await;
+
+        let broken_toml_content = r#"
+netwoXrk_name = "tulips"
+sentry_monitoring = false
+collect_network_statistics = true
+"#;
+
+        let broken_json_content = r#"{
+  "version": "v1",
+  "network_name": "tulips",
+  "sentry_mXonitoring": false,
+  "collect_network_statistics": true
+}"#;
+
+        // Write the (broken) TOML config file
+        fs::write(&toml_path, broken_toml_content).await.unwrap();
+        let config = GlobalConfig::read_from_config_dir(temp_dir.path())
+            .await
+            .unwrap();
+        assert_eq!(config, GlobalConfig::default());
+
+        // Write the (broken) JSON config file
+        fs::write(&json_path, broken_json_content).await.unwrap();
+        let config = GlobalConfig::read_from_config_dir(temp_dir.path())
+            .await
+            .unwrap();
+        assert_eq!(config, GlobalConfig::default());
     }
 }
