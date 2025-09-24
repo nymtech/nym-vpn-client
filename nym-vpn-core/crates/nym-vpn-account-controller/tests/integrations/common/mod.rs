@@ -31,11 +31,9 @@ static TEST_TRACING: OnceLock<()> = OnceLock::new();
 
 pub fn init_tracing() {
     TEST_TRACING.get_or_init(|| {
-        // Build env filter: if user provided RUST_LOG we honour it, otherwise fall back.
         let env_filter = if std::env::var("RUST_LOG").is_ok() {
             EnvFilter::from_default_env()
         } else {
-            // Show INFO for our crates by default; DEBUG can be enabled with RUST_LOG.
             EnvFilter::new("info,nym_vpn_account_controller=info,nym_vpn_api_client=info")
         };
 
@@ -43,7 +41,8 @@ pub fn init_tracing() {
             .with_target(false)
             .compact()
             .with_thread_ids(true)
-            .with_thread_names(true);
+            .with_thread_names(true)
+            .with_writer(std::io::stdout);
 
         tracing_subscriber::registry()
             .with(env_filter)
