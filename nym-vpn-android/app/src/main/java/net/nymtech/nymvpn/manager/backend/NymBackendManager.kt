@@ -306,6 +306,13 @@ class NymBackendManager @Inject constructor(
 
 				else -> Unit
 			}
+
+			is BackendEvent.AccountState -> {
+				Timber.d("AccountState: ${backendEvent.event}")
+			}
+			is BackendEvent.ConfigChanged -> {
+				Timber.d("ConfigChanged")
+			}
 		}
 	}
 

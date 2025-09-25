@@ -414,6 +414,13 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				onStateChange(event.asTunnelState())
 				tunnel?.onBackendEvent(BackendEvent.Tunnel(event.v1))
 			}
+
+			is TunnelEvent.AccountState -> {
+				tunnel?.onBackendEvent(BackendEvent.AccountState(event.v1))
+			}
+			is TunnelEvent.ConfigChanged -> {
+				tunnel?.onBackendEvent(BackendEvent.ConfigChanged(event.v1))
+			}
 		}
 	}
 
