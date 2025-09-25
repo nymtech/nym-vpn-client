@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.capitalizeFirstLowerRest
+import net.nymtech.nymvpn.util.extensions.colorLoad
+import net.nymtech.nymvpn.util.extensions.colorPerformance
 import net.nymtech.nymvpn.util.extensions.formatUtcString
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import nym_vpn_lib_types.Score
@@ -38,7 +40,7 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 						Text(
 							text = s.name.capitalizeFirstLowerRest(),
 							style = Typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onBackground,
+							color = s.colorPerformance(),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					}
@@ -50,17 +52,10 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 			add(
 				stringResource(R.string.details_server_load) to {
 					Row(verticalAlignment = Alignment.CenterVertically) {
-						val loadIcon = getScoreIcon(l)
-						Image(
-							loadIcon.first,
-							contentDescription = loadIcon.second,
-							modifier = Modifier.size(16.dp),
-						)
-						Spacer(modifier = Modifier.width(6.dp))
 						Text(
 							text = l.name.capitalizeFirstLowerRest(),
 							style = Typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onBackground,
+							color = l.colorLoad(),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					}
