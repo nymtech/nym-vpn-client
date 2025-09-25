@@ -30,6 +30,12 @@ public final class GatewayManager: ObservableObject {
     @Published public var vpn: [GatewayNode]
     @Published public var lastError: Error?
 
+    lazy var iso8601Flexible: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
 #if os(iOS)
     public init(appSettings: AppSettings = .shared, configurationManager: ConfigurationManager = .shared) {
         self.appSettings = appSettings
@@ -54,6 +60,7 @@ public final class GatewayManager: ObservableObject {
         self.vpn = []
         loadGatewayStore()
         loadPrebundledServersIfNecessary()
+        setupDaemonObserver()
     }
 #endif
 
@@ -99,11 +106,11 @@ private extension GatewayManager {
     }
     func needsReload() -> Bool {
         guard let lastFetchDate = gatewayStore.lastFetchDate else { return true }
-        return isLongerThan30Minutes(date: lastFetchDate)
+        return isLongerThan10Minutes(date: lastFetchDate)
     }
 
-    func isLongerThan30Minutes(date: Date) -> Bool {
-        Date().timeIntervalSince(date) > 1800 ? true : false
+    func isLongerThan10Minutes(date: Date) -> Bool {
+        Date().timeIntervalSince(date) > 600 ? true : false
     }
 
     func loadGatewaysFromStore() {

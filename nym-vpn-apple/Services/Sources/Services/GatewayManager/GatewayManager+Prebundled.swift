@@ -52,39 +52,54 @@ extension GatewayManager {
     func loadPrebundledServers(from fileURL: URL) throws -> [GatewayNode] {
         do {
             let data = try Data(contentsOf: fileURL)
+
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let decodedString = try container.decode(String.self)
+                if let d1 = self.iso8601Flexible.date(from: decodedString) {
+                    return d1
+                }
+                let f2 = ISO8601DateFormatter()
+                if let d2 = f2.date(from: decodedString) {
+                    return d2
+                }
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Bad ISO8601 date: \(decodedString)"
+                )
+            }
 
             let nodes = try decoder.decode(Node.self, from: data)
 
             return nodes.map { node in
+                // perfV2 might be absent
                 let perfV2 = node.performanceV2
-
                 let performance = GatewayPerformance(
-                    lastUpdated: perfV2.lastUpdatedUTC,
-                    score: mapScore(from: perfV2.score),
-                    load: mapScore(from: perfV2.load),
-                    uptime: perfV2.uptimePercentageLast24Hours
+                    lastUpdated: perfV2?.lastUpdatedUTC,
+                    score: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
+                    load: perfV2.map { mapScore(from: $0.load) }  ?? .noScore,
+                    uptime: perfV2?.uptimePercentageLast24Hours ?? 0
                 )
 
                 let asn = GatewayASN(
-                    asn: node.location.asn.asn,
-                    asnName: node.location.asn.name,
-                    type: mapASNType(from: node.location.asn.kind)
+                    asn: node.location.asn?.asn ?? "",
+                    asnName: node.location.asn?.name ?? "",
+                    type: node.location.asn.map { mapASNType(from: $0.kind) } ?? .other
                 )
 
                 return GatewayNode(
                     id: node.identityKey,
-                    countryCode: node.location.twoLetterISOCountryCode,
-                    city: node.location.city,
-                    region: node.location.region,
+                    countryCode: node.location.twoLetterISOCountryCode ?? "",
+                    city: node.location.city ?? "",
+                    region: node.location.region ?? "",
                     asn: asn,
                     performance: performance,
-                    mixnetScore: mapScore(from: node.performanceV2.score),
+                    mixnetScore: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
                     moniker: node.name,
-                    buildVersion: node.buildInformation.buildVersion,
-                    ipv4s: node.ipAddresses.ipv4s,
-                    ipv6s: node.ipAddresses.ipv6s
+                    buildVersion: node.buildInformation?.buildVersion,
+                    ipv4s: node.ipAddresses?.ipv4s ?? [],
+                    ipv6s: node.ipAddresses?.ipv6s ?? []
                 )
             }
         } catch {
@@ -105,35 +120,45 @@ private extension Array where Element == String {
     var ipv6s: [String] { filter { $0.contains(":") } }
 }
 
-private func mapScore(from load: Load) -> GatewayNodeScore {
+private func mapScore(from load: Load?) -> GatewayNodeScore {
     switch load {
-    case .high: return .high
-    case .medium: return .medium
-    case .low: return .low
-    case .offline: return .offline
+    case .high:
+        .high
+    case .medium:
+        .medium
+    case .low:
+        .low
+    case .offline:
+        .offline
+    case .none:
+        .offline
     }
 }
 
 private func mapASNType(from kind: Kind) -> GatewayASNType {
     switch kind {
-    case .residential: return .residential
-    case .other:       return .other
+    case .residential:
+        .residential
+    case .other:
+        .other
     }
 }
 
 // MARK: - NodeElement
 private struct NodeElement: Codable, Sendable {
-    let identityKey, name: String
-    let ipPacketRouter, authenticator: Authenticator
+    let identityKey: String
+    let name: String
+    let ipPacketRouter: Authenticator?
+    let authenticator: Authenticator?
     let location: Location
-    let lastProbe: LastProbe
-    let ipAddresses: [String]
-    let mixPort: Int
-    let role: Role
-    let entry: Entry
-    let performance: String
-    let performanceV2: PerformanceV2
-    let buildInformation: BuildInformation
+    let lastProbe: LastProbe?
+    let ipAddresses: [String]?
+    let mixPort: Int?
+    let role: Role?
+    let entry: Entry?
+    let performance: String?
+    let performanceV2: PerformanceV2?
+    let buildInformation: BuildInformation?
 
     enum CodingKeys: String, CodingKey {
         case identityKey = "identity_key"
@@ -149,10 +174,7 @@ private struct NodeElement: Codable, Sendable {
     }
 }
 
-// MARK: - Authenticator
-private struct Authenticator: Codable, Sendable {
-    let address: String
-}
+private struct Authenticator: Codable, Sendable { let address: String? }
 
 // MARK: - BuildInformation
 private struct BuildInformation: Codable, Sendable {
@@ -168,25 +190,24 @@ private struct BuildInformation: Codable, Sendable {
     let cargoTriple: String?
 
     enum CodingKeys: String, CodingKey {
-        case binaryName = "binary_name"
-        case buildTimestamp = "build_timestamp"
-        case buildVersion = "build_version"
-        case commitSHA = "commit_sha"
-        case commitTimestamp = "commit_timestamp"
-        case commitBranch = "commit_branch"
-        case rustcVersion = "rustc_version"
-        case rustcChannel = "rustc_channel"
-        case cargoProfile = "cargo_profile"
-        case cargoTriple = "cargo_triple"
+        case binaryName       = "binary_name"
+        case buildTimestamp   = "build_timestamp"
+        case buildVersion     = "build_version"
+        case commitSHA        = "commit_sha"
+        case commitTimestamp  = "commit_timestamp"
+        case commitBranch     = "commit_branch"
+        case rustcVersion     = "rustc_version"
+        case rustcChannel     = "rustc_channel"
+        case cargoProfile     = "cargo_profile"
+        case cargoTriple      = "cargo_triple"
     }
 }
 
 // MARK: - Entry
 private struct Entry: Codable, Sendable {
     let hostname: String?
-    let wsPort: Int
+    let wsPort: Int?
     let wssPort: Int?
-
     enum CodingKeys: String, CodingKey {
         case hostname
         case wsPort = "ws_port"
@@ -196,9 +217,8 @@ private struct Entry: Codable, Sendable {
 
 // MARK: - LastProbe
 private struct LastProbe: Codable, Sendable {
-    let lastUpdatedUTC: Date
-    let outcome: Outcome
-
+    let lastUpdatedUTC: Date?
+    let outcome: Outcome?
     enum CodingKeys: String, CodingKey {
         case lastUpdatedUTC = "last_updated_utc"
         case outcome
@@ -210,7 +230,6 @@ private struct Outcome: Codable, Sendable {
     let asEntry: AsEntry?
     let asExit: AsExit?
     let wg: Wg?
-
     enum CodingKeys: String, CodingKey {
         case asEntry = "as_entry"
         case asExit = "as_exit"
@@ -218,21 +237,21 @@ private struct Outcome: Codable, Sendable {
     }
 }
 
-// MARK: - AsEntry
 private struct AsEntry: Codable, Sendable {
-    let canConnect, canRoute: Bool?
-
+    let canConnect: Bool?
+    let canRoute: Bool?
     enum CodingKeys: String, CodingKey {
         case canConnect = "can_connect"
         case canRoute = "can_route"
     }
 }
 
-// MARK: - AsExit
 private struct AsExit: Codable, Sendable {
-    let canConnect, canRouteIPV4, canRouteIPExternalV4, canRouteIPV6: Bool?
+    let canConnect: Bool?
+    let canRouteIPV4: Bool?
+    let canRouteIPExternalV4: Bool?
+    let canRouteIPV6: Bool?
     let canRouteIPExternalV6: Bool?
-
     enum CodingKeys: String, CodingKey {
         case canConnect = "can_connect"
         case canRouteIPV4 = "can_route_ip_v4"
@@ -242,20 +261,21 @@ private struct AsExit: Codable, Sendable {
     }
 }
 
-// MARK: - Wg
+// All metrics as Double? via lossy decoding to tolerate 0.5 etc.
 private struct Wg: Codable, Sendable {
     let canRegister, canHandshake, canResolveDNS: Bool?
-    let pingHostsPerformance: Int?
+    let pingHostsPerformance: Double?
     let pingIPSPerformance: Double?
     let canHandshakeV4, canResolveDNSV4: Bool?
-    let pingHostsPerformanceV4: Int?
+    let pingHostsPerformanceV4: Double?
     let pingIPSPerformanceV4: Double?
     let canHandshakeV6, canResolveDNSV6: Bool?
-    let pingHostsPerformanceV6, pingIPSPerformanceV6: Double?
-    let downloadDurationSECV4: Int?
+    let pingHostsPerformanceV6: Double?
+    let pingIPSPerformanceV6: Double?
+    let downloadDurationSECV4: Double?
     let downloadedFileV4: String?
     let downloadErrorV4: String?
-    let downloadDurationSECV6: Int?
+    let downloadDurationSECV6: Double?
     let downloadedFileV6: String?
     let downloadErrorV6: String?
 
@@ -280,15 +300,43 @@ private struct Wg: Codable, Sendable {
         case downloadedFileV6 = "downloaded_file_v6"
         case downloadErrorV6 = "download_error_v6"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        canRegister = try? container.decode(Bool.self, forKey: .canRegister)
+        canHandshake = try? container.decode(Bool.self, forKey: .canHandshake)
+        canResolveDNS = try? container.decode(Bool.self, forKey: .canResolveDNS)
+
+        pingHostsPerformance = container.decodeLossyDouble(forKey: .pingHostsPerformance)
+        pingIPSPerformance = container.decodeLossyDouble(forKey: .pingIPSPerformance)
+
+        canHandshakeV4 = try? container.decode(Bool.self, forKey: .canHandshakeV4)
+        canResolveDNSV4 = try? container.decode(Bool.self, forKey: .canResolveDNSV4)
+        pingHostsPerformanceV4 = container.decodeLossyDouble(forKey: .pingHostsPerformanceV4)
+        pingIPSPerformanceV4 = container.decodeLossyDouble(forKey: .pingIPSPerformanceV4)
+
+        canHandshakeV6 = try? container.decode(Bool.self, forKey: .canHandshakeV6)
+        canResolveDNSV6 = try? container.decode(Bool.self, forKey: .canResolveDNSV6)
+        pingHostsPerformanceV6 = container.decodeLossyDouble(forKey: .pingHostsPerformanceV6)
+        pingIPSPerformanceV6 = container.decodeLossyDouble(forKey: .pingIPSPerformanceV6)
+
+        downloadDurationSECV4 = container.decodeLossyDouble(forKey: .downloadDurationSECV4)
+        downloadedFileV4 = try? container.decode(String.self, forKey: .downloadedFileV4)
+        downloadErrorV4 = try? container.decode(String.self, forKey: .downloadErrorV4)
+
+        downloadDurationSECV6 = container.decodeLossyDouble(forKey: .downloadDurationSECV6)
+        downloadedFileV6 = try? container.decode(String.self, forKey: .downloadedFileV6)
+        downloadErrorV6 = try? container.decode(String.self, forKey: .downloadErrorV6)
+    }
 }
 
 // MARK: - Location
 private struct Location: Codable, Sendable {
-    let twoLetterISOCountryCode: String
-    let latitude, longitude: Double
-    let city, region, org, postal: String
-    let timezone: String
-    let asn: Asn
+    let twoLetterISOCountryCode: String?
+    let latitude, longitude: Double?
+    let city, region, org, postal: String?
+    let timezone: String?
+    let asn: Asn?
 
     enum CodingKeys: String, CodingKey {
         case twoLetterISOCountryCode = "two_letter_iso_country_code"
@@ -302,10 +350,7 @@ private struct Asn: Codable, Sendable {
     let kind: Kind
 }
 
-private enum Kind: String, Codable, Sendable {
-    case other
-    case residential
-}
+private enum Kind: String, Codable, Sendable { case other, residential }
 
 // MARK: - PerformanceV2
 private struct PerformanceV2: Codable, Sendable {
@@ -320,17 +365,39 @@ private struct PerformanceV2: Codable, Sendable {
     }
 }
 
+private extension KeyedDecodingContainer {
+    func decodeLossyDouble(forKey key: K) -> Double? {
+        if let value = try? decode(Double.self, forKey: key) {
+            return value
+        } else if let value = try? decode(Int.self, forKey: key) {
+            return Double(value)
+        } else if let value = try? decode(String.self, forKey: key) {
+            return Double(value)
+        } else {
+            return nil
+        }
+    }
+
+    func decodeLossyInt(forKey key: K) -> Int? {
+        if let value = try? decode(Int.self, forKey: key) {
+            return value
+        } else if let value = try? decode(Double.self, forKey: key) {
+            return Int(value)
+        } else if let value = try? decode(String.self, forKey: key), let doubleValue = Double(value) {
+            return Int(doubleValue)
+        } else {
+            return nil
+        }
+    }
+}
+
 private enum Load: String, Codable, Sendable {
-    case high
-    case low
-    case medium
-    case offline
+    case high, low, medium, offline
 }
 
 private enum Role: String, Codable, Sendable {
-    case entryGateway = "EntryGateway"
-    case exitGateway = "ExitGateway"
-    case inactive = "Inactive"
+    case entryGateway = "EntryGateway",
+         exitGateway = "ExitGateway",
+         inactive = "Inactive"
 }
-
 private typealias Node = [NodeElement]
