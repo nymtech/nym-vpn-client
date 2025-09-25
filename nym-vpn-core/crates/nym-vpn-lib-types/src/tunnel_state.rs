@@ -194,6 +194,12 @@ pub enum ErrorStateReason {
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
+    /// Failure to select the entry gateway that meets the performance requirements.
+    PerformantEntryGatewayUnavailable,
+
+    /// Failure to select the exit gateway that meets the performance requirements.
+    PerformantExitGatewayUnavailable,
+
     /// Invalid country set for entry gateway
     InvalidEntryGatewayCountry,
 

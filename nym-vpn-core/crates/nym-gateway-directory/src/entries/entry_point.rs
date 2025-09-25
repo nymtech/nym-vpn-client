@@ -43,11 +43,12 @@ impl EntryPoint {
         Ok(EntryPoint::Gateway { identity })
     }
 
-    pub fn is_location(&self) -> bool {
-        matches!(self, EntryPoint::Location { .. })
-    }
-
-    pub async fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
+    pub fn lookup_gateway(
+        &self,
+        gateways: &GatewayList,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
                 debug!("Selecting gateway by identity: {}", identity);
@@ -61,7 +62,11 @@ impl EntryPoint {
             EntryPoint::Location { location } => {
                 debug!("Selecting gateway by location: {}", location);
                 gateways
-                    .random_gateway_located_at(location.to_string())
+                    .random_gateway_located_at_country(
+                        location,
+                        min_wg_performance,
+                        min_mixnet_performance,
+                    )
                     .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
                         requested_location: location.clone(),
                         available_countries: gateways.all_iso_codes(),
@@ -70,7 +75,7 @@ impl EntryPoint {
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");
                 gateways
-                    .random_gateway()
+                    .random_gateway(min_wg_performance, min_mixnet_performance)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }

@@ -296,7 +296,7 @@ impl Probe {
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
 
-        let entry_gateway = self.entrypoint.lookup_gateway(&gateways).await?;
+        let entry_gateway = self.entrypoint.lookup_gateway(&gateways, None, None)?;
         let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {

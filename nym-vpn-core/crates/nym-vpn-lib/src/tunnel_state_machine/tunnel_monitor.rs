@@ -351,6 +351,14 @@ impl TunnelMonitor {
                     self.tunnel_parameters.tunnel_settings.tunnel_type,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
+                    self.tunnel_parameters
+                        .nym_config
+                        .gateway_config
+                        .wg_score_thresholds,
+                    self.tunnel_parameters
+                        .nym_config
+                        .gateway_config
+                        .mix_score_thresholds,
                     self.shutdown_token.child_token(),
                 )
                 .await

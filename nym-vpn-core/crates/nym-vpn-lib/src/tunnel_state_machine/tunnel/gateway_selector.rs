@@ -2,8 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayType};
+use nym_vpn_api_client::types::ScoreThresholds;
 
 use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
+
+// First gateways with performance >= 75% are selected
+// Performance threshold expressed as percentage from 0 to 100
+const HIGH_PERFORMANCE_THRESHOLD: u8 = 75;
+
+// Second, fallback to gateways with performance >= 50%
+// Performance threshold expressed as percentage from 0 to 100
+const MEDIUM_PERFORMANCE_THRESHOLD: u8 = 50;
 
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
@@ -16,6 +25,8 @@ pub async fn select_gateways(
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
+    wg_score_thresholds: Option<ScoreThresholds>,
+    mix_score_thresholds: Option<ScoreThresholds>,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
@@ -61,28 +72,52 @@ pub async fn select_gateways(
     tracing::info!("Found {} entry gateways", entry_gateways.len());
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
+    let (min_wg_performance, min_mixnet_performance) =
+        high_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
     let exit_gateway = exit_point
-        .lookup_gateway(&exit_gateways)
-        .map_err(GatewayDirectoryError::SelectExitGateway)?;
+        .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance)
+        .or_else(|err| {
+            // When no gateways could be found, lower performance tier and try again
+            if err.is_unmatched_non_specific_gateway() {
+                let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
+                tracing::debug!("Could not locate high quality exit gateway. Lowering performance filter to medium and trying again");
+
+                exit_point.lookup_gateway(
+                    &exit_gateways,
+                    min_wg_performance,
+                    min_mixnet_performance,
+                ).map_err(GatewayDirectoryError::PerformantExitGatewayUnavailable)
+            } else {
+                Err(GatewayDirectoryError::SelectExitGateway(err))
+            }
+        })?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
 
+    // If there are no more entry gateways left, it means that entry and exit match.
+    if entry_gateways.is_empty() {
+        return Err(GatewayDirectoryError::SameEntryAndExitGateway {
+            identity: exit_gateway.identity.to_string(),
+        });
+    }
+
     let entry_gateway = entry_point
-        .lookup_gateway(&entry_gateways)
-        .await
-        .map_err(|source| match source {
-            nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
-                requested_location,
-                available_countries: _,
-            } if Some(requested_location.as_str())
-                == exit_gateway.two_letter_iso_country_code() =>
-            {
-                GatewayDirectoryError::SameEntryAndExitGateway {
-                    identity: exit_gateway.identity.to_string(),
-                }
+        .lookup_gateway(&entry_gateways, min_wg_performance, min_mixnet_performance)
+        .or_else(|err| {
+            // When no gateways could be found, lower performance tier and try again
+            if err.is_unmatched_non_specific_gateway() {
+                let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
+                tracing::debug!("Could not locate high quality entry gateway. Lowering performance filter to medium and trying again");
+
+                entry_point.lookup_gateway(
+                    &entry_gateways,
+                    min_wg_performance,
+                    min_mixnet_performance,
+                ).map_err(GatewayDirectoryError::PerformantEntryGatewayUnavailable)
+            } else {
+                 Err(GatewayDirectoryError::SelectEntryGateway(err))
             }
-            _ => GatewayDirectoryError::SelectEntryGateway(source),
         })?;
 
     tracing::info!(
@@ -116,4 +151,56 @@ pub async fn select_gateways(
         entry: Box::new(entry_gateway),
         exit: Box::new(exit_gateway),
     })
+}
+
+/// Returns minimum wireguard and mixnet performance thresholds for gateways with high performance.
+fn high_performance_tier(
+    tunnel_type: TunnelType,
+    wg_score_thresholds: Option<ScoreThresholds>,
+    mix_score_thresholds: Option<ScoreThresholds>,
+) -> (Option<u8>, Option<u8>) {
+    match tunnel_type {
+        TunnelType::Wireguard => (
+            Some(
+                wg_score_thresholds
+                    .map(|v| v.high)
+                    .unwrap_or(HIGH_PERFORMANCE_THRESHOLD),
+            ),
+            None,
+        ),
+        TunnelType::Mixnet => (
+            None,
+            Some(
+                mix_score_thresholds
+                    .map(|v| v.high)
+                    .unwrap_or(HIGH_PERFORMANCE_THRESHOLD),
+            ),
+        ),
+    }
+}
+
+/// Returns minimum wireguard and mixnet performance thresholds for gateways with medium performance.
+fn medium_performance_tier(
+    tunnel_type: TunnelType,
+    wg_score_thresholds: Option<ScoreThresholds>,
+    mix_score_thresholds: Option<ScoreThresholds>,
+) -> (Option<u8>, Option<u8>) {
+    match tunnel_type {
+        TunnelType::Wireguard => (
+            Some(
+                wg_score_thresholds
+                    .map(|v| v.medium)
+                    .unwrap_or(MEDIUM_PERFORMANCE_THRESHOLD),
+            ),
+            None,
+        ),
+        TunnelType::Mixnet => (
+            None,
+            Some(
+                mix_score_thresholds
+                    .map(|v| v.medium)
+                    .unwrap_or(MEDIUM_PERFORMANCE_THRESHOLD),
+            ),
+        ),
+    }
 }

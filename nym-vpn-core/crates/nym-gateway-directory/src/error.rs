@@ -103,5 +103,18 @@ pub enum Error {
     #[error("operation cancelled")]
     Cancelled,
 }
+
+impl Error {
+    /// Returns true when no gateways matching the search criteria could be found, except when the gateway is constrained to identity
+    pub fn is_unmatched_non_specific_gateway(&self) -> bool {
+        matches!(
+            self,
+            Error::NoMatchingEntryGatewayForLocation { .. }
+                | Error::NoMatchingExitGatewayForLocation { .. }
+                | Error::FailedToSelectGatewayRandomly
+        )
+    }
+}
+
 // Result type based on our error type
 pub type Result<T> = std::result::Result<T, Error>;
