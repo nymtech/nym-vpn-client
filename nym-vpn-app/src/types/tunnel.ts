@@ -85,6 +85,8 @@ export type TunnelError =
   | { key: 'set-dns'; message: string | null }
   | { key: 'set-routing'; message: string | null }
   | { key: 'same-entry-and-exit-gw'; message: string | null }
+  | { key: 'performant-entry-gw-unavailable'; message: string | null }
+  | { key: 'performant-exit-gw-unavailable'; message: string | null }
   | { key: 'invalid-entry-gw-country'; message: string | null }
   | { key: 'invalid-exit-gw-country'; message: string | null }
   | { key: 'max-devices-reached'; message: string | null }
