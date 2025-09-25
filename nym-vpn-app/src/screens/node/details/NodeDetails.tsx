@@ -1,5 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
+import dayjs from 'dayjs';
 import * as H from 'history';
 import { Trans, useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
@@ -247,8 +248,8 @@ function NodeDetails() {
   ];
 
   const card2Footer = lastUpdate
-    ? t('node-details.notes.performance_with_date', {
-        date: lastUpdate,
+    ? t('node-details.notes.performance_with_time', {
+        relativeTime: dayjs().to(dayjs(lastUpdate)),
       })
     : t('node-details.notes.performance');
 
