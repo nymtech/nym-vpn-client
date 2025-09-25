@@ -189,6 +189,7 @@ impl ConnectionMonitor {
 }
 
 // Keep that code commented for when we restore connectivity reports
+// TODO restore connectivity reports with proper channels
 fn log_connectivity(connectivity: &ConnectivityState) {
     if connectivity.entry == ConnectivityStatus::Fail {
         tracing::error!("Entry gateway not routing our mixnet traffic");
