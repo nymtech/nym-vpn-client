@@ -52,20 +52,44 @@ extension GatewayManager {
     func loadPrebundledServers(from fileURL: URL) throws -> [GatewayNode] {
         do {
             let data = try Data(contentsOf: fileURL)
-            let nodes = try JSONDecoder().decode([Node].self, from: data)
-            let servers = nodes.map {
-                // TODO: update scores with actual thresholds
-                GatewayNode(
-                    id: $0.identityKey,
-                    countryCode: $0.location.twoLetterISOCountryCode,
-                    wgScore: .high,
-                    mixnetScore: .high,
-                    moniker: $0.name
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+
+            let nodes = try decoder.decode(Node.self, from: data)
+
+            return nodes.map { node in
+                let perfV2 = node.performanceV2
+
+                let performance = GatewayPerformance(
+                    lastUpdated: perfV2.lastUpdatedUTC,
+                    score: mapScore(from: perfV2.score),
+                    load: mapScore(from: perfV2.load),
+                    uptime: perfV2.uptimePercentageLast24Hours
+                )
+
+                let asn = GatewayASN(
+                    asn: node.location.asn.asn,
+                    asnName: node.location.asn.name,
+                    type: mapASNType(from: node.location.asn.kind)
+                )
+
+                return GatewayNode(
+                    id: node.identityKey,
+                    countryCode: node.location.twoLetterISOCountryCode,
+                    city: node.location.city,
+                    region: node.location.region,
+                    asn: asn,
+                    performance: performance,
+                    mixnetScore: mapScore(from: node.performanceV2.score),
+                    moniker: node.name,
+                    buildVersion: node.buildInformation.buildVersion,
+                    ipv4s: node.ipAddresses.ipv4s,
+                    ipv6s: node.ipAddresses.ipv6s
                 )
             }
-            return servers
         } catch {
-            throw GeneralNymError.cannotParseCountries
+            print(error)
+            return []
         }
     }
 
@@ -76,110 +100,89 @@ extension GatewayManager {
     }
 }
 
-struct Node: Codable {
-    let identityKey: String
-    let name: String
-    let authenticator: Authenticator
-    let ipPacketRouter: IPPacketRouter
+private extension Array where Element == String {
+    var ipv4s: [String] { filter { $0.contains(".") } }
+    var ipv6s: [String] { filter { $0.contains(":") } }
+}
+
+private func mapScore(from load: Load) -> GatewayNodeScore {
+    switch load {
+    case .high: return .high
+    case .medium: return .medium
+    case .low: return .low
+    case .offline: return .offline
+    }
+}
+
+private func mapASNType(from kind: Kind) -> GatewayASNType {
+    switch kind {
+    case .residential: return .residential
+    case .other:       return .other
+    }
+}
+
+// MARK: - NodeElement
+private struct NodeElement: Codable, Sendable {
+    let identityKey, name: String
+    let ipPacketRouter, authenticator: Authenticator
     let location: Location
     let lastProbe: LastProbe
     let ipAddresses: [String]
     let mixPort: Int
-    let role: String
+    let role: Role
     let entry: Entry
     let performance: String
+    let performanceV2: PerformanceV2
     let buildInformation: BuildInformation
 
     enum CodingKeys: String, CodingKey {
         case identityKey = "identity_key"
         case name
-        case authenticator
         case ipPacketRouter = "ip_packet_router"
-        case location
+        case authenticator, location
         case lastProbe = "last_probe"
         case ipAddresses = "ip_addresses"
         case mixPort = "mix_port"
-        case role
-        case entry
-        case performance
+        case role, entry, performance
+        case performanceV2 = "performance_v2"
         case buildInformation = "build_information"
     }
 }
 
-struct Authenticator: Codable {
+// MARK: - Authenticator
+private struct Authenticator: Codable, Sendable {
     let address: String
 }
 
-struct IPPacketRouter: Codable {
-    let address: String
-}
-
-struct Location: Codable {
-    let twoLetterISOCountryCode: String
-    let latitude: Double
-    let longitude: Double
+// MARK: - BuildInformation
+private struct BuildInformation: Codable, Sendable {
+    let binaryName: String?
+    let buildTimestamp: String?
+    let buildVersion: String?
+    let commitSHA: String?
+    let commitTimestamp: String?
+    let commitBranch: String?
+    let rustcVersion: String?
+    let rustcChannel: String?
+    let cargoProfile: String?
+    let cargoTriple: String?
 
     enum CodingKeys: String, CodingKey {
-        case twoLetterISOCountryCode = "two_letter_iso_country_code"
-        case latitude, longitude
+        case binaryName = "binary_name"
+        case buildTimestamp = "build_timestamp"
+        case buildVersion = "build_version"
+        case commitSHA = "commit_sha"
+        case commitTimestamp = "commit_timestamp"
+        case commitBranch = "commit_branch"
+        case rustcVersion = "rustc_version"
+        case rustcChannel = "rustc_channel"
+        case cargoProfile = "cargo_profile"
+        case cargoTriple = "cargo_triple"
     }
 }
 
-struct LastProbe: Codable {
-    let lastUpdatedUTC: String
-    let outcome: Outcome
-
-    enum CodingKeys: String, CodingKey {
-        case lastUpdatedUTC = "last_updated_utc"
-        case outcome
-    }
-}
-
-struct Outcome: Codable {
-    let asEntry: [String: Bool]
-    let asExit: [String: Bool]
-    let wg: Wg
-
-    enum CodingKeys: String, CodingKey {
-        case asEntry = "as_entry"
-        case asExit = "as_exit"
-        case wg
-    }
-}
-
-struct Wg: Codable {
-    let canHandshakeV4: Bool
-    let canHandshakeV6: Bool
-    let canRegister: Bool
-    let canResolveDNSV4: Bool
-    let canResolveDNSV6: Bool
-    let pingHostsPerformanceV4: Double
-    let pingHostsPerformanceV6: Double
-    let pingIpsPerformanceV4: Double
-    let pingIpsPerformanceV6: Double
-    let canHandshake: Bool
-    let canResolveDNS: Bool
-    let pingHostsPerformance: Double
-    let pingIpsPerformance: Double
-
-    enum CodingKeys: String, CodingKey {
-        case canHandshakeV4 = "can_handshake_v4"
-        case canHandshakeV6 = "can_handshake_v6"
-        case canRegister = "can_register"
-        case canResolveDNSV4 = "can_resolve_dns_v4"
-        case canResolveDNSV6 = "can_resolve_dns_v6"
-        case pingHostsPerformanceV4 = "ping_hosts_performance_v4"
-        case pingHostsPerformanceV6 = "ping_hosts_performance_v6"
-        case pingIpsPerformanceV4 = "ping_ips_performance_v4"
-        case pingIpsPerformanceV6 = "ping_ips_performance_v6"
-        case canHandshake = "can_handshake"
-        case canResolveDNS = "can_resolve_dns"
-        case pingHostsPerformance = "ping_hosts_performance"
-        case pingIpsPerformance = "ping_ips_performance"
-    }
-}
-
-struct Entry: Codable {
+// MARK: - Entry
+private struct Entry: Codable, Sendable {
     let hostname: String?
     let wsPort: Int
     let wssPort: Int?
@@ -191,14 +194,143 @@ struct Entry: Codable {
     }
 }
 
-struct BuildInformation: Codable {
-    let buildVersion: String
-    let commitBranch: String
-    let commitSha: String
+// MARK: - LastProbe
+private struct LastProbe: Codable, Sendable {
+    let lastUpdatedUTC: Date
+    let outcome: Outcome
 
     enum CodingKeys: String, CodingKey {
-        case buildVersion = "build_version"
-        case commitBranch = "commit_branch"
-        case commitSha = "commit_sha"
+        case lastUpdatedUTC = "last_updated_utc"
+        case outcome
     }
 }
+
+// MARK: - Outcome
+private struct Outcome: Codable, Sendable {
+    let asEntry: AsEntry?
+    let asExit: AsExit?
+    let wg: Wg?
+
+    enum CodingKeys: String, CodingKey {
+        case asEntry = "as_entry"
+        case asExit = "as_exit"
+        case wg
+    }
+}
+
+// MARK: - AsEntry
+private struct AsEntry: Codable, Sendable {
+    let canConnect, canRoute: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case canConnect = "can_connect"
+        case canRoute = "can_route"
+    }
+}
+
+// MARK: - AsExit
+private struct AsExit: Codable, Sendable {
+    let canConnect, canRouteIPV4, canRouteIPExternalV4, canRouteIPV6: Bool?
+    let canRouteIPExternalV6: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case canConnect = "can_connect"
+        case canRouteIPV4 = "can_route_ip_v4"
+        case canRouteIPExternalV4 = "can_route_ip_external_v4"
+        case canRouteIPV6 = "can_route_ip_v6"
+        case canRouteIPExternalV6 = "can_route_ip_external_v6"
+    }
+}
+
+// MARK: - Wg
+private struct Wg: Codable, Sendable {
+    let canRegister, canHandshake, canResolveDNS: Bool?
+    let pingHostsPerformance: Int?
+    let pingIPSPerformance: Double?
+    let canHandshakeV4, canResolveDNSV4: Bool?
+    let pingHostsPerformanceV4: Int?
+    let pingIPSPerformanceV4: Double?
+    let canHandshakeV6, canResolveDNSV6: Bool?
+    let pingHostsPerformanceV6, pingIPSPerformanceV6: Double?
+    let downloadDurationSECV4: Int?
+    let downloadedFileV4: String?
+    let downloadErrorV4: String?
+    let downloadDurationSECV6: Int?
+    let downloadedFileV6: String?
+    let downloadErrorV6: String?
+
+    enum CodingKeys: String, CodingKey {
+        case canRegister = "can_register"
+        case canHandshake = "can_handshake"
+        case canResolveDNS = "can_resolve_dns"
+        case pingHostsPerformance = "ping_hosts_performance"
+        case pingIPSPerformance = "ping_ips_performance"
+        case canHandshakeV4 = "can_handshake_v4"
+        case canResolveDNSV4 = "can_resolve_dns_v4"
+        case pingHostsPerformanceV4 = "ping_hosts_performance_v4"
+        case pingIPSPerformanceV4 = "ping_ips_performance_v4"
+        case canHandshakeV6 = "can_handshake_v6"
+        case canResolveDNSV6 = "can_resolve_dns_v6"
+        case pingHostsPerformanceV6 = "ping_hosts_performance_v6"
+        case pingIPSPerformanceV6 = "ping_ips_performance_v6"
+        case downloadDurationSECV4 = "download_duration_sec_v4"
+        case downloadedFileV4 = "downloaded_file_v4"
+        case downloadErrorV4 = "download_error_v4"
+        case downloadDurationSECV6 = "download_duration_sec_v6"
+        case downloadedFileV6 = "downloaded_file_v6"
+        case downloadErrorV6 = "download_error_v6"
+    }
+}
+
+// MARK: - Location
+private struct Location: Codable, Sendable {
+    let twoLetterISOCountryCode: String
+    let latitude, longitude: Double
+    let city, region, org, postal: String
+    let timezone: String
+    let asn: Asn
+
+    enum CodingKeys: String, CodingKey {
+        case twoLetterISOCountryCode = "two_letter_iso_country_code"
+        case latitude, longitude, city, region, org, postal, timezone, asn
+    }
+}
+
+// MARK: - Asn
+private struct Asn: Codable, Sendable {
+    let asn, name, domain, route: String
+    let kind: Kind
+}
+
+private enum Kind: String, Codable, Sendable {
+    case other
+    case residential
+}
+
+// MARK: - PerformanceV2
+private struct PerformanceV2: Codable, Sendable {
+    let lastUpdatedUTC: Date
+    let score, load: Load
+    let uptimePercentageLast24Hours: Double
+
+    enum CodingKeys: String, CodingKey {
+        case lastUpdatedUTC = "last_updated_utc"
+        case score, load
+        case uptimePercentageLast24Hours = "uptime_percentage_last_24_hours"
+    }
+}
+
+private enum Load: String, Codable, Sendable {
+    case high
+    case low
+    case medium
+    case offline
+}
+
+private enum Role: String, Codable, Sendable {
+    case entryGateway = "EntryGateway"
+    case exitGateway = "ExitGateway"
+    case inactive = "Inactive"
+}
+
+private typealias Node = [NodeElement]

@@ -15,27 +15,24 @@ public struct GatewayCountryDropDown: View {
     @State private var isHovered = false
     @State private var isExpanded = false
     @Binding private var path: NavigationPath
-    @Binding private var isServerModalDisplayed: Bool
-    @Binding private var serverInfoModalServer: GatewayNode?
     @Binding private var scrollToServer: GatewayNode?
+    private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     public init(
         country: Country,
         servers: [GatewayNode],
         type: HopType,
         path: Binding<NavigationPath>,
-        isServerModalDisplayed: Binding<Bool>,
-        serverInfoModalServer: Binding<GatewayNode?>,
         scrollToServer: Binding<GatewayNode?>,
+        infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?,
         isSearching: Bool = false
     ) {
         self.country = country
         self.servers = servers
         self.hopType = type
         self.isSearching = isSearching
+        self.infoButtonTapCompletion = infoButtonTapCompletion
         _path = path
-        _isServerModalDisplayed = isServerModalDisplayed
-        _serverInfoModalServer = serverInfoModalServer
         _scrollToServer = scrollToServer
     }
 
@@ -48,8 +45,9 @@ public struct GatewayCountryDropDown: View {
                         server: server,
                         type: hopType,
                         path: $path,
-                        isServerModalDisplayed: $isServerModalDisplayed,
-                        serverInfoModalServer: $serverInfoModalServer
+                        infoButtonTapCompletion: { server in
+                            infoButtonTapCompletion?(server)
+                        }
                     )
                     .id(server.id)
                 }

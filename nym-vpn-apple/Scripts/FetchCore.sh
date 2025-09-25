@@ -1,7 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Force re-exec under real Bash (not POSIX mode), even if called via `sh`.
+# -----------------------------------------------------------------------------
+if [ -z "${BASH_VERSION:-}" ] || ( command -v shopt >/dev/null 2>&1 && shopt -oq posix ); then
+  exec /usr/bin/env bash "$0" "$@"
+fi
+
 #
 # Orchestrates fetching iOS + macOS core and updates libVersion in AppVersionProvider.swift
 # Must be run from nym-vpn-apple/Scripts.
+#
 
 set -euo pipefail
 set -E
@@ -13,19 +21,17 @@ error_handler() {
 trap 'error_handler $LINENO' ERR
 
 BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
+MAX_DISTANCE=100
 
 # -----------------------------------------------------------------------------
 # 0) Determine build tag (branch to fetch from)
 #    Priority:
 #      1) CI base branch (Bitrise: BITRISE_GIT_BRANCH_DEST / BITRISEIO_GIT_BRANCH_DEST)
-#      2) If detached on a PR merge ref, infer base from HEAD's 2nd parent SHA
-#      3) Local fallback: if current branch matches release/* -> that branch, else develop
+#      2) Local resolve: closest of origin/develop and origin/release/* (within MAX_DISTANCE)
+#      3) Fallback: develop
 # -----------------------------------------------------------------------------
 
-# --- helpers ---------------------------------------------------------------
-
 get_ci_base_branch() {
-  # Bitrise exposes the PR target as one of these:
   if [[ -n "${BITRISE_GIT_BRANCH_DEST:-}" ]]; then
     echo "${BITRISE_GIT_BRANCH_DEST}"
     return 0
@@ -37,74 +43,77 @@ get_ci_base_branch() {
   return 1
 }
 
-resolve_base_from_merge_ref() {
-  # Works when CI checks out refs/pull/*/merge (detached HEAD)
-  if ! git rev-parse -q --verify HEAD >/dev/null; then
-    return 1
+ensure_origin_fetched() {
+  if git remote get-url origin >/dev/null 2>&1; then
+    git fetch origin --quiet || true
   fi
+}
 
-  # Get second parent (the base side of the merge)
-  local base_sha
-  base_sha="$(git cat-file -p HEAD | awk '/^parent /{print $2}' | sed -n '2p' || true)"
-  if [[ -z "$base_sha" ]]; then
-    return 1
+# Shallow fetch a single branch head into refs/remotes/origin/<name>
+fetch_remote_head_if_missing() {
+  local name="$1"
+  git show-ref --verify --quiet "refs/remotes/origin/${name}" && return 0
+  git fetch --no-tags --depth=1 origin "refs/heads/${name}:refs/remotes/origin/${name}" >/dev/null 2>&1 || true
+}
+
+determine_tag_locally() {
+  ensure_origin_fetched
+
+  # Build candidates = develop + all release/*
+  local candidates=("develop")
+
+  # List release/* heads without process substitution; use a temp file (bash 3.2 friendly).
+  local tmpfile
+  tmpfile="$(mktemp)"
+  git ls-remote --heads origin 'release/*' 2>/dev/null >"$tmpfile" || true
+
+  while IFS=$'\t' read -r sha ref; do
+    [ -z "${ref:-}" ] && continue
+    local name="${ref#refs/heads/}"
+    candidates+=("$name")
+  done <"$tmpfile"
+  rm -f "$tmpfile"
+
+  # Ensure each candidate exists locally (shallow)
+  local c
+  for c in "${candidates[@]}"; do
+    fetch_remote_head_if_missing "$c"
+  done
+
+  local current_ref="HEAD"
+  local best_base=""
+  local best_distance=$((MAX_DISTANCE + 1))
+
+  for c in "${candidates[@]}"; do
+    if git show-ref --verify --quiet "refs/remotes/origin/$c"; then
+      local merge_base
+      merge_base="$(git merge-base "$current_ref" "refs/remotes/origin/$c" 2>/dev/null || true)"
+      if [[ -n "$merge_base" ]]; then
+        local distance
+        distance="$(git rev-list --count "$merge_base..$current_ref" 2>/dev/null || echo 999999)"
+        if [[ "$distance" =~ ^[0-9]+$ ]] && (( distance <= MAX_DISTANCE )) && (( distance < best_distance )); then
+          best_distance=$distance
+          best_base="$c"
+        fi
+      fi
+    fi
+  done
+
+  if [[ -n "$best_base" ]]; then
+    echo "$best_base"
+  else
+    echo "develop"
   fi
-
-  # Ensure we have that commit locally (safe even with shallow clones)
-  if ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
-    git fetch --no-tags --depth=1 origin "${base_sha}" >/dev/null 2>&1 || true
-  fi
-
-  # Prefer an exact remote ref pointing at the SHA
-  local exact
-  exact="$(git for-each-ref --format='%(refname:short) %(objectname)' refs/remotes/origin \
-            | awk -v h="$base_sha" '$2==h {print $1}' \
-            | sed 's|^origin/||' \
-            | grep -v '^HEAD$' \
-            | head -n1)"
-  if [[ -n "$exact" ]]; then
-    echo "$exact"
-    return 0
-  fi
-
-  # Fallback: any remote branch that contains the base SHA
-  local containing
-  containing="$(git branch -r --contains "$base_sha" 2>/dev/null \
-              | sed 's|^[ *]*origin/||' \
-              | grep -v '^HEAD$' \
-              | sort -u)"
-  if [[ -n "$containing" ]]; then
-    # Prefer release/*, then develop/main/master, then anything
-    echo "$containing" | (grep -E '^release/' || true) | head -n1 && return 0
-    echo "$containing" | (grep -E '^(develop|main|master)$' || true) | head -n1 && return 0
-    echo "$containing" | head -n1 && return 0
-  fi
-
-  return 1
 }
 
 determine_tag() {
-  # 1) CI-provided base branch
+  # 1) CI-provided base branch (Bitrise PR builds)
   if ci_base="$(get_ci_base_branch)"; then
     echo "$ci_base"
     return 0
   fi
-
-  # 2) Try to infer from PR merge ref’s second parent (detached HEAD in CI)
-  git fetch origin --quiet || true
-  if inferred_base="$(resolve_base_from_merge_ref)"; then
-    echo "$inferred_base"
-    return 0
-  fi
-
-  # 3) Local fallback: release/* → that branch, else develop
-  local current_branch
-  current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-  if [[ "$current_branch" =~ ^release/ ]]; then
-    echo "$current_branch"
-  else
-    echo "develop"
-  fi
+  # 2) Local resolution (develop + release/*)
+  determine_tag_locally
 }
 
 # Decide TAG
@@ -130,9 +139,6 @@ RELEASE_URL="${TAG_URL}/${latest_folder}"
 
 # -----------------------------------------------------------------------------
 # 2) Extract the shared version slug from the release page (works for iOS/macOS)
-#    Examples we capture:
-#      nym-vpn-core-v1.16.0-beta.202509160310
-#      nym-vpn-core-v1.16.0
 # -----------------------------------------------------------------------------
 echo "Fetching release page content from: ${RELEASE_URL}"
 release_page_content="$(curl -Ls "$RELEASE_URL")"
@@ -141,7 +147,6 @@ if [[ -z "$release_page_content" ]]; then
   exit 1
 fi
 
-# Find the first asset’s core slug (before the _ios/_macos suffix)
 # Matches both dev/beta with timestamp and plain release without pre-release suffix
 shared_slug="$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(dev|beta)\.[0-9]{12})?' | head -n 1)"
 
@@ -181,9 +186,9 @@ export FETCHCORE_TAG="$TAG"
 export FETCHCORE_FOLDER="$latest_folder"
 
 # -----------------------------------------------------------------------------
-# 5) Run platform scripts
+# 5) Run platform scripts (use bash explicitly)
 # -----------------------------------------------------------------------------
-sh FetchIOSCore.sh
-sh FetchMacOSCore.sh
+bash FetchIOSCore.sh
+bash FetchMacOSCore.sh
 
 echo "🎉 Done. iOS/macOS cores fetched and libVersion updated."

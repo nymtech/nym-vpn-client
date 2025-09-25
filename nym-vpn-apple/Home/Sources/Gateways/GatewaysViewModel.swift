@@ -16,8 +16,6 @@ import UIComponents
 
     @Binding var path: NavigationPath
     @Published var isGeolocationModalDisplayed = false
-    @Published var isServerInfoModalDisplayed = false
-    @Published var serverInfoModalServer: GatewayNode?
     @Published var gateways = [GatewayNode]()
     @Published var countries = [Country]()
     @Published var scrollToServer: GatewayNode?

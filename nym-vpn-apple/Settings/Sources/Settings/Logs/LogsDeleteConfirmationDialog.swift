@@ -43,6 +43,7 @@ struct LogsDeleteConfirmationDialog: View {
                 Spacer()
                     .frame(width: 40)
             }
+            .padding(16)
         }
         .edgesIgnoringSafeArea(.all)
     }

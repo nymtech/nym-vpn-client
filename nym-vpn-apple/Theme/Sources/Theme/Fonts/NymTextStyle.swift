@@ -23,27 +23,27 @@ extension NymTextStyle {
 
         public struct Large {
             public static var regular: NymTextStyle {
-                NymTextStyle(nymFont: .labGrotesqueMono(size: 24, weight: .regular), kerning: 1.2)
+                NymTextStyle(nymFont: .labGrotesque(size: 24, weight: .regular), kerning: 1.2)
             }
 
             public static var bold: NymTextStyle {
-                NymTextStyle(nymFont: .labGrotesqueMono(size: 24, weight: .bold), kerning: 1.2)
+                NymTextStyle(nymFont: .labGrotesque(size: 24, weight: .bold), kerning: 1.2)
             }
         }
 
         public struct Medium {
             public static var regular: NymTextStyle {
-                NymTextStyle(nymFont: .labGrotesqueMono(size: 20, weight: .regular), kerning: 1)
+                NymTextStyle(nymFont: .labGrotesque(size: 20, weight: .regular), kerning: 1)
             }
 
             public static var bold: NymTextStyle {
-                NymTextStyle(nymFont: .labGrotesqueMono(size: 20, weight: .bold), kerning: 1)
+                NymTextStyle(nymFont: .labGrotesque(size: 20, weight: .bold), kerning: 1)
             }
         }
 
         public struct Small {
             public static var regular: NymTextStyle {
-                NymTextStyle(nymFont: .labGrotesqueMono(size: 16, weight: .regular), kerning: 0.8)
+                NymTextStyle(nymFont: .labGrotesque(size: 16, weight: .regular), kerning: 0.8)
             }
         }
     }
