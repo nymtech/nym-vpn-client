@@ -32,6 +32,7 @@ const DISCOVERY_FILE: &str = "discovery.json";
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
 static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
+static EVIL_DISCOVERY_JSON: &[u8] = include_bytes!("../default/evil_discovery.json");
 
 static DEFAULT_VPN_API_URL: LazyLock<Url> =
     LazyLock::new(|| Discovery::default_mainnet().nym_vpn_api_url);
@@ -79,6 +80,12 @@ impl Discovery {
         #[allow(clippy::expect_used)]
         serde_json::from_slice(CANARY_DISCOVERY_JSON)
             .expect("failed to parse default canary discovery")
+    }
+
+    /// Default evil discovery
+    pub fn default_evil() -> Self {
+        #[allow(clippy::expect_used)]
+        serde_json::from_slice(EVIL_DISCOVERY_JSON).expect("failed to parse default evil discovery")
     }
 
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
@@ -207,6 +214,7 @@ impl Discovery {
             "mainnet" => Self::default_mainnet(),
             "sandbox" => Self::default_sandbox(),
             "canary" => Self::default_canary(),
+            "evil" => Self::default_evil(),
             _ => None?,
         })
     }
@@ -359,6 +367,7 @@ mod tests {
             Discovery::default_mainnet(),
             Discovery::default_sandbox(),
             Discovery::default_canary(),
+            Discovery::default_evil(),
         ] {
             let fetched = Discovery::fetch(&discovery.network_name)
                 .await
