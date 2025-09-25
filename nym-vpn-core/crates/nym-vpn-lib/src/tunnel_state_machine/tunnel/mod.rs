@@ -16,6 +16,7 @@ pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
+use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;
 use tokio::{
     sync::{Mutex, mpsc},
@@ -120,6 +121,8 @@ pub async fn select_gateways(
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
+    wg_score_thresholds: Option<ScoreThresholds>,
+    mix_score_thresholds: Option<ScoreThresholds>,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
     let select_gateways_fut = gateway_selector::select_gateways(
@@ -127,6 +130,8 @@ pub async fn select_gateways(
         tunnel_type,
         entry_point,
         exit_point,
+        wg_score_thresholds,
+        mix_score_thresholds,
     );
     cancel_token
         .run_until_cancelled(select_gateways_fut)

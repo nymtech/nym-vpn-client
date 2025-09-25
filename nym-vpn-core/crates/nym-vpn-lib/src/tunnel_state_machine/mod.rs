@@ -756,6 +756,12 @@ impl tunnel::Error {
                 GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
+                GatewayDirectoryError::PerformantEntryGatewayUnavailable { .. } => {
+                    Some(ErrorStateReason::PerformantEntryGatewayUnavailable)
+                }
+                GatewayDirectoryError::PerformantExitGatewayUnavailable { .. } => {
+                    Some(ErrorStateReason::PerformantExitGatewayUnavailable)
+                }
                 GatewayDirectoryError::SelectEntryGateway(
                     nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
                 ) => Some(ErrorStateReason::InvalidEntryGatewayCountry),

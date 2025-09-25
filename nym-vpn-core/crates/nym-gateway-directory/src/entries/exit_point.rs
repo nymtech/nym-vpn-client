@@ -46,7 +46,12 @@ impl Display for ExitPoint {
 }
 
 impl ExitPoint {
-    pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
+    pub fn lookup_gateway(
+        &self,
+        gateways: &GatewayList,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> Result<Gateway> {
         match &self {
             ExitPoint::Address { address } => {
                 tracing::debug!("Selecting gateway by address: {address}");
@@ -79,7 +84,11 @@ impl ExitPoint {
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
                 gateways
-                    .random_gateway_located_at_country(two_letter_iso_country_code)
+                    .random_gateway_located_at_country(
+                        two_letter_iso_country_code,
+                        min_wg_performance,
+                        min_mixnet_performance,
+                    )
                     .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
                         requested_location: two_letter_iso_country_code.clone(),
                         available_countries: gateways.all_iso_codes(),
@@ -88,7 +97,11 @@ impl ExitPoint {
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
                 gateways
-                    .random_gateway_located_at_region(region)
+                    .random_gateway_located_at_region(
+                        region,
+                        min_wg_performance,
+                        min_mixnet_performance,
+                    )
                     .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
                         requested_location: region.clone(),
                         available_countries: gateways.all_iso_codes(),
@@ -97,7 +110,7 @@ impl ExitPoint {
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
                 gateways
-                    .random_gateway()
+                    .random_gateway(min_wg_performance, min_mixnet_performance)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
