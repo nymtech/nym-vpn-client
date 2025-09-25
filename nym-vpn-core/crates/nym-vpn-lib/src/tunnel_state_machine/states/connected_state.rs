@@ -50,11 +50,14 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-
-        let wg_entry_endpoint = if let TunnelConnectionData::Wireguard(ref wg) =
-                connection_data.tunnel
-            {
-                Some(wg.entry.endpoint)
+        let wg_entry_endpoint =
+            if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
+                if shared_state.tunnel_settings.bridges_enabled() {
+                    // this will be `Some` if we get to the connected state with bridges enabled.
+                    wg.entry_bridge_addr
+                } else {
+                    Some(wg.entry.endpoint)
+                }
             } else {
                 None
             };
@@ -333,7 +336,7 @@ impl ConnectedPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow WireGuard and Quic entry endpoint
+        // Allow WireGuard / Quic entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
@@ -345,15 +348,6 @@ impl ConnectedPolicyParameters {
                 );
 
                 peer_endpoints.push(allow_wg_endpoint);
-
-                let allow_ct_endpoint = AllowedEndpoint::new(
-                    Endpoint::new(addr.ip(), 4443, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
-                    AllowedClients::All,
-                    #[cfg(target_os = "windows")]
-                    AllowedClients::current_exe(),
-                );
-                peer_endpoints.push(allow_ct_endpoint);
             } else {
                 tracing::warn!("WireGuard endpoint contains IPv6 address, but IPv6 is disabled!");
             }

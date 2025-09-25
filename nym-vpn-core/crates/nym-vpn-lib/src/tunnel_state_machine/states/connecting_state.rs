@@ -92,11 +92,21 @@ impl ConnectingState {
             return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 
+        let mut bridge_endpoints = Vec::new();
+        if shared_state.tunnel_settings.bridges_enabled() {
+            if let Some(gateways) = &selected_gateways {
+                if let Some(params) = &gateways.entry.bridge_params {
+                    bridge_endpoints = params.get_addrs()
+                }
+            }
+        }
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = ConnectingPolicyParameters {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
             wg_entry_endpoint: None,
+            bridge_endpoints,
             ws_entry_endpoints: selected_gateways
                 .as_ref()
                 .map(|v| v.entry.endpoints())
@@ -605,6 +615,9 @@ struct ConnectingPolicyParameters {
     /// WireGuard entry endpoint
     wg_entry_endpoint: Option<SocketAddr>,
 
+    /// Bridge endpoints
+    bridge_endpoints: Vec<SocketAddr>,
+
     /// Entry gateway websocket endpoints
     ws_entry_endpoints: Vec<SocketAddr>,
 
@@ -637,7 +650,7 @@ impl ConnectingPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow WireGuard and Quic entry endpoint
+        // Allow WireGuard and entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
@@ -649,19 +662,25 @@ impl ConnectingPolicyParameters {
                 );
 
                 peer_endpoints.push(allow_wg_endpoint);
-
-                let allow_ct_endpoint = AllowedEndpoint::new(
-                    Endpoint::new(addr.ip(), 4443, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
-                    AllowedClients::All,
-                    #[cfg(target_os = "windows")]
-                    AllowedClients::current_exe(),
-                );
-                peer_endpoints.push(allow_ct_endpoint);
             } else {
                 tracing::warn!("WireGuard endpoint contains IPv6 address, but IPv6 is disabled!");
             }
         }
+
+        // Allow endpoints from bridge connections to the entry gateway.
+        self.bridge_endpoints
+            .iter()
+            .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
+            .for_each(|addr| {
+                let allow_bridge_endpoint = AllowedEndpoint::new(
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                );
+                peer_endpoints.push(allow_bridge_endpoint);
+            });
 
         // Allow API endpoints
         let allowed_endpoints = self
