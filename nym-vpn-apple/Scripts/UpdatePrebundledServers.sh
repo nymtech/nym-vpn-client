@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Updates prebundled countries in the apps, so country picker would never be empty.
+# Updates prebundled servers in the app so that the picker is never empty.
 # Example:
-# nym-vpn-apple/Scripts$ sh UpdatePrebundledCountries.sh
+#   nym-vpn-apple/Scripts$ sh UpdatePrebundledServers.sh
 # Must be run from nym-vpn-apple/Scripts.
 
 set -euo pipefail
@@ -46,7 +46,26 @@ fetch_json() {
     mv "${tmp}.dec" "$tmp"
   fi
 
-  jq -e . "$tmp" >/dev/null
+  # Fail if empty
+  if [[ ! -s "$tmp" ]]; then
+    echo "❌ Error: $url returned an empty file" >&2
+    exit 1
+  fi
+
+  # Quick sanity: should start with { or [
+  local firstchar
+  firstchar=$(head -c1 "$tmp")
+  if [[ "$firstchar" != "{" && "$firstchar" != "[" ]]; then
+    echo "❌ Error: $url did not return JSON (first char: '$firstchar')" >&2
+    exit 1
+  fi
+
+  # Validate full JSON
+  if ! jq -e . "$tmp" >/dev/null 2>&1; then
+    echo "❌ Error: $url did not return valid JSON" >&2
+    exit 1
+  fi
+
   mv "$tmp" "$out"
   rm -f "$hdr"
 }
