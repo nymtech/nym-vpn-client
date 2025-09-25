@@ -61,16 +61,16 @@ pub enum Command {
     /// Get the current VPN service configuration.
     GetConfig,
 
-    /// Set the entry gateway node
-    SetEntry {
-        #[command(flatten)]
-        entry: CliEntry,
+    /// Manage entry and exit gateway nodes, list available gateways
+    Gateway {
+        #[command(subcommand)]
+        subcommand: crate::gateway::Command,
     },
 
-    /// Set the exit gateway node
-    SetExit {
-        #[command(flatten)]
-        exit: CliExit,
+    /// Manage local network policy
+    Lan {
+        #[command(subcommand)]
+        subcommand: crate::lan::Command,
     },
 
     /// Enable or disable IPv6 in the tunnel
@@ -92,13 +92,6 @@ pub enum Command {
         /// Set netstack implementation
         #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         enabled: BooleanOption,
-    },
-
-    /// Enable or disable local network access
-    SetAllowLan {
-        /// Allow or disallow local network access
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        allow: BooleanOption,
     },
 
     /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
@@ -125,15 +118,6 @@ pub enum Command {
 
     /// Get the device ID.
     GetDeviceId,
-
-    /// List the set of entry gateways for mixnet mode.
-    ListEntryGateways,
-
-    /// List the set of exit gateways for mixnet mode.
-    ListExitGateways,
-
-    /// List the set of entry and exit gateways for dVPN mode.
-    ListVpnGateways,
 
     /// Internal commands for development and debugging.
     #[clap(subcommand, hide = true)]
@@ -222,128 +206,6 @@ impl ConnectArgs {
 
     pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
         self.exit.exit_point()
-    }
-}
-
-#[derive(Args)]
-#[group(multiple = false, required = true)]
-pub struct CliEntry {
-    /// Mixnet public ID of the entry gateway.
-    #[arg(long)]
-    pub id: Option<String>,
-
-    /// Auto-select entry gateway by country ISO.
-    #[arg(long)]
-    pub country: Option<celes::Country>,
-
-    /// Auto-select entry gateway randomly.
-    #[arg(long)]
-    pub random: bool,
-}
-
-impl CliEntry {
-    pub fn entry_point(&self) -> Result<EntryPoint> {
-        if let Some(ref entry_gateway_id) = self.id {
-            Ok(EntryPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(entry_gateway_id)
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            })
-        } else if let Some(ref entry_gateway_country) = self.country {
-            Ok(EntryPoint::Country {
-                two_letter_iso_country_code: entry_gateway_country.alpha2.to_string(),
-            })
-        } else if self.random {
-            Ok(EntryPoint::Random)
-        } else {
-            unreachable!()
-        }
-    }
-}
-
-#[derive(Args)]
-#[group(multiple = false, required = true)]
-pub struct CliExit {
-    /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
-    /// useful when connecting to standalone IPRs.
-    #[clap(long, hide = true)]
-    pub ipr_address: Option<String>,
-
-    /// Mixnet public ID of the exit gateway.
-    #[clap(long)]
-    pub id: Option<String>,
-
-    /// Auto-select exit gateway by country ISO.
-    #[clap(long)]
-    pub country: Option<celes::Country>,
-
-    /// Auto-select exit gateway by region.
-    #[clap(long)]
-    pub region: Option<String>,
-
-    /// Auto-select exit gateway randomly.
-    #[clap(long)]
-    pub random: bool,
-}
-
-impl CliExit {
-    pub fn exit_point(&self) -> Result<ExitPoint> {
-        if let Some(ref exit_router_address) = self.ipr_address {
-            Ok(ExitPoint::Address {
-                address: Box::new(
-                    Recipient::try_from_base58_string(exit_router_address)
-                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
-                ),
-            })
-        } else if let Some(ref exit_router_id) = self.id {
-            Ok(ExitPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            })
-        } else if let Some(ref exit_gateway_country) = self.country {
-            Ok(ExitPoint::Country {
-                two_letter_iso_country_code: exit_gateway_country.alpha2.to_string(),
-            })
-        } else if let Some(ref exit_gateway_region) = self.region {
-            Ok(ExitPoint::Region {
-                region: exit_gateway_region.to_string(),
-            })
-        } else if self.random {
-            Ok(ExitPoint::Random)
-        } else {
-            unreachable!()
-        }
-    }
-}
-
-impl TryFrom<CliExit> for ExitPoint {
-    type Error = anyhow::Error;
-
-    fn try_from(value: CliExit) -> std::result::Result<Self, Self::Error> {
-        if let Some(ref exit_router_address) = value.ipr_address {
-            Ok(ExitPoint::Address {
-                address: Box::new(
-                    Recipient::try_from_base58_string(exit_router_address)
-                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
-                ),
-            })
-        } else if let Some(ref exit_router_id) = value.id {
-            Ok(ExitPoint::Gateway {
-                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-            })
-        } else if let Some(ref exit_gateway_country) = value.country {
-            Ok(ExitPoint::Country {
-                two_letter_iso_country_code: exit_gateway_country.alpha2.to_string(),
-            })
-        } else if let Some(ref exit_gateway_region) = value.region {
-            Ok(ExitPoint::Region {
-                region: exit_gateway_region.to_string(),
-            })
-        } else if value.random {
-            Ok(ExitPoint::Random)
-        } else {
-            Err(anyhow!("Invalid Exit Point value"))
-        }
     }
 }
 
@@ -540,7 +402,7 @@ impl clap::builder::ValueParserFactory for BooleanOption {
 
 impl BooleanOption {
     /// A value parser that parses `on_label` and `off_label` into a `BooleanOption`
-    fn custom_parser(on_label: &'static str, off_label: &'static str) -> ValueParser {
+    pub fn custom_parser(on_label: &'static str, off_label: &'static str) -> ValueParser {
         assert!(on_label != off_label);
 
         ValueParser::new(

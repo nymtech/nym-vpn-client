@@ -286,6 +286,7 @@ message GatewayResponse {
   GatewayId id = 1;
   RichLocation location = 2;
   Probe last_probe = 3;
+  optional uint32 mixnet_performance = 10;
   optional Performance wg_performance = 4;
   optional Score mixnet_score = 5;
   string moniker = 6;

@@ -2,22 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod cli;
+mod gateway;
+mod lan;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
 use cli::Internal;
-use nym_gateway_directory::GatewayType;
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
-    ListGatewaysOptions, StoreAccountRequest,
+    StoreAccountRequest,
     service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
 };
 use sysinfo::System;
 use tokio_stream::StreamExt;
 
-use crate::cli::{CliEntry, CliExit, Command};
+use crate::cli::Command;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -41,12 +42,11 @@ async fn main() -> Result<()> {
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
         Command::GetConfig => get_config(rpc_client).await?,
-        Command::SetEntry { entry } => set_entry_point(rpc_client, entry).await?,
-        Command::SetExit { exit } => set_exit_point(rpc_client, exit).await?,
+        Command::Gateway { subcommand } => subcommand.execute(rpc_client, user_agent).await?,
         Command::SetIpv6 { enabled } => set_disable_ipv6(rpc_client, !*enabled).await?,
         Command::SetTwoHop { enabled } => set_enable_two_hop(rpc_client, *enabled).await?,
         Command::SetNetstack { enabled } => set_netstack(rpc_client, *enabled).await?,
-        Command::SetAllowLan { allow } => set_allow_lan(rpc_client, *allow).await?,
+        Command::Lan { subcommand } => subcommand.execute(rpc_client).await?,
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
         Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await?,
         Command::IsAccountStored => is_account_stored(rpc_client).await?,
@@ -54,13 +54,6 @@ async fn main() -> Result<()> {
         Command::GetAccountId => get_account_id(rpc_client).await?,
         Command::GetAccountLinks(args) => get_account_links(rpc_client, args).await?,
         Command::GetAccountState => get_account_state(rpc_client).await?,
-        Command::ListEntryGateways => {
-            list_gateways(rpc_client, GatewayType::MixnetEntry, user_agent).await?
-        }
-        Command::ListExitGateways => {
-            list_gateways(rpc_client, GatewayType::MixnetExit, user_agent).await?
-        }
-        Command::ListVpnGateways => list_gateways(rpc_client, GatewayType::Wg, user_agent).await?,
         Command::GetDeviceId => get_device_id(rpc_client).await?,
         Command::Internal(internal) => match internal {
             Internal::GetSystemMessages => get_system_messages(rpc_client).await?,
@@ -247,16 +240,6 @@ async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
     Ok(())
 }
 
-async fn set_entry_point(mut rpc_client: RpcClient, entry: CliEntry) -> Result<()> {
-    rpc_client.set_entry_point(entry.entry_point()?).await?;
-    Ok(())
-}
-
-async fn set_exit_point(mut rpc_client: RpcClient, exit: CliExit) -> Result<()> {
-    rpc_client.set_exit_point(exit.exit_point()?).await?;
-    Ok(())
-}
-
 async fn set_disable_ipv6(mut rpc_client: RpcClient, disable_ipv6: bool) -> Result<()> {
     rpc_client.set_disable_ipv6(disable_ipv6).await?;
     Ok(())
@@ -269,11 +252,6 @@ async fn set_enable_two_hop(mut rpc_client: RpcClient, enable_two_hop: bool) -> 
 
 async fn set_netstack(mut rpc_client: RpcClient, netstack: bool) -> Result<()> {
     rpc_client.set_netstack(netstack).await?;
-    Ok(())
-}
-
-async fn set_allow_lan(mut rpc_client: RpcClient, allow_lan: bool) -> Result<()> {
-    rpc_client.set_allow_lan(allow_lan).await?;
     Ok(())
 }
 
@@ -392,26 +370,6 @@ async fn get_active_devices(mut rpc_client: RpcClient) -> Result<()> {
 async fn get_available_tickets(mut rpc_client: RpcClient) -> Result<()> {
     let response = rpc_client.get_available_tickets().await?;
     println!("{response:#?}");
-    Ok(())
-}
-
-async fn list_gateways(
-    mut rpc_client: RpcClient,
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<()> {
-    let gateways = rpc_client
-        .list_gateways(ListGatewaysOptions {
-            gw_type,
-            user_agent: Some(user_agent),
-        })
-        .await?;
-
-    println!("Gateways available for: {gw_type}");
-    println!("Total gateways: {}", gateways.len());
-    for gateway in gateways {
-        println!("  {gateway:?}");
-    }
     Ok(())
 }
 
