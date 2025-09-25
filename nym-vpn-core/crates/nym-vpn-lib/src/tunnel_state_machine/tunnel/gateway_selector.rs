@@ -78,7 +78,7 @@ pub async fn select_gateways(
         .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
-            if err.is_no_matching_gateway_for_non_specific_gateway() {
+            if err.is_unmatched_non_specific_gateway() {
                 let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
                 tracing::debug!("Could not locate high quality exit gateway. Lowering performance filter to medium and trying again");
 
@@ -106,7 +106,7 @@ pub async fn select_gateways(
         .lookup_gateway(&entry_gateways, min_wg_performance, min_mixnet_performance)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
-            if err.is_no_matching_gateway_for_non_specific_gateway() {
+            if err.is_unmatched_non_specific_gateway() {
                 let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_type, wg_score_thresholds, mix_score_thresholds);
                 tracing::debug!("Could not locate high quality entry gateway. Lowering performance filter to medium and trying again");
 
