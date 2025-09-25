@@ -1,5 +1,5 @@
 {
-  "network_name": "evilEnv",
+  "network_name": "evil",
   "nym_api_url": "https://evil-nym-api.performance.nymte.ch/api/",
   "nym_api_urls": [
     {
