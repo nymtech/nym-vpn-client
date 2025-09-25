@@ -15,13 +15,6 @@ pub struct ListGatewaysOptions {
     pub user_agent: Option<UserAgent>,
 }
 
-#[derive(Debug)]
-pub struct ListCountriesOptions {
-    pub gw_type: GatewayType,
-    #[allow(unused)]
-    pub user_agent: Option<UserAgent>,
-}
-
 #[derive(zeroize::Zeroize)]
 pub struct StoreAccountRequest {
     pub mnemonic: String,

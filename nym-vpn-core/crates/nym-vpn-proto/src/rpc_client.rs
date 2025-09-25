@@ -13,8 +13,8 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
-    gateway::{Country, Gateway},
+    AccountCommandResponse, ListGatewaysOptions, StoreAccountRequest,
+    gateway::Gateway,
     log_path::LogPath,
     service::{ConnectArgs, VpnServiceInfo},
 };
@@ -242,20 +242,6 @@ impl RpcClient {
             .into_iter()
             .map(|gateway| Gateway::try_from(gateway).map_err(Error::InvalidResponse))
             .collect::<Result<Vec<_>>>()
-    }
-
-    pub async fn list_countries(&mut self, options: ListCountriesOptions) -> Result<Vec<Country>> {
-        let request =
-            proto::ListCountriesRequest::try_from(options).map_err(Error::InvalidRequest)?;
-
-        let countries = self
-            .0
-            .list_countries(request)
-            .await
-            .map(|v| v.into_inner().countries)
-            .map_err(Error::Rpc)?;
-
-        Ok(countries.into_iter().map(Country::from).collect())
     }
 
     pub async fn store_account(

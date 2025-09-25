@@ -81,8 +81,8 @@ use self::error::VpnError;
 use account::AccountControllerHandle;
 use nym_vpn_lib_types_uniffi::{
     AccountControllerState, AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType,
-    Location, NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage,
-    TunnelEvent, UserAgent,
+    NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage, TunnelEvent,
+    UserAgent,
 };
 use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;
@@ -401,28 +401,10 @@ pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
     RUNTIME.block_on(account::get_account_state())
 }
 
-/// Get the list of countries that have gateways available of the given type.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getGatewayCountries(gw_type: GatewayType) -> Result<Vec<Location>, VpnError> {
-    RUNTIME.block_on(get_gateway_countries(gw_type))
-}
-
 async fn get_account_id() -> Result<String, VpnError> {
     account::get_account_id()
         .await?
         .ok_or(VpnError::NoAccountStored)
-}
-
-async fn get_gateway_countries(gw_type: GatewayType) -> Result<Vec<Location>, VpnError> {
-    gateway_cache::get_gateway_cache_handle()
-        .await?
-        .lookup_countries(gw_type.into())
-        .await
-        .map(|countries| countries.into_iter().map(Location::from).collect())
-        .map_err(|err| VpnError::NetworkConnectionError {
-            details: err.to_string(),
-        })
 }
 
 /// Get the list of gateways available of the given type.
