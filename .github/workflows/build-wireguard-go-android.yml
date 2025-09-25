@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    runs-on: arc-linux-latest-dind
+    runs-on: arc-linux-latest
 
     steps:
       - name: Checkout nym-vpn-client

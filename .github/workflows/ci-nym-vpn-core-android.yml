@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build:
-    runs-on: arc-ubuntu-22.04
+    runs-on: arc-linux-latest
     needs: build-wireguard-go-android
 
     steps:

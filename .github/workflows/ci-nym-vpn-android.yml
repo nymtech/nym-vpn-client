@@ -12,7 +12,7 @@ on:
 
 jobs:
   check:
-    runs-on: arc-linux-latest-dind
+    runs-on: arc-linux-latest
     defaults:
       run:
         working-directory: nym-vpn-android

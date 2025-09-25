@@ -9,7 +9,7 @@ on:
 
 jobs:
   crowdin-upload:
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
 
     steps:
       - name: Checkout
