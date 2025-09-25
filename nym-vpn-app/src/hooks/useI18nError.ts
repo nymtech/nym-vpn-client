@@ -65,6 +65,10 @@ function useI18nError() {
             );
           case 'credential-wasted-on-exit-gateway':
             return fmtErr(t('tunnel.exit-gateway-bandwidth-increase'), message);
+          case 'performant-entry-gw-unavailable':
+            return fmtErr(t('tunnel.performant-entry-gw-unavailable'), message);
+          case 'performant-exit-gw-unavailable':
+            return fmtErr(t('tunnel.performant-exit-gw-unavailable'), message);
         }
       }
       // not a tunnel error
