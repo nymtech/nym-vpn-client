@@ -11103,6 +11103,28 @@
         }
       }
     },
+    "errorReason.performantEntryGatewayUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The entry gateway can't connect. Please try another."
+          }
+        }
+      }
+    },
+    "errorReason.performantExitGatewayUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The exit gateway can't connect. Please try another."
+          }
+        }
+      }
+    },
     "errorReason.registrationInProgress" : {
       "extractionState" : "manual",
       "localizations" : {

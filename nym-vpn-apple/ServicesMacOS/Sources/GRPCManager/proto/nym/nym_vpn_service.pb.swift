@@ -1738,6 +1738,8 @@ struct NymVpnService_TunnelState: Sendable {
     case tunnelProvider // = 4
     case ipv6Unavailable // = 5
     case sameEntryAndExitGateway // = 6
+    case performantEntryGatewayUnavailable // = 18
+    case performantExitGatewayUnavailable // = 19
     case invalidEntryGatewayCountry // = 7
     case invalidExitGatewayCountry // = 8
     case credentialWastedOnEntryGateway // = 9
@@ -1775,6 +1777,8 @@ struct NymVpnService_TunnelState: Sendable {
       case 15: self = .deviceTimeOutOfSync
       case 16: self = .deviceLoggedOut
       case 17: self = .internal
+      case 18: self = .performantEntryGatewayUnavailable
+      case 19: self = .performantExitGatewayUnavailable
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1799,6 +1803,8 @@ struct NymVpnService_TunnelState: Sendable {
       case .deviceTimeOutOfSync: return 15
       case .deviceLoggedOut: return 16
       case .internal: return 17
+      case .performantEntryGatewayUnavailable: return 18
+      case .performantExitGatewayUnavailable: return 19
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1812,6 +1818,8 @@ struct NymVpnService_TunnelState: Sendable {
       .tunnelProvider,
       .ipv6Unavailable,
       .sameEntryAndExitGateway,
+      .performantEntryGatewayUnavailable,
+      .performantExitGatewayUnavailable,
       .invalidEntryGatewayCountry,
       .invalidExitGatewayCountry,
       .credentialWastedOnEntryGateway,
@@ -5795,6 +5803,8 @@ extension NymVpnService_TunnelState.ErrorStateReason: SwiftProtobuf._ProtoNamePr
     15: .same(proto: "DEVICE_TIME_OUT_OF_SYNC"),
     16: .same(proto: "DEVICE_LOGGED_OUT"),
     17: .same(proto: "INTERNAL"),
+    18: .same(proto: "PERFORMANT_ENTRY_GATEWAY_UNAVAILABLE"),
+    19: .same(proto: "PERFORMANT_EXIT_GATEWAY_UNAVAILABLE"),
   ]
 }
 

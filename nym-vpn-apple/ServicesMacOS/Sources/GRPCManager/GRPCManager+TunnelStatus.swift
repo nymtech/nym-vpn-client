@@ -176,6 +176,10 @@ extension GRPCManager {
             ErrorReason.credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             ErrorReason.credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            ErrorReason.performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            ErrorReason.performantExitGatewayUnavailable
         }
     }
 }
@@ -222,6 +226,10 @@ extension ErrorReason {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 }
