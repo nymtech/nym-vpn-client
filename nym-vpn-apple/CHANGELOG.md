@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Connecting states
 - Liquid glass icon
 - Display server moniker below country in main view
+- Improved server details view
 
 ### Fixed
 

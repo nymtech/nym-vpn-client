@@ -212,7 +212,8 @@ private extension CountriesManager {
 
             return countries
         } catch {
-            throw GeneralNymError.cannotParseCountries
+            logger.error("Failed to load prebundled countries: \(error)")
+            return []
         }
     }
 }
