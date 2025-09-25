@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Skip filtering loopback traffic to optimize performance
 - Differentiate between entry and exit gateway errors (https://github.com/nymtech/nym-vpn-client/pull/3458)
 
+### Removed
+- Removed countries query (https://github.com/nymtech/nym-vpn-client/pull/3523)
+
 
 ## [1.15.0] - 2025-09-10
 
