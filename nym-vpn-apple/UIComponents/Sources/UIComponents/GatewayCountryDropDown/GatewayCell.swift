@@ -12,24 +12,21 @@ public struct GatewayCell: View {
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var countriesManager: CountriesManager
     @Binding private var path: NavigationPath
-    @Binding private var isServerModalDisplayed: Bool
-    @Binding private var serverInfoModalServer: GatewayNode?
     @State private var isHovered = false
+    private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     public init(
         server: GatewayNode,
         type: HopType,
         path: Binding<NavigationPath>,
-        isServerModalDisplayed: Binding<Bool>,
-        serverInfoModalServer: Binding<GatewayNode?>,
-        isSearching: Bool = false
+        isSearching: Bool = false,
+        infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
     ) {
         self.server = server
         self.hopType = type
         self.isSearching = isSearching
         _path = path
-        _isServerModalDisplayed = isServerModalDisplayed
-        _serverInfoModalServer = serverInfoModalServer
+        self.infoButtonTapCompletion = infoButtonTapCompletion
     }
 
     public var body: some View {
@@ -83,10 +80,7 @@ private extension GatewayCell {
     }
 
     func infoButtonTapAction() {
-        serverInfoModalServer = server
-        withAnimation {
-            isServerModalDisplayed.toggle()
-        }
+        infoButtonTapCompletion?(server)
     }
 }
 
@@ -166,7 +160,7 @@ extension GatewayCell {
         case .mixnet5hop:
             score = server.mixnetScore
         case .wireguard:
-            score = server.wgScore
+            score = server.performance.score
         }
         guard let score else { return "scoreLow"}
         switch score {

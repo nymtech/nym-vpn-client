@@ -1,10 +1,12 @@
 import Foundation
-import CountriesManager
+import CountriesManagerTypes
 #if os(macOS)
 import HelperInstall
 #endif
+import UIComponents
 
 enum HomeLink: Hashable, Identifiable {
+    case gatewayDetails(gateway: GatewayNode, hopType: HopType)
     case entryGateways
     case exitGateways
     case settings

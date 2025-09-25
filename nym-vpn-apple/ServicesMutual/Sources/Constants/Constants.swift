@@ -6,6 +6,7 @@ public enum Constants: String {
     case username = "nym-passphrase"
 
     case supportURL = "https://support.nym.com/hc"
+    case serverLocationURL = "https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN"
     case termsOfUseURL = "https://nym.com/vpn-terms"
     case privacyPolicyURL = "https://nym.com/vpn-privacy-statement"
     case newSupportRequest = "https://support.nym.com/hc/requests/new"
@@ -18,6 +19,8 @@ public enum Constants: String {
     case sentryURL = "https://sentry.io"
     case quicURL = "https://nym.com/features/quic"
     case stealhApiConnectURL = "https://nym.com/features/stealth-api-connect"
+    case ipInfoURL = "https://ipinfo.io/"
+    case explorerURL = "https://nym.com/explorer/nym-node/"
 
     case telegramLink = "https://nym.com/go/telegram"
     case discordLink = "https://nym.com/go/discord"
