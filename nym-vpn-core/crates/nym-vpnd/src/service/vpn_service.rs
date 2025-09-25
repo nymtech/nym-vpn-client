@@ -708,7 +708,10 @@ impl NymVpnService {
             &self.json_config_path,
             entry,
             exit,
-        )?;
+        )
+        .inspect_err(|err| {
+            trace_err_chain!(err, "failed to setup service config");
+        })?;
 
         tracing::info!("Using config: {}", config);
 
