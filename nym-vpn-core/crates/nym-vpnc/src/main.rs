@@ -11,7 +11,7 @@ use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
-    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    ListGatewaysOptions, StoreAccountRequest,
     service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
 };
 use sysinfo::System;
@@ -61,15 +61,6 @@ async fn main() -> Result<()> {
             list_gateways(rpc_client, GatewayType::MixnetExit, user_agent).await?
         }
         Command::ListVpnGateways => list_gateways(rpc_client, GatewayType::Wg, user_agent).await?,
-        Command::ListEntryCountries => {
-            list_countries(rpc_client, GatewayType::MixnetEntry, user_agent).await?
-        }
-        Command::ListExitCountries => {
-            list_countries(rpc_client, GatewayType::MixnetExit, user_agent).await?
-        }
-        Command::ListVpnCountries => {
-            list_countries(rpc_client, GatewayType::Wg, user_agent).await?
-        }
         Command::GetDeviceId => get_device_id(rpc_client).await?,
         Command::Internal(internal) => match internal {
             Internal::GetSystemMessages => get_system_messages(rpc_client).await?,
@@ -420,32 +411,6 @@ async fn list_gateways(
     for gateway in gateways {
         println!("  {gateway:?}");
     }
-    Ok(())
-}
-
-async fn list_countries(
-    mut rpc_client: RpcClient,
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<()> {
-    let countries = rpc_client
-        .list_countries(ListCountriesOptions {
-            gw_type,
-            user_agent: Some(user_agent),
-        })
-        .await?;
-
-    println!(
-        "Countries for {} ({}): {}",
-        gw_type,
-        countries.len(),
-        countries
-            .iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<String>>()
-            .join(", ")
-    );
-
     Ok(())
 }
 

@@ -22,7 +22,7 @@ use nym_vpn_proto::proto::{
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 use nym_vpnd_types::{
-    ListCountriesOptions, ListGatewaysOptions,
+    ListGatewaysOptions,
     service::{ConnectArgs, TargetState},
 };
 
@@ -314,27 +314,6 @@ impl NymVpnService for CommandInterface {
                 .map(proto::GatewayResponse::from)
                 .collect(),
         };
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn list_countries(
-        &self,
-        request: tonic::Request<proto::ListCountriesRequest>,
-    ) -> Result<tonic::Response<proto::ListCountriesResponse>> {
-        let options = ListCountriesOptions::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
-        let countries = self
-            .send_and_wait(VpnServiceCommand::ListCountries, options)
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to list entry countries: {err}"))
-            })?;
-
-        let response = proto::ListCountriesResponse {
-            countries: countries.into_iter().map(proto::Country::from).collect(),
-        };
-
         Ok(tonic::Response::new(response))
     }
 

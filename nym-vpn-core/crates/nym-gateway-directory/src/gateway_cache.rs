@@ -11,9 +11,9 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_sdk::mixnet::NodeIdentity;
 use strum::IntoEnumIterator;
 use tokio::task::JoinHandle;
-use tokio_util::{either::Either, sync::CancellationToken};
+use tokio_util::sync::CancellationToken;
 
-use crate::{Country, Error, Gateway, GatewayClient, GatewayList, GatewayType, error::Result};
+use crate::{Error, Gateway, GatewayClient, GatewayList, GatewayType, error::Result};
 
 /// The maximum age of the cache before it is considered stale.
 const MAX_CACHE_AGE: Duration = Duration::from_secs(5 * 60);
@@ -33,15 +33,6 @@ impl GatewayCacheHandle {
         self.tx
             .send(Command::RefreshAll)
             .map_err(|_| Error::Cancelled)
-    }
-
-    /// Lookup countries waiting for any pending fetch request or initiating one if needed.
-    pub async fn lookup_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
-        let (tx, rx) = tokio::sync::oneshot::channel();
-        self.tx
-            .send(Command::LookupCountries(gw_type, tx))
-            .map_err(|_| Error::Cancelled)?;
-        rx.await.map_err(|_| Error::Cancelled)?
     }
 
     /// Lookup gateways waiting for any pending fetch request or initiating one if needed.
@@ -75,10 +66,6 @@ enum Command {
         GatewayType,
         tokio::sync::oneshot::Sender<Result<GatewayList>>,
     ),
-    LookupCountries(
-        GatewayType,
-        tokio::sync::oneshot::Sender<Result<Vec<Country>>>,
-    ),
     LookupGatewayIp(
         String, // gateway_identity
         tokio::sync::oneshot::Sender<Result<IpAddr>>,
@@ -95,9 +82,6 @@ pub struct GatewayCache {
 
     // The cached gateways and their last updated time
     cached_gateways: HashMap<GatewayType, (GatewayList, Instant)>,
-
-    // The cached countries and their last updated time
-    cached_countries: HashMap<GatewayType, (Vec<Country>, Instant)>,
 
     // The connectivity handle to check if we are online
     connectivity_handle: ConnectivityHandle,
@@ -122,7 +106,6 @@ impl GatewayCache {
             connectivity_handle,
             command_rx,
             cached_gateways: HashMap::default(),
-            cached_countries: HashMap::default(),
             is_performed_initial_refresh: false,
             shutdown_token,
         };
@@ -144,9 +127,6 @@ impl GatewayCache {
                         }
                         Command::LookupGateways(gw_type, tx) => {
                             tx.send(self.lookup_gateways(gw_type).await).ok();
-                        }
-                        Command::LookupCountries(gw_type, tx) => {
-                            tx.send(self.lookup_countries(gw_type).await).ok();
                         }
                         Command::LookupGatewayIp(gateway_identity, tx) => {
                             tx.send(self.lookup_gateway_ip(&gateway_identity).await).ok();
@@ -188,23 +168,15 @@ impl GatewayCache {
             || new_config.wg_score_thresholds != old_config.wg_score_thresholds
         {
             self.cached_gateways.clear();
-            self.cached_countries.clear();
         }
     }
 
     async fn refresh_all(&mut self) {
-        let (gw_types, country_types) = (
-            self.get_stale_gateway_list_types(),
-            self.get_stale_country_list_types(),
-        );
+        let gw_types = self.get_stale_gateway_list_types();
 
-        if !gw_types.is_empty() || !country_types.is_empty() {
-            tracing::info!(
-                "Refreshing gateways: {:?}, countries: {:?}",
-                gw_types,
-                country_types
-            );
-            self.refresh(gw_types, country_types).await;
+        if !gw_types.is_empty() {
+            tracing::info!("Refreshing gateways: {:?}", gw_types,);
+            self.refresh(gw_types).await;
         }
     }
 
@@ -214,51 +186,27 @@ impl GatewayCache {
             .collect()
     }
 
-    fn get_stale_country_list_types(&self) -> Vec<GatewayType> {
-        GatewayType::iter()
-            .filter(|country_type| !self.is_countries_current(country_type))
-            .collect()
-    }
-
-    async fn refresh(&mut self, gw_list_types: Vec<GatewayType>, country_types: Vec<GatewayType>) {
+    async fn refresh(&mut self, gw_list_types: Vec<GatewayType>) {
         if self.connectivity_handle.connectivity().await.is_offline() {
-            tracing::debug!("Not refreshing gateways and countries because we are not connected");
+            tracing::debug!("Not refreshing gateways because we are not connected");
             return;
         }
 
-        tracing::info!("Refreshing gateway lists: {gw_list_types:?}, countries: {country_types:?}");
+        tracing::info!("Refreshing gateway lists: {gw_list_types:?}");
 
         let mut tasks = tokio::task::JoinSet::new();
-
-        for gw_type in country_types {
-            let client = self.gateway_client.clone();
-            tasks.spawn(async move {
-                let res = client.lookup_countries(gw_type).await;
-                Either::Left((gw_type, res))
-            });
-        }
 
         for gw_type in gw_list_types {
             let client = self.gateway_client.clone();
             tasks.spawn(async move {
                 let res = client.lookup_gateways(gw_type).await;
-                Either::Right((gw_type, res))
+                (gw_type, res)
             });
         }
 
         while let Some(res) = tasks.join_next().await {
             match res {
-                Ok(Either::Left((gw_type, r))) => match r {
-                    Ok(refreshed_countries) => {
-                        tracing::info!("Refreshed countries for {gw_type:?}");
-                        self.cached_countries
-                            .insert(gw_type, (refreshed_countries, Instant::now()));
-                    }
-                    Err(err) => {
-                        tracing::warn!("Failed to refresh countries for {gw_type:?}: {err}");
-                    }
-                },
-                Ok(Either::Right((gw_type, r))) => match r {
+                Ok((gw_type, r)) => match r {
                     Ok(refreshed_gateways) => {
                         tracing::info!("Refreshed gateways for {gw_type:?}");
                         self.cached_gateways
@@ -275,37 +223,12 @@ impl GatewayCache {
         }
     }
 
-    fn is_countries_current(&self, gw_type: &GatewayType) -> bool {
-        self.cached_countries
-            .get(gw_type)
-            .as_ref()
-            .map(|(_, last_updated)| last_updated.elapsed() < MAX_CACHE_AGE)
-            .unwrap_or_default()
-    }
-
     fn is_gateways_current(&self, gw_type: &GatewayType) -> bool {
         self.cached_gateways
             .get(gw_type)
             .as_ref()
             .map(|(_, last_updated)| last_updated.elapsed() < MAX_CACHE_AGE)
             .unwrap_or_default()
-    }
-
-    async fn refresh_countries(&mut self, gw_type: GatewayType) -> Result<Vec<Country>> {
-        if let Some((countries, last_updated)) = self.cached_countries.get(&gw_type)
-            && last_updated.elapsed() < MAX_CACHE_AGE
-        {
-            Ok(countries.clone())
-        } else {
-            if self.connectivity_handle.connectivity().await.is_offline() {
-                tracing::warn!("Not refreshing countries because we are not connected");
-                return Err(Error::Offline);
-            }
-            let refreshed_countries = self.gateway_client.lookup_countries(gw_type).await?;
-            self.cached_countries
-                .insert(gw_type, (refreshed_countries.clone(), Instant::now()));
-            Ok(refreshed_countries)
-        }
     }
 
     async fn refresh_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {
@@ -335,18 +258,6 @@ impl GatewayCache {
         // exist. They should be the most recent one we can muster
         if let Some((gateways, _)) = self.cached_gateways.get(&gw_type) {
             Ok(gateways.clone())
-        } else {
-            refresh_result
-        }
-    }
-
-    async fn lookup_countries(&mut self, gw_type: GatewayType) -> Result<Vec<Country>> {
-        let refresh_result = self.refresh_countries(gw_type).await;
-
-        // Regardless of if we managed to refresh the cache, we return the cached countries if they
-        // exist. They should be the most recent one we can muster
-        if let Some((countries, _)) = self.cached_countries.get(&gw_type) {
-            Ok(countries.clone())
         } else {
             refresh_result
         }
