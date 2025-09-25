@@ -292,6 +292,12 @@ pub enum ErrorStateReason {
     /// Failure to select the exit gateway that meets the performance requirements.
     PerformantExitGatewayUnavailable,
 
+    /// Invalid identity set for entry gateway
+    InvalidEntryGatewayIdentity,
+
+    /// Invalid identity set for exit gateway
+    InvalidExitGatewayIdentity,
+
     /// Invalid country set for entry gateway
     InvalidEntryGatewayCountry,
 
@@ -443,6 +449,12 @@ impl From<nym_vpn_lib_types::ErrorStateReason> for ErrorStateReason {
             }
             nym_vpn_lib_types::ErrorStateReason::PerformantExitGatewayUnavailable => {
                 Self::PerformantExitGatewayUnavailable
+            }
+            nym_vpn_lib_types::ErrorStateReason::InvalidEntryGatewayIdentity => {
+                Self::InvalidEntryGatewayIdentity
+            }
+            nym_vpn_lib_types::ErrorStateReason::InvalidExitGatewayIdentity => {
+                Self::InvalidExitGatewayIdentity
             }
             nym_vpn_lib_types::ErrorStateReason::InvalidEntryGatewayCountry => {
                 Self::InvalidEntryGatewayCountry

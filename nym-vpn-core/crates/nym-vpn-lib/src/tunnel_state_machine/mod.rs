@@ -762,12 +762,24 @@ impl tunnel::Error {
                 GatewayDirectoryError::PerformantExitGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
                 }
-                GatewayDirectoryError::SelectEntryGateway(
-                    nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
-                ) => Some(ErrorStateReason::InvalidEntryGatewayCountry),
-                GatewayDirectoryError::SelectExitGateway(
-                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
-                ) => Some(ErrorStateReason::InvalidExitGatewayCountry),
+                GatewayDirectoryError::SelectEntryGateway(source) => match source {
+                    nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. } => {
+                        Some(ErrorStateReason::InvalidEntryGatewayCountry)
+                    }
+                    nym_gateway_directory::Error::NoMatchingGateway { .. } => {
+                        Some(ErrorStateReason::InvalidEntryGatewayIdentity)
+                    }
+                    _ => None,
+                },
+                GatewayDirectoryError::SelectExitGateway(source) => match source {
+                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. } => {
+                        Some(ErrorStateReason::InvalidExitGatewayCountry)
+                    }
+                    nym_gateway_directory::Error::NoMatchingGateway { .. } => {
+                        Some(ErrorStateReason::InvalidExitGatewayIdentity)
+                    }
+                    _ => None,
+                },
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
