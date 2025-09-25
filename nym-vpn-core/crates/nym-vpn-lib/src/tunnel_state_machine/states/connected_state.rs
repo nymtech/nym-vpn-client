@@ -50,6 +50,7 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
                 if shared_state.tunnel_settings.bridges_enabled() {

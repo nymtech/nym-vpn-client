@@ -92,35 +92,37 @@ impl ConnectingState {
             return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 
-        let mut bridge_endpoints = Vec::new();
-        if shared_state.tunnel_settings.bridges_enabled() {
-            if let Some(gateways) = &selected_gateways {
-                if let Some(params) = &gateways.entry.bridge_params {
-                    bridge_endpoints = params.get_addrs()
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let firewall_policy_params = {
+            let mut bridge_endpoints = Vec::new();
+            if shared_state.tunnel_settings.bridges_enabled() {
+                if let Some(gateways) = &selected_gateways {
+                    if let Some(params) = &gateways.entry.bridge_params {
+                        bridge_endpoints = params.get_addrs()
+                    }
                 }
             }
-        }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let firewall_policy_params = ConnectingPolicyParameters {
-            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
-            allow_lan: shared_state.tunnel_settings.allow_lan,
-            wg_entry_endpoint: None,
-            bridge_endpoints,
-            ws_entry_endpoints: selected_gateways
-                .as_ref()
-                .map(|v| v.entry.endpoints())
-                .unwrap_or_default(),
-            api_endpoints: Vec::new(),
-            dns_servers: shared_state.tunnel_settings.default_dns_ips(),
-            tunnel_interface: None,
+            let firewall_policy_params = ConnectingPolicyParameters {
+                enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
+                allow_lan: shared_state.tunnel_settings.allow_lan,
+                wg_entry_endpoint: None,
+                bridge_endpoints,
+                ws_entry_endpoints: selected_gateways
+                    .as_ref()
+                    .map(|v| v.entry.endpoints())
+                    .unwrap_or_default(),
+                api_endpoints: Vec::new(),
+                dns_servers: shared_state.tunnel_settings.default_dns_ips(),
+                tunnel_interface: None,
+            };
+
+            if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+                trace_err_chain!(err, "failed to set firewall policy");
+                return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
+            }
+            firewall_policy_params
         };
-
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
-            trace_err_chain!(err, "failed to set firewall policy");
-            return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
-        }
 
         // If that fails, it's not really important
         let _ = shared_state
