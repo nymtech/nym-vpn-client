@@ -15,6 +15,8 @@ use std::{path::PathBuf, sync::Arc, time::Duration};
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
 use nym_sdk::UserAgent;
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;
@@ -50,6 +52,7 @@ impl ConnectedMixnet {
         &self.selected_gateways
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub async fn start_event_listener(
         &mut self,
         task_manager: &mut TaskManager,
@@ -79,6 +82,7 @@ impl ConnectedMixnet {
     }
 
     /// Creates a tunnel over WireGuard.
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub async fn connect_wireguard_tunnel(
         self,
         task_manager: &TaskManager,
@@ -140,15 +144,14 @@ pub async fn select_gateways(
         .map_err(|err| Error::SelectGateways(Box::new(err)))
 }
 
+#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub async fn connect_mixnet(
-    task_manager: &TaskManager,
     options: MixnetConnectOptions,
     network_env: &Network,
     gateway_cache_handle: GatewayCacheHandle,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
-    let task_client = task_manager.subscribe_named("mixnet_client_main");
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
 
     match options.tunnel_type {
@@ -176,7 +179,7 @@ pub async fn connect_mixnet(
             &options.data_path,
             mixnet_client_config,
             setup_mixnet_options,
-            task_client,
+            cancel_token.clone(),
         ),
     );
 
@@ -200,7 +203,7 @@ pub async fn connect_mixnet(
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to create gateway client")]
-    CreateGatewayClient(#[source] nym_gateway_directory::Error),
+    CreateGatewayClient(#[source] Box<nym_gateway_directory::Error>),
 
     #[error("failed to select gateways")]
     SelectGateways(#[source] Box<GatewayDirectoryError>),

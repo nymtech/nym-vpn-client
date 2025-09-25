@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, time::Duration};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
@@ -23,7 +23,7 @@ use crate::{
         NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
         NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
         NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
-        NymWellknownDiscoveryItem, StatusOk, UnexpectedError,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
@@ -57,57 +57,60 @@ impl VpnApiClient {
         user_agent: UserAgent,
     ) -> Result<Self> {
         // Get VPN API URLs from network details
+        #[allow(deprecated)]
         let vpn_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
-            let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(
+            let err: HttpClientError = HttpClientError::GenericRequestFailure(
                 "No VPN API URLs configured in network details".to_string(),
             );
-            VpnApiClientError::CreateVpnApiClient(err)
+            VpnApiClientError::CreateVpnApiClient(Box::new(err))
         })?;
 
         // Use the first URL as base
+        #[allow(deprecated)]
         let base_url = vpn_urls
             .first()
             .ok_or_else(|| {
-                let err: HttpClientError<UnexpectedError> = HttpClientError::GenericRequestFailure(
+                let err: HttpClientError = HttpClientError::GenericRequestFailure(
                     "VPN API URLs list is empty".to_string(),
                 );
-                VpnApiClientError::CreateVpnApiClient(err)
+                VpnApiClientError::CreateVpnApiClient(Box::new(err))
             })?
             .url
             .parse()
             .map_err(|e| {
-                let err: HttpClientError<UnexpectedError> =
+                let err: HttpClientError =
                     HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                VpnApiClientError::CreateVpnApiClient(err)
+                VpnApiClientError::CreateVpnApiClient(Box::new(err))
             })?;
 
         // Build client with domain fronting support from network details
+        #[allow(deprecated)]
         let nym_vpn_api_urls = vpn_urls
             .iter()
             .map(|v| {
                 v.url.parse().map_err(|e| {
-                    let err: HttpClientError<UnexpectedError> =
+                    let err: HttpClientError =
                         HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                    VpnApiClientError::CreateVpnApiClient(err)
+                    VpnApiClientError::CreateVpnApiClient(Box::new(err))
                 })
             })
             .collect::<Result<Vec<_>, _>>()?;
 
         // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
         // nym_http_api_client::ClientBuilder::from_network(network)
+        #[allow(deprecated)]
         let inner = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
             // .map_err(|e| {
-            //     let err: HttpClientError<UnexpectedError> =
+            //     let err: HttpClientError =
             //         HttpClientError::GenericRequestFailure(e.to_string());
             //     VpnApiClientError::CreateVpnApiClient(err)
             // })?
             .with_user_agent(user_agent.clone())
             .with_timeout(NYM_VPN_API_TIMEOUT)
-            .build::<UnexpectedError>()
+            .build()
             .map_err(|e| {
-                let err: HttpClientError<UnexpectedError> =
-                    HttpClientError::GenericRequestFailure(e.to_string());
-                VpnApiClientError::CreateVpnApiClient(err)
+                let err: HttpClientError = HttpClientError::GenericRequestFailure(e.to_string());
+                VpnApiClientError::CreateVpnApiClient(Box::new(err))
             })?;
 
         Ok(Self {
@@ -124,34 +127,38 @@ impl VpnApiClient {
         static_addresses: Option<&[SocketAddr]>,
     ) -> Result<Self> {
         // Get VPN API URLs from network details
+        #[allow(deprecated)]
         let vpn_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
-            VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 "No VPN API URLs configured in network details".to_string(),
-            ))
+            )))
         })?;
 
         // Get the first URL
+        #[allow(deprecated)]
         let first_url = vpn_urls.first().ok_or_else(|| {
-            VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
                 "VPN API URLs list is empty".to_string(),
-            ))
+            )))
         })?;
 
         // Parse the URL string into a Url type
+        #[allow(deprecated)]
         let base_url: Url = first_url.url.parse().map_err(|e| {
-            VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(format!(
-                "Invalid VPN API URL: {e}"
+            VpnApiClientError::CreateVpnApiClient(Box::new(HttpClientError::GenericRequestFailure(
+                format!("Invalid VPN API URL: {e}"),
             )))
         })?;
 
         // Build client with domain fronting support from network details
+        #[allow(deprecated)]
         let nym_vpn_api_urls = vpn_urls
             .iter()
             .map(|v| {
                 v.url.parse().map_err(|e| {
-                    let err: HttpClientError<UnexpectedError> =
+                    let err: HttpClientError =
                         HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                    VpnApiClientError::CreateVpnApiClient(err)
+                    VpnApiClientError::CreateVpnApiClient(Box::new(err))
                 })
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -184,7 +191,8 @@ impl VpnApiClient {
         }
 
         let inner = builder
-            .build::<crate::response::UnexpectedError>()
+            .build()
+            .map_err(Box::new)
             .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
         Ok(Self {
@@ -249,6 +257,7 @@ impl VpnApiClient {
                 user_agent,
                 network_details: None,
             })
+            .map_err(Box::new)
             .map_err(VpnApiClientError::CreateVpnApiClient)
     }
 
@@ -297,20 +306,19 @@ impl VpnApiClient {
         }
     }
 
-    async fn get_query<T, E>(
+    async fn get_query<T>(
         &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
-        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
-            .create_get_request(path, NO_PARAMS)
+            .create_get_request(path, NO_PARAMS)?
             .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
@@ -324,20 +332,19 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    async fn get_authorized<T, E>(
+    async fn get_authorized<T>(
         &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
-        E: fmt::Display + DeserializeOwned,
     {
-        match self.get_query::<T, E>(path, account, device, None).await {
+        match self.get_query::<T>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -360,19 +367,18 @@ impl VpnApiClient {
     }
 
     #[allow(unused)]
-    async fn get_authorized_debug<T, E>(
+    async fn get_authorized_debug<T>(
         &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
-        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
-            .create_get_request(path, NO_PARAMS)
+            .create_get_request(path, NO_PARAMS)?
             .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
@@ -385,50 +391,54 @@ impl VpnApiClient {
 
         let response = request.send().await?;
         let status = response.status();
+        let headers = response.headers().clone();
+        let url = response.url().clone();
         tracing::info!("Response status: {:#?}", status);
 
         // TODO: support this mode in the upstream crate
 
-        if status.is_success() {
-            let response_text = response.text().await?;
-            tracing::info!("Response: {:#?}", response_text);
-            let response_json = serde_json::from_str(&response_text)
-                .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
-            Ok(response_json)
-        //} else if status == reqwest::StatusCode::NOT_FOUND {
-        //    Err(HttpClientError::NotFound)
-        } else {
-            let Ok(response_text) = response.text().await else {
-                return Err(HttpClientError::RequestFailure { status });
-            };
+        let response_text = response.text().await.map(|t| t.to_owned());
 
-            tracing::info!("Response: {:#?}", response_text);
+        match response_text {
+            Ok(response_text) => {
+                if status.is_success() {
+                    tracing::info!("Response: {:#?}", response_text);
+                    #[allow(deprecated)]
+                    let response_json = serde_json::from_str(&response_text)
+                        .map_err(|e| HttpClientError::GenericRequestFailure(e.to_string()))?;
+                    Ok(response_json)
+                } else {
+                    tracing::info!("Response: {:#?}", response_text);
 
-            if let Ok(request_error) = serde_json::from_str(&response_text) {
-                Err(HttpClientError::EndpointFailure {
-                    status,
-                    error: request_error,
-                })
-            } else {
-                Err(HttpClientError::GenericRequestFailure(response_text))
+                    Err(HttpClientError::EndpointFailure {
+                        url,
+                        status,
+                        headers: Box::new(headers),
+                        error: response_text,
+                    })
+                }
             }
+            Err(err) => Err(HttpClientError::RequestFailure {
+                url,
+                status,
+                headers: Box::new(headers),
+            }),
         }
     }
 
-    async fn get_json_with_retry<T, K, V, E>(
+    async fn get_json_with_retry<T, K, V>(
         &self,
         path: PathSegments<'_>,
         params: Params<'_, K, V>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         for<'a> T: Deserialize<'a>,
         K: AsRef<str> + Sync,
         V: AsRef<str> + Sync,
-        E: fmt::Display + fmt::Debug + DeserializeOwned,
     {
         let response = (|| async { self.inner.get_json(path, params).await })
             .retry(backon::ConstantBuilder::default())
-            .notify(|err: &HttpClientError<E>, dur: Duration| {
+            .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to get JSON: {}", err);
                 tracing::warn!("retrying after {:?}", dur);
             })
@@ -436,22 +446,21 @@ impl VpnApiClient {
         Ok(response)
     }
 
-    async fn post_json_with_retry<B, T, K, V, E>(
+    async fn post_json_with_retry<B, T, K, V>(
         &self,
         path: PathSegments<'_>,
         params: Params<'_, K, V>,
         json_body: &B,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         for<'a> T: Deserialize<'a>,
         B: Serialize + ?Sized + Sync,
         K: AsRef<str> + Sync,
         V: AsRef<str> + Sync,
-        E: fmt::Display + fmt::Debug + DeserializeOwned,
     {
         let response = (|| async { self.inner.post_json(path, params, json_body).await })
             .retry(backon::ConstantBuilder::default())
-            .notify(|err: &HttpClientError<E>, dur: Duration| {
+            .notify(|err: &HttpClientError, dur: Duration| {
                 tracing::warn!("Failed to post JSON: {}", err);
                 tracing::warn!("retrying after {:?}", dur);
             })
@@ -459,22 +468,21 @@ impl VpnApiClient {
         Ok(response)
     }
 
-    async fn post_query<T, B, E>(
+    async fn post_query<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
         account: &VpnApiAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
-        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
-            .create_post_request(path, NO_PARAMS, json_body)
+            .create_post_request(path, NO_PARAMS, json_body)?
             .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
@@ -488,25 +496,24 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    async fn post_authorized<T, B, E>(
+    async fn post_authorized<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
         account: &VpnApiAccount,
         device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
-        E: fmt::Display + DeserializeOwned,
     {
         match self
-            .post_query::<T, B, E>(path, json_body, account, device, None)
+            .post_query::<T, B>(path, json_body, account, device, None)
             .await
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -530,20 +537,19 @@ impl VpnApiClient {
         }
     }
 
-    async fn delete_query<T, E>(
+    async fn delete_query<T>(
         &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
-        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
-            .create_delete_request(path, NO_PARAMS)
+            .create_delete_request(path, NO_PARAMS)?
             .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
@@ -557,20 +563,19 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    async fn delete_authorized<T, E>(
+    async fn delete_authorized<T>(
         &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
-        E: fmt::Display + DeserializeOwned,
     {
-        match self.delete_query::<T, E>(path, account, device, None).await {
+        match self.delete_query::<T>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -592,22 +597,21 @@ impl VpnApiClient {
         }
     }
 
-    async fn patch_query<T, B, E>(
+    async fn patch_query<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
         account: &VpnApiAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
-        E: fmt::Display + DeserializeOwned,
     {
         let request = self
             .inner
-            .create_patch_request(path, NO_PARAMS, json_body)
+            .create_patch_request(path, NO_PARAMS, json_body)?
             .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
@@ -621,25 +625,24 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    async fn patch_authorized<T, B, E>(
+    async fn patch_authorized<T, B>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
         account: &VpnApiAccount,
         device: Option<&Device>,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
-        E: fmt::Display + DeserializeOwned,
     {
         match self
-            .patch_query::<T, B, E>(path, json_body, account, device, None)
+            .patch_query::<T, B>(path, json_body, account, device, None)
             .await
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                if let HttpClientError::EndpointFailure { error, .. } = &err
                     && jwt_error(&error.to_string())
                 {
                     tracing::warn!(
@@ -672,6 +675,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(crate::error::VpnApiClientError::GetAccount)
     }
 
@@ -697,12 +701,14 @@ impl VpnApiClient {
             &body,
         )
         .await
+        .map_err(Box::new)
         .map_err(crate::error::VpnApiClientError::PostAccount)
     }
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
+            .map_err(Box::new)
             .map_err(crate::error::VpnApiClientError::GetHealth)
     }
 
@@ -718,6 +724,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(Box::new)
             .map_err(crate::error::VpnApiClientError::GetWellknownEnvs)
     }
 
@@ -737,6 +744,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(Box::new)
             .map_err(crate::error::VpnApiClientError::GetWellknownDiscovery)
     }
 
@@ -756,6 +764,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetAccountSummary)
     }
 
@@ -778,6 +787,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
     }
 
@@ -796,6 +806,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDevices)
     }
 
@@ -822,6 +833,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::RegisterDevice)
     }
 
@@ -842,6 +854,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetActiveDevices)
     }
 
@@ -863,6 +876,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDeviceById)
     }
 
@@ -890,6 +904,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::UpdateDevice)
     }
 
@@ -914,6 +929,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDeviceZkNyms)
     }
 
@@ -950,6 +966,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::RequestZkNym)
     }
 
@@ -973,6 +990,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDeviceZkNyms)
     }
 
@@ -997,6 +1015,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetZkNymById)
     }
 
@@ -1021,6 +1040,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::ConfirmZkNymDownloadById)
     }
 
@@ -1042,6 +1062,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetFreePasses)
     }
 
@@ -1065,6 +1086,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::ApplyFreepass)
     }
 
@@ -1086,6 +1108,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetSubscriptions)
     }
 
@@ -1108,6 +1131,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::CreateSubscription)
     }
 
@@ -1128,6 +1152,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetActiveSubscriptions)
     }
 
@@ -1144,6 +1169,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetUsage)
     }
 
@@ -1163,6 +1189,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetGateways)
     }
 
@@ -1206,6 +1233,7 @@ impl VpnApiClient {
             &params,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetVpnGateways)
     }
 
@@ -1226,6 +1254,7 @@ impl VpnApiClient {
             &params,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetVpnGatewayCountries)
     }
 
@@ -1244,6 +1273,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetGatewayCountries)
     }
 
@@ -1262,6 +1292,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetEntryGateways)
     }
 
@@ -1281,6 +1312,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetEntryGatewayCountries)
     }
 
@@ -1299,6 +1331,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetExitGateways)
     }
 
@@ -1318,6 +1351,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetExitGatewayCountries)
     }
 
@@ -1338,6 +1372,7 @@ impl VpnApiClient {
             NO_PARAMS,
         )
         .await
+        .map_err(Box::new)
         .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 
@@ -1354,6 +1389,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
+            .map_err(Box::new)
             .map_err(VpnApiClientError::GetVpnNetworkDetails)
     }
 }

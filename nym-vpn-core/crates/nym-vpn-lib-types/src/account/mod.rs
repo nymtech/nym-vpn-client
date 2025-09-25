@@ -161,9 +161,9 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
 impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError {
     fn from(err: nym_vpn_api_client::error::VpnApiClientError) -> Self {
         use nym_vpn_api_client::response::NymErrorResponse;
-
+        // TODO: Another example of losing information about the original error cause
         match NymErrorResponse::try_from(err) {
-            Ok(e) => AccountCommandError::VpnApi(VpnApiError::Response(e.into())),
+            Ok(err) => AccountCommandError::VpnApi(VpnApiError::Response(err.into())),
             Err(e) => AccountCommandError::Internal(e.to_string()),
         }
     }
@@ -182,7 +182,9 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiErrorRespon
     type Error = nym_vpn_api_client::error::VpnApiClientError;
 
     fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
-        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(Into::into)
+        Ok(VpnApiErrorResponse::from(
+            nym_vpn_api_client::response::NymErrorResponse::try_from(err)?,
+        ))
     }
 }
 

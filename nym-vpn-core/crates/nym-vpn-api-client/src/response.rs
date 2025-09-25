@@ -3,13 +3,13 @@
 
 use std::{collections::HashSet, fmt, net::IpAddr};
 
+use crate::error::VpnApiClientError;
+use crate::network_compatibility::NetworkCompatibility;
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-
-use crate::network_compatibility::NetworkCompatibility;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -597,31 +597,17 @@ impl fmt::Display for StatusOk {
     }
 }
 
-pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
-where
-    E: std::error::Error + 'static,
-{
-    let mut source = err.source();
-    while let Some(err) = source {
-        if let Some(status) = err
-            .downcast_ref::<nym_http_api_client::HttpClientError<NymErrorResponse>>()
-            .and_then(extract_error_response_inner::<NymErrorResponse>)
-        {
-            return Some(status);
+pub fn extract_error_response(err: &VpnApiClientError) -> Option<NymErrorResponse> {
+    // Try to extract the HttpClientError and parse structured error response
+    if let Some(nym_http_api_client::HttpClientError::EndpointFailure { error, .. }) =
+        err.http_client_error()
+    {
+        // Try to parse the error string as NymErrorResponse
+        if let Ok(parsed) = serde_json::from_str::<NymErrorResponse>(error) {
+            return Some(parsed);
         }
-        source = err.source();
     }
     None
-}
-
-fn extract_error_response_inner<E>(err: &nym_http_api_client::HttpClientError<E>) -> Option<E>
-where
-    E: Clone + std::fmt::Display,
-{
-    match err {
-        nym_http_api_client::HttpClientError::EndpointFailure { error, .. } => Some(error.clone()),
-        _ => None,
-    }
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

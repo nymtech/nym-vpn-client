@@ -122,6 +122,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     Ok(())
 }
 
+// TODO: With the erorr rework we are now losing information about the original error cause, this needs to be addressed, but errors rework is a pretty gnarly thing to do, so we need to plan it a bit more carefully
 pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
@@ -142,16 +143,12 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
     {
-        match NymErrorResponse::try_from(e) {
-            Ok(nym_error)
-                if nym_error.code_reference_id
-                    == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string()) =>
-            {
-                // Device didn't exist in the first place so we're good
-                Ok(())
-            }
-            Ok(nym_error) => Err(VpnApiError::Response(nym_error.into()))?,
-            Err(e) => Err(AccountCommandError::internal(e.to_string())),
+        let nym_error = NymErrorResponse::try_from(e)?;
+        if nym_error.code_reference_id == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string()) {
+            // Device didn't exist in the first place so we're good
+            Ok(())
+        } else {
+            Err(VpnApiError::Response(nym_error.into()))?
         }
     } else {
         Ok(())

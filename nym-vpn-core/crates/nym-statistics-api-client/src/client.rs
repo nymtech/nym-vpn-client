@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, time::Duration};
+use std::time::Duration;
 
 use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
 use serde::{Serialize, de::DeserializeOwned};
@@ -30,20 +30,20 @@ impl StatisticsApiClient {
                     .build()
             })
             .map(|c| Self { inner: c })
+            .map_err(Box::new)
             .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }
 
-    async fn post_query<T, B, E>(
+    async fn post_query<T, B>(
         &self,
         path: &str,
         json_body: &B,
-    ) -> std::result::Result<T, HttpClientError<E>>
+    ) -> std::result::Result<T, HttpClientError>
     where
         T: DeserializeOwned,
         B: Serialize,
-        E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_post_request(path, NO_PARAMS, json_body);
+        let request = self.inner.create_post_request(path, NO_PARAMS, json_body)?;
 
         let response = request.send().await?;
 
@@ -57,6 +57,7 @@ impl StatisticsApiClient {
     {
         self.post_query(routes::REPORT_ROUTE, &body)
             .await
+            .map_err(Box::new)
             .map_err(StatisticsApiClientError::ReportSending)
     }
 }

@@ -21,6 +21,8 @@ use futures::{FutureExt, future::Fuse};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_sdk::UserAgent;
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskManager;
 use nym_vpn_account_controller::AccountStateReceiver;
 use nym_vpn_network_config::start_background_file_refresh;
@@ -246,6 +248,8 @@ impl TunnelMonitor {
     }
 
     async fn run(mut self) -> Tombstone {
+        #[allow(deprecated)]
+        // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
         let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS);
         let (tombstone, reason) = match Box::pin(self.run_inner(&mut task_manager)).await {
             Ok(tombstone) => (tombstone, None),
@@ -275,6 +279,7 @@ impl TunnelMonitor {
         tombstone
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn run_inner(&mut self, task_manager: &mut TaskManager) -> Result<Tombstone> {
         if self.enable_ipv6() && !ipv6_availability::is_ipv6_enabled_in_os().await {
             return Err(Error::Ipv6Unavailable);
@@ -415,7 +420,6 @@ impl TunnelMonitor {
             }
         };
         let mut connected_mixnet = Box::pin(tunnel::connect_mixnet(
-            task_manager,
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
             self.gateway_cache_handle.clone(),
@@ -588,6 +592,7 @@ impl TunnelMonitor {
         Ok(tun_devices)
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn recv_error(
         &self,
         task_manager: &mut TaskManager,
@@ -626,6 +631,7 @@ impl TunnelMonitor {
         }
     }
 
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_mixnet_tunnel(
         &mut self,
         task_manager: &TaskManager,
@@ -765,6 +771,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &mut self,
         task_manager: &TaskManager,
@@ -840,6 +847,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(windows)]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &mut self,
         task_manager: &TaskManager,
@@ -946,6 +954,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_tunnel(
         &mut self,
         task_manager: &TaskManager,
@@ -1060,6 +1069,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(windows)]
+    #[allow(deprecated)]
     async fn start_wireguard_tunnel(
         &mut self,
         task_manager: &TaskManager,
@@ -1208,6 +1218,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &self,
         task_manager: &TaskManager,

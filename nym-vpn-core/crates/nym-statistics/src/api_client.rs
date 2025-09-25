@@ -16,14 +16,18 @@ impl StatisticsControllerApiClient {
             let inner_api_client = nym_statistics_api_client::StatisticsApiClient::new(
                 url.clone(),
                 config.user_agent.clone(),
-            )?;
+            )
+            .map_err(Box::new)?;
             Ok(Some(StatisticsControllerApiClient::from(inner_api_client)))
         } else {
             Ok(None)
         }
     }
     pub async fn post_report(&self, report: impl Serialize) -> Result<(), Error> {
-        self.inner.post_stats_report(report).await?;
+        self.inner
+            .post_stats_report(report)
+            .await
+            .map_err(Box::new)?;
         Ok(())
     }
 }

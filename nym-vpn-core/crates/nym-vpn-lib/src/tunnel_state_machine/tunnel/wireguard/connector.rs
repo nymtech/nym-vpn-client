@@ -10,6 +10,8 @@ use nym_authenticator_client::{
 };
 use nym_gateway_directory::{Gateway, GatewayCacheHandle, Recipient};
 use nym_sdk::mixnet::{EphemeralCredentialStorage, StoragePaths};
+#[allow(deprecated)]
+// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use tokio::task::JoinHandle;
@@ -78,6 +80,7 @@ impl Connector {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub async fn connect(
         self,
         task_manager: &TaskManager,
@@ -125,6 +128,7 @@ impl Connector {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn connect_inner(
         task_manager: &TaskManager,
         network: &Network,
