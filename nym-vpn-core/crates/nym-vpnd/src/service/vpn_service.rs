@@ -39,8 +39,8 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
-    gateway::{Country, Gateway},
+    ListGatewaysOptions, StoreAccountRequest,
+    gateway::Gateway,
     log_path::LogPath,
     service::{ConnectArgs, TargetState, VpnServiceInfo},
 };
@@ -77,10 +77,6 @@ pub enum VpnServiceCommand {
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
-    ),
-    ListCountries(
-        oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
-        ListCountriesOptions,
     ),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
@@ -682,9 +678,6 @@ impl NymVpnService {
             VpnServiceCommand::ListGateways(tx, options) => {
                 self.handle_list_gateways(options, tx).await;
             }
-            VpnServiceCommand::ListCountries(tx, options) => {
-                self.handle_list_countries(options, tx).await;
-            }
             VpnServiceCommand::Connect(tx, connect_args) => {
                 self.handle_connect(connect_args).await.ok();
                 let _ = tx.send(());
@@ -880,32 +873,6 @@ impl NymVpnService {
                         .collect::<Vec<_>>()
                 });
 
-            completion_tx.send(result).ok();
-        });
-    }
-
-    async fn handle_list_countries(
-        &self,
-        options: ListCountriesOptions,
-        completion_tx: oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
-    ) {
-        let gateway_client = self.gateway_cache_handle.clone();
-
-        tokio::spawn(async move {
-            // todo: pass options.user_agent with request
-            let result = gateway_client
-                .lookup_countries(options.gw_type)
-                .await
-                .map_err(|source| ListGatewaysError::GetCountries {
-                    gw_type: options.gw_type,
-                    source,
-                })
-                .map(|countries| {
-                    countries
-                        .into_iter()
-                        .map(nym_vpnd_types::gateway::Country::from)
-                        .collect::<Vec<_>>()
-                });
             completion_tx.send(result).ok();
         });
     }

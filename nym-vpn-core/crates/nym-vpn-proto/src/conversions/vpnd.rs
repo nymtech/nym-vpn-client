@@ -17,7 +17,7 @@ use nym_vpn_network_config::{
     ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
 };
 use nym_vpnd_types::{
-    AccountCommandResponse, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    AccountCommandResponse, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Performance, Score},
     log_path::LogPath,
     service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
@@ -500,37 +500,6 @@ impl TryFrom<ListGatewaysOptions> for proto::ListGatewaysRequest {
     type Error = ConversionError;
 
     fn try_from(value: ListGatewaysOptions) -> Result<Self, Self::Error> {
-        let proto_gw_type = proto::GatewayType::from(value.gw_type);
-        let user_agent = value.user_agent.map(proto::UserAgent::from);
-
-        Ok(Self {
-            kind: proto_gw_type as i32,
-            user_agent,
-        })
-    }
-}
-
-impl TryFrom<proto::ListCountriesRequest> for ListCountriesOptions {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::ListCountriesRequest) -> Result<Self, Self::Error> {
-        let gw_type = proto::GatewayType::try_from(value.kind)
-            .map_err(|err| ConversionError::Decode("ListCountriesRequest.kind", err))
-            .map(nym_gateway_directory::GatewayType::from)?;
-
-        let user_agent = value.user_agent.map(nym_sdk::UserAgent::from);
-
-        Ok(Self {
-            gw_type,
-            user_agent,
-        })
-    }
-}
-
-impl TryFrom<ListCountriesOptions> for proto::ListCountriesRequest {
-    type Error = ConversionError;
-
-    fn try_from(value: ListCountriesOptions) -> Result<Self, Self::Error> {
         let proto_gw_type = proto::GatewayType::from(value.gw_type);
         let user_agent = value.user_agent.map(proto::UserAgent::from);
 

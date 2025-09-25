@@ -17,10 +17,7 @@ use url::Url;
 
 use crate::{
     Error, NymNode,
-    entries::{
-        country::Country,
-        gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
-    },
+    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
     error::Result,
 };
 
@@ -425,23 +422,6 @@ impl GatewayClient {
             self.lookup_gateways_from_nym_api(gw_type).await
         }
     }
-
-    pub async fn lookup_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
-        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            debug!("Fetching entry countries from nym-vpn-api...");
-            Ok(nym_vpn_api_client
-                .get_gateway_countries_by_type(gw_type.into(), self.min_gateway_performance)
-                .await?
-                .into_iter()
-                .map(Country::from)
-                .collect())
-        } else {
-            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
-            self.lookup_gateways_from_nym_api(gw_type)
-                .await
-                .map(GatewayList::into_countries)
-        }
-    }
 }
 
 // Append the performance to the gateways. This is a temporary hack until the nymvpn.com endpoints
@@ -535,6 +515,8 @@ mod test {
     }
 
     #[tokio::test]
+    // TODO: Ignore until mainnet gets the new data on the VPN API
+    #[ignore]
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();

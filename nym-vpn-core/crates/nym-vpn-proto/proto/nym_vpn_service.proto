@@ -322,15 +322,6 @@ message ListGatewaysResponse {
   repeated GatewayResponse gateways = 1;
 }
 
-message ListCountriesRequest {
-  GatewayType kind = 1;
-  UserAgent user_agent = 4;
-}
-
-message ListCountriesResponse {
-  repeated Country countries = 1;
-}
-
 message GetAccountLinksRequest {
   string locale = 1;
 }
@@ -744,9 +735,6 @@ service NymVpnService {
 
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
-
-  // List the available countries for the selected mode
-  rpc ListCountries (ListCountriesRequest) returns (ListCountriesResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}

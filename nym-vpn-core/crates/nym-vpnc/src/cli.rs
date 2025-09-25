@@ -135,15 +135,6 @@ pub enum Command {
     /// List the set of entry and exit gateways for dVPN mode.
     ListVpnGateways,
 
-    /// List the set of countries with available entry gateways for mixnet mode.
-    ListEntryCountries,
-
-    /// List the set of countries with available exit gateways for mixnet mode.
-    ListExitCountries,
-
-    /// List the set of countries with available entry and exit gateways for dVPN mode.
-    ListVpnCountries,
-
     /// Internal commands for development and debugging.
     #[clap(subcommand, hide = true)]
     Internal(Internal),
