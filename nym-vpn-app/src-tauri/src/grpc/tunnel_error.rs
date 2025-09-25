@@ -13,6 +13,8 @@ pub enum TunnelError {
     SetDns(Option<String>),
     SetRouting(Option<String>),
     SameEntryAndExitGw(Option<String>),
+    PerformantEntryGwUnavailable(Option<String>),
+    PerformantExitGwUnavailable(Option<String>),
     InvalidEntryGwCountry(Option<String>),
     InvalidExitGwCountry(Option<String>),
     MaxDevicesReached(Option<String>),
@@ -36,6 +38,12 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::SetDns => TunnelError::SetDns(error.message),
             ErrorStateReason::SameEntryAndExitGateway => {
                 TunnelError::SameEntryAndExitGw(error.message)
+            }
+            ErrorStateReason::PerformantEntryGatewayUnavailable => {
+                TunnelError::PerformantEntryGwUnavailable(error.message)
+            }
+            ErrorStateReason::PerformantExitGatewayUnavailable => {
+                TunnelError::PerformantExitGwUnavailable(error.message)
             }
             ErrorStateReason::InvalidEntryGatewayCountry => {
                 TunnelError::InvalidEntryGwCountry(error.message)
