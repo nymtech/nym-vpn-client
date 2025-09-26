@@ -10,12 +10,12 @@ use bytes::Bytes;
 use nym_common::trace_err_chain;
 use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
 use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec};
-use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::{TaskClient, connections::TransmissionLane};
+use nym_sdk::mixnet::{
+    InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane,
+};
 use pnet_packet::Packet;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use tracing::{debug, trace};
 
 use crate::{
@@ -131,13 +131,12 @@ impl IcmpConnectionBeacon {
         self.send_icmp_v6_ping(ICMP_IPR_TUN_EXTERNAL_PING_V6).await
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
+    pub async fn run(mut self, shutdown: CancellationToken) -> Result<()> {
         debug!("Icmp connection beacon is running");
         let mut ping_interval = tokio::time::interval(ICMP_BEACON_PING_INTERVAL);
-        while !shutdown.is_shutdown() {
+        while !shutdown.is_cancelled() {
             tokio::select! {
-                _ = shutdown.recv() => {
+                _ = shutdown.cancelled() => {
                     trace!("IcmpConnectionBeacon: Received shutdown");
                     break;
                 }
@@ -161,7 +160,7 @@ impl IcmpConnectionBeacon {
                         _ = cancellable_fut => {
                             continue;
                         },
-                        _ = shutdown.recv() => {
+                        _ = shutdown.cancelled() => {
                             trace!("IcmpConnectionBeacon: Received shutdown");
                             break;
                         }
@@ -240,7 +239,7 @@ pub fn start_icmp_connection_beacon(
     our_ips: IpPair,
     ipr_address: Recipient,
     icmp_identifier: u16,
-    shutdown_listener: TaskClient,
+    shutdown_listener: CancellationToken,
 ) -> JoinHandle<Result<()>> {
     debug!("Creating icmp connection beacon");
     let beacon =
