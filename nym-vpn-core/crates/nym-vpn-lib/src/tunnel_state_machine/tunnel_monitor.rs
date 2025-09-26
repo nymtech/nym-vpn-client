@@ -256,10 +256,6 @@ impl TunnelMonitor {
             }
         };
 
-        // SW double check shutdown mechanism before removing that
-        //tracing::debug!("Waiting for task manager shutdown");
-        //task_manager.wait_for_graceful_shutdown().await;
-
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {
             error_state_reason: reason,
@@ -471,7 +467,7 @@ impl TunnelMonitor {
                 .nym_network
                 .network
                 .clone(),
-            cancel_token: self.shutdown_token.child_token(),
+            cancel_token: self.shutdown_token.clone(),
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
 
@@ -480,8 +476,7 @@ impl TunnelMonitor {
         let registration_client = Box::pin(rc_builder.build())
             .await
             .map_err(|e| Box::new(tunnel::Error::RegistrationClient(Box::new(e))))?;
-        let registration_result = registration_client
-            .register()
+        let registration_result = Box::pin(registration_client.register())
             .await
             .map_err(|e| Box::new(tunnel::Error::RegistrationClient(Box::new(e))))?;
 
@@ -526,7 +521,7 @@ impl TunnelMonitor {
                     exit_gateway_data.clone(),
                     entry_signal_rx,
                     exit_signal_rx,
-                    self.shutdown_token.child_token(),
+                    self.shutdown_token.clone(),
                 )
                 .await
                 .map_err(|e| Box::new(tunnel::Error::from(e)))?;
