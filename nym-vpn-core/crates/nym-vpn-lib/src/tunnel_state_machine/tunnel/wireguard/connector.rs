@@ -23,7 +23,7 @@ use crate::{
     tunnel_state_machine::{
         TunnelMetadata,
         tunnel::{
-            Error, Result, gateway_selector::SelectedGateways,
+            Error, Result, gateway_selector::SelectedGateways, transports,
             wireguard::connected_tunnel::ConnectedTunnel,
         },
     },
@@ -59,6 +59,7 @@ pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
 pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
 
 pub struct ConnectionData {
+    pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: GatewayData,
     pub exit: GatewayData,
 }
@@ -66,16 +67,20 @@ pub struct ConnectionData {
 pub struct Connector {
     mixnet_client: SharedMixnetClient,
     gateway_cache_handle: GatewayCacheHandle,
+    use_bridge: bool,
 }
 
 impl Connector {
     pub fn new(
         mixnet_client: SharedMixnetClient,
+
         gateway_cache_handle: GatewayCacheHandle,
+        use_bridge: bool,
     ) -> Self {
         Self {
             mixnet_client,
             gateway_cache_handle,
+            use_bridge,
         }
     }
 
@@ -101,15 +106,10 @@ impl Connector {
             cancel_token,
             entry_metadata_rx,
             exit_metadata_rx,
+            self.use_bridge,
         ))
         .await?;
-        Ok(ConnectedTunnel::new(
-            connect_result.entry_gateway_client,
-            connect_result.exit_gateway_client,
-            connect_result.connection_data,
-            connect_result.bandwidth_controller_handle,
-            connect_result.auth_client_mixnet_listener_handle,
-        ))
+        Ok(connect_result.into())
     }
 
     fn get_recipient_and_version(gateway: &Gateway) -> Result<(Recipient, AuthenticatorVersion)> {
@@ -139,6 +139,7 @@ impl Connector {
         cancel_token: CancellationToken,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
+        use_bridge: bool,
     ) -> Result<ConnectResult> {
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
@@ -179,7 +180,7 @@ impl Connector {
         });
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
-        let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
+        let (mut connection_data, bandwidth_controller_handle) = if let Some(data_path) =
             data_path.as_ref()
         {
             let paths = StoragePaths::new_from_dir(data_path)
@@ -194,14 +195,14 @@ impl Connector {
             let (bw, connection_data) = BandwidthController::register_and_create(
                 controller,
                 &gateway_cache_handle,
-                selected_gateways,
+                &selected_gateways,
                 &mut wg_entry_gateway_client,
                 &mut wg_exit_gateway_client,
                 entry_signal_rx,
                 exit_signal_rx,
                 network.gw_update_version(),
                 shutdown,
-                cancel_token,
+                cancel_token.clone(),
             )
             .await?;
             let bandwidth_controller_handle = tokio::spawn(bw.run());
@@ -212,25 +213,50 @@ impl Connector {
             let (bw, connection_data) = BandwidthController::register_and_create(
                 controller,
                 &gateway_cache_handle,
-                selected_gateways,
+                &selected_gateways,
                 &mut wg_entry_gateway_client,
                 &mut wg_exit_gateway_client,
                 entry_signal_rx,
                 exit_signal_rx,
                 network.gw_update_version(),
                 shutdown,
-                cancel_token,
+                cancel_token.clone(),
             )
             .await?;
             let bandwidth_controller_handle = tokio::spawn(bw.run());
             (connection_data, bandwidth_controller_handle)
         };
 
+        let mut transport_fwd_handle = None;
+        if use_bridge {
+            let entry_bridge_params = selected_gateways.entry.get_bridge_params().ok_or(
+                transports::TransportError::config_err(
+                    "attempted to open transport connection without bridge params",
+                ),
+            )?;
+
+            // Attempt transport Connection. If successful a listening UDP connection is created
+            // and the bind address of that UDP listener is provided to the entry wireguard tunnel
+            // as the endpoint address.
+            tracing::info!("Establishing DVPN QUIC transport tunnel");
+            let udp_fwd_cancel = cancel_token.child_token();
+            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
+            let (local_fwd_listen_addr, fwd_handle) =
+                transports::UdpForwarder::launch(bridge_conn, None, udp_fwd_cancel.clone()).await?;
+            transport_fwd_handle = Some(fwd_handle);
+            tracing::info!(
+                "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
+            );
+            connection_data.entry.endpoint = local_fwd_listen_addr;
+        }
+
         Ok(ConnectResult {
             entry_gateway_client: wg_entry_gateway_client,
             exit_gateway_client: wg_exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
+            transport_fwd_handle,
             auth_client_mixnet_listener_handle: mixnet_listener,
         })
     }
@@ -241,5 +267,19 @@ struct ConnectResult {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
+    transport_fwd_handle: Option<JoinHandle<()>>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+}
+
+impl From<ConnectResult> for ConnectedTunnel {
+    fn from(val: ConnectResult) -> Self {
+        ConnectedTunnel::new(
+            val.entry_gateway_client,
+            val.exit_gateway_client,
+            val.connection_data,
+            val.bandwidth_controller_handle,
+            val.transport_fwd_handle,
+            val.auth_client_mixnet_listener_handle,
+        )
+    }
 }

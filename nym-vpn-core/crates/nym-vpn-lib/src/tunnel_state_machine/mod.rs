@@ -176,6 +176,11 @@ impl TunnelSettings {
             .copied()
             .collect()
     }
+
+    pub fn bridges_enabled(&self) -> bool {
+        matches!(self.tunnel_type, TunnelType::Wireguard)
+            && self.wireguard_tunnel_options.enable_bridges
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
@@ -217,6 +222,7 @@ impl Default for WireguardMultihopMode {
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
+    pub enable_bridges: bool,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
@@ -813,6 +819,7 @@ impl tunnel::Error {
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled
+            | Self::Transport(_)
             | Self::MixnetClientDisposed => None,
             #[cfg(target_os = "ios")]
             Self::ResolveDns64(_) => None,
@@ -870,3 +877,15 @@ impl account::Error {
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+impl From<tunnel::Error> for Error {
+    fn from(value: tunnel::Error) -> Self {
+        Self::Tunnel(Box::new(value))
+    }
+}
+
+impl From<tunnel::transports::TransportError> for Error {
+    fn from(value: tunnel::transports::TransportError) -> Self {
+        Self::Tunnel(Box::new(tunnel::Error::Transport(value)))
+    }
+}

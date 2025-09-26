@@ -18,7 +18,7 @@ use nym_routing::{Callback, CallbackHandle, EventType};
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
-use nym_wg_go::{netstack, wireguard_go};
+use nym_wg_go::{amnezia::AmneziaConfig, netstack, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::{self as winnet, AddressFamily};
 #[cfg(any(windows, target_os = "ios"))]
@@ -61,6 +61,7 @@ pub struct ConnectedTunnel {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
+    transport_fwd_handle: Option<JoinHandle<()>>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }
 
@@ -70,6 +71,7 @@ impl ConnectedTunnel {
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
+        transport_fwd_handle: Option<JoinHandle<()>>,
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
@@ -77,12 +79,17 @@ impl ConnectedTunnel {
             exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
+            transport_fwd_handle,
             auth_client_mixnet_listener_handle,
         }
     }
 
     pub fn connection_data(&self) -> &ConnectionData {
         &self.connection_data
+    }
+
+    pub fn connection_data_mut(&mut self) -> &mut ConnectionData {
+        &mut self.connection_data
     }
 
     pub fn entry_mtu(&self) -> u16 {
@@ -99,6 +106,7 @@ impl ConnectedTunnel {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         options: TunnelOptions,
         tunnel_constants: TunnelConstants,
+        entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
         match options {
             #[cfg(not(any(target_os = "ios", target_os = "android")))]
@@ -108,6 +116,7 @@ impl ConnectedTunnel {
                     route_handler,
                     tuntun_options,
                     tunnel_constants,
+                    entry_amnezia,
                 )
                 .await
             }
@@ -118,6 +127,7 @@ impl ConnectedTunnel {
                 tun_provider,
                 netstack_options,
                 tunnel_constants,
+                entry_amnezia,
             ),
         }
     }
@@ -128,8 +138,9 @@ impl ConnectedTunnel {
         #[cfg(windows)] route_handler: RouteHandler,
         options: TunTunTunnelOptions,
         tunnel_constants: TunnelConstants,
+        entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
-        let wg_entry_config = WgNodeConfig::with_gateway_data(
+        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
@@ -141,6 +152,9 @@ impl ConnectedTunnel {
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
+        if entry_amnezia {
+            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+        }
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
@@ -236,6 +250,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            transport_fwd_handle: self.transport_fwd_handle,
             auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
@@ -250,8 +265,9 @@ impl ConnectedTunnel {
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         options: NetstackTunnelOptions,
         tunnel_constants: TunnelConstants,
+        entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
-        let wg_entry_config = WgNodeConfig::with_gateway_data(
+        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
             AllowedIps::Specific(vec![
@@ -263,6 +279,10 @@ impl ConnectedTunnel {
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
+
+        if entry_amnezia {
+            wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
+        }
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
@@ -447,6 +467,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            transport_fwd_handle: self.transport_fwd_handle,
             auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: None,
@@ -575,6 +596,7 @@ pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
+    transport_fwd_handle: Option<JoinHandle<()>>,
     auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
@@ -597,6 +619,12 @@ impl TunnelHandle {
         }
 
         let _ = self.auth_client_mixnet_listener_handle.wait().await;
+
+        if let Some(handle) = self.transport_fwd_handle {
+            if let Err(e) = handle.await {
+                tracing::error!("Failed to join on transport forwarder: {}", e);
+            }
+        }
 
         self.event_handler_task.await
     }

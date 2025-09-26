@@ -461,6 +461,9 @@ impl TryFrom<proto::WireguardConnectionData> for WireguardConnectionData {
                     .exit
                     .ok_or(ConversionError::NoValueSet("WireguardConnectionData.exit"))?,
             )?,
+            entry_bridge_addr: value
+                .entry_bridge_addr
+                .and_then(|str| SocketAddr::from_str(&str).ok()),
         })
     }
 }
@@ -470,6 +473,7 @@ impl From<WireguardConnectionData> for proto::WireguardConnectionData {
         proto::WireguardConnectionData {
             entry: Some(proto::WireguardNode::from(value.entry)),
             exit: Some(proto::WireguardNode::from(value.exit)),
+            entry_bridge_addr: value.entry_bridge_addr.map(|s| s.to_string()),
         }
     }
 }
