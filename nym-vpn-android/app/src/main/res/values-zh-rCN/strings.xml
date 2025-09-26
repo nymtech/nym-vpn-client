@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"低带宽！ 剩余带宽： "</string>
     <string name="vpn_permission_missing">Vpn 权限未被接受或正被其他应用程序使用。</string>
 	<string name="action_requires_tunnel_down">行动需要下穿隧道</string>
-    <string name="selected_exit_unavailable">所选出口国不可用。 请选择其他出境国家。</string>
-    <string name="selected_entry_unavailable">所选参赛国家不可用。 请选择其他入境国家。</string>
 	<string name="device_added_success">设备已成功添加到您的账户</string>
     <string name="invalid_recovery_phrase">助记词无效</string>
     <string name="recovery_phrase">恢复短语</string>
@@ -107,8 +105,7 @@
     <string name="access_code">24 字访问代码</string>
     <string name="support_and_feedback"><![CDATA[支持 & 反馈]]></string>
     <string name="get_in_touch">取得联系</string>
-    <string name="same_entry_exit_message">为了保护隐私，NymVPN 不会使用同一网关进出。 重新连接或选择不同的位置。</string>
-    <string name="device_id">设备 ID：</string>
+	<string name="device_id">设备 ID：</string>
     <string name="unexpected_error">出现意外错误：</string>
 	<string name="loading">加载中</string>
     <string name="offline">无网络</string>

@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"帯域幅が不足しています！ 残りの帯域幅： "</string>
     <string name="vpn_permission_missing">VPNの権限が承認されていないか、別のアプリによって使用されています。</string>
 	<string name="action_requires_tunnel_down">アクションにはトンネルダウンが必要です</string>
-    <string name="selected_exit_unavailable">選択した国は出口として利用できません。別の国を選択してください。</string>
-    <string name="selected_entry_unavailable">選択した国は入口として利用できません。別の国を選択してください。</string>
 	<string name="device_added_success">デバイスがアカウントに正常に追加されました</string>
     <string name="invalid_recovery_phrase">無効なリカバリーフレーズ</string>
     <string name="recovery_phrase">リカバリーフレーズ</string>
@@ -107,8 +105,7 @@
     <string name="access_code">24語で構成されるアクセスコード</string>
     <string name="support_and_feedback"><![CDATA[サポート&フィードバック]]></string>
     <string name="get_in_touch">お問い合わせ</string>
-    <string name="same_entry_exit_message">プライバシーのため、NymVPNは同じゲートウェイを入り口と出口で使用しません。再接続するか、異なる場所を選択してください。</string>
-    <string name="device_id">デバイスID:</string>
+	<string name="device_id">デバイスID:</string>
     <string name="unexpected_error">予期せぬエラーが発生しました:</string>
 	<string name="loading">読み込み中</string>
     <string name="offline">インターネット接続がありません</string>

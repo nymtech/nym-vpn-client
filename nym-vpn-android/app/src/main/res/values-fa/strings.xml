@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"حجم ترافیک پایین است! حجم ترافیک باقی مانده: "</string>
     <string name="vpn_permission_missing">به وی پی ان اجازه دسترسی داده نشده است و یا اتصال وی‌پی‌ان توسط نرم‌افزار دیگری استفاده می‌شود.</string>
 	<string name="action_requires_tunnel_down">برای انجام این کار باید اتصال تونل قطع شده باشد</string>
-    <string name="selected_exit_unavailable">کشور خروجی انتخاب شده در دسترس نیست. لطفاً کشور خروج دیگری انتخاب کنید.</string>
-    <string name="selected_entry_unavailable">کشور ورودی انتخاب شده در دسترس نیست. لطفاً یک کشور ورود دیگری انتخاب کنید.</string>
 	<string name="device_added_success">دستگاه فوق با موفقیت به حساب شما اضافه شد</string>
     <string name="invalid_recovery_phrase">عبارت بازیابی نامعتبر است</string>
     <string name="recovery_phrase">عبارت بازیابی</string>
@@ -107,8 +105,7 @@
     <string name="access_code">۲۴-کلمه-کد-دسترسی</string>
     <string name="support_and_feedback"><![CDATA[پشتیبانی و پیشنهادات]]></string>
     <string name="get_in_touch">با ما در ارتباط باشید</string>
-    <string name="same_entry_exit_message">به منظور حفظ حریم شخصی NymVPN از یک گیت وی خروجی و ورودی یکسان استفاده نخواهد کرد. دوباره وصل شوید یا مکان دیگری را انتخاب کنید.</string>
-    <string name="device_id">شناسه دستگاه:</string>
+	<string name="device_id">شناسه دستگاه:</string>
     <string name="unexpected_error">یک خطای غیر‌منتظره رخ داد:</string>
 	<string name="loading">در حال بارگذاری</string>
     <string name="offline">اینترنت وجود ندارد</string>

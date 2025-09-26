@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"Низкая пропускная способность! Оставшаяся пропускная способность: "</string>
     <string name="vpn_permission_missing">Разрешение на использование Vpn не было получено или используется другим приложением.</string>
 	<string name="action_requires_tunnel_down">Требуется отключение туннеля</string>
-    <string name="selected_exit_unavailable">Выбранная страна выхода недоступна. Выберите другую страну выхода.</string>
-    <string name="selected_entry_unavailable">Выбранная страна входа недоступна. Пожалуйста, выберите другую страну входа.</string>
 	<string name="device_added_success">Устройство успешно добавлено к вашему аккаунту</string>
     <string name="invalid_recovery_phrase">Неверная фраза восстановления</string>
     <string name="recovery_phrase">Фраза восстановления</string>
@@ -107,8 +105,7 @@
     <string name="access_code">Кодовая фраза из 24 слов</string>
     <string name="support_and_feedback"><![CDATA[Поддержка и отзывы]]></string>
     <string name="get_in_touch">Связаться с нами</string>
-    <string name="same_entry_exit_message">NymVPN обеспечивает конфиденциальность, разделяя шлюзы для входа и выхода. Переподключитесь или выберите другие локации.</string>
-    <string name="device_id">ID устройства:</string>
+	<string name="device_id">ID устройства:</string>
     <string name="unexpected_error">Произошла непредвиденная ошибка:</string>
 	<string name="loading">Загрузка</string>
     <string name="offline">Нет интернета</string>
