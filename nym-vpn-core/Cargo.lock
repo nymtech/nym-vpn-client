@@ -5674,6 +5674,7 @@ dependencies = [
  "nym-bin-common",
  "nym-gateway-directory",
  "nym-http-api-client",
+ "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "nym-vpnd-types",

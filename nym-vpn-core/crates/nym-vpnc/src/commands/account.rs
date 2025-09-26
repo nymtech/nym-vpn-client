@@ -1,0 +1,94 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use anyhow::Result;
+
+use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpnd_types::StoreAccountRequest;
+
+#[derive(Debug, Clone, clap::Subcommand)]
+pub enum Command {
+    /// Get current account information
+    Get,
+    /// Login with mnemonic
+    Set {
+        #[arg(index = 1)]
+        mnemonic: String,
+    },
+    /// Forget account
+    Forget,
+    /// Get account links
+    Links {
+        #[arg(long)]
+        locale: String,
+    },
+    /// Refresh account state
+    #[clap(hide = true)]
+    Refresh,
+    /// Get available tickets
+    #[clap(hide = true)]
+    AvailableTickets,
+    /// Get account usage
+    #[clap(hide = true)]
+    Usage,
+}
+
+impl Command {
+    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+        match self {
+            Command::Get => {
+                let account_id = rpc_client.get_account_identity().await?;
+                let account_state = rpc_client.get_account_state().await?;
+
+                println!(
+                    "Account identity: {}",
+                    account_id.unwrap_or("unset".to_owned())
+                );
+                println!("Account state: {:?}", account_state);
+                Ok(())
+            }
+            Command::Set { mnemonic } => {
+                rpc_client
+                    .store_account(StoreAccountRequest { mnemonic })
+                    .await?;
+                println!("Your account has been set. Welcome to the Nym VPN!");
+                Ok(())
+            }
+            Command::Forget => {
+                let response = rpc_client.forget_account().await?;
+                if let Some(err) = response.error {
+                    println!("Failed to forget account: {}", err);
+                    return Err(err.into());
+                } else {
+                    println!("Account forgotten successfully");
+                }
+                Ok(())
+            }
+            Command::Links { locale } => {
+                let account_links = rpc_client.get_account_links(locale).await?;
+
+                println!("Sign up: {}", account_links.sign_up);
+                println!("Sign in: {}", account_links.sign_in);
+                if let Some(account) = account_links.account {
+                    println!("Account: {}", account);
+                }
+
+                Ok(())
+            }
+            Command::Refresh => {
+                rpc_client.refresh_account_state().await?;
+                Ok(())
+            }
+            Command::AvailableTickets => {
+                let response = rpc_client.get_available_tickets().await?;
+                println!("{response:#?}");
+                Ok(())
+            }
+            Command::Usage => {
+                let response = rpc_client.get_account_usage().await?;
+                println!("{response:#?}");
+                Ok(())
+            }
+        }
+    }
+}

@@ -2,12 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::{Result, anyhow};
+use tabled::Table;
+
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
-use tabled::{Table, settings::Style};
-
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::ListGatewaysOptions;
+
+use crate::table_style::TableStyle;
+
+#[derive(Debug, Clone, clap::Args)]
+pub struct Args {
+    /// Table style output.
+    #[arg(global = true, long, value_enum, default_value_t)]
+    pub table_style: TableStyle,
+
+    #[command(subcommand)]
+    pub command: Command,
+}
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -73,13 +85,9 @@ pub struct SetArgs {
     pub exit_random: bool,
 }
 
-impl Command {
-    pub async fn execute(
-        self,
-        mut rpc_client: RpcClient,
-        user_agent: UserAgent,
-    ) -> anyhow::Result<()> {
-        match self {
+impl Args {
+    pub async fn execute(self, mut rpc_client: RpcClient, user_agent: UserAgent) -> Result<()> {
+        match self.command {
             Command::Get => {
                 let entry_point = rpc_client.get_config().await?.entry_point;
                 let exit_point = rpc_client.get_config().await?.exit_point;
@@ -101,13 +109,15 @@ impl Command {
                 Ok(())
             }
             Command::List { gateway_type } => {
-                Self::list_gateways(rpc_client, gateway_type, user_agent).await?;
+                self.list_gateways(rpc_client, gateway_type, user_agent)
+                    .await?;
                 Ok(())
             }
         }
     }
 
     async fn list_gateways(
+        &self,
         mut rpc_client: RpcClient,
         gw_type: GatewayType,
         user_agent: UserAgent,
@@ -125,7 +135,7 @@ impl Command {
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
         let mut table = Table::new(models.into_iter());
-        table.with(Style::psql());
+        self.table_style.apply_style(&mut table);
         println!("{table}");
 
         Ok(())

@@ -1,130 +1,58 @@
-// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, ops::Deref};
+use std::net::IpAddr;
 
 use anyhow::{Result, anyhow};
-use clap::{
-    ArgAction, Args, Parser, Subcommand,
-    builder::{PossibleValuesParser, TypedValueParser, ValueParser},
-};
+
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
+use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpnd_types::{
+    StoreAccountRequest,
+    service::{ConnectArgs as DaemonConnectArgs, ConnectOptions},
+};
 
-#[derive(Parser)]
-#[clap(version, about)]
-pub struct LegacyCliArgs {
-    /// Override the default user agent string.
-    #[arg(long, value_parser = parse_user_agent)]
-    pub user_agent: Option<UserAgent>,
-
-    #[command(subcommand)]
-    pub command: Command,
-}
-
-fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
-    Ok(UserAgent::try_from(user_agent)?)
-}
-
-#[derive(Subcommand)]
+#[derive(Debug, clap::Subcommand)]
 pub enum Command {
-    /// Connect to the Nym network (deprecated)
+    /// Connect to the Nym network (deprecated, use instead: nym-vpnc connect-v2)
+    /// Individual tunnel parameters are configured separately. Learn more by running:
+    /// - nym-vpnc tunnel --help
+    /// - nym-vpnc gateway --help
+    #[clap(verbatim_doc_comment)]
     Connect(Box<ConnectArgs>),
 
-    /// Connect the tunnel if it had been disconnected
-    ConnectV2 {
-        /// Blocks until the connection is established or failed
-        #[arg(short, long)]
-        wait: bool,
-    },
-
-    /// Reconnect the tunnel if it had been connected
-    Reconnect,
-
-    /// Disconnect the tunnel
-    Disconnect {
-        /// Blocks until disconnected.
-        #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
-        wait: bool,
-    },
-
-    /// Get the current connection status
-    Status {
-        /// Monitor tunnel state continuously until ctrl+c.
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
-        listen: bool,
-    },
-
-    /// Get info about the current client. Things like version and network details.
-    Info,
-
-    /// Get the current VPN service configuration.
-    GetConfig,
-
-    /// Manage entry and exit gateway nodes, list available gateways
-    Gateway {
-        #[command(subcommand)]
-        subcommand: crate::gateway::Command,
-    },
-
-    /// Manage local network policy
-    Lan {
-        #[command(subcommand)]
-        subcommand: crate::lan::Command,
-    },
-
-    /// Enable or disable IPv6 in the tunnel
-    SetIpv6 {
-        /// Set IPv6 support state
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        enabled: BooleanOption,
-    },
-
-    /// Enable or disable two-hop mode
-    SetTwoHop {
-        /// Set two-hop mode
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        enabled: BooleanOption,
-    },
-
-    /// Enable or disable netstack based implementation for WireGuard
-    SetNetstack {
-        /// Set netstack implementation
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        enabled: BooleanOption,
-    },
-
-    /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
+    /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`) (deprecated, use instead: nym-vpnc network set <network>)
     SetNetwork(SetNetworkArgs),
 
-    /// Store the account recovery phrase.
+    /// Store the account recovery phrase. (deprecated, use instead: nym-vpnc account set <mnemonic>)
     StoreAccount(StoreAccountArgs),
 
-    /// Check if the account is stored.
+    /// Check if the account is stored. (deprecated, use instead: nym-vpnc account get)
     IsAccountStored,
 
     /// Forget the stored account. This removes the stores recovery phrase, device and mixnet keys,
-    /// stored local credentials, etc.
+    /// stored local credentials, etc. (deprecated, use instead: nym-vpnc account forget)
     ForgetAccount,
 
-    /// Get the account ID.
+    /// Get the account ID. (deprecated, use instead: nym-vpnc account get)
     GetAccountId,
 
-    /// Get current account state.
+    /// Get current account state. (deprecated, use instead: nym-vpnc account get)
     GetAccountState,
 
-    /// Get URLs for managing your nym-vpn account.
+    /// Get URLs for managing your nym-vpn account. (deprecated, use instead: nym-vpnc account links --locale <locale>)
     GetAccountLinks(GetAccountLinksArgs),
 
-    /// Get the device ID.
+    /// Get the device ID. (deprecated, use instead: nym-vpnc device get)
     GetDeviceId,
 
-    /// Internal commands for development and debugging.
+    /// Internal commands for development and debugging. (deprecated)
     #[clap(subcommand, hide = true)]
     Internal(Internal),
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, clap::Subcommand)]
 pub enum Internal {
     /// Get the list of system messages provided by the nym-vpn-api.
     GetSystemMessages,
@@ -152,7 +80,37 @@ pub enum Internal {
     GetAvailableTickets,
 }
 
-#[derive(Args)]
+impl Command {
+    pub async fn execute(self, rpc_client: RpcClient, user_agent: UserAgent) -> Result<()> {
+        println!("This call is deprecated and going to be removed soon.");
+
+        match self {
+            Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await,
+            Command::SetNetwork(args) => set_network(rpc_client, args).await,
+            Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await,
+            Command::IsAccountStored => is_account_stored(rpc_client).await,
+            Command::ForgetAccount => forget_account(rpc_client).await,
+            Command::GetAccountId => get_account_id(rpc_client).await,
+            Command::GetAccountLinks(args) => get_account_links(rpc_client, args).await,
+            Command::GetAccountState => get_account_state(rpc_client).await,
+            Command::GetDeviceId => get_device_id(rpc_client).await,
+            Command::Internal(internal) => match internal {
+                Internal::GetSystemMessages => get_system_messages(rpc_client).await,
+                Internal::GetFeatureFlags => get_feature_flags(rpc_client).await,
+                Internal::SyncAccountState => refresh_account_state(rpc_client).await,
+                Internal::GetAccountUsage => get_account_usage(rpc_client).await,
+                Internal::ResetDeviceIdentity(args) => {
+                    reset_device_identity(rpc_client, args).await
+                }
+                Internal::GetDevices => get_devices(rpc_client).await,
+                Internal::GetActiveDevices => get_active_devices(rpc_client).await,
+                Internal::GetAvailableTickets => get_available_tickets(rpc_client).await,
+            },
+        }
+    }
+}
+
+#[derive(Debug, clap::Args)]
 pub struct ConnectArgs {
     #[command(flatten)]
     pub entry: LegacyCliEntry,
@@ -209,7 +167,7 @@ impl ConnectArgs {
     }
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 #[group(multiple = false)]
 pub struct LegacyCliEntry {
     /// Mixnet public ID of the entry gateway.
@@ -244,7 +202,7 @@ impl LegacyCliEntry {
     }
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 #[group(multiple = false)]
 pub struct LegacyCliExit {
     /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
@@ -331,107 +289,189 @@ impl TryFrom<LegacyCliExit> for ExitPoint {
     }
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 pub struct SetNetworkArgs {
     /// The network to be set.
     pub network: String,
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 pub struct StoreAccountArgs {
     /// The account mnemonic to be stored.
     #[arg(long)]
     pub mnemonic: String,
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 pub struct GetAccountLinksArgs {
     /// The locale to be used.
     #[arg(long)]
     pub locale: String,
 }
 
-#[derive(Args)]
-pub struct ListCountriesArgs {}
-
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 pub struct ResetDeviceIdentityArgs {
     /// Reset the device identity using the given seed.
     #[arg(long)]
     pub seed: Option<String>,
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 pub struct GetZkNymByIdArgs {
     /// The ID of the ZK Nym to fetch.
     #[arg(short, long)]
     pub id: String,
 }
 
-#[derive(Args)]
+#[derive(Debug, clap::Args)]
 pub struct ConfirmZkNymDownloadedArgs {
     /// The ID of the ZK Nym to confirm.
     #[arg(short, long)]
     pub id: String,
 }
 
-/// A value parser that parses "on" or "off" into a boolean
-#[derive(Debug, Clone, Copy)]
-pub struct BooleanOption {
-    state: bool,
-    on_label: &'static str,
-    off_label: &'static str,
-}
+async fn connect(
+    mut rpc_client: RpcClient,
+    connect_args: ConnectArgs,
+    user_agent: UserAgent,
+) -> Result<()> {
+    let options = DaemonConnectArgs {
+        entry: connect_args.entry_point()?,
+        exit: connect_args.exit_point()?,
+        options: ConnectOptions {
+            dns: connect_args.dns,
+            disable_ipv6: connect_args.disable_ipv6,
+            enable_two_hop: connect_args.enable_two_hop,
+            enable_bridges: connect_args.circumvention_transports,
+            netstack: connect_args.netstack,
+            disable_poisson_rate: connect_args.disable_poisson_rate,
+            disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
+            enable_credentials_mode: connect_args.enable_credentials_mode,
+            user_agent: Some(user_agent),
+        },
+    };
 
-impl Deref for BooleanOption {
-    type Target = bool;
+    rpc_client.connect_tunnel(options).await?;
 
-    fn deref(&self) -> &Self::Target {
-        &self.state
+    if connect_args.wait {
+        println!("Waiting until connected or failed");
+        crate::wait_until_connected(rpc_client).await
+    } else {
+        Ok(())
     }
 }
 
-impl clap::builder::ValueParserFactory for BooleanOption {
-    type Parser = ValueParser;
-
-    /// A value parser that parses "on" or "off" into a `BooleanOption`
-    fn value_parser() -> Self::Parser {
-        Self::custom_parser("on", "off")
-    }
+async fn get_device_id(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_device_identity().await?;
+    println!("{response:#?}");
+    Ok(())
 }
 
-impl BooleanOption {
-    /// A value parser that parses `on_label` and `off_label` into a `BooleanOption`
-    pub fn custom_parser(on_label: &'static str, off_label: &'static str) -> ValueParser {
-        assert!(on_label != off_label);
-
-        ValueParser::new(
-            PossibleValuesParser::new([on_label, off_label])
-                .map(move |val| Self::with_labels(val == on_label, on_label, off_label)),
-        )
-    }
-
-    fn with_labels(state: bool, on_label: &'static str, off_label: &'static str) -> Self {
-        Self {
-            state,
-            on_label,
-            off_label,
-        }
-    }
+async fn get_devices(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_devices().await?;
+    println!("{response:#?}");
+    Ok(())
 }
 
-impl From<bool> for BooleanOption {
-    fn from(state: bool) -> Self {
-        Self::with_labels(state, "on", "off")
-    }
+async fn get_active_devices(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_active_devices().await?;
+    println!("{response:#?}");
+    Ok(())
 }
 
-impl std::fmt::Display for BooleanOption {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.state {
-            self.on_label.fmt(f)
-        } else {
-            self.off_label.fmt(f)
-        }
+async fn set_network(mut rpc_client: RpcClient, args: SetNetworkArgs) -> Result<()> {
+    rpc_client.set_network(args.network).await?;
+    Ok(())
+}
+
+async fn get_system_messages(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_system_messages().await?;
+    println!("{response:#?}");
+    Ok(())
+}
+
+async fn get_feature_flags(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_feature_flags().await?;
+    println!("{response:#?}");
+    Ok(())
+}
+
+async fn store_account(mut rpc_client: RpcClient, store_args: StoreAccountArgs) -> Result<()> {
+    let request = StoreAccountRequest {
+        mnemonic: store_args.mnemonic.clone(),
+    };
+    let response = rpc_client.store_account(request).await?;
+
+    if let Some(err) = response.error {
+        println!("Error: {err}");
+    } else {
+        println!("Account recovery phrase stored");
     }
+
+    Ok(())
+}
+
+async fn refresh_account_state(mut rpc_client: RpcClient) -> Result<()> {
+    rpc_client.refresh_account_state().await?;
+    Ok(())
+}
+
+async fn is_account_stored(mut rpc_client: RpcClient) -> Result<()> {
+    let is_stored = rpc_client.is_account_stored().await?;
+    if is_stored {
+        println!("Account is stored");
+    } else {
+        println!("No account is stored");
+    }
+    Ok(())
+}
+
+async fn get_account_usage(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_account_usage().await?;
+    println!("{response:#?}");
+    Ok(())
+}
+
+async fn forget_account(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.forget_account().await?;
+    if let Some(err) = response.error {
+        println!("Error: {err}");
+    } else {
+        println!("Account forgotten successfully");
+    }
+    Ok(())
+}
+
+async fn get_account_id(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_account_identity().await?;
+    println!("{response:#?}");
+    Ok(())
+}
+
+async fn get_account_links(mut rpc_client: RpcClient, args: GetAccountLinksArgs) -> Result<()> {
+    let links = rpc_client.get_account_links(args.locale).await?;
+    println!("{links}");
+
+    Ok(())
+}
+
+async fn get_account_state(mut rpc_client: RpcClient) -> Result<()> {
+    let account_state = rpc_client.get_account_state().await?;
+    println!("{account_state}");
+    Ok(())
+}
+
+async fn reset_device_identity(
+    mut rpc_client: RpcClient,
+    args: ResetDeviceIdentityArgs,
+) -> Result<()> {
+    let seed = args.seed.map(|seed| seed.into_bytes());
+    rpc_client.reset_device_identity(seed).await?;
+    Ok(())
+}
+
+async fn get_available_tickets(mut rpc_client: RpcClient) -> Result<()> {
+    let response = rpc_client.get_available_tickets().await?;
+    println!("{response:#?}");
+    Ok(())
 }

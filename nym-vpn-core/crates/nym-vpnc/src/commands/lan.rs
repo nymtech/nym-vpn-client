@@ -1,9 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use anyhow::Result;
+
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::cli::BooleanOption;
+use crate::boolean_option::BooleanOption;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -19,7 +21,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> anyhow::Result<()> {
+    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             Command::Get => {
                 let allow = rpc_client.get_config().await?.allow_lan;
