@@ -1,31 +1,51 @@
-¿Te preocupa tu privacidad en línea? ¿Necesitas acceder a información bloqueada? La VPN descentralizada de Nym te ayuda. Con NymVPN para Android, puedes navegar por internet de forma privada, eludir la censura y proteger tus transacciones de criptomonedas.
+Deja de ser rastreado: La única VPN que no puede espiarte
 
-NymVPN es la primera VPN para usuarios comunes que funciona en una red descentralizada. En lugar de usar servidores centrales como las VPN tradicionales, envía tu tráfico a través de múltiples nodos independientes, añadiendo un cifrado robusto y ruido de protección para mantener tu privacidad.
+¿Cansado de ser vigilado en línea? Las VPN tradicionales enrutan tus datos por un servidor centralizado que podría rastrearte. NymVPN es diferente: nuestra red descentralizada no tiene autoridad central, lo que hace imposible almacenar registros. No es solo “sin registros”, es “imposible registrar”.
 
-Elige tu nivel de privacidad:
-- Protecciones descentralizadas de 2 saltos con AmneziaWG en el modo rápido
-- Enrutamiento de 5 saltos con tecnología mixnet y ruido de protección adicional en el modo anónimo
+Creado por un equipo de investigadores y criptógrafos con más de 20 publicaciones revisadas. NymVPN opera con cientos de servidores independientes en 50+ países. Desarrollado en colaboración con KU Leuven y EPFL, con sede en Suiza. Nuestra misión: privacidad para toda la humanidad.
 
-Red sin registro:
-Mientras que otras VPN prometen no guardar registros, la red Nym está diseñada para que los registros centralizados sean imposibles. Ningún punto de la red descentralizada puede vincular tu dirección IP con lo que haces en línea. Tu privacidad está garantizada por defecto.
+ELIGE TU NIVEL DE PRIVACIDAD
 
-Pagos no vinculables:
-Para suscribirse a NymVPN, no se requiere información personal, ni siquiera su nombre. Pague de forma segura con pruebas de conocimiento cero que garantizan que nunca se le vinculará con el uso de la aplicación ni de la red.
+Modo rápido: Conexión ultrarrápida de 2 saltos con AmneziaWG. El primer salto conoce tu identidad pero no tu actividad; el segundo, tu actividad pero no quién eres.
 
-Resistencia a la censura:
-Elimine las barreras de acceso a la información que necesita seleccionando las puertas de entrada y salida para su tráfico. AmneziaWG (una bifurcación del protocolo WireGuard) en el modo rápido protege contra la vigilancia dirigida al uso de VPN.
+Modo anónimo: Para máxima privacidad, tráfico por un Mixnet de 5 saltos con múltiples capas de cifrado. Añade tráfico falso y ruido que imposibilitan el rastreo incluso por IA avanzada.
 
-Funciones adicionales de NymVPN:
-- Pagos con criptomonedas, incluyendo Zcash y Monero
-- Pagos en efectivo para máxima privacidad
-- Sin publicidad
-- Hasta 10 dispositivos
-- Selección de puerta de enlace
-- Protección de IP multisalto
-- Killswitch (nativo de Android)
+POR QUÉ NYMVPN ES DIFERENTE
 
-Próximas funciones en 2025:
-- Túnel dividido
-- Resistencia avanzada a la censura
-- Criptografía poscuántica
-- IP residenciales
+Anonimato real: Pagos sin datos personales, con cripto o efectivo.
+
+Protección de metadatos: Defiende tanto el contenido como los patrones de tráfico.
+
+Resistente a la censura: Acceso a webs bloqueadas.
+
+Multi-dispositivo: Un código protege hasta 10 dispositivos.
+
+VERIFICADO INDEPENDIENTEMENTE
+
+4 auditorías de seguridad (2021–2024)
+
+20+ publicaciones en conferencias líderes
+
+Transparencia en “Signals of Trustworthy VPNs”
+
+FUNCIONES ESENCIALES
+
+Kill switch
+
+Servidores en 50+ países
+
+Sin anuncios
+
+Criptografía avanzada
+
+PRÓXIMAS FUNCIONES (2025)
+
+Split tunneling
+
+IPs residenciales
+
+Criptografía post-cuántica
+
+Resistencia avanzada a censura
+
+Descarga, conéctate, desaparece: vuélvete invisible en segundos. Prueba NymVPN con garantía de reembolso de 30 días.
