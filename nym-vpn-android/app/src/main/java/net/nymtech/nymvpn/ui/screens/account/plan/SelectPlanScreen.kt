@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.billingclient.api.ProductDetails
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.model.ProductData
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -80,11 +81,11 @@ fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 
 @Composable
 fun SelectPlanScreen(
-	products: List<ProductDetails> = emptyList(),
+	products: List<ProductData> = emptyList(),
 	showSheet: Boolean = false,
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
-	onSelectSubscription: (ProductDetails) -> Unit,
+	onSelectSubscription: (ProductData) -> Unit,
 	padding: PaddingValues = WindowInsets.systemBars.asPaddingValues()
 ) {
 
@@ -170,6 +171,10 @@ fun SelectPlanScreen(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewSelectPlanScreen() {
 	NymVPNTheme(Theme.default()) {
-		SelectPlanScreen(products = emptyList(), onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
+		val mockProducts = listOf(
+			ProductData(id = "1", name = "Monthly Plan", price = "$4.99 / month"),
+			ProductData(id = "2", name = "Yearly Plan", price = "$49.99 / year")
+		)
+		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
 	}
 }

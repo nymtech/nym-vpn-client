@@ -17,20 +17,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.android.billingclient.api.ProductDetails
+import net.nymtech.nymvpn.ui.model.ProductData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriptionBottomSheet(
-	products: List<ProductDetails>,
+	products: List<ProductData>,
 	onDismiss: () -> Unit,
-	onSelect: (ProductDetails) -> Unit
+	onSelect: (ProductData) -> Unit
 ) {
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
 		containerColor = MaterialTheme.colorScheme.surface,
-		tonalElevation = 4.dp
+		tonalElevation = 4.dp,
 	) {
 		Column(
 			modifier = Modifier
@@ -65,9 +65,7 @@ fun SubscriptionBottomSheet(
 							color = MaterialTheme.colorScheme.onSurface
 						)
 						Text(
-							text = product.oneTimePurchaseOfferDetails?.formattedPrice
-								?: product.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
-								?: "",
+							text = product.price,
 							style = MaterialTheme.typography.bodyMedium,
 							color = MaterialTheme.colorScheme.onSurfaceVariant
 						)
@@ -86,7 +84,7 @@ fun SubscriptionBottomSheet(
 				Text(
 					text = "Cancel",
 					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.error
+					color = MaterialTheme.colorScheme.primary
 				)
 			}
 		}
