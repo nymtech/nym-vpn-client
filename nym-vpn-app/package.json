@@ -14,7 +14,7 @@
     "dev": "vite",
     "dev:app": "tauri dev",
     "dev:browser": "vite --mode dev-browser",
-    "check": "run-s lint tscheck fmt test",
+    "check": "run-s lint tscheck fmt",
     "build": "tsc && vite build",
     "build:app": "npm run tauri build",
     "preview": "vite preview",

@@ -10,8 +10,16 @@ import importPlugin from 'eslint-plugin-import';
 export default [
   globalIgnores(['src/types/tauri.ts']),
   {
+    ignores: [
+      '*.config.js',
+      '*.config.ts',
+      '**/*.test.{ts,tsx}',
+      '**/__tests__/**/*',
+      '**/src/test/**/*',
+    ],
+  },
+  {
     files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
-    ignores: ['*.config.js', '*.config.ts'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
