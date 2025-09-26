@@ -29,22 +29,22 @@ fun PulsingDotsWave(
 	dotSize: Dp = 8.dp,
 	dotColor: Color = Color(0xFF00FF66),
 	spaceBetween: Dp = 2.dp,
-	pulseDuration: Int = 1000
+	pulseDuration: Int = 1000,
 ) {
 	val infiniteTransition = rememberInfiniteTransition(label = "waveTransition")
 	val progress by infiniteTransition.animateFloat(
 		initialValue = 0f,
 		targetValue = 1f,
 		animationSpec = infiniteRepeatable(
-			animation = tween(durationMillis = pulseDuration, easing = LinearEasing)
+			animation = tween(durationMillis = pulseDuration, easing = LinearEasing),
 		),
-		label = "waveProgress"
+		label = "waveProgress",
 	)
 
 	Row(
 		modifier = modifier,
 		horizontalArrangement = Arrangement.spacedBy(spaceBetween),
-		verticalAlignment = Alignment.CenterVertically
+		verticalAlignment = Alignment.CenterVertically,
 	) {
 		repeat(dotCount) { index ->
 			val phase = (progress - index.toFloat() / dotCount + 1f) % 1f
@@ -61,7 +61,7 @@ fun PulsingDotsWave(
 						scaleX = scale
 						scaleY = scale
 					}
-					.background(dotColor, CircleShape)
+					.background(dotColor, CircleShape),
 			)
 		}
 	}
@@ -73,14 +73,13 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 
 @Preview(showBackground = true)
 @Composable
-fun PulsingDotsWavePreview() {
+private fun PulsingDotsWavePreview() {
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
 			.background(Color(0xFF123D2C)),
-		contentAlignment = Alignment.Center
+		contentAlignment = Alignment.Center,
 	) {
 		PulsingDotsWave()
 	}
 }
-

@@ -11,8 +11,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -56,10 +54,9 @@ fun ConnectionButton(
 							onClick = onStopKillSwitch,
 							content = {
 								Text(
-									stringResource(R.string.stop).uppercase(),
-									style = CustomTypography.labelHuge,
+									stringResource(R.string.stop),
+									style = CustomTypography.buttonMain,
 									color = MaterialTheme.colorScheme.background,
-									fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 								)
 							},
 							color = CustomColors.disconnect,
@@ -72,9 +69,8 @@ fun ConnectionButton(
 							onClick = onGetStart,
 							content = {
 								Text(
-									stringResource(R.string.main_get_started_button).uppercase(),
-									style = CustomTypography.labelHuge,
-									fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+									stringResource(R.string.main_get_started_button),
+									style = CustomTypography.buttonMain,
 								)
 							},
 							modifier = Modifier
@@ -94,9 +90,8 @@ fun ConnectionButton(
 						},
 						content = {
 							Text(
-								stringResource(if (isMnemonicStored) R.string.connect else R.string.main_get_started_button).uppercase(),
-								style = CustomTypography.labelHuge,
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+								stringResource(if (isMnemonicStored) R.string.connect else R.string.main_get_started_button),
+								style = CustomTypography.buttonMain,
 							)
 						},
 						modifier = Modifier
@@ -110,10 +105,9 @@ fun ConnectionButton(
 				onClick = onDisconnect,
 				content = {
 					Text(
-						stringResource(R.string.stop).uppercase(),
-						style = CustomTypography.labelHuge,
+						stringResource(R.string.stop),
+						style = CustomTypography.buttonMain,
 						color = MaterialTheme.colorScheme.background,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 					)
 				},
 				color = CustomColors.disconnect,
@@ -127,9 +121,8 @@ fun ConnectionButton(
 				onClick = onDisconnect,
 				content = {
 					Text(
-						stringResource(R.string.disconnect).uppercase(),
-						style = CustomTypography.labelHuge,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+						stringResource(R.string.disconnect),
+						style = CustomTypography.buttonMain,
 					)
 				},
 				color = CustomColors.disconnect,

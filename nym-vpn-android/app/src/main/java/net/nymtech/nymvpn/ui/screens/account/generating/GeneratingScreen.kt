@@ -33,124 +33,124 @@ import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
 @Composable
 fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
+	val success by viewModel.success.collectAsStateWithLifecycle(null)
+	val navController = LocalNavController.current
 
-    val success by viewModel.success.collectAsStateWithLifecycle(null)
-    val navController = LocalNavController.current
+	LaunchedEffect(success) {
+		if (success == false) {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
+			navController.replaceCurrentWith(Route.WelcomeAccount)
+		}
+	}
 
-    LaunchedEffect(success) {
-        if(success == false) {
-            SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
-            navController.replaceCurrentWith(Route.WelcomeAccount)
-        }
-    }
-
-    GeneratingScreen {
-        if(success == true) {
-            navController.replaceCurrentWith(Route.SelectPlan)
-        }
-    }
+	GeneratingScreen {
+		if (success == true) {
+			navController.replaceCurrentWith(Route.SelectPlan)
+		}
+	}
 }
 
 @Composable
 fun GeneratingScreen(onAnimationEnd: () -> Unit) {
-    var step by remember { mutableIntStateOf(0) }
+	var step by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
-        delay(3000)
-        step = 1
-        delay(3000)
-        onAnimationEnd()
-    }
+	LaunchedEffect(Unit) {
+		delay(3000)
+		step = 1
+		delay(3000)
+		onAnimationEnd()
+	}
 
-    Column(
-        modifier = Modifier
+	Column(
+		modifier = Modifier
 			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background)
-			.padding(WindowInsets.systemBars.asPaddingValues()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier
-				.padding(horizontal = 16.dp, vertical = 24.dp)
+			.background(MaterialTheme.colorScheme.background),
+		horizontalAlignment = Alignment.CenterHorizontally,
+	) {
+		Row(
+			modifier = Modifier
+				.padding(horizontal = 16.dp)
 				.fillMaxWidth()
 				.height(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Box(
-                modifier = Modifier
+			horizontalArrangement = Arrangement.spacedBy(4.dp),
+		) {
+			Box(
+				modifier = Modifier
 					.weight(1f)
 					.fillMaxHeight()
 					.background(
 						MaterialTheme.colorScheme.primary,
-						shape = RoundedCornerShape(size = 4.dp)
-					)
-            )
-            Box(
-                modifier = Modifier
+						shape = RoundedCornerShape(size = 4.dp),
+					),
+			)
+			Box(
+				modifier = Modifier
 					.weight(1f)
 					.fillMaxHeight()
 					.background(
-						if (step > 0) MaterialTheme.colorScheme.primary
-						else MaterialTheme.colorScheme.surfaceContainer,
-						shape = RoundedCornerShape(size = 4.dp)
-					)
-            )
-        }
+						if (step > 0) {
+							MaterialTheme.colorScheme.primary
+						} else {
+							MaterialTheme.colorScheme.surfaceContainer
+						},
+						shape = RoundedCornerShape(size = 4.dp),
+					),
+			)
+		}
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(top = 160.dp)
-        ) {
-            Box(
-                modifier = Modifier
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = Modifier.padding(top = 200.dp),
+		) {
+			Box(
+				modifier = Modifier
 					.size(56.dp)
 					.background(
 						color = CustomColors.iconBackground,
-						shape = RoundedCornerShape(size = 8.dp)
+						shape = RoundedCornerShape(size = 8.dp),
 					)
 					.border(
 						width = 1.dp,
 						color = CustomColors.iconBorder,
-						shape = RoundedCornerShape(size = 8.dp)
-					)
-            ) {
-                PulsingDotsWave(
-                    modifier = Modifier
+						shape = RoundedCornerShape(size = 8.dp),
+					),
+			) {
+				PulsingDotsWave(
+					modifier = Modifier
 						.align(Alignment.Center)
-						.padding(8.dp)
-                )
-            }
+						.padding(8.dp),
+				)
+			}
 
-            val title =
-                if (step == 0) R.string.account_generating_creating else R.string.account_generating_securing
-            val text =
-                if (step == 0) R.string.account_generating_establishing else R.string.account_generating_encrypting
+			val title =
+				if (step == 0) R.string.account_generating_creating else R.string.account_generating_securing
+			val text =
+				if (step == 0) R.string.account_generating_establishing else R.string.account_generating_encrypting
 
-            Text(
-                text = stringResource(title),
-                style = Typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = 16.dp),
-                fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
-            )
+			Text(
+				text = stringResource(title),
+				style = Typography.titleMedium,
+				color = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier.padding(top = 16.dp),
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
 
-            Text(
-                text = stringResource(text),
-                style = Typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 16.dp),
-                color = MaterialTheme.colorScheme.outline,
-                fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
-            )
-        }
-    }
+			Text(
+				text = stringResource(text),
+				style = Typography.bodyMedium,
+				textAlign = TextAlign.Center,
+				modifier = Modifier.padding(top = 16.dp),
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
+		}
+	}
 }
-
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
-fun PreviewGeneratingScreen() {
-    NymVPNTheme(Theme.default()) {
-        GeneratingScreen({})
-    }
+private fun PreviewGeneratingScreen() {
+	NymVPNTheme(Theme.default()) {
+		GeneratingScreen({})
+	}
 }

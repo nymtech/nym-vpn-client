@@ -42,6 +42,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -64,7 +65,6 @@ fun WelcomeAccountScreen() {
 
 @Composable
 fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
-
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
@@ -177,13 +177,15 @@ fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
 					)
 				}
 			}
-
 		}
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
 			modifier = Modifier.padding(
-				top = 44.dp, bottom = 24.dp, start = 16.dp, end = 16.dp,
+				top = 44.dp,
+				bottom = 24.dp,
+				start = 16.dp,
+				end = 16.dp,
 			),
 		) {
 			MainStyledButton(
@@ -193,8 +195,7 @@ fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
 				content = {
 					Text(
 						stringResource(R.string.account_welcome_button),
-						style = Typography.titleMedium,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						style = CustomTypography.buttonMain,
 					)
 				},
 				color = MaterialTheme.colorScheme.primary,

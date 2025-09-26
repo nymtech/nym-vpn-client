@@ -69,7 +69,7 @@ class NymBillingManager @Inject constructor(
 						.setProductId("nym.yearly")
 						.setProductType(BillingClient.ProductType.SUBS)
 						.build(),
-				)
+				),
 			)
 			.build()
 

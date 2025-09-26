@@ -21,11 +21,7 @@ import net.nymtech.nymvpn.ui.model.ProductData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubscriptionBottomSheet(
-	products: List<ProductData>,
-	onDismiss: () -> Unit,
-	onSelect: (ProductData) -> Unit
-) {
+fun SubscriptionBottomSheet(products: List<ProductData>, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
@@ -36,13 +32,13 @@ fun SubscriptionBottomSheet(
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(16.dp),
-			verticalArrangement = Arrangement.spacedBy(12.dp)
+			verticalArrangement = Arrangement.spacedBy(12.dp),
 		) {
 			Text(
 				text = "Choose your plan",
 				style = MaterialTheme.typography.titleLarge,
 				color = MaterialTheme.colorScheme.onSurface,
-				modifier = Modifier.align(Alignment.CenterHorizontally)
+				modifier = Modifier.align(Alignment.CenterHorizontally),
 			)
 
 			Spacer(Modifier.height(8.dp))
@@ -51,23 +47,23 @@ fun SubscriptionBottomSheet(
 				ElevatedCard(
 					onClick = { onSelect(product) },
 					modifier = Modifier.fillMaxWidth(),
-					shape = RoundedCornerShape(16.dp)
+					shape = RoundedCornerShape(16.dp),
 				) {
 					Column(
 						modifier = Modifier
 							.fillMaxWidth()
 							.padding(16.dp),
-						verticalArrangement = Arrangement.spacedBy(4.dp)
+						verticalArrangement = Arrangement.spacedBy(4.dp),
 					) {
 						Text(
 							text = product.name,
 							style = MaterialTheme.typography.titleMedium,
-							color = MaterialTheme.colorScheme.onSurface
+							color = MaterialTheme.colorScheme.onSurface,
 						)
 						Text(
 							text = product.price,
 							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onSurfaceVariant
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					}
 				}
@@ -79,12 +75,12 @@ fun SubscriptionBottomSheet(
 				onClick = onDismiss,
 				modifier = Modifier
 					.align(Alignment.CenterHorizontally)
-					.fillMaxWidth()
+					.fillMaxWidth(),
 			) {
 				Text(
 					text = "Cancel",
 					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.primary
+					color = MaterialTheme.colorScheme.primary,
 				)
 			}
 		}

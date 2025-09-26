@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SelectPlanViewModel @Inject constructor(
-	private val billingManager: BillingManager
+	private val billingManager: BillingManager,
 ) : ViewModel() {
 
 	private val _subscriptions = MutableStateFlow<List<ProductData>>(emptyList())

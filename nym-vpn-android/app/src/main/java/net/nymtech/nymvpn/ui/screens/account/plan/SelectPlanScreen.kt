@@ -41,19 +41,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.android.billingclient.api.ProductDetails
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.model.ProductData
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-
 
 @Composable
 fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
@@ -75,7 +73,7 @@ fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 		onDismissSheet = { showSheet = false },
 		onSelectSubscription = { product ->
 			showSheet = false
-		}
+		},
 	)
 }
 
@@ -86,9 +84,8 @@ fun SelectPlanScreen(
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
 	onSelectSubscription: (ProductData) -> Unit,
-	padding: PaddingValues = WindowInsets.systemBars.asPaddingValues()
+	padding: PaddingValues = WindowInsets.systemBars.asPaddingValues(),
 ) {
-
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
@@ -146,8 +143,7 @@ fun SelectPlanScreen(
 				content = {
 					Text(
 						stringResource(R.string.select_plan_button),
-						style = Typography.titleMedium,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						style = CustomTypography.buttonMain,
 					)
 				},
 				color = MaterialTheme.colorScheme.primary,
@@ -162,7 +158,7 @@ fun SelectPlanScreen(
 		SubscriptionBottomSheet(
 			products = products,
 			onDismiss = onDismissSheet,
-			onSelect = onSelectSubscription
+			onSelect = onSelectSubscription,
 		)
 	}
 }
@@ -173,7 +169,7 @@ internal fun PreviewSelectPlanScreen() {
 	NymVPNTheme(Theme.default()) {
 		val mockProducts = listOf(
 			ProductData(id = "1", name = "Monthly Plan", price = "$4.99 / month"),
-			ProductData(id = "2", name = "Yearly Plan", price = "$49.99 / year")
+			ProductData(id = "2", name = "Yearly Plan", price = "$49.99 / year"),
 		)
 		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
 	}
