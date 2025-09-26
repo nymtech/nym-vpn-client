@@ -894,6 +894,7 @@ impl NymVpnService {
             exit_point,
             disable_ipv6: options.disable_ipv6,
             enable_two_hop: options.enable_two_hop,
+            enable_bridges: false,
             netstack: options.netstack,
             dns: options.dns,
             allow_lan: true, // always true to support legacy behavior

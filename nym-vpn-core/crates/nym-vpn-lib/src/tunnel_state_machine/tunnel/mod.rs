@@ -6,6 +6,7 @@ mod gateway_selector;
 pub mod mixnet;
 mod status_listener;
 mod tombstone;
+pub mod transports;
 pub mod wireguard;
 
 #[cfg(unix)]
@@ -13,7 +14,7 @@ use std::os::fd::RawFd;
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayCacheHandle};
+use nym_gateway_directory::GatewayCacheHandle;
 use nym_sdk::UserAgent;
 #[allow(deprecated)]
 // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
@@ -32,7 +33,7 @@ use super::{MixnetEvent, TunnelType};
 use crate::{
     GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::wireguard::connector::MetadataReceiver,
+    tunnel_state_machine::{TunnelSettings, tunnel::wireguard::connector::MetadataReceiver},
 };
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
@@ -90,9 +91,13 @@ impl ConnectedMixnet {
         cancel_token: CancellationToken,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
+        use_bridge: bool,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
-        let connector =
-            wireguard::connector::Connector::new(self.mixnet_client, self.gateway_cache_handle);
+        let connector = wireguard::connector::Connector::new(
+            self.mixnet_client,
+            self.gateway_cache_handle,
+            use_bridge,
+        );
 
         connector
             .connect(
@@ -122,21 +127,18 @@ pub struct MixnetConnectOptions {
 
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
-    tunnel_type: TunnelType,
-    entry_point: Box<EntryPoint>,
-    exit_point: Box<ExitPoint>,
+    tunnel_settings: &TunnelSettings,
     wg_score_thresholds: Option<ScoreThresholds>,
     mix_score_thresholds: Option<ScoreThresholds>,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
     let select_gateways_fut = gateway_selector::select_gateways(
         gateway_cache_handle,
-        tunnel_type,
-        entry_point,
-        exit_point,
+        tunnel_settings,
         wg_score_thresholds,
         mix_score_thresholds,
     );
+
     cancel_token
         .run_until_cancelled(select_gateways_fut)
         .await
@@ -251,6 +253,9 @@ pub enum Error {
     #[cfg(windows)]
     #[error("failed to add default route listener")]
     AddDefaultRouteListener(#[source] route_handler::Error),
+
+    #[error("transport error")]
+    Transport(#[from] transports::TransportError),
 
     #[error("connection cancelled")]
     Cancelled,

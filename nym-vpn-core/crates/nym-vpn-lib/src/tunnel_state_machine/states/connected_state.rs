@@ -51,16 +51,23 @@ impl ConnectedState {
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let wg_entry_endpoint =
+            if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
+                if shared_state.tunnel_settings.bridges_enabled() {
+                    // this will be `Some` if we get to the connected state with bridges enabled.
+                    wg.entry_bridge_addr
+                } else {
+                    Some(wg.entry.endpoint)
+                }
+            } else {
+                None
+            };
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = ConnectedPolicyParameters {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
-            wg_entry_endpoint: if let TunnelConnectionData::Wireguard(ref wg) =
-                connection_data.tunnel
-            {
-                Some(wg.entry.endpoint)
-            } else {
-                None
-            },
+            wg_entry_endpoint,
             ws_entry_endpoints: selected_gateways.entry.endpoints(),
             dns_config: shared_state.tunnel_settings.resolved_dns_config(),
             tunnel_interface: tunnel_interface.clone(),
@@ -330,7 +337,7 @@ impl ConnectedPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow WireGuard entry endpoint
+        // Allow WireGuard / Quic entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(

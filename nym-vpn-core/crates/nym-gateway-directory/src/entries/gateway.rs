@@ -5,7 +5,10 @@ use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
-use nym_vpn_api_client::types::{Percent, ScoreThresholds};
+use nym_vpn_api_client::{
+    response::{BridgeInformation, BridgeParameters},
+    types::{Percent, ScoreThresholds},
+};
 use rand::seq::IteratorRandom;
 use std::{
     fmt,
@@ -27,6 +30,7 @@ pub struct Gateway {
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
+    pub bridge_params: Option<BridgeInformation>,
     pub last_probe: Option<Probe>,
     pub ips: Vec<IpAddr>,
     pub host: Option<String>,
@@ -208,6 +212,7 @@ impl Gateway {
             location,
             ipr_address,
             authenticator_address,
+            bridge_params: None,
             last_probe: None,
             ips,
             host,
@@ -218,6 +223,14 @@ impl Gateway {
             wg_performance: None,
             version,
         })
+    }
+
+    pub fn get_bridge_params(&self) -> Option<BridgeParameters> {
+        if let Some(all_params) = &self.bridge_params {
+            all_params.transports.first().cloned()
+        } else {
+            None
+        }
     }
 }
 
@@ -454,6 +467,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             location: Some(gateway.location.into()),
             ipr_address,
             authenticator_address,
+            bridge_params: gateway.bridges,
             last_probe: gateway.last_probe.map(Probe::from),
             ips: gateway.ip_addresses,
             host,

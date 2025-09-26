@@ -93,24 +93,36 @@ impl ConnectingState {
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let firewall_policy_params = ConnectingPolicyParameters {
-            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
-            allow_lan: shared_state.tunnel_settings.allow_lan,
-            wg_entry_endpoint: None,
-            ws_entry_endpoints: selected_gateways
-                .as_ref()
-                .map(|v| v.entry.endpoints())
-                .unwrap_or_default(),
-            api_endpoints: Vec::new(),
-            dns_servers: shared_state.tunnel_settings.default_dns_ips(),
-            tunnel_interface: None,
-        };
+        let firewall_policy_params = {
+            let mut bridge_endpoints = Vec::new();
+            if shared_state.tunnel_settings.bridges_enabled() {
+                if let Some(gateways) = &selected_gateways {
+                    if let Some(params) = &gateways.entry.bridge_params {
+                        bridge_endpoints = params.get_addrs()
+                    }
+                }
+            }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
-            trace_err_chain!(err, "failed to set firewall policy");
-            return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
-        }
+            let firewall_policy_params = ConnectingPolicyParameters {
+                enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
+                allow_lan: shared_state.tunnel_settings.allow_lan,
+                wg_entry_endpoint: None,
+                bridge_endpoints,
+                ws_entry_endpoints: selected_gateways
+                    .as_ref()
+                    .map(|v| v.entry.endpoints())
+                    .unwrap_or_default(),
+                api_endpoints: Vec::new(),
+                dns_servers: shared_state.tunnel_settings.default_dns_ips(),
+                tunnel_interface: None,
+            };
+
+            if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+                trace_err_chain!(err, "failed to set firewall policy");
+                return ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await;
+            }
+            firewall_policy_params
+        };
 
         // If that fails, it's not really important
         let _ = shared_state
@@ -605,6 +617,9 @@ struct ConnectingPolicyParameters {
     /// WireGuard entry endpoint
     wg_entry_endpoint: Option<SocketAddr>,
 
+    /// Bridge endpoints
+    bridge_endpoints: Vec<SocketAddr>,
+
     /// Entry gateway websocket endpoints
     ws_entry_endpoints: Vec<SocketAddr>,
 
@@ -637,7 +652,7 @@ impl ConnectingPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow WireGuard entry endpoint
+        // Allow WireGuard and entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
@@ -653,6 +668,21 @@ impl ConnectingPolicyParameters {
                 tracing::warn!("WireGuard endpoint contains IPv6 address, but IPv6 is disabled!");
             }
         }
+
+        // Allow endpoints from bridge connections to the entry gateway.
+        self.bridge_endpoints
+            .iter()
+            .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
+            .for_each(|addr| {
+                let allow_bridge_endpoint = AllowedEndpoint::new(
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                );
+                peer_endpoints.push(allow_bridge_endpoint);
+            });
 
         // Allow API endpoints
         let allowed_endpoints = self
