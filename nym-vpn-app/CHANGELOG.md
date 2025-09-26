@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2025-09-26
+
 ### Added
 
 - Show the picked gateway name the tunnel is connected to, when
