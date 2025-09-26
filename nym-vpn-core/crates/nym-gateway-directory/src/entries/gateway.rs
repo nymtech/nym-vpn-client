@@ -21,7 +21,8 @@ use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, h
 use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
 
 pub type NymNode = Gateway;
-const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
+
+pub const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -62,96 +63,6 @@ impl fmt::Debug for Gateway {
 }
 
 impl Gateway {
-    /// Tests whether the gateway satisfies the minimum performance requirements.
-    ///
-    /// Both `min_wg_performance` and `min_mixnet_performance` represent a value between 0 and 100.
-    ///
-    /// - `min_wg_performance` - minimum wg performance filter when set, has no effect when None
-    /// - `min_mixnet_performance` - minimum mixnet performance filter when set, has no effect when None
-    pub fn satisfies_min_performance(
-        &self,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> bool {
-        let satisfies_wg_performance = if let Some(min_wg_performance_score) = min_wg_performance {
-            self.wg_performance.as_ref().is_some_and(|v| {
-                let percent = (v.uptime_percentage_last_24_hours * 100f32) as u8;
-                percent >= min_wg_performance_score
-            })
-        } else {
-            true
-        };
-
-        let satisfies_mixnet_performance =
-            if let Some(min_mixnet_performance_score) = min_mixnet_performance {
-                self.mixnet_performance
-                    .as_ref()
-                    .is_some_and(|v| v.round_to_integer() >= min_mixnet_performance_score)
-            } else {
-                true
-            };
-
-        satisfies_wg_performance && satisfies_mixnet_performance
-    }
-
-    pub fn identity(&self) -> NodeIdentity {
-        self.identity
-    }
-
-    pub fn two_letter_iso_country_code(&self) -> Option<&str> {
-        self.location
-            .as_ref()
-            .map(|l| l.two_letter_iso_country_code.as_str())
-    }
-
-    pub fn region(&self) -> Option<&str> {
-        self.location.as_ref().map(|l| l.region.as_str())
-    }
-
-    pub fn is_two_letter_iso_country_code(&self, code: &str) -> bool {
-        self.two_letter_iso_country_code() == Some(code)
-    }
-
-    pub fn has_ipr_address(&self) -> bool {
-        self.ipr_address.is_some()
-    }
-
-    pub fn has_authenticator_address(&self) -> bool {
-        self.authenticator_address.is_some()
-    }
-
-    pub fn host(&self) -> Option<&String> {
-        self.host.as_ref()
-    }
-
-    pub fn lookup_ip(&self) -> Option<IpAddr> {
-        self.ips.first().copied()
-    }
-
-    pub fn split_ips(&self) -> (Vec<Ipv4Addr>, Vec<Ipv6Addr>) {
-        helpers::split_ips(self.ips.clone())
-    }
-
-    pub fn clients_address_no_tls(&self) -> Option<String> {
-        match (&self.host, &self.clients_ws_port) {
-            (Some(host), Some(port)) => Some(format!("ws://{host}:{port}")),
-            _ => None,
-        }
-    }
-
-    pub fn clients_address_tls(&self) -> Option<String> {
-        match (&self.host, &self.clients_wss_port) {
-            (Some(host), Some(port)) => Some(format!("wss://{host}:{port}")),
-            _ => None,
-        }
-    }
-
-    pub fn update_to_new_thresholds(&mut self, mix_thresholds: Option<ScoreThresholds>) {
-        if let (Some(mix_thresholds), Some(score)) = (mix_thresholds, self.mixnet_score.as_mut()) {
-            score.update_to_new_thresholds(mix_thresholds);
-        }
-    }
-
     pub fn try_from_node_description(
         node_description: NymNodeDescription,
         current_key_rotation: KeyRotationId,
@@ -223,6 +134,135 @@ impl Gateway {
             wg_performance: None,
             version,
         })
+    }
+
+    pub fn identity(&self) -> NodeIdentity {
+        self.identity
+    }
+
+    pub fn two_letter_iso_country_code(&self) -> Option<&str> {
+        self.location
+            .as_ref()
+            .map(|l| l.two_letter_iso_country_code.as_str())
+    }
+
+    pub fn is_in_country(&self, two_letter_iso_country_code: &str) -> bool {
+        self.location
+            .as_ref()
+            .map(|loc| loc.two_letter_iso_country_code == two_letter_iso_country_code)
+            .unwrap_or(false)
+    }
+
+    pub fn region(&self) -> Option<&str> {
+        self.location.as_ref().map(|l| l.region.as_str())
+    }
+
+    pub fn is_in_region(&self, region: &str) -> bool {
+        self.location
+            .as_ref()
+            .map(|loc| loc.region == region)
+            .unwrap_or(false)
+    }
+
+    pub fn is_residential_asn(&self) -> bool {
+        self.location
+            .as_ref()
+            .and_then(|loc| loc.asn.as_ref())
+            .map(|asn| asn.kind == AsnKind::Residential)
+            .unwrap_or(false)
+    }
+
+    pub fn is_exit_node(&self) -> bool {
+        self.ipr_address.is_some()
+    }
+
+    pub fn is_vpn_node(&self) -> bool {
+        self.authenticator_address.is_some()
+    }
+
+    pub fn host(&self) -> Option<&String> {
+        self.host.as_ref()
+    }
+
+    pub fn lookup_ip(&self) -> Option<IpAddr> {
+        self.ips.first().copied()
+    }
+
+    pub fn split_ips(&self) -> (Vec<Ipv4Addr>, Vec<Ipv6Addr>) {
+        helpers::split_ips(self.ips.clone())
+    }
+
+    pub fn clients_address_no_tls(&self) -> Option<String> {
+        match (&self.host, &self.clients_ws_port) {
+            (Some(host), Some(port)) => Some(format!("ws://{host}:{port}")),
+            _ => None,
+        }
+    }
+
+    pub fn clients_address_tls(&self) -> Option<String> {
+        match (&self.host, &self.clients_wss_port) {
+            (Some(host), Some(port)) => Some(format!("wss://{host}:{port}")),
+            _ => None,
+        }
+    }
+
+    pub fn update_to_new_thresholds(&mut self, mix_thresholds: Option<ScoreThresholds>) {
+        if let (Some(mix_thresholds), Some(score)) = (mix_thresholds, self.mixnet_score.as_mut()) {
+            score.update_to_new_thresholds(mix_thresholds);
+        }
+    }
+
+    /// Tests whether the gateway satisfies the minimum performance requirements.
+    ///
+    /// Both `min_wg_performance` and `min_mixnet_performance` represent a value between 0 and 100.
+    ///
+    /// - `min_wg_performance` - minimum wg performance filter when set, has no effect when None
+    /// - `min_mixnet_performance` - minimum mixnet performance filter when set, has no effect when None
+    pub fn satisfies_min_performance(
+        &self,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    ) -> bool {
+        let satisfies_wg_performance = if let Some(min_wg_performance_score) = min_wg_performance {
+            self.wg_performance.as_ref().is_some_and(|v| {
+                let percent = (v.uptime_percentage_last_24_hours * 100f32) as u8;
+                percent >= min_wg_performance_score
+            })
+        } else {
+            true
+        };
+
+        let satisfies_mixnet_performance =
+            if let Some(min_mixnet_performance_score) = min_mixnet_performance {
+                self.mixnet_performance
+                    .as_ref()
+                    .is_some_and(|v| v.round_to_integer() >= min_mixnet_performance_score)
+            } else {
+                true
+            };
+
+        satisfies_wg_performance && satisfies_mixnet_performance
+    }
+
+    /// Tests whether the gateway matches a specific filter.
+    pub fn matches_filter(&self, filter: &GatewayFilter) -> bool {
+        match filter {
+            GatewayFilter::Identity(identity) => &self.identity == identity,
+            GatewayFilter::MinPerformance {
+                min_wg_performance,
+                min_mixnet_performance,
+            } => self.satisfies_min_performance(*min_wg_performance, *min_mixnet_performance),
+            GatewayFilter::Country(code) => self.is_in_country(code),
+            GatewayFilter::Region(region) => self.is_in_region(region),
+            GatewayFilter::Residential => self.is_residential_asn(),
+            GatewayFilter::ExitNode => self.is_exit_node(),
+            GatewayFilter::VpnNode => self.is_vpn_node(),
+        }
+    }
+
+    /// Tests whether the gateway matches all of the filters.
+    pub fn matches_all_filters(&self, filters: &[GatewayFilter]) -> bool {
+        filters.iter().all(|filter| self.matches_filter(filter))
     }
 
     pub fn get_bridge_params(&self) -> Option<BridgeParameters> {
@@ -515,7 +555,16 @@ impl GatewayList {
             .collect()
     }
 
+    pub fn filter(&self, filters: &[GatewayFilter]) -> Vec<Gateway> {
+        self.gateways
+            .iter()
+            .filter(|gateway| gateway.matches_all_filters(filters))
+            .cloned()
+            .collect()
+    }
+
     pub fn node_with_identity(&self, identity: &NodeIdentity) -> Option<&NymNode> {
+        // Not using self.filter() here as find() will stop at the first match
         self.gateways
             .iter()
             .find(|node| &node.identity() == identity)
@@ -525,86 +574,10 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
-    pub fn gateways_located_at_country(
-        &self,
-        code: &str,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> impl Iterator<Item = &Gateway> {
-        self.gateways
-            .iter()
-            .filter(move |gateway| {
-                gateway
-                    .two_letter_iso_country_code()
-                    .is_some_and(|gw_code| gw_code == code)
-            })
-            .filter(move |gateway| {
-                gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
-            })
-    }
-
-    pub fn gateways_located_at_region(
-        &self,
-        region: &str,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> impl Iterator<Item = &Gateway> {
-        self.gateways.iter().filter(move |gateway| {
-            gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
-                && gateway
-                    .region()
-                    .is_some_and(|gw_region| gw_region == region)
-        })
-    }
-
-    pub fn random_gateway(
-        &self,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> Option<Gateway> {
-        self.gateways
-            .iter()
-            .filter(|gateway| {
-                gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
-            })
+    pub fn choose_random(&self, filters: &[GatewayFilter]) -> Option<Gateway> {
+        self.filter(filters)
+            .into_iter()
             .choose(&mut rand::thread_rng())
-            .cloned()
-    }
-
-    pub fn random_gateway_located_at_country(
-        &self,
-        code: &str,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> Option<Gateway> {
-        self.gateways_located_at_country(code, min_wg_performance, min_mixnet_performance)
-            .filter(|gateway| {
-                gateway.satisfies_min_performance(min_wg_performance, min_mixnet_performance)
-            })
-            .choose(&mut rand::thread_rng())
-            .cloned()
-    }
-
-    pub fn random_gateway_located_at_region(
-        &self,
-        region: &str,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> Option<Gateway> {
-        // check that the region is a US state that we have in the gateway list
-        if !self
-            .gateways_located_at_country(
-                COUNTRY_WITH_REGION_SELECTOR,
-                min_wg_performance,
-                min_mixnet_performance,
-            )
-            .any(|g| g.region() == Some(region))
-        {
-            return None;
-        }
-        self.gateways_located_at_region(region, min_wg_performance, min_mixnet_performance)
-            .choose(&mut rand::thread_rng())
-            .cloned()
     }
 
     pub fn remove_gateway(&mut self, entry_gateway: &Gateway) {
@@ -621,21 +594,11 @@ impl GatewayList {
     }
 
     pub fn into_exit_gateways(self) -> GatewayList {
-        let gw = self
-            .gateways
-            .into_iter()
-            .filter(Gateway::has_ipr_address)
-            .collect();
-        Self::new(gw)
+        Self::new(self.filter(&[GatewayFilter::ExitNode]))
     }
 
     pub fn into_vpn_gateways(self) -> GatewayList {
-        let gw = self
-            .gateways
-            .into_iter()
-            .filter(Gateway::has_authenticator_address)
-            .collect();
-        Self::new(gw)
+        Self::new(self.filter(&[GatewayFilter::VpnNode]))
     }
 
     pub fn into_countries(self) -> Vec<Country> {
@@ -716,4 +679,17 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
             GatewayType::Wg => nym_vpn_api_client::types::GatewayType::Wg,
         }
     }
+}
+
+pub enum GatewayFilter {
+    Identity(NodeIdentity),
+    MinPerformance {
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    },
+    Country(String), // two-letter ISO country code
+    Region(String),  // region name
+    Residential,
+    ExitNode,
+    VpnNode,
 }

@@ -7,7 +7,11 @@ use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 
 use super::gateway::{Gateway, GatewayList};
-use crate::{Error, IpPacketRouterAddress, error::Result};
+use crate::{
+    Error, IpPacketRouterAddress,
+    entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, GatewayFilter},
+    error::Result,
+};
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
@@ -83,34 +87,52 @@ impl ExitPoint {
                 two_letter_iso_country_code,
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
-                gateways
-                    .random_gateway_located_at_country(
-                        two_letter_iso_country_code,
+
+                let filters = [
+                    GatewayFilter::MinPerformance {
                         min_wg_performance,
                         min_mixnet_performance,
-                    )
-                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+                    },
+                    GatewayFilter::Country(two_letter_iso_country_code.clone()),
+                ];
+
+                gateways.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingExitGatewayForLocation {
                         requested_location: two_letter_iso_country_code.clone(),
                         available_countries: gateways.all_iso_codes(),
-                    })
+                    }
+                })
             }
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
-                gateways
-                    .random_gateway_located_at_region(
-                        region,
+
+                // Currently only supported in the US
+                let filters = [
+                    GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                    GatewayFilter::Region(region.to_string()),
+                    GatewayFilter::MinPerformance {
                         min_wg_performance,
                         min_mixnet_performance,
-                    )
-                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+                    },
+                ];
+
+                gateways.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingExitGatewayForLocation {
                         requested_location: region.clone(),
                         available_countries: gateways.all_iso_codes(),
-                    })
+                    }
+                })
             }
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
+
+                let filters = [GatewayFilter::MinPerformance {
+                    min_wg_performance,
+                    min_mixnet_performance,
+                }];
+
                 gateways
-                    .random_gateway(min_wg_performance, min_mixnet_performance)
+                    .choose_random(&filters)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
