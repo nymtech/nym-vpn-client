@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
 - Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
 - Allow for random selection inside a US state (https://github.com/nymtech/nym-vpn-client/pull/3489)
 - Add control over LAN sharing when device connection is secured (https://github.com/nymtech/nym-vpn-client/pull/3496)
@@ -18,22 +17,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - LAN sharing is off by default. Use "Allow LAN" setting to allow it (https://github.com/nymtech/nym-vpn-client/pull/3496)
-- Prioritize high performance gateways first, fallback to medium. This rule does not apply when specific gateway is selected explicitly (https://github.com/nymtech/nym-vpn-client/pull/3511)
+- Differentiate between entry and exit gateway errors (https://github.com/nymtech/nym-vpn-client/pull/3458)
 
 ### Fixed
 
-- Fix edgecase where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
-- Fix Sentry extra metadata tag when there is no OS extra info
-  (https://github.com/nymtech/nym-vpn-client/pull/3411)
 - Don't retry on disappeared entry or exit gateway and return to UI for selecting again (https://github.com/nymtech/nym-vpn-client/pull/3520)
+
+### Removed
+
+- Removed countries query (https://github.com/nymtech/nym-vpn-client/pull/3523)
+
+
+## [1.16.0] - 2025-09-26
+
+### Added
+
+- Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
+
+### Fixed
+
+- Fix edge case where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
+- Fix Sentry extra metadata tag when there is no OS extra info (https://github.com/nymtech/nym-vpn-client/pull/3411)
 
 ### Changed
 
-- [macOS] Skip filtering loopback traffic to optimize performance
-- Differentiate between entry and exit gateway errors (https://github.com/nymtech/nym-vpn-client/pull/3458)
-
-### Removed
-- Removed countries query (https://github.com/nymtech/nym-vpn-client/pull/3523)
+- [macOS] Skip filtering loopback traffic to optimize performance (https://github.com/nymtech/nym-vpn-client/pull/3441)
+- Prioritize high performance gateways first, fallback to medium. This rule does not apply when specific gateway is selected explicitly (https://github.com/nymtech/nym-vpn-client/pull/3511)
 
 
 ## [1.15.0] - 2025-09-10
