@@ -49,9 +49,6 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(
 				show = false,
 			)
-			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
-				show = false,
-			)
 			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> {
 				NavBarState(
 					title = { MainTitle() },
@@ -166,6 +163,15 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+			currentRoute.startsWith(Route.WelcomeAccount::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle("") },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
 			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				show = true,
@@ -202,6 +208,9 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 						navController.safePopBackStack()
 					}
 				},
+			)
+			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
+				show = false,
 			)
 			else -> NavBarState(show = false)
 		}

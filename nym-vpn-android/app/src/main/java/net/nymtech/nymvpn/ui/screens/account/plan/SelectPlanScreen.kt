@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.plan
+package net.nymtech.nymvpn.ui.screens.account.plan
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
@@ -54,6 +54,7 @@ fun SelectPlanScreen(padding: PaddingValues = WindowInsets.systemBars.asPaddingV
 		modifier = Modifier
 			.fillMaxSize()
 			.imePadding()
+			.background(MaterialTheme.colorScheme.background)
 			.padding(horizontal = 24.dp.scaledWidth())
 			.padding(padding),
 	) {

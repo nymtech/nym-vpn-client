@@ -278,4 +278,16 @@
 	<string name="censorship_stealth_description">Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail.</string>
 	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<!-- Account Welcome screen -->
+	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
+	<string name="account_welcome_countries">50+ countries worldwide</string>
+	<string name="account_welcome_payments">Payments and activity stay unlinked</string>
+	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
+	<string name="account_welcome_button">Start protecting my privacy</string>
+	<string name="account_welcome_have_account">Already have account?</string>
+	<!-- Account Generating screen -->
+	<string name="account_generating_creating">Creating your anonymous identity…</string>
+	<string name="account_generating_establishing">Establishing anonymous network credentials</string>
+	<string name="account_generating_securing">Securing your credentials locally…</string>
+	<string name="account_generating_encrypting">Encrypting credentials with your device key; only you can unlock them</string>
 </resources>

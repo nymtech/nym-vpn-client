@@ -65,6 +65,9 @@ sealed class Route {
 	data object Welcome : Route()
 
 	@Serializable
+	data object WelcomeAccount : Route()
+
+	@Serializable
 	data object SelectPlan : Route()
 
 	@Serializable

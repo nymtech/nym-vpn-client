@@ -87,14 +87,14 @@ fun ConnectionButton(
 						testTag = Constants.CONNECT_TEST_TAG,
 						onClick = {
 							scope.launch {
-								if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Login)
+								if (!isMnemonicStored) return@launch navController.goFromRoot(Route.WelcomeAccount)
 								if (connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
 								onConnect()
 							}
 						},
 						content = {
 							Text(
-								stringResource(R.string.connect).uppercase(),
+								stringResource(if (isMnemonicStored) R.string.connect else R.string.main_get_started_button).uppercase(),
 								style = CustomTypography.labelHuge,
 								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 							)
