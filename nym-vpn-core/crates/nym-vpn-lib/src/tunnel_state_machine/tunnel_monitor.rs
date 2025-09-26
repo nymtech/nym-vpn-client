@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{FutureExt, future::Fuse};
-#[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
@@ -461,6 +459,7 @@ impl TunnelMonitor {
                 .network
                 .clone(),
             cancel_token: self.shutdown_token.child_token(),
+            #[cfg(unix)]
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
 
