@@ -3766,7 +3766,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Note: Limite les options du serveur d'entrée aux passerelles compatibles QUIC."
+            "value" : "Note : Limite les options du serveur d'entrée aux passerelles compatibles QUIC."
           }
         },
         "hi" : {
@@ -6570,13 +6570,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "es" : {
@@ -6612,7 +6612,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -9470,7 +9470,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Досягнуто місячного ліміту даних. Зверніться до служби підтримки за отримання швидкого передавання даних."
+            "value" : "Досягнуто місячний ліміт даних. Зверніться до служби підтримки, щоб швидко збільшити обсяг даних."
           }
         },
         "vi" : {
@@ -9672,7 +9672,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Термостат входу не відповідає або погано відповідає на пропускну здатність."
+            "value" : "Шлюз входу не реагує або погано реагує на пропускну здатність."
           }
         },
         "vi" : {
@@ -9773,7 +9773,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вихід з шлюзу не відповідає або погано відповідає на пропускну здатність."
+            "value" : "Вихідний шлюз не відповідає або погано реагує на пропускну здатність."
           }
         },
         "vi" : {
@@ -13022,316 +13022,6 @@
         }
       }
     },
-    "gatewayInfo.advancedPrivacy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Advanced privacy"
-          }
-        }
-      }
-    },
-    "gatewayInfo.advancedPrivacySubtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "With mixnet (5-hop)"
-          }
-        }
-      }
-    },
-    "gatewayInfo.asn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ASN"
-          }
-        }
-      }
-    },
-    "gatewayInfo.asnName" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ASN name"
-          }
-        }
-      }
-    },
-    "gatewayInfo.buildVersion" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nym build version"
-          }
-        }
-      }
-    },
-    "gatewayInfo.datacenter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Datacenter IP"
-          }
-        }
-      }
-    },
-    "gatewayInfo.identityKey" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identity key"
-          }
-        }
-      }
-    },
-    "gatewayInfo.ipv4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exit IPv4"
-          }
-        }
-      }
-    },
-    "gatewayInfo.ipv6" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exit IPv6"
-          }
-        }
-      }
-    },
-    "gatewayInfo.lastUpdate" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update"
-          }
-        }
-      }
-    },
-    "gatewayInfo.missingInfo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Why is there missing or incorrect info"
-          }
-        }
-      }
-    },
-    "gatewayInfo.moreDetailsIn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More details in the Nym"
-          }
-        }
-      }
-    },
-    "gatewayInfo.networkExplorer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Network Explorer"
-          }
-        }
-      }
-    },
-    "gatewayInfo.overallPerformance" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "المفتاح"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Schlüssel"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Overall performance"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Clave"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Key"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Clef"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Key"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Chiave"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "キー"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Chave"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Chave"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ключ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Anahtar"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ключ"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Key"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "关键字"
-          }
-        }
-      }
-    },
-    "gatewayInfo.residentialIp" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Residential IP"
-          }
-        }
-      }
-    },
-    "gatewayInfo.selectServer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select server"
-          }
-        }
-      }
-    },
-    "gatewayInfo.serverDetails" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server details"
-          }
-        }
-      }
-    },
-    "gatewayInfo.serverLoad" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Server load"
-          }
-        }
-      }
-    },
-    "gatewayInfo.streamingAndContent" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Streaming and content"
-          }
-        }
-      }
-    },
-    "gatewayInfo.uptime" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uptime"
-          }
-        }
-      }
-    },
     "gatewaySelector.expandServers" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13833,6 +13523,107 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "发现错误：无法获取国家列表"
+          }
+        }
+      }
+    },
+    "generalNymError.cannotParseCountries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدث خطأ ما: لا يمكن تحليل البلدان المجمعة مسبقاً"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Something went wrong: Cannot parse pre-bundled countries"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong: Cannot parse pre-bundled countries"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algo salió mal: no se pueden analizar los países preintegrados"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خطایی رخ داده است: امکان تجزیه داده‌های کشورهای از پیش بسته‌بندی شده وجود ندارد"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un problème est survenu. Impossible de charger la liste des emplacements."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कुछ गलत हुआ: पहले से बंडल किए गए देशों को पार्स नहीं कर सकते"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qualcosa è andato storto: Impossibile analizzare i paesi preaggregati"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "問題が発生しました: 事前にバンドルされた国を読み込むことができません"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algo deu errado: Não é possível analisar países pré-empacotados"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algo deu errado: Não é possível analisar os países pré-agrupados"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что-то пошло не так: Не удалось разобрать предварительно упакованные страны"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir hata oluştu: Önceden entegre edilmiş ülkeler alınamıyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щось пішло не так: Невдача при аналізі попередньо упакованих країн"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xảy ra sự cố: Không thể phân tích dữ liệu quốc gia được đóng gói sẵn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发现错误：无法解析预置国家列表"
           }
         }
       }
@@ -15661,19 +15452,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -15715,7 +15506,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -18281,17 +18072,6 @@
         }
       }
     },
-    "high" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "High"
-          }
-        }
-      }
-    },
     "home.connectingRetryAttempt" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20005,6 +19785,101 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入Matrix"
+          }
+        }
+      }
+    },
+    "Key" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المفتاح"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schlüssel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Key"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clef"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Key"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiave"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キー"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anahtar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Key"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关键字"
           }
         }
       }
@@ -21928,28 +21803,6 @@
         }
       }
     },
-    "low" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Low"
-          }
-        }
-      }
-    },
-    "medium" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Medium"
-          }
-        }
-      }
-    },
     "menuBar.openApp" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22758,17 +22611,6 @@
         }
       }
     },
-    "noScore" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No data"
-          }
-        }
-      }
-    },
     "notification.disconnected.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23068,17 +22910,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "NymVPN"
-          }
-        }
-      }
-    },
-    "offline" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Offline"
           }
         }
       }
@@ -24735,7 +24566,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Statistiques réseau anonymes"
+            "value" : "Statistiques réseaux anonymes"
           }
         },
         "hi" : {
@@ -26131,7 +25962,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "es" : {
@@ -26143,7 +25974,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "fr" : {
@@ -26203,7 +26034,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "zh-Hans" : {
@@ -26232,7 +26063,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "es" : {
@@ -26244,7 +26075,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "fr" : {
@@ -26304,7 +26135,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "zh-Hans" : {
@@ -32156,7 +31987,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Допоможіть покращити NymVPN шляхом обміну анонімними мережевими статистиками з вашого регіону. "
+            "value" : "Допоможіть поліпшити NymVPN, поділившись анонімною статистикою мережі з вашого регіону."
           }
         },
         "vi" : {
@@ -32358,7 +32189,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Допоможіть покращити вашу швидкість з'єднання"
+            "value" : "Допоможіть покращити швидкість з'єднання"
           }
         },
         "vi" : {
@@ -32560,7 +32391,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Покращте свій досвід"
+            "value" : "Покращуйте свій досвід"
           }
         },
         "vi" : {
@@ -32661,7 +32492,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ваші дані залишаються приватними та захищеними."
+            "value" : "Ваші дані залишаються конфіденційними та захищеними."
           }
         },
         "vi" : {
