@@ -17,7 +17,7 @@ nym-type-conversions = [
     "dep:nym-connection-monitor",
     "dep:nym-statistics-common",
     "dep:nym-vpn-api-client",
-    "dep:nym-registration-client",
+    "dep:nym-registration-common",
 ]
 
 [dependencies]
@@ -25,7 +25,7 @@ si-scale.workspace = true
 thiserror.workspace = true
 time.workspace = true
 
-nym-registration-client = { workspace = true, optional = true }
+nym-registration-common = { workspace = true, optional = true }
 nym-bandwidth-controller = { workspace = true, optional = true }
 nym-connection-monitor = { workspace = true, optional = true }
 nym-gateway-directory = { workspace = true }
