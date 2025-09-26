@@ -6,8 +6,8 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::mixnet::MixnetClient;
-use tokio::{sync::oneshot, task::JoinHandle};
+use nym_sdk::{ShutdownManager, mixnet::MixnetClient};
+use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
 
@@ -17,11 +17,11 @@ pub(super) struct MixnetListener {
     // Mixnet client for receiving messages
     mixnet_client: MixnetClient,
 
+    // Listen to mixnetclient shutdown
+    mixnet_shutdown_manager: ShutdownManager,
+
     // IPR client for handling responses
     ipr_listener: IprListener,
-
-    // Cancellation tokehn for receiving shutdown signals
-    cancel_token: CancellationToken,
 
     // Sink for sending packets to the tun device
     tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
@@ -40,9 +40,9 @@ pub(super) struct MixnetListener {
 }
 
 impl MixnetListener {
-    pub(super) async fn new(
+    pub(super) fn spawn(
         mixnet_client: MixnetClient,
-        cancel_token: CancellationToken,
+        mixnet_shutdown_manager: ShutdownManager,
         tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
@@ -52,8 +52,8 @@ impl MixnetListener {
         let ipr_listener = IprListener::new();
         let mixnet_listener = Self {
             mixnet_client,
+            mixnet_shutdown_manager,
             ipr_listener,
-            cancel_token,
             tun_device_sink,
             icmp_beacon_identifier,
             our_ips,
@@ -65,7 +65,7 @@ impl MixnetListener {
 
     fn send_connection_event(&self, event: ConnectionStatusEvent) {
         let res = self.connection_event_tx.unbounded_send(event);
-        if res.is_err() && !self.cancel_token.is_cancelled() {
+        if res.is_err() && !self.shutdown_token.is_cancelled() {
             tracing::error!("Failed to send connection event to connection monitor");
         }
     }
@@ -79,10 +79,15 @@ impl MixnetListener {
     }
 
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
-        while !self.cancel_token.is_cancelled() {
+        loop {
             tokio::select! {
-                _ = self.cancel_token.cancelled() => {
+                _ = self.shutdown_token.cancelled() => {
                     tracing::debug!("Mixnet listener: Received shutdown");
+                    break;
+                }
+                _ = self.mixnet_shutdown_manager.run_until_shutdown() => {
+                    tracing::debug!("Mixnet listener: Mixnet client stopped");
+                    self.shutdown_token.cancel();
                     break;
                 }
                 reconstructed_message = self.mixnet_client.next() => match reconstructed_message {

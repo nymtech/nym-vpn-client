@@ -233,7 +233,6 @@ pub fn is_icmp_v6_beacon_reply(
     None
 }
 
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub fn start_icmp_connection_beacon(
     mixnet_client_sender: MixnetClientSender,
     our_ips: IpPair,

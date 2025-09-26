@@ -38,9 +38,12 @@ use nym_ip_packet_requests::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
 };
-use nym_sdk::mixnet::{
-    DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder, MixnetClientStorage,
-    NodeIdentity, ReconstructedMessage,
+use nym_sdk::{
+    ShutdownManager,
+    mixnet::{
+        DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder,
+        MixnetClientStorage, NodeIdentity, ReconstructedMessage,
+    },
 };
 use nym_validator_client::nyxd::error::NyxdError;
 use nym_wireguard_types::PeerPublicKey;
@@ -396,8 +399,12 @@ impl Probe {
             (node_info.authenticator_address, node_info.ip_address)
         {
             // Start the mixnet listener that the auth clients use to receive messages.
-            let mixnet_listener_task =
-                AuthClientMixnetListener::new(mixnet_client, CancellationToken::new()).start();
+            let mixnet_listener_task = AuthClientMixnetListener::new(
+                mixnet_client,
+                CancellationToken::new(),
+                ShutdownManager::new_without_signals(), // This is used to keep track of mixnet client failure but we don't care here
+            )
+            .start();
 
             let auth_client = AuthenticatorClient::new_entry(
                 &None,
