@@ -51,7 +51,7 @@ pub enum NetworkEnvironments {
     Mainnet,
     Sandbox,
     Canary,
-    Qa,
+    Evil,
 }
 
 impl fmt::Display for NetworkEnvironments {
@@ -60,7 +60,7 @@ impl fmt::Display for NetworkEnvironments {
             NetworkEnvironments::Mainnet => write!(f, "mainnet"),
             NetworkEnvironments::Sandbox => write!(f, "sandbox"),
             NetworkEnvironments::Canary => write!(f, "canary"),
-            NetworkEnvironments::Qa => write!(f, "qa"),
+            NetworkEnvironments::Evil => write!(f, "evil"),
         }
     }
 }
@@ -73,7 +73,7 @@ impl TryFrom<&str> for NetworkEnvironments {
             "mainnet" => Ok(NetworkEnvironments::Mainnet),
             "sandbox" => Ok(NetworkEnvironments::Sandbox),
             "canary" => Ok(NetworkEnvironments::Canary),
-            "qa" => Ok(NetworkEnvironments::Qa),
+            "evil" => Ok(NetworkEnvironments::Evil),
             _ => Err("Invalid network environment"),
         }
     }
