@@ -1,31 +1,34 @@
-Çevrimiçi gizliliğiniz konusunda endişeli misiniz? Engellenen bilgilere mi erişmeniz gerekiyor? Nym'in merkezi olmayan VPN'i size yardımcı olmak için burada. Android için NymVPN ile web'de gizli bir şekilde gezinebilir, sansür kısıtlamalarını aşabilir ve kripto işlemlerinizi koruyabilirsiniz.
+Takibi durdurun: Sizi gözetleyemeyen tek VPN
 
-NymVPN, merkezi olmayan bir ağda çalışan günlük kullanıcılar için ilk VPN'dir. Geleneksel VPN'ler gibi merkezi sunucular kullanmak yerine, trafiğinizi birden fazla bağımsız düğümden geçirerek gizliliğinizi korumak için güçlü şifreleme ve koruyucu gürültü ekler.
+Çevrimiçi izlenmekten bıktınız mı? Geleneksel VPN’ler verilerinizi merkezi bir sunucudan geçirir, bu da sizi izleyebilir. NymVPN farklıdır: merkezi otorite yoktur, log tutmak imkansızdır. Bu sadece “no-logs” değil, “log tutulamaz” tasarımıdır.
 
-Gizlilik seviyenizi seçin:
-- AmneziaWG ile Hızlı modun 2-atlamalı merkezi olmayan korumaları
-- Mixnet teknolojisi ve eklenen gürültü ile Anonim modunun 5-atlamalı yönlendirmesi
+20’den fazla makalesi olan doktora düzeyinde araştırmacılar ve kriptograflar tarafından geliştirildi. NymVPN 50+ ülkede yüzlerce bağımsız sunucuda çalışır. KU Leuven ve EPFL iş birliğiyle geliştirilmiş, gizlilik odaklı İsviçre merkezlidir. Misyonumuz: Herkes için gizlilik.
 
-Ağ günlüğü tutulamaz:
-Diğer VPN'ler günlük tutmayacağına söz verirken, Nym ağı merkezi günlüklerin mümkün olmayacağı şekilde tasarlanmıştır. Merkezi olmayan ağdaki hiçbir nokta IP adresinizi çevrimiçi yaptığınız şeylerle ilişkilendiremez. Gizliliğiniz varsayılan olarak garantilidir.
+GİZLİLİK SEVİYENİZİ SEÇİN
+- Hızlı Mod: AmneziaWG ile 2-hop bağlantı. İlk hop kim olduğunuzu bilir ama ne yaptığınızı bilmez; ikincisi ne yaptığınızı bilir ama kim olduğunuzu bilmez.
+- Anonim Mod: Maksimum gizlilik için 5-hop Mixnet (karışık ağ) ve çok katmanlı şifreleme. Sahte trafik ve gürültü ile izlenemezsiniz.
 
-Bağlantı kurulamayan ödemeler:
-NymVPN'e abone olmak için adınız dahil hiçbir kişisel bilgi gerekmez. Uygulama ve ağ kullanımınıza asla bağlanamayacağınızı garanti eden sıfır bilgi kanıtlarıyla güvenli bir şekilde ödeme yapın.
+NYMVPN NEDEN FARKLI?
+- Gerçek Anonimlik: E-posta veya isim gerekmez. Kripto veya nakit ödeme.
+- Metadata Koruması: Sadece içerik değil, trafik desenleri de korunur.
+- Sansür Direnci: Engellenmiş sitelere erişim.
+- Çoklu cihaz: Tek kod ile 10 cihaz korunur.
 
-Sansüre dayanıklılık:
-Trafik için giriş ve çıkış ağ geçitlerini seçerek ihtiyacınız olan bilgilere erişim engellerini aşın. Hızlı moddaki AmneziaWG (WireGuard protokolünün bir çatalı), VPN kullanımını hedef alan gözetime karşı koruma sağlar.
+BAĞIMSIZ DOĞRULAMA
+- 4 güvenlik denetimi (2021–2024)
+- 20+ akademik yayın
+- CDT “Signals of Trustworthy VPNs” şeffaflığı
 
-Ek NymVPN özellikleri:
-- Zcash ve Monero dahil kripto ödemeleri
-- Maksimum gizlilik için nakit ödemeler
-- Reklam yok
-- 10 adede kadar cihaz
-- Ağ geçidi seçimi
-- Çoklu atlamalı IP korumaları
-- Killswitch (Android yerel)
+TEMEL ÖZELLİKLER
+- Kill switch
+- 50+ ülkede sunucular
+- Reklamsız deneyim
+- En gelişmiş kriptografi
 
-2025'te gelecek özellikler:
-- Bölünmüş tünelleme
-- Gelişmiş sansüre dayanıklılık
-- Kuantum sonrası kriptografi
-- Konut IP'leri
+YAKINDA (2025)
+- Split tunneling
+- Ev IP’leri
+- Post-kuantum kriptografi
+- Gelişmiş sansür direnci
+
+İndir, bağlan, kaybol — saniyeler içinde çevrimiçi görünmez ol. 30 günlük para iade garantisiyle NymVPN’i dene.
