@@ -7,7 +7,7 @@ on:
 
 jobs:
   crowdin-download:
-    runs-on: arc-linux-latest
+    runs-on: arc-linux-latest-dind
 
     permissions:
       contents: write # Required to push changes

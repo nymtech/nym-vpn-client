@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix edgecase where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
 - Fix Sentry extra metadata tag when there is no OS extra info
   (https://github.com/nymtech/nym-vpn-client/pull/3411)
+- Don't retry on disappeared entry or exit gateway and return to UI for selecting again (https://github.com/nymtech/nym-vpn-client/pull/3520)
 
 ### Changed
 

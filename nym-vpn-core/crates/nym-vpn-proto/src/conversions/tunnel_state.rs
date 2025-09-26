@@ -43,6 +43,8 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             Reason::PerformantEntryGatewayUnavailable => Self::PerformantEntryGatewayUnavailable,
             Reason::PerformantExitGatewayUnavailable => Self::PerformantExitGatewayUnavailable,
+            Reason::InvalidEntryGatewayIdentity => Self::InvalidEntryGatewayIdentity,
+            Reason::InvalidExitGatewayIdentity => Self::InvalidExitGatewayIdentity,
             Reason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             Reason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
             Reason::CredentialWastedOnEntryGateway => Self::CredentialWastedOnEntryGateway,
@@ -97,6 +99,14 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::PerformantExitGatewayUnavailable => Self {
                 reason: Reason::PerformantExitGatewayUnavailable.into(),
+                message: None,
+            },
+            ErrorStateReason::InvalidEntryGatewayIdentity => Self {
+                reason: Reason::InvalidEntryGatewayIdentity.into(),
+                message: None,
+            },
+            ErrorStateReason::InvalidExitGatewayIdentity => Self {
+                reason: Reason::InvalidExitGatewayIdentity.into(),
                 message: None,
             },
             ErrorStateReason::InvalidEntryGatewayCountry => Self {
@@ -451,6 +461,9 @@ impl TryFrom<proto::WireguardConnectionData> for WireguardConnectionData {
                     .exit
                     .ok_or(ConversionError::NoValueSet("WireguardConnectionData.exit"))?,
             )?,
+            entry_bridge_addr: value
+                .entry_bridge_addr
+                .and_then(|str| SocketAddr::from_str(&str).ok()),
         })
     }
 }
@@ -460,6 +473,7 @@ impl From<WireguardConnectionData> for proto::WireguardConnectionData {
         proto::WireguardConnectionData {
             entry: Some(proto::WireguardNode::from(value.entry)),
             exit: Some(proto::WireguardNode::from(value.exit)),
+            entry_bridge_addr: value.entry_bridge_addr.map(|s| s.to_string()),
         }
     }
 }

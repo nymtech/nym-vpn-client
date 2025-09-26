@@ -145,8 +145,15 @@ private extension GatewayDetailsView {
 
     func selectServerSection() -> some View {
         VStack(alignment: .center, spacing: 0) {
+            Rectangle()
+                .foregroundColor(NymColor.gray2)
+                .frame(height: 1)
             GenericButton(title: "gatewayInfo.selectServer".localizedString)
                 .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
+#if os(macOS)
+            Spacer()
+                .frame(height: 24)
+#endif
         }
         .background(NymColor.elevation)
         .frame(maxWidth: .infinity, alignment: .center)
@@ -526,13 +533,16 @@ private extension GatewayDetailsView {
     }
 
     func formattedLastUpdate() -> String {
-        guard let date = gateway.performance.lastUpdated else { return "noScore".localizedString}
-        let formatter = DateFormatter.localizedString(
-            from: date,
-            dateStyle: .long,
-            timeStyle: .short
-        )
-        return "\("gatewayInfo.lastUpdate".localizedString) \(formatter)."
+        guard let date = gateway.performance.lastUpdated
+        else {
+            return "noScore".localizedString
+        }
+
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+
+        let relativeString = formatter.localizedString(for: date, relativeTo: Date())
+        return "\("gatewayInfo.lastUpdate".localizedString): \(relativeString)."
     }
 
     func shcheduleMessageOverlayDismissal() {

@@ -206,6 +206,12 @@ pub enum ErrorStateReason {
     /// Failure to select the exit gateway that meets the performance requirements.
     PerformantExitGatewayUnavailable,
 
+    /// Invalid identity set for entry gateway
+    InvalidEntryGatewayIdentity,
+
+    /// Invalid identity set for exit gateway
+    InvalidExitGatewayIdentity,
+
     /// Invalid country set for entry gateway
     InvalidEntryGatewayCountry,
 

@@ -159,6 +159,7 @@ pub struct MixnetConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct WireguardConnectionData {
+    pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: WireguardNode,
     pub exit: WireguardNode,
 }
