@@ -87,20 +87,6 @@ pub enum SpecificGatewayError {
     Internal { reason: String },
 }
 
-impl SpecificGatewayError {
-    pub fn is_no_retry(&self) -> bool {
-        let more_specific_inner = match self {
-            SpecificGatewayError::RegisterWireguard { source, .. } => source,
-            SpecificGatewayError::RequestCredential { source, .. } => source,
-            _ => return false,
-        };
-        matches!(
-            **more_specific_inner,
-            nym_wg_gateway_client::Error::NoRetry { .. }
-        )
-    }
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialNyxdClientError {
     #[error("Failed to create nyxd client config")]
@@ -250,7 +236,7 @@ impl TemporaryBandwidthClient {
             TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
                 .top_up(credential)
                 .await
-                .map_err(|source| Error::DeprecatedTopUpWireguard {
+                .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
                     gateway_id: self.gateway_id().to_string(),
                     ticketbook_type,
                     source: Box::new(source),
@@ -350,7 +336,7 @@ impl BandwidthController {
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
-    ) -> Result<BandwidthController> {
+    ) -> Result<BandwidthController, Error> {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_gateway_data.private_ipv4.into(),
             entry_signal_channel,
@@ -380,7 +366,7 @@ impl BandwidthController {
         controller: &dyn BandwidthTicketProvider,
         ticketbook_type: TicketType,
         bw_client: &mut TemporaryBandwidthClient,
-    ) -> Result<i64> {
+    ) -> Result<i64, SpecificGatewayError> {
         let credential = controller
             .get_ecash_ticket(
                 ticketbook_type,
@@ -388,7 +374,7 @@ impl BandwidthController {
                 DEFAULT_TICKETS_TO_SPEND,
             )
             .await
-            .map_err(|source| Error::RequestCredential {
+            .map_err(|source| SpecificGatewayError::RequestCredential {
                 gateway_id: bw_client.gateway_id().to_string(),
                 ticketbook_type,
                 source: Box::new(source),

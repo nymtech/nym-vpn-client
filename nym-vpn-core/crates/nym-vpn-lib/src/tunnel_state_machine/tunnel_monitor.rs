@@ -451,11 +451,6 @@ impl TunnelMonitor {
             data_path: self.tunnel_parameters.nym_config.data_path.clone(),
             mixnet_client_config,
             two_hops: self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard,
-            enable_credentials_mode: self
-                .tunnel_parameters
-                .tunnel_settings
-                .mixnet_tunnel_options
-                .enable_credentials_mode,
             user_agent,
             custom_topology_provider: Box::new(self.custom_topology_provider.clone()),
             network_env: self
