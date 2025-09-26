@@ -6,28 +6,22 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::TaskClient;
-use tokio::task::JoinHandle;
+use nym_sdk::mixnet::MixnetClient;
+use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
-
-use super::SharedMixnetClient;
 
 // The mixnet listener is responsible for listening for incoming mixnet messages from the mixnet
 // client, and if they contain IP packets, forward them to the tun device.
 pub(super) struct MixnetListener {
     // Mixnet client for receiving messages
-    mixnet_client: SharedMixnetClient,
+    mixnet_client: MixnetClient,
 
     // IPR client for handling responses
     ipr_listener: IprListener,
 
-    // Task client for receiving shutdown signals
-    #[allow(deprecated)]
-    // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    task_client: TaskClient,
+    // Cancellation tokehn for receiving shutdown signals
+    cancel_token: CancellationToken,
 
     // Sink for sending packets to the tun device
     tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
@@ -46,10 +40,9 @@ pub(super) struct MixnetListener {
 }
 
 impl MixnetListener {
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    pub(super) fn spawn(
-        mixnet_client: SharedMixnetClient,
-        task_client: TaskClient,
+    pub(super) async fn new(
+        mixnet_client: MixnetClient,
+        cancel_token: CancellationToken,
         tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
@@ -60,7 +53,7 @@ impl MixnetListener {
         let mixnet_listener = Self {
             mixnet_client,
             ipr_listener,
-            task_client,
+            cancel_token,
             tun_device_sink,
             icmp_beacon_identifier,
             our_ips,
@@ -72,7 +65,7 @@ impl MixnetListener {
 
     fn send_connection_event(&self, event: ConnectionStatusEvent) {
         let res = self.connection_event_tx.unbounded_send(event);
-        if res.is_err() && !self.task_client.is_shutdown() {
+        if res.is_err() && !self.cancel_token.is_cancelled() {
             tracing::error!("Failed to send connection event to connection monitor");
         }
     }
@@ -86,21 +79,13 @@ impl MixnetListener {
     }
 
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
-        // We are the only one listening for mixnet messages when this is active
-        let mut mixnet_client_binding = self.mixnet_client.lock().await;
-        let mut mixnet_client = mixnet_client_binding.take().unwrap();
-
-        while !self.task_client.is_shutdown() {
+        while !self.cancel_token.is_cancelled() {
             tokio::select! {
-                _ = self.task_client.recv() => {
+                _ = self.cancel_token.cancelled() => {
                     tracing::debug!("Mixnet listener: Received shutdown");
                     break;
                 }
-                _ = self.shutdown_token.cancelled() => {
-                    tracing::debug!("Mixnet listener: Received shutdown");
-                    break;
-                }
-                reconstructed_message = mixnet_client.next() => match reconstructed_message {
+                reconstructed_message = self.mixnet_client.next() => match reconstructed_message {
                     Some(reconstructed_message) => {
                         // We're just going to assume that all incoming messags are IPR messages
                         match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
@@ -137,8 +122,8 @@ impl MixnetListener {
             }
         }
 
-        // Restore the mixnet client
-        mixnet_client_binding.replace(mixnet_client);
+        tracing::info!("Disconnecting mixnet client");
+        self.mixnet_client.disconnect().await;
 
         tracing::debug!("Mixnet listener: Exiting");
         self.tun_device_sink
