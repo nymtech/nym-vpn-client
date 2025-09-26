@@ -45,12 +45,25 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun WelcomeAccountScreen() {
 	val navController = LocalNavController.current
+	WelcomeAccountScreen(
+		onLogInClick = {
+			navController.navigateAndForget(Route.Login)
+		},
+		onStartClick = {
+			navController.replaceCurrentWith(Route.Generating)
+		},
+	)
+}
+
+@Composable
+fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
 
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -69,13 +82,17 @@ fun WelcomeAccountScreen() {
 				Image(
 					painter = painterResource(id = R.drawable.background),
 					contentDescription = null,
-					modifier = Modifier.width(660.dp).scale(1.2f),
-					contentScale = ContentScale.None
+					modifier = Modifier
+						.width(660.dp)
+						.scale(1.2f),
+					contentScale = ContentScale.None,
 				)
 				Icon(
 					imageVector = ImageVector.vectorResource(R.drawable.app_label),
 					contentDescription = "",
-					modifier = Modifier.width(88.dp).align(Alignment.Center),
+					modifier = Modifier
+						.width(88.dp)
+						.align(Alignment.Center),
 					tint = MaterialTheme.colorScheme.onBackground,
 				)
 			}
@@ -165,11 +182,13 @@ fun WelcomeAccountScreen() {
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
-			modifier = Modifier.padding(top = 44.dp, bottom = 24.dp, start = 16.dp, end = 16.dp
+			modifier = Modifier.padding(
+				top = 44.dp, bottom = 24.dp, start = 16.dp, end = 16.dp,
 			),
 		) {
 			MainStyledButton(
 				onClick = {
+					onStartClick()
 				},
 				content = {
 					Text(
@@ -203,7 +222,7 @@ fun WelcomeAccountScreen() {
 					color = MaterialTheme.colorScheme.primary,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					modifier = Modifier.clickable {
-						navController.goFromRoot(Route.Login)
+						onLogInClick()
 					},
 				)
 			}
@@ -215,6 +234,6 @@ fun WelcomeAccountScreen() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewWelcomeAccountScreen() {
 	NymVPNTheme(Theme.default()) {
-		WelcomeAccountScreen()
+		WelcomeAccountScreen(onStartClick = {}, onLogInClick = {})
 	}
 }

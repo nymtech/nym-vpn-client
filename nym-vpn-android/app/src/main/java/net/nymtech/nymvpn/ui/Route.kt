@@ -71,6 +71,9 @@ sealed class Route {
 	data object SelectPlan : Route()
 
 	@Serializable
+	data object Generating : Route()
+
+	@Serializable
 	data class ServerDetails(
 		val id: String,
 		val type: GatewayType,

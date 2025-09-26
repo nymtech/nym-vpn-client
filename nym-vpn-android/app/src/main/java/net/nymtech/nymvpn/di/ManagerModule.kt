@@ -8,6 +8,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.nymtech.nymvpn.manager.backend.NymBackendManager
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.manager.billing.NymBillingManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.manager.environment.NymEnvironmentManager
 import javax.inject.Singleton
@@ -27,4 +29,8 @@ abstract class ManagerModule {
 	@Binds
 	@Singleton
 	abstract fun bindNymEnvironmentManager(environmentManager: NymEnvironmentManager): EnvironmentManager
+
+	@Binds
+	@Singleton
+	abstract fun bindNymBillingManager(billingManager: NymBillingManager): BillingManager
 }

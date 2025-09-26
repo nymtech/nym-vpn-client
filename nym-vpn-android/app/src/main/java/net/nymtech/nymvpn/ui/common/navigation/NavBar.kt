@@ -172,6 +172,9 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+			currentRoute.startsWith(Route.Generating::class.qualifiedName!!) -> NavBarState(
+				show = false,
+			)
 			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				show = true,

@@ -21,6 +21,7 @@ interface BackendManager {
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
 	suspend fun refreshAccountLinks()
 	suspend fun refresh()
+	suspend fun createAndRegisterAccount(): String
 	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State
 	fun initialize()

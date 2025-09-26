@@ -24,6 +24,11 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,8 +40,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.android.billingclient.api.ProductDetails
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -45,9 +53,40 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
+
 @Composable
-fun SelectPlanScreen(padding: PaddingValues = WindowInsets.systemBars.asPaddingValues()) {
+fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 	val context = LocalContext.current
+	val products by viewModel.subscriptions.collectAsState()
+	var showSheet by remember { mutableStateOf(false) }
+
+	SelectPlanScreen(
+		products = products,
+		showSheet = showSheet,
+		onSelectPlanButtonClick = {
+			if (viewModel.isBillingAvailable()) {
+				viewModel.fetchSubscriptions()
+				showSheet = true
+			} else {
+				context.openWebUrl(context.getString(R.string.pricing_url))
+			}
+		},
+		onDismissSheet = { showSheet = false },
+		onSelectSubscription = { product ->
+			showSheet = false
+		}
+	)
+}
+
+@Composable
+fun SelectPlanScreen(
+	products: List<ProductDetails> = emptyList(),
+	showSheet: Boolean = false,
+	onSelectPlanButtonClick: () -> Unit,
+	onDismissSheet: () -> Unit,
+	onSelectSubscription: (ProductDetails) -> Unit,
+	padding: PaddingValues = WindowInsets.systemBars.asPaddingValues()
+) {
 
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -102,11 +141,7 @@ fun SelectPlanScreen(padding: PaddingValues = WindowInsets.systemBars.asPaddingV
 			modifier = Modifier.padding(vertical = 24.dp.scaledHeight()),
 		) {
 			MainStyledButton(
-				onClick = {
-					context.openWebUrl(
-						context.getString(R.string.pricing_url),
-					)
-				},
+				onClick = onSelectPlanButtonClick,
 				content = {
 					Text(
 						stringResource(R.string.select_plan_button),
@@ -119,7 +154,29 @@ fun SelectPlanScreen(padding: PaddingValues = WindowInsets.systemBars.asPaddingV
 					.fillMaxWidth()
 					.height(56.dp.scaledHeight()),
 			)
+			if (products.isNotEmpty()) {
+				Column(
+					verticalArrangement = Arrangement.spacedBy(8.dp),
+					modifier = Modifier.fillMaxWidth()
+				) {
+					products.forEach { product ->
+						Text(
+							text = product.name,
+							style = Typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onSurface
+						)
+					}
+				}
+			}
 		}
+	}
+
+	if (showSheet && products.isNotEmpty()) {
+		SubscriptionBottomSheet(
+			products = products,
+			onDismiss = onDismissSheet,
+			onSelect = onSelectSubscription
+		)
 	}
 }
 
@@ -127,6 +184,6 @@ fun SelectPlanScreen(padding: PaddingValues = WindowInsets.systemBars.asPaddingV
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewSelectPlanScreen() {
 	NymVPNTheme(Theme.default()) {
-		SelectPlanScreen()
+		SelectPlanScreen(products = emptyList(), onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
 	}
 }

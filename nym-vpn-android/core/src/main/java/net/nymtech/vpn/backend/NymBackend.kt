@@ -350,6 +350,17 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
+	override suspend fun createAndRegisterAccount(): String {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			nym_vpn_lib.createAccount()
+//			val response = nym_vpn_lib.registerAccount()
+//			response.accountToken
+			""
+		}
+	}
+
+
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
 	)

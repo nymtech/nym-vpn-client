@@ -33,5 +33,7 @@ interface Backend {
 
 	suspend fun stop()
 
+	suspend fun createAndRegisterAccount(): String
+
 	fun getState(): Tunnel.State
 }
