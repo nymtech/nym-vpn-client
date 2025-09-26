@@ -247,7 +247,6 @@ impl Gateway {
     /// Tests whether the gateway matches a specific filter.
     pub fn matches_filter(&self, filter: &GatewayFilter) -> bool {
         match filter {
-            GatewayFilter::Identity(identity) => &self.identity == identity,
             GatewayFilter::MinPerformance {
                 min_wg_performance,
                 min_mixnet_performance,
@@ -682,7 +681,6 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
 }
 
 pub enum GatewayFilter {
-    Identity(NodeIdentity),
     MinPerformance {
         min_wg_performance: Option<u8>,
         min_mixnet_performance: Option<u8>,
@@ -692,4 +690,207 @@ pub enum GatewayFilter {
     Residential,
     ExitNode,
     VpnNode,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Create a list of Gateways with different properties set for testing
+    fn sample_gateway_list() -> GatewayList {
+        let asn = Asn {
+            asn: "AS12345".to_string(),
+            name: "Test ASN".to_string(),
+            kind: AsnKind::Residential,
+        };
+        let ipr = IpPacketRouterAddress::try_from_base58_string(
+            "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e",
+        )
+        .unwrap();
+        let aa =
+            AuthAddress::try_from_base58_string("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e")
+                .unwrap();
+        let variables = [
+            ("US", "CA", None, Some(ipr), Some(aa)),     // Gateway 1
+            ("US", "NY", Some(asn.clone()), None, None), // Gateway 2
+            ("DE", "BE", None, None, Some(aa)),          // Gateway 3
+            ("FR", "Aquitaine", Some(asn.clone()), None, Some(aa)), // Gateway 4
+            ("US", "TX", Some(asn.clone()), Some(ipr), None), // Gateway 5
+            ("GB", "Hampshire", None, None, None),       // Gateway 6
+        ];
+
+        let mut instance = 0;
+        let gateways = variables
+            .into_iter()
+            .map(|(country, region, asn, ipr, aa)| {
+                instance += 1;
+                Gateway {
+                    identity: NodeIdentity::from_base58_string(
+                        "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+                    )
+                    .unwrap(),
+                    moniker: format!("Gateway {instance}"),
+                    location: Some(Location {
+                        two_letter_iso_country_code: country.to_string(),
+                        region: region.to_string(),
+                        asn,
+                        ..Default::default()
+                    }),
+                    ipr_address: ipr,
+                    authenticator_address: aa,
+                    bridge_params: None,
+                    last_probe: None,
+                    ips: Vec::new(),
+                    host: None,
+                    clients_ws_port: None,
+                    clients_wss_port: None,
+                    mixnet_performance: Some(Percent::from_percentage_value(75).unwrap()),
+                    mixnet_score: None,
+                    wg_performance: Some(Performance {
+                        last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
+                        score: ScoreValue::High,
+                        load: ScoreValue::Low,
+                        uptime_percentage_last_24_hours: 0.75,
+                    }),
+                    version: None,
+                }
+            })
+            .collect::<Vec<Gateway>>();
+        GatewayList::new(gateways)
+    }
+
+    #[test]
+    fn test_gateway_filter_performance() {
+        let gateway_list = sample_gateway_list();
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: Some(70),
+            min_mixnet_performance: Some(70),
+        }]);
+        assert_eq!(gws.len(), 6);
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: None,
+            min_mixnet_performance: Some(70),
+        }]);
+        assert_eq!(gws.len(), 6);
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: Some(70),
+            min_mixnet_performance: None,
+        }]);
+        assert_eq!(gws.len(), 6);
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: Some(80),
+            min_mixnet_performance: Some(80),
+        }]);
+        assert_eq!(gws.len(), 0);
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: None,
+            min_mixnet_performance: Some(80),
+        }]);
+        assert_eq!(gws.len(), 0);
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: Some(80),
+            min_mixnet_performance: None,
+        }]);
+        assert_eq!(gws.len(), 0);
+
+        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
+            min_wg_performance: None,
+            min_mixnet_performance: None,
+        }]);
+        assert_eq!(gws.len(), 6);
+    }
+
+    #[test]
+    fn test_gateway_filter_exit_nodes() {
+        let gateway_list = sample_gateway_list();
+        let exit_gws = gateway_list.filter(&[GatewayFilter::ExitNode]);
+        assert_eq!(exit_gws.len(), 2);
+        assert_eq!(exit_gws[0].moniker, "Gateway 1");
+        assert_eq!(exit_gws[1].moniker, "Gateway 5");
+    }
+
+    #[test]
+    fn test_gateway_filter_vpn_nodes() {
+        let gateway_list = sample_gateway_list();
+        let vpn_gws = gateway_list.filter(&[GatewayFilter::VpnNode]);
+        assert_eq!(vpn_gws.len(), 3);
+        assert_eq!(vpn_gws[0].moniker, "Gateway 1");
+        assert_eq!(vpn_gws[1].moniker, "Gateway 3");
+        assert_eq!(vpn_gws[2].moniker, "Gateway 4");
+    }
+
+    #[test]
+    fn test_gateway_filter_residential() {
+        let gateway_list = sample_gateway_list();
+        let residential_gws = gateway_list.filter(&[GatewayFilter::Residential]);
+        assert_eq!(residential_gws.len(), 3);
+        assert_eq!(residential_gws[0].moniker, "Gateway 2");
+        assert_eq!(residential_gws[1].moniker, "Gateway 4");
+        assert_eq!(residential_gws[2].moniker, "Gateway 5");
+    }
+
+    #[test]
+    fn test_gateway_random_country() {
+        let gateway_list = sample_gateway_list();
+
+        assert!(
+            gateway_list
+                .choose_random(&[GatewayFilter::Country("US".into())])
+                .unwrap()
+                .is_in_country("US")
+        );
+
+        assert!(
+            gateway_list
+                .choose_random(&[GatewayFilter::Country("DE".into())])
+                .unwrap()
+                .is_in_country("DE")
+        );
+
+        assert!(
+            gateway_list
+                .choose_random(&[GatewayFilter::Country("BE".into())])
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn test_gateway_random_region() {
+        let gateway_list = sample_gateway_list();
+
+        assert!(
+            gateway_list
+                .choose_random(&[
+                    GatewayFilter::Country("US".into()),
+                    GatewayFilter::Region("CA".into())
+                ])
+                .unwrap()
+                .is_in_region("CA")
+        );
+
+        assert!(
+            gateway_list
+                .choose_random(&[
+                    GatewayFilter::Country("GB".into()),
+                    GatewayFilter::Region("Hampshire".into())
+                ])
+                .unwrap()
+                .is_in_region("Hampshire")
+        );
+
+        assert!(
+            gateway_list
+                .choose_random(&[
+                    GatewayFilter::Country("DE".into()),
+                    GatewayFilter::Region("XZ".into())
+                ])
+                .is_none()
+        );
+    }
 }
