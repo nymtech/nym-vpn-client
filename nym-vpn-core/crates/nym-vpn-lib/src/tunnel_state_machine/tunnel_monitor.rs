@@ -11,7 +11,6 @@ use nym_registration_common::NymNode as RegistrationNymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
 use nym_vpn_network_config::start_background_file_refresh;
-use nym_wg_metadata_client::{TunUpEvent, TunUpSendData};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
