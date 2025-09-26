@@ -79,9 +79,6 @@ class NymBillingManager @Inject constructor(
 		billingClient.startConnection(object : BillingClientStateListener {
 			override fun onBillingSetupFinished(billingResult: BillingResult) {
 				_state.update { billingResult }
-				if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-					fetchSubscriptions()
-				}
 			}
 
 			override fun onBillingServiceDisconnected() {

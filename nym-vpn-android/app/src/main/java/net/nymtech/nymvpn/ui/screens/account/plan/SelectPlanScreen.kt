@@ -154,20 +154,6 @@ fun SelectPlanScreen(
 					.fillMaxWidth()
 					.height(56.dp.scaledHeight()),
 			)
-			if (products.isNotEmpty()) {
-				Column(
-					verticalArrangement = Arrangement.spacedBy(8.dp),
-					modifier = Modifier.fillMaxWidth()
-				) {
-					products.forEach { product ->
-						Text(
-							text = product.name,
-							style = Typography.bodyLarge,
-							color = MaterialTheme.colorScheme.onSurface
-						)
-					}
-				}
-			}
 		}
 	}
 
