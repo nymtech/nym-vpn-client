@@ -48,6 +48,10 @@ function useI18nError() {
             return fmtErr(t('tunnel.invalid-entry-gw-country'), message);
           case 'invalid-exit-gw-country':
             return fmtErr(t('tunnel.invalid-exit-gw-country'), message);
+          case 'invalid-entry-gw-id':
+            return fmtErr(t('tunnel.invalid-entry-gw-id'), message);
+          case 'invalid-exit-gw-id':
+            return fmtErr(t('tunnel.invalid-exit-gw-id'), message);
           case 'max-devices-reached':
             return fmtErr(t('tunnel.max-devices-reached'), message);
           case 'bandwidth-exceeded':
