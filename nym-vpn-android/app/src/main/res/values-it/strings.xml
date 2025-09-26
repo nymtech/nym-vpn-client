@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
     <string name="vpn_permission_missing">Vpn permission has not been accepted or is being used by another app.</string>
 	<string name="action_requires_tunnel_down">Action requires tunnel down</string>
-    <string name="selected_exit_unavailable">Selected exit country is unavailable. Please select a different exit country.</string>
-    <string name="selected_entry_unavailable">Selected entry country is unavailable. Please select a different entry country.</string>
 	<string name="device_added_success">Dispositivo aggiunto con successo al tuo account</string>
     <string name="invalid_recovery_phrase">Invalid recovery phrase</string>
     <string name="recovery_phrase">Recovery phrase</string>
@@ -107,8 +105,7 @@
     <string name="access_code">24-word-access-code</string>
     <string name="support_and_feedback"><![CDATA[Support & feedback]]></string>
     <string name="get_in_touch">Get in touch</string>
-    <string name="same_entry_exit_message">For privacy, NymVPN won\'t use the same gateway for entry and exit. Reconnect or choose different locations.</string>
-    <string name="device_id">Device ID:</string>
+	<string name="device_id">Device ID:</string>
     <string name="unexpected_error">An unexpected error occurred:</string>
 	<string name="loading">Loading</string>
     <string name="offline">No internet</string>
