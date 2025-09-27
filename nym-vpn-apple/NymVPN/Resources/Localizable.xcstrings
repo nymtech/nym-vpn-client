@@ -3605,8 +3605,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How QUIC improves connections"
+            "state" : "translated",
+            "value" : "QUIC bağlantıları nasıl iyileştirir"
           }
         },
         "uk" : {
@@ -3706,8 +3706,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+            "state" : "translated",
+            "value" : "Kısıtlı ağlarda Hızlı Modun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) ile sararak normal web gezintisi gibi görünmesini sağlar."
           }
         },
         "uk" : {
@@ -3807,8 +3807,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+            "state" : "translated",
+            "value" : "Not: Bu, giriş sunucusu seçeneklerini sadece QUIC uyumlu gatewayler'le sınırlamaktadır."
           }
         },
         "uk" : {
@@ -3908,8 +3908,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enhanced connection (QUIC)"
+            "state" : "translated",
+            "value" : "Geliştirilmiş bağlantı (QUIC)"
           }
         },
         "uk" : {
@@ -4009,8 +4009,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How the Stealth API connect mode works"
+            "state" : "translated",
+            "value" : "Stealth API bağlantı modu nasıl çalışır"
           }
         },
         "uk" : {
@@ -4110,8 +4110,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+            "state" : "translated",
+            "value" : "Standart API bağlantısı başarısız olursa, NymVPN bunu otomatik olarak devreye alır."
           }
         },
         "uk" : {
@@ -4211,8 +4211,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stealth API connect"
+            "state" : "translated",
+            "value" : "Stealth API bağlantısı"
           }
         },
         "uk" : {
@@ -9463,8 +9463,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
+            "state" : "translated",
+            "value" : "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin."
           }
         },
         "uk" : {
@@ -9665,8 +9665,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry gateway is not responding or responding badly to a bandwidth."
+            "state" : "translated",
+            "value" : "Giriş gateway'i yanıt vermiyor veya bant genişliği değişikliklerine uygun şekilde tepki göstermiyor."
           }
         },
         "uk" : {
@@ -9766,8 +9766,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit gateway is not responding or responding badly to a bandwidth."
+            "state" : "translated",
+            "value" : "Çıkış gateway'i yanıt vermiyor veya bant genişliği değişikliklerine uygun şekilde tepki göstermiyor."
           }
         },
         "uk" : {
@@ -25112,8 +25112,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "state" : "translated",
+            "value" : "Hataları daha hızlı düzeltmemize yardımcı olmak için çökme bilgilerini paylaşın.\nRaporlar Sentry’nin güvenli sistemi aracılığıyla gönderilir ve sadece teknik hata ayıklama verilerini içerir."
           }
         },
         "uk" : {
@@ -29556,8 +29556,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anti-censorship"
+            "state" : "translated",
+            "value" : "Sansür Karşıtı"
           }
         },
         "uk" : {
@@ -31980,8 +31980,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help improve NymVPN by sharing anonymous network stats from your region. "
+            "state" : "translated",
+            "value" : "Bölgenizden anonim ağ istatistiklerini paylaşarak NymVPN’i geliştirmemize yardımcı olun. "
           }
         },
         "uk" : {
@@ -32990,8 +32990,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Awaiting account readiness"
+            "state" : "translated",
+            "value" : "Hesabın kullanıma hazır hale gelmesi bekleniyor"
           }
         },
         "uk" : {
@@ -33091,8 +33091,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting mixnet client"
+            "state" : "translated",
+            "value" : "Mixnet istemcisine bağlanılıyor"
           }
         },
         "uk" : {
@@ -33192,8 +33192,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting tunnel"
+            "state" : "translated",
+            "value" : "Tünel'e bağlanıyor"
           }
         },
         "uk" : {
@@ -33293,8 +33293,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Refreshing gateways"
+            "state" : "translated",
+            "value" : "Gateway'ler güncelleniyor"
           }
         },
         "uk" : {
@@ -33394,8 +33394,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Resolving API IP addresses"
+            "state" : "translated",
+            "value" : "API’nin IP adresleri belirleniyor"
           }
         },
         "uk" : {
@@ -33495,8 +33495,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selecting gateways"
+            "state" : "translated",
+            "value" : "Gateway'ler seçiliyor"
           }
         },
         "uk" : {
