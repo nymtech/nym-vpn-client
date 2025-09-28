@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.passphrase
+package net.nymtech.nymvpn.ui.screens.account.info
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -18,16 +18,15 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun PassphraseScreen(appUiState: AppUiState, viewModel: PassphraseViewModel = hiltViewModel()) {
+fun AccountInfoScreen(appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel()) {
 
-	PassphraseScreen(
-		passphrase = "",
-		onShowClick = {}
+	AccountInfoScreen(
+		accountId = ""
 	)
 }
 
 @Composable
-fun PassphraseScreen(passphrase: String, onShowClick: () -> Unit) {
+fun AccountInfoScreen(accountId: String) {
 	Column(
 		horizontalAlignment = Alignment.Start,
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
@@ -42,8 +41,8 @@ fun PassphraseScreen(passphrase: String, onShowClick: () -> Unit) {
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewPassphraseScreen() {
+internal fun PreviewAccountInfoScreen() {
 	NymVPNTheme(Theme.default()) {
-		PassphraseScreen("", onShowClick = {})
+		AccountInfoScreen("")
 	}
 }

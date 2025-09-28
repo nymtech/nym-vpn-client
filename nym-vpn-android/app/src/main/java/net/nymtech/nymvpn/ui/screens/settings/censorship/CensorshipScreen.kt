@@ -72,7 +72,7 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewPrivacyScreen() {
+internal fun PreviewCensorshipScreen() {
 	NymVPNTheme(Theme.default()) {
 		CensorshipScreen(showQUICSection = true, showDomainFrontingSection = true, true, onQuicEnable = {})
 	}

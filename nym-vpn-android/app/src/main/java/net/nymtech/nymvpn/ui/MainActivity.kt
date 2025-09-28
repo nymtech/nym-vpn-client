@@ -49,6 +49,9 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
+import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
+import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
+import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
@@ -273,6 +276,18 @@ class MainActivity : AppCompatActivity() {
 									runCatching {
 										DetailsScreen(appState, args.id, args.type, args.location)
 									}
+								}
+								composable<Route.Payment> {
+									val args = it.toRoute<Route.Payment>()
+									runCatching {
+										PaymentScreen(args.productId)
+									}
+								}
+								composable<Route.Passphrase> {
+									PassphraseScreen(appState)
+								}
+								composable<Route.Account> {
+									AccountInfoScreen(appState)
 								}
 							}
 						}

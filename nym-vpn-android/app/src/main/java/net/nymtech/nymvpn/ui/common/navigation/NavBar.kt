@@ -178,6 +178,12 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				leading = {
 				},
 			)
+			currentRoute.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle("") },
+				show = true,
+				leading = {
+				},
+			)
 			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				show = true,
@@ -217,6 +223,15 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			)
 			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
 				show = false,
+			)
+			currentRoute.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.settings_passphrase_title)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
 			)
 			else -> NavBarState(show = false)
 		}

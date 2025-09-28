@@ -44,7 +44,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
 @Composable
-fun PaymentScreen(viewModel: PaymentViewModel = hiltViewModel()) {
+fun PaymentScreen(productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
 	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
 

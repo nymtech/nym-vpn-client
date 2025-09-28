@@ -74,6 +74,15 @@ sealed class Route {
 	data object Generating : Route()
 
 	@Serializable
+	data class Payment(val productId: String) : Route()
+
+	@Serializable
+	data object Passphrase: Route()
+
+	@Serializable
+	data object Account: Route()
+
+	@Serializable
 	data class ServerDetails(
 		val id: String,
 		val type: GatewayType,
