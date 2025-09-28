@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.generating.components
+package net.nymtech.nymvpn.ui.common.animations
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat

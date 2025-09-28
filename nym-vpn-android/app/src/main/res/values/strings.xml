@@ -293,4 +293,13 @@
 	<string name="account_generating_securing">Securing your credentials locally…</string>
 	<string name="account_generating_encrypting">Encrypting credentials with your device key; \nonly you can unlock them</string>
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<!-- Account Payment screen -->
+	<string name="account_payment_processing">Processing your payment securely…</string>
+	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>
+	<string name="account_payment_retrieving">Retrieving your anonymous account credentials (zk-nyms)…</string>
+	<string name="account_payment_credentials">These zero-knowledge credentials prove you have access without revealing who you are</string>
+	<string name="account_payment_saving">Saving your zk-nyms on the device…</string>
+	<string name="account_payment_anonymous">Your anonymous access credentials are now safely stored, private, encrypted, and in your control</string>
+	<string name="account_payment_welcome">Welcome to true privacy 🎉</string>
+	<string name="account_payment_protected">You\'re now fully protected</string>
 </resources>
