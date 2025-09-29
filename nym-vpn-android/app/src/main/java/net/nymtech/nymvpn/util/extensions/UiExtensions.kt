@@ -146,6 +146,8 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)
 		ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_entry)
 		ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_exit)
+		ErrorStateReason.InvalidEntryGatewayIdentity -> ""
+		ErrorStateReason.InvalidExitGatewayIdentity -> ""
 	}
 }
 
