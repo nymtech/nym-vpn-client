@@ -8,6 +8,23 @@ pub enum Error {
         #[from]
         source: bincode::Error,
     },
+
+    #[error("failed to decode attached tickets: {source}")]
+    FailedToDecodeAttachedTickets {
+        #[from]
+        source: nym_credentials::Error,
+    },
+
+    #[error("failed to import attached tickets: {source}")]
+    TicketsImportFailure { source: Box<nym_sdk::Error> },
+}
+
+impl From<nym_sdk::Error> for Error {
+    fn from(source: nym_sdk::Error) -> Self {
+        Error::TicketsImportFailure {
+            source: Box::new(source),
+        }
+    }
 }
 
 // Result type based on our error type

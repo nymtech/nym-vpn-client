@@ -14,6 +14,7 @@ workspace = true
 [dependencies]
 anyhow.workspace = true
 base64.workspace = true
+bs58.workspace = true
 bincode.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
@@ -56,6 +57,7 @@ nym-sdk.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 nym-credential-utils.workspace = true
+nym-credentials.workspace = true
 nym-http-api-client.workspace = true
 nym-http-api-client-macro = { workspace = true, features = ["debug-inventory"] }
 
