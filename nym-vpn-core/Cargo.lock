@@ -5694,6 +5694,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpnd-types-uniffi"
+version = "1.16.0-beta"
+dependencies = [
+ "nym-gateway-directory",
+ "nym-vpn-api-client",
+ "nym-vpn-lib-types-uniffi",
+ "nym-vpnd-types",
+ "time",
+ "uniffi",
+]
+
+[[package]]
 name = "nym-wg-go"
 version = "1.17.0-beta"
 dependencies = [
