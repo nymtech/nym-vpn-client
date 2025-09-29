@@ -88,7 +88,6 @@ pub fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
     )
 }
 
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub fn start_mixnet_connection_beacon(
     mixnet_client_sender: MixnetClientSender,
     our_address: Recipient,

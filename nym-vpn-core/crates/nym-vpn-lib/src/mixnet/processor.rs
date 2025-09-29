@@ -12,11 +12,14 @@ use nym_ip_packet_requests::{
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
 };
-use nym_sdk::mixnet::{
-    InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
-    MixnetMessageSinkTranslator, Recipient, TransmissionLane,
+use nym_sdk::{
+    ShutdownManager,
+    mixnet::{
+        InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
+        MixnetMessageSinkTranslator, Recipient, TransmissionLane,
+    },
 };
-use tokio::{sync::oneshot, task::JoinHandle};
+use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
@@ -72,6 +75,9 @@ struct MixnetProcessor {
     // The mixnet client for sending and receiving messages from the mixnet
     mixnet_client: MixnetClient,
 
+    // Mixnet_shutdown_manager to lister to mixnet failure
+    mixnet_shutdown_manager: ShutdownManager,
+
     // The connection monitor for sending connection events
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
 
@@ -93,6 +99,7 @@ impl MixnetProcessor {
     fn new(
         device: AsyncDevice,
         mixnet_client: MixnetClient,
+        mixnet_shutdown_manager: ShutdownManager,
         connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: IpPair,
@@ -101,6 +108,7 @@ impl MixnetProcessor {
         MixnetProcessor {
             device,
             mixnet_client,
+            mixnet_shutdown_manager,
             connection_event_tx: connection_monitor.event_sender(),
             ip_packet_router_address,
             our_ips,
@@ -125,19 +133,24 @@ impl MixnetProcessor {
                 self.mixnet_client.shared_lane_queue_lengths(),
             )
         };
+        let mixnet_client_shutdown_token = self
+            .mixnet_shutdown_manager
+            .child_shutdown_token()
+            .inner()
+            .clone();
 
         let message_creator = MessageCreator::new(self.ip_packet_router_address.into());
 
         // Starting the mixnet listener.
         tracing::debug!("Starting mixnet listener");
-        let mixnet_listener = super::mixnet_listener::MixnetListener::new(
+        let mut mixnet_listener_handle = super::mixnet_listener::MixnetListener::spawn(
             self.mixnet_client,
-            self.cancel_token.child_token(),
+            self.mixnet_shutdown_manager,
             tun_device_sink,
             self.icmp_beacon_identifier,
             self.our_ips,
             self.connection_event_tx.clone(),
-            mixnet_listener_shutdown_token.child_token(),
+            self.cancel_token.clone(),
         );
 
         // Keep track of whether we've sent the disconnect message, so we don't send it multiple
@@ -168,143 +181,130 @@ impl MixnetProcessor {
         let notify_backpressure_lifted = backpressure_monitor.get_notify_backpressure_lifted();
 
         tracing::info!("Mixnet processor is running");
-        // SW This is not correct!
-        while !self.cancel_token.is_cancelled() {
+        loop {
             // Disable the TUN read select branch if we are in backpressure
             let is_backpressure = backpressure_monitor.is_backpressure();
 
             tokio::select! {
-                            biased;
-                            _ = &mut ipr_disconnect_timeout => {
-                                tracing::warn!("Timed out waiting for ipr disconnect");
+                biased;
+                _ = &mut ipr_disconnect_timeout => {
+                    tracing::warn!("Timed out waiting for ipr disconnect");
+                    break;
+                }
+                // Handle task manager shutdown
+                _ = mixnet_client_shutdown_token.cancelled() => {
+                    tracing::debug!("Mixnet client has shut down");
+                    break;
+                }
+                // When we get the cancel token, send a disconnect message to the IPR. We keep
+                // running until the mixnet listener receives the disconnect response, so we can
+                // make sure we've fully disconnected before we return.
+                _ = self.cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
+                    // Start disconnect timeout upon receiving cancellation in the very first time.
+                    if is_disconnect_timeout_active {
+                        tracing::debug!("Re-sending disconnect message");
+                    } else {
+                        is_disconnect_timeout_active = true;
+                        ipr_disconnect_timeout.set(tokio::time::sleep(IPR_DISCONNECT_TIMEOUT).fuse());
+                        tracing::debug!("Cancel token triggered, sending disconnect message");
+                    }
+
+                    let input_message = match message_creator.create_disconnect_message() {
+                        Ok(input_message) => input_message,
+                        Err(err) => {
+                            tracing::error!("Failed to create disconnect message: {err}");
+                            tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
+                            continue;
+                        }
+                    };
+                    if let Err(err) = mixnet_sender.send(input_message).await {
+                        tracing::error!("Failed to send disconnect message: {err}");
+                        tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
+                        continue;
+                    }
+
+                    tracing::info!("Sent disconnect message");
+                    has_sent_ipr_disconnect = true;
+                }
+                // When the mixnet listener receives the disconnect response, it will notify us
+                // that it's done. This means we can now stop
+                _ = &mut mixnet_listener_handle => {
+                    tracing::debug!("Mixnet listener has finished");
+                    break;
+                }
+                // The backpressure monitor will notify us when the backpressure is lifted, so we
+                // can restart the select with updated preconditions
+                _ = notify_backpressure_lifted.notified(), if is_backpressure => {
+                    tracing::trace!("Backpressure lifted");
+                    continue;
+                }
+                // Read from the tun device and send the IP packet to the mixnet
+                tun_packet = tun_device_stream.next(), if !is_backpressure => match tun_packet {
+                    Some(Ok(tun_packet)) => {
+                        payload_topup_interval.reset();
+                        let packet = IprPacket::from(tun_packet.into_bytes());
+                        tokio::select! {
+                            ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
+                                if ret.is_err() && !mixnet_client_shutdown_token.is_cancelled() {
+                                    tracing::error!("Failed to send IP packet to the mixnet");
+                                }
+                            }
+                            _ = mixnet_client_shutdown_token.cancelled() => {
+                                tracing::debug!("Mixnet client has shut down while sending");
                                 break;
                             }
-                            // When we get the cancel token, send a disconnect message to the IPR. We keep
-                            // running until the mixnet listener receives the disconnect response, so we can
-                            // make sure we've fully disconnected before we return.
-                            _ = self.cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
-                                // Start disconnect timeout upon receiving cancellation in the very first time.
-                                if is_disconnect_timeout_active {
-                                    tracing::debug!("Re-sending disconnect message");
-                                } else {
-                                    is_disconnect_timeout_active = true;
-                                    ipr_disconnect_timeout.set(tokio::time::sleep(IPR_DISCONNECT_TIMEOUT).fuse());
-                                    tracing::debug!("Cancel token triggered, sending disconnect message");
-                                }
-
-                                let input_message = match message_creator.create_disconnect_message() {
-                                    Ok(input_message) => input_message,
-                                    Err(err) => {
-                                        tracing::error!("Failed to create disconnect message: {err}");
-                                        tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
-                                        continue;
-                                    }
-                                };
-                                if let Err(err) = mixnet_sender.send(input_message).await {
-                                    tracing::error!("Failed to send disconnect message: {err}");
-                                    tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
-                                    continue;
-                                }
-
-                                tracing::info!("Sent disconnect message");
-                                has_sent_ipr_disconnect = true;
-                            }
-                            // When the mixnet listener receives the disconnect response, it will notify us
-                            // that it's done. This means we can now stop
-                            _ = &mut mixnet_listener_handle => {
-                                tracing::debug!("Mixnet listener has finished");
+                            _ = self.cancel_token.cancelled() => {
+                                tracing::debug!("Received cancellation while sending");
                                 break;
-                            }
-                            // The backpressure monitor will notify us when the backpressure is lifted, so we
-                            // can restart the select with updated preconditions
-                            _ = notify_backpressure_lifted.notified(), if is_backpressure => {
-                                tracing::trace!("Backpressure lifted");
-                                continue;
-                            }
-                            // Read from the tun device and send the IP packet to the mixnet
-                            tun_packet = tun_device_stream.next(), if !is_backpressure => match tun_packet {
-                                Some(Ok(tun_packet)) => {
-                                    payload_topup_interval.reset();
-                                    let packet = IprPacket::from(tun_packet.into_bytes());
-                                    tokio::select! {
-                                        ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
-                                            if ret.is_err() && !self.cancel_token.is_cancelled(){
-                                                tracing::error!("Failed to send IP packet to the mixnet");
-                                            }
-                                        }
-            <<<<<<< HEAD
-                                        _ = task_client_mix_processor.recv() => {
-                                            tracing::debug!("Received shutdown while sending");
-                                            break;
-                                        }
-                                        _ = self.cancel_token.cancelled() => {
-                                            tracing::debug!("Received cancellation while sending");
-                                            break;
-                                        }
-            ||||||| parent of 08e791b64 (integration of new registration client)
-                                        _ = task_client_mix_processor.recv() => {
-                                            tracing::debug!("Received shutdown while sending.");
-                                            break;
-                                        }
-            =======
-            >>>>>>> 08e791b64 (integration of new registration client)
-                                    }
-                                }
-                                Some(Err(err)) => {
-                                    tracing::error!("Failed to read from tun device: {err}");
-                                    break;
-                                }
-                                None => {
-                                    tracing::error!("Tun device stream ended");
-                                    break;
-                                }
-                            },
-                            // To make sure we don't wait too long before filling up the buffer, which destroys
-                            // latency, cap the time waiting for the buffer to fill
-                            _ = payload_topup_interval.tick() => {
-                                tracing::trace!("Buffer timeout");
-
-                                // If we already have pending packets that we are waiting to send to the
-                                // mixnet, there is no point in flushing the current buffer. Instead keep
-                                // filling up so we can fit more IP packets in the mixnet packet payload.
-                                let packet_queue = backpressure_monitor.packet_queue_length();
-                                if packet_queue > 0 {
-                                    tracing::trace!("Skipping payload topup timeout (queue: {packet_queue})");
-                                    continue;
-                                }
-
-                                tokio::select! {
-                                    ret = handle_packet(IprPacket::Flush, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
-                                        if ret.is_err() && !self.cancel_token.is_cancelled() {
-                                            tracing::error!("Failed to flush the multi IP packet sink");
-                                        }
-                                    }
-            <<<<<<< HEAD
-                                    _ = task_client_mix_processor.recv() => {
-                                        tracing::debug!("Received shutdown while flushing");
-                                        break;
-                                    }
-                                    _ = self.cancel_token.cancelled() => {
-                                        tracing::debug!("Received shutdown while flushing");
-                                        break;
-                                    }
-            ||||||| parent of 08e791b64 (integration of new registration client)
-                                    _ = task_client_mix_processor.recv() => {
-                                        tracing::debug!("Received shutdown while flushing");
-                                        break;
-                                    }
-            =======
-            >>>>>>> 08e791b64 (integration of new registration client)
-                                }
                             }
                         }
+                    }
+                    Some(Err(err)) => {
+                        tracing::error!("Failed to read from tun device: {err}");
+                        break;
+                    }
+                    None => {
+                        tracing::error!("Tun device stream ended");
+                        break;
+                    }
+                },
+                // To make sure we don't wait too long before filling up the buffer, which destroys
+                // latency, cap the time waiting for the buffer to fill
+                _ = payload_topup_interval.tick() => {
+                    tracing::trace!("Buffer timeout");
+
+                    // If we already have pending packets that we are waiting to send to the
+                    // mixnet, there is no point in flushing the current buffer. Instead keep
+                    // filling up so we can fit more IP packets in the mixnet packet payload.
+                    let packet_queue = backpressure_monitor.packet_queue_length();
+                    if packet_queue > 0 {
+                        tracing::trace!("Skipping payload topup timeout (queue: {packet_queue})");
+                        continue;
+                    }
+
+                    tokio::select! {
+                        ret = handle_packet(IprPacket::Flush, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
+                            if ret.is_err() && !mixnet_client_shutdown_token.is_cancelled() {
+                                tracing::error!("Failed to flush the multi IP packet sink");
+                            }
+                        }
+                        _ = mixnet_client_shutdown_token.cancelled() => {
+                            tracing::debug!("Mixnet client has shut down while flushing");
+                            break;
+                        }
+                        _ = self.cancel_token.cancelled() => {
+                            tracing::debug!("Received shutdown while flushing");
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         tracing::info!("Stopping mixnet backpressure monitor");
         backpressure_monitor.stop().await;
 
         tracing::info!("Waiting for mixnet listener to finish");
-        mixnet_listener_shutdown_token.cancel();
         let tun_device_sink = mixnet_listener_handle
             .await
             .map_err(MixnetError::JoinMixnetListener)?;
@@ -382,11 +382,11 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
     }
 }
 
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub async fn start_processor(
     config: MixnetProcessorConfig,
     dev: AsyncDevice,
     mixnet_client: MixnetClient,
+    mixnet_shutdown_manager: ShutdownManager,
     connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
@@ -394,6 +394,7 @@ pub async fn start_processor(
     let processor = MixnetProcessor::new(
         dev,
         mixnet_client,
+        mixnet_shutdown_manager,
         connection_monitor,
         config.ip_packet_router_address,
         config.our_ips,
