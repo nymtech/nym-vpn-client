@@ -42,7 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.model.ProductData
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -58,6 +60,7 @@ fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val products by viewModel.subscriptions.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
+	val navController = LocalNavController.current
 
 	SelectPlanScreen(
 		products = products,
@@ -73,6 +76,7 @@ fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 		onDismissSheet = { showSheet = false },
 		onSelectSubscription = { product ->
 			showSheet = false
+			navController.navigate(Route.Payment(product.id))
 		},
 	)
 }

@@ -41,22 +41,15 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 
 @Composable
 fun PaymentScreen(productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
 	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
 
-	LaunchedEffect(success) {
-		if (success == false) {
-		}
-	}
-
 	PaymentScreen {
-		if (success == true) {
-			navController.replaceCurrentWith(Route.SelectPlan)
-		}
+		navController.navigateAndForget(Route.Main())
 	}
 }
 
@@ -71,6 +64,7 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 		step = 2
 		delay(2000)
 		step = 3
+		delay(2000)
 		onAnimationEnd()
 	}
 
