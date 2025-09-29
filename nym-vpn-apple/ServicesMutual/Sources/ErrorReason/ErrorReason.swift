@@ -20,6 +20,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
+    case invalidEntryGatewayIdentity
+    case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
     case apiTimeout
@@ -83,10 +85,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
-        case .performantEntryGatewayUnavailable:
-            self = .performantEntryGatewayUnavailable
-        case .performantExitGatewayUnavailable:
-            self = .performantExitGatewayUnavailable
+//        case .performantEntryGatewayUnavailable:
+//            self = .performantEntryGatewayUnavailable
+//        case .performantExitGatewayUnavailable:
+//            self = .performantExitGatewayUnavailable
         }
     }
 #endif
@@ -122,6 +124,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:
@@ -205,6 +211,10 @@ private extension ErrorReason {
             "errorReason.invalidEntryGatewayCountry".localizedString
         case .invalidExitGatewayCountry:
             "errorReason.invalidExitGatewayCountry".localizedString
+        case .invalidEntryGatewayIdentity:
+            "erroReason.invalidEntryGatewayIdentity".localizedString
+        case .invalidExitGatewayIdentity:
+            "errorReason.invalidExitGatewayIdentity".localizedString
         case .unknown:
             "errorReason.unknown".localizedString
         case .offline:
@@ -278,6 +288,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
+    case invalidEntryGatewayIdentity
+    case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
     case apiTimeout
@@ -315,6 +327,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:

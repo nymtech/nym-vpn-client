@@ -45,7 +45,7 @@ extension EntryGateway: GatewayInfoProtocol {
         case let .country(country), let .lowLatencyCountry(country):
             country.code
         case let .gateway(gateway):
-            gateway.location.twoLetterIsoCountryCode
+            gateway.location?.twoLetterIsoCountryCode
         case .random:
             nil
         }

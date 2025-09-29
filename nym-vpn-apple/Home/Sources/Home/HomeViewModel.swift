@@ -296,10 +296,6 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
     }
-
-    func fetchCountries() {
-        countriesManager.fetchCountries()
-    }
 }
 
 extension HomeViewModel {

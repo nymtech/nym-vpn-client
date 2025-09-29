@@ -15,14 +15,21 @@ extension GRPCManager {
     }
 
     public func fetchFeatureFlags() async throws -> [FeatureFlag] {
-        let result = try await client.getFeatureFlags(Google_Protobuf_Empty())
+        guard let result = try await rpcClient?.getFeatureFlags() else { return [] }
 
-        let topLevel = result.flags.map { FeatureFlag(name: $0.key, value: $0.value) }
-        let grouped = result.groups.flatMap { groupName, group -> [FeatureFlag] in
-            group.map.map { key, value in
-                FeatureFlag(name: "\(groupName).\(key)", value: value)
+        var list: [FeatureFlag] = []
+
+        result.flags.forEach { name, flag in
+            switch flag {
+            case let .value(value):
+                list.append(FeatureFlag(name: name, value: value))
+            case let .group(dict):
+                dict.forEach { key, value in
+                    list.append(FeatureFlag(name: "\(name).\(key)", value: value))
+                }
             }
         }
-        return topLevel + grouped
+        list.sort { $0.name < $1.name }
+        return list
     }
 }

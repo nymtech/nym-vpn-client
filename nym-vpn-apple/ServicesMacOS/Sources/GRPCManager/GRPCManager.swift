@@ -22,8 +22,6 @@ public final class GRPCManager: ObservableObject {
     }
     var rpcClient: RpcClient?
     var listenToEventsObserver: StreamObserver?
-    var listenToAccountStateObserver: StreamObserver?
-    var listenToTunnelStateObserver: StreamObserver?
     var versionPingTask: Task<Void, Never>?
 
     public static let shared = GRPCManager()
@@ -54,7 +52,9 @@ public final class GRPCManager: ObservableObject {
     func setup() {
         Task {
             try? await configureRpcCLient()
-            pingDaemonInitialStatus()
+            Task { @MainActor in
+                await pingDaemonInitialStatus()
+            }
         }
     }
 
@@ -65,8 +65,6 @@ public final class GRPCManager: ObservableObject {
 //
 //        }
         listenToEventsObserver = try await rpcClient?.listenToEvents(observer: RpcTunnelObserver())
-        listenToAccountStateObserver = try await rpcClient?.listenToAccountState(observer: RpcAccountObserver())
-        listenToTunnelStateObserver = try await rpcClient?.listenToTunnelState(observer: RpcTunnelStateObserver())
 
         stopInitialStatusPinger()
         startDaemonInitialStatusPingerIfNeeded()

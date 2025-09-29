@@ -86,7 +86,7 @@ private extension ConnectionStorage {
                 return .gateway(existingGateway)
             } else {
                 let existingCountry = existingCountry(
-                    with: gateway.countryCode ?? fallbackCountry(nodeType: .entry).code,
+                    with: gateway.location?.twoLetterIsoCountryCode ?? fallbackCountry(nodeType: .entry).code,
                     nodeType: entryGatewayType
                 )
                 return .country(existingCountry)
@@ -115,7 +115,7 @@ private extension ConnectionStorage {
                 return .gateway(existingGateway)
             } else {
                 let existingCountry = existingCountry(
-                    with: gateway.countryCode ?? fallbackCountry(nodeType: .exit).code,
+                    with: gateway.location?.twoLetterIsoCountryCode ?? fallbackCountry(nodeType: .exit).code,
                     nodeType: exitGatewayType
                 )
                 return .country(existingCountry)

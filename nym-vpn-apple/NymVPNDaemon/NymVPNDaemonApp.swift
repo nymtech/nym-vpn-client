@@ -141,7 +141,6 @@ private extension NymVPNDaemonApp {
             // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup(for: .main)
             FeatureFlagsManager.shared.setup()
-            CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
