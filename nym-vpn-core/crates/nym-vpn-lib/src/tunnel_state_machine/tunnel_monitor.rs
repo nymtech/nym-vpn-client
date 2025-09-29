@@ -1347,6 +1347,7 @@ impl TunnelMonitor {
     ) -> Result<StartTunnelResult> {
         let mtu = connected_tunnel.exit_mtu();
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         let mut interface_addresses = vec![IpNetwork::V4(Ipv4Network::from(
             conn_data.exit.private_ipv4,
