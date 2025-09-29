@@ -45,9 +45,9 @@ jobs:
         working-directory: nym-vpn-app
         run: npm run fmt:check
 
-      #      - name: Run tests
-      #        working-directory: nym-vpn-app
-      #        run: npm run test
+      - name: Run tests
+        working-directory: nym-vpn-app
+        run: npm run test
 
       - name: Check build
         working-directory: nym-vpn-app
