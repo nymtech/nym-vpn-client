@@ -3,17 +3,16 @@ import CountriesManagerTypes
 
 extension GatewayNodeScore {
     static func convert(from score: GatewayScore?) -> GatewayNodeScore? {
+        guard let score else { return nil }
         switch score {
         case .high:
-            .high
+            return .high
         case .medium:
-            .medium
+            return .medium
         case .low:
-            .low
-        case .none:
-            .noScore
-        case .none?:
-            .noScore
+            return .low
+        case .offline:
+            return .offline
         }
     }
 }
