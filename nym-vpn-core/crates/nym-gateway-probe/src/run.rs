@@ -146,7 +146,7 @@ async fn fetch_random_gateway_with_ipr(
     tracing::info!("Selecting random gateway with IPR enabled");
     let gateways = nym_gateway_probe::fetch_gateways_with_ipr(gateway_config).await?;
     let gateway = gateways
-        .random_gateway(None, None)
+        .choose_random(&[])
         .ok_or(anyhow!("No gateways returned by nym-api"))?;
     Ok(EntryPoint::Gateway {
         identity: gateway.identity(),

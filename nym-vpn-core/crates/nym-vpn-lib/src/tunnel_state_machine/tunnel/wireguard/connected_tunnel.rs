@@ -620,10 +620,10 @@ impl TunnelHandle {
 
         let _ = self.auth_client_mixnet_listener_handle.wait().await;
 
-        if let Some(handle) = self.transport_fwd_handle {
-            if let Err(e) = handle.await {
-                tracing::error!("Failed to join on transport forwarder: {}", e);
-            }
+        if let Some(handle) = self.transport_fwd_handle
+            && let Err(e) = handle.await
+        {
+            tracing::error!("Failed to join on transport forwarder: {}", e);
         }
 
         self.event_handler_task.await
