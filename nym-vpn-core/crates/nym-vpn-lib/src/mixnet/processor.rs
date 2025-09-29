@@ -284,28 +284,21 @@ impl MixnetProcessor {
         backpressure_monitor.stop().await;
 
         tracing::info!("Waiting for mixnet listener to finish");
+
         // Wait for the mixnet listener to finish, or force finish
-        let maybe_tun_device = tokio::select! {
+        let mix_listener_result = tokio::select! {
             biased;
             tun_device = &mut mixnet_listener_handle => {
-                Some(tun_device.map_err(MixnetError::JoinMixnetListener)?)
+                tun_device
             },
             _ = ipr_disconnect_timeout => {
                     tracing::warn!("Timed out waiting for mixnet listener to finish");
                     mixnet_listener_cancel_token.cancel();
-                    None
+                    mixnet_listener_handle.await
             }
         };
 
-        // Get the tun device
-        let tun_device_sink = if let Some(device) = maybe_tun_device {
-            device
-        } else {
-            // We await here only if maybe_tun_device is None, which means that we didn't trigger the await in the first place
-            mixnet_listener_handle
-                .await
-                .map_err(MixnetError::JoinMixnetListener)?
-        };
+        let tun_device_sink = mix_listener_result.map_err(MixnetError::JoinMixnetListener)?;
 
         tracing::debug!("Exiting");
         Ok(tun_device_sink

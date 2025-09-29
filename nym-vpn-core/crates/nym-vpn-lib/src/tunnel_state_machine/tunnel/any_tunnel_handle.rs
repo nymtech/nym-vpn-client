@@ -40,6 +40,8 @@ impl AnyTunnelHandle {
         }
     }
 
+    // Returns the mixnet cancellation token, to monitor mixnet client unexpected stop.
+    // Returns None if we already stopped it (in new Wireguard mode) and we don't need to monitor it.
     pub fn mixnet_client_token(&self) -> Option<CancellationToken> {
         match self {
             AnyTunnelHandle::Mixnet(tunnel_handle) => Some(tunnel_handle.mixnet_cancel_token()),

@@ -621,14 +621,12 @@ impl TunnelMonitor {
         mixnet_cancel_token: Option<CancellationToken>,
         background_error_rx: Fuse<impl Future<Output = Option<()>>>,
     ) {
+        // Watch on the mixnet client of nothing if it doesn't exist
+        let mixnet_monitoring_token = mixnet_cancel_token
+            .map(|token| token.cancelled_owned().fuse())
+            .unwrap_or(Fuse::terminated());
         tokio::select! {
-            // Watch on the mixnet client of nothing if it doesn't exist
-            _  = async {
-                match &mixnet_cancel_token {
-                    Some(token) => token.cancelled().await,
-                    None => std::future::pending().await,
-                    }
-            } => {
+            _  = mixnet_monitoring_token => {
                 tracing::error!("MixnetClient exited unexpectedly");
             }
             _ = self.shutdown_token.cancelled() => {}
