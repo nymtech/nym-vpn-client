@@ -10,7 +10,7 @@ use futures::StreamExt;
 use tokio_stream::wrappers::ReadDirStream;
 
 use nym_common::trace_err_chain;
-use nym_registration_client::{
+use nym_registration_common::{
     DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME, DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
     DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME, DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
 };

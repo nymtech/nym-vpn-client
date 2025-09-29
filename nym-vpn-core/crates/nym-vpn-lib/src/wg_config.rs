@@ -7,7 +7,7 @@ use std::{
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_registration_client::GatewayData;
+use nym_registration_common::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::amnezia::AmneziaConfig;

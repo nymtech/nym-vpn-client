@@ -610,6 +610,12 @@ impl TunnelHandle {
         self.shutdown_token.cancel();
     }
 
+    pub fn mixnet_cancel_token(&self) -> Option<CancellationToken> {
+        self.auth_client_mixnet_listener_handle
+            .as_ref()
+            .map(|listener| listener.mixnet_cancel_token())
+    }
+
     /// Wait until the tunnel finished execution.
     ///
     /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
