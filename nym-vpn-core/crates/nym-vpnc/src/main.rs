@@ -48,8 +48,7 @@ async fn main() -> Result<()> {
         Command::SetNetstack { enabled } => set_netstack(rpc_client, *enabled).await?,
         Command::SetAllowLan { allow } => set_allow_lan(rpc_client, *allow).await?,
         Command::SetResidentialExitOnly { enabled } => {
-            set_residential_only(rpc_client.clone(), *enabled).await?;
-            set_exit_only(rpc_client, *enabled).await?
+            set_residential_exit_only(rpc_client.clone(), *enabled).await?
         }
         Command::SetNetwork(args) => set_network(rpc_client, args).await?,
         Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await?,
@@ -281,13 +280,13 @@ async fn set_allow_lan(mut rpc_client: RpcClient, allow_lan: bool) -> Result<()>
     Ok(())
 }
 
-async fn set_residential_only(mut rpc_client: RpcClient, residential_only: bool) -> Result<()> {
-    rpc_client.set_residential_only(residential_only).await?;
-    Ok(())
-}
-
-async fn set_exit_only(mut rpc_client: RpcClient, exit_only: bool) -> Result<()> {
-    rpc_client.set_exit_only(exit_only).await?;
+async fn set_residential_exit_only(
+    mut rpc_client: RpcClient,
+    residential_only: bool,
+) -> Result<()> {
+    rpc_client
+        .set_residential_exit_only(residential_only)
+        .await?;
     Ok(())
 }
 

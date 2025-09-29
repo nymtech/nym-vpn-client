@@ -121,18 +121,9 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_residential_only(&mut self, residential_only: bool) -> Result<()> {
+    pub async fn set_residential_exit_only(&mut self, residential_exit_only: bool) -> Result<()> {
         self.0
-            .set_residential_only(residential_only)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn set_exit_only(&mut self, exit_only: bool) -> Result<()> {
-        self.0
-            .set_exit_only(exit_only)
+            .set_residential_exit_only(residential_exit_only)
             .await
             .map_err(Error::Rpc)?
             .into_inner();

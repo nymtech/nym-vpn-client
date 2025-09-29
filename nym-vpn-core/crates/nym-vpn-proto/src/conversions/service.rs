@@ -38,8 +38,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnService
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u8),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
-            residential_only: value.residential_only,
-            exit_only: value.exit_only,
+            residential_exit_only: value.residential_exit_only,
         };
         Ok(config)
     }
@@ -63,8 +62,7 @@ impl From<nym_vpn_lib_types::service::VpnServiceConfig> for proto::VpnServiceCon
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
-            residential_only: value.residential_only,
-            exit_only: value.exit_only,
+            residential_exit_only: value.residential_exit_only,
         }
     }
 }

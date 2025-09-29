@@ -248,8 +248,7 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
-  bool residential_only = 15;
-  bool exit_only = 16;
+  bool residential_exit_only = 15;
 }
 
 message AsEntry {
@@ -709,8 +708,7 @@ service NymVpnService {
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetResidentialOnly(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetExitOnly(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetResidentialExitOnly(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

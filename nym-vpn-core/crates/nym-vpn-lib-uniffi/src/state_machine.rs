@@ -89,6 +89,7 @@ pub(super) async fn start_state_machine(
         // ios: not used because vpn configuration is configured separately
         // todo: consider guarding with target_os
         allow_lan: true,
+        residential_exit_only: config.residential_exit_only,
         tunnel_type,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),

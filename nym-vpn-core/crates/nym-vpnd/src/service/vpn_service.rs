@@ -70,8 +70,7 @@ pub enum VpnServiceCommand {
     SetEnableTwoHop(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
-    SetResidentialOnly(oneshot::Sender<()>, bool),
-    SetExitOnly(oneshot::Sender<()>, bool),
+    SetResidentialExitOnly(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -663,12 +662,9 @@ impl NymVpnService {
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
                 self.handle_set_allow_lan(allow_lan, tx).await;
             }
-            VpnServiceCommand::SetResidentialOnly(tx, residential_only) => {
-                self.handle_set_residential_only(residential_only).await;
-                let _ = tx.send(());
-            }
-            VpnServiceCommand::SetExitOnly(tx, exit_only) => {
-                self.handle_set_exit_only(exit_only).await;
+            VpnServiceCommand::SetResidentialExitOnly(tx, residential_exit_only) => {
+                self.handle_set_residential_exit_only(residential_exit_only)
+                    .await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
@@ -821,15 +817,10 @@ impl NymVpnService {
             .send(TunnelCommand::SetAllowLan(allow_lan, complete_tx));
     }
 
-    async fn handle_set_residential_only(&mut self, residential_only: bool) {
+    async fn handle_set_residential_exit_only(&mut self, residential_exit_only: bool) {
         self.config_manager
-            .set_residential_only(residential_only)
+            .set_residential_exit_only(residential_exit_only)
             .await;
-        self.update_tunnel_settings_with_throttle();
-    }
-
-    async fn handle_set_exit_only(&mut self, exit_only: bool) {
-        self.config_manager.set_exit_only(exit_only).await;
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -925,8 +916,7 @@ impl NymVpnService {
             min_gateway_vpn_performance: None,
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
-            residential_only: false,
-            exit_only: false,
+            residential_exit_only: false,
         };
 
         self.config_manager.set_config(config).await;

@@ -198,16 +198,9 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_residential_only(&mut self, residential_only: bool) {
-        if self.config.residential_only != residential_only {
-            self.config.residential_only = residential_only;
-            self.save_config_and_send_event().await;
-        }
-    }
-
-    pub async fn set_exit_only(&mut self, exit_only: bool) {
-        if self.config.exit_only != exit_only {
-            self.config.exit_only = exit_only;
+    pub async fn set_residential_exit_only(&mut self, residential_only: bool) {
+        if self.config.residential_exit_only != residential_only {
+            self.config.residential_exit_only = residential_only;
             self.save_config_and_send_event().await;
         }
     }
@@ -372,6 +365,7 @@ impl VpnServiceConfigManager {
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
+            residential_exit_only: self.config.residential_exit_only,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
@@ -485,8 +479,7 @@ struct VpnServiceConfigExtV2 {
     min_mixnode_performance: Option<u8>,
     min_gateway_mixnet_performance: Option<u8>,
     min_gateway_vpn_performance: Option<u8>,
-    residential_only: bool,
-    exit_only: bool,
+    residential_exit_only: bool,
 }
 
 impl From<VpnServiceConfigExtV2> for VpnServiceConfigExt {
@@ -521,8 +514,7 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
             min_mixnode_performance: value.min_mixnode_performance,
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
-            residential_only: value.residential_only,
-            exit_only: value.exit_only,
+            residential_exit_only: value.residential_exit_only,
         };
         Ok(config)
     }
@@ -550,8 +542,7 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             min_mixnode_performance: value.min_mixnode_performance,
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
-            residential_only: value.residential_only,
-            exit_only: value.exit_only,
+            residential_exit_only: value.residential_exit_only,
         };
         Ok(ext_config)
     }
@@ -1294,8 +1285,7 @@ location = "BE"
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_only": false,
-  "exit_only": false
+  "residential_exit_only": false
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Country {
@@ -1342,8 +1332,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_only": false,
-  "exit_only": false
+  "residential_exit_only": false
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Gateway {
@@ -1396,8 +1385,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_only": false,
-  "exit_only": false
+  "residential_exit_only": false
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Gateway {
@@ -1438,8 +1426,7 @@ exit_point = "Random"
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_only": false,
-  "exit_only": false
+  "residential_exit_only": false
 }"#;
 
         let entry_point = gateway_directory::EntryPoint::Random;
@@ -1488,8 +1475,7 @@ exit_point = "Random"
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_only": false,
-  "exit_only": false
+  "residential_exit_only": false
 }"#;
 
         run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -1536,8 +1522,7 @@ exit_point = "Random"
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_only": false,
-  "exit_only": false
+  "residential_exit_only": false
 }"#;
 
         run_fallback_test(broken_json_content).await;
@@ -1572,8 +1557,7 @@ exit_point = "Random"
             min_mixnode_performance: Some(55u8),
             min_gateway_mixnet_performance: Some(64u8),
             min_gateway_vpn_performance: Some(1u8),
-            residential_only: true,
-            exit_only: true,
+            residential_exit_only: true,
         };
         run_serialize_test(config).await;
     }

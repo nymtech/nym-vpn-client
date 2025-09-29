@@ -254,7 +254,7 @@ impl Gateway {
             GatewayFilter::Country(code) => self.is_in_country(code),
             GatewayFilter::Region(region) => self.is_in_region(region),
             GatewayFilter::Residential => self.is_residential_asn(),
-            GatewayFilter::ExitNode => self.is_exit_node(),
+            GatewayFilter::Exit => self.is_exit_node(),
             GatewayFilter::VpnNode => self.is_vpn_node(),
         }
     }
@@ -593,7 +593,7 @@ impl GatewayList {
     }
 
     pub fn into_exit_gateways(self) -> GatewayList {
-        Self::new(self.filter(&[GatewayFilter::ExitNode]))
+        Self::new(self.filter(&[GatewayFilter::Exit]))
     }
 
     pub fn into_vpn_gateways(self) -> GatewayList {
@@ -688,7 +688,7 @@ pub enum GatewayFilter {
     Country(String), // two-letter ISO country code
     Region(String),  // region name
     Residential,
-    ExitNode,
+    Exit,
     VpnNode,
 }
 
@@ -716,7 +716,7 @@ mod tests {
         ];
 
         let mut instance = 0;
-        let gateways = variables
+        let gateways: Vec<Gateway> = variables
             .into_iter()
             .map(|(country, region, asn, ipr, aa)| {
                 instance += 1;
@@ -751,7 +751,7 @@ mod tests {
                     version: None,
                 }
             })
-            .collect::<Vec<Gateway>>();
+            .collect();
         GatewayList::new(gateways)
     }
 
@@ -805,7 +805,7 @@ mod tests {
     #[test]
     fn test_gateway_filter_exit_nodes() {
         let gateway_list = sample_gateway_list();
-        let exit_gws = gateway_list.filter(&[GatewayFilter::ExitNode]);
+        let exit_gws = gateway_list.filter(&[GatewayFilter::Exit]);
         assert_eq!(exit_gws.len(), 2);
         assert_eq!(exit_gws[0].moniker, "Gateway 1");
         assert_eq!(exit_gws[1].moniker, "Gateway 5");

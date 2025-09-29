@@ -96,7 +96,7 @@ pub async fn select_gateways(
         mix_score_thresholds,
     );
     let exit_gateway = exit_point
-        .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance)
+        .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance, tunnel_settings.residential_exit_only)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
             if err.is_unmatched_non_specific_gateway() {
@@ -107,6 +107,7 @@ pub async fn select_gateways(
                     &exit_gateways,
                     min_wg_performance,
                     min_mixnet_performance,
+                    tunnel_settings.residential_exit_only
                 ).map_err(GatewayDirectoryError::PerformantExitGatewayUnavailable)
             } else {
                 Err(GatewayDirectoryError::SelectExitGateway(err))
