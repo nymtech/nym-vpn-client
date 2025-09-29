@@ -70,6 +70,7 @@ pub enum VpnServiceCommand {
     SetEnableTwoHop(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
+    SetEnableBridges(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -661,6 +662,10 @@ impl NymVpnService {
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
                 self.handle_set_allow_lan(allow_lan, tx).await;
             }
+            VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
+                self.handle_set_enable_bridges(enable_bridges).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -809,6 +814,11 @@ impl NymVpnService {
         _ = self
             .command_sender
             .send(TunnelCommand::SetAllowLan(allow_lan, complete_tx));
+    }
+
+    async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
+        self.config_manager.set_enable_bridges(enable_bridges).await;
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {

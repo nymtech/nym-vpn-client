@@ -708,6 +708,7 @@ service NymVpnService {
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

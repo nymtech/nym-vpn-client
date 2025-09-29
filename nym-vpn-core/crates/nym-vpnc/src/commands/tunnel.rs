@@ -13,16 +13,28 @@ pub enum Command {
     Get,
 
     /// Update tunnel configuration
-    Set {
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        enable_ipv6: Option<BooleanOption>,
+    Set(SetParams),
+}
 
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        enable_two_hop: Option<BooleanOption>,
+#[derive(Debug, Clone, clap::Args)]
+#[group(required = true, multiple = true)]
+pub struct SetParams {
+    /// Enable or disable IPv6
+    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    enable_ipv6: Option<BooleanOption>,
 
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        netstack: Option<BooleanOption>,
-    },
+    /// Enable or disable two-hop mode
+    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    enable_two_hop: Option<BooleanOption>,
+
+    /// Enable or disable netstack in two-hop mode
+    /// Normally this is only used for testing purposes and should always be off
+    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    netstack: Option<BooleanOption>,
+
+    /// Enable Circumvention Transport (CT) wrapping for the connection to the entry gateway in two hop wireguard mode.
+    #[arg(long, alias = "ct", value_parser = BooleanOption::custom_parser("on", "off"))]
+    circumvention_transports: Option<BooleanOption>,
 }
 
 impl Command {
@@ -39,11 +51,12 @@ impl Command {
 
                 Ok(())
             }
-            Command::Set {
+            Command::Set(SetParams {
                 enable_two_hop,
                 netstack,
                 enable_ipv6,
-            } => {
+                circumvention_transports,
+            }) => {
                 if let Some(enable_two_hop) = enable_two_hop {
                     rpc_client.set_enable_two_hop(*enable_two_hop).await?;
                 }
@@ -54,6 +67,10 @@ impl Command {
 
                 if let Some(enable_ipv6) = enable_ipv6 {
                     rpc_client.set_disable_ipv6(!*enable_ipv6).await?;
+                }
+
+                if let Some(enable_ct) = circumvention_transports {
+                    rpc_client.set_enable_bridges(*enable_ct).await?;
                 }
 
                 Ok(())
