@@ -131,18 +131,16 @@ impl MixnetProcessor {
 
         // Starting the mixnet listener.
         tracing::debug!("Starting mixnet listener");
+        // We need a dedicated token, because the listener needs to run a bit more after global shutdown
+        let mixnet_listener_cancel_token = CancellationToken::new();
         let mut mixnet_listener_handle = super::mixnet_listener::MixnetListener::spawn(
             self.mixnet_client,
             tun_device_sink,
             self.icmp_beacon_identifier,
             self.our_ips,
             self.connection_event_tx.clone(),
-            self.cancel_token.clone(),
+            mixnet_listener_cancel_token.clone(),
         );
-
-        // Keep track of whether we've sent the disconnect message, so we don't send it multiple
-        // times
-        let mut has_sent_ipr_disconnect = false;
 
         // Keeps track of whether ipr disconnect timeout has been activated.
         let mut is_disconnect_timeout_active = false;
@@ -186,7 +184,7 @@ impl MixnetProcessor {
                 // When we get the cancel token, send a disconnect message to the IPR. We keep
                 // running until the mixnet listener receives the disconnect response, so we can
                 // make sure we've fully disconnected before we return.
-                _ = self.cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
+                _ = self.cancel_token.cancelled() => {
                     // Start disconnect timeout upon receiving cancellation in the very first time.
                     if is_disconnect_timeout_active {
                         tracing::debug!("Re-sending disconnect message");
@@ -211,12 +209,6 @@ impl MixnetProcessor {
                     }
 
                     tracing::info!("Sent disconnect message");
-                    has_sent_ipr_disconnect = true;
-                }
-                // When the mixnet listener receives the disconnect response, it will notify us
-                // that it's done. This means we can now stop
-                _ = &mut mixnet_listener_handle => {
-                    tracing::debug!("Mixnet listener has finished");
                     break;
                 }
                 // The backpressure monitor will notify us when the backpressure is lifted, so we
@@ -242,7 +234,7 @@ impl MixnetProcessor {
                             }
                             _ = self.cancel_token.cancelled() => {
                                 tracing::debug!("Received cancellation while sending");
-                                break;
+                                continue; // go through disconnect procedure
                             }
                         }
                     }
@@ -281,7 +273,7 @@ impl MixnetProcessor {
                         }
                         _ = self.cancel_token.cancelled() => {
                             tracing::debug!("Received shutdown while flushing");
-                            break;
+                            continue; // go through disconnect procedure
                         }
                     }
                 }
@@ -292,9 +284,28 @@ impl MixnetProcessor {
         backpressure_monitor.stop().await;
 
         tracing::info!("Waiting for mixnet listener to finish");
-        let tun_device_sink = mixnet_listener_handle
-            .await
-            .map_err(MixnetError::JoinMixnetListener)?;
+        // Wait for the mixnet listener to finish, or force finish
+        let maybe_tun_device = tokio::select! {
+            biased;
+            tun_device = &mut mixnet_listener_handle => {
+                Some(tun_device.map_err(MixnetError::JoinMixnetListener)?)
+            },
+            _ = ipr_disconnect_timeout => {
+                    tracing::warn!("Timed out waiting for mixnet listener to finish");
+                    mixnet_listener_cancel_token.cancel();
+                    None
+            }
+        };
+
+        // Get the tun device
+        let tun_device_sink = if let Some(device) = maybe_tun_device {
+            device
+        } else {
+            // We await here only if maybe_tun_device is None, which means that we didn't trigger the await in the first place
+            mixnet_listener_handle
+                .await
+                .map_err(MixnetError::JoinMixnetListener)?
+        };
 
         tracing::debug!("Exiting");
         Ok(tun_device_sink

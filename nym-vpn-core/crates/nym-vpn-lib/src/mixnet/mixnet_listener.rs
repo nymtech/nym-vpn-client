@@ -73,13 +73,18 @@ impl MixnetListener {
         }
     }
 
+    // we exit the loop if :
+    // - Processor tells us to
+    // - Mixnect client crashed
+    // - We received the disconnect ack
+    // - Mixnet stream ended (it crashed)
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
         let mixnet_cancel_token = self.mixnet_client.cancellation_token().clone();
         loop {
             tokio::select! {
                 biased;
                 _ = self.shutdown_token.cancelled() => {
-                    tracing::debug!("Mixnet listener: Received shutdown");
+                    tracing::debug!("Mixnet listener: Received shutdown from processor");
                     break;
                 }
                 _ = mixnet_cancel_token.cancelled() => {
