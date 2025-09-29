@@ -71,38 +71,39 @@ extension GRPCManager {
             }
             tunnelStatus = .connected
             connectionInfoData = ConnectionInfoData(
-                entryGatewayId: details.connectionData.entryGateway.id,
-                exitGatewayId: details.connectionData.exitGateway.id
+                entryGatewayId: details.entryGateway.id,
+                exitGatewayId: details.exitGateway.id
             )
-        case let .connecting(details):
-            connectionRetryAttempt = Int(details.retryAttempt)
+        case let .connecting(retryAttempt: retryAttempt, state: state, tunnelType: _, connectionData: connectionData):
+            connectionRetryAttempt = Int(retryAttempt)
             tunnelStatus = .connecting
-            tunnelConnectingState = TunnelConnectingState(with: details.state)
+            tunnelConnectingState = TunnelConnectingState(with: state)
             connectionInfoData = ConnectionInfoData(
-                entryGatewayId: details.connectionData.entryGateway.id,
-                exitGatewayId: details.connectionData.exitGateway.id
+                entryGatewayId: connectionData?.entryGateway.id,
+                exitGatewayId: connectionData?.exitGateway.id
             )
         case .disconnected:
             tunnelStatus = .disconnected
             connectionInfoData = nil
-        case let .disconnecting(details):
-            switch details.afterDisconnect {
-            case .nothing, .UNRECOGNIZED, .error:
+        case let .disconnecting(afterDisconnect):
+            switch afterDisconnect {
+            case .nothing, .error:
                 tunnelStatus = .disconnecting
             case .reconnect:
                 tunnelStatus = .connecting
             case .offline:
                 tunnelStatus = .offline
             }
-            if details.afterDisconnect == .reconnect {
-                tunnelStatus = .connecting
-            } else {
-                tunnelStatus = .disconnecting
-            }
+            // TODO: check with new reconnecting
+//            if afterDisconnect == .reconnect {
+//                tunnelStatus = .connecting
+//            } else {
+//                tunnelStatus = .disconnecting
+//            }
             connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
-            errorReason = resolveError(with: errorStateReason)
+            errorReason = resolveError(with: details)
         case let .offline(reconnect: reconnect):
             if reconnect {
                 tunnelStatus = .offlineReconnect
@@ -155,6 +156,10 @@ extension GRPCManager {
             ErrorReason.credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             ErrorReason.credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            ErrorReason.performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            ErrorReason.performantExitGatewayUnavailable
         }
     }
 }
@@ -201,13 +206,17 @@ extension ErrorReason {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 }
 #endif
 
 private extension TunnelConnectingState {
-    init(with state: NymVpnService_EstablishConnectionState) {
+    init(with state: EstablishConnectionState) {
         switch state {
         case .resolvingApiAddresses:
             self = .resolvingApiAddresses
@@ -221,8 +230,6 @@ private extension TunnelConnectingState {
             self = .connectingMixnetClient
         case .connectingTunnel:
             self = .connectingTunnel
-        case .UNRECOGNIZED(_):
-            self = .unrecognized
         }
     }
 }
