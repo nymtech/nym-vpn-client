@@ -215,6 +215,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             .transpose()
             .map_err(|err| ConversionError::Decode("GatewayResponse.mixnet_score", err))?
             .map(Score::from);
+        let mixnet_performance = gateway.mixnet_performance.map(|x| x as u8);
         let wg_performance = gateway
             .wg_performance
             .map(Performance::try_from)
@@ -239,6 +240,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             location,
             last_probe,
             wg_performance,
+            mixnet_performance,
             mixnet_score,
             exit_ipv4s,
             exit_ipv6s,
@@ -262,6 +264,7 @@ impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
             id,
             location,
             last_probe,
+            mixnet_performance: gateway.mixnet_performance.map(u32::from),
             mixnet_score: gateway
                 .mixnet_score
                 .map(|score| proto::Score::from(score) as i32),

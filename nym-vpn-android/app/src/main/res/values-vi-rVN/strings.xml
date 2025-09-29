@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"Băng thông thấp! Băng thông còn lại: "</string>
     <string name="vpn_permission_missing">Quyền VPN chưa được chấp nhận hoặc đang được sử dụng bởi ứng dụng khác.</string>
 	<string name="action_requires_tunnel_down">Hành động yêu cầu ngắt kết nối tunnel</string>
-    <string name="selected_exit_unavailable">Quốc gia cổng thoát đã chọn không khả dụng. Vui lòng chọn một quốc gia cổng thoát khác.</string>
-    <string name="selected_entry_unavailable">Quốc gia cổng vào đã chọn không khả dụng. Vui lòng chọn một quốc gia cổng vào khác.</string>
 	<string name="device_added_success">Thiết bị đã được thêm thành công vào tài khoản của bạn</string>
     <string name="invalid_recovery_phrase">Cụm từ khôi phục không hợp lệ</string>
     <string name="recovery_phrase">Cụm từ khôi phục</string>
@@ -107,8 +105,7 @@
     <string name="access_code">mã-truy-cập-24-từ</string>
     <string name="support_and_feedback"><![CDATA[Hỗ trợ & phản hồi]]></string>
     <string name="get_in_touch">Liên hệ</string>
-    <string name="same_entry_exit_message">Để đảm bảo quyền riêng tư, NymVPN sẽ không sử dụng cùng một cổng cho điểm vào và điểm thoát. Vui lòng kết nối lại hoặc chọn các vị trí khác nhau.</string>
-    <string name="device_id">ID thiết bị:</string>
+	<string name="device_id">ID thiết bị:</string>
     <string name="unexpected_error">Đã xảy ra lỗi không mong muốn:</string>
 	<string name="loading">Đang tải</string>
     <string name="offline">Không có Internet</string>

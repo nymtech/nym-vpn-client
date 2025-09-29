@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"Düşük bant genişliği! Kalan bant genişliği: "</string>
     <string name="vpn_permission_missing">VPN izni kabul edilmedi veya başka bir uygulama tarafından kullanılıyor.</string>
 	<string name="action_requires_tunnel_down">İşlem, tünelin kapatılmasını gerektiriyor</string>
-    <string name="selected_exit_unavailable">Seçilen çıkış ülkesi kullanılamıyor. Lütfen farklı bir çıkış ülkesi seçin.</string>
-    <string name="selected_entry_unavailable">Seçilen giriş ülkesi kullanılamıyor. Lütfen farklı bir giriş ülkesi seçin.</string>
 	<string name="device_added_success">Cihaz hesabınıza başarıyla eklendi</string>
     <string name="invalid_recovery_phrase">Geçersiz kurtarma cümlesi</string>
     <string name="recovery_phrase">Kurtarma cümlesi</string>
@@ -107,8 +105,7 @@
     <string name="access_code">24 kelimelik erişim kodu</string>
     <string name="support_and_feedback"><![CDATA[Destek ve geri bildirim]]></string>
     <string name="get_in_touch">İletişime geçin</string>
-    <string name="same_entry_exit_message">Gizliliğiniz için, NymVPN entry ve exit için aynı gateway kullanmaz. Yeniden bağlanın veya farklı konumlar seçin.</string>
-    <string name="device_id">Cihaz Kimliği:</string>
+	<string name="device_id">Cihaz Kimliği:</string>
     <string name="unexpected_error">Beklenmedik bir hata oluştu:</string>
 	<string name="loading">Yükleniyor</string>
     <string name="offline">İnternet yok</string>

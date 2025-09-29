@@ -126,9 +126,9 @@ fun NavController.safePopBackStack() {
 
 fun ErrorStateReason.toUserMessage(context: Context): String {
 	return when (val error = this) {
-		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.same_entry_exit_message)
-		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.selected_entry_unavailable)
-		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.selected_exit_unavailable)
+		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_same_entry_exit)
+		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.error_invalid_entry_gateway_country)
+		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.error_invalid_exit_gateway_country)
 		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.bandwidth_error)
 		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${error.v1}"
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
@@ -146,6 +146,8 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)
 		ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_entry)
 		ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_exit)
+		ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_invalid_entry_gateway_identity)
+		ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_invalid_exit_gateway_identity)
 	}
 }
 

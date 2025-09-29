@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"Pouca largura de banda! Banda restante: "</string>
     <string name="vpn_permission_missing">A permissão Vpn não foi aceita ou está sendo usada por outro aplicativo.</string>
 	<string name="action_requires_tunnel_down">A ação requer o fechamento do túnel</string>
-    <string name="selected_exit_unavailable">O país de saída selecionado não está disponível. Selecione um país de saída diferente.</string>
-    <string name="selected_entry_unavailable">O país de entrada selecionado não está disponível. Selecione um país de entrada diferente.</string>
 	<string name="device_added_success">Dispositivo adicionado com sucesso à sua conta</string>
     <string name="invalid_recovery_phrase">Frase de recuperação inválida</string>
     <string name="recovery_phrase">Frase de recuperação</string>
@@ -107,8 +105,7 @@
     <string name="access_code">Código de acesso de 24 palavras</string>
     <string name="support_and_feedback"><![CDATA[Suporte e feedback]]></string>
     <string name="get_in_touch">Entre em contato</string>
-    <string name="same_entry_exit_message">Para fins de privacidade, o NymVPN não usará o mesmo gateway para entrada e saída. Reconecte-se ou escolha locais diferentes.</string>
-    <string name="device_id">ID do dispositivo:</string>
+	<string name="device_id">ID do dispositivo:</string>
     <string name="unexpected_error">Ocorreu um erro inesperado:</string>
 	<string name="loading">Carregando</string>
     <string name="offline">Sem internet</string>

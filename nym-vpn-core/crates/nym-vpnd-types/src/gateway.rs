@@ -15,6 +15,7 @@ pub struct Gateway {
     pub moniker: String,
     pub location: Option<Location>,
     pub last_probe: Option<Probe>,
+    pub mixnet_performance: Option<u8>,
     pub mixnet_score: Option<Score>,
     pub wg_performance: Option<Performance>,
     pub exit_ipv4s: Vec<Ipv4Addr>,
@@ -180,6 +181,7 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
             moniker: String::new(),
             location: None,
             last_probe: None,
+            mixnet_performance: None,
             mixnet_score: None,
             wg_performance: None,
             exit_ipv4s,
@@ -274,11 +276,13 @@ impl From<nym_gateway_directory::Probe> for Probe {
 impl From<nym_gateway_directory::Gateway> for Gateway {
     fn from(gateway: nym_gateway_directory::Gateway) -> Self {
         let (exit_ipv4s, exit_ipv6s) = gateway.split_ips();
+
         Self {
             identity_key: gateway.identity.to_string(),
             moniker: gateway.moniker,
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
+            mixnet_performance: gateway.mixnet_performance.map(|p| p.round_to_integer()),
             mixnet_score: gateway.mixnet_score.map(Score::from),
             wg_performance: gateway.wg_performance.map(Performance::from),
             exit_ipv4s,

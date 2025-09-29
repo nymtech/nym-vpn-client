@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpnc"
-description = "NymVPN commandline client"
+description = "NymVPN command-line client"
 version.workspace = true
 authors.workspace = true
 repository.workspace = true
@@ -19,12 +19,14 @@ clap = { workspace = true, features = ["derive", "wrap_help"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 sysinfo.workspace = true
+tabled.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true
 
 nym-bin-common.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-http-api-client.workspace = true
+nym-vpn-api-client.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpnd-types = { workspace = true }
 nym-vpn-lib-types = { workspace = true }

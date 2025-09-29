@@ -139,6 +139,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
+        self.0
+            .set_enable_bridges(enable_bridges)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn get_system_messages(&mut self) -> Result<SystemMessages> {
         let response = self
             .0

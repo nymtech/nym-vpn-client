@@ -198,9 +198,17 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
+        if self.config.enable_bridges != enable_bridges {
+            self.config.enable_bridges = enable_bridges;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_residential_exit_only(&mut self, residential_only: bool) {
         if self.config.residential_exit_only != residential_only {
             self.config.residential_exit_only = residential_only;
+            self.config.enable_bridges = enable_bridges;
             self.save_config_and_send_event().await;
         }
     }
