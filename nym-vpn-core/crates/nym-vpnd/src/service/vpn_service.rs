@@ -662,7 +662,6 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
                 self.handle_set_allow_lan(allow_lan, tx).await;
-                let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
                 self.handle_set_enable_bridges(enable_bridges).await;

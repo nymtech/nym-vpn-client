@@ -24,10 +24,10 @@ impl Command {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             Command::Get => {
-                let allow = rpc_client.get_config().await?.allow_lan;
+                let config = rpc_client.get_config().await?;
                 println!(
                     "Local network policy: {}",
-                    if allow { "allow" } else { "block" }
+                    if config.allow_lan { "allow" } else { "block" }
                 );
                 Ok(())
             }

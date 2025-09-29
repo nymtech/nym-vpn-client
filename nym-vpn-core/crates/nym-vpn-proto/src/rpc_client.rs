@@ -121,6 +121,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
+        self.0
+            .set_enable_bridges(enable_bridges)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_residential_exit_only(&mut self, residential_exit_only: bool) -> Result<()> {
         self.0
             .set_residential_exit_only(residential_exit_only)
@@ -133,15 +142,6 @@ impl RpcClient {
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
-        self.0
-            .set_enable_bridges(enable_bridges)
             .await
             .map_err(Error::Rpc)?
             .into_inner();
