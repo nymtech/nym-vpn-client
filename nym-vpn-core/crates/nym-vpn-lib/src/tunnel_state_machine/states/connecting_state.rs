@@ -97,9 +97,10 @@ impl ConnectingState {
             let mut bridge_endpoints = Vec::new();
             if shared_state.tunnel_settings.bridges_enabled()
                 && let Some(gateways) = &selected_gateways
-                    && let Some(params) = &gateways.entry.bridge_params {
-                        bridge_endpoints = params.get_addrs()
-                    }
+                && let Some(params) = &gateways.entry.bridge_params
+            {
+                bridge_endpoints = params.get_addrs()
+            }
 
             let firewall_policy_params = ConnectingPolicyParameters {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
