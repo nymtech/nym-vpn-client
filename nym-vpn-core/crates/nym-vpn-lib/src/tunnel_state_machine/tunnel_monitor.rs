@@ -466,7 +466,7 @@ impl TunnelMonitor {
                 .nym_network
                 .network
                 .clone(),
-            cancel_token: self.shutdown_token.clone(),
+            cancel_token: self.shutdown_token.child_token(),
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
 
@@ -524,6 +524,17 @@ impl TunnelMonitor {
                 )
                 .await
                 .map_err(|e| Box::new(tunnel::Error::from(e)))?;
+
+                let authenticator_listener_handle = if bw.is_using_latest_client() {
+                    // We don't need the mixnet client anymore
+                    tracing::info!(
+                        "Disconnecting mixnet client as we are using the latest bandwidth controller"
+                    );
+                    authenticator_listener_handle.stop().await;
+                    None
+                } else {
+                    Some(authenticator_listener_handle)
+                };
                 let bandwidth_controller_handle = tokio::spawn(bw.run());
 
                 let connected_tunnel = wireguard::connected_tunnel::ConnectedTunnel::new(

@@ -62,7 +62,7 @@ pub struct ConnectedTunnel {
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
-    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
 }
 
 impl ConnectedTunnel {
@@ -72,7 +72,7 @@ impl ConnectedTunnel {
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
         transport_fwd_handle: Option<JoinHandle<()>>,
-        auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+        auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
     ) -> Self {
         Self {
             entry_wg_keypair,
@@ -597,7 +597,7 @@ pub struct TunnelHandle {
     event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
-    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
     #[cfg(windows)]
@@ -617,9 +617,8 @@ impl TunnelHandle {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
-
-        if let Ok(mixnet_client) = self.auth_client_mixnet_listener_handle.wait().await {
-            mixnet_client.disconnect().await;
+        if let Some(auth_client_handle) = self.auth_client_mixnet_listener_handle {
+            auth_client_handle.stop().await;
         }
 
         if let Some(handle) = self.transport_fwd_handle {
