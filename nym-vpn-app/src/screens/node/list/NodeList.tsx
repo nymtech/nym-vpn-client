@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { Accordion } from '@base-ui-components/react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
@@ -17,7 +18,7 @@ export type NodeListProps = {
   nodes: UiGatewaysByCountry[];
   gateways: UiGateway[];
   onSelect: (node: UiCountry | UiGateway) => void;
-  onNodeDetails: (node: UiGateway | UiCountry) => void;
+  onNodeDetails: (node: UiGateway) => void;
   node: NodeHop;
   vpnMode: VpnMode;
 };
@@ -36,6 +37,52 @@ function NodeList({
     setExpanded,
   } = useNodeListState();
   const expanded = node === 'entry' ? entryState.expanded : exitState.expanded;
+  const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
+  const gatewaysRef = useRef<Map<string, HTMLDivElement>>(null);
+
+  const getMap = (type: 'country' | 'gateway') => {
+    if (type === 'country') {
+      if (!countriesRef.current) {
+        countriesRef.current = new Map();
+      }
+      return countriesRef.current;
+    }
+    if (type === 'gateway') {
+      if (!gatewaysRef.current) {
+        gatewaysRef.current = new Map();
+      }
+      return gatewaysRef.current;
+    }
+  };
+
+  const setRef = (
+    type: 'country' | 'gateway',
+    key: string,
+    node: HTMLDivElement | null,
+  ) => {
+    if (!node) {
+      return;
+    }
+    const map = getMap(type);
+    map?.set(key, node);
+
+    return () => {
+      map?.delete(key);
+    };
+  };
+
+  const scrollToNode = useCallback(
+    (type: 'country' | 'gateway', key: string) => {
+      const map = getMap(type);
+      const node = map?.get(key);
+      node?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    },
+    [],
+  );
 
   const handleCountrySelect = (
     country: UiCountry,
@@ -70,6 +117,7 @@ function NodeList({
           <Accordion.Item
             key={country.code}
             value={country.code}
+            ref={(node) => setRef('country', country.code, node)}
             data-testid={`country-accordion-item-${country.code}`}
           >
             <div
@@ -127,6 +175,7 @@ function NodeList({
                 {gateways.map((gateway) => (
                   <GatewayItem
                     key={gateway.id}
+                    ref={(node) => setRef('gateway', gateway.id, node)}
                     node={node}
                     gateway={gateway}
                     onSelect={onSelect}

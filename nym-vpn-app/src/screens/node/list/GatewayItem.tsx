@@ -1,19 +1,21 @@
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
-import { UiCountry, UiGateway } from '../../../contexts';
+import { UiGateway } from '../../../contexts';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { getScoreIcon } from './util';
 
 type GatewayRowProps = {
+  ref?: React.Ref<HTMLDivElement>;
   gateway: UiGateway;
   onSelect: (gateway: UiGateway) => void;
-  onNodeDetails: (node: UiGateway | UiCountry) => void;
+  onNodeDetails: (node: UiGateway) => void;
   node: NodeHop;
   vpnMode: VpnMode;
 };
 
 const GatewayItem = ({
+  ref,
   gateway,
   node,
   vpnMode,
@@ -39,6 +41,7 @@ const GatewayItem = ({
 
   return (
     <div
+      ref={ref}
       className={clsx(
         'flex flex-row justify-between items-center select-none',
         'hover:bg-mercury hover:dark:bg-mine-shaft',

@@ -8,6 +8,8 @@ export type NodeListPrevStateProps = {
 function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
   const [entryExpanded, setEntryExpanded] = useState<string[]>([]);
   const [exitExpanded, setExitExpanded] = useState<string[]>([]);
+  const [entryFocused, setEntryFocused] = useState<string | null>(null);
+  const [exitFocused, setExitFocused] = useState<string | null>(null);
 
   const setExpanded = useCallback(
     (nodeType: 'entry' | 'exit', value: string[]) => {
@@ -19,6 +21,14 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
     },
     [],
   );
+
+  const setFocused = useCallback((nodeType: 'entry' | 'exit', key: string) => {
+    if (nodeType === 'entry') {
+      setEntryFocused(key);
+    } else {
+      setExitFocused(key);
+    }
+  }, []);
 
   const reset = useCallback((hop: 'entry' | 'exit' | 'all') => {
     switch (hop) {
@@ -36,12 +46,21 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
 
   const ctx = useMemo(
     () => ({
-      entry: { expanded: entryExpanded },
-      exit: { expanded: exitExpanded },
+      entry: { expanded: entryExpanded, focused: entryFocused },
+      exit: { expanded: exitExpanded, focused: exitFocused },
       setExpanded,
+      setFocused,
       reset,
     }),
-    [entryExpanded, exitExpanded, reset, setExpanded],
+    [
+      entryExpanded,
+      exitExpanded,
+      entryFocused,
+      exitFocused,
+      setExpanded,
+      setFocused,
+      reset,
+    ],
   );
 
   return (

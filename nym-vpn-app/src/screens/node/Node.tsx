@@ -10,6 +10,7 @@ import {
   useMainDispatch,
   useMainState,
   useNodeList,
+  useNodeListState,
 } from '../../contexts';
 import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { PageAnim, TextInput } from '../../ui';
@@ -26,6 +27,7 @@ function Node({ node }: { node: NodeHop }) {
 
   const { isOpen, close } = useDialog();
   const { nodes, loading, gateways, error } = useNodeList();
+  const { setFocused } = useNodeListState();
   const { tE } = useI18nError();
   const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 
@@ -80,8 +82,9 @@ function Node({ node }: { node: NodeHop }) {
     navigate(routes.root);
   };
 
-  const handleNodeDetails = (selected: UiGateway | UiCountry) => {
+  const handleNodeDetails = (selected: UiGateway) => {
     nodeDetailsRef.current = selected;
+    setFocused(node, selected.id);
     navigate(routes.nodeDetails, { state: { gateway: selected, hop: node } });
   };
 
