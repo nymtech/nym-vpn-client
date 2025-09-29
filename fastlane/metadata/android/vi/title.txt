@@ -1,1 +1,1 @@
-NymVPN: VPN an toàn của Nym
+NymVPN: Mixnet Riêng tư
