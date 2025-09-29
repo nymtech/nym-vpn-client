@@ -1,4 +1,4 @@
-import * as Accordion from '@radix-ui/react-accordion';
+import { Accordion } from '@base-ui-components/react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 import {
@@ -48,8 +48,8 @@ function NodeList({
     <>
       <Accordion.Root
         className="w-full flex flex-col gap-3"
-        type="multiple"
         data-testid="node-list-accordion"
+        openMultiple
       >
         {nodes.map(({ i18n, isSelected, gateways, country }) => (
           <Accordion.Item
@@ -92,12 +92,14 @@ function NodeList({
                 className="flex py-2"
                 data-testid={`country-accordion-header-${country.code}`}
               >
-                <Accordion.Trigger asChild>
-                  <FoldButton />
-                </Accordion.Trigger>
+                <Accordion.Trigger
+                  render={(props, state) => (
+                    <FoldButton html={props} state={state} />
+                  )}
+                />
               </Accordion.Header>
             </div>
-            <Accordion.Content
+            <Accordion.Panel
               data-testid={`country-accordion-content-${country.code}`}
             >
               <motion.div
@@ -118,7 +120,7 @@ function NodeList({
                   />
                 ))}
               </motion.div>
-            </Accordion.Content>
+            </Accordion.Panel>
           </Accordion.Item>
         ))}
       </Accordion.Root>
