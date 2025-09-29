@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow for random selection inside a US state (https://github.com/nymtech/nym-vpn-client/pull/3489)
 - Add control over LAN sharing when device connection is secured (https://github.com/nymtech/nym-vpn-client/pull/3496)
 - The `nym-vpnc status --listen` command now prints the daemon configuration when it's changed by other clients (https://github.com/nymtech/nym-vpn-client/pull/3503).
+- Users can select residential only exit nodes (https://github.com/nymtech/nym-vpn-client/pull/3560).
 
 ### Changed
 
