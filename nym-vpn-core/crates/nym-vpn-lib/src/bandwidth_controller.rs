@@ -44,21 +44,6 @@ pub enum Error {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SpecificGatewayError {
-    #[error("failed to lookup gateway ip for {gateway_id}")]
-    LookupGatewayIp {
-        gateway_id: String,
-        #[source]
-        source: Box<nym_gateway_directory::Error>,
-    },
-
-    #[error("failed to register wireguard with the gateway for {gateway_id}")]
-    RegisterWireguard {
-        gateway_id: String,
-        authenticator_address: Box<nym_gateway_directory::Recipient>,
-        #[source]
-        source: Box<nym_registration_client::RegistrationClientError>,
-    },
-
     #[error("failed to request wireguard credential with the gateway: {gateway_id}")]
     RequestCredential {
         gateway_id: String,
@@ -85,6 +70,16 @@ pub enum SpecificGatewayError {
 
     #[error("internal error: {reason}")]
     Internal { reason: String },
+}
+
+impl SpecificGatewayError {
+    pub fn is_no_retry(&self) -> bool {
+        matches!(
+            self,
+            SpecificGatewayError::DeprecatedTopUpWireguard { .. }
+                | SpecificGatewayError::TopUpWireguard { .. }
+        )
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
