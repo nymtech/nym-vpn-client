@@ -435,7 +435,8 @@ impl BandwidthController {
                                 {
                                     tracing::warn!("Error topping up with more bandwidth {:?}", e);
                                     // TODO: try to return this error in the JoinHandle instead
-                                    // SW Actually do the above
+                                    // For now let's keep the old behavior of stopping
+                                    self.shutdown_token.cancel();
                                 }
                             }
                         }
@@ -443,13 +444,9 @@ impl BandwidthController {
                     Err(e) => {
                         tracing::warn!("{e}");
                         if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query) {
-                            // self.task_client
-                            // .send_we_stopped(Box::new(ErrorMessage::ErrorsFromGateway {
-                            //     gateway_id: Box::new(
-                            //         wg_metadata_client.gateway_id(),
-                            //     ),
-                            // }));
-                             // SW handle error case here as well
+                            tracing::error!("gateway {} is erroring out", wg_metadata_client.gateway_id());
+                            // For now let's keep the old behavior of stopping
+                            self.shutdown_token.cancel();
                         } else {
                             if entry {
                                 self.entry_previous_error_query = true;
