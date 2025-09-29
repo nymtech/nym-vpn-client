@@ -32,6 +32,7 @@ use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
+use nym_registration_client::MixnetClientConfig;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
@@ -51,8 +52,7 @@ use nym_gateway_directory::{
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, EstablishConnectionState, MixnetEvent, TunnelEvent, TunnelState,
-    TunnelType,
+    EstablishConnectionData, EstablishConnectionState, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -63,10 +63,7 @@ use wintun::SetupWintunAdapterError;
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-use crate::{
-    GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
-    bandwidth_controller::Error as BandwidthControllerError,
-};
+use crate::{GatewayDirectoryError, VpnTopologyProvider};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -418,7 +415,6 @@ impl From<TunnelInterface> for nym_firewall::TunnelInterface {
 }
 
 pub struct SharedState {
-    mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     route_handler: RouteHandler,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -470,7 +466,6 @@ pub struct TunnelStateMachine {
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
-    mixnet_event_receiver: mpsc::UnboundedReceiver<MixnetEvent>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -516,8 +511,6 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
-        let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
-
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
             allow_lan: tunnel_settings.allow_lan,
@@ -528,7 +521,6 @@ impl TunnelStateMachine {
         .map_err(Error::CreateFirewall)?;
 
         let mut shared_state = SharedState {
-            mixnet_event_sender,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -567,7 +559,6 @@ impl TunnelStateMachine {
             shared_state,
             command_receiver,
             event_sender,
-            mixnet_event_receiver,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -581,16 +572,6 @@ impl TunnelStateMachine {
     }
 
     async fn run(mut self) {
-        let mut mixnet_event_receiver = self.mixnet_event_receiver;
-        let cloned_event_sender = self.event_sender.clone();
-        tokio::spawn(async move {
-            while let Some(event) = mixnet_event_receiver.recv().await {
-                if let Err(e) = cloned_event_sender.send(TunnelEvent::MixnetState(event)) {
-                    tracing::error!("Failed to send tunnel event: {}", e);
-                }
-            }
-        });
-
         loop {
             let next_state = self
                 .current_state_handler
@@ -788,39 +769,16 @@ impl tunnel::Error {
                 },
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
-                if error.is_no_retry() {
-                    Some(ErrorStateReason::CredentialWastedOnEntryGateway)
-                } else {
-                    None
-                }
-            }
-            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
-                if error.is_no_retry() {
-                    Some(ErrorStateReason::CredentialWastedOnExitGateway)
-                } else {
-                    None
-                }
-            }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(
                 "Failed to dup tunnel fd".to_owned(),
             )),
-            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => Some(
-                ErrorStateReason::Internal("Failed to create mixnet storage".to_owned()),
-            ),
-            Self::AuthenticationNotPossible(_)
-            | Self::AuthenticatorAddressNotFound
-            | Self::ConnectToIpPacketRouter(_)
-            | Self::LookupGatewayIp { .. }
+            Self::NoIpAddressAnnounced { .. }
+            | Self::RegistrationClient(_)
             | Self::MixnetClient(_)
-            | Self::SetupStoragePaths(_)
-            | Self::StartMixnetClientTimeout
-            | Self::CreateGatewayClient(_)
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled
-            | Self::Transport(_)
-            | Self::MixnetClientDisposed => None,
+            | Self::Transport(_) => None,
             #[cfg(target_os = "ios")]
             Self::ResolveDns64(_) => None,
             #[cfg(windows)]

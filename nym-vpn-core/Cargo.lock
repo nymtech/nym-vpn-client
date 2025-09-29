@@ -3809,8 +3809,8 @@ dependencies = [
  "nym-bandwidth-controller",
  "nym-credentials-interface",
  "nym-crypto",
- "nym-node-requests",
  "nym-pemstore",
+ "nym-registration-common",
  "nym-sdk",
  "nym-service-provider-requests-common",
  "nym-validator-client",
@@ -4659,14 +4659,12 @@ dependencies = [
 name = "nym-node-requests"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "celes",
  "humantime",
  "humantime-serde",
  "nym-bin-common",
  "nym-crypto",
  "nym-exit-policy",
- "nym-http-api-client",
  "nym-noise-keys",
  "nym-wireguard-types",
  "schemars",
@@ -4802,12 +4800,11 @@ name = "nym-registration-client"
 version = "0.1.0"
 dependencies = [
  "nym-authenticator-client",
- "nym-authenticator-requests",
  "nym-bandwidth-controller",
  "nym-credential-storage",
  "nym-credentials-interface",
  "nym-ip-packet-client",
- "nym-ip-packet-requests",
+ "nym-registration-common",
  "nym-sdk",
  "nym-validator-client",
  "thiserror 2.0.16",
@@ -4815,6 +4812,17 @@ dependencies = [
  "tokio-util",
  "tracing",
  "url",
+]
+
+[[package]]
+name = "nym-registration-common"
+version = "0.1.0"
+dependencies = [
+ "nym-authenticator-requests",
+ "nym-crypto",
+ "nym-ip-packet-requests",
+ "nym-sphinx",
+ "tokio-util",
 ]
 
 [[package]]
@@ -5472,6 +5480,7 @@ dependencies = [
  "nym-registration-client",
  "nym-statistics-common",
  "nym-vpn-api-client",
+ "serde",
  "si-scale",
  "strum_macros 0.26.4",
  "thiserror 2.0.16",
@@ -5709,7 +5718,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd-types-uniffi"
-version = "1.16.0-beta"
+version = "1.17.0-beta"
 dependencies = [
  "nym-gateway-directory",
  "nym-vpn-api-client",
