@@ -1,1 +1,1 @@
-NymVPN: VPN segura por Nym
+NymVPN: Mixnet Privada

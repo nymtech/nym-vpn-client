@@ -1,31 +1,51 @@
-Sorgen Sie sich um Ihre Online-Privatsphäre? Müssen Sie auf gesperrte Informationen zugreifen? Das dezentrale VPN von Nym hilft Ihnen dabei. Mit NymVPN für Android surfen Sie privat im Internet, umgehen Zensurbeschränkungen und schützen Ihre Krypto-Transaktionen.
+Werde unsichtbar: Das einzige VPN, das dich nicht ausspionieren kann
 
-NymVPN ist das erste VPN für Alltagsnutzer, das auf einem dezentralen Netzwerk läuft. Anstatt zentraler Server wie bei herkömmlichen VPNs zu verwenden, leitet es Ihren Datenverkehr über mehrere unabhängige Knoten und sorgt so für starke Verschlüsselung und Schutz vor Rauschen, um Ihre Privatsphäre zu schützen.
+Bist du es leid, online überwacht zu werden? Herkömmliche VPNs leiten deine Daten über einen zentralen Server, der dich theoretisch nachverfolgen kann. NymVPN ist grundlegend anders: Unser dezentrales Netzwerk hat keine zentrale Instanz – Protokolle sind unmöglich. Das ist nicht nur „No-Logs“, sondern „Kann-nicht-Loggen“ und gibt dir die Kontrolle zurück.
 
-Wählen Sie Ihr Datenschutzniveau:
-– Dezentraler 2-Hop-Schutz im Schnellmodus mit AmneziaWG
-– 5-Hop-Routing im Anonymmodus mit Mixnet-Technologie und zusätzlichem Rauschen
+Entwickelt von einem Team internationaler PhD-Forscher und Kryptografen mit über 20 Fachpublikationen. NymVPN läuft über Hunderte unabhängiger Server in 50+ Ländern. In Partnerschaft mit den Universitäten KU Leuven und EPFL, mit Sitz in der schweizerischen Datenschutz-Hochburg. Unsere Mission: Privatsphäre für alle.
 
-Netzwerkprotokollierung nicht möglich:
-Während andere VPNs versprechen, keine Protokolle zu führen, ist das Nym-Netzwerk so konzipiert, dass zentrale Protokolle nicht möglich sind. Kein Punkt im dezentralen Netzwerk kann Ihre IP-Adresse mit Ihren Online-Aktivitäten verknüpfen. Ihre Privatsphäre ist standardmäßig gewährleistet.
+WÄHLE DEIN PRIVATSPHÄREN-NIVEAU
 
-Nicht verknüpfbare Zahlungen:
-Für die Anmeldung bei NymVPN sind keine persönlichen Daten erforderlich, nicht einmal Ihr Name. Bezahlen Sie sicher mit Zero-Knowledge-Beweisen, die sicherstellen, dass Ihre App- und Netzwerknutzung nicht zurückverfolgt werden kann.
+Schneller Modus: Superschnelle 2-Hop-Verbindung mit dem zensurresistenten AmneziaWG-Protokoll. Der erste Hop kennt dich, nicht dein Verhalten; der zweite sieht dein Verhalten, nicht deine Identität.
 
-Zensurschutz:
-Umgehen Sie Zugriffsbarrieren auf benötigte Informationen, indem Sie die Ein- und Ausgangs-Gateways für Ihren Datenverkehr auswählen. AmneziaWG (ein Fork des WireGuard-Protokolls) schützt im Schnellmodus vor Überwachung bei der VPN-Nutzung.
+Anonymer Modus: Für maximale Privatsphäre wird dein Traffic über ein 5-Hop-Mixnet mit bis zu 5 Verschlüsselungsebenen geleitet. Dummy-Pakete und Rauschen machen dich auch für KI-Überwachung unauffindbar.
 
-Zusätzliche NymVPN-Funktionen:
-– Krypto-Zahlungen, einschließlich Zcash und Monero
-– Barzahlungen für maximale Privatsphäre
-– Keine Werbung
-– Bis zu 10 Geräte
-– Gateway-Auswahl
-– Multi-Hop-IP-Schutz
-– Killswitch (Android-nativ)
+WARUM NYMVPN ANDERS IST
 
-Kommende Funktionen ab 2025:
-– Split-Tunneling
-– Erweiterter Zensurschutz
-– Post-Quanten-Kryptografie
-– Residential IPs
+Echte Anonymität: Zero-Knowledge-Zahlungen – keine E-Mail, kein Name, keine Spur. Zahlungen mit Krypto oder Bargeld.
+
+Metadaten-Schutz: Wir schützen nicht nur Inhalte, sondern auch deine Verkehrsmuster.
+
+Zensurresistenz: Zugang zu blockierten Seiten in restriktiven Umgebungen.
+
+Multi-Device: Ein Zugangscode schützt bis zu 10 Geräte.
+
+UNABHÄNGIG GEPRÜFT
+
+4 Sicherheits-Audits (2021–2024) von JP Aumasson, Oak Security, Cryspen, Cure53
+
+20+ Fachpublikationen auf Top-Konferenzen
+
+Transparenz über „Signals of Trustworthy VPNs“ (CDT)
+
+WICHTIGE FEATURES
+
+Kill Switch gegen Leaks
+
+Globale Server-Auswahl (50+ Länder)
+
+Keine Werbung
+
+Modernste Kryptographie
+
+GEPLANTE FEATURES (2025)
+
+Split-Tunneling
+
+Residential IPs
+
+Post-Quantum-Kryptographie
+
+Erweiterte Zensurresistenz
+
+Downloaden, verbinden, verschwinden – werde in Sekunden unsichtbar. Teste NymVPN risikofrei mit 30-Tage-Geld-zurück-Garantie.

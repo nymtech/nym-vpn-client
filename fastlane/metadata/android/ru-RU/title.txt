@@ -1,1 +1,1 @@
-NymVPN: Безопасный VPN
+NymVPN: Частная Mixnet
