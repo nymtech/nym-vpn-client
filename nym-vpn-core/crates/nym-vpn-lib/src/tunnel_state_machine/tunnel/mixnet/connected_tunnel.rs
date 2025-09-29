@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_sdk::mixnet::MixnetClient;
+use nym_sdk::{ShutdownManager, mixnet::MixnetClient};
 use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
@@ -17,6 +17,7 @@ use nym_registration_client::AssignedAddresses;
 /// Type representing a connected mixnet tunnel.
 pub struct ConnectedTunnel {
     mixnet_client: MixnetClient,
+    mixnet_shutdown_manager: ShutdownManager,
     assigned_addresses: AssignedAddresses,
     cancel_token: CancellationToken,
 }
@@ -24,11 +25,13 @@ pub struct ConnectedTunnel {
 impl ConnectedTunnel {
     pub fn new(
         mixnet_client: MixnetClient,
+        mixnet_shutdown_manager: ShutdownManager,
         assigned_addresses: AssignedAddresses,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
             mixnet_client,
+            mixnet_shutdown_manager,
             assigned_addresses,
             cancel_token,
         }
@@ -38,12 +41,7 @@ impl ConnectedTunnel {
         &self.assigned_addresses
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    pub async fn run(
-        self,
-        cancel_token: CancellationToken,
-        tun_device: AsyncDevice,
-    ) -> Result<TunnelHandle> {
+    pub async fn run(self, tun_device: AsyncDevice) -> Result<TunnelHandle> {
         let connection_monitor = ConnectionMonitorTask::setup();
 
         let processor_config = MixnetProcessorConfig::new(
@@ -57,6 +55,7 @@ impl ConnectedTunnel {
             processor_config,
             tun_device,
             self.mixnet_client,
+            self.mixnet_shutdown_manager,
             &connection_monitor,
             self.cancel_token.clone(),
         )
@@ -68,7 +67,7 @@ impl ConnectedTunnel {
             // todo: not fully possible to disable IPv6 because IpPair is passed.
             self.assigned_addresses.interface_addresses,
             self.assigned_addresses.exit_mix_address,
-            cancel_token,
+            self.cancel_token.clone(),
         );
 
         Ok(TunnelHandle {
