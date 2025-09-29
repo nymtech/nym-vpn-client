@@ -38,14 +38,14 @@ fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
 
 #[derive(clap::Subcommand)]
 pub enum Command {
-    /// Connect the tunnel if it had been disconnected
+    /// Connect the tunnel
     ConnectV2 {
         /// Blocks until the connection is established or failed
         #[arg(short, long)]
         wait: bool,
     },
 
-    /// Reconnect the tunnel if it had been connected
+    /// Reconnect the tunnel to any matching gateway
     Reconnect,
 
     /// Disconnect the tunnel
@@ -66,6 +66,7 @@ pub enum Command {
     Info,
 
     /// Get the current VPN service configuration.
+    #[clap(hide = true)]
     GetConfig,
 
     /// Manage entry and exit gateway nodes, list available gateways

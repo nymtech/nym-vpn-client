@@ -15,13 +15,13 @@ pub enum Command {
     /// Update tunnel configuration
     Set {
         #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
+        enable_ipv6: Option<BooleanOption>,
+
+        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         enable_two_hop: Option<BooleanOption>,
 
         #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         netstack: Option<BooleanOption>,
-
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
-        enable_ipv6: Option<BooleanOption>,
     },
 }
 
@@ -30,8 +30,13 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("Two-hop: {}", config.enable_two_hop);
-                println!("Netstack: {}", config.netstack);
+                println!("IPv6: {}", if config.disable_ipv6 { "off" } else { "on" });
+                println!(
+                    "Two-hop: {}",
+                    if config.enable_two_hop { "on" } else { "off" }
+                );
+                println!("Netstack: {}", if config.netstack { "on" } else { "off" });
+
                 Ok(())
             }
             Command::Set {

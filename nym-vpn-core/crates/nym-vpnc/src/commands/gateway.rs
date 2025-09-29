@@ -39,7 +39,7 @@ pub enum Command {
     /// nym-vpnc gateway set --entry-country US --exit-country CA
     Set(Box<SetArgs>),
 
-    /// List available gateways
+    /// List available gateways (mixnet-entry, mixnet-exit, wg)
     List {
         /// Gateway type
         #[arg(value_enum)]
