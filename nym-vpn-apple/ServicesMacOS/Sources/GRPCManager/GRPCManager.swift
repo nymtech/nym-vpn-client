@@ -64,21 +64,12 @@ public final class GRPCManager: ObservableObject {
 //        } catch {
 //
 //        }
-        //        } catch let error as RpcError {
-        //            if let accountError = error.accountError() {
-        //                if accountError.kind() == AccountCommandErrorKind.invalidMnemonic {
-        //
-        //                }
-        //            }
-        //            return
-        //        }
-
         listenToEventsObserver = try await rpcClient?.listenToEvents(observer: RpcTunnelObserver())
         listenToAccountStateObserver = try await rpcClient?.listenToAccountState(observer: RpcAccountObserver())
         listenToTunnelStateObserver = try await rpcClient?.listenToTunnelState(observer: RpcTunnelStateObserver())
 
-stopInitialStatusPinger()
-startDaemonInitialStatusPingerIfNeeded()
+        stopInitialStatusPinger()
+        startDaemonInitialStatusPingerIfNeeded()
     }
 }
 
