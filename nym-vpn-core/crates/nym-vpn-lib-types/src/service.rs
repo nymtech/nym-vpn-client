@@ -21,6 +21,8 @@ pub struct VpnServiceConfig {
     pub min_mixnode_performance: Option<u8>,
     pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
+    pub residential_only: bool,
+    pub exit_only: bool,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -57,6 +59,11 @@ impl fmt::Display for VpnServiceConfig {
                 .map(|p| p.to_string())
                 .unwrap_or_else(|| "<None>".to_string())
         )?;
+        writeln!(
+            f,
+            "residential_only: {}, exit_only: {}",
+            self.residential_only, self.exit_only
+        )?;
         Ok(())
     }
 }
@@ -77,6 +84,8 @@ impl Default for VpnServiceConfig {
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
+            residential_only: false,
+            exit_only: false,
         }
     }
 }

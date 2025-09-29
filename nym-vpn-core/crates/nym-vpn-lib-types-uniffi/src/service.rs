@@ -15,6 +15,8 @@ pub struct VpnServiceConfig {
     pub min_mixnode_performance: Option<u8>,
     pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
+    pub residential_only: bool,
+    pub exit_only: bool,
 }
 
 impl From<nym_vpn_lib_types::service::VpnServiceConfig> for VpnServiceConfig {
@@ -33,6 +35,8 @@ impl From<nym_vpn_lib_types::service::VpnServiceConfig> for VpnServiceConfig {
             min_mixnode_performance: value.min_mixnode_performance,
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
+            residential_only: value.residential_only,
+            exit_only: value.exit_only,
         }
     }
 }
@@ -53,6 +57,8 @@ impl From<VpnServiceConfig> for nym_vpn_lib_types::service::VpnServiceConfig {
             min_mixnode_performance: value.min_mixnode_performance,
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
+            residential_only: value.residential_only,
+            exit_only: value.exit_only,
         }
     }
 }

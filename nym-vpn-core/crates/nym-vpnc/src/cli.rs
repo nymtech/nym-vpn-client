@@ -101,6 +101,13 @@ pub enum Command {
         allow: BooleanOption,
     },
 
+    /// Enable or disable residential exit nodes only
+    SetResidentialExitOnly {
+        /// Allow or disallow residential exit nodes only
+        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
+        enabled: BooleanOption,
+    },
+
     /// Set the network to be used. This requires a restart of the daemon (`nym-vpnd`)
     SetNetwork(SetNetworkArgs),
 

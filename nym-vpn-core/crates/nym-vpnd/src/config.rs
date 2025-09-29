@@ -241,8 +241,6 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
-        println!("Using config dir: {config_path:?}");
-
         let toml_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
         let _ = fs::remove_file(&toml_path).await;
 
