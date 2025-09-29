@@ -15,6 +15,7 @@ pub mod fd;
 pub mod two_hop_config;
 
 pub struct ConnectionData {
+    pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: GatewayData,
     pub exit: GatewayData,
 }

@@ -627,10 +627,10 @@ impl TunnelHandle {
             auth_client_handle.stop().await;
         }
 
-        if let Some(handle) = self.transport_fwd_handle {
-            if let Err(e) = handle.await {
-                tracing::error!("Failed to join on transport forwarder: {}", e);
-            }
+        if let Some(handle) = self.transport_fwd_handle
+            && let Err(e) = handle.await
+        {
+            tracing::error!("Failed to join on transport forwarder: {}", e);
         }
 
         self.event_handler_task.await

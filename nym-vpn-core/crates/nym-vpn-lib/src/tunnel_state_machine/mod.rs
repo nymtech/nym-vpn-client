@@ -868,3 +868,9 @@ impl From<tunnel::transports::TransportError> for Error {
         Self::Tunnel(Box::new(tunnel::Error::Transport(value)))
     }
 }
+
+impl From<nym_registration_client::RegistrationClientError> for Error {
+    fn from(value: nym_registration_client::RegistrationClientError) -> Self {
+        Self::Tunnel(Box::new(tunnel::Error::RegistrationClient(Box::new(value))))
+    }
+}

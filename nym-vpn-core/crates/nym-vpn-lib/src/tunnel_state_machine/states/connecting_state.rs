@@ -95,12 +95,11 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
             let mut bridge_endpoints = Vec::new();
-            if shared_state.tunnel_settings.bridges_enabled() {
-                if let Some(gateways) = &selected_gateways {
-                    if let Some(params) = &gateways.entry.bridge_params {
-                        bridge_endpoints = params.get_addrs()
-                    }
-                }
+            if shared_state.tunnel_settings.bridges_enabled()
+                && let Some(gateways) = &selected_gateways
+                && let Some(params) = &gateways.entry.bridge_params
+            {
+                bridge_endpoints = params.get_addrs()
             }
 
             let firewall_policy_params = ConnectingPolicyParameters {
