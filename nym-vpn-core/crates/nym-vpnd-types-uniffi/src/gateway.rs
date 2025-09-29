@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 #[derive(uniffi::Record)]
 pub struct Gateway {
     pub identity_key: String,
@@ -8,6 +10,9 @@ pub struct Gateway {
     pub location: Option<GatewayLocation>,
     pub mixnet_score: Option<GatewayScore>,
     pub wg_performance: Option<GatewayPerformance>,
+    pub exit_ipv4s: Vec<Ipv4Addr>,
+    pub exit_ipv6s: Vec<Ipv6Addr>,
+    pub build_version: Option<String>,
 }
 
 #[derive(uniffi::Enum)]
@@ -118,6 +123,9 @@ impl From<nym_vpnd_types::gateway::Gateway> for Gateway {
             location: gateway.location.map(GatewayLocation::from),
             mixnet_score: gateway.mixnet_score.map(GatewayScore::from),
             wg_performance: gateway.wg_performance.map(GatewayPerformance::from),
+            exit_ipv4s: gateway.exit_ipv4s,
+            exit_ipv6s: gateway.exit_ipv6s,
+            build_version: gateway.build_version,
         }
     }
 }
