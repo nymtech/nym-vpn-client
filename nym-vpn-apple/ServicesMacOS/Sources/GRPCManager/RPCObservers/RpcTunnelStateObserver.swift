@@ -1,16 +1,11 @@
 import NymVPNRpc
 
-final class RpcTunnelStateObserver: TunnelStateObserver {
-    func onTunnelStateChange(newState: TunnelState) {
-        print("RPCTunnelStateObserver: tuneel state changed: \(newState)")
-
-        Task {
-//            self.updateTunnelStatus(with: newState)
-        }
+final class RPCTunnelStateObserver: TunnelEventObserver {
+    func onTunnelEvent(event: TunnelEvent) {
+        print("onTuneEvent \(event)")
     }
-
+    
     func onClose() {
-//        resetTunnelStateChangeObserver()
-        print("RPCTunnelStateObserver: tunnel state did close")
+        print("onClose()")
     }
 }

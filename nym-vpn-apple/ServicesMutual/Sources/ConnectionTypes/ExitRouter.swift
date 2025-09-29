@@ -32,7 +32,7 @@ extension ExitRouter: GatewayInfoProtocol {
         case let .country(country):
             country.code
         case let .gateway(gateway):
-            gateway.countryCode
+            gateway.location.twoLetterIsoCountryCode
         }
     }
 

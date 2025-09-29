@@ -1,7 +1,7 @@
 import CountriesManagerTypes
 import NymVPNRpc
 
-extension GatewayASNType {
+extension GatewayNodeASNType {
     init(with type: GatewayAsnKind) {
         switch type {
         case .residential:
