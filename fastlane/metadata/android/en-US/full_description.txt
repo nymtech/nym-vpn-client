@@ -1,33 +1,35 @@
-Worried about your privacy online? Need to access blocked information? Nym’s decentralized VPN is here to help. With NymVPN for Android, you can browse the web privately, get around censorship restrictions, and protect your crypto transactions.
+Stop Being Tracked: The Only VPN That Can't Spy on You
 
+Tired of being watched online? Traditional VPNs route your data through a single, centralized server that could theoretically track you. NymVPN is fundamentally different. Our decentralized network has no central authority, which means centralized logs are not possible. This isn't just a "no-logs" policy; it's a "can't log" design that puts you back in control of your digital life.
 
-NymVPN is the first VPN for everyday users that runs on a decentralized network. Instead of using central servers like traditional VPNs, it sends your traffic through multiple independent nodes, adding strong encryption and protective noise to keep you private.
+Built by a world-class team of PhD researchers and cryptographers with over 20 peer-reviewed publications, NymVPN operates across hundreds of independent servers in 50+ countries. Developed in partnership with leading universities KU Leuven and EPFL and headquartered in privacy-focused Switzerland, our mission is to bring privacy to all humanity.
 
+CHOOSE YOUR LEVEL OF PRIVACY
+- Fast Mode: A lightning-fast 2-hop connection using the censorship-resistant AmneziaWG protocol. The first hop knows who you are but not what you're doing; the second hop sees your activity but not who you are, giving you a balance of speed and enhanced privacy.
+- Anonymous Mode: For maximum privacy, this mode routes your traffic through a 5-hop mixnet with up to 5 layers of encryption. This adds protective noise and dummy packets to your traffic, making it impossible for even advanced AI surveillance and traffic analysis to track you.
 
-Choose your level of privacy:
-- The Fast mode’s 2-hop decentralized protections with AmneziaWG
-- The Anonymous mode’s 5-hop routing with mixnet technology and added noise
+WHY NYMVPN IS DIFFERENT
+- True Anonymity: Our zero-knowledge payments mean no email, no name, and no trace; Pay with crypto or cash—your subscription is cryptographically unlinked from your online activity
+- Metadata Protection: Unlike other VPNs, we protect not only the content of your traffic but also the traffic patterns you leave behind
+- Censorship Resistant: NymVPN is designed to help you access blocked sites and information in restrictive environments (with AmneziaWG and other upcoming features)
+- Multi-Device Protection: A single anonymous access code protects up to 10 of your devices
 
-Can’t log network:
-While other VPNs promise not to keep logs, the Nym network is designed so centralized logs are not possible. No point on the decentralized network can connect your IP address with what you do online. Your privacy is guaranteed by default.
+INDEPENDENTLY VERIFIED
+- Four security audits (2021-2024) by reputable researchers including JP Aumasson, Oak Security, Cryspen, and Cure53
+- 20+ peer-reviewed publications in leading privacy & security conferences
+- Transparency via "Signals of Trustworthy VPNs" questionnaire by Center for Democracy & Technology
 
-Unlinkable payments:
-No personal information is required to subscribe to NymVPN, not even your name. Pay securely with zero-knowledge proofs that ensure you can never be linked to your use of the app and network.
+ESSENTIAL FEATURES
+- Kill switch to prevent data leaks
+- Global gateway selection in 50+ countries
+- Completely ad-free experience
+- State-of-the-art cryptographic stack
 
-Censorship resistance:
-Bypass barriers to accessing the information you need by selecting the entry and exit gateways for your traffic. AmneziaWG (a fork of the WireGuard protocol) on the Fast mode protects against surveillance targeting VPN use.
-
-Additional NymVPN features:
-- Crypto payments, including Zcash and Monero
-- Cash payments for maximal privacy
-- No-ads
-- Up to 10 devices
-- Gateway selection
-- Multi-hop IP protections
-- Killswitch (Android native)
-
-Coming features in 2025:
+COMING FEATURES (2025)
+We are actively developing new features to bring you a truly private internet, with plans for:
 - Split tunneling
-- Advanced censorship resistance
-- Post-quantum cryptography
 - Residential IPs
+- Post-quantum cryptography
+- Advanced censorship resistance (including QUIC protocol and stealth APIs)
+
+Download, connect, disappear—become invisible online in seconds. Try NymVPN risk-free with our 30-day money-back guarantee.

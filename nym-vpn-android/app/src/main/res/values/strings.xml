@@ -187,18 +187,18 @@
 	<string name="error_tunnel_provider">Failed to configure packet tunnel provider.</string>
 	<string name="error_kill_switch">Kill switch protects you. Tap Stop and \nrenew your plan.</string>
 	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
-	<string name="error_bandwidth_entry">Entry gateway is not responding or responding badly to a bandwidth increase.</string>
-	<string name="error_bandwidth_exit">Exit gateway is not responding or responding badly to a bandwidth increase.</string>
-	<string name="error_gateway_unavailable_entry">The entry gateway can\'t connect. Try another!</string>
-	<string name="error_gateway_unavailable_exit">The exit gateway can\'t connect. Try another!</string>
+	<string name="error_bandwidth_entry">Entry server is not responding or responding badly to a bandwidth increase.</string>
+	<string name="error_bandwidth_exit">Exit server is not responding or responding badly to a bandwidth increase.</string>
+	<string name="error_gateway_unavailable_entry">Can\'t reach entry server. Try another!</string>
+	<string name="error_gateway_unavailable_exit">Can\'t reach exit server. Try another!</string>
 	<string name="error_invalid_entry_gateway_identity">Entry server offline. Choose another and reconnect.</string>
 	<string name="error_invalid_exit_gateway_identity">Exit server offline. Choose another and reconnect.</string>
 	<!-- Main Screen -->
 	<string name="main_get_started_button">Get started</string>
 	<string name="connection_state_resolving_addresses">Resolving API IP addresses</string>
 	<string name="connection_state_awaiting_readiness">Awaiting account readiness</string>
-	<string name="connection_state_refreshing_gateways">Refreshing gateways</string>
-	<string name="connection_state_selecting_gateways">Selecting gateways</string>
+	<string name="connection_state_refreshing_gateways">Refreshing servers</string>
+	<string name="connection_state_selecting_gateways">Selecting servers</string>
 	<string name="connection_state_connecting_mixnet_client">Connecting mixnet client</string>
 	<string name="connection_state_connecting_tunnel">Connecting tunnel</string>
 	<!-- Settings Screen -->

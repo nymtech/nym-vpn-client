@@ -1,31 +1,51 @@
-Vous vous inquiétez pour votre confidentialité en ligne ? Besoin d'accéder à des informations bloquées ? Le VPN décentralisé de Nym est là pour vous aider. Avec NymVPN pour Android, vous pouvez naviguer sur le web en toute confidentialité, contourner les restrictions de censure et protéger vos transactions en cryptomonnaies.
+Stoppez le pistage : le seul VPN qui ne peut pas vous espionner
 
-NymVPN est le premier VPN pour les utilisateurs lambda fonctionnant sur un réseau décentralisé. Au lieu d'utiliser des serveurs centraux comme les VPN traditionnels, il achemine votre trafic via plusieurs nœuds indépendants, ajoutant un chiffrement puissant et un bruit de protection pour préserver votre confidentialité.
+Marre d’être surveillé en ligne ? Les VPN classiques passent par un serveur centralisé pouvant vous tracer. NymVPN est différent : notre réseau décentralisé n’a aucune autorité centrale, les journaux sont impossibles. Ce n’est pas une simple « politique no-logs », c’est une architecture « ne peut pas enregistrer ».
 
-Choisissez votre niveau de confidentialité :
-- Le mode rapide offre des protections décentralisées à 2 sauts avec AmneziaWG
-- Le mode anonyme offre un routage à 5 sauts avec la technologie Mixnet et un bruit supplémentaire
+Créé par une équipe de chercheurs et cryptographes internationaux avec plus de 20 publications. NymVPN fonctionne sur des centaines de serveurs indépendants dans 50+ pays. Développé en partenariat avec KU Leuven et l’EPFL, basé en Suisse. Notre mission : la confidentialité pour tous.
 
-Réseau non journalisable :
-Alors que d'autres VPN promettent de ne pas conserver de journaux, le réseau Nym est conçu pour que la centralisation des journaux soit impossible. Aucun point du réseau décentralisé ne peut relier votre adresse IP à vos activités en ligne. Votre confidentialité est garantie par défaut.
+CHOISISSEZ VOTRE NIVEAU DE CONFIDENTIALITÉ
 
-Paiements non liés :
-Aucune information personnelle n'est requise pour s'abonner à NymVPN, pas même votre nom. Payez en toute sécurité grâce à des preuves à connaissance nulle qui garantissent que vous ne pourrez jamais être lié à votre utilisation de l'application et du réseau.
+Mode rapide : Connexion 2 sauts ultra-rapide via AmneziaWG. Le premier sait qui vous êtes sans vos activités ; le second voit vos activités sans votre identité.
 
-Résistance à la censure :
-Contournez les obstacles à l'accès aux informations dont vous avez besoin en sélectionnant les passerelles d'entrée et de sortie de votre trafic. AmneziaWG (un dérivé du protocole WireGuard) en mode rapide protège contre la surveillance ciblant l'utilisation du VPN.
+Mode anonyme : Pour une confidentialité maximale, trafic via un Mixnet à 5 sauts avec couches de chiffrement. Bruit et faux paquets rendent le suivi impossible, même par IA avancée.
 
-Fonctionnalités supplémentaires de NymVPN :
-- Paiements en cryptomonnaies, y compris Zcash et Monero
-- Paiements en espèces pour une confidentialité maximale
-- Sans publicité
-- Jusqu'à 10 appareils
-- Sélection de la passerelle
-- Protections IP multi-sauts
-- Killswitch (natif Android)
+POURQUOI NYMVPN EST UNIQUE
 
-Fonctionnalités à venir en 2025 :
-- Split tunneling
-- Résistance avancée à la censure
-- Cryptographie post-quantique
-- IP résidentielles
+Anonymat réel : Paiements sans données perso. Crypto ou espèces.
+
+Protection des métadonnées : Pas seulement le contenu, mais aussi les schémas de trafic.
+
+Résistant à la censure : Accès à l’info bloquée.
+
+Multi-appareils : Un code protège jusqu’à 10 appareils.
+
+VÉRIFIÉ INDÉPENDAMMENT
+
+4 audits de sécurité (2021–2024)
+
+20+ publications académiques
+
+Transparence via CDT (« Signals of Trustworthy VPNs »)
+
+FONCTIONNALITÉS ESSENTIELLES
+
+Kill switch
+
+Serveurs dans 50+ pays
+
+Sans publicité
+
+Cryptographie avancée
+
+FONCTIONNALITÉS À VENIR (2025)
+
+Split tunneling
+
+IP résidentielles
+
+Cryptographie post-quantique
+
+Résistance avancée à la censure
+
+Téléchargez, connectez, disparaissez – devenez invisible en quelques secondes. Essayez NymVPN avec garantie de remboursement 30 jours.
