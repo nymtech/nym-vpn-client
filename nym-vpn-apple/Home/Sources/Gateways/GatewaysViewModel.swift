@@ -46,7 +46,7 @@ import UIComponents
 
 @MainActor extension GatewaysViewModel {
     func gatewaysInCountry(with countryCode: String) -> [GatewayNode] {
-        gateways.filter { $0.countryCode == countryCode }
+        gateways.filter { $0.location?.twoLetterIsoCountryCode == countryCode }
     }
 }
 
@@ -84,7 +84,7 @@ import UIComponents
         case .wireguard:
             gateways = gatewayManager.vpn
         }
-        countries = Array(Set(gateways.map { $0.countryCode }))
+        countries = Array(Set(gateways.map { $0.location?.twoLetterIsoCountryCode }))
             .compactMap { countriesManager.country(with: $0) }
             .sorted {
                 $0.name.compare(

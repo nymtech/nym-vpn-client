@@ -39,8 +39,6 @@ public final class CountriesManager: ObservableObject {
         configurationManager: .shared
     )
 #endif
-    var isLoading = false
-    var timer: Timer?
     var countryStore = CountryStore()
     var cancellables = Set<AnyCancellable>()
 
@@ -83,32 +81,6 @@ public final class CountriesManager: ObservableObject {
     }
 #endif
 
-    public func setup() {
-        setupAutoUpdates()
-        configureEnvironmentChange()
-        fetchCountries()
-#if os(macOS)
-        setupDaemonStateObserver()
-#endif
-    }
-
-    @objc public func fetchCountries() {
-        guard !isLoading, needsReload()
-        else {
-            if entryCountries.isEmpty
-                || exitCountries.isEmpty
-                || vpnCountries.isEmpty {
-                loadCountriesFromCountryStore()
-            }
-            return
-        }
-        isLoading = true
-
-        Task { [weak self] in
-            self?.fetchEntryExitCountries()
-        }
-    }
-
     public func country(with code: String, gatewayType: NodeType) -> Country? {
         switch gatewayType {
         case .entry:
@@ -119,39 +91,6 @@ public final class CountriesManager: ObservableObject {
             return vpnCountries.first(where: { $0.code == code })
         }
     }
-}
-
-// MARK: - Setup -
-private extension CountriesManager {
-    func setupAutoUpdates() {
-        timer = Timer.scheduledTimer(
-            timeInterval: 1800,
-            target: self,
-            selector: #selector(fetchCountries),
-            userInfo: nil,
-            repeats: true
-        )
-    }
-
-    func configureEnvironmentChange() {
-        configurationManager.environmentDidChange = { [weak self] in
-            self?.countryStore.lastFetchDate = nil
-            self?.fetchCountries()
-        }
-    }
-
-#if os(macOS)
-    func setupDaemonStateObserver() {
-        helperManager.$daemonState.sink { [weak self] daemonState in
-            guard daemonState == .running else { return }
-            Task {
-                try? await Task.sleep(for: .seconds(5))
-                self?.fetchCountries()
-            }
-        }
-        .store(in: &cancellables)
-    }
-#endif
 }
 
 // MARK: - Pre bundled countries -
@@ -218,69 +157,6 @@ private extension CountriesManager {
     }
 }
 
-#if os(macOS)
-private extension CountriesManager {
-    func fetchEntryExitCountries() {
-        Task {
-            do {
-                try await fetchEntryCountries()
-                try await fetchExitCountries()
-                try await fetchVPNCountries()
-            } catch {
-                logger.error("\(error.localizedDescription)")
-            }
-            countryStore.lastFetchDate = Date()
-            storeCountryStore()
-        }
-    }
-
-    func fetchEntryCountries() async throws {
-            let countryCodes = try await grpcManager.countryCodes(for: .entry)
-            let countries = countryCodes.compactMap { countryCode in
-                country(with: countryCode)
-            }
-            .sorted(by: { $0.name < $1.name })
-
-            logger.info("Fetched \(countries.count) entry countries")
-
-            Task { @MainActor in
-                countryStore.entryCountries = countries
-                entryCountries = countries
-            }
-    }
-
-    func fetchExitCountries() async throws {
-        let countryCodes = try await grpcManager.countryCodes(for: .exit)
-        let countries = countryCodes.compactMap { countryCode in
-            country(with: countryCode)
-        }
-        .sorted(by: { $0.name < $1.name })
-
-        logger.info("Fetched \(countries.count) exit countries")
-
-        Task { @MainActor in
-            countryStore.exitCountries = countries
-            exitCountries = countries
-        }
-    }
-
-    func fetchVPNCountries() async throws {
-        let countryCodes = try await grpcManager.countryCodes(for: .vpn)
-        let countries = countryCodes.compactMap { countryCode in
-            country(with: countryCode)
-        }
-        .sorted(by: { $0.name < $1.name })
-
-        logger.info("Fetched \(countries.count) vpn countries")
-
-        Task { @MainActor in
-            countryStore.vpnCountries = countries
-            vpnCountries = countries
-        }
-    }
-}
-#endif
-
 #if os(iOS)
 private extension CountriesManager {
     func fetchEntryExitCountries() {
@@ -320,12 +196,8 @@ private extension CountriesManager {
             }
 
             storeCountryStore()
-
-            isLoading = false
         } catch {
-            isLoading = false
             logger.error("\(error.localizedDescription)")
-            fetchCountriesAfterDelay()
         }
     }
 }
@@ -374,13 +246,6 @@ extension CountriesManager {
     func updateError(with error: Error) {
         Task { @MainActor in
             lastError = error
-        }
-    }
-
-    func fetchCountriesAfterDelay() {
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(60))
-            self?.fetchEntryExitCountries()
         }
     }
 }

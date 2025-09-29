@@ -10,8 +10,8 @@ extension GatewayNode {
             mixnetScore: GatewayNodeScore.convert(from: newGateway.mixnetScore) ?? .noScore,
             moniker: newGateway.moniker,
             buildVersion: newGateway.buildVersion,
-            ipv4s: newGateway.exitIpv4S,
-            ipv6s: newGateway.exitIpv6S
+            ipv4s: newGateway.exitIpv4s,
+            ipv6s: newGateway.exitIpv6s
         )
     }
 }

@@ -9083,6 +9083,17 @@
         }
       }
     },
+    "erroReason.invalidEntryGatewayIdentity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        }
+      }
+    },
     "errorReason.accountNotRegistered" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10695,6 +10706,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "退出网关国家无效"
+          }
+        }
+      }
+    },
+    "errorReason.invalidExitGatewayIdentity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit server is offline. Choose another and reconnect."
           }
         }
       }

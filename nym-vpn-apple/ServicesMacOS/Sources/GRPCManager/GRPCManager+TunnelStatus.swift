@@ -160,6 +160,10 @@ extension GRPCManager {
             ErrorReason.performantEntryGatewayUnavailable
         case .performantExitGatewayUnavailable:
             ErrorReason.performantExitGatewayUnavailable
+        case .invalidEntryGatewayIdentity:
+            ErrorReason.invalidEntryGatewayCountry
+        case .invalidExitGatewayIdentity:
+            ErrorReason.invalidExitGatewayIdentity
         }
     }
 }
@@ -186,6 +190,10 @@ extension ErrorReason {
             self = .ipv6Unavailable
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .bandwidthExceeded:
             self = .bandwidthExceeded
         case .inactiveSubscription:
@@ -199,8 +207,6 @@ extension ErrorReason {
         case .deviceLoggedOut:
             self = .deviceLoggedOut
         case .internal:
-            self = .internalUnknown
-        case .UNRECOGNIZED:
             self = .internalUnknown
         case .credentialWastedOnEntryGateway:
             self = .credentialWastedOnEntryGateway

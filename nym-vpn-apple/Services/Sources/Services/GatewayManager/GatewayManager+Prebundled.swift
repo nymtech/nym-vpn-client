@@ -75,25 +75,38 @@ extension GatewayManager {
             return nodes.map { node in
                 // perfV2 might be absent
                 let perfV2 = node.performanceV2
-                let performance = GatewayPerformance(
+                let performance = GatewayNodePerformance(
                     lastUpdated: perfV2?.lastUpdatedUTC,
                     score: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
                     load: perfV2.map { mapScore(from: $0.load) }  ?? .noScore,
                     uptime: perfV2?.uptimePercentageLast24Hours ?? 0
                 )
 
-                let asn = GatewayASN(
+                let asn = GatewayNodeASN(
                     asn: node.location.asn?.asn ?? "",
                     asnName: node.location.asn?.name ?? "",
                     type: node.location.asn.map { mapASNType(from: $0.kind) } ?? .other
                 )
 
+                var gatewayNodeLocation: GatewayNodeLocation? = nil
+                if let twoLetterIsoCountryCode = node.location.twoLetterISOCountryCode,
+                   let latitude = node.location.latitude,
+                   let longitude = node.location.longitude,
+                   let city = node.location.city,
+                   let region = node.location.region {
+                    gatewayNodeLocation = GatewayNodeLocation(
+                        twoLetterIsoCountryCode: twoLetterIsoCountryCode,
+                        latitude: latitude,
+                        longitude: longitude,
+                        city: city,
+                        region: region,
+                        asn: asn
+                    )
+                }
+
                 return GatewayNode(
                     id: node.identityKey,
-                    countryCode: node.location.twoLetterISOCountryCode ?? "",
-                    city: node.location.city ?? "",
-                    region: node.location.region ?? "",
-                    asn: asn,
+                    location: gatewayNodeLocation,
                     performance: performance,
                     mixnetScore: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
                     moniker: node.name,
@@ -135,7 +148,7 @@ private func mapScore(from load: Load?) -> GatewayNodeScore {
     }
 }
 
-private func mapASNType(from kind: Kind) -> GatewayASNType {
+private func mapASNType(from kind: Kind) -> GatewayNodeASNType {
     switch kind {
     case .residential:
         .residential
