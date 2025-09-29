@@ -188,8 +188,8 @@
 	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
 	<string name="error_bandwidth_entry">Entry gateway is not responding or responding badly to a bandwidth increase.</string>
 	<string name="error_bandwidth_exit">Exit gateway is not responding or responding badly to a bandwidth increase.</string>
-	<string name="error_gateway_unavailable_entry">The entry gateway can\'t connect. Try another!</string>
-	<string name="error_gateway_unavailable_exit">The exit gateway can\'t connect. Try another!</string>
+	<string name="error_gateway_unavailable_entry">Can\'t reach entry server. Try another!</string>
+	<string name="error_gateway_unavailable_exit">Can\'t reach exit server. Try another!</string>
 	<string name="error_invalid_entry_gateway_identity">Entry server offline. Choose another and reconnect.</string>
 	<string name="error_invalid_exit_gateway_identity">Exit server offline. Choose another and reconnect.</string>
 	<!-- Main Screen -->
