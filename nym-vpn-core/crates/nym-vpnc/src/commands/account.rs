@@ -44,7 +44,7 @@ impl Command {
                     "Account identity: {}",
                     account_id.unwrap_or("unset".to_owned())
                 );
-                println!("Account state: {:?}", account_state);
+                println!("Account state: {account_state:?}");
                 Ok(())
             }
             Command::Set { mnemonic } => {
@@ -57,7 +57,7 @@ impl Command {
             Command::Forget => {
                 let response = rpc_client.forget_account().await?;
                 if let Some(err) = response.error {
-                    println!("Failed to forget account: {}", err);
+                    println!("Failed to forget account: {err}");
                     return Err(err.into());
                 } else {
                     println!("Account forgotten successfully");
@@ -69,8 +69,8 @@ impl Command {
 
                 println!("Sign up: {}", account_links.sign_up);
                 println!("Sign in: {}", account_links.sign_in);
-                if let Some(account) = account_links.account {
-                    println!("Account: {}", account);
+                if let Some(account_url) = account_links.account {
+                    println!("Account: {account_url}");
                 }
 
                 Ok(())

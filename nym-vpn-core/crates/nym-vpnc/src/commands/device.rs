@@ -40,7 +40,7 @@ impl Args {
             Command::Get => {
                 let identity = rpc_client.get_device_identity().await?;
                 if let Some(identity) = identity {
-                    println!("Device identity: {}", identity);
+                    println!("Device identity: {identity}");
                 }
                 Ok(())
             }

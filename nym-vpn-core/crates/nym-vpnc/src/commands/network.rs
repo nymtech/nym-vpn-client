@@ -24,7 +24,7 @@ impl Command {
                     .nym_network
                     .network
                     .network_name;
-                println!("Current network: {}", network_name);
+                println!("Current network: {network_name}");
                 Ok(())
             }
             Command::Set { network_name } => {

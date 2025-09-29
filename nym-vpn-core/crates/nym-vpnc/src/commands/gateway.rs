@@ -248,7 +248,7 @@ impl GatewayModel {
             performance: match gw_type {
                 GatewayType::MixnetEntry | GatewayType::MixnetExit => gateway
                     .mixnet_performance
-                    .map(|p| format!("{}%", p))
+                    .map(|p| format!("{p}%"))
                     .unwrap_or("N/A".to_owned()),
                 GatewayType::Wg => gateway
                     .wg_performance
