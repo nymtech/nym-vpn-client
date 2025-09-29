@@ -139,6 +139,12 @@ jobs:
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
 
+      - name: Build nym-vpn-rpc
+        working-directory: nym-vpn-core
+        run: |
+          make -f macOS.mk
+          cp -v -R crates/nym-vpn-rpc-uniffi/NymVPNRpc ${{ env.UPLOAD_DIR_MAC }}
+
       - name: Compile protobuf for swift (vpn)
         working-directory: nym-vpn-core/crates/nym-vpn-proto/proto
         run: |
