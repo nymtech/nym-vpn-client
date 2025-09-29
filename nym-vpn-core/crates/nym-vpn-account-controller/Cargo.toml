@@ -22,12 +22,12 @@ nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-ecash-time.workspace = true
 nym-offline-monitor.workspace = true
+nym-registration-client.workspace = true
 nym-sdk.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
-nym-wg-gateway-client.workspace = true
 sqlx-pool-guard.workspace = true
 serde.workspace = true
 si-scale.workspace = true
