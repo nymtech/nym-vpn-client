@@ -26,13 +26,6 @@ pub struct AttachedTicketMaterials {
 }
 
 impl AttachedTicketMaterials {
-    pub fn to_serialised_string(&self) -> String {
-        // TODO: we're losing revision here, but given we control both ends of the pipeline,
-        // that's fine. we can just pass it as a separate argument
-        let serialised = self.pack();
-        bs58::encode(serialised.data).into_string()
-    }
-
     pub fn from_serialised_string(raw: &str, revision: u8) -> Result<Self, Error> {
         let bytes = bs58::decode(raw)
             .into_vec()

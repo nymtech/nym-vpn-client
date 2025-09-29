@@ -16,10 +16,15 @@ pub enum Error {
     },
 
     #[error("failed to import attached tickets: {source}")]
-    TicketsImportFailure {
-        #[from]
-        source: nym_sdk::Error,
-    },
+    TicketsImportFailure { source: Box<nym_sdk::Error> },
+}
+
+impl From<nym_sdk::Error> for Error {
+    fn from(source: nym_sdk::Error) -> Self {
+        Error::TicketsImportFailure {
+            source: Box::new(source),
+        }
+    }
 }
 
 // Result type based on our error type
