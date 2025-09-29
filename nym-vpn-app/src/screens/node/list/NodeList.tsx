@@ -37,6 +37,7 @@ function NodeList({
     setExpanded,
   } = useNodeListState();
   const expanded = node === 'entry' ? entryState.expanded : exitState.expanded;
+  const focused = node === 'entry' ? entryState.focused : exitState.focused;
   const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
   const gatewaysRef = useRef<Map<string, HTMLDivElement>>(null);
 
@@ -77,7 +78,7 @@ function NodeList({
       const node = map?.get(key);
       node?.scrollIntoView({
         behavior: 'smooth',
-        block: 'nearest',
+        block: 'center',
         inline: 'center',
       });
     },
@@ -100,9 +101,19 @@ function NodeList({
   };
 
   const onValueChange = (value: string[]) => {
-    console.log(value);
     setExpanded(node, value);
   };
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (focused) {
+      timeoutId = setTimeout(() => {
+        scrollToNode(focused.type, focused.key);
+      }, 20);
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [focused, scrollToNode]);
 
   return (
     <>

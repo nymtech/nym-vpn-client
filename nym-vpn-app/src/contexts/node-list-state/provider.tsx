@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { NodeListStateContext } from './context';
+import { Focused } from './types';
 
 export type NodeListPrevStateProps = {
   children: React.ReactNode;
@@ -8,25 +9,22 @@ export type NodeListPrevStateProps = {
 function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
   const [entryExpanded, setEntryExpanded] = useState<string[]>([]);
   const [exitExpanded, setExitExpanded] = useState<string[]>([]);
-  const [entryFocused, setEntryFocused] = useState<string | null>(null);
-  const [exitFocused, setExitFocused] = useState<string | null>(null);
+  const [entryFocused, setEntryFocused] = useState<Focused | null>(null);
+  const [exitFocused, setExitFocused] = useState<Focused | null>(null);
 
-  const setExpanded = useCallback(
-    (nodeType: 'entry' | 'exit', value: string[]) => {
-      if (nodeType === 'entry') {
-        setEntryExpanded(value);
-      } else {
-        setExitExpanded(value);
-      }
-    },
-    [],
-  );
-
-  const setFocused = useCallback((nodeType: 'entry' | 'exit', key: string) => {
-    if (nodeType === 'entry') {
-      setEntryFocused(key);
+  const setExpanded = useCallback((hop: 'entry' | 'exit', value: string[]) => {
+    if (hop === 'entry') {
+      setEntryExpanded(value);
     } else {
-      setExitFocused(key);
+      setExitExpanded(value);
+    }
+  }, []);
+
+  const setFocused = useCallback((hop: 'entry' | 'exit', focus: Focused) => {
+    if (hop === 'entry') {
+      setEntryFocused(focus);
+    } else {
+      setExitFocused(focus);
     }
   }, []);
 
@@ -34,13 +32,17 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
     switch (hop) {
       case 'entry':
         setEntryExpanded([]);
+        setEntryFocused(null);
         break;
       case 'exit':
         setExitExpanded([]);
+        setExitFocused(null);
         break;
       case 'all':
         setEntryExpanded([]);
+        setEntryFocused(null);
         setExitExpanded([]);
+        setExitFocused(null);
     }
   }, []);
 

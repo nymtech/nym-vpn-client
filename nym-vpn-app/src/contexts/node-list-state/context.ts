@@ -1,27 +1,23 @@
 import { createContext, useContext } from 'react';
+import { Focused } from './types';
 
 type HopState = {
   // list of country items which are expanded,
   // country 2-letter codes
   expanded: string[];
-  // last node focused in the list,
-  // country 2-letter codes | gateway ID
-  focused: string | null;
+  // last node focused in the list
+  focused: Focused | null;
 };
 
 type State = {
   entry: HopState;
   exit: HopState;
   setExpanded: (
-    nodeType: 'entry' | 'exit',
+    hop: 'entry' | 'exit',
     // country codes
     value: string[],
   ) => void;
-  setFocused: (
-    nodeType: 'entry' | 'exit',
-    // country 2-letter codes | gateway ID
-    key: string,
-  ) => void;
+  setFocused: (hop: 'entry' | 'exit', focused: Focused) => void;
   reset: (hop: 'entry' | 'exit' | 'all') => void;
 };
 

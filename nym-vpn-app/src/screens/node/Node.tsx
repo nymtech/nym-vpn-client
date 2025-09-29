@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -29,7 +29,6 @@ function Node({ node }: { node: NodeHop }) {
   const { nodes, loading, gateways, error } = useNodeList();
   const { setFocused } = useNodeListState();
   const { tE } = useI18nError();
-  const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
@@ -83,9 +82,10 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const handleNodeDetails = (selected: UiGateway) => {
-    nodeDetailsRef.current = selected;
-    setFocused(node, selected.id);
-    navigate(routes.nodeDetails, { state: { gateway: selected, hop: node } });
+    setFocused(node, { type: 'gateway', key: selected.id });
+    navigate(routes.nodeDetails, {
+      state: { gateway: selected, hop: node },
+    });
   };
 
   if (error) {
