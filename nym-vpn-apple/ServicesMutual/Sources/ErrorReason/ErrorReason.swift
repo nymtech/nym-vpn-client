@@ -36,6 +36,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case deviceLoggedOut
     case credentialWastedOnEntryGateway
     case credentialWastedOnExitGateway
+    case performantEntryGatewayUnavailable
+    case performantExitGatewayUnavailable
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -81,6 +83,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 #endif
@@ -144,14 +150,19 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .inactiveAccount
         case .deviceLoggedOut:
             self = .deviceLoggedOut
-#if os(macOS)
-        case .existingAccount:
-            self = .existingAccount
-#endif
+
         case .credentialWastedOnEntryGateway:
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExiGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
+#if os(macOS)
+        case .existingAccount:
+            self = .existingAccount
+#endif
         }
     }
 
@@ -234,6 +245,10 @@ private extension ErrorReason {
             "errorReason.credentialWastedOnEntryGateway".localizedString
         case .credentialWastedOnExitGateway:
             "errorReason.credentialWastedOnExitGateway".localizedString
+        case .performantEntryGatewayUnavailable:
+            "errorReason.performantEntryGatewayUnavailable".localizedString
+        case .performantExitGatewayUnavailable:
+            "errorReason.performantExitGatewayUnavailable"
 #if os(macOS)
         case .existingAccount:
             "errorReason.existingAccount".localizedString
@@ -279,6 +294,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case deviceLoggedOut
     case credentialWastedOnEntryGateway
     case credentialWastedOnExitGateway
+    case performantEntryGatewayUnavailable
+    case performantExiGatewayUnavailable
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -336,6 +353,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExiGatewayUnavailable
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount

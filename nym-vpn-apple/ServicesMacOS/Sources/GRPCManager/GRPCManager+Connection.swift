@@ -32,9 +32,9 @@ private extension GRPCManager {
     func entryNode(from entryGateway: EntryGateway) -> EntryPoint {
         switch entryGateway {
         case let .country(country):
-            EntryPoint.location(location: country.code)
+            EntryPoint.country(twoLetterIsoCountryCode: country.code)
         case let .lowLatencyCountry(country):
-            EntryPoint.location(location: country.code)
+            EntryPoint.country(twoLetterIsoCountryCode: country.code)
         case let .gateway(node):
             EntryPoint.gateway(identity: node.id)
         case .random:
@@ -45,7 +45,7 @@ private extension GRPCManager {
     func exitNode(from exitRouter: ExitRouter) -> ExitPoint {
         switch exitRouter {
         case let .country(country):
-            ExitPoint.location(location: country.code)
+            ExitPoint.country(twoLetterIsoCountryCode: country.code)
         case let .gateway(node):
             ExitPoint.gateway(identity: node.id)
         }

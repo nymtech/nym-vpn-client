@@ -1,8 +1,9 @@
 import Foundation
 import CountriesManagerTypes
+import NymVPNRpc
 
 extension GatewayPerformance {
-    init(with performance: NymVpnService_Performance) {
+    init(with performance: Performance) {
         self.init(
             lastUpdated: ISO8601DateFormatter().date(from: performance.lastUpdatedUtc),
             score: GatewayNodeScore(with: performance.score),

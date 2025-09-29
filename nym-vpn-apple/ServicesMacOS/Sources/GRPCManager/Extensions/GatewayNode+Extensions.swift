@@ -4,8 +4,8 @@ import CountriesManagerTypes
 extension GatewayNode {
     init(with newGateway: Gateway) {
         self.init(
-            id: newGateway.id.id,
-            countryCode: newGateway.location.twoLetterIsoCountryCode,
+            id: newGateway.identityKey,
+            countryCode: newGateway.location?.twoLetterIsoCountryCode,
             city: newGateway.location.city,
             region: newGateway.location.region,
             asn: GatewayASN(with: newGateway.location.asn),
