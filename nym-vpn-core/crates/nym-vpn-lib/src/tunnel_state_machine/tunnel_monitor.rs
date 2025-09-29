@@ -75,7 +75,7 @@ use crate::{
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
-            mixnet,
+            mixnet, transports,
             wireguard::{
                 self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
             },
@@ -463,12 +463,8 @@ impl TunnelMonitor {
 
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
-        let registration_client = Box::pin(rc_builder.build())
-            .await
-            .map_err(|e| Box::new(tunnel::Error::RegistrationClient(Box::new(e))))?;
-        let registration_result = Box::pin(registration_client.register())
-            .await
-            .map_err(|e| Box::new(tunnel::Error::RegistrationClient(Box::new(e))))?;
+        let registration_client = Box::pin(rc_builder.build()).await?;
+        let registration_result = Box::pin(registration_client.register()).await?;
 
         let (entry_metadata_tx, entry_metadata_rx) =
             tokio::sync::oneshot::channel::<MetadataEvent>();
@@ -487,7 +483,7 @@ impl TunnelMonitor {
             RegistrationResult::Wireguard(inner_result) => {
                 // As a first step, spin the bw controller here
                 let connected_tunnel = self
-                    .start_bandwidth_controller(
+                    .setup_wireguard_tunnel(
                         *inner_result,
                         entry_metadata_rx,
                         exit_metadata_rx,
@@ -795,7 +791,7 @@ impl TunnelMonitor {
         })
     }
 
-    async fn start_bandwidth_controller(
+    async fn setup_wireguard_tunnel(
         &self,
         registration_result: WireguardRegistrationResult,
         entry_metadata_rx: MetadataReceiver,
@@ -829,7 +825,7 @@ impl TunnelMonitor {
 
         let bw = BandwidthController::create(
             bw_controller,
-            selected_gateways,
+            &selected_gateways,
             entry_legacy_client,
             exit_legacy_client,
             entry_gateway_data.clone(),
@@ -857,14 +853,42 @@ impl TunnelMonitor {
         };
         let bandwidth_controller_handle = tokio::spawn(bw.run());
 
+        let mut connection_data = WgConnectionData {
+            entry_bridge_addr: None,
+            entry: entry_gateway_data,
+            exit: exit_gateway_data,
+        };
+
+        let mut transport_fwd_handle = None;
+        if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+            let entry_bridge_params = selected_gateways.entry.get_bridge_params().ok_or(
+                transports::TransportError::config_err(
+                    "attempted to open transport connection without bridge params",
+                ),
+            )?;
+
+            // Attempt transport Connection. If successful a listening UDP connection is created
+            // and the bind address of that UDP listener is provided to the entry wireguard tunnel
+            // as the endpoint address.
+            tracing::info!("Establishing DVPN QUIC transport tunnel");
+            let udp_fwd_cancel = self.shutdown_token.child_token();
+            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
+            let (local_fwd_listen_addr, fwd_handle) =
+                transports::UdpForwarder::launch(bridge_conn, None, udp_fwd_cancel.clone()).await?;
+            transport_fwd_handle = Some(fwd_handle);
+            tracing::info!(
+                "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
+            );
+            connection_data.entry.endpoint = local_fwd_listen_addr;
+        };
+
         Ok(wireguard::connected_tunnel::ConnectedTunnel::new(
             entry_wg_keypair,
             exit_wg_keypair,
-            WgConnectionData {
-                entry: entry_gateway_data,
-                exit: exit_gateway_data,
-            },
+            connection_data,
             bandwidth_controller_handle,
+            transport_fwd_handle,
             authenticator_listener_handle,
         ))
     }
@@ -876,6 +900,7 @@ impl TunnelMonitor {
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_tun_mtu = connected_tunnel.exit_mtu();
@@ -952,6 +977,7 @@ impl TunnelMonitor {
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_mtu = connected_tunnel.exit_mtu();
@@ -1056,6 +1082,7 @@ impl TunnelMonitor {
         connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
@@ -1171,6 +1198,8 @@ impl TunnelMonitor {
         connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_tun_mtu = connected_tunnel.entry_mtu();
         let exit_tun_mtu = connected_tunnel.exit_mtu();

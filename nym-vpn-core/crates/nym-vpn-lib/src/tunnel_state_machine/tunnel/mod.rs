@@ -13,10 +13,9 @@ use nym_gateway_directory::GatewayCacheHandle;
 use nym_vpn_api_client::types::ScoreThresholds;
 use tokio_util::sync::CancellationToken;
 
-use super::TunnelType;
 #[cfg(windows)]
 use super::route_handler;
-use crate::{GatewayDirectoryError, MixnetError};
+use crate::{GatewayDirectoryError, MixnetError, tunnel_state_machine::TunnelSettings};
 pub use any_tunnel_handle::AnyTunnelHandle;
 pub use tombstone::Tombstone;
 
