@@ -109,7 +109,10 @@ private extension GatewayDetailsView {
 
     func missingInfoText() -> some View {
         HStack(spacing: 0) {
-            rowSubtite(with: "gatewayInfo.missingInfo".localizedString)
+            Text(missingInfoAttributedString() ?? "")
+                .tint(NymColor.gray1)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
                 .underline()
             exportImage()
                 .padding(.horizontal, 8)
@@ -123,24 +126,35 @@ private extension GatewayDetailsView {
         }
     }
 
+    func missingInfoAttributedString() -> AttributedString? {
+        try? AttributedString(markdown: "[\("gatewayInfo.missingInfo".localizedString)](\(Constants.serverLocationURL.rawValue))")
+    }
+
     func explorer() -> some View {
         HStack(spacing: 0) {
-            rowTitle(with: "\("gatewayInfo.moreDetailsIn".localizedString) ")
-            HStack(spacing: 0) {
-                rowSubtite(with: "gatewayInfo.networkExplorer".localizedString)
-                    .underline()
-                exportImage()
-                    .padding(.horizontal, 8)
-                Spacer()
-            }
-            .accessibilityAction {
-                openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
-            }
-            .onTapGesture {
-                openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
-            }
+            Text(explorerAttributedString() ?? "")
+                .tint(NymColor.gray1)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
+            exportImage()
+                .padding(.horizontal, 8)
             Spacer()
+        }.accessibilityAction {
+            openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
         }
+        .onTapGesture {
+            openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
+        }
+    }
+
+    func explorerAttributedString() -> AttributedString? {
+        let markdown = "\("gatewayInfo.moreDetailsIn".localizedString) [\("gatewayInfo.networkExplorer".localizedString)](\(Constants.explorerURL.rawValue)\(gateway.id))"
+
+        guard var explorerMarkdownString = try? AttributedString(markdown: markdown) else { return nil }
+        for run in explorerMarkdownString.runs where run.link != nil {
+            explorerMarkdownString[run.range].underlineStyle = .single
+        }
+        return explorerMarkdownString
     }
 
     func selectServerSection() -> some View {
@@ -180,7 +194,7 @@ private extension GatewayDetailsView {
 
     func rowSubtite(with subtitle: String) -> some View {
         Text(subtitle)
-            .foregroundStyle(NymColor.white)
+            .foregroundStyle(NymColor.primary)
             .textStyle(.Body.Medium.regular)
     }
 
@@ -326,7 +340,7 @@ private extension GatewayDetailsView {
                 .frame(height: 8)
             HStack(spacing: 0) {
                 Text(gateway.id)
-                    .foregroundStyle(NymColor.white)
+                    .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Medium.regular)
                 Spacer()
                     .frame(width: 16)
