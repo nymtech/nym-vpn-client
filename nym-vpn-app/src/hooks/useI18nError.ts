@@ -63,12 +63,9 @@ function useI18nError() {
           case 'ipv6-unavailable':
             return fmtErr(t('tunnel.ipv6-unavailable'), message);
           case 'credential-wasted-on-entry-gateway':
-            return fmtErr(
-              t('tunnel.entry-gateway-bandwidth-increase'),
-              message,
-            );
+            return fmtErr(t('tunnel.credential-wasted-entry-gw'), message);
           case 'credential-wasted-on-exit-gateway':
-            return fmtErr(t('tunnel.exit-gateway-bandwidth-increase'), message);
+            return fmtErr(t('tunnel.credential-wasted-exit-gw'), message);
           case 'performant-entry-gw-unavailable':
             return fmtErr(t('tunnel.performant-entry-gw-unavailable'), message);
           case 'performant-exit-gw-unavailable':

@@ -15,8 +15,12 @@
     "same-entry-exit-gw": "Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.",
     "invalid-entry-gw-country": "Invalid country for entry server. Choose another and reconnect.",
     "invalid-exit-gw-country": "Invalid country for exit server. Choose another and reconnect.",
-    "invalid-entry-gw-id": "Entry server offline. Choose another and reconnect.",
-    "invalid-exit-gw-id": "Exit server offline. Choose another and reconnect.",
+    "invalid-entry-gw-id": "Entry server is offline. Choose another and reconnect.",
+    "invalid-exit-gw-id": "Exit server is offline. Choose another and reconnect.",
+    "credential-wasted-entry-gw": "Entry server is not responding or responding badly to a bandwidth increase.",
+    "credential-wasted-exit-gw": "Exit server is not responding or responding badly to a bandwidth increase.",
+    "performant-entry-gw-unavailable": "Can't reach entry server. Try another!",
+    "performant-exit-gw-unavailable": "Can't reach exit server. Try another!",
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
     "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
     "subscription-expired": "Subscription has expired. Kill switch protects you. Tap Stop and renew your plan.",
@@ -25,11 +29,7 @@
     "tun-device": "TUN device error",
     "tunnel-provider": "Tunnel provider error",
     "inactive-account": "Your account is inactive",
-    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN.",
-    "entry-gateway-bandwidth-increase": "Entry gateway is not responding or responding badly to a bandwidth increase.",
-    "exit-gateway-bandwidth-increase": "Exit gateway is not responding or responding badly to a bandwidth increase.",
-    "performant-entry-gw-unavailable": "The entry gateway can't connect. Try another!",
-    "performant-exit-gw-unavailable": "The exit gateway can't connect. Try another!"
+    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN."
   },
   "account": {
     "internal": "Internal account error",
