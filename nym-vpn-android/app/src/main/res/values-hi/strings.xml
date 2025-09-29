@@ -81,8 +81,6 @@
     <string name="low_bandwidth">"बैंडविड्थ कम हो गई है! बचे हुए बैंडविड्थ: "</string>
     <string name="vpn_permission_missing">VPN अनुमति स्वीकार नहीं की गई है या किसी अन्य ऐप द्वारा उपयोग की जा रही है।</string>
 	<string name="action_requires_tunnel_down">यह क्रिया तभी संभव है जब टनल बंद हो।</string>
-    <string name="selected_exit_unavailable">चयनित एग्जिट देश उपलब्ध नहीं है। कृपया किसी अन्य एग्जिट देश का चयन करें।</string>
-    <string name="selected_entry_unavailable">चयनित एंट्री देश उपलब्ध नहीं है। कृपया किसी अन्य एंट्री देश का चयन करें।</string>
 	<string name="device_added_success">डिवाइस सफलतापूर्वक आपके खाते में जोड़ा गया है</string>
     <string name="invalid_recovery_phrase">अमान्य रिकवरी फ़्रेज़</string>
     <string name="recovery_phrase">रिकवरी फ़्रेज़</string>
@@ -107,8 +105,7 @@
     <string name="access_code">२४ शब्दों का एक्सेस कोड</string>
     <string name="support_and_feedback"></string>
     <string name="get_in_touch">संपर्क करें</string>
-    <string name="same_entry_exit_message">For privacy, NymVPN won\'t use the same gateway for entry and exit. Reconnect or choose different locations।</string>
-    <string name="device_id">डिवाइस आईडी</string>
+	<string name="device_id">डिवाइस आईडी</string>
     <string name="unexpected_error">एक अप्रत्याशित त्रुटि हुई:</string>
 	<string name="loading">लोड हो रहा है</string>
     <string name="offline">इंटरनेट नहीं है</string>
