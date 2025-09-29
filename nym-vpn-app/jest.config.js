@@ -6,6 +6,7 @@ export default {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(svg|png|jpg|jpeg|gif)$': '<rootDir>/src/test/__mocks__/fileMock.js',
+    '\\.svg\\?react$': '<rootDir>/src/test/__mocks__/svgMock.js',
   },
   transform: {
     '^.+\\.tsx?$': [
