@@ -4,7 +4,7 @@
 use std::net::SocketAddr;
 
 use crate::tunnel_state_machine::TunnelMetadata;
-use nym_registration_client::GatewayData;
+use nym_registration_common::GatewayData;
 
 pub mod connected_tunnel;
 

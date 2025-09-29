@@ -6,7 +6,7 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::{ShutdownManager, mixnet::MixnetClient};
+use nym_sdk::mixnet::MixnetClient;
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
@@ -16,9 +16,6 @@ use tun::{AsyncDevice, TunPacket, TunPacketCodec};
 pub(super) struct MixnetListener {
     // Mixnet client for receiving messages
     mixnet_client: MixnetClient,
-
-    // Listen to mixnetclient shutdown
-    mixnet_shutdown_manager: ShutdownManager,
 
     // IPR client for handling responses
     ipr_listener: IprListener,
@@ -42,7 +39,6 @@ pub(super) struct MixnetListener {
 impl MixnetListener {
     pub(super) fn spawn(
         mixnet_client: MixnetClient,
-        mixnet_shutdown_manager: ShutdownManager,
         tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
@@ -52,7 +48,6 @@ impl MixnetListener {
         let ipr_listener = IprListener::new();
         let mixnet_listener = Self {
             mixnet_client,
-            mixnet_shutdown_manager,
             ipr_listener,
             tun_device_sink,
             icmp_beacon_identifier,
@@ -79,15 +74,16 @@ impl MixnetListener {
     }
 
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
+        let mixnet_cancel_token = self.mixnet_client.cancellation_token().clone();
         loop {
             tokio::select! {
+                biased;
                 _ = self.shutdown_token.cancelled() => {
                     tracing::debug!("Mixnet listener: Received shutdown");
                     break;
                 }
-                _ = self.mixnet_shutdown_manager.run_until_shutdown() => {
+                _ = mixnet_cancel_token.cancelled() => {
                     tracing::debug!("Mixnet listener: Mixnet client stopped");
-                    self.shutdown_token.cancel();
                     break;
                 }
                 reconstructed_message = self.mixnet_client.next() => match reconstructed_message {
@@ -127,8 +123,10 @@ impl MixnetListener {
             }
         }
 
-        tracing::info!("Disconnecting mixnet client");
-        self.mixnet_client.disconnect().await;
+        if !self.mixnet_client.cancellation_token().is_cancelled() {
+            tracing::info!("Disconnecting mixnet client");
+            self.mixnet_client.disconnect().await;
+        }
 
         tracing::debug!("Mixnet listener: Exiting");
         self.tun_device_sink

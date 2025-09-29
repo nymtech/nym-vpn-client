@@ -68,6 +68,7 @@ nym-network-defaults = { path = "../../nym/common/network-defaults" }
 nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
 nym-pemstore = { path = "../../nym/common/pemstore" }
 nym-registration-client = { path = "../../nym/nym-registration-client" }
+nym-registration-common = { path = "../../nym/common/registration" }
 nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
 nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
 nym-statistics-common = { path = "../../nym/common/statistics" }
@@ -264,3 +265,5 @@ nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym"
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }
+
+nym-registration-common = { path = "../../nym/common/registration" } # SW change this before PR
