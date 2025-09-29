@@ -1516,6 +1516,7 @@ exit_point = "Random"
   "dns": null,
   "disable_ipv6": false,
   "enable_two_hop": false,
+  "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
   "disable_background_cover_traffic": false,
