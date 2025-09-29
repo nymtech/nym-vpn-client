@@ -26,9 +26,9 @@ time.workspace = true
 
 nym-bandwidth-controller = { workspace = true, optional = true }
 nym-connection-monitor = { workspace = true, optional = true }
-nym-gateway-directory = { workspace = true }
+nym-gateway-directory.workspace = true
 nym-statistics-common = { workspace = true, optional = true }
-nym-vpn-api-client = { workspace = true }
+nym-vpn-api-client.workspace = true
 nym-wg-gateway-client = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
-strum_macros = { workspace = true }
+strum_macros.workspace = true
