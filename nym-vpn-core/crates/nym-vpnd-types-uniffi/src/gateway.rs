@@ -27,16 +27,16 @@ pub struct GatewayPerformance {
 }
 
 #[derive(uniffi::Enum)]
-pub enum AsnKind {
+pub enum GatewayAsnKind {
     Residential,
     Other,
 }
 
 #[derive(uniffi::Record)]
-pub struct Asn {
+pub struct GatewayAsn {
     pub asn: String,
     pub name: String,
-    pub kind: AsnKind,
+    pub kind: GatewayAsnKind,
 }
 
 #[derive(uniffi::Record)]
@@ -48,7 +48,7 @@ pub struct GatewayLocation {
     pub city: String,
     pub region: String,
 
-    pub asn: Option<Asn>,
+    pub asn: Option<GatewayAsn>,
 }
 
 #[derive(uniffi::Record)]
@@ -56,18 +56,18 @@ pub struct GatewayCountry {
     pub iso_code: String,
 }
 
-impl From<nym_vpnd_types::gateway::AsnKind> for AsnKind {
+impl From<nym_vpnd_types::gateway::AsnKind> for GatewayAsnKind {
     fn from(value: nym_vpnd_types::gateway::AsnKind) -> Self {
         match value {
-            nym_vpnd_types::gateway::AsnKind::Residential => AsnKind::Residential,
-            nym_vpnd_types::gateway::AsnKind::Other => AsnKind::Other,
+            nym_vpnd_types::gateway::AsnKind::Residential => GatewayAsnKind::Residential,
+            nym_vpnd_types::gateway::AsnKind::Other => GatewayAsnKind::Other,
         }
     }
 }
 
-impl From<nym_vpnd_types::gateway::Asn> for Asn {
+impl From<nym_vpnd_types::gateway::Asn> for GatewayAsn {
     fn from(value: nym_vpnd_types::gateway::Asn) -> Self {
-        Asn {
+        GatewayAsn {
             asn: value.asn,
             name: value.name,
             kind: value.kind.into(),
