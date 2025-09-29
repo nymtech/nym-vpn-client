@@ -641,11 +641,17 @@ impl fmt::Display for StatusOk {
     }
 }
 
-pub fn extract_error_response(err: VpnApiClientError) -> NymErrorResponse {
-    NymErrorResponse {
-        message: err.to_string(),
-        ..Default::default()
+pub fn extract_error_response(err: &VpnApiClientError) -> Option<NymErrorResponse> {
+    // Try to extract the HttpClientError and parse structured error response
+    if let Some(nym_http_api_client::HttpClientError::EndpointFailure { error, .. }) =
+        err.http_client_error()
+    {
+        // Try to parse the error string as NymErrorResponse
+        if let Ok(parsed) = serde_json::from_str::<NymErrorResponse>(error) {
+            return Some(parsed);
+        }
     }
+    None
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -724,20 +730,3 @@ pub struct NymWellknownDiscoveryItem {
 }
 
 pub type RegisteredNetworksResponse = HashSet<String>;
-
-impl TryFrom<VpnApiClientError> for NymErrorResponse {
-    type Error = VpnApiClientError;
-
-    fn try_from(err: VpnApiClientError) -> Result<Self, Self::Error> {
-        // Try to extract the HttpClientError and parse structured error response
-        if let Some(nym_http_api_client::HttpClientError::EndpointFailure { error, .. }) =
-            err.http_client_error()
-        {
-            // Try to parse the error string as NymErrorResponse
-            if let Ok(parsed) = serde_json::from_str::<NymErrorResponse>(error) {
-                return Ok(parsed);
-            }
-        }
-        Err(err)
-    }
-}
