@@ -198,6 +198,13 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
+        if self.config.enable_bridges != enable_bridges {
+            self.config.enable_bridges = enable_bridges;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         if self.config.disable_poisson_rate != disable_poisson_rate {
             self.config.disable_poisson_rate = disable_poisson_rate;

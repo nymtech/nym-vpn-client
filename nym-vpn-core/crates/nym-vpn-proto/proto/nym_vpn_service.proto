@@ -286,6 +286,7 @@ message GatewayResponse {
   GatewayId id = 1;
   RichLocation location = 2;
   Probe last_probe = 3;
+  optional uint32 mixnet_performance = 10;
   optional Performance wg_performance = 4;
   optional Score mixnet_score = 5;
   string moniker = 6;
@@ -707,6 +708,7 @@ service NymVpnService {
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
