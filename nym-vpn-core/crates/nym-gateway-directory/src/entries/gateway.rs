@@ -703,13 +703,9 @@ mod tests {
             name: "Test ASN".to_string(),
             kind: AsnKind::Residential,
         };
-        let ipr = IpPacketRouterAddress::try_from_base58_string(
-            "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e",
-        )
-        .unwrap();
-        let aa =
-            AuthAddress::try_from_base58_string("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e")
-                .unwrap();
+        let addr = "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e";
+        let ipr = IpPacketRouterAddress::try_from_base58_string(addr).unwrap();
+        let aa = AuthAddress::try_from_base58_string(addr).unwrap();
         let variables = [
             ("US", "CA", None, Some(ipr), Some(aa)),     // Gateway 1
             ("US", "NY", Some(asn.clone()), None, None), // Gateway 2
