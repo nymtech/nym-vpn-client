@@ -9,12 +9,12 @@ import {
   useDialog,
   useMainDispatch,
   useMainState,
-  useNodesState,
+  useNodeList,
 } from '../../contexts';
 import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
-import { uiNodeToRaw } from '../../contexts/nodes/util';
+import { uiNodeToRaw } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import LocationDetailsDialog from './LocationDetailsDialog';
@@ -25,7 +25,7 @@ function Node({ node }: { node: NodeHop }) {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
-  const { nodes, loading, gateways, error } = useNodesState();
+  const { nodes, loading, gateways, error } = useNodeList();
   const { tE } = useI18nError();
   const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 

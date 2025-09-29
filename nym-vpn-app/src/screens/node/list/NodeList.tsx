@@ -6,6 +6,7 @@ import {
   UiCountry,
   UiGateway,
   UiGatewaysByCountry,
+  useNodeListState,
 } from '../../../contexts';
 import { NodeHop, VpnMode } from '../../../types';
 import CountryInfo from './CountryInfo';
@@ -29,6 +30,13 @@ function NodeList({
   vpnMode,
   onNodeDetails,
 }: NodeListProps) {
+  const {
+    exit: exitState,
+    entry: entryState,
+    setExpanded,
+  } = useNodeListState();
+  const expanded = node === 'entry' ? entryState.expanded : exitState.expanded;
+
   const handleCountrySelect = (
     country: UiCountry,
     isSelected: SelectedKind,
@@ -44,11 +52,18 @@ function NodeList({
     }
   };
 
+  const onValueChange = (value: string[]) => {
+    console.log(value);
+    setExpanded(node, value);
+  };
+
   return (
     <>
       <Accordion.Root
         className="w-full flex flex-col gap-3"
         data-testid="node-list-accordion"
+        value={expanded}
+        onValueChange={onValueChange}
         openMultiple
       >
         {nodes.map(({ i18n, isSelected, gateways, country }) => (

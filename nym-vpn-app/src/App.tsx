@@ -10,6 +10,7 @@ import {
   DialogProvider,
   InAppNotificationProvider,
   MainStateProvider,
+  NodeListStateProvider,
 } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
@@ -68,13 +69,15 @@ function App({ init }: { init: InitState }) {
         <Toast.Provider>
           <MainStateProvider init={init}>
             <GatewaysProvider>
-              <ThemeSetter>
-                <DialogProvider>
-                  <Suspense fallback={<RouteLoading />}>
-                    <RouterProvider router={router} />
-                  </Suspense>
-                </DialogProvider>
-              </ThemeSetter>
+              <NodeListStateProvider>
+                <ThemeSetter>
+                  <DialogProvider>
+                    <Suspense fallback={<RouteLoading />}>
+                      <RouterProvider router={router} />
+                    </Suspense>
+                  </DialogProvider>
+                </ThemeSetter>
+              </NodeListStateProvider>
             </GatewaysProvider>
           </MainStateProvider>
         </Toast.Provider>
