@@ -180,17 +180,14 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn set_residential_exit_only(
+    async fn set_residential_exit(
         &self,
         request: tonic::Request<bool>,
     ) -> Result<tonic::Response<()>> {
-        let residential_exit_only = request.into_inner();
+        let residential_exit = request.into_inner();
 
         let _ = self
-            .send_and_wait(
-                VpnServiceCommand::SetResidentialExitOnly,
-                residential_exit_only,
-            )
+            .send_and_wait(VpnServiceCommand::SetResidentialExit, residential_exit)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to set residential exit only: {e}"))

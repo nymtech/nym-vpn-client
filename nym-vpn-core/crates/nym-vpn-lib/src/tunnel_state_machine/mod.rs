@@ -132,7 +132,7 @@ pub struct TunnelSettings {
     pub allow_lan: bool,
 
     /// Select residential exit gateways only.
-    pub residential_exit_only: bool,
+    pub residential_exit: bool,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,

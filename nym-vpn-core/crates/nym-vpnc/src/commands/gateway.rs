@@ -98,11 +98,7 @@ impl Args {
                 println!("Exit point: {}", config.exit_point);
                 println!(
                     "Residential exit: {}",
-                    if config.residential_exit_only {
-                        "on"
-                    } else {
-                        "off"
-                    }
+                    if config.residential_exit { "on" } else { "off" }
                 );
                 Ok(())
             }
@@ -118,9 +114,7 @@ impl Args {
                 }
 
                 if let Some(residential_exit) = args.residential_exit {
-                    rpc_client
-                        .set_residential_exit_only(*residential_exit)
-                        .await?;
+                    rpc_client.set_residential_exit(*residential_exit).await?;
                 }
 
                 Ok(())

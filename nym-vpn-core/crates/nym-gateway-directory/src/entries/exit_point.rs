@@ -55,7 +55,7 @@ impl ExitPoint {
         gateways: &GatewayList,
         min_wg_performance: Option<u8>,
         min_mixnet_performance: Option<u8>,
-        residential_exit_only: bool,
+        residential_exit: bool,
     ) -> Result<Gateway> {
         match &self {
             ExitPoint::Address { address } => {
@@ -89,7 +89,7 @@ impl ExitPoint {
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
 
-                let filters = if residential_exit_only {
+                let filters = if residential_exit {
                     vec![
                         GatewayFilter::Country(two_letter_iso_country_code.clone()),
                         GatewayFilter::MinPerformance {
@@ -119,7 +119,7 @@ impl ExitPoint {
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
 
-                let filters = if residential_exit_only {
+                let filters = if residential_exit {
                     vec![
                         // Currently only supported in the US
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
@@ -153,7 +153,7 @@ impl ExitPoint {
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
 
-                let filters = if residential_exit_only {
+                let filters = if residential_exit {
                     vec![
                         GatewayFilter::MinPerformance {
                             min_wg_performance,

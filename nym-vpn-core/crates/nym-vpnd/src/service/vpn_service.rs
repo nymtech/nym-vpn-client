@@ -71,7 +71,7 @@ pub enum VpnServiceCommand {
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
-    SetResidentialExitOnly(oneshot::Sender<()>, bool),
+    SetResidentialExit(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -667,9 +667,8 @@ impl NymVpnService {
                 self.handle_set_enable_bridges(enable_bridges).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetResidentialExitOnly(tx, residential_exit_only) => {
-                self.handle_set_residential_exit_only(residential_exit_only)
-                    .await;
+            VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
+                self.handle_set_residential_exit(residential_exit).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
@@ -827,9 +826,9 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_residential_exit_only(&mut self, residential_exit_only: bool) {
+    async fn handle_set_residential_exit(&mut self, residential_exit: bool) {
         self.config_manager
-            .set_residential_exit_only(residential_exit_only)
+            .set_residential_exit(residential_exit)
             .await;
         self.update_tunnel_settings_with_throttle();
     }
@@ -926,7 +925,7 @@ impl NymVpnService {
             min_gateway_vpn_performance: None,
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
-            residential_exit_only: false,
+            residential_exit: false,
         };
 
         self.config_manager.set_config(config).await;
