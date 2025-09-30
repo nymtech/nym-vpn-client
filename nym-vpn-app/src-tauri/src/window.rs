@@ -122,7 +122,7 @@ impl AppWindow {
             })
             .ok_or_else(|| {
                 error!("failed to get window {label}");
-                anyhow!("failed to get window {}", label)
+                anyhow!("failed to get window {label}")
             })?;
         Ok(window)
     }
