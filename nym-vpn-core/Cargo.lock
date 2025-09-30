@@ -5539,9 +5539,11 @@ dependencies = [
  "nym-connection-monitor",
  "nym-gateway-directory",
  "nym-registration-common",
+ "nym-sdk",
  "nym-statistics-common",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-network-config",
  "serde",
  "si-scale",
  "strum_macros 0.26.4",
@@ -5759,32 +5761,6 @@ dependencies = [
  "vergen-gitcl",
  "windows 0.61.3",
  "windows-service",
-]
-
-[[package]]
-name = "nym-vpnd-types"
-version = "1.17.0-beta"
-dependencies = [
- "nym-gateway-directory",
- "nym-sdk",
- "nym-validator-client",
- "nym-vpn-lib-types",
- "nym-vpn-network-config",
- "serde",
- "time",
- "zeroize",
-]
-
-[[package]]
-name = "nym-vpnd-types-uniffi"
-version = "1.17.0-beta"
-dependencies = [
- "nym-gateway-directory",
- "nym-vpn-api-client",
- "nym-vpn-lib-types-uniffi",
- "nym-vpnd-types",
- "time",
- "uniffi",
 ]
 
 [[package]]
