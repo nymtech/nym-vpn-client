@@ -6,8 +6,8 @@ use tabled::Table;
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
+use nym_vpn_lib_types::ListGatewaysOptions;
 use nym_vpn_proto::rpc_client::RpcClient;
-use nym_vpnd_types::ListGatewaysOptions;
 
 use crate::table_style::TableStyle;
 
@@ -228,7 +228,7 @@ pub struct GatewayModel {
 }
 
 impl GatewayModel {
-    fn new(gateway: nym_vpnd_types::gateway::Gateway, gw_type: GatewayType) -> Self {
+    fn new(gateway: nym_vpn_lib_types::Gateway, gw_type: GatewayType) -> Self {
         Self {
             id: gateway.identity_key,
             name: gateway.moniker,

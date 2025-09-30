@@ -35,15 +35,11 @@ use nym_vpn_lib::{
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, TunnelEvent, TunnelState, VpnServiceConfig,
+    AccountCommandError, AccountControllerState, ConnectArgs, Gateway, ListGatewaysOptions,
+    LogPath, StoreAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
-use nym_vpnd_types::{
-    ListGatewaysOptions, StoreAccountRequest,
-    gateway::Gateway,
-    log_path::LogPath,
-    service::{ConnectArgs, TargetState, VpnServiceInfo},
-};
 
 use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
@@ -881,7 +877,7 @@ impl NymVpnService {
                 .map(|gateways| {
                     gateways
                         .into_iter()
-                        .map(nym_vpnd_types::gateway::Gateway::from)
+                        .map(nym_vpn_lib_types::Gateway::from)
                         .collect::<Vec<_>>()
                 });
 

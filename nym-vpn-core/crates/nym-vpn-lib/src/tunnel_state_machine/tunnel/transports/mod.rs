@@ -1,20 +1,23 @@
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use base64::prelude::*;
 use bytes::{Buf, BytesMut};
 use futures::{Sink, SinkExt, Stream, StreamExt};
-use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::net::UdpSocket;
-use tokio::task::JoinHandle;
-use tokio_util::codec::LengthDelimitedCodec;
-use tokio_util::sync::CancellationToken;
+use tokio::{
+    io::{AsyncRead, AsyncWrite},
+    net::UdpSocket,
+    task::JoinHandle,
+};
+use tokio_util::{codec::LengthDelimitedCodec, sync::CancellationToken};
 use tracing::*;
 
 mod certs;
 use certs::*;
-pub use nym_vpn_lib_types::bridges::*;
+pub use nym_vpn_lib_types::{BridgeInformation, BridgeParameters, QuicClientOptions};
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
 const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);

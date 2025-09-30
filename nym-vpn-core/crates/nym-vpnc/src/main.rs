@@ -11,9 +11,8 @@ use sysinfo::System;
 use tokio_stream::StreamExt;
 
 use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
-use nym_vpnd_types::service::VpnServiceInfo;
 
 use crate::table_style::TableStyle;
 

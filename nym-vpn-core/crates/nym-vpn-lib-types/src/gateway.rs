@@ -60,7 +60,6 @@ pub struct Location {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
     pub longitude: f64,
-
     pub city: String,
     pub region: String,
     pub asn: Option<Asn>,

@@ -1,4 +1,17 @@
-use crate::{EntryPoint, ExitPoint};
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use time::OffsetDateTime;
+
+use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
+
+pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
+
+uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
+    remote,
+    try_lift: |val| Ok(Box::new(val)),
+    lower: |val| *val
+});
 
 #[derive(uniffi::Record)]
 pub struct VpnServiceConfig {
@@ -17,8 +30,8 @@ pub struct VpnServiceConfig {
     pub min_gateway_vpn_performance: Option<u8>,
 }
 
-impl From<nym_vpn_lib_types::service::VpnServiceConfig> for VpnServiceConfig {
-    fn from(value: nym_vpn_lib_types::service::VpnServiceConfig) -> Self {
+impl From<nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfig {
+    fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         Self {
             entry_point: value.entry_point.into(),
             exit_point: value.exit_point.into(),
@@ -37,7 +50,7 @@ impl From<nym_vpn_lib_types::service::VpnServiceConfig> for VpnServiceConfig {
     }
 }
 
-impl From<VpnServiceConfig> for nym_vpn_lib_types::service::VpnServiceConfig {
+impl From<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     fn from(value: VpnServiceConfig) -> Self {
         Self {
             entry_point: value.entry_point.into(),
@@ -57,10 +70,27 @@ impl From<VpnServiceConfig> for nym_vpn_lib_types::service::VpnServiceConfig {
     }
 }
 
-pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
+#[derive(uniffi::Record)]
+pub struct VpnServiceInfo {
+    pub version: String,
+    pub build_timestamp: Option<OffsetDateTime>,
+    pub triple: String,
+    pub platform: String,
+    pub git_commit: String,
+    pub nym_network: NymNetworkDetails,
+    pub nym_vpn_network: NymVpnNetwork,
+}
 
-uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
-    remote,
-    try_lift: |val| Ok(Box::new(val)),
-    lower: |val| *val
-});
+impl From<nym_vpn_lib_types::VpnServiceInfo> for VpnServiceInfo {
+    fn from(info: nym_vpn_lib_types::VpnServiceInfo) -> Self {
+        VpnServiceInfo {
+            version: info.version,
+            build_timestamp: info.build_timestamp,
+            triple: info.triple,
+            platform: info.platform,
+            git_commit: info.git_commit,
+            nym_network: NymNetworkDetails::from(info.nym_network.network),
+            nym_vpn_network: NymVpnNetwork::from(info.nym_vpn_network),
+        }
+    }
+}

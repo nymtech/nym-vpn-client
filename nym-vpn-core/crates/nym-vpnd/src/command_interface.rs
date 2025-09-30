@@ -16,14 +16,10 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 
-use nym_vpn_lib_types::TunnelEvent;
+use nym_vpn_lib_types::{ConnectArgs, ListGatewaysOptions, TargetState, TunnelEvent};
 use nym_vpn_proto::proto::{
     self,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
-};
-use nym_vpnd_types::{
-    ListGatewaysOptions,
-    service::{ConnectArgs, TargetState},
 };
 
 use crate::service::{SetNetworkError, VpnServiceCommand};
@@ -335,7 +331,7 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let store_request = nym_vpnd_types::StoreAccountRequest::from(request.into_inner());
+        let store_request = nym_vpn_lib_types::StoreAccountRequest::from(request.into_inner());
         let result = self
             .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
             .await?;

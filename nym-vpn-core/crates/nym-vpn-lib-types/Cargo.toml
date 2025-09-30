@@ -23,12 +23,16 @@ nym-type-conversions = [
 si-scale.workspace = true
 thiserror.workspace = true
 time.workspace = true
+zeroize.workspace = true
 
 nym-bandwidth-controller = { workspace = true, optional = true }
 nym-connection-monitor = { workspace = true, optional = true }
-nym-gateway-directory.workspace = true
+nym-gateway-directory = { workspace = true }
+nym-sdk.workspace = true
+nym-validator-client.workspace = true
 nym-statistics-common = { workspace = true, optional = true }
-nym-vpn-api-client.workspace = true
+nym-vpn-network-config.workspace = true
+nym-vpn-api-client = { workspace = true }
 nym-wg-gateway-client = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 strum_macros.workspace = true

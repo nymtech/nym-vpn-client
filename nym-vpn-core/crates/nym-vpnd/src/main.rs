@@ -20,7 +20,7 @@ use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib::UserAgent;
-use nym_vpnd_types::log_path::LogPath;
+use nym_vpn_lib_types::LogPath;
 
 use crate::{
     cli::{CliArgs, Command},

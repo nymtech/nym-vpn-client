@@ -3,8 +3,8 @@
 
 use anyhow::Result;
 
+use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
-use nym_vpnd_types::StoreAccountRequest;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
