@@ -600,10 +600,6 @@ impl GatewayList {
         Self::new(self.filter(&[GatewayFilter::Vpn]))
     }
 
-    pub fn into_countries(self) -> Vec<Country> {
-        self.all_countries()
-    }
-
     pub fn into_inner(self) -> Vec<Gateway> {
         self.gateways
     }
