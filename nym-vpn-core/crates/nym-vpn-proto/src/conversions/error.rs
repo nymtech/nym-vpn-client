@@ -23,6 +23,9 @@ pub enum ConversionError {
 
     #[error("failed to parse user agent {0}")]
     ParseUserAgent(String),
+
+    #[error("failed to parse gateway type: {0}")]
+    ParseGatewayType(i32),
 }
 
 impl ConversionError {

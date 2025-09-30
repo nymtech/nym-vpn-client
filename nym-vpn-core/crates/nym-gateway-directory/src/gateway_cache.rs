@@ -13,7 +13,9 @@ use strum::IntoEnumIterator;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{Error, Gateway, GatewayClient, GatewayList, GatewayType, error::Result};
+use crate::{
+    Error, Gateway, GatewayClient, GatewayFilters, GatewayList, GatewayType, error::Result,
+};
 
 /// The maximum age of the cache before it is considered stale.
 const MAX_CACHE_AGE: Duration = Duration::from_secs(5 * 60);
@@ -44,6 +46,22 @@ impl GatewayCacheHandle {
         rx.await.map_err(|_| Error::Cancelled)?
     }
 
+    pub async fn lookup_filtered_gateways(&self, filters: GatewayFilters) -> Result<Vec<Gateway>> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        self.tx
+            .send(Command::LookupFilteredGateways(filters, tx))
+            .map_err(|_| Error::Cancelled)?;
+        rx.await.map_err(|_| Error::Cancelled)?
+    }
+
+    pub async fn choose_random_gateway(&self, filters: GatewayFilters) -> Result<Option<Gateway>> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        self.tx
+            .send(Command::ChooseRandomGateway(filters, tx))
+            .map_err(|_| Error::Cancelled)?;
+        rx.await.map_err(|_| Error::Cancelled)?
+    }
+
     /// Lookup gateway IP address waiting for any pending fetch request or initiating one if needed.
     pub async fn lookup_gateway_ip(&self, gateway_identity: String) -> Result<IpAddr> {
         let (tx, rx) = tokio::sync::oneshot::channel();
@@ -65,6 +83,14 @@ enum Command {
     LookupGateways(
         GatewayType,
         tokio::sync::oneshot::Sender<Result<GatewayList>>,
+    ),
+    LookupFilteredGateways(
+        GatewayFilters,
+        tokio::sync::oneshot::Sender<Result<Vec<Gateway>>>,
+    ),
+    ChooseRandomGateway(
+        GatewayFilters,
+        tokio::sync::oneshot::Sender<Result<Option<Gateway>>>,
     ),
     LookupGatewayIp(
         String, // gateway_identity
@@ -127,6 +153,14 @@ impl GatewayCache {
                         }
                         Command::LookupGateways(gw_type, tx) => {
                             tx.send(self.lookup_gateways(gw_type).await).ok();
+                        }
+                        Command::LookupFilteredGateways(filters, tx) => {
+                            let gw_vec = self.lookup_filtered_gateways(filters).await;
+                            tx.send(gw_vec).ok();
+                        }
+                        Command::ChooseRandomGateway(filters, tx) => {
+                            let chosen = self.choose_random_gateway(filters).await;
+                            tx.send(chosen).ok();
                         }
                         Command::LookupGatewayIp(gateway_identity, tx) => {
                             tx.send(self.lookup_gateway_ip(&gateway_identity).await).ok();
@@ -261,6 +295,16 @@ impl GatewayCache {
         } else {
             refresh_result
         }
+    }
+
+    async fn lookup_filtered_gateways(&mut self, filters: GatewayFilters) -> Result<Vec<Gateway>> {
+        let gw_list = self.lookup_gateways(filters.gw_type).await?;
+        Ok(gw_list.filter(&filters.filters))
+    }
+
+    async fn choose_random_gateway(&mut self, filters: GatewayFilters) -> Result<Option<Gateway>> {
+        let gw_list = self.lookup_gateways(filters.gw_type).await?;
+        Ok(gw_list.choose_random(&filters.filters))
     }
 
     async fn lookup_gateway_ip(&mut self, gateway_identity: &str) -> Result<IpAddr> {
