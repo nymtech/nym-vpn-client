@@ -8,10 +8,8 @@ use std::{
 
 use futures::{StreamExt, channel::mpsc};
 use nym_common::trace_err_chain;
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::TaskClient;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 
 use crate::error::Result;
 
@@ -162,8 +160,7 @@ impl ConnectionMonitor {
         }
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    async fn run(mut self, mut task_client: TaskClient) -> Result<()> {
+    async fn run(mut self, cancel_token: CancellationToken) -> Result<()> {
         tracing::debug!("Connection monitor is running");
         let mut report_interval = tokio::time::interval(CONNECTION_MONITOR_REPORT_INTERVAL);
         // Reset so that we don't send a report immediately before we even have a change for any
@@ -172,7 +169,7 @@ impl ConnectionMonitor {
 
         loop {
             tokio::select! {
-                _ = task_client.recv() => {
+                _ = cancel_token.cancelled() => {
                     tracing::trace!("ConnectionMonitor: Received shutdown");
                     break;
                 }
@@ -182,7 +179,7 @@ impl ConnectionMonitor {
                 _ = report_interval.tick() => {
                     self.stats.log_status();
                     let connectivity = self.stats.evaluate_connectivity();
-                    report_connectivity(&connectivity, &mut task_client);
+                    log_connectivity(&connectivity);
                 }
             }
         }
@@ -191,26 +188,27 @@ impl ConnectionMonitor {
     }
 }
 
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskClient) {
+// Keep that code commented for when we restore connectivity reports
+// TODO restore connectivity reports with proper channels
+fn log_connectivity(connectivity: &ConnectivityState) {
     if connectivity.entry == ConnectivityStatus::Fail {
         tracing::error!("Entry gateway not routing our mixnet traffic");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
+        //task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
         return;
     }
 
     // If we can route external traffic, then it's ok even if we can't ping the exit IPR.
     if connectivity.exit_routing.ipv4 == ConnectivityStatus::Ok {
         tracing::debug!("ConnectionMonitor: connection success over ipv4");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv4));
+        //task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv4));
     } else if connectivity.exit.ipv4 == ConnectivityStatus::Fail {
         tracing::error!("Exit gateway (IPR) not responding to IPv4 traffic");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv4));
+        //task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv4));
     } else if connectivity.exit_routing.ipv4 == ConnectivityStatus::Fail {
         tracing::error!("Exit gateway (IPR) not routing IPv4 traffic to external destinations");
-        task_client.send_status_msg(Box::new(
-            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4,
-        ));
+        //task_client.send_status_msg(Box::new(
+        //    ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4,
+        //));
     } else {
         tracing::error!(
             "Unexpected connectivity state - exit gateway ipv4 connectivity is ok, but routing is not?"
@@ -219,15 +217,15 @@ fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskC
 
     if connectivity.exit_routing.ipv6 == ConnectivityStatus::Ok {
         tracing::debug!("ConnectionMonitor: connection success over ipv6");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv6));
+        //task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv6));
     } else if connectivity.exit.ipv6 == ConnectivityStatus::Fail {
         tracing::error!("Exit gateway (IPR) not responding to IPv6 traffic");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv6));
+        //task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv6));
     } else if connectivity.exit_routing.ipv6 == ConnectivityStatus::Fail {
         tracing::error!("Exit gateway (IPR) not routing IPv6 traffic to external destinations");
-        task_client.send_status_msg(Box::new(
-            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6,
-        ));
+        //task_client.send_status_msg(Box::new(
+        //    ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6,
+        //));
     } else {
         tracing::error!(
             "Unexpected connectivity state - exit gateway ipv6 connectivity is ok, but routing is not?"
@@ -289,21 +287,14 @@ impl fmt::Display for ConnectionMonitorStatus {
     }
 }
 
-impl nym_task::TaskStatusEvent for ConnectionMonitorStatus {
-    fn as_any(&self) -> &dyn std::any::Any {
-        self
-    }
-}
-
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub fn start_connection_monitor(
     connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionStatusEvent>,
-    shutdown_listener: TaskClient,
+    cancel_token: CancellationToken,
 ) -> JoinHandle<Result<()>> {
     tracing::debug!("Creating connection monitor");
     let monitor = ConnectionMonitor::new(connection_event_rx);
     tokio::spawn(async move {
-        monitor.run(shutdown_listener).await.inspect_err(|err| {
+        monitor.run(cancel_token).await.inspect_err(|err| {
             trace_err_chain!(err, "Connection monitor error");
         })
     })

@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use futures::StreamExt;
 use nym_sdk::mixnet::{MixnetClient, MixnetMessageSender, Recipient};
@@ -13,30 +13,21 @@ use crate::{
     nym_ip_packet_requests_current::request::IpPacketRequest,
 };
 
-type SharedMixnetClient = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;
-
 // Send mixnet self ping and wait for the response
 pub async fn self_ping_and_wait(
     our_address: Recipient,
-    mixnet_client: SharedMixnetClient,
+    mixnet_client: &mut MixnetClient,
 ) -> Result<()> {
-    let request_ids = send_self_pings(our_address, &mixnet_client).await?;
-    wait_for_self_ping_return(&mixnet_client, &request_ids).await
+    let request_ids = send_self_pings(our_address, mixnet_client).await?;
+    wait_for_self_ping_return(mixnet_client, &request_ids).await
 }
 
-async fn send_self_pings(
-    our_address: Recipient,
-    mixnet_client: &SharedMixnetClient,
-) -> Result<Vec<u64>> {
+async fn send_self_pings(our_address: Recipient, mixnet_client: &MixnetClient) -> Result<Vec<u64>> {
     // Send pings
     let request_ids = futures::stream::iter(1..=3)
         .then(|_| async {
             let (input_message, request_id) = create_self_ping(our_address);
             mixnet_client
-                .lock()
-                .await
-                .as_mut()
-                .unwrap()
                 .send(input_message)
                 .await
                 .map_err(|err| Error::NymSdkError(Box::new(err)))?;
@@ -51,16 +42,11 @@ async fn send_self_pings(
 }
 
 async fn wait_for_self_ping_return(
-    mixnet_client: &SharedMixnetClient,
+    mixnet_client: &mut MixnetClient,
     request_ids: &[u64],
 ) -> Result<()> {
     let timeout = tokio::time::sleep(Duration::from_secs(5));
     tokio::pin!(timeout);
-
-    // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
-    // to just grab ahold of the mutex and keep it until we get the response.
-    let mut mixnet_client_handle = mixnet_client.lock().await;
-    let mixnet_client = mixnet_client_handle.as_mut().unwrap();
 
     loop {
         tokio::select! {
