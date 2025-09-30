@@ -7,7 +7,7 @@ use std::{
 };
 
 use crate::{netstack::NetstackResult, types::Entry};
-use anyhow::{Context, anyhow, bail};
+use anyhow::{anyhow, bail};
 use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
 use clap::Args;
