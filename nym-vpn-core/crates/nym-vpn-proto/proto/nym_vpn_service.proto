@@ -36,7 +36,7 @@ message Region {
   string region = 1;
 }
 
-message RichLocation {
+message Location {
   string two_letter_iso_country_code = 1;
   double latitude = 2;
   double longitude = 3;
@@ -285,7 +285,7 @@ message Probe {
 
 message GatewayResponse {
   GatewayId id = 1;
-  RichLocation location = 2;
+  Location location = 2;
   Probe last_probe = 3;
   optional uint32 mixnet_performance = 10;
   optional Performance wg_performance = 4;
