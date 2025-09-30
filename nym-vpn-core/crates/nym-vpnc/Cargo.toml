@@ -28,7 +28,6 @@ nym-gateway-directory = { workspace = true }
 nym-http-api-client.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
-nym-vpnd-types = { workspace = true }
 nym-vpn-lib-types = { workspace = true }
 
 [build-dependencies]

@@ -145,6 +145,17 @@ impl From<nym_gateway_directory::Score> for Score {
     }
 }
 
+impl From<nym_vpn_lib_types::Score> for Score {
+    fn from(value: nym_vpn_lib_types::Score) -> Self {
+        match value {
+            nym_vpn_lib_types::Score::High => Score::High,
+            nym_vpn_lib_types::Score::Medium => Score::Medium,
+            nym_vpn_lib_types::Score::Low => Score::Low,
+            nym_vpn_lib_types::Score::Offline => Score::Offline,
+        }
+    }
+}
+
 impl From<nym_gateway_directory::ScoreValue> for Score {
     fn from(value: nym_gateway_directory::ScoreValue) -> Self {
         match value {
@@ -175,9 +186,20 @@ impl From<nym_gateway_directory::Performance> for Performance {
     }
 }
 
+impl From<nym_vpn_lib_types::Performance> for Performance {
+    fn from(value: nym_vpn_lib_types::Performance) -> Self {
+        Performance {
+            last_updated_utc: value.last_updated_utc,
+            score: Score::from(value.score),
+            load: Score::from(value.load),
+            uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct GatewayInfo {
-    pub id: NodeIdentity,
+pub struct Gateway {
+    pub id: String,
     pub moniker: String,
     pub location: Option<RichLocation>,
     pub mixnet_score: Option<Score>,
@@ -187,18 +209,33 @@ pub struct GatewayInfo {
     pub build_version: Option<String>,
 }
 
-impl From<nym_gateway_directory::Gateway> for GatewayInfo {
+impl From<nym_gateway_directory::Gateway> for Gateway {
     fn from(value: nym_gateway_directory::Gateway) -> Self {
         let (exit_ipv4s, exit_ipv6s) = value.split_ips();
-        GatewayInfo {
+        Gateway {
             moniker: value.moniker,
             location: value.location.map(RichLocation::from),
-            id: value.identity,
+            id: value.identity.to_base58_string(),
             mixnet_score: value.mixnet_score.map(Score::from),
             wg_performance: value.wg_performance.map(Performance::from),
             exit_ipv4s,
             exit_ipv6s,
             build_version: value.version,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::Gateway> for Gateway {
+    fn from(value: nym_vpn_lib_types::Gateway) -> Self {
+        Gateway {
+            moniker: value.moniker,
+            location: value.location.map(RichLocation::from),
+            id: value.identity_key,
+            mixnet_score: value.mixnet_score.map(Score::from),
+            wg_performance: value.wg_performance.map(Performance::from),
+            exit_ipv4s: value.exit_ipv4s,
+            exit_ipv6s: value.exit_ipv6s,
+            build_version: value.build_version,
         }
     }
 }
@@ -214,6 +251,15 @@ impl From<nym_gateway_directory::AsnKind> for AsnKind {
         match value {
             nym_gateway_directory::AsnKind::Residential => AsnKind::Residential,
             nym_gateway_directory::AsnKind::Other => AsnKind::Other,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::AsnKind> for AsnKind {
+    fn from(value: nym_vpn_lib_types::AsnKind) -> Self {
+        match value {
+            nym_vpn_lib_types::AsnKind::Residential => AsnKind::Residential,
+            nym_vpn_lib_types::AsnKind::Other => AsnKind::Other,
         }
     }
 }
@@ -235,20 +281,41 @@ impl From<nym_gateway_directory::Asn> for Asn {
     }
 }
 
+impl From<nym_vpn_lib_types::Asn> for Asn {
+    fn from(value: nym_vpn_lib_types::Asn) -> Self {
+        Asn {
+            asn: value.asn,
+            name: value.name,
+            kind: value.kind.into(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct RichLocation {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
     pub longitude: f64,
-
     pub city: String,
     pub region: String,
-
     pub asn: Option<Asn>,
 }
 
 impl From<nym_gateway_directory::Location> for RichLocation {
     fn from(value: nym_gateway_directory::Location) -> Self {
+        RichLocation {
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+            latitude: value.latitude,
+            longitude: value.longitude,
+            city: value.city,
+            region: value.region,
+            asn: value.asn.map(Into::into),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::Location> for RichLocation {
+    fn from(value: nym_vpn_lib_types::Location) -> Self {
         RichLocation {
             two_letter_iso_country_code: value.two_letter_iso_country_code,
             latitude: value.latitude,

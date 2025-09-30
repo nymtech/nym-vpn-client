@@ -11,7 +11,7 @@ use nym_vpn_lib::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_vpn_lib_types::{TunnelEvent, TunnelType, service::VpnServiceConfig};
+use nym_vpn_lib_types::{TunnelEvent, TunnelType, VpnServiceConfig};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,

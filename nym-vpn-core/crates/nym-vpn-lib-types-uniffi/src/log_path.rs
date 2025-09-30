@@ -9,8 +9,8 @@ pub struct LogPath {
     pub filename: String,
 }
 
-impl From<nym_vpnd_types::log_path::LogPath> for LogPath {
-    fn from(log_path: nym_vpnd_types::log_path::LogPath) -> Self {
+impl From<nym_vpn_lib_types::LogPath> for LogPath {
+    fn from(log_path: nym_vpn_lib_types::LogPath) -> Self {
         Self {
             dir: log_path.dir,
             filename: log_path.filename,

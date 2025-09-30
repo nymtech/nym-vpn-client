@@ -22,7 +22,6 @@ nym-http-api-client = { workspace = true, optional = true }
 nym-sdk = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-vpn-network-config = { workspace = true, optional = true }
-nym-vpnd-types = { workspace = true, optional = true }
 nym-vpn-lib-types = { workspace = true, optional = true }
 nym-ipc = { workspace = true, optional = true }
 tokio-stream = { workspace = true, optional = true, features = ["net"] }
@@ -43,7 +42,6 @@ conversions = [
     "dep:nym-vpn-api-client",
     "dep:nym-http-api-client",
     "dep:nym-vpn-network-config",
-    "dep:nym-vpnd-types",
     "dep:nym-vpn-lib-types",
     "dep:thiserror",
     "dep:time",
@@ -52,7 +50,6 @@ conversions = [
 rpc_client = [
     "conversions",
     "dep:nym-vpn-lib-types",
-    "dep:nym-vpnd-types",
     "dep:nym-ipc",
     "dep:thiserror",
     "dep:tokio-stream",

@@ -7,10 +7,12 @@ uniffi::setup_scaffolding!();
 
 mod account_controller;
 mod error;
-mod gateway_directory;
+mod gateway;
 mod ip_pair;
 mod ipnetwork;
+mod log_path;
 mod network_config;
+mod nym_vpn_api;
 mod service;
 mod std;
 mod time;
@@ -22,10 +24,12 @@ mod vpn_api_client;
 // Uses wildcard imports to pick up generated uniffi constants that need to be made visible for use in the library.
 pub use account_controller::*;
 pub use error::*;
-pub use gateway_directory::*;
+pub use gateway::*;
 pub use ip_pair::*;
 pub use ipnetwork::*;
+pub use log_path::*;
 pub use network_config::*;
+pub use nym_vpn_api::*;
 pub use service::*;
 pub use std::*;
 pub use time::*;

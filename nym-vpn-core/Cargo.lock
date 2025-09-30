@@ -5500,14 +5500,18 @@ dependencies = [
  "nym-bandwidth-controller",
  "nym-connection-monitor",
  "nym-gateway-directory",
+ "nym-sdk",
  "nym-statistics-common",
+ "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-network-config",
  "nym-wg-gateway-client",
  "serde",
  "si-scale",
  "strum_macros 0.26.4",
  "thiserror 2.0.16",
  "time",
+ "zeroize",
 ]
 
 [[package]]
@@ -5605,7 +5609,6 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
- "nym-vpnd-types",
  "prost",
  "prost-types",
  "thiserror 2.0.16",
@@ -5623,10 +5626,9 @@ version = "1.17.0-beta"
 dependencies = [
  "futures",
  "nym-gateway-directory",
+ "nym-vpn-lib-types",
  "nym-vpn-lib-types-uniffi",
  "nym-vpn-proto",
- "nym-vpnd-types",
- "nym-vpnd-types-uniffi",
  "tokio",
  "tokio-util",
  "tracing",
@@ -5666,7 +5668,6 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "nym-vpnd-types",
  "serde",
  "serde_json",
  "sysinfo",
@@ -5700,7 +5701,6 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
- "nym-vpnd-types",
  "nym-windows",
  "pretty_assertions",
  "sentry",
@@ -5723,32 +5723,6 @@ dependencies = [
  "vergen-gitcl",
  "windows 0.61.3",
  "windows-service",
-]
-
-[[package]]
-name = "nym-vpnd-types"
-version = "1.17.0-beta"
-dependencies = [
- "nym-gateway-directory",
- "nym-sdk",
- "nym-validator-client",
- "nym-vpn-lib-types",
- "nym-vpn-network-config",
- "serde",
- "time",
- "zeroize",
-]
-
-[[package]]
-name = "nym-vpnd-types-uniffi"
-version = "1.17.0-beta"
-dependencies = [
- "nym-gateway-directory",
- "nym-vpn-api-client",
- "nym-vpn-lib-types-uniffi",
- "nym-vpnd-types",
- "time",
- "uniffi",
 ]
 
 [[package]]

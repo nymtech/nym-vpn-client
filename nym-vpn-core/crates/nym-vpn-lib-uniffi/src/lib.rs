@@ -80,7 +80,7 @@ use crate::gateway_cache::UniffiGatewayCacheHandle;
 use self::error::VpnError;
 use account::AccountControllerHandle;
 use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType,
+    AccountControllerState, AccountLinks, EntryPoint, ExitPoint, Gateway, GatewayType,
     NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage, TunnelEvent,
     UserAgent,
 };
@@ -410,11 +410,11 @@ async fn get_account_id() -> Result<String, VpnError> {
 /// Get the list of gateways available of the given type.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getGateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError> {
+pub fn getGateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
     RUNTIME.block_on(get_gateways(gw_type))
 }
 
-async fn get_gateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError> {
+async fn get_gateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
     gateway_cache::get_gateway_cache_handle()
         .await?
         .lookup_gateways(gw_type.into())
@@ -423,7 +423,7 @@ async fn get_gateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError
             gateways
                 .into_inner()
                 .into_iter()
-                .map(GatewayInfo::from)
+                .map(Gateway::from)
                 .collect()
         })
         .map_err(|err| VpnError::NetworkConnectionError {

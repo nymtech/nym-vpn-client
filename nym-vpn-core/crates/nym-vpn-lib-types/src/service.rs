@@ -3,8 +3,11 @@
 
 use std::{fmt, net::IpAddr};
 
-use nym_gateway_directory::{EntryPoint, ExitPoint};
 use serde::Serialize;
+use time::OffsetDateTime;
+
+use nym_gateway_directory::{EntryPoint, ExitPoint};
+use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VpnServiceConfig {
@@ -82,4 +85,35 @@ impl Default for VpnServiceConfig {
             residential_exit: false,
         }
     }
+}
+
+/// The target tunnel state.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum TargetState {
+    /// Unsecure the device.
+    Unsecured,
+
+    /// Secure the device.
+    Secured,
+}
+
+impl std::fmt::Display for TargetState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            TargetState::Unsecured => "Unsecured",
+            TargetState::Secured => "Secured",
+        };
+        write!(f, "{s}")
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct VpnServiceInfo {
+    pub version: String,
+    pub build_timestamp: Option<OffsetDateTime>,
+    pub triple: String,
+    pub platform: String,
+    pub git_commit: String,
+    pub nym_network: NymNetwork,
+    pub nym_vpn_network: NymVpnNetwork,
 }

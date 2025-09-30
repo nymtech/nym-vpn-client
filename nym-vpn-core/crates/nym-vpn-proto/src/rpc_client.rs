@@ -9,15 +9,11 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
 };
 use nym_vpn_lib_types::{
-    AccountControllerState, AvailableTickets, TunnelEvent, TunnelState, VpnServiceConfig,
+    AccountCommandResponse, AccountControllerState, AvailableTickets, ConnectArgs, Gateway,
+    ListGatewaysOptions, LogPath, StoreAccountRequest, TunnelEvent, TunnelState, VpnServiceConfig,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
-use nym_vpnd_types::{
-    AccountCommandResponse, ListGatewaysOptions, StoreAccountRequest,
-    gateway::Gateway,
-    log_path::LogPath,
-    service::{ConnectArgs, VpnServiceInfo},
-};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;

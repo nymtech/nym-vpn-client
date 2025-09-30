@@ -4,9 +4,12 @@
 //! Types shared between nym-vpn-lib and other crates in the workspace.
 
 mod account;
-pub mod bridges;
+mod bridges;
 mod connection_data;
-pub mod service;
+mod gateway;
+mod log_path;
+mod rpc_requests;
+mod service;
 mod tunnel_event;
 mod tunnel_state;
 
@@ -20,11 +23,19 @@ pub use account::{
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     ticketbooks::AvailableTickets,
 };
+pub use bridges::{BridgeInformation, BridgeParameters, QuicClientOptions};
 pub use connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
-pub use service::VpnServiceConfig;
+pub use gateway::{
+    Asn, AsnKind, Country, Entry, Exit, Gateway, Location, Performance, Probe, ProbeOutcome, Score,
+};
+pub use log_path::LogPath;
+pub use rpc_requests::{
+    AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, StoreAccountRequest,
+};
+pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
     TunnelEvent,

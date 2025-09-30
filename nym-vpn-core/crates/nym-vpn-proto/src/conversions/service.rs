@@ -1,6 +1,6 @@
 use crate::{conversions::ConversionError, proto};
 
-impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnServiceConfig {
+impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConversionError;
 
     fn try_from(value: proto::VpnServiceConfig) -> Result<Self, Self::Error> {
@@ -24,7 +24,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnService
             None => None,
         };
 
-        let config = nym_vpn_lib_types::service::VpnServiceConfig {
+        let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
             dns,
@@ -44,8 +44,8 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnService
     }
 }
 
-impl From<nym_vpn_lib_types::service::VpnServiceConfig> for proto::VpnServiceConfig {
-    fn from(value: nym_vpn_lib_types::service::VpnServiceConfig) -> Self {
+impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
+    fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         proto::VpnServiceConfig {
             entry_point: Some(proto::EntryNode::from(value.entry_point)),
             exit_point: Some(proto::ExitNode::from(value.exit_point)),
