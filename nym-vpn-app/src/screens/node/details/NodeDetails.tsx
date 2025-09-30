@@ -261,7 +261,9 @@ function NodeDetails() {
 
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 cursor-default">
-      <h1 className="text-lg font-medium dark:text-white">{gateway.name}</h1>
+      <h1 className="text-lg font-medium dark:text-white break-words">
+        {gateway.name}
+      </h1>
       <div className="flex flex-row items-center gap-2 select-none">
         <FlagIcon
           code={country.code.toLowerCase() as countryCode}

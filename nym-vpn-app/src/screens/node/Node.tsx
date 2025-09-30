@@ -84,7 +84,7 @@ function Node({ node }: { node: NodeHop }) {
 
   const handleNodeDetails = (gateway: UiGateway) => {
     navigate(routes.nodeDetails, {
-      state: { gateway, hop: node },
+      state: { gateway, hop: node, resetScroll: true },
     });
     setFocused(node, { type: 'gateway', key: gateway.id });
     // if the picked gateway's country node is not expanded, ie; while filtering

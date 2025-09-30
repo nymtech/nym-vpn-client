@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When navigating from the _Server details_ screen back to the node list,
   restore previous expanded nodes and scroll to the last focused node
 
+### Fixed
+
+- Fix initial scroll position when navigate to _Server details_ screen
+
 ## [1.16.0] - 2025-09-26
 
 ### Added
