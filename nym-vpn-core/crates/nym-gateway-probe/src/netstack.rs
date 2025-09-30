@@ -193,8 +193,7 @@ pub fn ping(req: &NetstackRequestGo) -> anyhow::Result<NetstackResult> {
             response.context("Failed to deserialize ffi response")
         }
         Err(err) => Err(anyhow::anyhow!(
-            "Failed to convert ffi response to utf8 string: {}",
-            err
+            "Failed to convert ffi response to utf8 string: {err}"
         )),
     };
 
