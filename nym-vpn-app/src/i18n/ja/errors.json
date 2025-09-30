@@ -22,9 +22,10 @@
     "ipv6-unavailable": "IPv6はシステムで利用できません。 IPv4を使用するには設定で無効にしてください",
     "tun-device": "TUNデバイスエラー",
     "tunnel-provider": "トンネルプロバイダエラー",
-    "bad-bandwidth-increase": "帯域幅増加値が無効です",
     "inactive-account": "あなたのアカウントは無効です",
-    "device-logged-out": "このデバイスはログアウトされました。VPNを使用するにはログインしてください。"
+    "device-logged-out": "このデバイスはログアウトされました。VPNを使用するにはログインしてください。",
+    "entry-gateway-bandwidth-increase": "エントリゲートウェイが帯域幅の増加に応答または不適切に応答していません。",
+    "exit-gateway-bandwidth-increase": "出口ゲートウェイは帯域幅の増加に応答または不適切に応答していません。"
   },
   "account": {
     "internal": "内部アカウントエラー",

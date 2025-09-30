@@ -24,5 +24,6 @@
     "light": "Modo claro"
   },
   "appearance": "Aparência",
-  "language": "Idioma"
+  "language": "Idioma",
+  "server-details": "Detalhes do servidor"
 }

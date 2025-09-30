@@ -1,12 +1,12 @@
 {
   "connection-progress": {
-    "canceling": "Canceling…",
-    "resolving-api-addresses": "Resolving API addresses…",
-    "awaiting-account-readiness": "Awaiting for account readiness…",
-    "refreshing-gateways": "Refreshing gateways…",
-    "selecting-gateways": "Selecting gateways…",
-    "connecting-mixnet-client": "Connecting to the mixnet client…",
-    "connecting-tunnel": "Connecting to the VPN tunnel…"
+    "canceling": "कैंसल हो रहा है…",
+    "resolving-api-addresses": "API पतों का समाधान कर रहा है…",
+    "awaiting-account-readiness": "खाते की तैयारी की प्रतीक्षा हो रही है…",
+    "refreshing-gateways": "गेटवे लिस्ट को ताज़ा किया जा रहा है…",
+    "selecting-gateways": "गेटवे का चयन हो रहा हैं…",
+    "connecting-mixnet-client": "Mixnet क्लाइंट से कनेक्ट हो रहा है…",
+    "connecting-tunnel": "VPN टनल से जुड़ रहा है…"
   },
   "connection-attempt_one": "फिरसे प्रयास कर रहे हैं… {{count}}",
   "connection-attempt_other": "फिरसे प्रयास कर रहे हैं… {{count}}"

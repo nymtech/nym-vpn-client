@@ -24,5 +24,6 @@
     "light": "光亮模式"
   },
   "appearance": "外观",
-  "language": "语言"
+  "language": "语言",
+  "server-details": "服务器详细信息"
 }

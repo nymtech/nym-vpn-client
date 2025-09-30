@@ -15,6 +15,42 @@
     "exit": "مکان خروجی انتخاب‌شده در دسترس نیست، به {{location}} تغییر یافت"
   },
   "node-details": {
-    "id-label": "کلید شناسایی هویت:"
+    "id-label": "کلید شناسایی هویت:",
+    "data": {
+      "advanced-privacy": "Advanced privacy",
+      "with-mixnet": "With mixnet (5-hop)",
+      "ip-type": "Streaming & content",
+      "ip-residential": "Residential IP",
+      "ip-datacenter": "Datacenter IP",
+      "anti-censorship": "Anti-censorship",
+      "quic-protocol": "QUIC protocol",
+      "standard-protocol": "Standard protocol",
+      "overall-performance": "Overall performance",
+      "server-load": "Server load",
+      "speed": "Speed",
+      "uptime": "Uptime",
+      "exit-ipv4": "Exit IPv4",
+      "exit-ipv6": "Exit IPv6",
+      "asn": "ASN",
+      "asn-name": "ASN name",
+      "build-version": "Nym build version",
+      "identity-key": "Identity key:"
+    },
+    "score": {
+      "high": "Good",
+      "medium": "Mid",
+      "low": "Low",
+      "offline": "Offline"
+    },
+    "notes": {
+      "anti-censorship": "Enable “QUIC protocol” in Anti-censorship Settings to use this feature",
+      "performance_with_date": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{date}}.",
+      "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
+    },
+    "links": {
+      "missing-info": "Why is there missing or incorrect info",
+      "explorer": "More details in the Nym <networkExplorerLink />"
+    },
+    "select-button": "Select server"
   }
 }

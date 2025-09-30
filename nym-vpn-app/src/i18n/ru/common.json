@@ -24,5 +24,6 @@
     "light": "Светлый режим"
   },
   "appearance": "Внешний вид",
-  "language": "Язык"
+  "language": "Язык",
+  "server-details": "Детали сервера"
 }

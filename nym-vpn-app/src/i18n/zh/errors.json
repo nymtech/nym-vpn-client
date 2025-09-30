@@ -21,10 +21,11 @@
     "device-time-out-of-sync": "设备时间不同步。请将您的设备时间与互联网同步。",
     "ipv6-unavailable": "IPv6在系统中不可用。请在设置中禁用以使用IPv4",
     "tun-device": "TUN 设备错误",
-    "tunnel-provider": "隧道提供者错误",
-    "bad-bandwidth-increase": "无效的带宽增加值",
-    "inactive-account": "您的帐户处于非活动状态",
-    "device-logged-out": "此设备已注销。请登录以继续使用 VPN。"
+    "tunnel-provider": "隧道提供程序错误",
+    "inactive-account": "您的帐户处于未激活状态",
+    "device-logged-out": "此设备已登出。请重新登录以继续使用 VPN。",
+    "entry-gateway-bandwidth-increase": "入口网关没有响应或响应带宽增加。",
+    "exit-gateway-bandwidth-increase": "退出网关没有响应或响应带宽增加。"
   },
   "account": {
     "internal": "内部账号错误",

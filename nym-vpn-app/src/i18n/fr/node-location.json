@@ -15,6 +15,42 @@
     "exit": "L'emplacement de sortie sélectionné n'est pas disponible, il a été remplacé par {{location}}"
   },
   "node-details": {
-    "id-label": "Clé d'identité :"
+    "id-label": "Clé d'identité :",
+    "data": {
+      "advanced-privacy": "Confidentialité avancée",
+      "with-mixnet": "Avec mixnet (5 sauts)",
+      "ip-type": "Streaming & contenu",
+      "ip-residential": "IP résidentielle",
+      "ip-datacenter": "Adresse IP du datacenter",
+      "anti-censorship": "Anti-censure",
+      "quic-protocol": "Protocole QUIC",
+      "standard-protocol": "Protocole standard",
+      "overall-performance": "Performance globale",
+      "server-load": "Chargement du serveur",
+      "speed": "Rapidité",
+      "uptime": "Délai de disponibilité",
+      "exit-ipv4": "Quitter IPv4",
+      "exit-ipv6": "Quitter IPv6",
+      "asn": "NAS",
+      "asn-name": "Nom ASN",
+      "build-version": "Version de build Nym",
+      "identity-key": "Clé d'identité :"
+    },
+    "score": {
+      "high": "Bon",
+      "medium": "Milieu",
+      "low": "Bas",
+      "offline": "Hors ligne"
+    },
+    "notes": {
+      "anti-censorship": "Activez le « protocole QUIC» dans les paramètres de lutte contre la censure pour utiliser cette fonctionnalité",
+      "performance_with_date": "Score de performance calculé à partir de la charge du serveur et du temps de disponibilité. Temps de disponibilité des dernières 24 heures. Dernière mise à jour {{date}}.",
+      "performance": "Score de performance calculé à partir de la charge du serveur et de la durée de disponibilité comme moyenne des dernières 24 heures."
+    },
+    "links": {
+      "missing-info": "Pourquoi y a-t-il des informations manquantes ou incorrectes",
+      "explorer": "Plus de détails dans le Nym <networkExplorerLink />"
+    },
+    "select-button": "Sélectionnez le serveur"
   }
 }

@@ -22,9 +22,10 @@
     "ipv6-unavailable": "L'IPv6 n'est pas disponible sur ce système. Désactiver l'option dans les réglages pour basculer en IPv4",
     "tun-device": "Erreur d'appareil TUN",
     "tunnel-provider": "Erreur de fournisseur de tunnels",
-    "bad-bandwidth-increase": "Valeur d'augmentation de bande passante invalide",
     "inactive-account": "Votre compte est inactif",
-    "device-logged-out": "Cet appareil a été déconnecté. Veuillez vous connecter pour continuer à utiliser le VPN."
+    "device-logged-out": "Cet appareil a été déconnecté. Veuillez vous connecter pour continuer à utiliser le VPN.",
+    "entry-gateway-bandwidth-increase": "La passerelle d'entrée ne répond pas ou répond mal à une augmentation de la bande passante.",
+    "exit-gateway-bandwidth-increase": "La passerelle de sortie ne répond pas ou répond mal à une augmentation de la bande passante."
   },
   "account": {
     "internal": "Erreur interne du compte",

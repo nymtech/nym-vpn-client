@@ -15,6 +15,42 @@
     "exit": "Posizione di uscita selezionata non disponibile, commutata in {{location}}"
   },
   "node-details": {
-    "id-label": "Chiave di identità:"
+    "id-label": "Chiave di identità:",
+    "data": {
+      "advanced-privacy": "Privacy avanzata",
+      "with-mixnet": "Con miscela (5-luppolo)",
+      "ip-type": "Streaming & contenuti",
+      "ip-residential": "Ip Residenziale",
+      "ip-datacenter": "IP Del Datacenter",
+      "anti-censorship": "Anti-censura",
+      "quic-protocol": "Protocollo QUIC",
+      "standard-protocol": "Standard protocol",
+      "overall-performance": "Prestazioni complessive",
+      "server-load": "Carico del server",
+      "speed": "Velocità",
+      "uptime": "Uptime",
+      "exit-ipv4": "Esci Da IPv4",
+      "exit-ipv6": "Uscita IPv6",
+      "asn": "ASN",
+      "asn-name": "Nome ASN",
+      "build-version": "Versione build Nym",
+      "identity-key": "Chiave di identità:"
+    },
+    "score": {
+      "high": "Buono",
+      "medium": "Mid",
+      "low": "Basso",
+      "offline": "Offline"
+    },
+    "notes": {
+      "anti-censorship": "Abilita “Protocollo QUIC” nelle impostazioni anti-censura per utilizzare questa funzione",
+      "performance_with_date": "Punteggio delle prestazioni calcolato dal carico del server e dall'uptime. Uptime come ultima media di 24 ore. Ultimo aggiornamento {{date}}.",
+      "performance": "Punteggio delle prestazioni calcolato dal carico del server e dall'uptime. Uptime come ultima media di 24 ore."
+    },
+    "links": {
+      "missing-info": "Perché ci sono informazioni mancanti o errate",
+      "explorer": "Maggiori dettagli nel Nym <networkExplorerLink />"
+    },
+    "select-button": "Seleziona server"
   }
 }

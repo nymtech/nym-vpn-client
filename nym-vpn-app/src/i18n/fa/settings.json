@@ -35,6 +35,22 @@
     "app": "گزارش‌های برنامه",
     "daemon": "گزارش‌های دیمون"
   },
+  "anti-censorship": {
+    "title": "Anti-censorship",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
+    "quic": {
+      "label": "Enhanced connection (QUIC)",
+      "warning": "Changes will apply after reconnect",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "How QUIC improves connections"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Changes will apply after reconnect",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
+      "link": "How the Stealth API connect mode works"
+    }
+  },
   "faq": "پرسش‌های متداول",
   "display-theme": "حالت نمایش",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "آمار ناشناس شبکه",
       "sublabel": "تغییرات پس از راه‌اندازی مجدد daemon اعمال خواهند شد.",
-      "desc1": "به ما از طریق اشتراک گذاری داده های عملکرد به صورت ناشناس از منطقه خود، کمک کنید تا شبکه ای سریع تر بسازیم. ما از این داده‌ها برای بهینه‌سازی سرعت‌ها، کاهش قطع ارتباط، و هدایت پوشش سرورها به مناطقی که بیشترین نیاز را دارند استفاده می کنیم.",
-      "desc2": "هرگز فعالیت مرورگر یا داده های شخصی شما به اشتراک گذاشته نمی شود – فقط داده های عملکرد شبکه.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
       "link": "دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است"
     }
   },
