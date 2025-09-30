@@ -8,17 +8,11 @@ use std::{
 };
 
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use url::Url;
 
-use nym_config::defaults::NymNetworkDetails;
-use nym_gateway_directory::GatewayType;
-use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
-    AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, LogPath, Performance,
-    Score, StoreAccountRequest, VpnServiceInfo,
-};
-use nym_vpn_network_config::{
-    ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
+    AccountCommandResponse, ApiUrl, ConnectArgs, ConnectOptions, GatewayType, ListGatewaysOptions,
+    LogPath, NymNetworkDetails, NymVpnNetwork, Performance, Score, StoreAccountRequest,
+    SystemMessage, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -293,40 +287,25 @@ impl TryFrom<proto::InfoResponse> for nym_vpn_lib_types::VpnServiceInfo {
             .transpose()
             .map_err(|e| ConversionError::ConvertTime("build_timestamp", e))?;
 
-        // todo: why is it not passed as `NymNetwork` instead?
         let nym_network = info
             .nym_network
             .ok_or(ConversionError::NoValueSet("nym_network"))
-            .and_then(NymNetworkDetails::try_from)
-            .map(NymNetwork::new)?;
+            .and_then(NymNetworkDetails::try_from)?;
 
-        // todo: why is it not passed as `NymVpnNetwork` instead?
         let nym_vpn_network = info
             .nym_vpn_network
             .ok_or(ConversionError::NoValueSet("nym_vpn_network"))
-            .and_then(|s| {
-                // todo: rework this later
-                let nym_vpn_api_url = s
-                    .nym_vpn_api_url
-                    .ok_or(ConversionError::NoValueSet(
-                        "NymVpnNetworkDetails.nym_vpn_api_url",
-                    ))
-                    .and_then(|s| {
-                        Url::from_str(&s.url).map_err(|e| {
-                            ConversionError::Generic(format!("failed to parse Url: {e}"))
-                        })
-                    })?;
+            .map(|s| {
+                let nym_vpn_api_url = s.nym_vpn_api_url;
                 let nym_vpn_api_urls = s
                     .nym_vpn_api_urls
                     .into_iter()
                     .map(ApiUrl::from)
                     .collect::<Vec<_>>();
-                Ok(NymVpnNetwork {
+                NymVpnNetwork {
                     nym_vpn_api_url,
                     nym_vpn_api_urls,
-                    account_management: Default::default(),
-                    system_messages: Default::default(),
-                })
+                }
             })?;
 
         Ok(Self {
@@ -387,18 +366,6 @@ impl TryFrom<LogPath> for proto::GetLogPathResponse {
     }
 }
 
-impl From<proto::GetSystemMessagesResponse> for SystemMessages {
-    fn from(value: proto::GetSystemMessagesResponse) -> Self {
-        Self {
-            messages: value
-                .messages
-                .into_iter()
-                .map(SystemMessage::from)
-                .collect(),
-        }
-    }
-}
-
 impl From<proto::SystemMessage> for SystemMessage {
     fn from(value: proto::SystemMessage) -> Self {
         Self {
@@ -407,7 +374,7 @@ impl From<proto::SystemMessage> for SystemMessage {
             display_until: None,
             name: value.name,
             message: value.message,
-            properties: Some(Properties::from(value.properties)),
+            properties: Some(value.properties),
         }
     }
 }
@@ -419,12 +386,12 @@ impl TryFrom<proto::ConnectRequest> for ConnectArgs {
         let entry = value
             .entry
             .clone() // todo: prevent clone()
-            .map(nym_gateway_directory::EntryPoint::try_from)
+            .map(nym_vpn_lib_types::EntryPoint::try_from)
             .transpose()?;
         let exit = value
             .exit
             .clone() // todo: prevent clone()
-            .map(nym_gateway_directory::ExitPoint::try_from)
+            .map(nym_vpn_lib_types::ExitPoint::try_from)
             .transpose()?;
         let options = ConnectOptions::try_from(value)?;
         Ok(ConnectArgs {
@@ -620,42 +587,5 @@ impl From<nym_vpn_lib_types::Country> for proto::Country {
         proto::Country {
             two_letter_iso_country_code: country.iso_code().to_string(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::proto;
-    use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
-    use nym_vpn_lib_types::VpnServiceConfig;
-    use std::str::FromStr;
-
-    #[test]
-    fn test_vpn_service_config_conversion() {
-        let internal = VpnServiceConfig {
-            entry_point: EntryPoint::Country {
-                two_letter_iso_country_code: "US".to_string(),
-            },
-            exit_point: ExitPoint::Gateway {
-                identity: NodeIdentity::from_str("7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj")
-                    .unwrap(),
-            },
-            dns: Some(std::net::IpAddr::from_str("192.168.50.1").unwrap()),
-            allow_lan: false,
-            disable_ipv6: false,
-            enable_two_hop: false,
-            enable_bridges: false,
-            netstack: false,
-            disable_poisson_rate: false,
-            disable_background_cover_traffic: false,
-            min_mixnode_performance: Some(55u8),
-            min_gateway_mixnet_performance: Some(64u8),
-            min_gateway_vpn_performance: Some(1u8),
-            residential_exit: false,
-        };
-
-        let external: proto::VpnServiceConfig = internal.clone().into();
-        let internal_converted: VpnServiceConfig = external.try_into().unwrap();
-        assert_eq!(internal, internal_converted);
     }
 }

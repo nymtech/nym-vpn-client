@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 
 use nym_vpn_lib_types_uniffi::{
-    AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage,
+    NetworkCompatibility, NetworkEnvironment, ParsedAccountLinks, SystemMessage,
 };
 
 use super::{NETWORK_ENVIRONMENT, error::VpnError};
@@ -81,7 +81,7 @@ pub(crate) async fn get_network_compatibility() -> Result<Option<NetworkCompatib
     })
 }
 
-pub(crate) async fn get_account_links(locale: &str) -> Result<AccountLinks, VpnError> {
+pub(crate) async fn get_account_links(locale: &str) -> Result<ParsedAccountLinks, VpnError> {
     let account_id = super::account::get_account_id().await?;
     current_environment_details()
         .await
@@ -91,13 +91,13 @@ pub(crate) async fn get_account_links(locale: &str) -> Result<AccountLinks, VpnE
                 .try_into_parsed_links(locale, account_id.as_deref())
                 .map_err(VpnError::internal)
         })
-        .map(AccountLinks::from)
+        .map(ParsedAccountLinks::from)
 }
 
 pub(crate) async fn get_account_links_raw(
     path: &str,
     locale: &str,
-) -> Result<AccountLinks, VpnError> {
+) -> Result<ParsedAccountLinks, VpnError> {
     // If the account ID is not found, we are not logged in, so we don't need to pass it to the
     // API. But we can still get the links that don't require an account ID.
     let account_id = super::account::raw::get_account_id_raw(path).await.ok();
@@ -110,5 +110,5 @@ pub(crate) async fn get_account_links_raw(
                 .try_into_parsed_links(locale, account_id.as_deref())
                 .map_err(VpnError::internal)
         })
-        .map(AccountLinks::from)
+        .map(ParsedAccountLinks::from)
 }

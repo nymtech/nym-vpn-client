@@ -1,10 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{
-    EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList, GatewayType,
-};
+use nym_gateway_directory::{Gateway, GatewayCacheHandle, GatewayList};
 use nym_vpn_api_client::types::ScoreThresholds;
+use nym_vpn_lib_types::{EntryPoint, ExitPoint};
 
 use crate::{
     GatewayDirectoryError,
@@ -54,7 +53,7 @@ pub async fn select_gateways(
     let (mut entry_gateways, exit_gateways) = match tunnel_settings.tunnel_type {
         TunnelType::Wireguard => {
             let all_gateways = gateway_cache_handle
-                .lookup_gateways(GatewayType::Wg)
+                .lookup_gateways(nym_gateway_directory::GatewayType::Wg)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
 
@@ -75,12 +74,12 @@ pub async fn select_gateways(
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
             let exit_gateways = gateway_cache_handle
-                .lookup_gateways(GatewayType::MixnetExit)
+                .lookup_gateways(nym_gateway_directory::GatewayType::MixnetExit)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
             let entry_gateways = gateway_cache_handle
-                .lookup_gateways(GatewayType::MixnetEntry)
+                .lookup_gateways(nym_gateway_directory::GatewayType::MixnetEntry)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             (entry_gateways, exit_gateways)
@@ -95,7 +94,7 @@ pub async fn select_gateways(
         wg_score_thresholds,
         mix_score_thresholds,
     );
-    let exit_gateway = exit_point
+    let exit_gateway = nym_gateway_directory::ExitPoint::from(exit_point.clone())
         .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance, tunnel_settings.residential_exit)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
@@ -103,7 +102,7 @@ pub async fn select_gateways(
                 let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_settings.tunnel_type, wg_score_thresholds, mix_score_thresholds);
                 tracing::debug!("Could not locate high quality exit gateway. Lowering performance filter to medium and trying again");
 
-                exit_point.lookup_gateway(
+                nym_gateway_directory::ExitPoint::from(exit_point.clone()).lookup_gateway(
                     &exit_gateways,
                     min_wg_performance,
                     min_mixnet_performance,
@@ -117,7 +116,7 @@ pub async fn select_gateways(
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
 
-    let entry_gateway = entry_point
+    let entry_gateway = nym_gateway_directory::EntryPoint::from(entry_point.clone())
         .lookup_gateway(&entry_gateways, min_wg_performance, min_mixnet_performance)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
@@ -125,7 +124,7 @@ pub async fn select_gateways(
                 let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_settings.tunnel_type, wg_score_thresholds, mix_score_thresholds);
                 tracing::debug!("Could not locate high quality entry gateway. Lowering performance filter to medium and trying again");
 
-                entry_point.lookup_gateway(
+                nym_gateway_directory::EntryPoint::from(entry_point.clone()).lookup_gateway(
                     &entry_gateways,
                     min_wg_performance,
                     min_mixnet_performance,

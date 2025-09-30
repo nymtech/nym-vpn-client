@@ -4,10 +4,11 @@
 //! Types shared between nym-vpn-lib and other crates in the workspace.
 
 mod account;
-mod bridges;
 mod connection_data;
+mod device;
 mod gateway;
 mod log_path;
+mod network;
 mod rpc_requests;
 mod service;
 mod tunnel_event;
@@ -23,17 +24,25 @@ pub use account::{
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     ticketbooks::AvailableTickets,
 };
-pub use bridges::{BridgeInformation, BridgeParameters, QuicClientOptions};
 pub use connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
+pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use gateway::{
-    Asn, AsnKind, Country, Entry, Exit, Gateway, Location, Performance, Probe, ProbeOutcome, Score,
+    Asn, AsnKind, Country, Entry, EntryPoint, Exit, ExitPoint, Gateway, GatewayFilter,
+    GatewayFilters, GatewayType, Location, NodeIdentity, ParseRecipientError, Performance, Probe,
+    ProbeOutcome, Recipient, Score,
 };
 pub use log_path::LogPath;
+pub use network::{
+    ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
+    NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
+    SystemConfiguration, SystemMessage, ValidatorDetails,
+};
 pub use rpc_requests::{
     AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, StoreAccountRequest,
+    UserAgent,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use tunnel_event::{

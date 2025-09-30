@@ -12,9 +12,9 @@ use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcC
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types_uniffi::{
-    AccountCommandError, AccountControllerState, AccountLinks, EntryPoint, ExitPoint, FeatureFlags,
-    Gateway, GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, SystemMessage,
-    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Clone, uniffi::Object)]
@@ -50,14 +50,14 @@ impl RpcClient {
     }
 
     pub async fn set_entry_point(&self, entry_point: EntryPoint) -> Result<()> {
-        let entry_point = nym_gateway_directory::EntryPoint::from(entry_point);
+        let entry_point = nym_vpn_lib_types::EntryPoint::from(entry_point);
 
         self.inner.clone().set_entry_point(entry_point).await?;
         Ok(())
     }
 
     pub async fn set_exit_point(&self, exit_point: ExitPoint) -> Result<()> {
-        let exit_point = nym_gateway_directory::ExitPoint::from(exit_point);
+        let exit_point = nym_vpn_lib_types::ExitPoint::from(exit_point);
 
         self.inner.clone().set_exit_point(exit_point).await?;
         Ok(())
@@ -170,7 +170,7 @@ impl RpcClient {
 
     pub async fn list_gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>> {
         let options = nym_vpn_lib_types::ListGatewaysOptions {
-            gw_type: nym_gateway_directory::GatewayType::from(gw_type),
+            gw_type: nym_vpn_lib_types::GatewayType::from(gw_type),
             user_agent: None,
         };
         let gateways = self
@@ -217,13 +217,13 @@ impl RpcClient {
         Ok(self.inner.clone().get_account_identity().await?)
     }
 
-    pub async fn get_account_links(&self, locale: String) -> Result<AccountLinks> {
+    pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {
         Ok(self
             .inner
             .clone()
             .get_account_links(locale)
             .await
-            .map(AccountLinks::from)?)
+            .map(ParsedAccountLinks::from)?)
     }
 
     pub async fn get_account_state(&self) -> Result<AccountControllerState> {

@@ -17,7 +17,7 @@ pub use error::ConversionError;
 
 use crate::proto;
 
-impl From<proto::UserAgent> for nym_sdk::UserAgent {
+impl From<proto::UserAgent> for nym_vpn_lib_types::UserAgent {
     fn from(user_agent: proto::UserAgent) -> Self {
         Self {
             application: user_agent.application,
@@ -28,60 +28,13 @@ impl From<proto::UserAgent> for nym_sdk::UserAgent {
     }
 }
 
-impl From<nym_http_api_client::UserAgent> for proto::UserAgent {
-    fn from(user_agent: nym_http_api_client::UserAgent) -> Self {
+impl From<nym_vpn_lib_types::UserAgent> for proto::UserAgent {
+    fn from(user_agent: nym_vpn_lib_types::UserAgent) -> Self {
         Self {
             application: user_agent.application,
             version: user_agent.version,
             platform: user_agent.platform,
             git_commit: user_agent.git_commit,
-        }
-    }
-}
-
-impl From<String> for proto::Url {
-    fn from(url: String) -> Self {
-        proto::Url { url }
-    }
-}
-
-impl From<url::Url> for proto::Url {
-    fn from(url: url::Url) -> Self {
-        proto::Url {
-            url: url.to_string(),
-        }
-    }
-}
-
-impl From<&nym_sdk::mixnet::NodeIdentity> for proto::EntryNode {
-    fn from(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
-        Self {
-            entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(
-                proto::GatewayId {
-                    id: identity.to_base58_string(),
-                },
-            )),
-        }
-    }
-}
-
-impl From<&nym_sdk::mixnet::NodeIdentity> for proto::ExitNode {
-    fn from(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
-        Self {
-            exit_node_enum: Some(proto::exit_node::ExitNodeEnum::Gateway(proto::GatewayId {
-                id: identity.to_base58_string(),
-            })),
-        }
-    }
-}
-
-impl From<&nym_sdk::mixnet::Recipient> for proto::ExitNode {
-    fn from(address: &nym_sdk::mixnet::Recipient) -> Self {
-        Self {
-            exit_node_enum: Some(proto::exit_node::ExitNodeEnum::Address(proto::Address {
-                nym_address: address.to_string(),
-                gateway_id: address.gateway().to_base58_string(),
-            })),
         }
     }
 }

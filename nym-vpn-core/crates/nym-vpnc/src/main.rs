@@ -5,13 +5,14 @@ mod boolean_option;
 mod commands;
 mod table_style;
 
+use std::str::FromStr;
+
 use anyhow::{Context, Result, bail};
 use clap::{ArgAction, Parser};
 use sysinfo::System;
 use tokio_stream::StreamExt;
 
-use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState, UserAgent, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::table_style::TableStyle;
@@ -31,8 +32,8 @@ pub struct ProgramArgs {
     pub command: Command,
 }
 
-fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
-    Ok(UserAgent::try_from(user_agent)?)
+fn parse_user_agent(s: &str) -> Result<UserAgent, String> {
+    UserAgent::from_str(s)
 }
 
 #[derive(clap::Subcommand)]
@@ -284,43 +285,25 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!("  git_commit: {}", service_info.git_commit);
     println!();
     println!("nym_network:");
-    println!(
-        "  network_name: {}",
-        service_info.nym_network.network.network_name
-    );
+    println!("  network_name: {}", service_info.nym_network.network_name);
     println!("  chain_details:");
     println!(
         "    bech32_account_prefix: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .bech32_account_prefix
+        service_info.nym_network.chain_details.bech32_account_prefix
     );
     println!("    mix_denom:");
     println!(
         "      base: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .mix_denom
-            .base
+        service_info.nym_network.chain_details.mix_denom.base
     );
     println!(
         "      display: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .mix_denom
-            .display
+        service_info.nym_network.chain_details.mix_denom.display
     );
     println!(
         "      display_exponent: {}",
         service_info
             .nym_network
-            .network
             .chain_details
             .mix_denom
             .display_exponent
@@ -328,34 +311,23 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!("    stake_denom:");
     println!(
         "      base: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .stake_denom
-            .base
+        service_info.nym_network.chain_details.stake_denom.base
     );
     println!(
         "      display: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .stake_denom
-            .display
+        service_info.nym_network.chain_details.stake_denom.display
     );
     println!(
         "      display_exponent: {}",
         service_info
             .nym_network
-            .network
             .chain_details
             .stake_denom
             .display_exponent
     );
 
     println!("  validators:");
-    for validator in &service_info.nym_network.network.endpoints {
+    for validator in &service_info.nym_network.endpoints {
         println!("    nyxd_url: {}", validator.nyxd_url);
         println!("    api_url: {}", or_not_set(&validator.api_url));
         println!(
@@ -367,60 +339,29 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!("  nym_contracts:");
     println!(
         "    mixnet_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .mixnet_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.mixnet_contract_address)
     );
     println!(
         "    vesting_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .vesting_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.vesting_contract_address)
     );
     println!(
         "    ecash_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .ecash_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.ecash_contract_address)
     );
     println!(
         "    group_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .group_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.group_contract_address)
     );
     println!(
         "    multisig_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .multisig_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.multisig_contract_address)
     );
     println!(
         "    coconut_dkg_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
-                .network
                 .contracts
                 .coconut_dkg_contract_address
         )

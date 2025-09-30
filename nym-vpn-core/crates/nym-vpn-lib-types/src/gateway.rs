@@ -6,8 +6,321 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 
-use nym_gateway_directory::split_ips;
 use serde::{Deserialize, Serialize};
+
+// The least of evil in terms of dependencies
+use nym_crypto::asymmetric::{
+    ed25519::{self, Ed25519RecoveryError},
+    x25519,
+};
+
+// pub type EntryPoint = nym_gateway_directory::EntryPoint;
+// pub type ExitPoint = nym_gateway_directory::ExitPoint;
+
+// Types that duplicate what nym-sdk already offers without pulling the whole nym-sdk into types crate
+pub type NodeIdentity = ed25519::PublicKey;
+pub type ClientEncryptionKey = x25519::PublicKey;
+pub type ClientIdentity = ed25519::PublicKey;
+
+#[derive(thiserror::Error, Clone, Debug)]
+pub enum ParseRecipientError {
+    #[error("the string address does not contain exactly a single '@' character")]
+    InvalidFormat,
+
+    #[error("the string address does not contain exactly a single '.' character")]
+    InvalidGatewayHalf,
+
+    #[error("Invalid client identity")]
+    InvalidClientIdentity,
+
+    #[error("Invalid client encryption key")]
+    InvalidClientEncryptionKey,
+
+    #[error("Invalid gateway key")]
+    InvalidGatewayKey,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Recipient {
+    client_identity: ClientIdentity,
+    client_encryption_key: ClientEncryptionKey,
+    gateway: NodeIdentity,
+}
+
+impl Recipient {
+    pub fn try_from_base58_string<S: Into<String>>(
+        full_address: S,
+    ) -> Result<Self, ParseRecipientError> {
+        let string_address = full_address.into();
+        let split: Vec<_> = string_address.split('@').collect();
+        if split.len() != 2 {
+            return Err(ParseRecipientError::InvalidFormat);
+        }
+        let client_half = split[0];
+        let gateway_half = split[1];
+
+        let split_client: Vec<_> = client_half.split('.').collect();
+        if split_client.len() != 2 {
+            return Err(ParseRecipientError::InvalidGatewayHalf);
+        }
+
+        let client_identity = ClientIdentity::from_base58_string(split_client[0])
+            .map_err(|_| ParseRecipientError::InvalidClientIdentity)?;
+        let client_encryption_key = ClientEncryptionKey::from_base58_string(split_client[1])
+            .map_err(|_| ParseRecipientError::InvalidClientEncryptionKey)?;
+        let gateway = NodeIdentity::from_base58_string(gateway_half)
+            .map_err(|_| ParseRecipientError::InvalidGatewayKey)?;
+
+        Ok(Recipient {
+            client_identity,
+            client_encryption_key,
+            gateway,
+        })
+    }
+
+    pub fn gateway(&self) -> NodeIdentity {
+        self.gateway
+    }
+}
+
+impl std::str::FromStr for Recipient {
+    type Err = ParseRecipientError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from_base58_string(s)
+    }
+}
+
+// ADDRESS . ENCRYPTION @ GATEWAY_ID
+impl std::fmt::Display for Recipient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}.{}@{}",
+            self.client_identity.to_base58_string(),
+            self.client_encryption_key.to_base58_string(),
+            self.gateway.to_base58_string()
+        )
+    }
+}
+
+impl std::fmt::Debug for Recipient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+        // use the Display implementation
+        <Self as std::fmt::Display>::fmt(self, f)
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<Recipient> for nym_gateway_directory::Recipient {
+    fn from(value: Recipient) -> Self {
+        Self::new(
+            value.client_identity,
+            value.client_encryption_key,
+            value.gateway,
+        )
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Recipient> for Recipient {
+    fn from(value: nym_gateway_directory::Recipient) -> Self {
+        Self {
+            client_identity: *value.identity(),
+            client_encryption_key: *value.encryption_key(),
+            gateway: value.gateway(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
+pub enum EntryPoint {
+    // An explicit entry gateway identity.
+    Gateway { identity: NodeIdentity },
+    // Select a random entry gateway in a specific country.
+    Country { two_letter_iso_country_code: String },
+    // Select a random entry gateway in a specific region/state.
+    Region { region: String },
+    // Select an entry gateway at random.
+    Random,
+}
+
+impl EntryPoint {
+    pub fn from_base58_string(identity: &str) -> Result<Self, Ed25519RecoveryError> {
+        NodeIdentity::from_base58_string(identity).map(|identity| EntryPoint::Gateway { identity })
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
+    fn from(value: nym_gateway_directory::EntryPoint) -> Self {
+        match value {
+            nym_gateway_directory::EntryPoint::Gateway { identity } => {
+                EntryPoint::Gateway { identity }
+            }
+            nym_gateway_directory::EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => EntryPoint::Country {
+                two_letter_iso_country_code,
+            },
+            nym_gateway_directory::EntryPoint::Region { region } => EntryPoint::Region { region },
+            nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
+    fn from(value: EntryPoint) -> Self {
+        match value {
+            EntryPoint::Gateway { identity } => {
+                nym_gateway_directory::EntryPoint::Gateway { identity }
+            }
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => nym_gateway_directory::EntryPoint::Country {
+                two_letter_iso_country_code,
+            },
+            EntryPoint::Region { region } => nym_gateway_directory::EntryPoint::Region { region },
+            EntryPoint::Random => nym_gateway_directory::EntryPoint::Random,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ExitPoint {
+    // An explicit exit address. This is useful when the exit ip-packet-router is running as a
+    // standalone entity (private).
+    Address { address: Box<Recipient> },
+
+    // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
+    // embedded on a gateway.
+    Gateway { identity: NodeIdentity },
+
+    // Select a random entry gateway in a specific country.
+    Country { two_letter_iso_country_code: String },
+
+    // Select a random entry gateway in a specific region/state.
+    Region { region: String },
+
+    // Select an exit gateway at random.
+    Random,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
+    fn from(value: ExitPoint) -> Self {
+        match value {
+            ExitPoint::Address { address } => nym_gateway_directory::ExitPoint::Address {
+                address: Box::new(nym_gateway_directory::Recipient::from(*address)),
+            },
+            ExitPoint::Gateway { identity } => {
+                nym_gateway_directory::ExitPoint::Gateway { identity }
+            }
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => nym_gateway_directory::ExitPoint::Country {
+                two_letter_iso_country_code,
+            },
+            ExitPoint::Region { region } => nym_gateway_directory::ExitPoint::Region { region },
+            ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
+    fn from(value: nym_gateway_directory::ExitPoint) -> Self {
+        match value {
+            nym_gateway_directory::ExitPoint::Address { address } => ExitPoint::Address {
+                address: Box::new(Recipient::from(*address)),
+            },
+            nym_gateway_directory::ExitPoint::Gateway { identity } => {
+                ExitPoint::Gateway { identity }
+            }
+            nym_gateway_directory::ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => ExitPoint::Country {
+                two_letter_iso_country_code,
+            },
+            nym_gateway_directory::ExitPoint::Region { region } => ExitPoint::Region { region },
+            nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum GatewayType {
+    MixnetEntry,
+    MixnetExit,
+    Wg,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<GatewayType> for nym_gateway_directory::GatewayType {
+    fn from(value: GatewayType) -> Self {
+        match value {
+            GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
+            GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
+            GatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum GatewayFilter {
+    MinPerformance {
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+    },
+    Country(String),
+    Region(String),
+    Residential,
+    Exit,
+    Vpn,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<GatewayFilter> for nym_gateway_directory::GatewayFilter {
+    fn from(value: GatewayFilter) -> Self {
+        match value {
+            GatewayFilter::MinPerformance {
+                min_wg_performance,
+                min_mixnet_performance,
+            } => nym_gateway_directory::GatewayFilter::MinPerformance {
+                min_wg_performance,
+                min_mixnet_performance,
+            },
+            GatewayFilter::Country(country) => {
+                nym_gateway_directory::GatewayFilter::Country(country)
+            }
+            GatewayFilter::Region(region) => nym_gateway_directory::GatewayFilter::Region(region),
+            GatewayFilter::Residential => nym_gateway_directory::GatewayFilter::Residential,
+            GatewayFilter::Exit => nym_gateway_directory::GatewayFilter::Exit,
+            GatewayFilter::Vpn => nym_gateway_directory::GatewayFilter::Vpn,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GatewayFilters {
+    pub gw_type: GatewayType,
+    pub filters: Vec<GatewayFilter>,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<GatewayFilters> for nym_gateway_directory::GatewayFilters {
+    fn from(value: GatewayFilters) -> Self {
+        let GatewayFilters { gw_type, filters } = value;
+        nym_gateway_directory::GatewayFilters {
+            gw_type: nym_gateway_directory::GatewayType::from(gw_type),
+            filters: filters
+                .into_iter()
+                .map(nym_gateway_directory::GatewayFilter::from)
+                .collect(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Gateway {
@@ -31,6 +344,7 @@ pub struct Performance {
     pub uptime_percentage_last_24_hours: f32,
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Performance> for Performance {
     fn from(value: nym_gateway_directory::Performance) -> Self {
         Performance {
@@ -91,6 +405,7 @@ pub enum Score {
     Offline,
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::ScoreValue> for Score {
     fn from(value: nym_gateway_directory::ScoreValue) -> Self {
         match value {
@@ -157,6 +472,7 @@ impl fmt::Display for Country {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Country> for Country {
     fn from(country: nym_gateway_directory::Country) -> Self {
         Self {
@@ -165,11 +481,13 @@ impl From<nym_gateway_directory::Country> for Country {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
     fn from(node_description: nym_validator_client::models::NymNodeDescription) -> Self {
         let build_version = Some(node_description.version().to_owned());
-        let (exit_ipv4s, exit_ipv6s) =
-            split_ips(node_description.description.host_information.ip_address);
+        let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
+            node_description.description.host_information.ip_address,
+        );
         Self {
             identity_key: node_description
                 .description
@@ -190,6 +508,7 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::AsnKind> for AsnKind {
     fn from(value: nym_gateway_directory::AsnKind) -> Self {
         match value {
@@ -199,6 +518,7 @@ impl From<nym_gateway_directory::AsnKind> for AsnKind {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Asn> for Asn {
     fn from(value: nym_gateway_directory::Asn) -> Self {
         Asn {
@@ -209,6 +529,7 @@ impl From<nym_gateway_directory::Asn> for Asn {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Location> for Location {
     fn from(location: nym_gateway_directory::Location) -> Self {
         Self {
@@ -222,6 +543,7 @@ impl From<nym_gateway_directory::Location> for Location {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Score> for Score {
     fn from(score: nym_gateway_directory::Score) -> Self {
         match score {
@@ -233,6 +555,7 @@ impl From<nym_gateway_directory::Score> for Score {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Entry> for Entry {
     fn from(entry: nym_gateway_directory::Entry) -> Self {
         Self {
@@ -242,6 +565,7 @@ impl From<nym_gateway_directory::Entry> for Entry {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Exit> for Exit {
     fn from(exit: nym_gateway_directory::Exit) -> Self {
         Self {
@@ -254,6 +578,7 @@ impl From<nym_gateway_directory::Exit> for Exit {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::ProbeOutcome> for ProbeOutcome {
     fn from(outcome: nym_gateway_directory::ProbeOutcome) -> Self {
         Self {
@@ -263,6 +588,7 @@ impl From<nym_gateway_directory::ProbeOutcome> for ProbeOutcome {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Probe> for Probe {
     fn from(probe: nym_gateway_directory::Probe) -> Self {
         Self {
@@ -272,6 +598,7 @@ impl From<nym_gateway_directory::Probe> for Probe {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Gateway> for Gateway {
     fn from(gateway: nym_gateway_directory::Gateway) -> Self {
         let (exit_ipv4s, exit_ipv6s) = gateway.split_ips();

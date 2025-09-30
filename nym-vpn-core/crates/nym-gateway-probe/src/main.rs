@@ -5,8 +5,7 @@
 mod run;
 
 use nym_http_api_client_macro::client_defaults;
-use std::str::FromStr;
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 client_defaults!(
     priority = 10;

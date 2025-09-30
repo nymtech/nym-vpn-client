@@ -22,25 +22,19 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks,
 };
-use nym_vpn_api_client::{
-    NetworkCompatibility,
-    response::{NymVpnDevice, NymVpnUsage},
-    types::ScoreThresholds,
-};
+use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
-    gateway_directory::{
-        self, EntryPoint, ExitPoint, GatewayCache, GatewayCacheHandle, GatewayClient,
-        GatewayFilters,
-    },
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, ConnectArgs, Gateway, ListGatewaysOptions,
-    LogPath, StoreAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    AccountCommandError, AccountControllerState, ConnectArgs, EntryPoint, ExitPoint, FeatureFlags,
+    Gateway, GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
+    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
+use nym_vpn_network_config::Network;
 
 use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
@@ -70,7 +64,7 @@ pub enum VpnServiceCommand {
     SetEnableBridges(oneshot::Sender<()>, bool),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
-    GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
+    GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     ListGateways(
@@ -784,8 +778,8 @@ impl NymVpnService {
             triple: bin_info.cargo_triple.to_string(),
             platform: self.user_agent.platform.clone(),
             git_commit: bin_info.commit_sha.to_string(),
-            nym_network: self.network_env.nym_network.clone(),
-            nym_vpn_network: self.network_env.nym_vpn_network.clone(),
+            nym_network: NymNetworkDetails::from(self.network_env.nym_network.clone()),
+            nym_vpn_network: NymVpnNetwork::from(self.network_env.nym_vpn_network.clone()),
         }
     }
 
@@ -863,8 +857,15 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_get_system_messages(&self) -> SystemMessages {
-        self.network_env.nym_vpn_network.system_messages.clone()
+    async fn handle_get_system_messages(&self) -> Vec<SystemMessage> {
+        self.network_env
+            .nym_vpn_network
+            .system_messages
+            .messages
+            .iter()
+            .cloned()
+            .map(SystemMessage::from)
+            .collect()
     }
 
     async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
@@ -872,10 +873,14 @@ impl NymVpnService {
             .system_configuration
             .as_ref()
             .and_then(|sc| sc.min_supported_app_versions.clone())
+            .map(NetworkCompatibility::from)
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
-        self.network_env.feature_flags.clone()
+        self.network_env
+            .feature_flags
+            .clone()
+            .map(FeatureFlags::from)
     }
 
     async fn handle_list_gateways(
@@ -888,7 +893,7 @@ impl NymVpnService {
         tokio::spawn(async move {
             // todo: pass options.user_agent with request
             let result = gateway_client
-                .lookup_gateways(options.gw_type)
+                .lookup_gateways(nym_gateway_directory::GatewayType::from(options.gw_type))
                 .await
                 .map_err(|source| ListGatewaysError::GetGateways {
                     gw_type: options.gw_type,
@@ -915,7 +920,7 @@ impl NymVpnService {
 
         tokio::spawn(async move {
             let result = gateway_client
-                .lookup_filtered_gateways(filters)
+                .lookup_filtered_gateways(nym_gateway_directory::GatewayFilters::from(filters))
                 .await
                 .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
                 .map(|gateways| {
@@ -1034,6 +1039,7 @@ impl NymVpnService {
             .clone()
             .ok_or(AccountLinksError::AccountManagementNotConfigured)?
             .try_into_parsed_links(&locale, account_id.as_deref())
+            .map(ParsedAccountLinks::from)
             .map_err(|err| {
                 tracing::error!("Failed to parse account links: {:?}", err);
                 AccountLinksError::FailedToParseAccountLinks
@@ -1052,7 +1058,10 @@ impl NymVpnService {
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
-        self.account_command_tx.get_usage().await
+        self.account_command_tx
+            .get_usage()
+            .await
+            .map(|s| s.into_iter().map(NymVpnUsage::from).collect())
     }
 
     async fn handle_reset_device_identity(
@@ -1078,11 +1087,23 @@ impl NymVpnService {
     }
 
     async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-        self.account_command_tx.get_devices().await
+        Ok(self
+            .account_command_tx
+            .get_devices()
+            .await?
+            .into_iter()
+            .map(NymVpnDevice::from)
+            .collect())
     }
 
     async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-        self.account_command_tx.get_active_devices().await
+        Ok(self
+            .account_command_tx
+            .get_active_devices()
+            .await?
+            .into_iter()
+            .map(NymVpnDevice::from)
+            .collect())
     }
 
     async fn handle_get_available_tickets(

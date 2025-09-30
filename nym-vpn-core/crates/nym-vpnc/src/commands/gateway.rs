@@ -4,11 +4,10 @@
 use anyhow::{Result, anyhow};
 use tabled::Table;
 
-use nym_gateway_directory::{
-    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, NodeIdentity, Recipient,
+use nym_vpn_lib_types::{
+    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, ListGatewaysOptions, NodeIdentity,
+    Recipient, UserAgent,
 };
-use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::ListGatewaysOptions;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{boolean_option::BooleanOption, table_style::TableStyle};
@@ -125,8 +124,8 @@ impl Args {
         match self.command {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("Entry point: {}", config.entry_point);
-                println!("Exit point: {}", config.exit_point);
+                println!("Entry point: {:?}", config.entry_point);
+                println!("Exit point: {:?}", config.exit_point);
                 println!(
                     "Residential exit: {}",
                     if config.residential_exit { "on" } else { "off" }
@@ -317,7 +316,7 @@ pub enum GatewayType {
     Wg,
 }
 
-impl From<GatewayType> for nym_gateway_directory::GatewayType {
+impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
     fn from(value: GatewayType) -> Self {
         match value {
             GatewayType::MixnetEntry => Self::MixnetEntry,

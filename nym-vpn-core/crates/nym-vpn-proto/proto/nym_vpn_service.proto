@@ -87,8 +87,6 @@ message Dns {
   optional string ip = 1;
 }
 
-message Url {string url = 1;}
-
 message ApiUrl {
   string url = 1;
   repeated string front_hosts = 2;
@@ -155,20 +153,20 @@ message NymNetworkDetails {
 }
 
 message NymVpnNetworkDetails {
-  Url nym_vpn_api_url = 1;
+  string nym_vpn_api_url = 1;
   repeated ApiUrl nym_vpn_api_urls = 2;
 }
 
 message AccountManagement {
-  Url sign_up = 1;
-  Url sign_in = 2;
-  Url account = 3;
+  string sign_up = 1;
+  string sign_in = 2;
+  string account = 3;
 }
 
 message ValidatorDetails {
-  Url nyxd_url = 1;
-  Url websocket_url = 2;
-  Url api_url = 3;
+  string nyxd_url = 1;
+  string websocket_url = 2;
+  string api_url = 3;
 }
 
 message InfoResponse {
