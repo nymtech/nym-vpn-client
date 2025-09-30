@@ -65,6 +65,16 @@ jobs:
         with:
           crate: cargo-get
 
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
       - name: Update nym-vpn-apple to use latest core
         run: |
           ./scripts/update-nym-vpn-apple-to-latest-core.sh
@@ -85,11 +95,6 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: workspace.package.version --entry nym-vpn-core
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
 
       - name: Append timestamp if it's a dev version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
