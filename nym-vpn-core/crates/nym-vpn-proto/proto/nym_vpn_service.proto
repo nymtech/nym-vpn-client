@@ -242,6 +242,7 @@ message VpnServiceConfig {
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
+  bool residential_exit = 15;
   bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
@@ -706,9 +707,10 @@ service NymVpnService {
   rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
   rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

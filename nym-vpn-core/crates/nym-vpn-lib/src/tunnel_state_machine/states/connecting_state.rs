@@ -99,7 +99,7 @@ impl ConnectingState {
                 && let Some(gateways) = &selected_gateways
                 && let Some(params) = &gateways.entry.bridge_params
             {
-                bridge_endpoints = params.get_addrs()
+                bridge_endpoints = params.get_addrs();
             }
 
             let firewall_policy_params = ConnectingPolicyParameters {

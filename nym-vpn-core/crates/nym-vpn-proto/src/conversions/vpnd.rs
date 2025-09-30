@@ -653,6 +653,7 @@ mod tests {
             min_mixnode_performance: Some(55u8),
             min_gateway_mixnet_performance: Some(64u8),
             min_gateway_vpn_performance: Some(1u8),
+            residential_exit: false,
         };
 
         let external: proto::VpnServiceConfig = internal.clone().into();

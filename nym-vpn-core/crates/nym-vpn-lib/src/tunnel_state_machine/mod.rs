@@ -131,6 +131,9 @@ pub struct TunnelSettings {
     /// Allow LAN connections outside of tunnel.
     pub allow_lan: bool,
 
+    /// Select residential exit gateways only.
+    pub residential_exit: bool,
+
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 

@@ -9,7 +9,7 @@ use nym_http_api_client::UserAgent;
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::ListGatewaysOptions;
 
-use crate::table_style::TableStyle;
+use crate::{boolean_option::BooleanOption, table_style::TableStyle};
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct Args {
@@ -83,16 +83,23 @@ pub struct SetArgs {
     /// Auto-select exit gateway randomly.
     #[arg(long, action = clap::ArgAction::SetTrue, group = "exit")]
     pub exit_random: bool,
+
+    /// Only select residential exit nodes.
+    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    pub residential_exit: Option<BooleanOption>,
 }
 
 impl Args {
     pub async fn execute(self, mut rpc_client: RpcClient, user_agent: UserAgent) -> Result<()> {
         match self.command {
             Command::Get => {
-                let entry_point = rpc_client.get_config().await?.entry_point;
-                let exit_point = rpc_client.get_config().await?.exit_point;
-                println!("Entry point: {entry_point}");
-                println!("Exit point: {exit_point}");
+                let config = rpc_client.get_config().await?;
+                println!("Entry point: {}", config.entry_point);
+                println!("Exit point: {}", config.exit_point);
+                println!(
+                    "Residential exit: {}",
+                    if config.residential_exit { "on" } else { "off" }
+                );
                 Ok(())
             }
             Command::Set(args) => {
@@ -102,8 +109,13 @@ impl Args {
                 if let Some(entry_point) = entry_point {
                     rpc_client.set_entry_point(entry_point).await?;
                 }
+
                 if let Some(exit_point) = exit_point {
                     rpc_client.set_exit_point(exit_point).await?;
+                }
+
+                if let Some(residential_exit) = args.residential_exit {
+                    rpc_client.set_residential_exit(*residential_exit).await?;
                 }
 
                 Ok(())

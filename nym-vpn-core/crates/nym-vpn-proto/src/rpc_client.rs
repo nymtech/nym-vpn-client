@@ -121,18 +121,27 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_network(&mut self, network: String) -> Result<()> {
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
         self.0
-            .set_network(network)
+            .set_enable_bridges(enable_bridges)
             .await
             .map_err(Error::Rpc)?
             .into_inner();
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
+    pub async fn set_residential_exit(&mut self, residential_exit: bool) -> Result<()> {
         self.0
-            .set_enable_bridges(enable_bridges)
+            .set_residential_exit(residential_exit)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_network(&mut self, network: String) -> Result<()> {
+        self.0
+            .set_network(network)
             .await
             .map_err(Error::Rpc)?
             .into_inner();
