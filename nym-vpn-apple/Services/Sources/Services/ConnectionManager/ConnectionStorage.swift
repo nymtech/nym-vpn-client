@@ -1,7 +1,6 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import CountriesManager
 import CountriesManagerTypes
 import GatewayManager
 
@@ -10,7 +9,6 @@ public final class ConnectionStorage {
 
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
-    private let countriesManager: CountriesManager
     private let gatewayManager: GatewayManager
 
     private var entryGatewayType: NodeType {
@@ -51,12 +49,10 @@ public final class ConnectionStorage {
     public init(
         appSettings: AppSettings = .shared,
         configurationManager: ConfigurationManager = .shared,
-        countriesManager: CountriesManager = .shared,
         gatewayManager: GatewayManager = .shared
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
-        self.countriesManager = countriesManager
         self.gatewayManager = gatewayManager
     }
 }
@@ -131,7 +127,7 @@ private extension ConnectionStorage {
     /// - Parameter isEntryHop: Bool. Determines from which country array(entry/exit) to return the country from
     /// - Returns: String with countryCode
     func existingCountry(with countryCode: String, nodeType: NodeType) -> Country {
-        if let country = countriesManager.country(with: countryCode, gatewayType: nodeType) {
+        if let country = gatewayManager.country(with: countryCode, gatewayType: nodeType) {
             return country
         } else {
             return fallbackCountry(nodeType: nodeType)
@@ -142,21 +138,22 @@ private extension ConnectionStorage {
         let fallbackCountry = Country(name: "Switzerland", code: "CH")
         switch nodeType {
         case .entry:
-            if countriesManager.entryCountries.contains(where: { $0.code == "CH" }) {
+
+            if gatewayManager.entryCountries.contains(where: { $0.code == "CH" }) {
                 return fallbackCountry
-            } else if let country = countriesManager.entryCountries.first {
+            } else if let country = gatewayManager.entryCountries.first {
                 return country
             }
         case .exit:
-            if countriesManager.exitCountries.contains(where: { $0.code == "CH" }) {
+            if gatewayManager.exitCountries.contains(where: { $0.code == "CH" }) {
                 return fallbackCountry
-            } else if let country = countriesManager.exitCountries.first {
+            } else if let country = gatewayManager.exitCountries.first {
                 return country
             }
         case .vpn:
-            if countriesManager.vpnCountries.contains(where: { $0.code == "CH" }) {
+            if gatewayManager.vpnCountries.contains(where: { $0.code == "CH" }) {
                 return fallbackCountry
-            } else if let country = countriesManager.vpnCountries.first {
+            } else if let country = gatewayManager.vpnCountries.first {
                 return country
             }
         }

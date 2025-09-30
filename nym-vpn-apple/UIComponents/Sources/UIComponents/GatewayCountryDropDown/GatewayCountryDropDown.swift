@@ -1,6 +1,5 @@
 import SwiftUI
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
 import Theme
 
@@ -11,7 +10,6 @@ public struct GatewayCountryDropDown: View {
     private let isSearching: Bool
 
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
     @State private var isHovered = false
     @State private var isExpanded = false
     @Binding private var path: NavigationPath

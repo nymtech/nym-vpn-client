@@ -1,5 +1,4 @@
 #if os(iOS)
-import CountriesManager
 import NymVPNLib
 import ConnectionTypes
 

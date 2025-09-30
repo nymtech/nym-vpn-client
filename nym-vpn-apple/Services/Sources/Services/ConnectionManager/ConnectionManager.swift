@@ -2,7 +2,6 @@ import Combine
 import Foundation
 import NetworkExtension
 import AppSettings
-import CountriesManager
 import ConnectionTypes
 import CredentialsManager
 import TunnelMixnet
@@ -14,7 +13,6 @@ import GRPCManager
 
 public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
-    private let countriesManager: CountriesManager
 
     private var timerCancellable: AnyCancellable?
 
@@ -94,13 +92,11 @@ public final class ConnectionManager: ObservableObject {
     public init(
         appSettings: AppSettings = AppSettings.shared,
         connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
-        self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.entryGateway = connectionStorage.entryGateway
@@ -114,14 +110,12 @@ public final class ConnectionManager: ObservableObject {
     public init(
         appSettings: AppSettings = AppSettings.shared,
         connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
-        self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
@@ -155,7 +149,6 @@ private extension ConnectionManager {
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
-        setupCountriesManagerObserver()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
 
@@ -194,23 +187,6 @@ private extension ConnectionManager {
 // MARK: - Countries -
 
 private extension ConnectionManager {
-    func setupCountriesManagerObserver() {
-        countriesManager.$entryCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-
-        countriesManager.$exitCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-
-        countriesManager.$vpnCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-    }
-
     func setupConnectionChangeObserver() {
         $connectionType.sink { [weak self] _ in
             self?.updateCountries()

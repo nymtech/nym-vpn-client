@@ -40,6 +40,8 @@ let package = Package(
                 .product(name: "FeatureFlagModels", package: "ServicesMutual"),
                 .product(name: "MessageModels", package: "ServicesMutual"),
                 .product(name: "NymVPNRpc", package: "NymVPNRpc"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
                 "Shell"
             ],
             path: "Sources/GRPCManager"

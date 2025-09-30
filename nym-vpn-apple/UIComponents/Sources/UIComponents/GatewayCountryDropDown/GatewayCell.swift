@@ -1,7 +1,7 @@
 import SwiftUI
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
+import GatewayManager
 import Theme
 
 public struct GatewayCell: View {
@@ -10,7 +10,7 @@ public struct GatewayCell: View {
     private let isSearching: Bool
 
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @Binding private var path: NavigationPath
     @State private var isHovered = false
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
@@ -126,7 +126,7 @@ private extension GatewayCell {
     func serverSubtitleString() -> String {
         if isSearching,
            let countryCode = server.location?.twoLetterIsoCountryCode,
-           let country = countriesManager.country(with: countryCode)
+           let country = gatewayManager.country(with: countryCode)
         {
             "\(country.name), \(server.id)"
         } else {

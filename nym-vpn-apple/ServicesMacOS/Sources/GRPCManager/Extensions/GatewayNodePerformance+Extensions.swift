@@ -3,7 +3,7 @@ import CountriesManagerTypes
 import NymVPNRpc
 
 extension GatewayNodePerformance {
-    init?(with performance: GatewayPerformance?) {
+    init?(with performance: Performance?) {
         guard let performance else { return nil }
         self.init(
             lastUpdated: ISO8601DateFormatter().date(from: performance.lastUpdatedUtc),

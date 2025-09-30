@@ -1,6 +1,5 @@
 import SwiftUI
 import AppSettings
-import CountriesManager
 import ConnectionManager
 import GatewayManager
 import Theme
@@ -10,7 +9,6 @@ public struct HopButton: View {
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
     @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var isHovered = false
 
@@ -31,7 +29,7 @@ public struct HopButton: View {
         case .exit:
             code = connectionManager.exitRouter.name
         }
-        return countriesManager.country(with: code)?.name ?? code
+        return gatewayManager.country(with: code)?.name ?? code
     }
 
     private var subtitleText: String? {

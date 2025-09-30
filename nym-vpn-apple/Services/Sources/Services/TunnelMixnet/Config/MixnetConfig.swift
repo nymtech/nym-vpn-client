@@ -3,7 +3,6 @@ import Network
 import AppSettings
 import Constants
 import ConnectionTypes
-import CountriesManager
 import CredentialsManager
 #if os(iOS)
 import AppVersionProvider

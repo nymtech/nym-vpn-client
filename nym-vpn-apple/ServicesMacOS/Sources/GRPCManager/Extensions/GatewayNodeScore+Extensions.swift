@@ -2,7 +2,7 @@ import NymVPNRpc
 import CountriesManagerTypes
 
 extension GatewayNodeScore {
-    static func convert(from score: GatewayScore?) -> GatewayNodeScore? {
+    static func convert(from score: Score?) -> GatewayNodeScore? {
         guard let score else { return nil }
         switch score {
         case .high:

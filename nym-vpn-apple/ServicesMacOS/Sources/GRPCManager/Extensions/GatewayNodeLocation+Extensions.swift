@@ -2,7 +2,7 @@ import NymVPNRpc
 import CountriesManagerTypes
 
 extension GatewayNodeLocation {
-    init?(with location: GatewayLocation?) {
+    init?(with location: Location?) {
         guard let location else { return nil }
         self.init(
             twoLetterIsoCountryCode: location.twoLetterIsoCountryCode,

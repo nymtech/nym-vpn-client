@@ -1,14 +1,12 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
 import GatewayManager
 import UIComponents
 
 @MainActor public class GatewaysViewModel: ObservableObject {
     private let connectionManager: ConnectionManager
-    private let countriesManager: CountriesManager
     private let gatewayManager: GatewayManager
 
     let type: HopType
@@ -31,13 +29,11 @@ import UIComponents
         type: HopType,
         path: Binding<NavigationPath>,
         connectionManager: ConnectionManager = .shared,
-        countriesManager: CountriesManager = .shared,
         gatewayManager: GatewayManager = .shared
     ) {
         _path = path
         self.type = type
         self.connectionManager = connectionManager
-        self.countriesManager = countriesManager
         self.gatewayManager = gatewayManager
 
         setup()
@@ -85,7 +81,7 @@ import UIComponents
             gateways = gatewayManager.vpn
         }
         countries = Array(Set(gateways.map { $0.location?.twoLetterIsoCountryCode }))
-            .compactMap { countriesManager.country(with: $0) }
+            .compactMap { gatewayManager.country(with: $0) }
             .sorted {
                 $0.name.compare(
                     $1.name,

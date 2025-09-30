@@ -57,6 +57,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+//        case .invalidEntryGatewayIdentity:
+//            self = .invalidEntryGatewayIdentity
+//        case .invalidExitGatewayIdentity:
+//            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:

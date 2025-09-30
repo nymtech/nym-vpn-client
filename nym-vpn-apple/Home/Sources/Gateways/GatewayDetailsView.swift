@@ -1,9 +1,9 @@
 import SwiftUI
 import Constants
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
 import ExternalLinkManager
+import GatewayManager
 #if os(iOS)
 import ImpactGenerator
 #endif
@@ -16,7 +16,7 @@ public struct GatewayDetailsView: View {
     private let hopType: HopType
     @Binding private var path: NavigationPath
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var messageOverlayText: String?
     @State private var displayMessageOverlay = false
 
@@ -507,7 +507,7 @@ private extension GatewayDetailsView {
         let parts = [
             gateway.location?.city,
             gateway.location?.region,
-            countriesManager.country(with: gateway.location?.twoLetterIsoCountryCode)?.name
+            gatewayManager.country(with: gateway.location?.twoLetterIsoCountryCode)?.name
         ]
         .compactMap { $0 }
         .filter { !$0.isEmpty }

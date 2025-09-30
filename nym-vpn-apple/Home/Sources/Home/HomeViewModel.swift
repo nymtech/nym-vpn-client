@@ -4,7 +4,6 @@ import AppSettings
 import ConnectionManager
 import Constants
 import ConfigurationManager
-import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
 import GatewayManager
@@ -31,7 +30,6 @@ public class HomeViewModel: HomeFlowState {
 
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager
-    let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
     let gatewayManager: GatewayManager
@@ -106,7 +104,6 @@ public class HomeViewModel: HomeFlowState {
     public init(
         appSettings: AppSettings = .shared,
         connectionManager: ConnectionManager = .shared,
-        countriesManager: CountriesManager = .shared,
         configurationManager: ConfigurationManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
@@ -117,7 +114,6 @@ public class HomeViewModel: HomeFlowState {
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
-        self.countriesManager = countriesManager
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
@@ -133,7 +129,6 @@ public class HomeViewModel: HomeFlowState {
     public init(
         appSettings: AppSettings = .shared,
         connectionManager: ConnectionManager = .shared,
-        countriesManager: CountriesManager = .shared,
         configurationManager: ConfigurationManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
@@ -145,7 +140,7 @@ public class HomeViewModel: HomeFlowState {
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
-        self.countriesManager = countriesManager
+
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.networkMonitor = networkMonitor
@@ -215,7 +210,6 @@ private extension HomeViewModel {
     func setup() {
         setupTunnelManagerObservers()
         setupUpdateRequiredObserver()
-        setupCountriesManagerObservers()
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
 
@@ -250,13 +244,6 @@ private extension HomeViewModel {
             }
             .store(in: &cancellables)
 #endif
-    }
-
-    func setupCountriesManagerObservers() {
-        countriesManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
     }
 
     func setupGatewayManagerObserver() {

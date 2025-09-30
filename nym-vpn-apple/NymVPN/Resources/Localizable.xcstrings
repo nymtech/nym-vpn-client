@@ -7063,6 +7063,17 @@
         }
       }
     },
+    "createAccount.savedPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I have saved my passphrase"
+          }
+        }
+      }
+    },
     "createAccount.success.choosePlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28721,6 +28732,17 @@
         }
       }
     },
+    "purchasePlan.fullyProtected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’re now fully protected"
+          }
+        }
+      }
+    },
     "purchasePlan.selectPlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29424,6 +29446,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的 NymVPN 账户已准备好🎉"
+          }
+        }
+      }
+    },
+    "purchasePlan.welcomeToTruePrivacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to true privacy 🎉"
           }
         }
       }

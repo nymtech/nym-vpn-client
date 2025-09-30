@@ -14,7 +14,6 @@ let package = Package(
         .library(name: "AppSettings", targets: ["AppSettings"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
-        .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
@@ -73,20 +72,6 @@ let package = Package(
                 "TunnelMixnet"
             ],
             path: "Sources/Services/ConnectionManager"
-        ),
-        .target(
-            name: "CountriesManager",
-            dependencies: [
-                "AppSettings",
-                .product(name: "AppVersionProvider", package: "ServicesMutual"),
-                "ConfigurationManager",
-                .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "NymLogger", package: "ServicesMutual"),
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
-            ],
-            path: "Sources/Services/CountriesManager"
         ),
         .target(
             name: "CredentialsManager",
@@ -152,7 +137,6 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "ConfigurationManager",
-                "CountriesManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
@@ -229,7 +213,6 @@ let package = Package(
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
-                "CountriesManager",
                 "CredentialsManager",
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),

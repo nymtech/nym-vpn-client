@@ -30,7 +30,6 @@ let package = Package(
                 "Theme",
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
-                .product(name: "CountriesManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),

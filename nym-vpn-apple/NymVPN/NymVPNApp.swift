@@ -3,7 +3,6 @@ import Logging
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
-import CountriesManager
 import CredentialsManager
 import FeatureFlagsManager
 import GatewayManager
@@ -31,7 +30,6 @@ struct NymVPNApp: App {
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var credentialsManager = CredentialsManager.shared
-    @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
@@ -75,7 +73,6 @@ struct NymVPNApp: App {
             }
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
-            .environmentObject(countriesManager)
             .environmentObject(credentialsManager)
             .environmentObject(featureFlagsManager)
             .environmentObject(gatewayManager)

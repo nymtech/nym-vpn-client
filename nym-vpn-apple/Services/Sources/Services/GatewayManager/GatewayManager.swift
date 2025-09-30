@@ -28,6 +28,9 @@ public final class GatewayManager: ObservableObject {
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
     @Published public var vpn: [GatewayNode]
+    @Published public var entryCountries: [Country]
+    @Published public var exitCountries: [Country]
+    @Published public var vpnCountries: [Country]
     @Published public var lastError: Error?
 
     lazy var iso8601Flexible: ISO8601DateFormatter = {
@@ -43,6 +46,9 @@ public final class GatewayManager: ObservableObject {
         self.entry = []
         self.exit = []
         self.vpn = []
+        self.entryCountries = []
+        self.exitCountries = []
+        self.vpnCountries = []
         loadGatewayStore()
         loadPrebundledServersIfNecessary()
     }
@@ -58,6 +64,9 @@ public final class GatewayManager: ObservableObject {
         self.entry = []
         self.exit = []
         self.vpn = []
+        self.entryCountries = []
+        self.exitCountries = []
+        self.vpnCountries = []
         loadGatewayStore()
         loadPrebundledServersIfNecessary()
         setupDaemonObserver()
@@ -74,6 +83,43 @@ public final class GatewayManager: ObservableObject {
         entry.first(where: { $0.id == gatewayId })?.moniker
         ?? exit.first(where: { $0.id == gatewayId })?.moniker
         ?? vpn.first(where: { $0.id == gatewayId })?.moniker
+    }
+
+    
+    /// Returns country from isoCode if it exists in the gateways
+    /// - Parameters:
+    ///   - code: countryCode
+    ///   - gatewayType: gateway type
+    /// - Returns: Countrry if any of the gateways are located in it or nil.
+    public func country(with code: String, gatewayType: NodeType) -> Country? {
+        let gateway: GatewayNode?
+        switch gatewayType {
+        case .entry:
+            gateway = entry.first(where: { $0.location?.twoLetterIsoCountryCode == code })
+        case .exit:
+            gateway = exit.first(where: { $0.location?.twoLetterIsoCountryCode == code })
+        case .vpn:
+            gateway = vpn.first(where: { $0.location?.twoLetterIsoCountryCode == code })
+        }
+        if let gateway {
+            return country(with: gateway.location?.twoLetterIsoCountryCode)
+        } else {
+            return nil
+        }
+    }
+
+    
+    /// Localized country
+    /// - Parameter countryCode: countryCode
+    /// - Returns: Country
+    public func country(with countryCode: String?) -> Country? {
+        guard let countryCode,
+              !countryCode.isEmpty,
+              let countryName = Locale.current.localizedString(forRegionCode: countryCode)
+        else {
+            return nil
+        }
+        return Country(name: countryName, code: countryCode)
     }
 }
 
@@ -130,6 +176,12 @@ private extension GatewayManager {
             }
         }
     }
+
+    func updateCountriesFromGateways() {
+        entryCountries = countries(from: entry)
+        exitCountries = countries(from: exit)
+        vpnCountries = countries(from: vpn)
+    }
 }
 
 extension GatewayManager {
@@ -137,5 +189,14 @@ extension GatewayManager {
         Task { @MainActor in
             lastError = error
         }
+    }
+}
+
+private extension GatewayManager {
+    func countries(from nodes: [GatewayNode]) -> [Country] {
+        let codes = nodes.compactMap { $0.location?.twoLetterIsoCountryCode }
+        let countries = codes.compactMap { country(with: $0) }
+            .sorted(by: { $0.name < $1.name })
+        return countries
     }
 }
