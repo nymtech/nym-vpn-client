@@ -169,8 +169,8 @@ impl From<GatewayType> for p::GatewayType {
     }
 }
 
-impl From<p::RichLocation> for Location {
-    fn from(proto: p::RichLocation) -> Self {
+impl From<p::Location> for Location {
+    fn from(proto: p::Location) -> Self {
         Location {
             latitude: proto.latitude,
             longitude: proto.longitude,

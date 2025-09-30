@@ -3,7 +3,7 @@ import { Country, Gateway, GatewaysByCountry, NodeHop } from '../../types';
 import { useMainState } from '../main';
 import { useGateways } from '../gateways';
 import { useLang } from '../../hooks';
-import { NodesContext } from './context';
+import { NodeListContext } from './context';
 import { GwSelectedKind, UiGateway, UiGatewaysByCountry } from './types';
 import { isSelectedNodeType } from './util';
 
@@ -12,7 +12,7 @@ export type NodesStateProviderProps = {
   nodeType: NodeHop;
 };
 
-function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
+function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
   const { vpnMode, entryNode, exitNode } = useMainState();
   const {
     mxEntry: mxEntryGateways,
@@ -150,7 +150,9 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     [error, gatewayList, loading, nodeType, nodes, vpnMode],
   );
 
-  return <NodesContext.Provider value={ctx}>{children}</NodesContext.Provider>;
+  return (
+    <NodeListContext.Provider value={ctx}>{children}</NodeListContext.Provider>
+  );
 }
 
-export default NodesProvider;
+export default NodeListProvider;

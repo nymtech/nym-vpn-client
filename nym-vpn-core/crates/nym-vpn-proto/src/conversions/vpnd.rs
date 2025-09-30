@@ -23,10 +23,10 @@ use nym_vpn_network_config::{
 
 use crate::{conversions::ConversionError, proto};
 
-impl TryFrom<proto::RichLocation> for nym_vpn_lib_types::Location {
+impl TryFrom<proto::Location> for nym_vpn_lib_types::Location {
     type Error = ConversionError;
 
-    fn try_from(location: proto::RichLocation) -> Result<Self, Self::Error> {
+    fn try_from(location: proto::Location) -> Result<Self, Self::Error> {
         Ok(Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
@@ -252,7 +252,7 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
         let id = Some(proto::GatewayId {
             id: gateway.identity_key.to_string(),
         });
-        let location = gateway.location.map(proto::RichLocation::from);
+        let location = gateway.location.map(proto::Location::from);
         let last_probe = gateway.last_probe.map(proto::Probe::from);
         let moniker = gateway.moniker;
         let exit_ipv4s = gateway.exit_ipv4s.iter().map(|ip| ip.to_string()).collect();
@@ -602,9 +602,9 @@ impl TryFrom<proto::Asn> for nym_vpn_lib_types::Asn {
     }
 }
 
-impl From<nym_vpn_lib_types::Location> for proto::RichLocation {
+impl From<nym_vpn_lib_types::Location> for proto::Location {
     fn from(location: nym_vpn_lib_types::Location) -> Self {
-        proto::RichLocation {
+        Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,

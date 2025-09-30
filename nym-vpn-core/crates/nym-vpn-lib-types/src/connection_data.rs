@@ -173,8 +173,8 @@ pub struct WireguardNode {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_wg_gateway_client::GatewayData> for WireguardNode {
-    fn from(value: nym_wg_gateway_client::GatewayData) -> Self {
+impl From<nym_registration_common::GatewayData> for WireguardNode {
+    fn from(value: nym_registration_common::GatewayData) -> Self {
         Self {
             endpoint: value.endpoint,
             public_key: value.public_key.to_base64(),

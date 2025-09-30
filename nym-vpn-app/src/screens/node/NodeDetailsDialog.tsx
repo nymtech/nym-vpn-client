@@ -9,7 +9,7 @@ import {
   countryCode,
 } from '../../ui';
 import { capFirst } from '../../util';
-import { UiCountry, UiGateway, useNodesState } from '../../contexts';
+import { UiCountry, UiGateway, useNodeList } from '../../contexts';
 import { useClipboard, useLang } from '../../hooks';
 import { getScoreIcon } from './list/util';
 
@@ -21,7 +21,7 @@ export type Props = {
 
 function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
   const { t } = useTranslation('nodeLocation');
-  const { vpnMode } = useNodesState();
+  const { vpnMode } = useNodeList();
 
   const gateway = ref.current as UiGateway;
   const { getCountryName } = useLang();
