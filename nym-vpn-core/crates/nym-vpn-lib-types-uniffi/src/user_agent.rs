@@ -20,7 +20,18 @@ pub struct UserAgent {
 
 impl From<UserAgent> for nym_sdk::UserAgent {
     fn from(value: UserAgent) -> Self {
-        nym_sdk::UserAgent {
+        Self {
+            application: value.application,
+            version: value.version,
+            platform: value.platform,
+            git_commit: value.git_commit,
+        }
+    }
+}
+
+impl From<UserAgent> for nym_vpn_lib_types::UserAgent {
+    fn from(value: UserAgent) -> Self {
+        Self {
             application: value.application,
             version: value.version,
             platform: value.platform,

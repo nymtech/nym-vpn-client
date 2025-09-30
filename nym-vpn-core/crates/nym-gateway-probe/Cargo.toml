@@ -56,8 +56,8 @@ nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
 nym-credentials.workspace = true
-nym-http-api-client.workspace = true
 nym-http-api-client-macro = { workspace = true, features = ["debug-inventory"] }
+nym-http-api-client.workspace = true
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [

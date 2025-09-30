@@ -4,8 +4,6 @@
 use std::path::PathBuf;
 
 use futures::{StreamExt, stream::BoxStream};
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayFilters};
-use nym_vpn_lib_types::{ConnectArgs, ListGatewaysOptions, TargetState, TunnelEvent};
 use tokio::{
     sync::{
         broadcast,
@@ -16,6 +14,11 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
+
+use nym_vpn_lib_types::{
+    ConnectArgs, EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState,
+    TunnelEvent,
+};
 
 use nym_vpn_proto::proto::{
     self,
@@ -216,7 +219,10 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::GetSystemMessages, ())
             .await?;
 
-        let messages = messages.into_current_iter().map(|m| m.into()).collect();
+        let messages = messages
+            .into_iter()
+            .map(proto::SystemMessage::from)
+            .collect::<Vec<_>>();
         let response = proto::GetSystemMessagesResponse { messages };
 
         Ok(tonic::Response::new(response))

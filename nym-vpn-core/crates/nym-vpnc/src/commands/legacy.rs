@@ -5,9 +5,10 @@ use std::net::IpAddr;
 
 use anyhow::{Result, anyhow};
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
-use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::{ConnectArgs as DaemonConnectArgs, ConnectOptions, StoreAccountRequest};
+use nym_vpn_lib_types::{
+    ConnectArgs as DaemonConnectArgs, ConnectOptions, EntryPoint, ExitPoint, NodeIdentity,
+    Recipient, StoreAccountRequest, UserAgent,
+};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 #[derive(Debug, clap::Subcommand)]
@@ -447,7 +448,7 @@ async fn get_account_id(mut rpc_client: RpcClient) -> Result<()> {
 
 async fn get_account_links(mut rpc_client: RpcClient, args: GetAccountLinksArgs) -> Result<()> {
     let links = rpc_client.get_account_links(args.locale).await?;
-    println!("{links}");
+    println!("{links:?}");
 
     Ok(())
 }

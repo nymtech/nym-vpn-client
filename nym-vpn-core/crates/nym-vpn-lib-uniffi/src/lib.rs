@@ -80,8 +80,8 @@ use crate::gateway_cache::UniffiGatewayCacheHandle;
 use self::error::VpnError;
 use account::AccountControllerHandle;
 use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, AccountLinks, EntryPoint, ExitPoint, Gateway, GatewayType,
-    NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage, TunnelEvent,
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, NetworkCompatibility,
+    NetworkEnvironment, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
     UserAgent,
 };
 use offline_monitor::OfflineMonitorHandle;
@@ -249,7 +249,7 @@ pub fn getNetworkCompatibilityVersions() -> Result<Option<NetworkCompatibility>,
 /// Returns the account links for the current network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getAccountLinks(locale: &str) -> Result<AccountLinks, VpnError> {
+pub fn getAccountLinks(locale: &str) -> Result<ParsedAccountLinks, VpnError> {
     RUNTIME.block_on(environment::get_account_links(locale))
 }
 
@@ -260,7 +260,7 @@ pub fn getAccountLinks(locale: &str) -> Result<AccountLinks, VpnError> {
 pub fn getAccountLinksRaw(
     account_store_path: &str,
     locale: &str,
-) -> Result<AccountLinks, VpnError> {
+) -> Result<ParsedAccountLinks, VpnError> {
     RUNTIME.block_on(environment::get_account_links_raw(
         account_store_path,
         locale,

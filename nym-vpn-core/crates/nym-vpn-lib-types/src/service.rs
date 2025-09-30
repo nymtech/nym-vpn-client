@@ -3,13 +3,12 @@
 
 use std::{fmt, net::IpAddr};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
-use nym_gateway_directory::{EntryPoint, ExitPoint};
-use nym_vpn_network_config::{NymNetwork, NymVpnNetwork};
+use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
@@ -31,7 +30,7 @@ impl fmt::Display for VpnServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "entry point: {}, exit point: {}, dns: {}",
+            "entry point: {:?}, exit point: {:?}, dns: {}",
             self.entry_point,
             self.exit_point,
             self.dns
@@ -114,6 +113,6 @@ pub struct VpnServiceInfo {
     pub triple: String,
     pub platform: String,
     pub git_commit: String,
-    pub nym_network: NymNetwork,
+    pub nym_network: NymNetworkDetails,
     pub nym_vpn_network: NymVpnNetwork,
 }
