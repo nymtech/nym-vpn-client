@@ -24,5 +24,6 @@
     "light": "Modalità luce"
   },
   "appearance": "Aspetto",
-  "language": "Lingua"
+  "language": "Lingua",
+  "server-details": "Dettagli del server"
 }

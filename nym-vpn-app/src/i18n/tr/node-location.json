@@ -15,6 +15,42 @@
     "exit": "Seçilen çıkış konumu mevcut değil, {{location}} konumuna geçildi"
   },
   "node-details": {
-    "id-label": "Kimlik anahtarı:"
+    "id-label": "Kimlik anahtarı:",
+    "data": {
+      "advanced-privacy": "Gelişmiş gizlilik",
+      "with-mixnet": "Mixnet ile (5-hop (atlama))",
+      "ip-type": "Akış & içerik",
+      "ip-residential": "Yerleşik IP",
+      "ip-datacenter": "Veri Merkezi IP'si",
+      "anti-censorship": "Sansür Karşıtı",
+      "quic-protocol": "QUIC protokolü",
+      "standard-protocol": "Standart protokol",
+      "overall-performance": "Genel performans",
+      "server-load": "Sunucunun mevcut yük durumu",
+      "speed": "Hız",
+      "uptime": "Çalışma süresi",
+      "exit-ipv4": "Exit IPv4",
+      "exit-ipv6": "Exit IPv6",
+      "asn": "Otonom Sistem Numarası",
+      "asn-name": "Otonom Sistem'in adı",
+      "build-version": "Nym sürüm versiyonu",
+      "identity-key": "Kimlik anahtarı:"
+    },
+    "score": {
+      "high": "İyi",
+      "medium": "Orta",
+      "low": "Düşük",
+      "offline": "Çevrimdışı"
+    },
+    "notes": {
+      "anti-censorship": "Bu özelliği kullanmak için Sansüre Karşı Ayarlar’da ‘QUIC protokolü’nü etkinleştirin.",
+      "performance_with_date": "Performans puanı, sunucu yükü ve çalışma süresi dikkate alınarak hesaplanır. Çalışma süresi, son 24 saatin ortalamasıdır. Son güncelleme: {{date}}",
+      "performance": "Performans puanı, sunucu yükü ve son 24 saatin ortalaması alınarak hesaplanan çalışma süresine göre belirlenir."
+    },
+    "links": {
+      "missing-info": "Neden bazı bilgiler eksik veya hatalı?",
+      "explorer": "Detaylı bilgi için Nym <networkExplorerLink />’i inceleyin."
+    },
+    "select-button": "Sunucu seçin"
   }
 }

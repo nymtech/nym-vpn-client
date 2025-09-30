@@ -35,6 +35,22 @@
     "app": "Journaux de l'application",
     "daemon": "Journaux du démon"
   },
+  "anti-censorship": {
+    "title": "Anti-censure",
+    "intro": "Activez ces fonctionnalités si vous rencontrez des problèmes de connexion ou si vous bloquez NymVPN à votre emplacement.",
+    "quic": {
+      "label": "Connexion améliorée (QUIC)",
+      "warning": "Les modifications s'appliqueront après la reconnexion",
+      "content": "Améliore la fiabilité du mode rapide dans les réseaux restrictifs en enveloppant le trafic WireGuard dans QUIC (HTTP/3) pour qu'il apparaisse comme une navigation Web ordinaire.\n\nNote : Limite les options du serveur d'entrée aux passerelles compatibles QUIC.",
+      "link": "Comment QUIC améliore les connexions"
+    },
+    "stealth-api": {
+      "label": "Connexion API furtive",
+      "warning": "Les modifications s'appliqueront après la reconnexion",
+      "content": "Déguiser les requêtes API derrière des domaines populaires et autorisés pour contourner le blocage du VPN. Utilisé automatiquement par NymVPN lorsque les tentatives de connexion standard échouent.",
+      "link": "Comment fonctionne le mode de connexion de l'API furtive"
+    }
+  },
   "faq": "F.A.Q.",
   "display-theme": "Affichage",
   "logout-confirmation": {

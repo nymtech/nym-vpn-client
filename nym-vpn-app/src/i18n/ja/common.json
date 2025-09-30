@@ -24,5 +24,6 @@
     "light": "ライトモード"
   },
   "appearance": "外観",
-  "language": "言語"
+  "language": "言語",
+  "server-details": "サーバーの詳細"
 }

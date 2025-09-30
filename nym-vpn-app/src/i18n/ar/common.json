@@ -24,5 +24,6 @@
     "light": "نمط فاتح"
   },
   "appearance": "المظهر",
-  "language": "اللغة"
+  "language": "اللغة",
+  "server-details": "تفاصيل الخادم"
 }

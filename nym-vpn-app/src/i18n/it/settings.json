@@ -35,6 +35,22 @@
     "app": "Log app",
     "daemon": "Log del demone"
   },
+  "anti-censorship": {
+    "title": "Anti-censura",
+    "intro": "Abilita queste funzionalità se stai riscontrando problemi di connessione o se stai bloccando NymVPN nella tua posizione.",
+    "quic": {
+      "label": "Connessione migliorata (QUIC)",
+      "warning": "Le modifiche verranno applicate dopo la riconnessione",
+      "content": "Migliora l'affidabilità della modalità veloce nelle reti restrittive avvolgendo il traffico WireGuard in QUIC (HTTP/3) per apparire come normale navigazione web.\n\nNota: Limita le opzioni del server di inserimento solo ai gateway compatibili con QUIC.",
+      "link": "Come QUIC migliora le connessioni"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Le modifiche verranno applicate dopo la riconnessione",
+      "content": "Travestisce le richieste API dietro i domini popolari, permessi per bypassare il blocco VPN. Usato automaticamente da NymVPN quando i tentativi di connessione standard falliscono.",
+      "link": "Come funziona la modalità di connessione Stealth API"
+    }
+  },
   "faq": "FAQ",
   "display-theme": "Tema",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "Statistiche di rete anonime",
       "sublabel": "Le modifiche verranno applicate dopo il riavvio del demone.",
-      "desc1": "Aiutaci a costruire una rete più veloce condividendo dati anonimi sulle prestazioni della tua regione. Usiamo questo per ottimizzare le velocità, ridurre le disconnessioni e sterzare la copertura del server dove è più necessario.",
-      "desc2": "Solo i dati sulle prestazioni di rete sono condivisi - mai la tua attività di navigazione o dati personali.",
+      "desc": "Aiutaci a costruire una rete più veloce condividendo dati anonimi sulle prestazioni della tua regione. Usiamo questo per ottimizzare le velocità, ridurre le disconnessioni e sterzare la copertura del server dove è più necessario.\n\nSolo i dati sulle prestazioni di rete sono condivisi - mai la tua attività di navigazione o i dati personali.",
       "link": "Impara esattamente cosa è condiviso"
     }
   },

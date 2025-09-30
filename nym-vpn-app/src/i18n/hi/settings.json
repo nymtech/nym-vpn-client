@@ -4,8 +4,8 @@
     "desc": "ऐप शुरू होने पर स्वयं कनेक्ट करें"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "IPv6 ट्रैफ़िक टनलिंग",
+    "desc": "केवल IPv4 का उपयोग करने के लिए अक्षम करें"
   },
   "notifications": {
     "title": "डेस्कटॉप सूचनाएँ"
@@ -30,10 +30,26 @@
     "emptyData": "कोई लाइसेंस डेटा उपलब्ध नहीं है"
   },
   "logs": {
-    "title": "लॉग्स",
+    "title": "लॉग्स (locally stored)",
     "desc": "लॉग्स कॉपी करें या मिटाएं",
     "app": "ऐप लॉग",
     "daemon": "डेमन लॉग्स"
+  },
+  "anti-censorship": {
+    "title": "Anti-censorship",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
+    "quic": {
+      "label": "Enhanced connection (QUIC)",
+      "warning": "Changes will apply after reconnect",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "How QUIC improves connections"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Changes will apply after reconnect",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
+      "link": "How the Stealth API connect mode works"
+    }
   },
   "faq": "अक्सर पूछे जाने वाले प्रश्न",
   "display-theme": "डिस्प्ले मोड",
@@ -61,26 +77,25 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "त्रुटि और क्रैश रिपोर्ट्स",
+      "sublabel": "ऐप और डेमन पुनः आरंभ करने के बाद परिवर्तन लागू होंगे।",
+      "desc": "क्रैश जानकारी भेजें ताकि हम बग्स को तेज़ी से ठीक कर सकें। रिपोर्टें Sentry की सुरक्षित प्रणाली के माध्यम से जाती हैं और केवल तकनीकी डिबगिंग डेटा शामिल करती हैं।",
+      "link": "Sentry गोपनीयता नीति देखें"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "गुमनाम नेटवर्क आँकड़े",
+      "sublabel": "डेमन पुनः आरंभ करने के बाद परिवर्तन लागू होंगे।",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "link": "सटीक रूप से जानें कि क्या साझा किया गया है"
     }
   },
   "account": {
     "get-started": "शुरू करें",
-    "syncing": "Syncing…",
-    "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "max-device-reached": "Max devices reached",
-    "status-inactive": "Account is inactive",
+    "syncing": "सिंक हो रहा है…",
+    "no-plan": "कोई सक्रिय योजना नहीं",
+    "bandwidth-exceeded": "बैंडविड्थ ख़त्म है",
+    "max-device-reached": "अधिकतम उपकरणों की सीमा ",
+    "status-inactive": "खाता निष्क्रिय है",
     "error": "अंदरूनी त्रुटि"
   }
 }

@@ -24,5 +24,6 @@
     "light": "Thème claire"
   },
   "appearance": "Apparence",
-  "language": "Langue"
+  "language": "Langue",
+  "server-details": "Détails du serveur"
 }

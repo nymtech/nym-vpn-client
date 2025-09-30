@@ -22,9 +22,10 @@
     "ipv6-unavailable": "IPv6 no está disponible en el sistema. Desactívelo en la configuración para usar IPv4",
     "tun-device": "Error de dispositivo TUN",
     "tunnel-provider": "Error del proveedor del túnel",
-    "bad-bandwidth-increase": "Valor de aumento de ancho de banda no válido",
     "inactive-account": "Tu cuenta está inactiva",
-    "device-logged-out": "Este dispositivo ha sido desconectado. Por favor, inicie sesión para continuar usando la VPN."
+    "device-logged-out": "Este dispositivo ha sido desconectado. Por favor, inicie sesión para continuar usando la VPN.",
+    "entry-gateway-bandwidth-increase": "La pasarela de entrada no responde o responde mal a un aumento del ancho de banda.",
+    "exit-gateway-bandwidth-increase": "Salir de la puerta de enlace no está respondiendo o respondiendo mal a un aumento del ancho de banda."
   },
   "account": {
     "internal": "Error interno de la cuenta",
