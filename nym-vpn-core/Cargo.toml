@@ -9,7 +9,6 @@ members = [
     "crates/nym-firewall",
     "crates/nym-gateway-directory",
     "crates/nym-gateway-probe",
-    "crates/nym-harbour-master-client",
     "crates/nym-ipc",
     "crates/nym-macos",
     "crates/nym-offline-monitor",
