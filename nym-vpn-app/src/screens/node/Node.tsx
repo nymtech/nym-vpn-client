@@ -27,7 +27,7 @@ function Node({ node }: { node: NodeHop }) {
 
   const { isOpen, close } = useDialog();
   const { nodes, loading, gateways, error } = useNodeList();
-  const { setFocused } = useNodeListState();
+  const { setFocused, reset: resetSaved, addToExpanded } = useNodeListState();
   const { tE } = useI18nError();
 
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
@@ -79,13 +79,18 @@ function Node({ node }: { node: NodeHop }) {
       payload: { hop: node, node: selected },
     });
     navigate(routes.root);
+    resetSaved(node);
   };
 
   const handleNodeDetails = (gateway: UiGateway) => {
-    setFocused(node, { type: 'gateway', key: gateway.id });
     navigate(routes.nodeDetails, {
       state: { gateway, hop: node },
     });
+    setFocused(node, { type: 'gateway', key: gateway.id });
+    // if the picked gateway's country node is not expanded, ie; while filtering
+    // expand it, so it can be restored and scrolled to when navigating back
+    // to the node list
+    addToExpanded(node, gateway.country.code);
   };
 
   if (error) {

@@ -4,7 +4,11 @@ import dayjs from 'dayjs';
 import * as H from 'history';
 import { Trans, useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
-import { UiGateway, useMainDispatch } from '../../../contexts';
+import {
+  UiGateway,
+  useMainDispatch,
+  useNodeListState,
+} from '../../../contexts';
 import {
   Button,
   ButtonIcon,
@@ -40,6 +44,7 @@ function NodeDetails() {
   const { getCountryName } = useLang();
   const { copy } = useClipboard();
   const { performance, serverLoad: serverLoadStyle } = useScore();
+  const { reset: resetSaved } = useNodeListState();
 
   const { gateway, hop } = location.state;
   const { country, exitIpv4, exitIpv6, asn, buildVersion } = gateway;
@@ -144,6 +149,7 @@ function NodeDetails() {
       payload: { hop, node: gateway },
     });
     navigate(routes.root);
+    resetSaved(hop);
   };
 
   const card1 = [

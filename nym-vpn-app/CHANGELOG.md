@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- When navigating from the _Server details_ screen back to the node list, 
-  restore previous expanded country nodes and scroll to the last focused gateway
+- When navigating from the _Server details_ screen back to the node list,
+  restore previous expanded nodes and scroll to the last focused node
 
 ## [1.16.0] - 2025-09-26
 
