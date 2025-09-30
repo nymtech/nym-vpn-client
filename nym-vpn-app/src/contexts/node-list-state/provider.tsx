@@ -72,6 +72,7 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
         setExitExpanded([]);
         setExitFocused(null);
         setExitSearch(null);
+        break;
     }
   }, []);
 
