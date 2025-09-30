@@ -117,13 +117,6 @@ pub async fn select_gateways(
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
 
-    // If there are no more entry gateways left, it means that entry and exit match.
-    if entry_gateways.is_empty() {
-        return Err(GatewayDirectoryError::SameEntryAndExitGateway {
-            identity: exit_gateway.identity.to_string(),
-        });
-    }
-
     let entry_gateway = entry_point
         .lookup_gateway(&entry_gateways, min_wg_performance, min_mixnet_performance)
         .or_else(|err| {
