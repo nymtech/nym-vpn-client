@@ -1,6 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use futures::{FutureExt, future::Fuse};
+
+use nym_registration_client::{
+    MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
+    RegistrationResult, WireguardRegistrationResult,
+};
+use nym_registration_common::NymNode as RegistrationNymNode;
+use nym_sdk::UserAgent;
+use nym_vpn_account_controller::AccountStateReceiver;
+use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -17,15 +27,8 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{FutureExt, future::Fuse};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use nym_sdk::UserAgent;
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::TaskManager;
-use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::start_background_file_refresh;
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -49,15 +52,12 @@ use super::tun_ipv6;
 use super::tun_name;
 use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
-    tunnel::{
-        self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
-    },
+    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
-    MixnetEvent, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
-    WireguardNode,
+    NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
@@ -71,9 +71,15 @@ use crate::tunnel_provider::OSTunProvider;
 use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
     VpnTopologyProvider,
+    bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
-        tunnel::wireguard::connector::{MetadataEvent, MetadataReceiver},
+        tunnel::{
+            mixnet, transports,
+            wireguard::{
+                self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+            },
+        },
     },
 };
 
@@ -116,9 +122,6 @@ pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent
 
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
-
-/// Task manager shutdown timeout in seconds.
-const TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS: u64 = 10;
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
@@ -202,7 +205,6 @@ pub struct TunnelParameters {
 pub struct TunnelMonitor {
     tunnel_parameters: TunnelParameters,
     monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
-    mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     route_handler: RouteHandler,
     #[cfg(target_os = "ios")]
@@ -222,7 +224,6 @@ impl TunnelMonitor {
         gateway_cache_handle: GatewayCacheHandle,
         custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
-        mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -231,7 +232,6 @@ impl TunnelMonitor {
         let tunnel_monitor = Self {
             tunnel_parameters,
             monitor_event_sender,
-            mixnet_event_sender,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -250,24 +250,13 @@ impl TunnelMonitor {
     }
 
     async fn run(mut self) -> Tombstone {
-        #[allow(deprecated)]
-        // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-        let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS);
-        let (tombstone, reason) = match Box::pin(self.run_inner(&mut task_manager)).await {
+        let (tombstone, reason) = match Box::pin(self.run_inner()).await {
             Ok(tombstone) => (tombstone, None),
             Err(e) => {
                 trace_err_chain!(e, "Tunnel monitor exited with error");
                 (Tombstone::default(), e.error_state_reason())
             }
         };
-
-        // Repeat task manager shutdown in case of early return from run_inner()
-        if task_manager.signal_shutdown().is_err() {
-            tracing::error!("Failed to signal task manager shutdown");
-        }
-
-        tracing::debug!("Waiting for task manager shutdown");
-        task_manager.wait_for_graceful_shutdown().await;
 
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {
@@ -281,8 +270,7 @@ impl TunnelMonitor {
         tombstone
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    async fn run_inner(&mut self, task_manager: &mut TaskManager) -> Result<Tombstone> {
+    async fn run_inner(&mut self) -> Result<Tombstone> {
         if self.enable_ipv6() && !ipv6_availability::is_ipv6_enabled_in_os().await {
             return Err(Error::Ipv6Unavailable);
         }
@@ -382,21 +370,6 @@ impl TunnelMonitor {
 
         self.send_event(TunnelMonitorEvent::ConnectingMixnetClient);
 
-        let connect_options = MixnetConnectOptions {
-            data_path: self.tunnel_parameters.nym_config.data_path.clone(),
-            gateway_config,
-            resolved_gateway_config: self.tunnel_parameters.resolved_gateway_config.clone(),
-            mixnet_client_config: self
-                .tunnel_parameters
-                .tunnel_settings
-                .mixnet_client_config
-                .clone(),
-            tunnel_type: self.tunnel_parameters.tunnel_settings.tunnel_type,
-            selected_gateways: selected_gateways.clone(),
-            user_agent: Some(user_agent),
-            custom_topology_provider: self.custom_topology_provider.clone(),
-        };
-
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
         #[cfg(target_os = "linux")]
@@ -418,40 +391,106 @@ impl TunnelMonitor {
                 }
             }
         };
-        let mut connected_mixnet = Box::pin(tunnel::connect_mixnet(
-            connect_options,
-            &self.tunnel_parameters.nym_config.network_env,
-            self.gateway_cache_handle.clone(),
-            self.shutdown_token.child_token(),
-            #[cfg(unix)]
-            Arc::new(connection_fd_callback),
-        ))
-        .await?;
 
-        let status_listener_handle = connected_mixnet
-            .start_event_listener(
-                task_manager,
-                self.mixnet_event_sender.clone(),
-                self.shutdown_token.child_token(),
+        let mixnet_client_config = self
+            .tunnel_parameters
+            .tunnel_settings
+            .mixnet_client_config
+            .clone()
+            .unwrap_or_default();
+        let custom_topology_provider = self.custom_topology_provider.clone();
+        custom_topology_provider
+            .update_config(
+                mixnet_client_config.min_mixnode_performance,
+                mixnet_client_config.min_gateway_performance,
             )
             .await;
 
-        let (entry_metadata_tx, entry_metadata_rx) = tokio::sync::oneshot::channel();
-        let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel();
+        let entry_ip = selected_gateways
+            .entry
+            .lookup_ip()
+            .ok_or(tunnel::Error::NoIpAddressAnnounced {
+                gateway_id: selected_gateways.entry.identity().to_base58_string(),
+            })
+            .map_err(Box::new)?;
+
+        let exit_ip = selected_gateways
+            .exit
+            .lookup_ip()
+            .ok_or(tunnel::Error::NoIpAddressAnnounced {
+                gateway_id: selected_gateways.exit.identity().to_base58_string(),
+            })
+            .map_err(Box::new)?;
+
+        let entry_node = RegistrationNymNode {
+            identity: selected_gateways.entry.identity,
+            ipr_address: selected_gateways.entry.ipr_address.map(Into::into),
+            authenticator_address: selected_gateways
+                .entry
+                .authenticator_address
+                .map(Into::into),
+            ip_address: entry_ip,
+            version: selected_gateways.entry.version.clone().into(),
+        };
+
+        let exit_node = RegistrationNymNode {
+            identity: selected_gateways.exit.identity,
+            ipr_address: selected_gateways.exit.ipr_address.map(Into::into),
+            authenticator_address: selected_gateways.exit.authenticator_address.map(Into::into),
+            ip_address: exit_ip,
+            version: selected_gateways.exit.version.clone().into(),
+        };
+
+        let rc_builder_config = RegistrationClientBuilderConfig {
+            entry_node,
+            exit_node,
+            data_path: self.tunnel_parameters.nym_config.data_path.clone(),
+            mixnet_client_config,
+            two_hops: self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard,
+            user_agent,
+            custom_topology_provider: Box::new(self.custom_topology_provider.clone()),
+            network_env: self
+                .tunnel_parameters
+                .nym_config
+                .network_env
+                .nym_network
+                .network
+                .clone(),
+            cancel_token: self.shutdown_token.child_token(),
+            #[cfg(unix)]
+            connection_fd_callback: Arc::new(connection_fd_callback),
+        };
+
+        let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
+
+        let registration_client = Box::pin(rc_builder.build()).await?;
+        let registration_result = Box::pin(registration_client.register()).await?;
+
+        let (entry_metadata_tx, entry_metadata_rx) =
+            tokio::sync::oneshot::channel::<MetadataEvent>();
+        let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
 
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
 
-        let selected_gateways = connected_mixnet.selected_gateways().clone();
         let StartTunnelResult {
             tunnel_interface,
             tunnel_conn_data,
             mut tunnel_handle,
-        } = match self.tunnel_parameters.tunnel_settings.tunnel_type {
-            TunnelType::Mixnet => {
-                self.start_mixnet_tunnel(task_manager, connected_mixnet)
-                    .await?
+        } = match registration_result {
+            RegistrationResult::Mixnet(inner_result) => {
+                self.start_mixnet_tunnel(*inner_result).await?
             }
-            TunnelType::Wireguard => {
+            RegistrationResult::Wireguard(inner_result) => {
+                // As a first step, spin the bw controller here
+                let connected_tunnel = self
+                    .setup_wireguard_tunnel(
+                        *inner_result,
+                        entry_metadata_rx,
+                        exit_metadata_rx,
+                        selected_gateways.clone(),
+                    )
+                    .await?;
+
                 match self
                     .tunnel_parameters
                     .tunnel_settings
@@ -460,21 +499,12 @@ impl TunnelMonitor {
                 {
                     #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     WireguardMultihopMode::TunTun => {
-                        self.start_wireguard_tunnel(
-                            task_manager,
-                            connected_mixnet,
-                            entry_metadata_rx,
-                            exit_metadata_rx,
-                        )
-                        .await?
+                        self.start_wireguard_tunnel(connected_tunnel).await?
                     }
                     WireguardMultihopMode::Netstack => {
                         self.start_wireguard_netstack_tunnel(
-                            task_manager,
-                            connected_mixnet,
+                            connected_tunnel,
                             entry_metadata_addr_tx,
-                            entry_metadata_rx,
-                            exit_metadata_rx,
                         )
                         .await?
                     }
@@ -561,7 +591,8 @@ impl TunnelMonitor {
             }
         }
 
-        self.recv_error(task_manager, fused_background_error).await;
+        self.recv_error(tunnel_handle.mixnet_client_token(), fused_background_error)
+            .await;
 
         tracing::info!("Wait for tunnel to exit");
         tunnel_handle.cancel();
@@ -574,11 +605,6 @@ impl TunnelMonitor {
             })
             .unwrap_or_default();
 
-        tracing::debug!("Wait for status listener to exit");
-        if let Err(e) = status_listener_handle.await {
-            tracing::error!("Failed to join on status listener: {}", e);
-        }
-
         if let Some(discovery_refresher_handle) = discovery_refresher_handle {
             tracing::debug!("Wait for discovery refresher to exit");
             if let Err(e) = discovery_refresher_handle.await {
@@ -590,24 +616,20 @@ impl TunnelMonitor {
         Ok(tun_devices)
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn recv_error(
         &self,
-        task_manager: &mut TaskManager,
+        mixnet_cancel_token: Option<CancellationToken>,
         background_error_rx: Fuse<impl Future<Output = Option<()>>>,
     ) {
+        // Watch on the mixnet client of nothing if it doesn't exist
+        let mixnet_monitoring_token = mixnet_cancel_token
+            .map(|token| token.cancelled_owned().fuse())
+            .unwrap_or(Fuse::terminated());
         tokio::select! {
-            _ = self.shutdown_token.cancelled() => {}
-            task_error = task_manager.wait_for_error() => {
-                match task_error {
-                    Some(task_error) => {
-                        tracing::error!("Task manager quit with error: {}", task_error);
-                    }
-                    None => {
-                        tracing::error!("Task manager quit without error");
-                    }
-                }
+            _  = mixnet_monitoring_token => {
+                tracing::error!("MixnetClient exited unexpectedly");
             }
+            _ = self.shutdown_token.cancelled() => {}
             ret = background_error_rx => {
                 if ret.is_some() {
                     tracing::error!("Background task errored out");
@@ -629,16 +651,16 @@ impl TunnelMonitor {
         }
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_mixnet_tunnel(
         &mut self,
-        task_manager: &TaskManager,
-        connected_mixnet: ConnectedMixnet,
+        registration_result: MixnetRegistrationResult,
     ) -> Result<StartTunnelResult> {
-        let connected_tunnel = connected_mixnet
-            .connect_mixnet_tunnel(self.shutdown_token.child_token())
-            .await?;
-        let assigned_addresses = connected_tunnel.assigned_addresses();
+        let assigned_addresses = registration_result.assigned_addresses;
+        let connected_tunnel = mixnet::connected_tunnel::ConnectedTunnel::new(
+            registration_result.mixnet_client,
+            assigned_addresses,
+            self.shutdown_token.clone(),
+        );
 
         let mtu = if let Some(mtu) = self
             .tunnel_parameters
@@ -731,7 +753,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
             nym_address: NymAddress::from(assigned_addresses.mixnet_client_address),
-            exit_ipr: NymAddress::from(assigned_addresses.exit_mix_addresses),
+            exit_ipr: NymAddress::from(assigned_addresses.exit_mix_address),
             entry_ip: assigned_addresses.entry_mixnet_gateway_ip,
             exit_ip: assigned_addresses.exit_mixnet_gateway_ip,
             ipv4: assigned_addresses.interface_addresses.ipv4,
@@ -755,7 +777,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
-                .run(task_manager, tun_device)
+                .run(tun_device)
                 .await
                 .map_err(|e| Error::Tunnel(Box::new(e)))?,
         );
@@ -767,29 +789,116 @@ impl TunnelMonitor {
         })
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    async fn start_wireguard_netstack_tunnel(
-        &mut self,
-        task_manager: &TaskManager,
-        connected_mixnet: ConnectedMixnet,
-        entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
+    async fn setup_wireguard_tunnel(
+        &self,
+        registration_result: WireguardRegistrationResult,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
-    ) -> Result<StartTunnelResult> {
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
-        let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(
-                task_manager,
-                &self.tunnel_parameters.nym_config.network_env,
-                self.shutdown_token.child_token(),
-                entry_metadata_rx,
-                exit_metadata_rx,
-                use_bridges,
-            )
-            .await?;
+        selected_gateways: SelectedGateways,
+    ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
+        let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
+        let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
 
+        let _metadata_event_handler = tokio::spawn(async move {
+            if let Ok(entry) = entry_metadata_rx.await {
+                entry_signal_tx.send(entry.into()).ok();
+            }
+            if let Ok(exit) = exit_metadata_rx.await {
+                exit_signal_tx.send(exit.into()).ok();
+            }
+        });
+
+        let WireguardRegistrationResult {
+            entry_gateway_client,
+            exit_gateway_client,
+            entry_gateway_data,
+            exit_gateway_data,
+            authenticator_listener_handle,
+            bw_controller,
+        } = registration_result;
+
+        let (entry_legacy_client, entry_wg_keypair) =
+            entry_gateway_client.into_legacy_and_keypair();
+        let (exit_legacy_client, exit_wg_keypair) = exit_gateway_client.into_legacy_and_keypair();
+
+        let bw = BandwidthController::create(
+            bw_controller,
+            &selected_gateways,
+            entry_legacy_client,
+            exit_legacy_client,
+            entry_gateway_data.clone(),
+            exit_gateway_data.clone(),
+            entry_signal_rx,
+            exit_signal_rx,
+            self.tunnel_parameters
+                .nym_config
+                .network_env
+                .gw_update_version(),
+            self.shutdown_token.clone(),
+        )
+        .await
+        .map_err(|e| Box::new(tunnel::Error::from(e)))?;
+
+        let authenticator_listener_handle = if bw.is_using_latest_client() {
+            // We don't need the mixnet client anymore
+            tracing::info!(
+                "Disconnecting mixnet client as we are using the latest bandwidth controller"
+            );
+            authenticator_listener_handle.stop().await;
+            None
+        } else {
+            Some(authenticator_listener_handle)
+        };
+        let bandwidth_controller_handle = tokio::spawn(bw.run());
+
+        let mut connection_data = WgConnectionData {
+            entry_bridge_addr: None,
+            entry: entry_gateway_data,
+            exit: exit_gateway_data,
+        };
+
+        let mut transport_fwd_handle = None;
+        if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+            let entry_bridge_params = selected_gateways.entry.get_bridge_params().ok_or(
+                transports::TransportError::config_err(
+                    "attempted to open transport connection without bridge params",
+                ),
+            )?;
+
+            // Attempt transport Connection. If successful a listening UDP connection is created
+            // and the bind address of that UDP listener is provided to the entry wireguard tunnel
+            // as the endpoint address.
+            tracing::info!("Establishing DVPN QUIC transport tunnel");
+            let udp_fwd_cancel = self.shutdown_token.child_token();
+            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+            connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
+            let (local_fwd_listen_addr, fwd_handle) =
+                transports::UdpForwarder::launch(bridge_conn, None, udp_fwd_cancel.clone()).await?;
+            transport_fwd_handle = Some(fwd_handle);
+            tracing::info!(
+                "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
+            );
+            connection_data.entry.endpoint = local_fwd_listen_addr;
+        };
+
+        Ok(wireguard::connected_tunnel::ConnectedTunnel::new(
+            entry_wg_keypair,
+            exit_wg_keypair,
+            connection_data,
+            bandwidth_controller_handle,
+            transport_fwd_handle,
+            authenticator_listener_handle,
+        ))
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    async fn start_wireguard_netstack_tunnel(
+        &mut self,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
+    ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_tun_mtu = connected_tunnel.exit_mtu();
@@ -860,28 +969,13 @@ impl TunnelMonitor {
     }
 
     #[cfg(windows)]
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        task_manager: &TaskManager,
-        connected_mixnet: ConnectedMixnet,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
-        entry_metadata_rx: MetadataReceiver,
-        exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
-        let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(
-                task_manager,
-                &self.tunnel_parameters.nym_config.network_env,
-                self.shutdown_token.child_token(),
-                entry_metadata_rx,
-                exit_metadata_rx,
-                use_bridges,
-            )
-            .await?;
-
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let exit_mtu = connected_tunnel.exit_mtu();
@@ -981,27 +1075,12 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_tunnel(
         &mut self,
-        task_manager: &TaskManager,
-        connected_mixnet: ConnectedMixnet,
-        entry_metadata_rx: MetadataReceiver,
-        exit_metadata_rx: MetadataReceiver,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
-        let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(
-                task_manager,
-                &self.tunnel_parameters.nym_config.network_env,
-                self.shutdown_token.child_token(),
-                entry_metadata_rx,
-                exit_metadata_rx,
-                use_bridges,
-            )
-            .await?;
-
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_mtu = connected_tunnel.entry_mtu();
@@ -1112,27 +1191,13 @@ impl TunnelMonitor {
     }
 
     #[cfg(windows)]
-    #[allow(deprecated)]
     async fn start_wireguard_tunnel(
         &mut self,
-        task_manager: &TaskManager,
-        connected_mixnet: ConnectedMixnet,
-        entry_metadata_rx: MetadataReceiver,
-        exit_metadata_rx: MetadataReceiver,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
-        let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(
-                task_manager,
-                &self.tunnel_parameters.nym_config.network_env,
-                self.shutdown_token.child_token(),
-                entry_metadata_rx,
-                exit_metadata_rx,
-                use_bridges,
-            )
-            .await?;
-
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
+
         // Prepare network environment for the wireguard connection to the entry gateway
         let entry_tun_mtu = connected_tunnel.entry_mtu();
         let exit_tun_mtu = connected_tunnel.exit_mtu();
@@ -1273,30 +1338,14 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "ios", target_os = "android"))]
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     async fn start_wireguard_netstack_tunnel(
         &self,
-        task_manager: &TaskManager,
-        connected_mixnet: ConnectedMixnet,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
-        entry_metadata_rx: MetadataReceiver,
-        exit_metadata_rx: MetadataReceiver,
     ) -> Result<StartTunnelResult> {
-        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
-        let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(
-                task_manager,
-                &self.tunnel_parameters.nym_config.network_env,
-                self.shutdown_token.child_token(),
-                entry_metadata_rx,
-                exit_metadata_rx,
-                use_bridges,
-            )
-            .await?;
-
-        // Prepare network environment for the wireguard connection to the entry gateway
         let mtu = connected_tunnel.exit_mtu();
         let conn_data = connected_tunnel.connection_data();
+        let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
 
         let mut interface_addresses = vec![IpNetwork::V4(Ipv4Network::from(
             conn_data.exit.private_ipv4,

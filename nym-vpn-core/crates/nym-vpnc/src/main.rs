@@ -188,7 +188,7 @@ async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
                 }
             }
             TunnelState::Error(reason) => {
-                bail!("Tunnel entered error state {:?}", reason);
+                bail!("Tunnel entered error state {reason:?}");
             }
             _ => {}
         }
@@ -222,7 +222,7 @@ async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {
                 break;
             }
             TunnelState::Error(reason) => {
-                bail!("Tunnel entered error state: {:?}", reason)
+                bail!("Tunnel entered error state: {reason:?}")
             }
             _ => {}
         }

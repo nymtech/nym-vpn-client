@@ -2,17 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod backpressure;
-mod connect;
 mod error;
 mod mixnet_listener;
 mod processor;
 mod topology_provider;
 
-pub use connect::{SetupMixnetClientOptions, setup_mixnet_client};
 pub use processor::{MixnetProcessorConfig, start_processor};
 
 pub use error::MixnetError;
 pub use topology_provider::VpnTopologyProvider;
-
-pub type SharedMixnetClient =
-    std::sync::Arc<tokio::sync::Mutex<Option<nym_sdk::mixnet::MixnetClient>>>;
