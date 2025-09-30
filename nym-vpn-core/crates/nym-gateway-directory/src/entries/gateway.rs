@@ -16,9 +16,12 @@ use std::{
 };
 use tracing::error;
 
-use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
-
-use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
+use crate::{
+    AuthAddress, Country, Error, IpPacketRouterAddress,
+    entries::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score},
+    error::Result,
+    helpers,
+};
 
 pub type NymNode = Gateway;
 

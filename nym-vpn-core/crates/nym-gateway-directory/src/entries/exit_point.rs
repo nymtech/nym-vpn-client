@@ -6,10 +6,9 @@ use std::fmt::{Display, Formatter};
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 
-use super::gateway::{Gateway, GatewayList};
 use crate::{
     Error, IpPacketRouterAddress,
-    entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, GatewayFilter},
+    entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, Gateway, GatewayFilter, GatewayList},
     error::Result,
 };
 

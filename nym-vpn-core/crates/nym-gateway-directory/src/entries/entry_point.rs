@@ -7,8 +7,11 @@ use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use super::gateway::{Gateway, GatewayFilter, GatewayList};
-use crate::{Error, entries::gateway::COUNTRY_WITH_REGION_SELECTOR, error::Result};
+use crate::{
+    Error,
+    entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, Gateway, GatewayFilter, GatewayList},
+    error::Result,
+};
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
