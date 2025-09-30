@@ -201,7 +201,7 @@ impl From<nym_vpn_lib_types::Performance> for Performance {
 pub struct Gateway {
     pub id: String,
     pub moniker: String,
-    pub location: Option<RichLocation>,
+    pub location: Option<Location>,
     pub mixnet_score: Option<Score>,
     pub wg_performance: Option<Performance>,
     pub exit_ipv4s: Vec<Ipv4Addr>,
@@ -214,7 +214,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
         let (exit_ipv4s, exit_ipv6s) = value.split_ips();
         Gateway {
             moniker: value.moniker,
-            location: value.location.map(RichLocation::from),
+            location: value.location.map(Location::from),
             id: value.identity.to_base58_string(),
             mixnet_score: value.mixnet_score.map(Score::from),
             wg_performance: value.wg_performance.map(Performance::from),
@@ -229,7 +229,7 @@ impl From<nym_vpn_lib_types::Gateway> for Gateway {
     fn from(value: nym_vpn_lib_types::Gateway) -> Self {
         Gateway {
             moniker: value.moniker,
-            location: value.location.map(RichLocation::from),
+            location: value.location.map(Location::from),
             id: value.identity_key,
             mixnet_score: value.mixnet_score.map(Score::from),
             wg_performance: value.wg_performance.map(Performance::from),
@@ -292,7 +292,7 @@ impl From<nym_vpn_lib_types::Asn> for Asn {
 }
 
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct RichLocation {
+pub struct Location {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
     pub longitude: f64,
@@ -301,41 +301,28 @@ pub struct RichLocation {
     pub asn: Option<Asn>,
 }
 
-impl From<nym_gateway_directory::Location> for RichLocation {
+impl From<nym_gateway_directory::Location> for Location {
     fn from(value: nym_gateway_directory::Location) -> Self {
-        RichLocation {
-            two_letter_iso_country_code: value.two_letter_iso_country_code,
-            latitude: value.latitude,
-            longitude: value.longitude,
-            city: value.city,
-            region: value.region,
-            asn: value.asn.map(Into::into),
-        }
-    }
-}
-
-impl From<nym_vpn_lib_types::Location> for RichLocation {
-    fn from(value: nym_vpn_lib_types::Location) -> Self {
-        RichLocation {
-            two_letter_iso_country_code: value.two_letter_iso_country_code,
-            latitude: value.latitude,
-            longitude: value.longitude,
-            city: value.city,
-            region: value.region,
-            asn: value.asn.map(Into::into),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct Location {
-    pub two_letter_iso_country_code: String,
-}
-
-impl From<nym_gateway_directory::Country> for Location {
-    fn from(value: nym_gateway_directory::Country) -> Self {
         Location {
-            two_letter_iso_country_code: value.iso_code().to_string(),
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+            latitude: value.latitude,
+            longitude: value.longitude,
+            city: value.city,
+            region: value.region,
+            asn: value.asn.map(Into::into),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::Location> for Location {
+    fn from(value: nym_vpn_lib_types::Location) -> Self {
+        Location {
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+            latitude: value.latitude,
+            longitude: value.longitude,
+            city: value.city,
+            region: value.region,
+            asn: value.asn.map(Into::into),
         }
     }
 }
