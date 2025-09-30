@@ -4,11 +4,10 @@
 use anyhow::{Result, anyhow};
 use tabled::Table;
 
-use nym_gateway_directory::{
-    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, NodeIdentity, Recipient, ScoreValue,
+use nym_vpn_lib_types::{
+    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, ListGatewaysOptions, NodeIdentity,
+    Recipient, UserAgent,
 };
-use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::ListGatewaysOptions;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{boolean_option::BooleanOption, table_style::TableStyle};
@@ -101,11 +100,30 @@ pub struct SetArgs {
     pub residential_exit: Option<BooleanOption>,
 }
 
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum Score {
+    Low,
+    Medium,
+    High,
+    Offline,
+}
+
+impl From<Score> for nym_vpn_lib_types::Score {
+    fn from(value: Score) -> Self {
+        match value {
+            Score::High => Self::High,
+            Score::Medium => Self::Medium,
+            Score::Low => Self::Low,
+            Score::Offline => Self::Offline,
+        }
+    }
+}
+
 #[derive(Debug, Clone, clap::Args)]
 pub struct FilterArgs {
     /// Minimum score
-    #[arg(long, value_parser = clap::value_parser!(ScoreValue))]
-    pub min_score: Option<ScoreValue>,
+    #[arg(long)]
+    pub min_score: Option<Score>,
 
     /// Filter by country (two-letter ISO code)
     #[arg(long)]
@@ -125,8 +143,8 @@ impl Args {
         match self.command {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("Entry point: {}", config.entry_point);
-                println!("Exit point: {}", config.exit_point);
+                println!("Entry point: {:?}", config.entry_point);
+                println!("Exit point: {:?}", config.exit_point);
                 println!(
                     "Residential exit: {}",
                     if config.residential_exit { "on" } else { "off" }
@@ -160,7 +178,7 @@ impl Args {
                 gateway_type,
                 ref filters,
             } => {
-                self.list_filtered_gateways(rpc_client, gateway_type, filters)
+                self.list_filtered_gateways(rpc_client, gateway_type, filters.clone())
                     .await?;
                 Ok(())
             }
@@ -196,7 +214,7 @@ impl Args {
         &self,
         mut rpc_client: RpcClient,
         gw_type: GatewayType,
-        filters: &FilterArgs,
+        filters: FilterArgs,
     ) -> Result<()> {
         let gateway_filters = Self::build_filters(gw_type, filters);
 
@@ -217,28 +235,26 @@ impl Args {
         Ok(())
     }
 
-    fn build_filters(gw_type: GatewayType, filters: &FilterArgs) -> GatewayFilters {
+    fn build_filters(gw_type: GatewayType, filters: FilterArgs) -> GatewayFilters {
         let mut gateway_filters = GatewayFilters {
             gw_type: gw_type.into(),
             filters: Vec::new(),
         };
 
-        if let Some(ref min_score) = filters.min_score {
+        if let Some(min_score) = filters.min_score.map(nym_vpn_lib_types::Score::from) {
             gateway_filters
                 .filters
-                .push(GatewayFilter::MinScore(*min_score));
+                .push(GatewayFilter::MinScore(min_score));
         }
 
-        if let Some(ref country) = filters.country {
+        if let Some(country) = filters.country {
             gateway_filters
                 .filters
-                .push(GatewayFilter::Country(country.clone()));
+                .push(GatewayFilter::Country(country));
         }
 
-        if let Some(ref region) = filters.region {
-            gateway_filters
-                .filters
-                .push(GatewayFilter::Region(region.clone()));
+        if let Some(region) = filters.region {
+            gateway_filters.filters.push(GatewayFilter::Region(region));
         }
 
         if filters.residential {
@@ -306,7 +322,7 @@ pub enum GatewayType {
     Wg,
 }
 
-impl From<GatewayType> for nym_gateway_directory::GatewayType {
+impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
     fn from(value: GatewayType) -> Self {
         match value {
             GatewayType::MixnetEntry => Self::MixnetEntry,

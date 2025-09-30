@@ -1,3 +1,6 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use crate::{conversions::ConversionError, proto};
 
 impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
@@ -6,13 +9,13 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     fn try_from(value: proto::VpnServiceConfig) -> Result<Self, Self::Error> {
         let entry_point = value
             .entry_point
-            .map(nym_gateway_directory::EntryPoint::try_from)
+            .map(nym_vpn_lib_types::EntryPoint::try_from)
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.entry_point"))?;
 
         let exit_point = value
             .exit_point
-            .map(nym_gateway_directory::ExitPoint::try_from)
+            .map(nym_vpn_lib_types::ExitPoint::try_from)
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.exit_point"))?;
 

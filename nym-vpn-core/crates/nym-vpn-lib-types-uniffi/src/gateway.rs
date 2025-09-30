@@ -1,9 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use nym_sdk::mixnet::{NodeIdentity, Recipient};
+use nym_vpn_lib_types::{NodeIdentity, Recipient};
 
 use super::error::UniffiConversionError;
 
@@ -42,36 +42,32 @@ pub enum EntryPoint {
     Random,
 }
 
-impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
+impl From<EntryPoint> for nym_vpn_lib_types::EntryPoint {
     fn from(value: EntryPoint) -> Self {
         match value {
-            EntryPoint::Gateway { identity } => {
-                nym_gateway_directory::EntryPoint::Gateway { identity }
-            }
+            EntryPoint::Gateway { identity } => nym_vpn_lib_types::EntryPoint::Gateway { identity },
             EntryPoint::Country {
                 two_letter_iso_country_code,
-            } => nym_gateway_directory::EntryPoint::Country {
+            } => nym_vpn_lib_types::EntryPoint::Country {
                 two_letter_iso_country_code,
             },
-            EntryPoint::Region { region } => nym_gateway_directory::EntryPoint::Region { region },
-            EntryPoint::Random => nym_gateway_directory::EntryPoint::Random,
+            EntryPoint::Region { region } => nym_vpn_lib_types::EntryPoint::Region { region },
+            EntryPoint::Random => nym_vpn_lib_types::EntryPoint::Random,
         }
     }
 }
 
-impl From<nym_gateway_directory::EntryPoint> for EntryPoint {
-    fn from(value: nym_gateway_directory::EntryPoint) -> Self {
+impl From<nym_vpn_lib_types::EntryPoint> for EntryPoint {
+    fn from(value: nym_vpn_lib_types::EntryPoint) -> Self {
         match value {
-            nym_gateway_directory::EntryPoint::Gateway { identity } => {
-                EntryPoint::Gateway { identity }
-            }
-            nym_gateway_directory::EntryPoint::Country {
+            nym_vpn_lib_types::EntryPoint::Gateway { identity } => EntryPoint::Gateway { identity },
+            nym_vpn_lib_types::EntryPoint::Country {
                 two_letter_iso_country_code,
             } => EntryPoint::Country {
                 two_letter_iso_country_code,
             },
-            nym_gateway_directory::EntryPoint::Region { region } => EntryPoint::Region { region },
-            nym_gateway_directory::EntryPoint::Random => EntryPoint::Random,
+            nym_vpn_lib_types::EntryPoint::Region { region } => EntryPoint::Region { region },
+            nym_vpn_lib_types::EntryPoint::Random => EntryPoint::Random,
         }
     }
 }
@@ -86,42 +82,38 @@ pub enum ExitPoint {
     Random,
 }
 
-impl From<ExitPoint> for nym_gateway_directory::ExitPoint {
+impl From<ExitPoint> for nym_vpn_lib_types::ExitPoint {
     fn from(value: ExitPoint) -> Self {
         match value {
-            ExitPoint::Address { address } => nym_gateway_directory::ExitPoint::Address {
+            ExitPoint::Address { address } => nym_vpn_lib_types::ExitPoint::Address {
                 address: Box::new(address),
             },
-            ExitPoint::Gateway { identity } => {
-                nym_gateway_directory::ExitPoint::Gateway { identity }
-            }
+            ExitPoint::Gateway { identity } => nym_vpn_lib_types::ExitPoint::Gateway { identity },
             ExitPoint::Country {
                 two_letter_iso_country_code,
-            } => nym_gateway_directory::ExitPoint::Country {
+            } => nym_vpn_lib_types::ExitPoint::Country {
                 two_letter_iso_country_code,
             },
-            ExitPoint::Region { region } => nym_gateway_directory::ExitPoint::Region { region },
-            ExitPoint::Random => nym_gateway_directory::ExitPoint::Random,
+            ExitPoint::Region { region } => nym_vpn_lib_types::ExitPoint::Region { region },
+            ExitPoint::Random => nym_vpn_lib_types::ExitPoint::Random,
         }
     }
 }
 
-impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
-    fn from(value: nym_gateway_directory::ExitPoint) -> Self {
+impl From<nym_vpn_lib_types::ExitPoint> for ExitPoint {
+    fn from(value: nym_vpn_lib_types::ExitPoint) -> Self {
         match value {
-            nym_gateway_directory::ExitPoint::Address { address } => {
+            nym_vpn_lib_types::ExitPoint::Address { address } => {
                 ExitPoint::Address { address: *address }
             }
-            nym_gateway_directory::ExitPoint::Gateway { identity } => {
-                ExitPoint::Gateway { identity }
-            }
-            nym_gateway_directory::ExitPoint::Country {
+            nym_vpn_lib_types::ExitPoint::Gateway { identity } => ExitPoint::Gateway { identity },
+            nym_vpn_lib_types::ExitPoint::Country {
                 two_letter_iso_country_code,
             } => ExitPoint::Country {
                 two_letter_iso_country_code,
             },
-            nym_gateway_directory::ExitPoint::Region { region } => ExitPoint::Region { region },
-            nym_gateway_directory::ExitPoint::Random => ExitPoint::Random,
+            nym_vpn_lib_types::ExitPoint::Region { region } => ExitPoint::Region { region },
+            nym_vpn_lib_types::ExitPoint::Random => ExitPoint::Random,
         }
     }
 }
@@ -132,17 +124,6 @@ pub enum Score {
     Medium,
     Low,
     Offline,
-}
-
-impl From<nym_gateway_directory::Score> for Score {
-    fn from(value: nym_gateway_directory::Score) -> Self {
-        match value {
-            nym_gateway_directory::Score::High(_) => Score::High,
-            nym_gateway_directory::Score::Medium(_) => Score::Medium,
-            nym_gateway_directory::Score::Low(_) => Score::Low,
-            nym_gateway_directory::Score::None => Score::Offline,
-        }
-    }
 }
 
 impl From<nym_vpn_lib_types::Score> for Score {
@@ -156,13 +137,24 @@ impl From<nym_vpn_lib_types::Score> for Score {
     }
 }
 
+impl From<nym_gateway_directory::Score> for Score {
+    fn from(value: nym_gateway_directory::Score) -> Self {
+        match value {
+            nym_gateway_directory::Score::High(_) => Score::High,
+            nym_gateway_directory::Score::Medium(_) => Score::Medium,
+            nym_gateway_directory::Score::Low(_) => Score::Low,
+            nym_gateway_directory::Score::None => Score::Offline,
+        }
+    }
+}
+
 impl From<nym_gateway_directory::ScoreValue> for Score {
     fn from(value: nym_gateway_directory::ScoreValue) -> Self {
         match value {
-            nym_gateway_directory::ScoreValue::Offline => Score::Offline,
-            nym_gateway_directory::ScoreValue::Low => Score::Low,
-            nym_gateway_directory::ScoreValue::Medium => Score::Medium,
             nym_gateway_directory::ScoreValue::High => Score::High,
+            nym_gateway_directory::ScoreValue::Medium => Score::Medium,
+            nym_gateway_directory::ScoreValue::Low => Score::Low,
+            nym_gateway_directory::ScoreValue::Offline => Score::Offline,
         }
     }
 }
@@ -175,19 +167,19 @@ pub struct Performance {
     pub uptime_percentage_last_24_hours: f32,
 }
 
-impl From<nym_gateway_directory::Performance> for Performance {
-    fn from(value: nym_gateway_directory::Performance) -> Self {
+impl From<nym_vpn_lib_types::Performance> for Performance {
+    fn from(value: nym_vpn_lib_types::Performance) -> Self {
         Performance {
             last_updated_utc: value.last_updated_utc,
-            score: value.score.into(),
-            load: value.load.into(),
+            score: Score::from(value.score),
+            load: Score::from(value.load),
             uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
     }
 }
 
-impl From<nym_vpn_lib_types::Performance> for Performance {
-    fn from(value: nym_vpn_lib_types::Performance) -> Self {
+impl From<nym_gateway_directory::Performance> for Performance {
+    fn from(value: nym_gateway_directory::Performance) -> Self {
         Performance {
             last_updated_utc: value.last_updated_utc,
             score: Score::from(value.score),
@@ -209,22 +201,6 @@ pub struct Gateway {
     pub build_version: Option<String>,
 }
 
-impl From<nym_gateway_directory::Gateway> for Gateway {
-    fn from(value: nym_gateway_directory::Gateway) -> Self {
-        let (exit_ipv4s, exit_ipv6s) = value.split_ips();
-        Gateway {
-            moniker: value.moniker,
-            location: value.location.map(Location::from),
-            id: value.identity.to_base58_string(),
-            mixnet_score: value.mixnet_score.map(Score::from),
-            wg_performance: value.wg_performance.map(Performance::from),
-            exit_ipv4s,
-            exit_ipv6s,
-            build_version: value.version,
-        }
-    }
-}
-
 impl From<nym_vpn_lib_types::Gateway> for Gateway {
     fn from(value: nym_vpn_lib_types::Gateway) -> Self {
         Gateway {
@@ -236,6 +212,30 @@ impl From<nym_vpn_lib_types::Gateway> for Gateway {
             exit_ipv4s: value.exit_ipv4s,
             exit_ipv6s: value.exit_ipv6s,
             build_version: value.build_version,
+        }
+    }
+}
+
+impl From<nym_gateway_directory::Gateway> for Gateway {
+    fn from(value: nym_gateway_directory::Gateway) -> Self {
+        let mut ipv4_ips = vec![];
+        let mut ipv6_ips = vec![];
+
+        for ip in value.ips {
+            match ip {
+                IpAddr::V4(ip) => ipv4_ips.push(ip),
+                IpAddr::V6(ip) => ipv6_ips.push(ip),
+            }
+        }
+        Gateway {
+            moniker: value.moniker,
+            location: value.location.map(Location::from),
+            id: value.identity.to_base58_string(),
+            mixnet_score: value.mixnet_score.map(Score::from),
+            wg_performance: value.wg_performance.map(Performance::from),
+            exit_ipv4s: ipv4_ips,
+            exit_ipv6s: ipv6_ips,
+            build_version: value.version,
         }
     }
 }
@@ -332,6 +332,16 @@ pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
     Wg,
+}
+
+impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
+    fn from(value: GatewayType) -> Self {
+        match value {
+            GatewayType::MixnetEntry => nym_vpn_lib_types::GatewayType::MixnetEntry,
+            GatewayType::MixnetExit => nym_vpn_lib_types::GatewayType::MixnetExit,
+            GatewayType::Wg => nym_vpn_lib_types::GatewayType::Wg,
+        }
+    }
 }
 
 impl From<GatewayType> for nym_gateway_directory::GatewayType {

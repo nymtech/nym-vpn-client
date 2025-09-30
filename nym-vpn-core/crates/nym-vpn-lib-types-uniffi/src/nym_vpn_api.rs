@@ -13,8 +13,8 @@ pub struct NymVpnUsage {
     pub bandwidth_used_gb: f64,
 }
 
-impl From<nym_vpn_api_client::response::NymVpnUsage> for NymVpnUsage {
-    fn from(value: nym_vpn_api_client::response::NymVpnUsage) -> Self {
+impl From<nym_vpn_lib_types::NymVpnUsage> for NymVpnUsage {
+    fn from(value: nym_vpn_lib_types::NymVpnUsage) -> Self {
         NymVpnUsage {
             created_on_utc: value.created_on_utc,
             last_updated_utc: value.last_updated_utc,
@@ -43,18 +43,18 @@ pub enum NymVpnDeviceStatus {
     DeleteMe,
 }
 
-impl From<nym_vpn_api_client::response::NymVpnDeviceStatus> for NymVpnDeviceStatus {
-    fn from(status: nym_vpn_api_client::response::NymVpnDeviceStatus) -> Self {
+impl From<nym_vpn_lib_types::NymVpnDeviceStatus> for NymVpnDeviceStatus {
+    fn from(status: nym_vpn_lib_types::NymVpnDeviceStatus) -> Self {
         match status {
-            nym_vpn_api_client::response::NymVpnDeviceStatus::Active => Self::Active,
-            nym_vpn_api_client::response::NymVpnDeviceStatus::Inactive => Self::Inactive,
-            nym_vpn_api_client::response::NymVpnDeviceStatus::DeleteMe => Self::DeleteMe,
+            nym_vpn_lib_types::NymVpnDeviceStatus::Active => Self::Active,
+            nym_vpn_lib_types::NymVpnDeviceStatus::Inactive => Self::Inactive,
+            nym_vpn_lib_types::NymVpnDeviceStatus::DeleteMe => Self::DeleteMe,
         }
     }
 }
 
-impl From<nym_vpn_api_client::response::NymVpnDevice> for NymVpnDevice {
-    fn from(device: nym_vpn_api_client::response::NymVpnDevice) -> Self {
+impl From<nym_vpn_lib_types::NymVpnDevice> for NymVpnDevice {
+    fn from(device: nym_vpn_lib_types::NymVpnDevice) -> Self {
         Self {
             created_on_utc: device.created_on_utc,
             last_updated_utc: device.last_updated_utc,

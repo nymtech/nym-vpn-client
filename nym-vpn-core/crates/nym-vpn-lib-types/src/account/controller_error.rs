@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ErrorStateReason {
     /// Error due to storage
     Storage { context: String },
@@ -28,6 +28,29 @@ pub enum ErrorStateReason {
 
     /// Device time is off by too much, Zk-nyms use will fail
     DeviceTimeDesynced,
+}
+
+impl std::fmt::Display for ErrorStateReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ErrorStateReason::Storage { context } => write!(f, "Storage error: {context}"),
+            ErrorStateReason::ApiFailure { context, details } => {
+                write!(f, "API failure: {context} - {details}")
+            }
+            ErrorStateReason::Internal { context, details } => {
+                write!(f, "Internal error: {context} - {details}")
+            }
+            ErrorStateReason::BandwidthExceeded { context } => {
+                write!(f, "Bandwidth exceeded: {context}")
+            }
+            ErrorStateReason::AccountStatusNotActive { status } => {
+                write!(f, "Account status not active: {status}")
+            }
+            ErrorStateReason::InactiveSubscription => write!(f, "Inactive subscription"),
+            ErrorStateReason::MaxDeviceReached => write!(f, "Max device numbers reached"),
+            ErrorStateReason::DeviceTimeDesynced => write!(f, "Device time is off by too much"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]

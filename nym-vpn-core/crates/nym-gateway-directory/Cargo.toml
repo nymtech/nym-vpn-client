@@ -12,7 +12,6 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-futures.workspace = true
 itertools.workspace = true
 nym-client-core.workspace = true
 nym-common.workspace = true

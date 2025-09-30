@@ -61,8 +61,9 @@ pub async fn select_gateways(
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
-    let entry_point = tunnel_settings.entry_point.as_ref();
-    let exit_point = tunnel_settings.exit_point.as_ref();
+    let entry_point = EntryPoint::from(*tunnel_settings.entry_point.clone());
+    let exit_point = ExitPoint::from(*tunnel_settings.exit_point.clone());
+
     if let (
         EntryPoint::Gateway {
             identity: entry_identity,
@@ -70,7 +71,7 @@ pub async fn select_gateways(
         ExitPoint::Gateway {
             identity: exit_identity,
         },
-    ) = (entry_point, &exit_point)
+    ) = (&entry_point, &exit_point)
         && entry_identity == exit_identity
     {
         return Err(GatewayDirectoryError::SameEntryAndExitGateway {

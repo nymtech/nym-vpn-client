@@ -4,15 +4,13 @@
 use super::error::{Error, Result};
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib::{
-    NodeIdentity,
-    gateway_directory::{self, EntryPoint, ExitPoint},
-    tunnel_state_machine::{
-        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
-        WireguardMultihopMode, WireguardTunnelOptions,
-    },
+use nym_vpn_lib::tunnel_state_machine::{
+    DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
+    WireguardMultihopMode, WireguardTunnelOptions,
 };
-use nym_vpn_lib_types::{TunnelEvent, TunnelType, VpnServiceConfig};
+use nym_vpn_lib_types::{
+    EntryPoint, ExitPoint, NodeIdentity, Recipient, TunnelEvent, TunnelType, VpnServiceConfig,
+};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,
@@ -575,7 +573,7 @@ impl TryFrom<EntryPointExtV2> for EntryPoint {
     fn try_from(value: EntryPointExtV2) -> Result<Self, Self::Error> {
         match value {
             EntryPointExtV2::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
-                .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
+                .map_err(|e| ConfigSetupError::EntryPoint(e.to_string())),
             EntryPointExtV2::Country {
                 two_letter_iso_country_code,
             } => Ok(EntryPoint::Country {
@@ -628,30 +626,15 @@ impl TryFrom<ExitPointExtV2> for ExitPoint {
     fn try_from(value: ExitPointExtV2) -> Result<Self, Self::Error> {
         match value {
             ExitPointExtV2::Address { address } => {
-                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
-                    ConfigSetupError::ExitPoint {
-                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
-                            address: address.clone(),
-                            source: e,
-                        }),
-                    }
-                })?;
+                let recipient = Recipient::try_from_base58_string(&address)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Address {
                     address: Box::new(recipient),
                 })
             }
             ExitPointExtV2::Gateway { identity } => {
-                let node_identity =
-                    gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
-                        ConfigSetupError::ExitPoint {
-                            error: Box::new(
-                                gateway_directory::Error::NodeIdentityFormattingError {
-                                    identity: identity.clone(),
-                                    source: e,
-                                },
-                            ),
-                        }
-                    })?;
+                let node_identity = nym_vpn_lib_types::NodeIdentity::from_str(&identity)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Gateway {
                     identity: node_identity,
                 })
@@ -709,7 +692,7 @@ impl TryFrom<EntryPointExtV1> for EntryPoint {
     fn try_from(value: EntryPointExtV1) -> Result<Self, Self::Error> {
         match value {
             EntryPointExtV1::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
-                .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
+                .map_err(|e| ConfigSetupError::EntryPoint(e.to_string())),
             EntryPointExtV1::Location { location } => Ok(EntryPoint::Country {
                 two_letter_iso_country_code: location,
             }),
@@ -737,30 +720,15 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
     fn try_from(value: ExitPointExtV1) -> Result<Self, Self::Error> {
         match value {
             ExitPointExtV1::Address { address } => {
-                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
-                    ConfigSetupError::ExitPoint {
-                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
-                            address: address.clone(),
-                            source: e,
-                        }),
-                    }
-                })?;
+                let recipient = Recipient::try_from_base58_string(&address)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Address {
                     address: Box::new(recipient),
                 })
             }
             ExitPointExtV1::Gateway { identity } => {
-                let node_identity =
-                    gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
-                        ConfigSetupError::ExitPoint {
-                            error: Box::new(
-                                gateway_directory::Error::NodeIdentityFormattingError {
-                                    identity: identity.clone(),
-                                    source: e,
-                                },
-                            ),
-                        }
-                    })?;
+                let node_identity = NodeIdentity::from_str(&identity)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Gateway {
                     identity: node_identity,
                 })
@@ -812,14 +780,8 @@ impl TryFrom<LegacyExitPoint> for ExitPoint {
     fn try_from(value: LegacyExitPoint) -> Result<Self, Self::Error> {
         match value {
             LegacyExitPoint::Address { address } => {
-                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
-                    ConfigSetupError::ExitPoint {
-                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
-                            address: address.clone(),
-                            source: e,
-                        }),
-                    }
-                })?;
+                let recipient = Recipient::try_from_base58_string(&address)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Address {
                     address: Box::new(recipient),
                 })
@@ -915,17 +877,11 @@ pub enum ConfigSetupError {
         error: nym_windows::security::Error,
     },
 
-    #[error("failed to convert entry point")]
-    EntryPoint {
-        #[source]
-        error: Box<gateway_directory::Error>,
-    },
+    #[error("failed to convert entry point: {0}")]
+    EntryPoint(String),
 
-    #[error("failed to convert exit point")]
-    ExitPoint {
-        #[source]
-        error: Box<gateway_directory::Error>,
-    },
+    #[error("failed to convert exit point: {0}")]
+    ExitPoint(String),
 
     #[error("failed to convert IP address")]
     IpAddress {
@@ -1152,8 +1108,8 @@ mod tests {
     async fn run_migrate_toml_test(
         toml_content: &str,
         json_latest_content: &str,
-        entry_point: gateway_directory::EntryPoint,
-        exit_point: gateway_directory::ExitPoint,
+        entry_point: nym_vpn_lib_types::EntryPoint,
+        exit_point: nym_vpn_lib_types::ExitPoint,
     ) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
@@ -1296,11 +1252,11 @@ location = "BE"
   "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Country {
+        let entry_point = nym_vpn_lib_types::EntryPoint::Country {
             two_letter_iso_country_code: "FR".to_string(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Country {
+        let exit_point = nym_vpn_lib_types::ExitPoint::Country {
             two_letter_iso_country_code: "BE".to_string(),
         };
 
@@ -1343,15 +1299,15 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Gateway {
-            identity: gateway_directory::NodeIdentity::from_str(
+        let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
                 "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
             )
             .unwrap(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Gateway {
-            identity: gateway_directory::NodeIdentity::from_str(
+        let exit_point = nym_vpn_lib_types::ExitPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
                 "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
             )
             .unwrap(),
@@ -1396,16 +1352,16 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Gateway {
-            identity: gateway_directory::NodeIdentity::from_str(
+        let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
                 "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
             )
             .unwrap(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Address {
+        let exit_point = nym_vpn_lib_types::ExitPoint::Address {
             address: Box::new(
-                gateway_directory::Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
+                nym_vpn_lib_types::Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
             )
         };
 
@@ -1437,9 +1393,9 @@ exit_point = "Random"
   "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Random;
+        let entry_point = nym_vpn_lib_types::EntryPoint::Random;
 
-        let exit_point = gateway_directory::ExitPoint::Random;
+        let exit_point = nym_vpn_lib_types::ExitPoint::Random;
 
         run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
     }
@@ -1546,11 +1502,11 @@ exit_point = "Random"
     #[tokio::test]
     async fn test_service_config_serialize_full() {
         let config = VpnServiceConfig {
-            entry_point: gateway_directory::EntryPoint::Country {
+            entry_point: nym_vpn_lib_types::EntryPoint::Country {
                 two_letter_iso_country_code: "US".to_string(),
             },
-            exit_point: gateway_directory::ExitPoint::Gateway {
-                identity: gateway_directory::NodeIdentity::from_str(
+            exit_point: nym_vpn_lib_types::ExitPoint::Gateway {
+                identity: nym_vpn_lib_types::NodeIdentity::from_str(
                     "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
                 )
                 .unwrap(),
