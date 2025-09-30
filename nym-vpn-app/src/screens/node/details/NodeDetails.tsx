@@ -4,7 +4,11 @@ import dayjs from 'dayjs';
 import * as H from 'history';
 import { Trans, useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
-import { UiGateway, useMainDispatch } from '../../../contexts';
+import {
+  UiGateway,
+  useMainDispatch,
+  useNodeListState,
+} from '../../../contexts';
 import {
   Button,
   ButtonIcon,
@@ -22,7 +26,7 @@ import {
   SupportServerLocationUrl,
 } from '../../../constants';
 import { kvSet } from '../../../kvStore';
-import { uiNodeToRaw } from '../../../contexts/nodes/util';
+import { uiNodeToRaw } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
 import DataCard from './DataCard';
 
@@ -40,6 +44,7 @@ function NodeDetails() {
   const { getCountryName } = useLang();
   const { copy } = useClipboard();
   const { performance, serverLoad: serverLoadStyle } = useScore();
+  const { reset: resetSaved } = useNodeListState();
 
   const { gateway, hop } = location.state;
   const { country, exitIpv4, exitIpv6, asn, buildVersion } = gateway;
@@ -144,6 +149,7 @@ function NodeDetails() {
       payload: { hop, node: gateway },
     });
     navigate(routes.root);
+    resetSaved(hop);
   };
 
   const card1 = [
@@ -255,7 +261,9 @@ function NodeDetails() {
 
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 cursor-default">
-      <h1 className="text-lg font-medium dark:text-white">{gateway.name}</h1>
+      <h1 className="text-lg font-medium dark:text-white break-words">
+        {gateway.name}
+      </h1>
       <div className="flex flex-row items-center gap-2 select-none">
         <FlagIcon
           code={country.code.toLowerCase() as countryCode}

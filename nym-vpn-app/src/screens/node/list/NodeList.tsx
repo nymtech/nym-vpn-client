@@ -1,4 +1,5 @@
-import * as Accordion from '@radix-ui/react-accordion';
+import { useCallback, useEffect, useRef } from 'react';
+import { Accordion } from '@base-ui-components/react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 import {
@@ -6,6 +7,7 @@ import {
   UiCountry,
   UiGateway,
   UiGatewaysByCountry,
+  useNodeListState,
 } from '../../../contexts';
 import { NodeHop, VpnMode } from '../../../types';
 import CountryInfo from './CountryInfo';
@@ -16,7 +18,7 @@ export type NodeListProps = {
   nodes: UiGatewaysByCountry[];
   gateways: UiGateway[];
   onSelect: (node: UiCountry | UiGateway) => void;
-  onNodeDetails: (node: UiGateway | UiCountry) => void;
+  onNodeDetails: (node: UiGateway) => void;
   node: NodeHop;
   vpnMode: VpnMode;
 };
@@ -29,6 +31,60 @@ function NodeList({
   vpnMode,
   onNodeDetails,
 }: NodeListProps) {
+  const {
+    exit: exitState,
+    entry: entryState,
+    setExpanded,
+  } = useNodeListState();
+  const expanded = node === 'entry' ? entryState.expanded : exitState.expanded;
+  const focused = node === 'entry' ? entryState.focused : exitState.focused;
+  const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
+  const gatewaysRef = useRef<Map<string, HTMLDivElement>>(null);
+
+  const getMap = (type: 'country' | 'gateway') => {
+    if (type === 'country') {
+      if (!countriesRef.current) {
+        countriesRef.current = new Map();
+      }
+      return countriesRef.current;
+    }
+    if (type === 'gateway') {
+      if (!gatewaysRef.current) {
+        gatewaysRef.current = new Map();
+      }
+      return gatewaysRef.current;
+    }
+  };
+
+  const setRef = (
+    type: 'country' | 'gateway',
+    key: string,
+    node: HTMLDivElement | null,
+  ) => {
+    if (!node) {
+      return;
+    }
+    const map = getMap(type);
+    map?.set(key, node);
+
+    return () => {
+      map?.delete(key);
+    };
+  };
+
+  const scrollToNode = useCallback(
+    (type: 'country' | 'gateway', key: string) => {
+      const map = getMap(type);
+      const node = map?.get(key);
+      node?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center',
+      });
+    },
+    [],
+  );
+
   const handleCountrySelect = (
     country: UiCountry,
     isSelected: SelectedKind,
@@ -44,17 +100,35 @@ function NodeList({
     }
   };
 
+  const onValueChange = (value: string[]) => {
+    setExpanded(node, value);
+  };
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (focused) {
+      timeoutId = setTimeout(() => {
+        scrollToNode(focused.type, focused.key);
+      }, 20);
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [focused, scrollToNode]);
+
   return (
     <>
       <Accordion.Root
         className="w-full flex flex-col gap-3"
-        type="multiple"
         data-testid="node-list-accordion"
+        value={expanded}
+        onValueChange={onValueChange}
+        openMultiple
       >
         {nodes.map(({ i18n, isSelected, gateways, country }) => (
           <Accordion.Item
             key={country.code}
             value={country.code}
+            ref={(node) => setRef('country', country.code, node)}
             data-testid={`country-accordion-item-${country.code}`}
           >
             <div
@@ -92,12 +166,14 @@ function NodeList({
                 className="flex py-2"
                 data-testid={`country-accordion-header-${country.code}`}
               >
-                <Accordion.Trigger asChild>
-                  <FoldButton />
-                </Accordion.Trigger>
+                <Accordion.Trigger
+                  render={(props, state) => (
+                    <FoldButton html={props} state={state} />
+                  )}
+                />
               </Accordion.Header>
             </div>
-            <Accordion.Content
+            <Accordion.Panel
               data-testid={`country-accordion-content-${country.code}`}
             >
               <motion.div
@@ -110,6 +186,7 @@ function NodeList({
                 {gateways.map((gateway) => (
                   <GatewayItem
                     key={gateway.id}
+                    ref={(node) => setRef('gateway', gateway.id, node)}
                     node={node}
                     gateway={gateway}
                     onSelect={onSelect}
@@ -118,7 +195,7 @@ function NodeList({
                   />
                 ))}
               </motion.div>
-            </Accordion.Content>
+            </Accordion.Panel>
           </Accordion.Item>
         ))}
       </Accordion.Root>

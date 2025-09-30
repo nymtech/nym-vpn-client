@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import { AppError, NodeHop, VpnMode } from '../../types';
 import { UiGateway, UiGatewaysByCountry } from './types';
 
-type NodesState = {
+type State = {
   nodes: UiGatewaysByCountry[];
   gateways: UiGateway[];
   loading: boolean;
@@ -11,7 +11,7 @@ type NodesState = {
   error?: AppError | null;
 };
 
-const initialState: NodesState = {
+const initialState: State = {
   nodes: [],
   gateways: [],
   loading: false,
@@ -20,7 +20,7 @@ const initialState: NodesState = {
   error: null,
 };
 
-export const NodesContext = createContext<NodesState>(initialState);
-export const useNodesState = () => {
-  return useContext(NodesContext);
+export const NodeListContext = createContext<State>(initialState);
+export const useNodeList = () => {
+  return useContext(NodeListContext);
 };
