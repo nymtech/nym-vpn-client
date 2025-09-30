@@ -3,6 +3,8 @@
 
 pub mod proto {
     pub use prost_types::Timestamp;
+    // remove when this bug is resolved: https://github.com/hyperium/tonic/issues/2388
+    use std::primitive::bool;
 
     tonic::include_proto!("nym_vpn_service");
 }
