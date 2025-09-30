@@ -22,14 +22,12 @@ public struct HopButton: View {
     }
 
     private var titleText: String {
-        let code: String
         switch hopType {
         case .entry:
-            code = connectionManager.entryGateway.name
+            gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway) ?? ""
         case .exit:
-            code = connectionManager.exitRouter.name
+            gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) ?? ""
         }
-        return gatewayManager.country(with: code)?.name ?? code
     }
 
     private var subtitleText: String? {

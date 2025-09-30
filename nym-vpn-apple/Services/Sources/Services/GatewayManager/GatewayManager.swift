@@ -121,7 +121,7 @@ public final class GatewayManager: ObservableObject {
         }
         return Country(name: countryName, code: countryCode)
     }
-    
+
     /// Country from gateway id for node type
     /// - Parameters:
     ///   - gatewayId: String
@@ -167,6 +167,36 @@ public final class GatewayManager: ObservableObject {
             return code
         case let .gateway(identifier):
             return country(with: identifier, nodeType: .exit)?.code ?? country(with: identifier, nodeType: .vpn)?.code
+        case .region:
+            return nil
+        case .random:
+            return nil
+        }
+    }
+
+    public func userFriendlyTitle(with gateway: EntryGateway) -> String? {
+        switch gateway {
+        case let .country(code), let .lowLatencyCountry(code):
+            return country(with: code)?.name
+        case let .region(region):
+            return nil
+        case .city(let string):
+            return nil
+        case let .gateway(identifier):
+            return moniker(with: identifier) ?? identifier
+        case .random:
+            return nil
+        }
+    }
+
+    public func userFriendlyTitle(with router: ExitRouter) -> String? {
+        switch router {
+        case let .address(string):
+            return nil
+        case let .country(code):
+            return country(with: code)?.name
+        case let .gateway(identifier):
+            return moniker(with: identifier) ?? identifier
         case .region:
             return nil
         case .random:

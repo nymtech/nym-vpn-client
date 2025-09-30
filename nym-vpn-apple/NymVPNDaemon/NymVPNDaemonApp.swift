@@ -245,22 +245,22 @@ private extension NymVPNDaemonApp {
 
     @ViewBuilder
     func connectionDetails() -> some View {
-        let entryName = connectionManager.entryGateway.name
-        let entry = gatewayManager.country(with: entryName)?.name ?? entryName
+        if let entryName = gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway),
+           let exitName = gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) {
+            let entry = gatewayManager.country(with: entryName)?.name ?? entryName
+            let exit = gatewayManager.country(with: exitName)?.name ?? exitName
 
-        let exitName = connectionManager.exitRouter.name
-        let exit = gatewayManager.country(with: exitName)?.name ?? exitName
+            let statusButtonConfig = StatusButtonConfig(
+                tunnelStatus: connectionManager.currentTunnelStatus,
+                hasInternet: true
+            )
 
-        let statusButtonConfig = StatusButtonConfig(
-            tunnelStatus: connectionManager.currentTunnelStatus,
-            hasInternet: true
-        )
-
-        if connectionManager.currentTunnelStatus == .connected {
-            Text("\(statusButtonConfig.rawValue.localizedString)")
-            Text("\("home.entryHop".localizedString): \(entry)")
-            Text("\("home.exitHop".localizedString): \(exit)")
-            Divider()
+            if connectionManager.currentTunnelStatus == .connected {
+                Text("\(statusButtonConfig.rawValue.localizedString)")
+                Text("\("home.entryHop".localizedString): \(entry)")
+                Text("\("home.exitHop".localizedString): \(exit)")
+                Divider()
+            }
         }
     }
 }

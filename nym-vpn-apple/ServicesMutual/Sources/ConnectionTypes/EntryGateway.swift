@@ -30,18 +30,6 @@ public enum EntryGateway: Codable, Equatable {
 }
 
 extension EntryGateway: GatewayInfoProtocol {
-    // Returns moniker or country code
-    public var name: String {
-        switch self {
-        case let .country(code), let .lowLatencyCountry(code), let .region(code), let .city(code):
-            code
-        case .random:
-            "gateway.random".localizedString
-        case let .gateway(gateway):
-            gateway
-        }
-    }
-
     public var countryCode: String? {
         switch self {
         case let .country(code), let .lowLatencyCountry(code):

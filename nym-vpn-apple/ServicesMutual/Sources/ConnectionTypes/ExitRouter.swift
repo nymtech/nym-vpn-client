@@ -20,21 +20,6 @@ public enum ExitRouter: Codable, Equatable {
 }
 
 extension ExitRouter: GatewayInfoProtocol {
-    public var name: String {
-        switch self {
-        case let .country(code):
-            code
-        case let .gateway(identifier):
-            identifier
-        case let .address(address):
-            address
-        case let .region(region):
-            region
-        case .random:
-            "random"
-        }
-    }
-
     public var countryCode: String? {
         switch self {
         case let .country(code):
