@@ -104,11 +104,12 @@ impl Args {
             }
             Command::Set(args) => {
                 let entry_point = args.entry_point()?;
+                let exit_point = args.exit_point()?;
+
                 if let Some(entry_point) = entry_point {
                     rpc_client.set_entry_point(entry_point).await?;
                 }
 
-                let exit_point = args.exit_point()?;
                 if let Some(exit_point) = exit_point {
                     rpc_client.set_exit_point(exit_point).await?;
                 }
