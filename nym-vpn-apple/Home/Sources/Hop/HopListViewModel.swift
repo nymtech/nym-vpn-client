@@ -46,9 +46,9 @@ public class HopListViewModel: ObservableObject {
     func connectionSelect(with country: Country) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .country(country)
+            connectionManager.entryGateway = .country(country.code)
         case .exit:
-            connectionManager.exitRouter = .country(country)
+            connectionManager.exitRouter = .country(country.code)
         }
         navigateHome()
     }
@@ -56,9 +56,9 @@ public class HopListViewModel: ObservableObject {
     func connectionSelect(with gateway: GatewayNode) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .gateway(gateway)
+            connectionManager.entryGateway = .gateway(gateway.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(gateway)
+            connectionManager.exitRouter = .gateway(gateway.id)
         }
         navigateHome()
     }
@@ -66,7 +66,7 @@ public class HopListViewModel: ObservableObject {
     func quickestConnectionSelect(with country: Country) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .lowLatencyCountry(country)
+            connectionManager.entryGateway = .lowLatencyCountry(country.code)
         case .exit:
             break
         }

@@ -45,9 +45,9 @@ public struct HopButton: View {
     private var hopCountryCode: String? {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway.countryCode
+            gatewayManager.countryCode(with: connectionManager.entryGateway)
         case .exit:
-            connectionManager.exitRouter.countryCode
+            gatewayManager.countryCode(with: connectionManager.exitRouter)
         }
     }
 

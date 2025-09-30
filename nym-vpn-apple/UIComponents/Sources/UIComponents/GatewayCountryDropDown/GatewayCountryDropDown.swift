@@ -165,9 +165,9 @@ private extension GatewayCountryDropDown {
     func countryTapAction() {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .country(country)
+            connectionManager.entryGateway = .country(country.code)
         case .exit:
-            connectionManager.exitRouter = .country(country)
+            connectionManager.exitRouter = .country(country.code)
         }
         path = .init()
     }

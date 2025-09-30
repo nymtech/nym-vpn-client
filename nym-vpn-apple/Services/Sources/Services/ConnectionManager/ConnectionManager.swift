@@ -151,7 +151,6 @@ private extension ConnectionManager {
 #endif
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
-
         configureConnectedTimeTimer()
     }
 }

@@ -3,14 +3,17 @@ import CountriesManagerTypes
 import Theme
 
 public enum ExitRouter: Codable, Equatable {
-    case country(Country)
-    case gateway(GatewayNode)
+    case address(String)
+    case country(String)
+    case gateway(String)
+    case region(String)
+    case random
 
     public var isCountry: Bool {
         switch self {
         case .country:
             true
-        case .gateway:
+        case .gateway, .random, .region, .address:
             false
         }
     }
@@ -19,20 +22,25 @@ public enum ExitRouter: Codable, Equatable {
 extension ExitRouter: GatewayInfoProtocol {
     public var name: String {
         switch self {
-        case let .country(country):
-            // Return code, so it could be localized in the UI
-            country.code
-        case let .gateway(gateway):
-            gateway.moniker ?? gateway.id
+        case let .country(code):
+            code
+        case let .gateway(identifier):
+            identifier
+        case let .address(address):
+            address
+        case let .region(region):
+            region
+        case .random:
+            "random"
         }
     }
 
     public var countryCode: String? {
         switch self {
-        case let .country(country):
-            country.code
-        case let .gateway(gateway):
-            gateway.location?.twoLetterIsoCountryCode
+        case let .country(code):
+            code
+        case .random, .region, .address, .gateway:
+            nil
         }
     }
 
@@ -40,17 +48,17 @@ extension ExitRouter: GatewayInfoProtocol {
         switch self {
         case .country:
             false
-        case .gateway:
+        case .gateway, .random, .region, .address:
             true
         }
     }
 
     public var gatewayId: String? {
         switch self {
-        case .country:
+        case .country, .random, .region, .address:
             nil
         case let .gateway(gateway):
-            gateway.id
+            gateway
         }
     }
 }

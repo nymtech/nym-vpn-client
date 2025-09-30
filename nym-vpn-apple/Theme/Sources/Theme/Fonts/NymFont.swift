@@ -32,15 +32,25 @@ extension NymFont {
 
 extension NymFont {
     public static func register() {
-        NymFont.LabGrotesqueWeight.allCases.forEach { latoWeight in
-            let fontName = "LabGrotesque-\(latoWeight.rawValue)"
-            guard let fontURL = Bundle.module.url(forResource: fontName, withExtension: "ttf") else { return }
-            CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
-        }
-        NymFont.LabGrotesqueMonoWeight.allCases.forEach { latoWeight in
-            let fontName = "LabGrotesqueMono-\(latoWeight.rawValue)"
-            guard let fontURL = Bundle.module.url(forResource: fontName, withExtension: "ttf") else { return }
-            CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
+        autoreleasepool {
+            NymFont.LabGrotesqueWeight.allCases.forEach { latoWeight in
+                let fontName = "LabGrotesque-\(latoWeight.rawValue)"
+                guard let fontURL = Bundle.module.url(forResource: fontName, withExtension: "ttf")
+                else {
+                    print("missing font: \(fontName)")
+                    return
+                }
+                CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
+            }
+            NymFont.LabGrotesqueMonoWeight.allCases.forEach { latoWeight in
+                let fontName = "LabGrotesqueMono-\(latoWeight.rawValue)"
+                guard let fontURL = Bundle.module.url(forResource: fontName, withExtension: "ttf")
+                else {
+                    print("missing font: \(fontName)")
+                    return
+                }
+                CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, nil)
+            }
         }
     }
 }

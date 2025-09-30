@@ -72,9 +72,9 @@ private extension GatewayCell {
     func tapAction() {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(server)
+            connectionManager.entryGateway = .gateway(server.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(server)
+            connectionManager.exitRouter = .gateway(server.id)
         }
         path = .init()
     }

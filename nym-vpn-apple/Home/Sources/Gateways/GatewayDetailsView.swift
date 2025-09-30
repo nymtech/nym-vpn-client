@@ -492,9 +492,9 @@ private extension GatewayDetailsView {
 #endif
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(gateway)
+            connectionManager.entryGateway = .gateway(gateway.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(gateway)
+            connectionManager.exitRouter = .gateway(gateway.id)
         }
         path = .init()
     }

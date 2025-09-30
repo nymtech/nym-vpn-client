@@ -67,26 +67,30 @@ private extension ConnectionStorage {
         guard let gateway = EntryGateway.from(jsonString: jsonString)
         else {
             // Fallback to Switzerland or first country
-            return .country(fallbackCountry(nodeType: entryGatewayType))
+            return .country(fallbackCountry(nodeType: entryGatewayType).code)
         }
 
         switch gateway {
-        case let .country(country):
-            let existingCountry = existingCountry(with: country.code, nodeType: entryGatewayType)
-            return .country(existingCountry)
-        case let .lowLatencyCountry(country):
-            let country = existingCountry(with: country.code, nodeType: entryGatewayType)
-            return .lowLatencyCountry(country)
-        case let .gateway(gateway):
-            if let existingGateway = existingGateway(with: gateway, nodeType: entryGatewayType) {
-                return .gateway(existingGateway)
+        case let .country(code):
+            let existingCountry = existingCountry(with: code, nodeType: entryGatewayType)
+            return .country(existingCountry.code)
+        case let .lowLatencyCountry(code):
+            let country = existingCountry(with: code, nodeType: entryGatewayType)
+            return .lowLatencyCountry(country.code)
+        case let .gateway(identifier):
+            if let existingGateway = existingGateway(with: identifier, nodeType: entryGatewayType) {
+                return .gateway(existingGateway.id)
             } else {
                 let existingCountry = existingCountry(
-                    with: gateway.location?.twoLetterIsoCountryCode ?? fallbackCountry(nodeType: .entry).code,
+                    with: gatewayManager.country(with: identifier, nodeType: entryGatewayType)?.code ?? fallbackCountry(nodeType: .entry).code,
                     nodeType: entryGatewayType
                 )
-                return .country(existingCountry)
+                return .country(existingCountry.code)
             }
+        case let .region(region):
+            return .region(region)
+        case let .city(city):
+            return .city(city)
         case .random:
             return .random
         }
@@ -99,23 +103,29 @@ private extension ConnectionStorage {
         let jsonString = appSettings.exitRouter ?? ""
         guard let router = ExitRouter.from(jsonString: jsonString)
         else {
-            return .country(fallbackCountry(nodeType: exitGatewayType))
+            return .country(fallbackCountry(nodeType: exitGatewayType).code)
         }
 
         switch router {
-        case let .country(country):
-            let existingCountry = existingCountry(with: country.code, nodeType: exitGatewayType)
-            return .country(existingCountry)
-        case let .gateway(gateway):
-            if let existingGateway = existingGateway(with: gateway, nodeType: exitGatewayType) {
-                return .gateway(existingGateway)
+        case let .country(code):
+            let existingCountry = existingCountry(with: code, nodeType: exitGatewayType)
+            return .country(existingCountry.code)
+        case let .gateway(identifier):
+            if let existingGateway = existingGateway(with: identifier, nodeType: exitGatewayType) {
+                return .gateway(existingGateway.id)
             } else {
                 let existingCountry = existingCountry(
-                    with: gateway.location?.twoLetterIsoCountryCode ?? fallbackCountry(nodeType: .exit).code,
+                    with: gatewayManager.country(with: identifier, nodeType: exitGatewayType)?.code ?? fallbackCountry(nodeType: .exit).code,
                     nodeType: exitGatewayType
                 )
-                return .country(existingCountry)
+                return .country(existingCountry.code)
             }
+        case let .address(address):
+            return .address(address)
+        case let .region(region):
+            return .region(region)
+        case .random:
+            return .random
         }
     }
 }
@@ -163,14 +173,14 @@ private extension ConnectionStorage {
 
 // MARK: - Gateways -
 private extension ConnectionStorage {
-    func existingGateway(with gateway: GatewayNode, nodeType: NodeType) -> GatewayNode? {
+    func existingGateway(with gatewayId: String, nodeType: NodeType) -> GatewayNode? {
         switch nodeType {
         case .entry:
-            gatewayManager.entry.first { $0.id == gateway.id }
+            gatewayManager.entry.first { $0.id == gatewayId }
         case .exit:
-            gatewayManager.exit.first { $0.id == gateway.id }
+            gatewayManager.exit.first { $0.id == gatewayId }
         case .vpn:
-            gatewayManager.vpn.first { $0.id == gateway.id }
+            gatewayManager.vpn.first { $0.id == gatewayId }
         }
     }
 }

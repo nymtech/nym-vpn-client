@@ -153,7 +153,6 @@ public final class CredentialsManager: ObservableObject {
 private extension CredentialsManager {
     func setup() {
         setupGRPCManagerObservers()
-        checkCredentialImport()
     }
 
     func setupGRPCManagerObservers() {
@@ -171,8 +170,8 @@ private extension CredentialsManager {
         }
         .store(in: &cancellables)
 
-        helperManager.$daemonState.sink { [weak self] state in
-            guard let self, state == .running, !self.appSettings.isCredentialImported else { return }
+        grpcManager.$isServing.sink { [weak self] isServing in
+            guard let self, isServing else { return }
             checkCredentialImport()
         }
         .store(in: &cancellables)

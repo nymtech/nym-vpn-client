@@ -22,32 +22,19 @@ extension GRPCManager {
 //        _ = try await client.connectTunnel(request)
     }
 
+    public func updateConfig() async throws {
+//        try await rpcClient.set
+    }
+
+    public func config() async throws {
+        let config = try await rpcClient?.getConfig()
+    }
+
+    public func connect() async throws {
+        try await rpcClient?.connectTunnel()
+    }
+
     public func disconnect() async throws {
         try await rpcClient?.disconnectTunnel()
-    }
-}
-
-private extension GRPCManager {
-    // TODO: add lowLatencyCountry support
-    func entryNode(from entryGateway: EntryGateway) -> EntryPoint {
-        switch entryGateway {
-        case let .country(country):
-            EntryPoint.country(twoLetterIsoCountryCode: country.code)
-        case let .lowLatencyCountry(country):
-            EntryPoint.country(twoLetterIsoCountryCode: country.code)
-        case let .gateway(node):
-            EntryPoint.gateway(identity: node.id)
-        case .random:
-            EntryPoint.random
-        }
-    }
-
-    func exitNode(from exitRouter: ExitRouter) -> ExitPoint {
-        switch exitRouter {
-        case let .country(country):
-            ExitPoint.country(twoLetterIsoCountryCode: country.code)
-        case let .gateway(node):
-            ExitPoint.gateway(identity: node.id)
-        }
     }
 }

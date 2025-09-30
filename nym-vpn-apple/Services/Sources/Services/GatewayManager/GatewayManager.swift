@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import AppSettings
 import ConfigurationManager
+import ConnectionTypes
 import CountriesManagerTypes
 import Logging
 #if os(iOS)
@@ -73,6 +74,7 @@ public final class GatewayManager: ObservableObject {
     }
 #endif
 
+    /// Run from NymVpnApp
     public func setup() {
         updateGateways()
         setupAutoUpdates()
@@ -85,7 +87,6 @@ public final class GatewayManager: ObservableObject {
         ?? vpn.first(where: { $0.id == gatewayId })?.moniker
     }
 
-    
     /// Returns country from isoCode if it exists in the gateways
     /// - Parameters:
     ///   - code: countryCode
@@ -108,9 +109,8 @@ public final class GatewayManager: ObservableObject {
         }
     }
 
-    
     /// Localized country
-    /// - Parameter countryCode: countryCode
+    /// - Parameter countryCode: String
     /// - Returns: Country
     public func country(with countryCode: String?) -> Country? {
         guard let countryCode,
@@ -120,6 +120,58 @@ public final class GatewayManager: ObservableObject {
             return nil
         }
         return Country(name: countryName, code: countryCode)
+    }
+    
+    /// Country from gateway id for node type
+    /// - Parameters:
+    ///   - gatewayId: String
+    ///   - nodeType: NodeType
+    /// - Returns: Country?
+    public func country(with gatewayId: String?, nodeType: NodeType) -> Country? {
+        guard let gatewayId else { return nil }
+        switch nodeType {
+        case .entry:
+            let code = entry.first { $0.id == gatewayId }?.location?.twoLetterIsoCountryCode
+            return country(with: code)
+        case .exit:
+            let code = exit.first { $0.id == gatewayId }?.location?.twoLetterIsoCountryCode
+            return country(with: code)
+        case .vpn:
+            let code = vpn.first { $0.id == gatewayId }?.location?.twoLetterIsoCountryCode
+            return country(with: code)
+        }
+    }
+
+    public func countryCode(with gateway: EntryGateway) -> String? {
+        switch gateway {
+        case let .country(code):
+            return code
+        case let .region(region):
+            return nil
+        case .city(let string):
+            return nil
+        case let .lowLatencyCountry(code):
+            return code
+        case let .gateway(identifier):
+            return country(with: identifier, nodeType: .entry)?.code ?? country(with: identifier, nodeType: .vpn)?.code
+        case .random:
+            return nil
+        }
+    }
+
+    public func countryCode(with router: ExitRouter) -> String? {
+        switch router {
+        case let .address(string):
+            return nil
+        case let .country(code):
+            return code
+        case let .gateway(identifier):
+            return country(with: identifier, nodeType: .exit)?.code ?? country(with: identifier, nodeType: .vpn)?.code
+        case .region:
+            return nil
+        case .random:
+            return nil
+        }
     }
 }
 

@@ -59,12 +59,12 @@ public final class GRPCManager: ObservableObject {
     }
 
     func configureRpcCLient() async throws {
-//        do {
+        do {
             rpcClient = try await RpcClient()
-//        } catch {
-//
-//        }
-        listenToEventsObserver = try await rpcClient?.listenToEvents(observer: RpcTunnelObserver())
+        } catch {
+            setup()
+        }
+        listenToEventsObserver = try await rpcClient?.listenToEvents(observer: self)
 
         stopInitialStatusPinger()
         startDaemonInitialStatusPingerIfNeeded()
