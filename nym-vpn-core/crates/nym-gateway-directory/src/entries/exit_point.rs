@@ -89,25 +89,12 @@ impl ExitPoint {
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
 
-                let filters = if residential_exit {
-                    vec![
-                        GatewayFilter::Country(two_letter_iso_country_code.clone()),
-                        GatewayFilter::MinPerformance {
-                            min_wg_performance,
-                            min_mixnet_performance,
-                        },
-                        GatewayFilter::Residential,
-                        GatewayFilter::Exit,
-                    ]
-                } else {
-                    vec![
-                        GatewayFilter::Country(two_letter_iso_country_code.clone()),
-                        GatewayFilter::MinPerformance {
-                            min_wg_performance,
-                            min_mixnet_performance,
-                        },
-                    ]
-                };
+                let filters = Self::build_filters(
+                    vec![GatewayFilter::Country(two_letter_iso_country_code.clone())],
+                    min_wg_performance,
+                    min_mixnet_performance,
+                    residential_exit,
+                );
 
                 gateways.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingExitGatewayForLocation {
@@ -119,29 +106,16 @@ impl ExitPoint {
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
 
-                let filters = if residential_exit {
+                let filters = Self::build_filters(
                     vec![
                         // Currently only supported in the US
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
                         GatewayFilter::Region(region.to_string()),
-                        GatewayFilter::MinPerformance {
-                            min_wg_performance,
-                            min_mixnet_performance,
-                        },
-                        GatewayFilter::Residential,
-                        GatewayFilter::Exit,
-                    ]
-                } else {
-                    vec![
-                        // Currently only supported in the US
-                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
-                        GatewayFilter::Region(region.to_string()),
-                        GatewayFilter::MinPerformance {
-                            min_wg_performance,
-                            min_mixnet_performance,
-                        },
-                    ]
-                };
+                    ],
+                    min_wg_performance,
+                    min_mixnet_performance,
+                    residential_exit,
+                );
 
                 gateways.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingExitGatewayForLocation {
@@ -153,26 +127,35 @@ impl ExitPoint {
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
 
-                let filters = if residential_exit {
-                    vec![
-                        GatewayFilter::MinPerformance {
-                            min_wg_performance,
-                            min_mixnet_performance,
-                        },
-                        GatewayFilter::Residential,
-                        GatewayFilter::Exit,
-                    ]
-                } else {
-                    vec![GatewayFilter::MinPerformance {
-                        min_wg_performance,
-                        min_mixnet_performance,
-                    }]
-                };
+                let filters = Self::build_filters(
+                    vec![],
+                    min_wg_performance,
+                    min_mixnet_performance,
+                    residential_exit,
+                );
 
                 gateways
                     .choose_random(&filters)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
+    }
+
+    #[inline]
+    fn build_filters(
+        mut base: Vec<GatewayFilter>,
+        min_wg_performance: Option<u8>,
+        min_mixnet_performance: Option<u8>,
+        residential_exit: bool,
+    ) -> Vec<GatewayFilter> {
+        base.push(GatewayFilter::MinPerformance {
+            min_wg_performance,
+            min_mixnet_performance,
+        });
+        if residential_exit {
+            base.push(GatewayFilter::Residential);
+            base.push(GatewayFilter::Exit);
+        }
+        base
     }
 }
