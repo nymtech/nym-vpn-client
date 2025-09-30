@@ -1,4 +1,3 @@
-import ConnectionTypes
 #if os(iOS)
 
 #elseif os(macOS)
@@ -21,7 +20,19 @@ public final class ConnectionConfig {
     public var minGatewayVpnPerformance: UInt8?
     public var residentialExit: Bool
 
-    init(
+#if os(iOS)
+
+#elseif os(macOS)
+    public var entryPoint: EntryPoint {
+        entryPoint(from: entry)
+    }
+
+    public var exitPoint: ExitPoint {
+        exitPoint(from: exit)
+    }
+#endif
+
+    public init(
         entry: EntryGateway,
         exit: ExitRouter,
         dns: String? = nil,
@@ -56,7 +67,7 @@ public final class ConnectionConfig {
 #if os(iOS)
 
 #elseif os(macOS)
-    init(from config: VpnServiceConfig) {
+    public init(from config: VpnServiceConfig) {
         self.entry = ConnectionConfig.entryGateway(from: config.entryPoint)
         self.exit = ConnectionConfig.exitRouter(from: config.exitPoint)
         self.dns = config.dns
@@ -105,7 +116,7 @@ private extension ConnectionConfig {
         }
     }
 
-    func entryNode(from entryGateway: EntryGateway) -> EntryPoint {
+    func entryPoint(from entryGateway: EntryGateway) -> EntryPoint {
         switch entryGateway {
         case let .country(code):
             EntryPoint.country(twoLetterIsoCountryCode: code)
@@ -122,7 +133,7 @@ private extension ConnectionConfig {
         }
     }
 
-    func exitNode(from exitRouter: ExitRouter) -> ExitPoint {
+    func exitPoint(from exitRouter: ExitRouter) -> ExitPoint {
         switch exitRouter {
         case let .country(code):
             ExitPoint.country(twoLetterIsoCountryCode: code)

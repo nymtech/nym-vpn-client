@@ -3,31 +3,25 @@ import Constants
 import ConnectionTypes
 
 extension GRPCManager {
-    public func connect(
-        entryGateway: EntryGateway,
-        exitRouter: ExitRouter,
-        isTwoHopEnabled: Bool,
-        disableIPv6: Bool
-    ) async throws {
-//        var request = NymVpnService_ConnectRequest()
-//        request.userAgent = userAgent
-//
-//        request.entry = entryNode(from: entryGateway)
-//        request.exit = exitNode(from: exitRouter)
-//
-//        request.enableTwoHop = isTwoHopEnabled
-//        request.disableBackgroundCoverTraffic = false
-//        request.disableIpv6 = disableIPv6
-//
-//        _ = try await client.connectTunnel(request)
+    public func config() async -> ConnectionConfig? {
+        guard let config = try? await rpcClient?.getConfig() else { return nil }
+        return ConnectionConfig(from: config)
     }
 
-    public func updateConfig() async throws {
-//        try await rpcClient.set
-    }
-
-    public func config() async throws {
-        let config = try await rpcClient?.getConfig()
+    public func updateConfig(newConfig: ConnectionConfig) async throws {
+        guard let oldConfig = await config() else { return }
+        if oldConfig.entry != newConfig.entry {
+            try await rpcClient?.setEntryPoint(entryPoint: newConfig.entryPoint)
+        }
+        if oldConfig.exit != newConfig.exit {
+            try await rpcClient?.setExitPoint(exitPoint: newConfig.exitPoint)
+        }
+        if oldConfig.disableIpv6 != newConfig.disableIpv6 {
+            try await rpcClient?.setDisableIpv6(disableIpv6: newConfig.disableIpv6)
+        }
+        if oldConfig.enableTwoHop != newConfig.enableTwoHop {
+            try await rpcClient?.setEnableTwoHop(enableTwoHop: newConfig.enableTwoHop)
+        }
     }
 
     public func connect() async throws {

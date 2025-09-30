@@ -178,7 +178,7 @@ public final class GatewayManager: ObservableObject {
 private extension GatewayManager {
     func setupAutoUpdates() {
         timer = Timer.scheduledTimer(
-            timeInterval: 600,
+            timeInterval: 300,
             target: self,
             selector: #selector(updateGateways),
             userInfo: nil,

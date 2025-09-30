@@ -31,12 +31,9 @@ public final class ConnectionManager: ObservableObject {
     var tunnelConnectingStateCancellable: AnyCancellable?
     var tunnelConnectionInfoDataCancellable: AnyCancellable?
 
-    // TODO: remove this once iOS tunnel supports tunnel reconnection
-    public var isReconnecting = false
-    public var isDisconnecting = false
-
     public static let shared = ConnectionManager()
 
+    @Published public var connectionConfig: ConnectionConfig?
     @Published public var connectedDate: Date?
     @Published public var connectedDateString: String?
     @Published public var connectionRetryAttempt: Int?
@@ -47,10 +44,14 @@ public final class ConnectionManager: ObservableObject {
 
     @Published public var connectionType: ConnectionType {
         didSet {
-            appSettings.connectionType = connectionType.rawValue
-            Task { @MainActor in
-                await reconnectIfNeeded()
+            switch connectionType {
+            case .mixnet5hop:
+                connectionConfig?.enableTwoHop = false
+            case .wireguard:
+                connectionConfig?.enableTwoHop = true
             }
+            appSettings.connectionType = connectionType.rawValue
+            updateConnectionConfig()
         }
     }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
@@ -74,16 +75,18 @@ public final class ConnectionManager: ObservableObject {
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
+                connectionConfig?.entry = entryGateway
                 connectionStorage.entryGateway = entryGateway
-                await reconnectIfNeeded()
+                updateConnectionConfig()
             }
         }
     }
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
+                connectionConfig?.exit = exitRouter
                 connectionStorage.exitRouter = exitRouter
-                await reconnectIfNeeded()
+                updateConnectionConfig()
             }
         }
     }
@@ -152,6 +155,9 @@ private extension ConnectionManager {
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
         configureConnectedTimeTimer()
+        Task { @MainActor in
+            await fetchConnectionConfig()
+        }
     }
 }
 

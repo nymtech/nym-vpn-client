@@ -52,8 +52,6 @@ public final class AppSettings: ObservableObject {
 
     @AppStorage(AppSettingKey.connectionType.rawValue)
     public var connectionType: Int?
-    @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
-    public var lastConnectionIntent: String?
     @AppStorage(AppSettingKey.countryStore.rawValue)
     public var countryStore: String?
     @AppStorage(AppSettingKey.gatewayStore.rawValue)
