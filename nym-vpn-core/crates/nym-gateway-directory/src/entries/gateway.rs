@@ -255,7 +255,7 @@ impl Gateway {
             GatewayFilter::Region(region) => self.is_in_region(region),
             GatewayFilter::Residential => self.is_residential_asn(),
             GatewayFilter::Exit => self.is_exit_node(),
-            GatewayFilter::VpnNode => self.is_vpn_node(),
+            GatewayFilter::Vpn => self.is_vpn_node(),
         }
     }
 
@@ -597,7 +597,7 @@ impl GatewayList {
     }
 
     pub fn into_vpn_gateways(self) -> GatewayList {
-        Self::new(self.filter(&[GatewayFilter::VpnNode]))
+        Self::new(self.filter(&[GatewayFilter::Vpn]))
     }
 
     pub fn into_countries(self) -> Vec<Country> {
@@ -685,11 +685,11 @@ pub enum GatewayFilter {
         min_wg_performance: Option<u8>,
         min_mixnet_performance: Option<u8>,
     },
-    Country(String), // two-letter ISO country code
-    Region(String),  // region name
-    Residential,
-    Exit,
-    VpnNode,
+    Country(String), // Two-letter ISO country code
+    Region(String),  // Region name
+    Residential,     // Has a residential ASN
+    Exit,            // Has an IPR address
+    Vpn,             // Has an authenticator address
 }
 
 #[cfg(test)]
@@ -814,7 +814,7 @@ mod tests {
     #[test]
     fn test_gateway_filter_vpn_nodes() {
         let gateway_list = sample_gateway_list();
-        let vpn_gws = gateway_list.filter(&[GatewayFilter::VpnNode]);
+        let vpn_gws = gateway_list.filter(&[GatewayFilter::Vpn]);
         assert_eq!(vpn_gws.len(), 3);
         assert_eq!(vpn_gws[0].moniker, "Gateway 1");
         assert_eq!(vpn_gws[1].moniker, "Gateway 3");
