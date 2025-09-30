@@ -81,10 +81,10 @@ function Node({ node }: { node: NodeHop }) {
     navigate(routes.root);
   };
 
-  const handleNodeDetails = (selected: UiGateway) => {
-    setFocused(node, { type: 'gateway', key: selected.id });
+  const handleNodeDetails = (gateway: UiGateway) => {
+    setFocused(node, { type: 'gateway', key: gateway.id });
     navigate(routes.nodeDetails, {
-      state: { gateway: selected, hop: node },
+      state: { gateway, hop: node },
     });
   };
 
