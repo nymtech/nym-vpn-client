@@ -68,8 +68,8 @@ pub(super) async fn start_state_machine(
         TunnelType::Mixnet
     };
 
-    let entry_point = nym_vpn_lib_types::EntryPoint::from(config.entry_gateway);
-    let exit_point = nym_vpn_lib_types::ExitPoint::from(config.exit_router);
+    let entry_point = config.entry_gateway;
+    let exit_point = config.exit_router;
 
     // Bootstrap the state machines gateway client with the static gateway client, so that we can
     // use the existing cached directory data.
@@ -113,8 +113,7 @@ pub(super) async fn start_state_machine(
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
-                let platform_event = nym_vpn_lib_types_uniffi::TunnelEvent::from(event);
-                (*state_listener).on_event(platform_event);
+                (*state_listener).on_event(event);
             }
         }
     });

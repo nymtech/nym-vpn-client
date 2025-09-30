@@ -3,9 +3,7 @@
 
 use std::path::PathBuf;
 
-use nym_vpn_lib_types_uniffi::{
-    NetworkCompatibility, NetworkEnvironment, ParsedAccountLinks, SystemMessage,
-};
+use nym_vpn_lib_types::{Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage};
 
 use super::{NETWORK_ENVIRONMENT, error::VpnError};
 
@@ -44,10 +42,8 @@ pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> 
     Ok(())
 }
 
-pub(crate) async fn current_environment() -> Result<NetworkEnvironment, VpnError> {
-    current_environment_details()
-        .await
-        .map(NetworkEnvironment::from)
+pub(crate) async fn current_environment() -> Result<Network, VpnError> {
+    current_environment_details().await.map(Network::from)
 }
 
 pub(super) async fn current_environment_details()

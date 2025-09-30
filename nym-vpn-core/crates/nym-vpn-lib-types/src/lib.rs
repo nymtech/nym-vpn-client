@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 //! Types shared between nym-vpn-lib and other crates in the workspace.
+//!
+//! This crate supports [uniffi](https://mozilla.github.io/uniffi-rs/latest/) bindings via feature flag. The following limitations apply:
+//! - Namespaces are not supported, all exported types should have unique names.
+//! - Not all types are supported or can be bridged. Keep exported types simple.
 
 mod account;
 mod connection_data;
@@ -13,12 +17,12 @@ mod rpc_requests;
 mod service;
 mod tunnel_event;
 mod tunnel_state;
+#[cfg(feature = "uniffi-bindings")]
+mod uniffi_std_types;
 
 pub use account::{
     AccountCommandError, RegisterAccountResponse, VpnApiError, VpnApiErrorResponse,
-    controller_error::{
-        AccountControllerError, ErrorStateReason as AccountControllerErrorStateReason,
-    },
+    controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
@@ -40,9 +44,8 @@ pub use network::{
     NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
-pub use nym_validator_client::nyxd::Coin;
 pub use rpc_requests::{
-    AccountBalanceResponse, AccountCommandResponse, ConnectArgs, ConnectOptions,
+    AccountBalanceResponse, AccountCommandResponse, Coin, ConnectArgs, ConnectOptions,
     DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest, UserAgent,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
@@ -51,3 +54,6 @@ pub use tunnel_event::{
     TunnelEvent,
 };
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
+
+#[cfg(feature = "uniffi-bindings")]
+uniffi::setup_scaffolding!();

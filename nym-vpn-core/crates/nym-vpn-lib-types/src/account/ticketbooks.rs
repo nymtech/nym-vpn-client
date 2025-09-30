@@ -1,7 +1,9 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+// todo: this type is not used anywhere in the codebase for some reason
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct AvailableTickets {
     pub mixnet_entry_tickets: u64,
     pub mixnet_entry_data: u64,

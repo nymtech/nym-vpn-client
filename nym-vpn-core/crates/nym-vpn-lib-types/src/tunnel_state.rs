@@ -6,6 +6,7 @@ use super::connection_data::{
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum TunnelType {
     Mixnet,
     Wireguard,
@@ -22,6 +23,7 @@ impl TunnelType {
 
 /// Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum TunnelState {
     /// Tunnel is disconnected and network connectivity is available.
     Disconnected,
@@ -163,6 +165,7 @@ impl std::fmt::Display for TunnelState {
 
 /// Public enum describing action to perform after disconnect
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum ActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
@@ -178,6 +181,7 @@ pub enum ActionAfterDisconnect {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum ErrorStateReason {
     /// Failure to set firewall policy.
     SetFirewallPolicy,

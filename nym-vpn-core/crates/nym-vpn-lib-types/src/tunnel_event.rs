@@ -19,6 +19,7 @@ use nym_statistics_common::clients::packet_statistics::{
 use super::tunnel_state::TunnelState;
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum TunnelEvent {
     NewState(TunnelState),
     MixnetState(MixnetEvent),
@@ -38,6 +39,7 @@ impl fmt::Display for TunnelEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum MixnetEvent {
     Bandwidth(BandwidthEvent),
     Connection(ConnectionEvent),
@@ -55,6 +57,7 @@ impl fmt::Display for MixnetEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum BandwidthEvent {
     NoBandwidth,
     RemainingBandwidth(i64),
@@ -76,6 +79,7 @@ impl fmt::Display for BandwidthEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum ConnectionEvent {
     EntryGatewayDown,
     ExitGatewayDownIpv4,
@@ -113,6 +117,7 @@ impl fmt::Display for ConnectionEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ConnectionStatisticsEvent {
     pub rates: SphinxPacketRates,
 }
@@ -124,6 +129,7 @@ impl fmt::Display for ConnectionStatisticsEvent {
 }
 
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct SphinxPacketRates {
     pub real_packets_sent: f64,
     pub real_packets_sent_size: f64,

@@ -1,9 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_validator_client::nyxd::error::NyxdError;
-use std::{fmt::Debug, sync::Arc};
-
 pub mod controller_error;
 pub mod controller_event;
 pub mod controller_state;
@@ -11,11 +8,13 @@ pub mod request_zknym;
 pub mod ticketbooks;
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct RegisterAccountResponse {
     pub account_token: String,
 }
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
 pub enum AccountCommandError {
     // Internal error that should not happen
     #[error("internal error: {0}")]
@@ -76,57 +75,30 @@ impl AccountCommandError {
         AccountCommandError::Storage(message.to_string())
     }
 
-    pub fn unexpected_response(message: impl Debug) -> Self {
+    pub fn unexpected_response(message: impl std::fmt::Debug) -> Self {
         AccountCommandError::UnexpectedVpnApiResponse(format!("{message:?}"))
     }
 }
 
-impl From<NyxdError> for AccountCommandError {
-    fn from(e: NyxdError) -> Self {
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_validator_client::nyxd::error::NyxdError> for AccountCommandError {
+    fn from(e: nym_validator_client::nyxd::error::NyxdError) -> Self {
         AccountCommandError::NyxdQueryFailure(e.to_string())
     }
 }
 
-#[derive(Clone, Debug, thiserror::Error)]
+#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
 pub enum VpnApiError {
-    #[error("timeout")]
-    Timeout(#[source] Arc<dyn std::error::Error + Send + Sync>),
+    #[error("timeout: {0}")]
+    Timeout(String),
 
-    #[error("status code: {code}")]
-    StatusCode {
-        code: u16,
-        source: Arc<dyn std::error::Error + Send + Sync>,
-    },
+    #[error("status code: {code}, error: {message}")]
+    StatusCode { code: u16, message: String },
 
     #[error(transparent)]
     Response(#[from] VpnApiErrorResponse),
 }
-
-// We want to keep the source error for logging, while at the same time it needs to be PartialEq
-// and Eq. This is a workaround to make it work.
-
-impl PartialEq for VpnApiError {
-    fn eq(&self, other: &Self) -> bool {
-        use VpnApiError::*;
-        match (self, other) {
-            (Timeout(a), Timeout(b)) => a.to_string() == b.to_string(),
-            (
-                StatusCode {
-                    code: a,
-                    source: a_source,
-                },
-                StatusCode {
-                    code: b,
-                    source: b_source,
-                },
-            ) => a == b && a_source.to_string() == b_source.to_string(),
-            (Response(err), Response(other_err)) => err == other_err,
-            _ => false,
-        }
-    }
-}
-
-impl Eq for VpnApiError {}
 
 impl VpnApiError {
     pub fn message(&self) -> String {
@@ -169,7 +141,7 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
             .http_client_error()
             .is_some_and(nym_vpn_api_client::error::HttpClientError::is_timeout)
         {
-            return Ok(Self::Timeout(Arc::new(err)));
+            return Ok(Self::Timeout(err.to_string()));
         }
 
         match err
@@ -178,7 +150,7 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
         {
             Some(code) => Ok(Self::StatusCode {
                 code: code.into(),
-                source: Arc::new(err),
+                message: err.to_string(),
             }),
             None => Err(err),
         }
@@ -199,6 +171,7 @@ impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError 
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 #[error("{message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}")]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct VpnApiErrorResponse {
     pub message: String,
     pub message_id: Option<String>,

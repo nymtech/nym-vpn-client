@@ -8,7 +8,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
-use nym_vpn_lib_types_uniffi::{AccountControllerState, RegisterAccountResponse};
+use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{account::Mnemonic, keys::device::DeviceKeyStore};
 use tokio::task::JoinHandle;
@@ -168,7 +168,7 @@ pub(super) async fn wait_for_account_ready_to_connect(timeout: Duration) -> Resu
 
 pub(super) async fn get_account_state() -> Result<AccountControllerState, VpnError> {
     let state_receiver = get_state_receiver().await?;
-    Ok(state_receiver.get_state().into())
+    Ok(state_receiver.get_state())
 }
 
 pub(super) async fn update_account_state() -> Result<(), VpnError> {
@@ -220,7 +220,6 @@ pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnErr
         .await?
         .register_account(mnemonic, platform)
         .await
-        .map(RegisterAccountResponse::from)
         .map_err(VpnError::from)
 }
 

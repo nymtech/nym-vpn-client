@@ -12,6 +12,7 @@ use crate::TunnelType;
 
 // Represents the identity of a gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct GatewayId {
     pub id: String,
 }
@@ -30,6 +31,7 @@ impl From<nym_gateway_directory::Gateway> for GatewayId {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: GatewayId,
@@ -44,6 +46,7 @@ pub struct EstablishConnectionData {
 
 /// Describes the current state when establishing connection.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum EstablishConnectionState {
     /// Resolving API IP addresses
     ResolvingApiAddresses,
@@ -78,6 +81,7 @@ impl fmt::Display for EstablishConnectionState {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: GatewayId,
@@ -93,6 +97,7 @@ pub struct ConnectionData {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum TunnelConnectionData {
     Mixnet(MixnetConnectionData),
     Wireguard(WireguardConnectionData),
@@ -109,6 +114,7 @@ impl TunnelConnectionData {
 
 // Represents a nym-address of the form id.enc@gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NymAddress {
     pub nym_address: String,
     pub gateway_id: String,
@@ -148,6 +154,7 @@ impl From<nym_gateway_directory::IpPacketRouterAddress> for NymAddress {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct MixnetConnectionData {
     pub nym_address: NymAddress,
     pub exit_ipr: NymAddress,
@@ -158,6 +165,7 @@ pub struct MixnetConnectionData {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct WireguardConnectionData {
     pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: WireguardNode,
@@ -165,6 +173,7 @@ pub struct WireguardConnectionData {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct WireguardNode {
     pub endpoint: SocketAddr,
     pub public_key: String,

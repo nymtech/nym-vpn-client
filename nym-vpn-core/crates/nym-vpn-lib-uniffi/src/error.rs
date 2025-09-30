@@ -34,7 +34,7 @@ pub enum VpnError {
     #[error("vpn-api error: {details}")]
     VpnApi {
         #[from]
-        details: nym_vpn_lib_types_uniffi::VpnApiError,
+        details: nym_vpn_lib_types::VpnApiError,
     },
 
     #[error("unexpected response from nym-vpn-api: {details}")]
@@ -55,7 +55,7 @@ pub enum VpnError {
     #[error("failed to request zk nym")]
     RequestZkNym {
         #[from]
-        details: nym_vpn_lib_types_uniffi::RequestZkNymError,
+        details: nym_vpn_lib_types::RequestZkNymError,
     },
 
     #[error("an account is already stored")]
@@ -108,7 +108,7 @@ impl From<AccountCommandError> for VpnError {
         match value {
             AccountCommandError::Internal(err) => Self::InternalError { details: err },
             AccountCommandError::Storage(err) => Self::Storage { details: err },
-            AccountCommandError::VpnApi(e) => Self::VpnApi { details: e.into() },
+            AccountCommandError::VpnApi(e) => Self::VpnApi { details: e },
             AccountCommandError::UnexpectedVpnApiResponse(e) => Self::InternalError { details: e },
             AccountCommandError::NoAccountStored => Self::NoAccountStored,
             AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,

@@ -4,6 +4,7 @@
 use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct LogPath {
     pub dir: PathBuf,
     pub filename: String,

@@ -9,6 +9,7 @@ use time::OffsetDateTime;
 use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
@@ -86,8 +87,18 @@ impl Default for VpnServiceConfig {
     }
 }
 
+#[cfg(feature = "uniffi-bindings")]
+pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
+#[cfg(feature = "uniffi-bindings")]
+uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
+    remote,
+    try_lift: |val| Ok(Box::new(val)),
+    lower: |val| *val
+});
+
 /// The target tunnel state.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum TargetState {
     /// Unsecure the device.
     Unsecured,
@@ -107,6 +118,7 @@ impl std::fmt::Display for TargetState {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct VpnServiceInfo {
     pub version: String,
     pub build_timestamp: Option<OffsetDateTime>,

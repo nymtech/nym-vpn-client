@@ -1026,7 +1026,11 @@ impl NymVpnService {
 
     async fn handle_decentralised_balance(&mut self) -> AccountBalanceResponse {
         AccountBalanceResponse {
-            result: self.account_command_tx.decentralised_balance().await,
+            result: self
+                .account_command_tx
+                .decentralised_balance()
+                .await
+                .map(|v| v.into_iter().map(nym_vpn_lib_types::Coin::from).collect()),
         }
     }
 
