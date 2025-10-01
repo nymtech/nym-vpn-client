@@ -79,14 +79,19 @@ jest.mock('../contexts', () => ({
   useNodeListState: jest.fn(() => ({
     reset: jest.fn(),
     entry: {
-      expanded: new Set(),
+      expanded: [],
       focused: null,
+      search: null,
     },
     exit: {
-      expanded: new Set(),
+      expanded: [],
       focused: null,
+      search: null,
     },
     setExpanded: jest.fn(),
+    addToExpanded: jest.fn(),
+    setFocused: jest.fn(),
+    setSearch: jest.fn(),
   })),
 }));
 

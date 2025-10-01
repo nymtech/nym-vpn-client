@@ -7,6 +7,7 @@ import {
   UiGateway,
   UiCountry,
   SelectedKind,
+  useNodeListState,
 } from '../../../../contexts';
 import { NodeHop, VpnMode } from '../../../../types';
 
@@ -136,6 +137,26 @@ describe('NodeList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      useNodeListState as jest.MockedFunction<typeof useNodeListState>
+    ).mockReturnValue({
+      reset: jest.fn(),
+      entry: {
+        expanded: [],
+        focused: null,
+        search: null,
+      },
+      exit: {
+        expanded: [],
+        focused: null,
+        search: null,
+      },
+      setExpanded: jest.fn(),
+      addToExpanded: jest.fn(),
+      setFocused: jest.fn(),
+      setSearch: jest.fn(),
+    });
   });
 
   describe('Rendering', () => {
@@ -190,17 +211,6 @@ describe('NodeList', () => {
         screen.getByTestId('country-accordion-header-DE'),
       ).toBeInTheDocument();
       expect(screen.getAllByTestId('mocked-fold-button')).toHaveLength(2);
-    });
-
-    it('renders accordion content containers', () => {
-      render(<NodeList {...mockProps} />);
-
-      expect(
-        screen.getByTestId('country-accordion-content-US'),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByTestId('country-accordion-content-DE'),
-      ).toBeInTheDocument();
     });
 
     it('renders standalone gateways section', () => {

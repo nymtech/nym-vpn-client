@@ -47,7 +47,7 @@ jobs:
 
       - name: Run tests
         working-directory: nym-vpn-app
-        run: npm run test
+        run: npm run test --silent
 
       - name: Check build
         working-directory: nym-vpn-app

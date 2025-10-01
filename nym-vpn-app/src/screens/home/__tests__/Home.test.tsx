@@ -3,7 +3,11 @@ import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { invoke } from '@tauri-apps/api/core';
 import Home from '../Home';
-import { useMainDispatch, useMainState } from '../../../contexts';
+import {
+  useMainDispatch,
+  useMainState,
+  useNodeListState,
+} from '../../../contexts';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -86,6 +90,26 @@ const render = (ui: React.ReactElement) => rtlRender(ui);
 describe('Home Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (
+      useNodeListState as jest.MockedFunction<typeof useNodeListState>
+    ).mockReturnValue({
+      reset: jest.fn(),
+      entry: {
+        expanded: [],
+        focused: null,
+        search: null,
+      },
+      exit: {
+        expanded: [],
+        focused: null,
+        search: null,
+      },
+      setExpanded: jest.fn(),
+      addToExpanded: jest.fn(),
+      setFocused: jest.fn(),
+      setSearch: jest.fn(),
+    });
 
     Object.defineProperty(window, '_APP', {
       value: {

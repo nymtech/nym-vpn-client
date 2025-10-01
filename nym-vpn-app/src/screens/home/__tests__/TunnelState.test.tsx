@@ -8,6 +8,7 @@ import {
   useI18nError,
   useI18nProgressMsg,
 } from '../../../hooks';
+import { AccountState } from '../../../types';
 
 const mockUseMainState = useMainState as jest.MockedFunction<
   typeof useMainState
@@ -68,7 +69,7 @@ describe('TunnelState Component', () => {
     });
 
     mockUseI18nAccountState.mockReturnValue({
-      t: (state: string) => `Account: ${state}`,
+      t: (state: AccountState) => `Account: ${state}`,
     });
 
     mockUseI18nProgressMsg.mockReturnValue({
