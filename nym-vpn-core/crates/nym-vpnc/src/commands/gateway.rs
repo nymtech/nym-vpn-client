@@ -57,6 +57,16 @@ pub enum Command {
         #[command(flatten)]
         filters: FilterArgs,
     },
+
+    /// Choose a random gateway
+    ChooseRandom {
+        /// Gateway type
+        #[arg(value_enum)]
+        gateway_type: GatewayType,
+
+        #[command(flatten)]
+        filters: FilterArgs,
+    },
 }
 
 #[derive(Debug, Clone, clap::Args)]
@@ -122,14 +132,6 @@ pub struct FilterArgs {
     /// Filter for residential gateways only
     #[arg(long)]
     pub residential: bool,
-
-    /// Filter for exit gateways only
-    #[arg(long)]
-    pub exit: bool,
-
-    /// Filter for VPN gateways only
-    #[arg(long)]
-    pub vpn: bool,
 }
 
 impl Args {
@@ -176,6 +178,14 @@ impl Args {
                     .await?;
                 Ok(())
             }
+            Command::ChooseRandom {
+                gateway_type,
+                ref filters,
+            } => {
+                self.choose_random_gateway(rpc_client, gateway_type, filters)
+                    .await?;
+                Ok(())
+            }
         }
     }
 
@@ -210,6 +220,49 @@ impl Args {
         gw_type: GatewayType,
         filters: &FilterArgs,
     ) -> Result<()> {
+        let gateway_filters = Self::build_filters(gw_type, filters);
+
+        let gateways = rpc_client.list_filtered_gateways(gateway_filters).await?;
+
+        println!(
+            "Filtered gateways available for: {gw_type:?} ({})",
+            gateways.len()
+        );
+        let models = gateways
+            .into_iter()
+            .map(|gateway| GatewayModel::new(gateway, gw_type))
+            .collect::<Vec<_>>();
+        let mut table = Table::new(models.into_iter());
+        self.table_style.apply_style(&mut table);
+        println!("{table}");
+
+        Ok(())
+    }
+
+    async fn choose_random_gateway(
+        &self,
+        mut rpc_client: RpcClient,
+        gw_type: GatewayType,
+        filters: &FilterArgs,
+    ) -> Result<()> {
+        let gateway_filters = Self::build_filters(gw_type, filters);
+
+        match rpc_client.choose_random_gateway(gateway_filters).await? {
+            Some(gateway) => {
+                let model = GatewayModel::new(gateway, gw_type);
+                let mut table = Table::new(vec![model]);
+                self.table_style.apply_style(&mut table);
+                println!("{table}");
+            }
+            None => {
+                println!("No gateway found matching the specified criteria");
+            }
+        }
+
+        Ok(())
+    }
+
+    fn build_filters(gw_type: GatewayType, filters: &FilterArgs) -> GatewayFilters {
         let mut gateway_filters = GatewayFilters {
             gw_type: gw_type.into(),
             filters: Vec::new(),
@@ -234,14 +287,6 @@ impl Args {
             gateway_filters.filters.push(GatewayFilter::Residential);
         }
 
-        if filters.exit {
-            gateway_filters.filters.push(GatewayFilter::Exit);
-        }
-
-        if filters.vpn {
-            gateway_filters.filters.push(GatewayFilter::Vpn);
-        }
-
         if min_wg_performance.is_some() || gw_type != GatewayType::Wg {
             gateway_filters.filters.push(GatewayFilter::MinPerformance {
                 min_wg_performance,
@@ -249,21 +294,7 @@ impl Args {
             });
         }
 
-        let gateways = rpc_client.list_filtered_gateways(gateway_filters).await?;
-
-        println!(
-            "Filtered gateways available for: {gw_type:?} ({})",
-            gateways.len()
-        );
-        let models = gateways
-            .into_iter()
-            .map(|gateway| GatewayModel::new(gateway, gw_type))
-            .collect::<Vec<_>>();
-        let mut table = Table::new(models.into_iter());
-        self.table_style.apply_style(&mut table);
-        println!("{table}");
-
-        Ok(())
+        gateway_filters
     }
 }
 
