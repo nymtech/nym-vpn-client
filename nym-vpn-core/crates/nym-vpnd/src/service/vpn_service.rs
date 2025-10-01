@@ -17,6 +17,14 @@ use tokio::{
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
+use super::{
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError,
+    },
+};
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
@@ -41,15 +49,7 @@ use nym_vpn_lib_types::{
     VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
-
-use super::{
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
-    },
-};
-use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -987,11 +987,17 @@ impl NymVpnService {
             StoreAccountRequest::Vpn { mnemonic } => {
                 let mnemonic = Mnemonic::parse::<String>(mnemonic)
                     .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-                self.account_command_tx.store_account(mnemonic.into()).await
+                self.account_command_tx
+                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+                    .await
             }
-            StoreAccountRequest::Decentralised {} => Err(AccountCommandError::Internal(
-                "attempted to store an unimplemented decentralised account".to_string(),
-            )),
+            StoreAccountRequest::Decentralised { mnemonic } => {
+                let mnemonic = Mnemonic::parse::<String>(mnemonic)
+                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+                self.account_command_tx
+                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Decentralised))
+                    .await
+            }
         }
     }
 

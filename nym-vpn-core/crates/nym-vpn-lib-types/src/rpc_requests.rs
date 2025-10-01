@@ -15,17 +15,13 @@ pub struct ListGatewaysOptions {
 
 #[derive(zeroize::Zeroize)]
 pub enum StoreAccountRequest {
-    Vpn {
-        mnemonic: String,
-    },
-    Decentralised {
-        // TBD
-    },
+    Vpn { mnemonic: String },
+    Decentralised { mnemonic: String },
 }
 
 impl std::fmt::Debug for StoreAccountRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("StoreAccountRequest")
+        f.debug_struct("StoreVpnAccountRequest")
             .field("mnemonic", &"[redacted]")
             .finish()
     }

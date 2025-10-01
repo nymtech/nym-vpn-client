@@ -140,6 +140,20 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_bridges(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_bridges = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let netstack = request.into_inner();
 
@@ -158,20 +172,6 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::SetAllowLan, allow_lan)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set allow lan: {e}")))?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn set_enable_bridges(
-        &self,
-        request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        let enable_bridges = request.into_inner();
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
 
         Ok(tonic::Response::new(()))
     }

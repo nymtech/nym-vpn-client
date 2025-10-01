@@ -632,7 +632,7 @@ message VpnAccountStoreRequest {
 }
 
 message DecentralisedAccountStoreRequest {
-  // TODO: define fields when available
+  string mnemonic = 1;
 }
 
 message AccountCommandResponse {

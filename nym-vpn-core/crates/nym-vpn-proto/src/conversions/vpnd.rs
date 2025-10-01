@@ -527,8 +527,10 @@ impl TryFrom<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequ
                     mnemonic: account.mnemonic,
                 }
             }
-            proto::store_account_request::Request::DecentralisedAccountStore(_account) => {
-                nym_vpn_lib_types::StoreAccountRequest::Decentralised {}
+            proto::store_account_request::Request::DecentralisedAccountStore(account) => {
+                nym_vpn_lib_types::StoreAccountRequest::Decentralised {
+                    mnemonic: account.mnemonic,
+                }
             }
         })
     }
@@ -542,9 +544,9 @@ impl From<nym_vpn_lib_types::StoreAccountRequest> for proto::StoreAccountRequest
                     proto::VpnAccountStoreRequest { mnemonic },
                 )
             }
-            nym_vpn_lib_types::StoreAccountRequest::Decentralised { .. } => {
+            nym_vpn_lib_types::StoreAccountRequest::Decentralised { mnemonic } => {
                 proto::store_account_request::Request::DecentralisedAccountStore(
-                    proto::DecentralisedAccountStoreRequest {},
+                    proto::DecentralisedAccountStoreRequest { mnemonic },
                 )
             }
         };

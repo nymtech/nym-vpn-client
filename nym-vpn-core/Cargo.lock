@@ -5712,6 +5712,7 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
+ "nym-vpn-store",
  "nym-windows",
  "pretty_assertions",
  "sentry",
