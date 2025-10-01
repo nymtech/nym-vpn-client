@@ -193,6 +193,14 @@ message NetworkCompatibility {
   string android = 5;
 }
 
+// no point in importing entire cosmos-sdk protobuf definition for just this one type
+message Coin {
+  string denom = 1;
+  // technically this should be a 128bit value,
+  // but for our particular coin, 64bits is enough
+  uint64 amount = 2;
+}
+
 message GetConfigResponse {
   VpnServiceConfig config = 1;
 }
@@ -541,6 +549,13 @@ message AccountCommandError {
     bool existing_account = 7;
     bool offline = 8;
     string invalid_mnemonic = 10;
+    string nyxd_connection_failure = 11;
+    string nyxd_query_failure = 12;
+    bool account_doesnt_exist_on_chain = 13;
+    bool insufficient_funds = 14;
+    bool account_decentralised = 15;
+    bool account_not_decentralised = 16;
+    string zk_nym_acquisition_failure = 17;
   }
 }
 
@@ -584,6 +599,7 @@ message AccountControllerState {
     optional string context = 3;
   }
   message Offline {}
+  message Decentralised {}
 
   oneof state {
     LoggedOut logged_out = 1;
@@ -591,6 +607,7 @@ message AccountControllerState {
     ReadyToConnect ready_to_connect = 3;
     Error error = 4;
     Offline offline = 5;
+    Decentralised decentralised = 6;
   }
 }
 
@@ -630,13 +647,28 @@ message VpnAccountStoreRequest {
 }
 
 message DecentralisedAccountStoreRequest {
-  // TODO: define fields when available
+  string mnemonic = 1;
+}
+
+
+message DecentralisedObtainTicketbooksRequest {
+  uint64 amount = 1;
 }
 
 message AccountCommandResponse {
   optional AccountCommandError error = 1;
 }
 
+message BalanceList {
+  repeated Coin coins = 1;
+}
+
+message AccountBalanceResponse {
+  oneof account_balance {
+    AccountCommandError error = 1;
+    BalanceList balance = 2;
+  }
+}
 
 message GetAccountIdentityResponse {
   optional string account_identity = 1;
@@ -781,6 +813,12 @@ service NymVpnService {
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
+
+  /// Retrieve current, on-chain, account balance
+  rpc AccountBalance (google.protobuf.Empty) returns (AccountBalanceResponse) {}
+
+  // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
+  rpc DecentralisedObtainTicketbooks (DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

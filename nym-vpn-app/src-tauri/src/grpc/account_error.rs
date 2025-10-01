@@ -77,6 +77,31 @@ impl From<AccountCommandError> for BackendError {
                 ErrorKey::AccountInvalidMnemonic,
                 format!("invalid mnemonic: {e}"),
             ),
+            AccountError::NyxdConnectionFailure(e) => {
+                BackendError::internal_with_detail("failed to connect to nyxd", e)
+            }
+            AccountError::NyxdQueryFailure(e) => {
+                BackendError::internal_with_detail("failed to resolve query to a nyxd instance", e)
+            }
+            AccountError::AccountDoesntExistOnChain(v) => BackendError::internal_with_detail(
+                "account doesn't exist on chain",
+                format!("account doesn't exist on chain: {v}"),
+            ),
+            AccountError::InsufficientFunds(v) => BackendError::internal_with_detail(
+                "account does not have sufficient funds",
+                format!("account does not have sufficient funds: {v}"),
+            ),
+            AccountError::AccountDecentralised(v) => BackendError::internal_with_detail(
+                "account is set in decentralised mode",
+                format!("account is set in decentralised mode: {v}"),
+            ),
+            AccountError::AccountNotDecentralised(v) => BackendError::internal_with_detail(
+                "account is not set in decentralised mode",
+                format!("account is not set in decentralised mode: {v}"),
+            ),
+            AccountError::ZkNymAcquisitionFailure(e) => {
+                BackendError::internal_with_detail("failed to obtain zk-nym", e)
+            }
         }
     }
 }

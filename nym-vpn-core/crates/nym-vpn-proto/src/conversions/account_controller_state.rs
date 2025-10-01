@@ -135,6 +135,11 @@ impl From<AccountControllerState> for proto::AccountControllerState {
             AccountControllerState::Offline => proto::account_controller_state::State::Offline(
                 proto::account_controller_state::Offline {},
             ),
+            AccountControllerState::Decentralised => {
+                proto::account_controller_state::State::Decentralised(
+                    proto::account_controller_state::Decentralised {},
+                )
+            }
             AccountControllerState::Error(reason) => proto::account_controller_state::State::Error(
                 proto::account_controller_state::Error::from(reason),
             ),
@@ -170,6 +175,9 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::Offline(
                 proto::account_controller_state::Offline {},
             ) => Self::Offline,
+            proto::account_controller_state::State::Decentralised(
+                proto::account_controller_state::Decentralised {},
+            ) => Self::Decentralised,
         })
     }
 }

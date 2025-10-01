@@ -17,7 +17,7 @@ use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::table_style::TableStyle;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[clap(version, about)]
 pub struct ProgramArgs {
     /// Table style output.
@@ -36,7 +36,7 @@ fn parse_user_agent(s: &str) -> Result<UserAgent, String> {
     UserAgent::from_str(s)
 }
 
-#[derive(clap::Subcommand)]
+#[derive(clap::Subcommand, Debug)]
 pub enum Command {
     /// Connect the tunnel
     ConnectV2 {
@@ -106,6 +106,7 @@ pub enum Command {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = ProgramArgs::parse();
+
     let mut rpc_client = RpcClient::new()
         .await
         .context("Failed to create RPC client")?;

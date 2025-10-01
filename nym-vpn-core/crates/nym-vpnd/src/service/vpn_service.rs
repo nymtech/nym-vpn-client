@@ -1,12 +1,40 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use super::{
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError,
+    },
+};
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use nym_common::trace_err_chain;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
+use nym_vpn_account_controller::{
+    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
+    AvailableTicketbooks, NyxdClient,
+};
+use nym_vpn_api_client::types::ScoreThresholds;
+use nym_vpn_lib::{
+    UserAgent, VpnTopologyProvider,
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+};
+use nym_vpn_lib_types::{
+    AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
+    DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
+    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+};
+use nym_vpn_network_config::Network;
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use std::{path::PathBuf, pin::Pin};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -16,34 +44,7 @@ use tokio::{
 };
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
-
-use nym_common::trace_err_chain;
-use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    AvailableTicketbooks,
-};
-use nym_vpn_api_client::types::ScoreThresholds;
-use nym_vpn_lib::{
-    UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
-};
-use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, ConnectArgs, EntryPoint, ExitPoint, FeatureFlags,
-    Gateway, GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
-    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
-    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
-};
-use nym_vpn_network_config::Network;
-
-use super::{
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
-    },
-};
-use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
+use tracing::info;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -83,6 +84,11 @@ pub enum VpnServiceCommand {
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
+    ),
+    DecentralisedBalance(oneshot::Sender<AccountBalanceResponse>, ()),
+    DecentralisedObtainTicketbooks(
+        oneshot::Sender<Result<(), AccountCommandError>>,
+        DecentralisedObtainTicketbooksRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
@@ -228,13 +234,13 @@ impl NymVpnService {
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async move {
-            let Ok(service) = NymVpnService::new(
+            let Ok(service) = Box::pin(NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
                 log_file_remover_handle,
                 parameters,
                 shutdown_token,
-            )
+            ))
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to initialize VPN service");
@@ -324,8 +330,11 @@ impl NymVpnService {
             }
         })?;
 
+        let nyxd_client = NyxdClient::new(&parameters.network_env);
+
         let account_controller = AccountController::new(
             nym_vpn_api_client,
+            nyxd_client,
             account_controller_config,
             storage,
             connectivity_handle.clone(),
@@ -707,6 +716,12 @@ impl NymVpnService {
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
             }
+            VpnServiceCommand::DecentralisedBalance(tx, ()) => {
+                let _ = tx.send(self.handle_decentralised_balance().await);
+            }
+            VpnServiceCommand::DecentralisedObtainTicketbooks(tx, request) => {
+                let _ = tx.send(self.handle_decentralised_obtain_ticketbooks(request).await);
+            }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
             }
@@ -992,12 +1007,39 @@ impl NymVpnService {
             StoreAccountRequest::Vpn { mnemonic } => {
                 let mnemonic = Mnemonic::parse::<String>(mnemonic)
                     .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-                self.account_command_tx.store_account(mnemonic.into()).await
+                self.account_command_tx
+                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+                    .await
             }
-            StoreAccountRequest::Decentralised {} => Err(AccountCommandError::Internal(
-                "attempted to store an unimplemented decentralised account".to_string(),
-            )),
+            StoreAccountRequest::Decentralised { mnemonic } => {
+                let mnemonic = Mnemonic::parse::<String>(mnemonic)
+                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+                self.account_command_tx
+                    .store_account(StorableAccount::new(
+                        mnemonic,
+                        StoredAccountMode::Decentralised,
+                    ))
+                    .await
+            }
         }
+    }
+
+    async fn handle_decentralised_balance(&mut self) -> AccountBalanceResponse {
+        AccountBalanceResponse {
+            result: self.account_command_tx.decentralised_balance().await,
+        }
+    }
+
+    async fn handle_decentralised_obtain_ticketbooks(
+        &mut self,
+        request: DecentralisedObtainTicketbooksRequest,
+    ) -> Result<(), AccountCommandError> {
+        let amount = request.amount;
+        info!("received request to attempt to obtain {amount} ticketbooks of each type");
+
+        self.account_command_tx
+            .decentralised_obtain_ticketbooks(amount)
+            .await
     }
 
     async fn handle_is_account_stored(&self) -> bool {

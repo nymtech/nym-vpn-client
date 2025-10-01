@@ -25,6 +25,13 @@ pub enum AccountCommandErrorKind {
     ExistingAccount,
     Offline,
     InvalidMnemonic,
+    NyxdConnectionFailure,
+    NyxdQueryFailure,
+    AccountDoesntExistOnChain,
+    AccountNotDecentralised,
+    AccountDecentralised,
+    InsufficientFunds,
+    ZkNymAcquisitionFailure,
 }
 
 #[derive(Debug, uniffi::Object)]
@@ -63,6 +70,27 @@ impl AccountCommandError {
             nym_vpn_lib_types::AccountCommandError::InvalidMnemonic(_) => {
                 AccountCommandErrorKind::InvalidMnemonic
             }
+            nym_vpn_lib_types::AccountCommandError::NyxdConnectionFailure(_) => {
+                AccountCommandErrorKind::NyxdConnectionFailure
+            }
+            nym_vpn_lib_types::AccountCommandError::NyxdQueryFailure(_) => {
+                AccountCommandErrorKind::NyxdQueryFailure
+            }
+            nym_vpn_lib_types::AccountCommandError::AccountDoesntExistOnChain => {
+                AccountCommandErrorKind::AccountDoesntExistOnChain
+            }
+            nym_vpn_lib_types::AccountCommandError::AccountNotDecentralised => {
+                AccountCommandErrorKind::AccountNotDecentralised
+            }
+            nym_vpn_lib_types::AccountCommandError::AccountDecentralised => {
+                AccountCommandErrorKind::AccountDecentralised
+            }
+            nym_vpn_lib_types::AccountCommandError::InsufficientFunds => {
+                AccountCommandErrorKind::InsufficientFunds
+            }
+            nym_vpn_lib_types::AccountCommandError::ZkNymAcquisitionFailure(_) => {
+                AccountCommandErrorKind::ZkNymAcquisitionFailure
+            }
         }
     }
 
@@ -82,6 +110,7 @@ pub enum AccountControllerState {
     Offline,
     Syncing,
     LoggedOut,
+    Decentralised,
     ReadyToConnect,
     Error(AccountControllerErrorStateReason),
 }
@@ -92,6 +121,7 @@ impl From<nym_vpn_lib_types::AccountControllerState> for AccountControllerState 
             nym_vpn_lib_types::AccountControllerState::Offline => AccountControllerState::Offline,
             nym_vpn_lib_types::AccountControllerState::Syncing => Self::Syncing,
             nym_vpn_lib_types::AccountControllerState::LoggedOut => Self::LoggedOut,
+            nym_vpn_lib_types::AccountControllerState::Decentralised => Self::Decentralised,
             nym_vpn_lib_types::AccountControllerState::ReadyToConnect => Self::ReadyToConnect,
             nym_vpn_lib_types::AccountControllerState::Error(error_state_reason) => {
                 Self::Error(error_state_reason.into())

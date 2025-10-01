@@ -3,12 +3,11 @@
 
 use super::{AccountInformationStorage, StoredAccount};
 use crate::types::StorableAccount;
-use std::path::Path;
 #[cfg(unix)]
 use std::{fs::Permissions, os::unix::fs::PermissionsExt};
 use std::{
     fs::{File, OpenOptions},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -169,9 +168,13 @@ impl AccountInformationStorage for OnDiskAccountStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::account::Nonce;
-    use crate::account::test_fixtures::{account_fixture, mnemonic_fixture};
-    use crate::types::StoredAccountMode;
+    use crate::{
+        account::{
+            Nonce,
+            test_fixtures::{account_fixture, mnemonic_fixture},
+        },
+        types::StoredAccountMode,
+    };
     use bip39::Mnemonic;
     use serde::{Deserialize, Serialize};
 

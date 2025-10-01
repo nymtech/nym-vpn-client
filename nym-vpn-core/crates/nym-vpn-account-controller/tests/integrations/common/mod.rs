@@ -7,6 +7,7 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
+    NyxdClient,
 };
 use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::AccountControllerState;
@@ -25,6 +26,7 @@ use tokio_util::sync::{CancellationToken, DropGuard};
 pub mod account_summary;
 pub mod credential_proxy;
 pub mod endpoints;
+pub mod nyxd_endpoints;
 
 // Ensure tracing is only initialised once for the whole test suite.
 static TEST_TRACING: OnceLock<()> = OnceLock::new();
@@ -178,6 +180,9 @@ pub struct TestBench {
     /// Mock VPN API server
     pub vpn_api_server: MockServer,
 
+    /// Mock nyxd rpc server
+    pub nyxd_server: MockServer,
+
     /// Mock credential proxy to issue valid zk-nyms
     pub credential_proxy: MockCredentialProxy,
 
@@ -211,11 +216,17 @@ impl TestBench {
         let nym_vpn_api_client =
             VpnApiClient::new(vpn_api_server.uri().parse()?, mock_user_agent())?;
 
+        let nyxd_server = MockServer::start().await;
+        let mut network_env = Network::mainnet_default().unwrap();
+        network_env.nyxd_url = nyxd_server.uri().parse()?;
+
+        let nyxd_client = NyxdClient::new(&network_env);
+
         let tempdir = tempfile::tempdir()?;
         let account_controller_config = AccountControllerConfig {
             data_dir: tempdir.path().to_owned(),
             credentials_mode: Some(credential_enabled),
-            network_env: Network::mainnet_default().unwrap(),
+            network_env,
         };
 
         let credential_proxy = MockCredentialProxy::new()?;
@@ -224,6 +235,7 @@ impl TestBench {
 
         let account_controller = AccountController::new(
             nym_vpn_api_client,
+            nyxd_client,
             account_controller_config,
             storage,
             connectivity.clone(),
@@ -243,6 +255,7 @@ impl TestBench {
             state_receiver,
             connectivity,
             vpn_api_server,
+            nyxd_server,
             credential_proxy,
             _drop_guard: shutdown_token.drop_guard(),
         })
@@ -309,9 +322,16 @@ impl TestBench {
     }
 
     /// Register a list of mocks with the VPN API mock server
-    pub async fn register_mocks(&self, mocks: Vec<Mock>) {
+    pub async fn register_vpn_api_mocks(&self, mocks: Vec<Mock>) {
         for mock in mocks {
             self.vpn_api_server.register(mock).await
+        }
+    }
+
+    /// Register a list of mocks with the nyxd mock server
+    pub async fn register_nyxd_mocks(&self, mocks: Vec<Mock>) {
+        for mock in mocks {
+            self.nyxd_server.register(mock).await
         }
     }
 }

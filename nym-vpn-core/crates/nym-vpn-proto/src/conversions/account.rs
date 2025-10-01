@@ -27,8 +27,29 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
             proto::account_command_error::ErrorDetail::ExistingAccount(_) => Self::ExistingAccount,
             proto::account_command_error::ErrorDetail::Offline(_) => Self::Offline,
+            proto::account_command_error::ErrorDetail::InsufficientFunds(_) => {
+                Self::InsufficientFunds
+            }
             proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
+            }
+            proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err) => {
+                Self::NyxdConnectionFailure(err)
+            }
+            proto::account_command_error::ErrorDetail::NyxdQueryFailure(err) => {
+                Self::NyxdQueryFailure(err)
+            }
+            proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(_) => {
+                Self::AccountDoesntExistOnChain
+            }
+            proto::account_command_error::ErrorDetail::AccountDecentralised(_) => {
+                Self::AccountDecentralised
+            }
+            proto::account_command_error::ErrorDetail::AccountNotDecentralised(_) => {
+                Self::AccountNotDecentralised
+            }
+            proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err) => {
+                Self::ZkNymAcquisitionFailure(err)
             }
         })
     }
@@ -106,10 +127,45 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::Offline => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::Offline(true)),
             },
+            AccountCommandError::InsufficientFunds => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::InsufficientFunds(true),
+                ),
+            },
             AccountCommandError::InvalidMnemonic(err) => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(
                     err,
                 )),
+            },
+            AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err),
+                ),
+            },
+            AccountCommandError::NyxdQueryFailure(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::NyxdQueryFailure(
+                    err,
+                )),
+            },
+            AccountCommandError::AccountDoesntExistOnChain => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(true),
+                ),
+            },
+            AccountCommandError::AccountNotDecentralised => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountNotDecentralised(true),
+                ),
+            },
+            AccountCommandError::AccountDecentralised => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountDecentralised(true),
+                ),
+            },
+            AccountCommandError::ZkNymAcquisitionFailure(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err),
+                ),
             },
         }
     }

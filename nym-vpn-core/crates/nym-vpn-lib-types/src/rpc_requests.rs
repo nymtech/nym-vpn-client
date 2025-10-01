@@ -4,6 +4,7 @@
 use std::net::IpAddr;
 
 use crate::{EntryPoint, ExitPoint, GatewayType};
+use nym_validator_client::nyxd;
 
 #[derive(Debug, Clone)]
 pub struct UserAgent {
@@ -61,24 +62,31 @@ pub struct ListGatewaysOptions {
 
 #[derive(zeroize::Zeroize)]
 pub enum StoreAccountRequest {
-    Vpn {
-        mnemonic: String,
-    },
-    Decentralised {
-        // TBD
-    },
+    Vpn { mnemonic: String },
+    Decentralised { mnemonic: String },
 }
 
 impl std::fmt::Debug for StoreAccountRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("StoreAccountRequest")
+        f.debug_struct("StoreVpnAccountRequest")
             .field("mnemonic", &"[redacted]")
             .finish()
     }
 }
 
+#[derive(Debug)]
+pub struct DecentralisedObtainTicketbooksRequest {
+    pub amount: u64,
+}
+
+#[derive(Debug)]
 pub struct AccountCommandResponse {
     pub error: Option<crate::AccountCommandError>,
+}
+
+#[derive(Debug)]
+pub struct AccountBalanceResponse {
+    pub result: Result<Vec<nyxd::Coin>, crate::AccountCommandError>,
 }
 
 // Deprecated

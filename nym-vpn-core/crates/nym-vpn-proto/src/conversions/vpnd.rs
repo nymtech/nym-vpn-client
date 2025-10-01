@@ -11,7 +11,7 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, ConnectArgs, ConnectOptions, GatewayType, ListGatewaysOptions,
-    LogPath, NymNetworkDetails, NymVpnNetwork, Performance, Score, SystemMessage, UserAgent,
+    LogPath, NymNetworkDetails, NymVpnNetwork, Performance, SystemMessage, UserAgent,
     VpnServiceInfo,
 };
 
@@ -184,7 +184,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .map(proto::Score::try_from)
             .transpose()
             .map_err(|err| ConversionError::Decode("GatewayResponse.mixnet_score", err))?
-            .map(Score::from);
+            .map(nym_vpn_lib_types::Score::from);
         let mixnet_performance = gateway.mixnet_performance.map(|x| x as u8);
         let wg_performance = gateway
             .wg_performance
@@ -472,8 +472,10 @@ impl TryFrom<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequ
                     mnemonic: account.mnemonic,
                 }
             }
-            proto::store_account_request::Request::DecentralisedAccountStore(_account) => {
-                nym_vpn_lib_types::StoreAccountRequest::Decentralised {}
+            proto::store_account_request::Request::DecentralisedAccountStore(account) => {
+                nym_vpn_lib_types::StoreAccountRequest::Decentralised {
+                    mnemonic: account.mnemonic,
+                }
             }
         })
     }
@@ -487,15 +489,35 @@ impl From<nym_vpn_lib_types::StoreAccountRequest> for proto::StoreAccountRequest
                     proto::VpnAccountStoreRequest { mnemonic },
                 )
             }
-            nym_vpn_lib_types::StoreAccountRequest::Decentralised { .. } => {
+            nym_vpn_lib_types::StoreAccountRequest::Decentralised { mnemonic } => {
                 proto::store_account_request::Request::DecentralisedAccountStore(
-                    proto::DecentralisedAccountStoreRequest {},
+                    proto::DecentralisedAccountStoreRequest { mnemonic },
                 )
             }
         };
 
         proto::StoreAccountRequest {
             request: Some(request),
+        }
+    }
+}
+
+impl From<proto::DecentralisedObtainTicketbooksRequest>
+    for nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest
+{
+    fn from(value: proto::DecentralisedObtainTicketbooksRequest) -> Self {
+        Self {
+            amount: value.amount,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest>
+    for proto::DecentralisedObtainTicketbooksRequest
+{
+    fn from(value: nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest) -> Self {
+        Self {
+            amount: value.amount,
         }
     }
 }
@@ -528,6 +550,47 @@ impl TryFrom<AccountCommandResponse> for proto::AccountCommandResponse {
             })?;
 
         Ok(Self { error })
+    }
+}
+
+impl TryFrom<proto::AccountBalanceResponse> for nym_vpn_lib_types::AccountBalanceResponse {
+    type Error = ConversionError;
+    fn try_from(value: proto::AccountBalanceResponse) -> Result<Self, Self::Error> {
+        let result = match value.account_balance.ok_or(ConversionError::NoValueSet(
+            "AccountBalanceResponse.account_balance",
+        ))? {
+            proto::account_balance_response::AccountBalance::Error(err) => Err(err.try_into()?),
+            proto::account_balance_response::AccountBalance::Balance(balance) => Ok(balance
+                .coins
+                .into_iter()
+                .map(|c| nym_vpn_lib_types::Coin::new(c.amount as u128, c.denom))
+                .collect()),
+        };
+
+        Ok(nym_vpn_lib_types::AccountBalanceResponse { result })
+    }
+}
+
+impl From<nym_vpn_lib_types::AccountBalanceResponse> for proto::AccountBalanceResponse {
+    fn from(value: nym_vpn_lib_types::AccountBalanceResponse) -> Self {
+        let account_balance = match value.result {
+            Err(err) => proto::account_balance_response::AccountBalance::Error(err.into()),
+            Ok(coins) => {
+                proto::account_balance_response::AccountBalance::Balance(proto::BalanceList {
+                    coins: coins
+                        .into_iter()
+                        .map(|c| proto::Coin {
+                            denom: c.denom,
+                            amount: c.amount as u64,
+                        })
+                        .collect(),
+                })
+            }
+        };
+
+        proto::AccountBalanceResponse {
+            account_balance: Some(account_balance),
+        }
     }
 }
 

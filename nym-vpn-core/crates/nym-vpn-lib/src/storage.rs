@@ -3,10 +3,10 @@
 
 use std::path::Path;
 
-use nym_vpn_store::types::StorableAccount;
 use nym_vpn_store::{
     account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
+    types::StorableAccount,
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";

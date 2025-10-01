@@ -18,6 +18,7 @@ pub enum AccountState {
     LoggedOut,
     Syncing,
     Offline,
+    Decentralised,
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
@@ -31,6 +32,7 @@ impl AccountState {
             State::LoggedOut(_) => AccountState::LoggedOut,
             State::Syncing(_) => AccountState::Syncing,
             State::ReadyToConnect(_) => AccountState::Ready,
+            State::Decentralised(_) => AccountState::Decentralised,
             State::Offline(_) => AccountState::Offline,
             State::Error(error) => match error.reason() {
                 ErrorStateReason::BandwidthExceeded => AccountState::BandwidthExceeded,

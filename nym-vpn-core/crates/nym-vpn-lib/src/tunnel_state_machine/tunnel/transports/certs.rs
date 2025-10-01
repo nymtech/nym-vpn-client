@@ -23,13 +23,16 @@
 //!     - done last to avoid ed25519 signature verification in case string based checks fail
 //!   - uses the default [`rustls::client::WebPkiServerVerifier`] to verify TLS 1.2 / TLS 1.3
 
-use ed25519_dalek::VerifyingKey;
-use ed25519_dalek::pkcs8::DecodePublicKey;
-use rustls::client::WebPkiServerVerifier;
-use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
-use rustls::pki_types::{CertificateDer, ServerName, UnixTime};
-use rustls::server::VerifierBuilderError;
-use rustls::{CertificateError, DigitallySignedStruct, RootCertStore, SignatureScheme};
+use ed25519_dalek::{VerifyingKey, pkcs8::DecodePublicKey};
+use rustls::{
+    CertificateError, DigitallySignedStruct, RootCertStore, SignatureScheme,
+    client::{
+        WebPkiServerVerifier,
+        danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier},
+    },
+    pki_types::{CertificateDer, ServerName, UnixTime},
+    server::VerifierBuilderError,
+};
 use tracing::*;
 use webpki_roots::TLS_SERVER_ROOTS;
 use x509_parser::prelude::*;
