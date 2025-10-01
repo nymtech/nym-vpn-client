@@ -57,16 +57,6 @@ pub enum Command {
         #[command(flatten)]
         filters: FilterArgs,
     },
-
-    /// Choose a random gateway
-    ChooseRandom {
-        /// Gateway type
-        #[arg(value_enum)]
-        gateway_type: GatewayType,
-
-        #[command(flatten)]
-        filters: FilterArgs,
-    },
 }
 
 #[derive(Debug, Clone, clap::Args)]
@@ -174,14 +164,6 @@ impl Args {
                     .await?;
                 Ok(())
             }
-            Command::ChooseRandom {
-                gateway_type,
-                ref filters,
-            } => {
-                self.choose_random_gateway(rpc_client, gateway_type, filters)
-                    .await?;
-                Ok(())
-            }
         }
     }
 
@@ -231,29 +213,6 @@ impl Args {
         let mut table = Table::new(models.into_iter());
         self.table_style.apply_style(&mut table);
         println!("{table}");
-
-        Ok(())
-    }
-
-    async fn choose_random_gateway(
-        &self,
-        mut rpc_client: RpcClient,
-        gw_type: GatewayType,
-        filters: &FilterArgs,
-    ) -> Result<()> {
-        let gateway_filters = Self::build_filters(gw_type, filters);
-
-        match rpc_client.choose_random_gateway(gateway_filters).await? {
-            Some(gateway) => {
-                let model = GatewayModel::new(gateway, gw_type);
-                let mut table = Table::new(vec![model]);
-                self.table_style.apply_style(&mut table);
-                println!("{table}");
-            }
-            None => {
-                println!("No gateway found matching the specified criteria");
-            }
-        }
 
         Ok(())
     }

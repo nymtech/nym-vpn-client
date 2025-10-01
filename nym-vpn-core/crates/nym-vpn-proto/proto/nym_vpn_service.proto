@@ -326,10 +326,6 @@ message ListGatewaysResponse {
   repeated GatewayResponse gateways = 1;
 }
 
-message OptionalGatewayResponse {
-  optional GatewayResponse gateway = 1;
-}
-
 message GetAccountLinksRequest {
   string locale = 1;
 }
@@ -772,9 +768,6 @@ service NymVpnService {
 
   // Get a filtered list of gateways for the selected mode and filters
   rpc ListFilteredGateways (GatewayFilters) returns (ListGatewaysResponse) {}
-
-  // Choose a random gateway for the selected mode and filters
-  rpc ChooseRandomGateway (GatewayFilters) returns (OptionalGatewayResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}

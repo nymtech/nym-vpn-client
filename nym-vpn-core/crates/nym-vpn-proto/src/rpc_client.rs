@@ -277,27 +277,6 @@ impl RpcClient {
             .collect::<Result<Vec<_>>>()
     }
 
-    pub async fn choose_random_gateway(
-        &mut self,
-        filters: GatewayFilters,
-    ) -> Result<Option<Gateway>> {
-        let request = proto::GatewayFilters::from(filters);
-
-        let gateway = self
-            .0
-            .choose_random_gateway(request)
-            .await
-            .map(|v| v.into_inner().gateway)
-            .map_err(Error::Rpc)?;
-
-        match gateway {
-            Some(gateway) => Ok(Some(
-                Gateway::try_from(gateway).map_err(Error::InvalidResponse)?,
-            )),
-            None => Ok(None),
-        }
-    }
-
     pub async fn store_account(
         &mut self,
         store_request: StoreAccountRequest,

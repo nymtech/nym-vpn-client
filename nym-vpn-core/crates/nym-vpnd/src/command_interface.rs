@@ -366,26 +366,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn choose_random_gateway(
-        &self,
-        request: tonic::Request<proto::GatewayFilters>,
-    ) -> Result<tonic::Response<proto::OptionalGatewayResponse>> {
-        let filters = GatewayFilters::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
-        let gateway = self
-            .send_and_wait(VpnServiceCommand::ChooseRandomGateway, filters)
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to choose random gateway: {err}"))
-            })?;
-
-        let response = proto::OptionalGatewayResponse {
-            gateway: gateway.map(proto::GatewayResponse::from),
-        };
-        Ok(tonic::Response::new(response))
-    }
-
     async fn store_account(
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,

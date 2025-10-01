@@ -81,10 +81,6 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         GatewayFilters,
     ),
-    ChooseRandomGateway(
-        oneshot::Sender<Result<Option<Gateway>, ListGatewaysError>>,
-        GatewayFilters,
-    ),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
     SetTargetState(oneshot::Sender<bool>, TargetState),
@@ -698,9 +694,6 @@ impl NymVpnService {
             VpnServiceCommand::ListFilteredGateways(tx, filters) => {
                 self.handle_list_filtered_gateways(filters, tx).await;
             }
-            VpnServiceCommand::ChooseRandomGateway(tx, filters) => {
-                self.handle_choose_random_gateway(filters, tx).await;
-            }
             VpnServiceCommand::Connect(tx, connect_args) => {
                 self.handle_connect(connect_args).await.ok();
                 let _ = tx.send(());
@@ -931,25 +924,6 @@ impl NymVpnService {
                         .map(nym_vpn_lib_types::Gateway::from)
                         .collect::<Vec<_>>()
                 });
-
-            completion_tx.send(result).ok();
-        });
-    }
-
-    async fn handle_choose_random_gateway(
-        &self,
-        filters: GatewayFilters,
-        completion_tx: oneshot::Sender<Result<Option<Gateway>, ListGatewaysError>>,
-    ) {
-        let gateway_client = self.gateway_cache_handle.clone();
-        let gw_type = filters.gw_type;
-
-        tokio::spawn(async move {
-            let result = gateway_client
-                .choose_random_gateway(filters)
-                .await
-                .map(|opt_gw| opt_gw.map(nym_vpn_lib_types::Gateway::from))
-                .map_err(|source| ListGatewaysError::ChooseRandomGateway { gw_type, source });
 
             completion_tx.send(result).ok();
         });

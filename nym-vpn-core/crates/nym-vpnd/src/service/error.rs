@@ -80,12 +80,6 @@ pub enum ListGatewaysError {
         gw_type: GatewayType,
         source: nym_vpn_lib::gateway_directory::Error,
     },
-
-    #[error("failed to choose random gateways ({gw_type})")]
-    ChooseRandomGateway {
-        gw_type: GatewayType,
-        source: nym_vpn_lib::gateway_directory::Error,
-    },
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
