@@ -49,7 +49,7 @@ pub enum Command {
     },
 
     /// List filtered gateways
-    Filter {
+    ListFiltered {
         /// Gateway type
         #[arg(value_enum)]
         gateway_type: GatewayType,
@@ -166,7 +166,7 @@ impl Args {
                     .await?;
                 Ok(())
             }
-            Command::Filter {
+            Command::ListFiltered {
                 gateway_type,
                 ref filters,
             } => {
