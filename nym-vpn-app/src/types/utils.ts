@@ -26,7 +26,7 @@ type ErrorDataKey = keyof Pick<TBackendError, 'data'>;
 // required key
 // see https://github.com/Aleph-Alpha/ts-rs/pull/339
 export type BackendError = Omit<TBackendError, 'data'> &
-  (Record<ErrorDataKey, Record<string, string> | null>);
+  Record<ErrorDataKey, Record<string, string> | null>;
 
 // Flattened derived state from `TTunnelState`
 export type TunnelState =
