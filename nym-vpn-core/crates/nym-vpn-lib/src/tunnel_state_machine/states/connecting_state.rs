@@ -362,18 +362,18 @@ impl ConnectingState {
     async fn handle_selected_gateways(
         &mut self,
         gateways: Box<SelectedGateways>,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
-            if shared_state.tunnel_settings.bridges_enabled()
+            if _shared_state.tunnel_settings.bridges_enabled()
                 && let Some(params) = &gateways.entry.bridge_params
             {
                 self.firewall_policy_params.bridge_endpoints = params.get_addrs()
             }
 
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry.endpoints();
-            Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
+            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
 
