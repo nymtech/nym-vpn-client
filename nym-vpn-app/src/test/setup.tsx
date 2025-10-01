@@ -76,12 +76,25 @@ jest.mock('../contexts', () => ({
     show: jest.fn(),
     hide: jest.fn(),
   })),
+  useNodeListState: jest.fn(() => ({
+    reset: jest.fn(),
+    entry: {
+      expanded: new Set(),
+      focused: null,
+    },
+    exit: {
+      expanded: new Set(),
+      focused: null,
+    },
+    setExpanded: jest.fn(),
+  })),
 }));
 
 jest.mock('../hooks', () => ({
   useI18nError: jest.fn(),
   useI18nAccountState: jest.fn(),
   useI18nProgressMsg: jest.fn(),
+  useNodesState: jest.fn(),
 }));
 
 jest.mock('../router', () => ({
