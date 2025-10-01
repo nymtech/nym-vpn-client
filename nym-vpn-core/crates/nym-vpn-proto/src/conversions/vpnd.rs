@@ -513,15 +513,15 @@ impl TryFrom<ListGatewaysOptions> for proto::ListGatewaysRequest {
     }
 }
 
-impl From<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreVpnAccountRequest {
-    fn from(value: proto::StoreAccountRequest) -> Self {
+impl From<proto::StoreVpnAccountRequest> for nym_vpn_lib_types::StoreVpnAccountRequest {
+    fn from(value: proto::StoreVpnAccountRequest) -> Self {
         Self {
             mnemonic: value.mnemonic,
         }
     }
 }
 
-impl From<StoreVpnAccountRequest> for proto::StoreAccountRequest {
+impl From<StoreVpnAccountRequest> for proto::StoreVpnAccountRequest {
     fn from(value: StoreVpnAccountRequest) -> Self {
         Self {
             mnemonic: value.mnemonic,

@@ -345,7 +345,7 @@ impl NymVpnService for CommandInterface {
 
     async fn store_account(
         &self,
-        request: tonic::Request<proto::StoreAccountRequest>,
+        request: tonic::Request<proto::StoreVpnAccountRequest>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let store_request = nym_vpn_lib_types::StoreVpnAccountRequest::from(request.into_inner());
         let result = self

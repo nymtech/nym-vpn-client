@@ -262,7 +262,7 @@ impl RpcClient {
         &mut self,
         store_request: StoreVpnAccountRequest,
     ) -> Result<AccountCommandResponse> {
-        let request = proto::StoreAccountRequest::from(store_request);
+        let request = proto::StoreVpnAccountRequest::from(store_request);
         let response = self
             .0
             .store_account(request)

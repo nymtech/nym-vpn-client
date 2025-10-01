@@ -598,7 +598,7 @@ message AccountControllerState {
 
 // --- Requests and responses ---
 
-message StoreAccountRequest {
+message StoreVpnAccountRequest {
   string mnemonic = 1;
 }
 
@@ -746,7 +746,7 @@ service NymVpnService {
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
-  rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
+  rpc StoreAccount (StoreVpnAccountRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
