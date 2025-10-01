@@ -12,6 +12,7 @@ use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+use crate::state_machine::ReadyState;
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
@@ -60,6 +61,9 @@ impl SyncingState {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
             return LoggedOutState::enter();
         };
+        if vpn_api_account.mode().is_decentralised() {
+            return ReadyState::enter();
+        }
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
                 SyncError::Internal("Logged in, but no device keys".into()).into(),
