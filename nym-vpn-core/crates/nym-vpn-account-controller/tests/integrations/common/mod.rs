@@ -60,15 +60,15 @@ pub fn mock_user_agent() -> nym_http_api_client::UserAgent {
     }
 }
 
-pub fn mock_account() -> StorableAccount {
+pub fn mock_account(mode: StoredAccountMode) -> StorableAccount {
     StorableAccount {
         mnemonic: Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap(),
-        mode: StoredAccountMode::Api,
+        mode,
     }
 }
 
 pub fn mock_account_id() -> String {
-    VpnAccount::try_from(mock_account())
+    VpnAccount::try_from(mock_account(StoredAccountMode::Api))
         .unwrap()
         .id()
         .to_string()
@@ -290,7 +290,16 @@ impl TestBench {
     }
 
     pub async fn store_mock_account(&self) -> anyhow::Result<()> {
-        self.command_sender.store_account(mock_account()).await?;
+        self.command_sender
+            .store_account(mock_account(StoredAccountMode::Api))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn store_mock_decentralised_account(&self) -> anyhow::Result<()> {
+        self.command_sender
+            .store_account(mock_account(StoredAccountMode::Decentralised))
+            .await?;
         Ok(())
     }
 

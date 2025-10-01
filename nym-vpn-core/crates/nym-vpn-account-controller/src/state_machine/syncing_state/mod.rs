@@ -45,6 +45,7 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 /// - SyncingState : We try again if there was an error while making an API request
 /// - ErrorState : An actual error happened, or one of the above questions has a negative answers, preventing us to proceed.
 /// - OfflineState : the connectivity monitor is telling we're not connected
+/// - ReadyState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
     attempts: u32,

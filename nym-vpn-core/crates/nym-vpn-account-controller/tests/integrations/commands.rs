@@ -7,6 +7,7 @@ use nym_vpn_account_controller::AvailableTicketbooks;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
 };
+use nym_vpn_store::account::StoredAccountMode;
 
 #[tokio::test]
 async fn logged_out_state_command() -> anyhow::Result<()> {
@@ -83,7 +84,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .store_account(mock_account())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await
             .is_ok()
     );
@@ -169,7 +170,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .store_account(mock_account())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await
             .is_ok()
     );
@@ -183,7 +184,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_account()))
+        Ok(Some(mock_account(StoredAccountMode::Api)))
     );
     assert!(
         test_bench
@@ -258,7 +259,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_account()))
+        Ok(Some(mock_account(StoredAccountMode::Api)))
     );
     assert!(
         test_bench
@@ -314,7 +315,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .store_account(mock_account())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await,
         Err(AccountCommandError::ExistingAccount)
     );
@@ -371,7 +372,7 @@ async fn error_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_account()))
+        Ok(Some(mock_account(StoredAccountMode::Api)))
     );
     assert!(
         test_bench
@@ -429,7 +430,7 @@ async fn error_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .store_account(mock_account())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await,
         Err(AccountCommandError::ExistingAccount)
     );
