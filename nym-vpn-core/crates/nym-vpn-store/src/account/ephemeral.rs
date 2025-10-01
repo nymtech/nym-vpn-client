@@ -29,7 +29,7 @@ impl AccountInformationStorage for InMemoryAccountStorage {
     ) -> Result<(), InMemoryAccountStorageError> {
         let name = "default".to_string();
         let nonce = 0;
-        let stored_mnemonic = StoredAccount {
+        let stored_account = StoredAccount {
             name,
             mnemonic: account.mnemonic,
             mode: account.mode,
@@ -39,7 +39,7 @@ impl AccountInformationStorage for InMemoryAccountStorage {
 
         // Store the mnemonic if it's currently None
         if handle.is_none() {
-            *handle = Some(stored_mnemonic);
+            *handle = Some(stored_account);
             Ok(())
         } else {
             Err(InMemoryAccountStorageError::MnemonicAlreadyStored)

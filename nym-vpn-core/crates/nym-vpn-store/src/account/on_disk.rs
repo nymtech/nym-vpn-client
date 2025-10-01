@@ -57,7 +57,7 @@ impl AccountInformationStorage for OnDiskAccountStorage {
     ) -> Result<(), OnDiskMnemonicStorageError> {
         let name = "default".to_string();
         let nonce = 0;
-        let stored_mnemonic = StoredAccount {
+        let stored_account = StoredAccount {
             name,
             mnemonic: account.mnemonic,
             mode: account.mode,
@@ -111,7 +111,7 @@ impl AccountInformationStorage for OnDiskAccountStorage {
                 source: err,
             })?;
 
-        serde_json::to_writer(file, &stored_mnemonic)
+        serde_json::to_writer(file, &stored_account)
             .map_err(OnDiskMnemonicStorageError::WriteError)?;
 
         #[cfg(unix)]
@@ -188,8 +188,8 @@ mod tests {
             .await
             .unwrap();
 
-        let stored_mnemonic = account_storage.load_account().await.unwrap();
-        assert_eq!(Some(account), stored_mnemonic);
+        let stored_account = account_storage.load_account().await.unwrap();
+        assert_eq!(Some(account), stored_account);
     }
 
     #[tokio::test]
