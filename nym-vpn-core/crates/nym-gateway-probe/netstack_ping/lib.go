@@ -324,7 +324,7 @@ func sendPingAttempt(address string, seq uint8, sendTtimeoutSecs uint64, receive
 	}
 
 	// Wait for reply with limited read attempts to avoid long delays
-	maxReadAttempts := 2 // Reduced from 3 to keep it fast
+	maxReadAttempts := 2
 	for readAttempt := 0; readAttempt < maxReadAttempts; readAttempt++ {
 		socket.SetReadDeadline(time.Now().Add(time.Second * time.Duration(receiveTimoutSecs)))
 		n, err := socket.Read(icmpBytes[:])
