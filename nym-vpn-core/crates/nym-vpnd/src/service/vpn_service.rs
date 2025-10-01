@@ -31,6 +31,7 @@ use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
     gateway_directory::{
         self, EntryPoint, ExitPoint, GatewayCache, GatewayCacheHandle, GatewayClient,
+        GatewayFilters,
     },
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
@@ -75,6 +76,10 @@ pub enum VpnServiceCommand {
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
+    ),
+    ListFilteredGateways(
+        oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
+        GatewayFilters,
     ),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
@@ -686,6 +691,9 @@ impl NymVpnService {
             VpnServiceCommand::ListGateways(tx, options) => {
                 self.handle_list_gateways(options, tx).await;
             }
+            VpnServiceCommand::ListFilteredGateways(tx, filters) => {
+                self.handle_list_filtered_gateways(filters, tx).await;
+            }
             VpnServiceCommand::Connect(tx, connect_args) => {
                 self.handle_connect(connect_args).await.ok();
                 let _ = tx.send(());
@@ -886,6 +894,30 @@ impl NymVpnService {
                     gw_type: options.gw_type,
                     source,
                 })
+                .map(|gateways| {
+                    gateways
+                        .into_iter()
+                        .map(nym_vpn_lib_types::Gateway::from)
+                        .collect::<Vec<_>>()
+                });
+
+            completion_tx.send(result).ok();
+        });
+    }
+
+    async fn handle_list_filtered_gateways(
+        &self,
+        filters: GatewayFilters,
+        completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
+    ) {
+        let gateway_client = self.gateway_cache_handle.clone();
+        let gw_type = filters.gw_type;
+
+        tokio::spawn(async move {
+            let result = gateway_client
+                .lookup_filtered_gateways(filters)
+                .await
+                .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
                 .map(|gateways| {
                     gateways
                         .into_iter()

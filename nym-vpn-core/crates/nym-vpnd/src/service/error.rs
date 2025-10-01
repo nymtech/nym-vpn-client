@@ -74,6 +74,12 @@ pub enum ListGatewaysError {
         gw_type: GatewayType,
         source: nym_vpn_lib::gateway_directory::Error,
     },
+
+    #[error("failed to get filtered gateways ({gw_type})")]
+    GetFilteredGateways {
+        gw_type: GatewayType,
+        source: nym_vpn_lib::gateway_directory::Error,
+    },
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
