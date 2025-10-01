@@ -4,7 +4,6 @@ use crate::updater;
 use crate::updater::PendingUpdate;
 
 use super::updater_types::{DownloadUpdateEvent, UpdateMetadata};
-use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
 use tracing::{debug, error, instrument, trace};
