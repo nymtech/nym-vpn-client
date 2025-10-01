@@ -15,7 +15,7 @@ use super::{
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto::{
     AccountControllerState, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
-    Location, StoreAccountRequest, TunnelEvent, TunnelState as PTunnelState, UserAgent,
+    Location, StoreVpnAccountRequest, TunnelEvent, TunnelState as PTunnelState, UserAgent,
     nym_vpn_service_client::NymVpnServiceClient, tunnel_event::Event,
 };
 use once_cell::sync::Lazy;
@@ -324,7 +324,7 @@ impl GrpcClient {
     pub async fn store_account(&self, mnemonic: String) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(StoreAccountRequest { mnemonic });
+        let request = Request::new(StoreVpnAccountRequest { mnemonic });
         let response = vpnd.store_account(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
