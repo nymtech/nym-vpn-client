@@ -81,7 +81,7 @@ pub struct VpnAccount {
 }
 
 impl VpnAccount {
-    pub(crate) fn new(mnemonic: bip39::Mnemonic, mode: VpnAccountMode) -> Result<Self, Error> {
+    pub fn new(mnemonic: bip39::Mnemonic, mode: VpnAccountMode) -> Result<Self, Error> {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
         Self::derive_from_wallet(wallet, mode)
     }
