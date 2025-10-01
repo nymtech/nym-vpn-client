@@ -55,11 +55,17 @@ impl Command {
                     VpnAccountMode::Api => StoreAccountRequest::Vpn { mnemonic },
                     VpnAccountMode::Decentralised => StoreAccountRequest::Decentralised { mnemonic }
                 };
-                rpc_client
+                let response = rpc_client
                     .store_account(request)
                     .await?;
 
-                println!("Your account has been set. Welcome to the Nym VPN!");
+                if let Some(err) = response.error {
+                    println!("Failed to set account: {err}");
+                    return Err(err.into());
+                } else {
+                    println!("Your account has been set. Welcome to the Nym VPN!");
+                }
+
                 Ok(())
             }
             Command::Forget => {

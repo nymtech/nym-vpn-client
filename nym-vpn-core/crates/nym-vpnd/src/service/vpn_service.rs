@@ -1,22 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bip39::Mnemonic;
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use nym_statistics::{
-    StatisticsController, StatisticsControllerConfig,
-    events::{StatisticsEvent, StatisticsSender},
-};
-use std::{path::PathBuf, pin::Pin};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use tokio::{
-    sync::{broadcast, mpsc, oneshot},
-    task::JoinHandle,
-    time::{Duration, Instant},
-};
-use tokio_stream::wrappers::WatchStream;
-use tokio_util::sync::CancellationToken;
-
 use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
@@ -25,7 +9,15 @@ use super::{
     },
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
+use bip39::Mnemonic;
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use nym_common::trace_err_chain;
+use nym_statistics::{
+    StatisticsController, StatisticsControllerConfig,
+    events::{StatisticsEvent, StatisticsSender},
+};
+use nym_validator_client::DirectSecp256k1HdWallet;
+use nym_validator_client::nyxd::CosmWasmClient;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks,
@@ -50,6 +42,16 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+use std::{path::PathBuf, pin::Pin};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use tokio::{
+    sync::{broadcast, mpsc, oneshot},
+    task::JoinHandle,
+    time::{Duration, Instant},
+};
+use tokio_stream::wrappers::WatchStream;
+use tokio_util::sync::CancellationToken;
+use tracing::info;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -994,11 +996,56 @@ impl NymVpnService {
             StoreAccountRequest::Decentralised { mnemonic } => {
                 let mnemonic = Mnemonic::parse::<String>(mnemonic)
                     .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-                self.account_command_tx
-                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Decentralised))
-                    .await
+                self.handle_store_decentralised_account(mnemonic).await
             }
         }
+    }
+
+    async fn handle_store_decentralised_account(
+        &mut self,
+        mnemonic: bip39::Mnemonic
+    ) -> Result<(), AccountCommandError> {
+        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
+        let address = wallet
+            .try_derive_accounts()
+            .unwrap_or_default()
+            .pop()
+            .ok_or(AccountCommandError::InvalidMnemonic(
+                "did not manage to derive a single account".to_string(),
+            ))?
+            .address;
+
+        // NOTE: this client internally will NOT use any domain fronting, etc.
+        let nyxd_client = nym_validator_client::nyxd::NyxdClient::connect_with_network_details(
+            self.network_env.nyxd_url.as_str(),
+            self.network_env.nym_network_details().clone(),
+        )
+            .map_err(|err| AccountCommandError::NyxdConnectionFailure(err.to_string()))?;
+
+        // if we're attempting to store a decentralised account, it MUST exist on chain,
+        // i.e. it must have proper number and sequence
+        let Some(account_response) = nyxd_client
+            .get_account(&address)
+            .await
+            .map_err(|err| AccountCommandError::NyxdQueryFailure(err.to_string()))?
+        else {
+            return Err(AccountCommandError::AccountDoesntExistOnChain);
+        };
+
+        let Ok(base_account) = account_response.try_get_base_account() else {
+            return Err(AccountCommandError::AccountDoesntExistOnChain);
+        };
+        info!(
+            "importing decentralised account '{}' with account number: {} and sequence: {}",
+            base_account.address, base_account.account_number, base_account.sequence
+        );
+
+        self.account_command_tx
+            .store_account(StorableAccount::new(
+                mnemonic,
+                StoredAccountMode::Decentralised,
+            ))
+            .await
     }
 
     async fn handle_is_account_stored(&self) -> bool {

@@ -30,6 +30,15 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
             }
+            proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err) => {
+                Self::NyxdConnectionFailure(err)
+            }
+            proto::account_command_error::ErrorDetail::NyxdQueryFailure(err) => {
+                Self::NyxdQueryFailure(err)
+            }
+            proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(_) => {
+                Self::AccountDoesntExistOnChain
+            }
         })
     }
 }
@@ -110,6 +119,21 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(
                     err,
                 )),
+            },
+            AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err),
+                ),
+            },
+            AccountCommandError::NyxdQueryFailure(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::NyxdQueryFailure(
+                    err,
+                )),
+            },
+            AccountCommandError::AccountDoesntExistOnChain => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(true),
+                ),
             },
         }
     }

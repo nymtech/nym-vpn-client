@@ -29,6 +29,15 @@ pub enum AccountCommandError {
     #[error("unexpected vpn-api response: {0}")]
     UnexpectedVpnApiResponse(String),
 
+    #[error("failed to connect to nyxd instance: {0}")]
+    NyxdConnectionFailure(String),
+
+    #[error("failed to resolve query to a nyxd instance: {0}")]
+    NyxdQueryFailure(String),
+
+    #[error("account doesn't exist on chain")]
+    AccountDoesntExistOnChain,
+
     #[error("no account stored")]
     NoAccountStored,
 

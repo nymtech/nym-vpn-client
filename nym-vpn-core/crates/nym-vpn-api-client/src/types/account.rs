@@ -34,6 +34,8 @@ pub enum VpnAccountMode {
 
     /// Account works in the decentralised mode, i.e. there is no associated subscription
     /// and the account uses its own funds for obtaining required ticketbooks
+    // add an alias for our US friends
+    #[cfg_attr(feature = "cli", value(alias("decentralized")))]
     Decentralised,
 }
 

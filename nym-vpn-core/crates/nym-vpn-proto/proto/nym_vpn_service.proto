@@ -543,6 +543,9 @@ message AccountCommandError {
     bool existing_account = 7;
     bool offline = 8;
     string invalid_mnemonic = 10;
+    string nyxd_connection_failure = 11;
+    string nyxd_query_failure = 12;
+    bool account_doesnt_exist_on_chain = 13;
   }
 }
 

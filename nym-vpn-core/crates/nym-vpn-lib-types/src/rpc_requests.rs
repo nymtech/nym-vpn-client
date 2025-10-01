@@ -27,6 +27,7 @@ impl std::fmt::Debug for StoreAccountRequest {
     }
 }
 
+#[derive(Debug)]
 pub struct AccountCommandResponse {
     pub error: Option<crate::AccountCommandError>,
 }
