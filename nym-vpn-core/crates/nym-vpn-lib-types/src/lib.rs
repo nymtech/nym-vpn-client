@@ -4,7 +4,6 @@
 //! Types shared between nym-vpn-lib and other crates in the workspace.
 
 mod account;
-mod bridges;
 mod connection_data;
 mod gateway;
 mod log_path;
@@ -23,7 +22,6 @@ pub use account::{
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     ticketbooks::AvailableTickets,
 };
-pub use bridges::{BridgeInformation, BridgeParameters, QuicClientOptions};
 pub use connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,

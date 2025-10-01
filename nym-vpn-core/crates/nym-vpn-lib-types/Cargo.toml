@@ -17,6 +17,7 @@ nym-type-conversions = [
     "dep:nym-connection-monitor",
     "dep:nym-statistics-common",
     "dep:nym-registration-common",
+    "dep:nym-vpn-api-client",
 ]
 
 [dependencies]
@@ -33,6 +34,6 @@ nym-sdk.workspace = true
 nym-validator-client.workspace = true
 nym-statistics-common = { workspace = true, optional = true }
 nym-vpn-network-config.workspace = true
-nym-vpn-api-client.workspace = true
+nym-vpn-api-client = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 strum_macros.workspace = true
