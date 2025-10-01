@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support } = useMainState();
+  const { desktopNotifications, ipv6Support, backendFlags } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -21,9 +21,7 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  // TODO revert this once QUIC is ready
-  // const showAntiCensorship = backendFlags?.quic || backendFlags?.domainFronting;
-  const showAntiCensorship = false;
+  const showAntiCensorship = backendFlags?.quic || backendFlags?.domainFronting;
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
