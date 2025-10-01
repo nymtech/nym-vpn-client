@@ -1,14 +1,13 @@
+import React from 'react';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { invoke } from '@tauri-apps/api/core';
-import { type } from '@tauri-apps/plugin-os';
 import Home from '../Home';
 import { useMainDispatch, useMainState } from '../../../contexts';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockInvoke = invoke as jest.MockedFunction<typeof invoke>;
-const mockType = type as jest.MockedFunction<typeof type>;
 const mockUseMainState = useMainState as jest.MockedFunction<
   typeof useMainState
 >;
@@ -96,7 +95,6 @@ describe('Home Component', () => {
       writable: true,
     });
 
-    mockType.mockResolvedValue('linux');
     mockUseMainDispatch.mockReturnValue(mockDispatch);
 
     mockUseMainState.mockReturnValue({

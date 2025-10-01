@@ -1,3 +1,4 @@
+import React from 'react';
 import { screen, fireEvent } from '@testing-library/react';
 import { render } from '../../test/test-utils';
 import Switch from '../Switch';

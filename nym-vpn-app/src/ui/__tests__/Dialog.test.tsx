@@ -1,3 +1,4 @@
+import React from 'react';
 import { screen, fireEvent } from '@testing-library/react';
 import { render, mockDialogProps } from '../../test/test-utils';
 import Dialog from '../Dialog';

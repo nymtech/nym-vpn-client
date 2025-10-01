@@ -1,3 +1,4 @@
+import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { render } from '../../../test/test-utils';
 import TunnelState from '../TunnelState';
@@ -55,7 +56,15 @@ describe('TunnelState Component', () => {
     jest.clearAllMocks();
 
     mockUseI18nError.mockReturnValue({
-      tE: (key: string) => `Error: ${key}`,
+      tE: (error: any) => {
+        if (typeof error === 'string') {
+          return `Error: ${error}`;
+        }
+        if (error && typeof error === 'object' && error.key) {
+          return `Error: ${error.key}`;
+        }
+        return 'Error: unknown';
+      },
     });
 
     mockUseI18nAccountState.mockReturnValue({

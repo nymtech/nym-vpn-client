@@ -5,7 +5,8 @@
     "noUnusedParameters": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["jest", "@testing-library/jest-dom", "node"]
+    "types": ["jest", "@testing-library/jest-dom", "node"],
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*.test.ts",
@@ -13,5 +14,6 @@
     "src/**/__tests__/**/*",
     "src/test/**/*"
   ],
+  "files": ["src/test/jest.d.ts"],
   "exclude": []
 }
