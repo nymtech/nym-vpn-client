@@ -19,7 +19,8 @@ jobs:
 
   build-mac:
     needs: build-wireguard-go-mac
-    runs-on: custom-macos-15
+    runs-on: macos-15
+    timeout-minutes: 45
     outputs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
     steps:
