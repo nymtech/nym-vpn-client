@@ -11,14 +11,17 @@ use crate::error::{BackendError, ErrorKey};
 use crate::grpc::client::GrpcClient;
 use crate::grpc::gateway::{Gateway, GatewayType};
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
-pub enum NodeType {
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "kebab-case")]
+pub enum Hop {
     Entry,
     Exit,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub struct GatewaysByCountry {
     pub country: Country,
     pub gateways: Vec<Gateway>,

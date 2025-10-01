@@ -3,7 +3,7 @@ use std::fmt;
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS, Eq, PartialEq, Hash)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub struct Country {
     pub name: String,
     pub code: String,

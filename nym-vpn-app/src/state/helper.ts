@@ -1,9 +1,9 @@
 import i18n from 'i18next';
 import {
-  DaemonInfo,
   DaemonStatus,
   NetworkEnv,
   StateDispatch,
+  VpndInfo,
   VpndStatus,
   isVpndNonCompat,
   isVpndOk,
@@ -90,7 +90,7 @@ export async function networkEnvChanged(status: VpndStatus) {
   return hasChanged;
 }
 
-export function getVpndInfo(status: VpndStatus): DaemonInfo | null {
+export function getVpndInfo(status: VpndStatus): VpndInfo | null {
   if (isVpndOk(status) && status.ok) {
     return status.ok;
   }

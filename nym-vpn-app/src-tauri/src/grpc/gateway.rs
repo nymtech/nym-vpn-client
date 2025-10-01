@@ -8,7 +8,7 @@ use tracing::{error, instrument, warn};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, strum::Display, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum GatewayType {
     MxEntry,
@@ -17,7 +17,7 @@ pub enum GatewayType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TS, Default)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum Score {
     #[default]
@@ -28,7 +28,7 @@ pub enum Score {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TS, Default)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum AsnType {
     #[default]
@@ -37,7 +37,7 @@ pub enum AsnType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Asn {
     pub asn: String,
@@ -47,7 +47,7 @@ pub struct Asn {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Location {
     pub latitude: f64,
@@ -57,7 +57,7 @@ pub struct Location {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Performance {
     pub score: Score,
@@ -68,7 +68,7 @@ pub struct Performance {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Gateway {
     pub id: String,

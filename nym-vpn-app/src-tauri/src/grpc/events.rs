@@ -8,7 +8,7 @@ use p::mixnet_event::{
 use tracing::{error, instrument};
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS, strum::AsRefStr)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "snake_case")]
 pub enum MixnetEvent {

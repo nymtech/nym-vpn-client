@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 #[derive(Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub struct AccountLinks {
     pub sign_up: Option<String>,
     pub sign_in: Option<String>,

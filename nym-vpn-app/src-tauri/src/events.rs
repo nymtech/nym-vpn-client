@@ -14,7 +14,7 @@ pub const EVENT_ACCOUNT_STATE: &str = "account-state";
 pub const EVENT_MIXNET: &str = "mixnet-event";
 
 #[derive(Clone, Serialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub struct TunnelStateEvent {
     state: TunnelState,
     error: Option<BackendError>,
@@ -30,7 +30,7 @@ impl TunnelStateEvent {
 }
 
 #[derive(Clone, Serialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum MixnetEventPayload {
     Event(MixnetEvent),
