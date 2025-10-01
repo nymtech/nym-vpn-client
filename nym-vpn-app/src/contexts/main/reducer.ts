@@ -12,11 +12,11 @@ import {
   CodeDependency,
   ConnectingState,
   Country,
-  DaemonInfo,
   DaemonStatus,
   FeatureFlags,
   Gateway,
   NetworkCompat,
+  NetworkEnv,
   NodeHop,
   ProgressMsg,
   ThemeMode,
@@ -25,6 +25,7 @@ import {
   TunnelError,
   UiTheme,
   VpnMode,
+  VpndInfo,
 } from '../../types';
 
 export type StateAction =
@@ -32,7 +33,7 @@ export type StateAction =
   | { type: 'set-tunnel'; tunnel: Tunnel }
   | { type: 'set-tunnel-error'; error: TunnelError | null }
   | { type: 'set-daemon-status'; status: DaemonStatus }
-  | { type: 'set-daemon-info'; info: DaemonInfo }
+  | { type: 'set-daemon-info'; info: VpndInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-error'; error: AppError | null }
   | { type: 'reset-error' }
@@ -139,7 +140,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         daemonVersion: action.info.version,
-        networkEnv: action.info.network,
+        networkEnv: action.info.network as NetworkEnv,
       };
     case 'set-node':
       if (action.payload.hop === 'entry') {
@@ -203,7 +204,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         tunnel: action.tunnel,
         progressMessages: [],
         tunnelConnectedAt: action.tunnel.connectedAt
-          ? dayjs.unix(action.tunnel.connectedAt)
+          ? dayjs.unix(action.tunnel.connectedAt as unknown as number)
           : dayjs(),
         tunnelError: null,
         error: null,

@@ -10,7 +10,7 @@ use nym_vpn_proto::proto::account_controller_state::{
 };
 
 #[derive(strum::AsRefStr, Default, Serialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts", rename = "TAccountState")]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountState {
     #[default]

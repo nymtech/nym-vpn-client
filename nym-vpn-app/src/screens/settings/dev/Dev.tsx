@@ -165,7 +165,7 @@ function Dev() {
               <div
                 className="select-text cursor-text text-nowrap"
                 data-testid="dev-tunnel-connected-at"
-              >{`connectedAt: ${dayjs.unix(tunnel.connectedAt).format()}`}</div>
+              >{`connectedAt: ${dayjs.unix(tunnel.connectedAt as unknown as number).format()}`}</div>
             )}
           </div>
         </div>

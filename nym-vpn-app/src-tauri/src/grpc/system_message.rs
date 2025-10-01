@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ts_rs::TS;
 
 #[derive(Clone, Serialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub struct SystemMessage {
     pub name: String,
     pub message: String,

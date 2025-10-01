@@ -1,7 +1,7 @@
 import {
   StateDispatch,
   TAccountState,
-  TunnelStateIpc,
+  TTunnelState,
   isAccountError,
   isTunnelConnected,
   isTunnelConnecting,
@@ -10,7 +10,7 @@ import {
   isTunnelOffline,
 } from '../types';
 
-export function updateTunnel(state: TunnelStateIpc, dispatch: StateDispatch) {
+export function updateTunnel(state: TTunnelState, dispatch: StateDispatch) {
   if (state === 'disconnected') {
     console.log('tunnel [disconnected]');
     dispatch({ type: 'set-tunnel-disconnected' });

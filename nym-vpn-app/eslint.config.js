@@ -1,4 +1,5 @@
 import globals from 'globals';
+import { globalIgnores } from 'eslint/config';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
@@ -7,6 +8,7 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 
 export default [
+  globalIgnores(['src/types/tauri.ts']),
   {
     files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
     ignores: ['*.config.js', '*.config.ts'],

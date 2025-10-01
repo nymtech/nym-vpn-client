@@ -12,4 +12,5 @@ pub mod sys;
 pub mod tunnel;
 #[cfg(windows)]
 pub mod updater;
+mod updater_types;
 pub mod window;
