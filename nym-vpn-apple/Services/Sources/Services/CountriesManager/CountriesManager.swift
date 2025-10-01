@@ -284,49 +284,6 @@ private extension CountriesManager {
 #if os(iOS)
 private extension CountriesManager {
     func fetchEntryExitCountries() {
-        do {
-            let entryLocations = try getGatewayCountries(
-                gwType: .mixnetEntry
-            )
-            logger.info("Fetched \(entryLocations.count) entry countries")
-            let newEntryCountries = entryLocations.compactMap {
-                country(with: $0.twoLetterIsoCountryCode)
-            }
-            .sorted(by: { $0.name < $1.name })
-
-            let exitLocations = try getGatewayCountries(gwType: .mixnetExit)
-            logger.info("Fetched \(exitLocations.count) exit countries")
-            let newExitCountries = exitLocations.compactMap {
-                country(with: $0.twoLetterIsoCountryCode)
-            }
-            .sorted(by: { $0.name < $1.name })
-
-            let newVpnLocations = try getGatewayCountries(gwType: .wg)
-            logger.info("Fetched \(newVpnLocations.count) vpn countries")
-            let newVpnCountries = newVpnLocations.compactMap {
-                country(with: $0.twoLetterIsoCountryCode)
-            }
-            .sorted(by: { $0.name < $1.name })
-
-            countryStore.entryCountries = newEntryCountries
-            countryStore.exitCountries = newExitCountries
-            countryStore.vpnCountries = newVpnCountries
-            countryStore.lastFetchDate = Date()
-
-            Task { @MainActor [weak self] in
-                self?.entryCountries = newEntryCountries
-                self?.exitCountries = newExitCountries
-                self?.vpnCountries = newVpnCountries
-            }
-
-            storeCountryStore()
-
-            isLoading = false
-        } catch {
-            isLoading = false
-            logger.error("\(error.localizedDescription)")
-            fetchCountriesAfterDelay()
-        }
     }
 }
 #endif

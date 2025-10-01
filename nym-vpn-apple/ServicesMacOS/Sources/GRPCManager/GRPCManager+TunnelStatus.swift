@@ -154,10 +154,8 @@ extension GRPCManager {
             ErrorReason.bandwidthExceeded
         case .setDns:
             ErrorReason.setDns
-        case .internal:
-            ErrorReason(with: tunnelStateError.reason)
-        case .UNRECOGNIZED:
-            ErrorReason.unknown
+        case let .internal(code):
+            ErrorReason.internalError(code)
         case .deviceTimeOutOfSync:
             ErrorReason.deviceTimeOutOfSync
         case .ipv6Unavailable:
@@ -176,6 +174,14 @@ extension GRPCManager {
             ErrorReason.credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             ErrorReason.credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            ErrorReason.performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            ErrorReason.performantExitGatewayUnavailable
+        case .invalidEntryGatewayIdentity:
+            ErrorReason.invalidEntryGatewayCountry
+        case .invalidExitGatewayIdentity:
+            ErrorReason.invalidExitGatewayIdentity
         }
     }
 }
@@ -202,6 +208,10 @@ extension ErrorReason {
             self = .ipv6Unavailable
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .bandwidthExceeded:
             self = .bandwidthExceeded
         case .inactiveSubscription:
@@ -222,6 +232,10 @@ extension ErrorReason {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 }
