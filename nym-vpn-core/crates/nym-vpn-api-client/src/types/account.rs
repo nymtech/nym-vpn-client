@@ -24,7 +24,9 @@ pub enum Error {
 }
 
 /// Defines the mode of operation of the associated account.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, strum_macros::Display)]
+#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "cli", derive(clap::ValueEnum))]
 pub enum VpnAccountMode {
     /// Account works in the API mode, i.e. the subscription is managed
     /// by the VPN API which provides required ticketbooks

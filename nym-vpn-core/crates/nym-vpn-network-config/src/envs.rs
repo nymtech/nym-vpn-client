@@ -65,7 +65,7 @@ impl RegisteredNetworks {
         tracing::debug!("Fetching registered networks");
 
         // Spawn the root task
-        let default_url = Discovery::defaul_vpn_api_url();
+        let default_url = Discovery::default_vpn_api_url();
         let inner = VpnApiClient::new(
             default_url,
             UserAgent {

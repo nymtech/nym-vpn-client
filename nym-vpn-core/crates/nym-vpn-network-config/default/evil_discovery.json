@@ -1,5 +1,6 @@
 {
   "network_name": "evil",
+  "nyxd_url": "https://evil-validator.performance.nymte.ch/",
   "nym_api_url": "https://evil-nym-api.performance.nymte.ch/api/",
   "nym_api_urls": [
     {

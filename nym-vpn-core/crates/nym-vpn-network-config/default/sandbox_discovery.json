@@ -1,5 +1,6 @@
 {
   "network_name": "sandbox",
+  "nyxd_url": "https://rpc.sandbox.nymtech.net/",
   "nym_api_url": "https://sandbox-nym-api1.nymtech.net/api/",
   "nym_api_urls": [
     {

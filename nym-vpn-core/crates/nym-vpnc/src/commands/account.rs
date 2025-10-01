@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
-
+use nym_vpn_api_client::types::VpnAccountMode;
 use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -14,6 +14,9 @@ pub enum Command {
     Set {
         #[arg(index = 1)]
         mnemonic: String,
+
+        #[clap(long, default_value_t = VpnAccountMode::Api)]
+        mode: VpnAccountMode,
     },
     /// Forget account
     Forget,
@@ -47,10 +50,15 @@ impl Command {
                 println!("Account state: {account_state:?}");
                 Ok(())
             }
-            Command::Set { mnemonic } => {
+            Command::Set { mnemonic, mode } => {
+                let request = match mode {
+                    VpnAccountMode::Api => StoreAccountRequest::Vpn { mnemonic },
+                    VpnAccountMode::Decentralised => StoreAccountRequest::Decentralised { mnemonic }
+                };
                 rpc_client
-                    .store_account(StoreAccountRequest::Vpn { mnemonic })
+                    .store_account(request)
                     .await?;
+
                 println!("Your account has been set. Welcome to the Nym VPN!");
                 Ok(())
             }

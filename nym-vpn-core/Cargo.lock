@@ -5398,6 +5398,7 @@ dependencies = [
  "bip39",
  "bs58",
  "chrono",
+ "clap",
  "itertools 0.13.0",
  "nym-compact-ecash",
  "nym-config",
