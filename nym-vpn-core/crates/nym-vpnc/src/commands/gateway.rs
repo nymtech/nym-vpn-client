@@ -268,8 +268,12 @@ impl Args {
             filters: Vec::new(),
         };
 
-        let min_wg_performance = filters.min_wg_performance;
-        let min_mixnet_performance = filters.min_mixnet_performance;
+        if filters.min_wg_performance.is_some() || filters.min_mixnet_performance.is_some() {
+            gateway_filters.filters.push(GatewayFilter::MinPerformance {
+                min_wg_performance: filters.min_wg_performance,
+                min_mixnet_performance: filters.min_mixnet_performance,
+            });
+        }
 
         if let Some(ref country) = filters.country {
             gateway_filters
@@ -285,13 +289,6 @@ impl Args {
 
         if filters.residential {
             gateway_filters.filters.push(GatewayFilter::Residential);
-        }
-
-        if min_wg_performance.is_some() || gw_type != GatewayType::Wg {
-            gateway_filters.filters.push(GatewayFilter::MinPerformance {
-                min_wg_performance,
-                min_mixnet_performance,
-            });
         }
 
         gateway_filters
