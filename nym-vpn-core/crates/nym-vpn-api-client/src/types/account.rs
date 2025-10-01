@@ -280,14 +280,17 @@ mod tests {
 
     #[test]
     fn create_account_from_mnemonic() {
-        let account =
-            VpnAccount::try_from(bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap()).unwrap();
+        let account = VpnAccount::new(
+            bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap(),
+            VpnAccountMode::Api,
+        )
+        .unwrap();
         assert_eq!(account.id(), TEST_DEFAULT_MNEMONIC_ID);
     }
 
     #[test]
     fn create_random_account() {
-        let (_, mnemonic) = VpnAccount::random().unwrap();
+        let (_, mnemonic) = VpnAccount::generate_new().unwrap();
         assert_eq!(mnemonic.word_count(), 24);
     }
 
@@ -295,7 +298,7 @@ mod tests {
     fn derive_wallets() {
         for word_count in [12, 24] {
             let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
-            VpnAccount::derive_from_wallet(wallet).unwrap();
+            VpnAccount::derive_from_wallet(wallet, VpnAccountMode::Api).unwrap();
         }
     }
 }

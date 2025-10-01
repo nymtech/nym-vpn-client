@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::common::{TestBench, account_summary::*, endpoints, mock_account_id, mock_mnemonic};
+use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock_account_id};
 
 use nym_vpn_account_controller::AvailableTicketbooks;
 use nym_vpn_lib_types::{
@@ -83,7 +83,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account())
             .await
             .is_ok()
     );
@@ -169,7 +169,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account())
             .await
             .is_ok()
     );
@@ -183,7 +183,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_mnemonic()))
+        Ok(Some(mock_account()))
     );
     assert!(
         test_bench
@@ -258,7 +258,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_mnemonic()))
+        Ok(Some(mock_account()))
     );
     assert!(
         test_bench
@@ -314,7 +314,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account())
             .await,
         Err(AccountCommandError::ExistingAccount)
     );
@@ -371,7 +371,7 @@ async fn error_state_command() -> anyhow::Result<()> {
     );
     assert_eq!(
         test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_mnemonic()))
+        Ok(Some(mock_account()))
     );
     assert!(
         test_bench
@@ -429,7 +429,7 @@ async fn error_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account())
             .await,
         Err(AccountCommandError::ExistingAccount)
     );
