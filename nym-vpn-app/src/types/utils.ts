@@ -24,6 +24,7 @@ type ErrorDataKey = keyof Pick<TBackendError, 'data'>;
 // Rust `HashMap` is generated with optional key index `[key in string]?:`
 // this is quite painful to work with and can be safely overridden to
 // required key
+// see https://github.com/Aleph-Alpha/ts-rs/pull/339
 export type BackendError = Omit<TBackendError, 'data'> &
   (Record<ErrorDataKey, Record<string, string> | null>);
 
