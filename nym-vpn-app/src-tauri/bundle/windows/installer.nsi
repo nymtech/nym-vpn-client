@@ -186,12 +186,19 @@ FunctionEnd
 !macro VPND_UNINSTALL un
   Function ${un}VpndUninstall
     Call ${un}GetVpndVersionFull
-    ${If} $VpndVersionMajor == 1
-    ${AndIf} $VpndVersionMinor < 14
-      DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
-      ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
-    ${Else}
-      ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
+    vpnd-uninstall:
+      ${If} $VpndVersionMajor == 1
+      ${AndIf} $VpndVersionMinor < 14
+        DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
+        ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall' $9
+      ${Else}
+        ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service' $9
+      ${EndIf}
+    ${If} $9 <> 0
+      ; if vpnd fails to uninstall all we can do is to notify the user
+      ; !DO NOT ABORT HERE! this will lock the user from uninstalling the app!
+      DetailPrint "'nym-vpnd.exe uninstall-service' failed: $9"
+      MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Failed to uninstall NymVPN service [$9]" /SD IDABORT IDRETRY vpnd-uninstall
     ${EndIf}
   FunctionEnd
 !macroend
@@ -694,6 +701,26 @@ Section Install
   File "..\..\..\..\wintun.dll"
   File "..\..\..\..\winfw.dll"
 
+  ; Install NymVPN service, abort early if something goes wrong
+  vpnd-install:
+    ExecWait '"$INSTDIR\nym-vpnd.exe" install-service' $3
+  ${If} $3 <> 0
+    DetailPrint "'nym-vpnd.exe install-service' failed: $3"
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "An error occurred while installing NymVPN service [$3]" /SD IDABORT IDRETRY vpnd-install
+      Call Cleanup
+      Abort
+  ${EndIf}
+
+  ; Start NymVPN service, notify user if something goes wrong
+  vpnd-start:
+    ExecWait '"$INSTDIR\nym-vpnd.exe" start-service' $3
+  ${If} $3 <> 0
+    ; if vpnd fails to start we notify the user and continue as this
+    ; can been solved later on
+    DetailPrint "'nym-vpnd.exe start-service' failed: $3"
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Failed to start NymVPN service [$3]" /SD IDABORT IDRETRY vpnd-start
+  ${EndIf}
+
   ; Copy resources
   {{#each resources_dirs}}
     CreateDirectory "$INSTDIR\\{{this}}"
@@ -765,10 +792,6 @@ Section Install
     WriteRegStr SHCTX "${UNINSTKEY}" "HelpLink" "${HOMEPAGE}"
   !endif
 
-  ; Install NymVPN service
-  ExecWait '"$INSTDIR\nym-vpnd.exe" install-service'
-  ExecWait '"$INSTDIR\nym-vpnd.exe" start-service'
-
   ; Create start menu shortcut
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     Call CreateOrUpdateStartMenuShortcut
@@ -802,6 +825,15 @@ Function .onInstSuccess
       nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" "$R0"
     ${EndIf}
   ${EndIf}
+FunctionEnd
+
+Function Cleanup
+  ; cleanup
+  Delete "$INSTDIR\${MAINBINARYNAME}.exe"
+  Delete "$INSTDIR\nym-vpnd.exe"
+  Delete "$INSTDIR\libwg.dll"
+  Delete "$INSTDIR\wintun.dll"
+  Delete "$INSTDIR\winfw.dll"
 FunctionEnd
 
 Function un.onInit
