@@ -1,31 +1,23 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../contexts';
-import { Country, ThemeMode, UiTheme } from './common';
 import {
   AccountLinks,
-  AccountState,
+  ConnectingState,
+  Country,
   ErrorKey,
   FeatureFlags,
   Gateway,
   NetworkCompat,
   NetworkEnv,
+  ThemeMode,
+  Tunnel,
+  TunnelError,
+  UiTheme,
+  VpnMode,
   VpndStatus,
 } from './tauri';
-import { ConnectingState, Tunnel, TunnelError } from './tunnel';
-
-export type TunnelState =
-  | 'connected'
-  | 'disconnected'
-  | 'connecting'
-  | 'disconnecting'
-  | 'error'
-  | 'offline'
-  | 'offline-auto-reconnect'
-  // when not connected to the daemon, the state is unknown
-  | 'unknown';
-
-export type VpnMode = 'wg' | 'mixnet';
+import { AccountState, TunnelState } from './utils';
 
 export type CodeDependency = {
   name: string;

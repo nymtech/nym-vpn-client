@@ -24,7 +24,7 @@ pub type JsonValue = Value;
 #[derive(Deserialize, Serialize, AsRefStr, EnumIter, Debug, Clone, Copy, TS)]
 #[strum(serialize_all = "kebab-case")]
 #[serde(rename_all = "kebab-case")]
-#[ts(export, export_to = "DbKey.ts", rename = "DbKey")]
+#[ts(export, export_to = "tauri.ts", rename = "DbKey")]
 pub enum Key {
     UiTheme,
     UiRootFontSize,

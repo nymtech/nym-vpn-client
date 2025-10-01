@@ -21,7 +21,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum VpnMode {
     Mixnet,
@@ -30,7 +30,7 @@ pub enum VpnMode {
 }
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkCompat {
     core: Option<bool>,

@@ -10,7 +10,7 @@ const KEY_ZKNYMS: &str = "zkNyms";
 const KEY_GW_UPDATE: &str = "gatewayMetadataUpdate";
 
 #[derive(Clone, Serialize, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct FeatureFlags {
     pub quic: bool,

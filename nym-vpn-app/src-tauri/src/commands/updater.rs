@@ -3,29 +3,11 @@ use crate::error::BackendError;
 use crate::updater;
 use crate::updater::PendingUpdate;
 
+use super::updater_types::{DownloadUpdateEvent, UpdateMetadata};
 use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
 use tracing::{debug, error, instrument, trace};
-use ts_rs::TS;
-
-#[derive(Debug, Serialize, Deserialize, TS, Clone)]
-#[serde(rename_all = "camelCase")]
-#[ts(export)]
-pub struct UpdateMetadata {
-    version: String,
-    current_version: String,
-}
-
-#[derive(Clone, Serialize, TS)]
-#[serde(tag = "event", content = "data")]
-#[serde(rename_all = "kebab-case", rename_all_fields = "camelCase")]
-#[ts(export)]
-pub enum DownloadUpdateEvent {
-    Started { content_length: u64 },
-    Progress { chunk_length: usize },
-    Finished,
-}
 
 #[tauri::command]
 #[instrument(skip_all)]
