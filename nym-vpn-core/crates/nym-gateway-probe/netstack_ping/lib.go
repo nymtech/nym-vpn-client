@@ -33,10 +33,16 @@ import (
 
 var fileUrls = []string{
 	"https://proof.ovh.net/files/1Mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/1mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/10mb.dat",
+	// "https://nym-bandwidth-monitoring.ops-d86.workers.dev/100mb.dat", to be introduced later
 }
 
 var fileUrlsV6 = []string{
 	"https://proof.ovh.net/files/1Mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/1mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/10mb.dat",
+	// "https://nym-bandwidth-monitoring.ops-d86.workers.dev/100mb.dat", to be introduced later
 }
 
 type NetstackRequestGo struct {
@@ -205,27 +211,25 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 		}
 	}
 
-	var fileURL string
+	var urlsToTry []string
 
 	if req.IpVersion == 4 {
-		randomIndex := rand.Intn(len(fileUrls))
-		fileURL = fileUrls[randomIndex]
+		urlsToTry = fileUrls
 	} else {
-		randomIndex := rand.Intn(len(fileUrlsV6))
-		fileURL = fileUrlsV6[randomIndex]
+		urlsToTry = fileUrlsV6
 	}
 
-	// Download the file
-	fileContent, downloadDuration, err := downloadFile(fileURL, req.DownloadTimeoutSec, tnet)
+	// Try URLs with retry logic
+	fileContent, downloadDuration, usedURL, err := downloadFileWithRetry(urlsToTry, req.DownloadTimeoutSec, tnet)
 	if err != nil {
-		log.Printf("Failed to download file: %v\n", err)
+		log.Printf("Failed to download file from any URL: %v\n", err)
 	} else {
 		log.Printf("Downloaded file content length: %.2f MB\n", float64(len(fileContent))/1024/1024)
 		log.Printf("Download duration: %v\n", downloadDuration)
 	}
 
 	response.DownloadDurationSec = uint64(downloadDuration.Seconds())
-	response.DownloadedFile = fileURL
+	response.DownloadedFile = usedURL
 	if err != nil {
 		response.DownloadError = err.Error()
 	} else {
@@ -309,6 +313,40 @@ func sendPing(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutS
 			return 0, fmt.Errorf("invalid ping reply: %v (request: %v)", replyPing, requestPing)
 		}
 	}
+}
+
+func downloadFileWithRetry(urls []string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, time.Duration, string, error) {
+	maxRetries := 3
+	baseDelay := 1 * time.Second
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		// Shuffle URLs for each attempt to try different ones
+		shuffledUrls := make([]string, len(urls))
+		copy(shuffledUrls, urls)
+		rand.Shuffle(len(shuffledUrls), func(i, j int) {
+			shuffledUrls[i], shuffledUrls[j] = shuffledUrls[j], shuffledUrls[i]
+		})
+
+		for _, url := range shuffledUrls {
+			log.Printf("Attempting download from: %s (attempt %d/%d)", url, attempt+1, maxRetries)
+			// Increase timeout on retries to handle slow servers
+			adjustedTimeout := timeoutSecs + uint64(attempt*5) // +5s per retry
+			content, duration, err := downloadFile(url, adjustedTimeout, tnet)
+			if err == nil {
+				log.Printf("Successfully downloaded from: %s", url)
+				return content, duration, url, nil
+			}
+			log.Printf("Failed to download from %s: %v", url, err)
+		}
+
+		if attempt < maxRetries-1 {
+			delay := baseDelay * time.Duration(attempt+1)
+			log.Printf("All URLs failed, retrying in %v...", delay)
+			time.Sleep(delay)
+		}
+	}
+
+	return nil, 0, "", fmt.Errorf("failed to download from any URL after %d attempts", maxRetries)
 }
 
 func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, time.Duration, error) {
