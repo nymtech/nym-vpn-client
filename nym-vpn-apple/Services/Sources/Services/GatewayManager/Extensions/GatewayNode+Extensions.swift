@@ -3,7 +3,7 @@ import CountriesManagerTypes
 import NymVPNLib
 
 extension GatewayNode {
-    init(with gatewayInfo: GatewayInfo) {
+    init(with gatewayInfo: Gateway) {
         self.init(
             id: gatewayInfo.id,
             location: GatewayNodeLocation(with: gatewayInfo.location),

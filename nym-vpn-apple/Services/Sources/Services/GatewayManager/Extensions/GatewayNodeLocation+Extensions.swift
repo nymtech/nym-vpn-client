@@ -3,7 +3,7 @@ import CountriesManagerTypes
 import NymVPNLib
 
 extension GatewayNodeLocation {
-    init?(with location: RichLocation?) {
+    init?(with location: Location?) {
         guard let location else { return nil }
         self.init(
             twoLetterIsoCountryCode: location.twoLetterIsoCountryCode,

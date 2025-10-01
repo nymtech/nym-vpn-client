@@ -57,10 +57,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-//        case .invalidEntryGatewayIdentity:
-//            self = .invalidEntryGatewayIdentity
-//        case .invalidExitGatewayIdentity:
-//            self = .invalidExitGatewayIdentity
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:
@@ -89,10 +89,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
-//        case .performantEntryGatewayUnavailable:
-//            self = .performantEntryGatewayUnavailable
-//        case .performantExitGatewayUnavailable:
-//            self = .performantExitGatewayUnavailable
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 #endif

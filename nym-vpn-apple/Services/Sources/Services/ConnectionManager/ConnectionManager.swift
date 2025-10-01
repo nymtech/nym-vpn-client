@@ -31,6 +31,10 @@ public final class ConnectionManager: ObservableObject {
     var tunnelConnectingStateCancellable: AnyCancellable?
     var tunnelConnectionInfoDataCancellable: AnyCancellable?
 
+    // TODO: remove this once iOS tunnel supports tunnel reconnection
+    public var isReconnecting = false
+    public var isDisconnecting = false
+
     public static let shared = ConnectionManager()
 
     @Published public var connectionConfig: ConnectionConfig?

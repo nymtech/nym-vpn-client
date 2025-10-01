@@ -69,6 +69,8 @@ extension MixnetConfig {
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
+            enableBridges: false,
+            residentialExit: false,
             tunProvider: tunProvider,
             configPath: configPath,
             credentialDataPath: credentialsDataPath,
