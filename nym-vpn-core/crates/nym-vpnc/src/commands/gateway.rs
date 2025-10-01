@@ -4,7 +4,9 @@
 use anyhow::{Result, anyhow};
 use tabled::Table;
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
+use nym_gateway_directory::{
+    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, NodeIdentity, Recipient,
+};
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::ListGatewaysOptions;
 use nym_vpn_proto::rpc_client::RpcClient;
@@ -44,6 +46,16 @@ pub enum Command {
         /// Gateway type
         #[arg(value_enum)]
         gateway_type: GatewayType,
+    },
+
+    /// List filtered gateways
+    Filter {
+        /// Gateway type
+        #[arg(value_enum)]
+        gateway_type: GatewayType,
+
+        #[command(flatten)]
+        filters: FilterArgs,
     },
 }
 
@@ -89,6 +101,37 @@ pub struct SetArgs {
     pub residential_exit: Option<BooleanOption>,
 }
 
+#[derive(Debug, Clone, clap::Args)]
+pub struct FilterArgs {
+    /// Minimum WireGuard performance (0-100)
+    #[arg(long)]
+    pub min_wg_performance: Option<u8>,
+
+    /// Minimum mixnet performance (0-100)
+    #[arg(long)]
+    pub min_mixnet_performance: Option<u8>,
+
+    /// Filter by country (two-letter ISO code)
+    #[arg(long)]
+    pub country: Option<String>,
+
+    /// Filter by region/state
+    #[arg(long)]
+    pub region: Option<String>,
+
+    /// Filter for residential gateways only
+    #[arg(long)]
+    pub residential: bool,
+
+    /// Filter for exit gateways only
+    #[arg(long)]
+    pub exit: bool,
+
+    /// Filter for VPN gateways only
+    #[arg(long)]
+    pub vpn: bool,
+}
+
 impl Args {
     pub async fn execute(self, mut rpc_client: RpcClient, user_agent: UserAgent) -> Result<()> {
         match self.command {
@@ -125,6 +168,14 @@ impl Args {
                     .await?;
                 Ok(())
             }
+            Command::Filter {
+                gateway_type,
+                ref filters,
+            } => {
+                self.list_filtered_gateways(rpc_client, gateway_type, filters)
+                    .await?;
+                Ok(())
+            }
         }
     }
 
@@ -142,6 +193,68 @@ impl Args {
             .await?;
 
         println!("Gateways available for: {gw_type:?} ({})", gateways.len());
+        let models = gateways
+            .into_iter()
+            .map(|gateway| GatewayModel::new(gateway, gw_type))
+            .collect::<Vec<_>>();
+        let mut table = Table::new(models.into_iter());
+        self.table_style.apply_style(&mut table);
+        println!("{table}");
+
+        Ok(())
+    }
+
+    async fn list_filtered_gateways(
+        &self,
+        mut rpc_client: RpcClient,
+        gw_type: GatewayType,
+        filters: &FilterArgs,
+    ) -> Result<()> {
+        let mut gateway_filters = GatewayFilters {
+            gw_type: gw_type.into(),
+            filters: Vec::new(),
+        };
+
+        let min_wg_performance = filters.min_wg_performance;
+        let min_mixnet_performance = filters.min_mixnet_performance;
+
+        if let Some(ref country) = filters.country {
+            gateway_filters
+                .filters
+                .push(GatewayFilter::Country(country.clone()));
+        }
+
+        if let Some(ref region) = filters.region {
+            gateway_filters
+                .filters
+                .push(GatewayFilter::Region(region.clone()));
+        }
+
+        if filters.residential {
+            gateway_filters.filters.push(GatewayFilter::Residential);
+        }
+
+        if filters.exit {
+            gateway_filters.filters.push(GatewayFilter::Exit);
+        }
+
+        if filters.vpn {
+            gateway_filters.filters.push(GatewayFilter::Vpn);
+        }
+
+        if min_wg_performance.is_some() || gw_type != GatewayType::Wg {
+            gateway_filters.filters.push(GatewayFilter::MinPerformance {
+                min_wg_performance,
+                min_mixnet_performance,
+            });
+        }
+
+        let gateways = rpc_client.list_filtered_gateways(gateway_filters).await?;
+
+        println!(
+            "Filtered gateways available for: {gw_type:?} ({})",
+            gateways.len()
+        );
         let models = gateways
             .into_iter()
             .map(|gateway| GatewayModel::new(gateway, gw_type))
