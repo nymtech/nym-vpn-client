@@ -6,7 +6,7 @@ use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
     response::{NymErrorResponse, NymVpnAccountStatusResponse},
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -83,7 +83,7 @@ impl SyncingState {
 
     async fn syncing_account(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnApiAccount,
+        vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
@@ -175,7 +175,7 @@ impl SyncingState {
 
     async fn register_device(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnApiAccount,
+        vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
         vpn_api_client

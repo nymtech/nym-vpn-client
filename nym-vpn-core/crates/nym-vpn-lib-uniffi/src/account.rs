@@ -6,13 +6,13 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
-use nym_vpn_api_client::types::{Platform, VpnApiAccount};
+use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types_uniffi::{AccountControllerState, RegisterAccountResponse};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::device::DeviceKeyStore,
-    mnemonic::{Mnemonic, MnemonicStorage},
+    mnemonic::{AccountStorage, Mnemonic},
 };
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -202,7 +202,7 @@ pub(super) async fn create_account() -> Result<(), VpnError> {
 pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnError> {
     let mnemonic = get_command_sender()
         .await?
-        .get_stored_mnemonic()
+        .get_stored_account()
         .await
         .map_err(VpnError::from)?
         .ok_or(VpnError::NoAccountStored)?;
@@ -244,7 +244,7 @@ pub(super) async fn is_account_mnemonic_stored() -> Result<bool, VpnError> {
 pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
     Ok(get_command_sender()
         .await?
-        .get_stored_mnemonic()
+        .get_stored_account()
         .await
         .map_err(VpnError::from)?
         .ok_or(VpnError::NoAccountStored)?
@@ -297,7 +297,7 @@ pub(crate) mod raw {
     }
 
     pub(crate) async fn create_account_raw(path: &str) -> Result<(), VpnError> {
-        let (_, mnemonic) = VpnApiAccount::random().map_err(VpnError::internal)?;
+        let (_, mnemonic) = VpnAccount::random().map_err(VpnError::internal)?;
         let storage = setup_account_storage(path).await?;
         storage.store_mnemonic(mnemonic.clone()).await?;
         storage.init_keys(None).await?;
@@ -322,7 +322,7 @@ pub(crate) mod raw {
                 details: err.to_string(),
             })?
             .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
+        let account = VpnAccount::try_from(mnemonic).map_err(VpnError::internal)?;
         let account_token = register_account_by_account_raw(&account, platform)
             .await?
             .account_token;
@@ -352,7 +352,7 @@ pub(crate) mod raw {
                 details: err.to_string(),
             })?
             .ok_or(VpnError::NoAccountStored)?;
-        VpnApiAccount::try_from(mnemonic)
+        VpnAccount::try_from(mnemonic)
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
     }
@@ -418,7 +418,7 @@ pub(crate) mod raw {
                 details: err.to_string(),
             })?
             .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
+        let account = VpnAccount::try_from(mnemonic).map_err(VpnError::internal)?;
 
         let vpn_api_client = create_vpn_api_client().await?;
 
@@ -435,7 +435,7 @@ pub(crate) mod raw {
         mnemonic: Mnemonic,
     ) -> Result<NymVpnAccountResponse, VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
-        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
+        let account = VpnAccount::try_from(mnemonic).map_err(VpnError::internal)?;
         vpn_api_client
             .get_account(&account)
             .await
@@ -443,7 +443,7 @@ pub(crate) mod raw {
     }
 
     async fn register_account_by_account_raw(
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         platform: Platform,
     ) -> Result<NymVpnRegisterAccountResponse, VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;

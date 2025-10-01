@@ -20,6 +20,7 @@ nym-type-conversions = [
 ]
 
 [dependencies]
+bip39 = { workspace = true, features = ["zeroize"] }
 si-scale.workspace = true
 thiserror.workspace = true
 time.workspace = true

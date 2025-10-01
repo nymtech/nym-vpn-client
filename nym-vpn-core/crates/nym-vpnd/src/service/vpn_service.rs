@@ -36,7 +36,7 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, ConnectArgs, Gateway, ListGatewaysOptions,
-    LogPath, StoreAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
+    LogPath, StoreVpnAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
     VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
@@ -83,7 +83,7 @@ pub enum VpnServiceCommand {
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
-        StoreAccountRequest,
+        StoreVpnAccountRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
@@ -703,7 +703,7 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
-                let _ = tx.send(self.handle_store_account(account).await);
+                let _ = tx.send(self.handle_store_vpn_account(account).await);
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
@@ -947,13 +947,13 @@ impl NymVpnService {
         self.tunnel_state.clone()
     }
 
-    async fn handle_store_account(
+    async fn handle_store_vpn_account(
         &mut self,
-        store_request: StoreAccountRequest,
+        store_request: StoreVpnAccountRequest,
     ) -> Result<(), AccountCommandError> {
         let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
             .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-        self.account_command_tx.store_account(mnemonic).await
+        self.account_command_tx.store_account(mnemonic.into()).await
     }
 
     async fn handle_is_account_stored(&self) -> bool {

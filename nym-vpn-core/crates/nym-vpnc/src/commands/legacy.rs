@@ -7,7 +7,7 @@ use anyhow::{Result, anyhow};
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::{ConnectArgs as DaemonConnectArgs, ConnectOptions, StoreAccountRequest};
+use nym_vpn_lib_types::{ConnectArgs as DaemonConnectArgs, ConnectOptions, StoreVpnAccountRequest};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 #[derive(Debug, clap::Subcommand)]
@@ -394,7 +394,7 @@ async fn get_feature_flags(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn store_account(mut rpc_client: RpcClient, store_args: StoreAccountArgs) -> Result<()> {
-    let request = StoreAccountRequest {
+    let request = StoreVpnAccountRequest {
         mnemonic: store_args.mnemonic.clone(),
     };
     let response = rpc_client.store_account(request).await?;

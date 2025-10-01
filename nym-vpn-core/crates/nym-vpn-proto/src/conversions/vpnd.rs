@@ -15,7 +15,7 @@ use nym_gateway_directory::GatewayType;
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, LogPath, Performance,
-    Score, StoreAccountRequest, VpnServiceInfo,
+    Score, StoreVpnAccountRequest, VpnServiceInfo,
 };
 use nym_vpn_network_config::{
     ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
@@ -513,7 +513,7 @@ impl TryFrom<ListGatewaysOptions> for proto::ListGatewaysRequest {
     }
 }
 
-impl From<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequest {
+impl From<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreVpnAccountRequest {
     fn from(value: proto::StoreAccountRequest) -> Self {
         Self {
             mnemonic: value.mnemonic,
@@ -521,8 +521,8 @@ impl From<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequest
     }
 }
 
-impl From<StoreAccountRequest> for proto::StoreAccountRequest {
-    fn from(value: StoreAccountRequest) -> Self {
+impl From<StoreVpnAccountRequest> for proto::StoreAccountRequest {
+    fn from(value: StoreVpnAccountRequest) -> Self {
         Self {
             mnemonic: value.mnemonic,
         }

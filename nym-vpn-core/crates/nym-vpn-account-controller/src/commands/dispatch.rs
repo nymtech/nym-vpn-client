@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
-use nym_vpn_store::mnemonic::Mnemonic;
+use nym_vpn_store::account::StorableAccount;
 
 use std::net::SocketAddr;
 
@@ -19,20 +19,20 @@ pub enum AccountCommand {
     /// Generate a mnemonic and store it
     CreateAccount(ReturnSender<(), AccountCommandError>),
 
-    /// Store the given mnemonic
-    StoreAccount(ReturnSender<(), AccountCommandError>, Mnemonic),
+    /// Store the given account
+    StoreAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
-    /// Register the given mnemnonic (meant to take the sotred mnemonic). DOES NOT STORE IT. This is only used my mobile for IAP at the moment
+    /// Register the given account (meant to take the stored mnemonic). DOES NOT STORE IT. This is only used my mobile for IAP at the moment
     RegisterAccount(
         ReturnSender<RegisterAccountResponse, AccountCommandError>,
-        Mnemonic,
+        StorableAccount,
         Platform,
     ),
 
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
-    /// Reset the device identity, optionally take a seed for reproducability
+    /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
 
     /// Forces the AC to sync with the VPN API
@@ -51,8 +51,8 @@ pub enum AccountCommand {
 /// These commands have no impact on the state. Handling can be grouped in some cases
 #[derive(Debug, strum::Display)]
 pub enum CommonCommand {
-    /// Returns Some(mnemonic) if an account is stored, None otherwise
-    GetStoredMnemonic(ReturnSender<Option<Mnemonic>, AccountCommandError>),
+    /// Returns Some(account) if an account is stored, None otherwise
+    GetStoredAccount(ReturnSender<Option<StorableAccount>, AccountCommandError>),
 
     /// Returns Some(address) if an account is stored, None otherwise
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),

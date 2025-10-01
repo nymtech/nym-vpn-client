@@ -5,7 +5,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::FAIR_USAGE_DEPLETED_CODE_ID,
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 
 use nym_vpn_lib_types::{
@@ -95,7 +95,7 @@ impl RequestingZkNymsState {
     }
     async fn fetch_zk_nyms(
         vpn_api_client: VpnApiClient,
-        vpn_api_account: VpnApiAccount,
+        vpn_api_account: VpnAccount,
         device: Device,
         storage: VpnCredentialStorage,
         credential_mode: bool,

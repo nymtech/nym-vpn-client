@@ -8,12 +8,12 @@ use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
 };
-use nym_vpn_api_client::{VpnApiClient, types::VpnApiAccount};
+use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::device::{DeviceKeyStore, DeviceKeys},
-    mnemonic::{Mnemonic, MnemonicStorage, ephemeral::InMemoryMnemonicStorageError},
+    mnemonic::{AccountStorage, Mnemonic, ephemeral::InMemoryMnemonicStorageError},
 };
 use wiremock::{Mock, MockServer};
 
@@ -65,7 +65,7 @@ pub fn mock_mnemonic() -> Mnemonic {
 }
 
 pub fn mock_account_id() -> String {
-    VpnApiAccount::try_from(mock_mnemonic())
+    VpnAccount::try_from(mock_mnemonic())
         .unwrap()
         .id()
         .to_string()
@@ -139,7 +139,7 @@ impl DeviceKeyStore for MockEphemeralStorage {
 }
 
 #[async_trait::async_trait]
-impl MnemonicStorage for MockEphemeralStorage {
+impl AccountStorage for MockEphemeralStorage {
     type StorageError = InMemoryMnemonicStorageError;
 
     async fn load_mnemonic(&self) -> Result<Option<Mnemonic>, Self::StorageError> {
