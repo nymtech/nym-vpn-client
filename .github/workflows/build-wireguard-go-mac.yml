@@ -1,4 +1,5 @@
 name: build-wireguard-go-mac
+
 on:
   workflow_dispatch:
   workflow_call:
@@ -13,15 +14,27 @@ env:
 jobs:
   build:
     runs-on: custom-macos-15
+    timeout-minutes: 5
+
     steps:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
-      
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
           cache: false
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh
