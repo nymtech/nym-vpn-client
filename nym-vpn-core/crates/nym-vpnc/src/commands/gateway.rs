@@ -113,13 +113,9 @@ pub struct SetArgs {
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct FilterArgs {
-    /// Minimum WireGuard performance (0-100)
+    /// Minimum performance (0-100)
     #[arg(long)]
-    pub min_wg_performance: Option<u8>,
-
-    /// Minimum mixnet performance (0-100)
-    #[arg(long)]
-    pub min_mixnet_performance: Option<u8>,
+    pub min_performance: Option<u8>,
 
     /// Filter by country (two-letter ISO code)
     #[arg(long)]
@@ -268,11 +264,21 @@ impl Args {
             filters: Vec::new(),
         };
 
-        if filters.min_wg_performance.is_some() || filters.min_mixnet_performance.is_some() {
-            gateway_filters.filters.push(GatewayFilter::MinPerformance {
-                min_wg_performance: filters.min_wg_performance,
-                min_mixnet_performance: filters.min_mixnet_performance,
-            });
+        if filters.min_performance.is_some() {
+            match gw_type {
+                GatewayType::Wg => {
+                    gateway_filters.filters.push(GatewayFilter::MinPerformance {
+                        min_wg_performance: filters.min_performance,
+                        min_mixnet_performance: None,
+                    });
+                }
+                GatewayType::MixnetEntry | GatewayType::MixnetExit => {
+                    gateway_filters.filters.push(GatewayFilter::MinPerformance {
+                        min_wg_performance: None,
+                        min_mixnet_performance: filters.min_performance,
+                    });
+                }
+            }
         }
 
         if let Some(ref country) = filters.country {
