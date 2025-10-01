@@ -234,8 +234,9 @@ impl TryFrom<proto::GatewayFilters> for nym_gateway_directory::GatewayFilters {
     type Error = ConversionError;
 
     fn try_from(value: proto::GatewayFilters) -> Result<Self, ConversionError> {
-        let gw_type = nym_gateway_directory::GatewayType::try_from(value.kind)
-            .map_err(|_e| ConversionError::ParseGatewayType(value.kind))?;
+        let proto_gw_type = proto::GatewayType::try_from(value.kind)
+            .map_err(|err| ConversionError::Decode("GatewayFilters.kind", err))?;
+        let gw_type = nym_gateway_directory::GatewayType::from(proto_gw_type);
 
         let filters = value
             .filters

@@ -679,19 +679,6 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
     }
 }
 
-impl TryFrom<i32> for GatewayType {
-    type Error = Error;
-
-    fn try_from(value: i32) -> std::result::Result<Self, Self::Error> {
-        match value {
-            x if x == GatewayType::MixnetEntry as i32 => Ok(GatewayType::MixnetEntry),
-            x if x == GatewayType::MixnetExit as i32 => Ok(GatewayType::MixnetExit),
-            x if x == GatewayType::Wg as i32 => Ok(GatewayType::Wg),
-            _ => Err(Error::UnknownGatewayType(value)),
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum GatewayFilter {
     MinPerformance {
