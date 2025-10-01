@@ -102,9 +102,6 @@ pub enum Error {
 
     #[error("operation cancelled")]
     Cancelled,
-
-    #[error("unknown gatewaty type: {0}")]
-    UnknownGatewayType(i32),
 }
 
 impl Error {
