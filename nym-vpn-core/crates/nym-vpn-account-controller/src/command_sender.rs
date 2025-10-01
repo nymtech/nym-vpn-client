@@ -48,12 +48,11 @@ impl AccountCommandSender {
     }
 
     pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
-        // let (tx, rx) = ReturnSender::new();
-        // self.command_tx
-        //     .send(AccountCommand::Common(CommonCommand::GetStoredMnemonic(tx)))
-        //     .map_err(AccountCommandError::internal)?;
-        // rx.await.map_err(AccountCommandError::internal)?
-        todo!()
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetStoredAccount(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
     }
 
     pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {

@@ -35,6 +35,12 @@ pub enum VpnAccountMode {
     Decentralised,
 }
 
+impl VpnAccountMode {
+    pub fn is_decentralised(&self) -> bool {
+        matches!(self, Self::Decentralised)
+    }
+}
+
 impl From<StoredAccountMode> for VpnAccountMode {
     fn from(mode: StoredAccountMode) -> Self {
         match mode {

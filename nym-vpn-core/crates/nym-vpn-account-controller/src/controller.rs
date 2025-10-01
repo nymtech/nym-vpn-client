@@ -12,6 +12,7 @@ use tokio::sync::{
 };
 use tokio_util::sync::CancellationToken;
 
+use crate::state_machine::ReadyState;
 use crate::{
     AccountCommandSender, AccountControllerConfig, AccountStateReceiver,
     commands::AccountCommand,
@@ -107,13 +108,21 @@ where
             storage_op_sender,
         );
 
-        let (current_state_handler, initial_state) = if shared_state
+        let is_offline = shared_state
             .connectivity_handle
             .connectivity()
             .await
-            .is_offline()
-        {
+            .is_offline();
+        let is_in_decentralised_mode = shared_state
+            .vpn_api_account
+            .as_ref()
+            .map(|a| a.mode().is_decentralised())
+            .unwrap_or_default();
+
+        let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
+        } else if is_in_decentralised_mode {
+            ReadyState::enter()
         } else {
             SyncingState::enter(&shared_state, 0)
         };
