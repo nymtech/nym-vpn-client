@@ -166,7 +166,7 @@ cargo tauri dev -- -- --help
 
 ## Type bindings
 
-[ts-rs](https://github.com/Aleph-Alpha/ts-rs) can be used to generate
+[ts-rs](https://github.com/Aleph-Alpha/ts-rs) is used to generate
 TS type definitions from Rust types
 
 To generate bindings, first
@@ -178,7 +178,7 @@ cd src-tauri
 cargo test
 ```
 
-Generated TS types will be located in `src-tauri/bindings/`
+Generated TS types are placed in `src/types/tauri.ts`
 
 ## Build
 
