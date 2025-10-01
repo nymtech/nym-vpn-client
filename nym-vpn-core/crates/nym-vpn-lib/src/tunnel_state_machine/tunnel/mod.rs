@@ -11,6 +11,7 @@ pub mod wireguard;
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::GatewayCacheHandle;
 use nym_vpn_api_client::types::ScoreThresholds;
+use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(windows)]
@@ -24,6 +25,7 @@ pub async fn select_gateways(
     tunnel_settings: &TunnelSettings,
     wg_score_thresholds: Option<ScoreThresholds>,
     mix_score_thresholds: Option<ScoreThresholds>,
+    wg_keys_db: WireguardKeysDb,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
     let select_gateways_fut = gateway_selector::select_gateways(
@@ -31,6 +33,7 @@ pub async fn select_gateways(
         tunnel_settings,
         wg_score_thresholds,
         mix_score_thresholds,
+        wg_keys_db,
     );
 
     cancel_token

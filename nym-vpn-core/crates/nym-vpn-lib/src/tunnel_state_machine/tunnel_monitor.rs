@@ -59,6 +59,7 @@ use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
+use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
 use super::tunnel::wireguard::connected_tunnel::TunTunTunnelOptions;
@@ -214,6 +215,7 @@ pub struct TunnelMonitor {
     account_controller_state: AccountStateReceiver,
     gateway_cache_handle: GatewayCacheHandle,
     custom_topology_provider: VpnTopologyProvider,
+    wg_keys_db: WireguardKeysDb,
     shutdown_token: CancellationToken,
 }
 
@@ -224,6 +226,7 @@ impl TunnelMonitor {
         gateway_cache_handle: GatewayCacheHandle,
         custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
+        wg_keys_db: WireguardKeysDb,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -239,6 +242,7 @@ impl TunnelMonitor {
             account_controller_state,
             gateway_cache_handle,
             custom_topology_provider,
+            wg_keys_db,
             shutdown_token: shutdown_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -350,6 +354,7 @@ impl TunnelMonitor {
                         .nym_config
                         .gateway_config
                         .mix_score_thresholds,
+                    self.wg_keys_db.clone(),
                     self.shutdown_token.child_token(),
                 )
                 .await?;
@@ -407,38 +412,52 @@ impl TunnelMonitor {
             .await;
 
         let entry_ip = selected_gateways
-            .entry
+            .entry_gateway()
             .lookup_ip()
             .ok_or(tunnel::Error::NoIpAddressAnnounced {
-                gateway_id: selected_gateways.entry.identity().to_base58_string(),
+                gateway_id: selected_gateways
+                    .entry_gateway()
+                    .identity()
+                    .to_base58_string(),
             })
             .map_err(Box::new)?;
 
         let exit_ip = selected_gateways
-            .exit
+            .exit_gateway()
             .lookup_ip()
             .ok_or(tunnel::Error::NoIpAddressAnnounced {
-                gateway_id: selected_gateways.exit.identity().to_base58_string(),
+                gateway_id: selected_gateways
+                    .exit_gateway()
+                    .identity()
+                    .to_base58_string(),
             })
             .map_err(Box::new)?;
 
         let entry_node = RegistrationNymNode {
-            identity: selected_gateways.entry.identity,
-            ipr_address: selected_gateways.entry.ipr_address.map(Into::into),
+            identity: selected_gateways.entry_gateway().identity,
+            ipr_address: selected_gateways
+                .entry_gateway()
+                .ipr_address
+                .map(Into::into),
             authenticator_address: selected_gateways
-                .entry
+                .entry_gateway()
                 .authenticator_address
                 .map(Into::into),
             ip_address: entry_ip,
-            version: selected_gateways.entry.version.clone().into(),
+            keypair: selected_gateways.entry_keypair().clone(),
+            version: selected_gateways.entry_gateway().version.clone().into(),
         };
 
         let exit_node = RegistrationNymNode {
-            identity: selected_gateways.exit.identity,
-            ipr_address: selected_gateways.exit.ipr_address.map(Into::into),
-            authenticator_address: selected_gateways.exit.authenticator_address.map(Into::into),
+            identity: selected_gateways.exit_gateway().identity,
+            ipr_address: selected_gateways.exit_gateway().ipr_address.map(Into::into),
+            authenticator_address: selected_gateways
+                .exit_gateway()
+                .authenticator_address
+                .map(Into::into),
             ip_address: exit_ip,
-            version: selected_gateways.exit.version.clone().into(),
+            keypair: selected_gateways.exit_keypair().clone(),
+            version: selected_gateways.exit_gateway().version.clone().into(),
         };
 
         let rc_builder_config = RegistrationClientBuilderConfig {
@@ -513,8 +532,8 @@ impl TunnelMonitor {
         };
 
         let establishing_connection_data = EstablishConnectionData {
-            entry_gateway: GatewayId::from(*selected_gateways.entry.clone()),
-            exit_gateway: GatewayId::from(*selected_gateways.exit.clone()),
+            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
             tunnel: Some(tunnel_conn_data.clone()),
         };
 
@@ -554,8 +573,8 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
 
         let connection_data = ConnectionData {
-            entry_gateway: GatewayId::from(*selected_gateways.entry),
-            exit_gateway: GatewayId::from(*selected_gateways.exit),
+            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
         };
@@ -817,9 +836,8 @@ impl TunnelMonitor {
             bw_controller,
         } = registration_result;
 
-        let (entry_legacy_client, entry_wg_keypair) =
-            entry_gateway_client.into_legacy_and_keypair();
-        let (exit_legacy_client, exit_wg_keypair) = exit_gateway_client.into_legacy_and_keypair();
+        let entry_legacy_client = entry_gateway_client.into_legacy();
+        let exit_legacy_client = exit_gateway_client.into_legacy();
 
         let bw = BandwidthController::create(
             bw_controller,
@@ -859,11 +877,12 @@ impl TunnelMonitor {
 
         let mut transport_fwd_handle = None;
         if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
-            let entry_bridge_params = selected_gateways.entry.get_bridge_params().ok_or(
-                transports::TransportError::config_err(
+            let entry_bridge_params = selected_gateways
+                .entry_gateway()
+                .get_bridge_params()
+                .ok_or(transports::TransportError::config_err(
                     "attempted to open transport connection without bridge params",
-                ),
-            )?;
+                ))?;
 
             // Attempt transport Connection. If successful a listening UDP connection is created
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
@@ -882,8 +901,8 @@ impl TunnelMonitor {
         };
 
         Ok(wireguard::connected_tunnel::ConnectedTunnel::new(
-            entry_wg_keypair,
-            exit_wg_keypair,
+            selected_gateways.entry_keypair().clone(),
+            selected_gateways.exit_keypair().clone(),
             connection_data,
             bandwidth_controller_handle,
             transport_fwd_handle,

@@ -335,14 +335,14 @@ impl BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_gateway_data.private_ipv4.into(),
             entry_signal_channel,
-            &selected_gateways.entry,
+            selected_gateways.entry_gateway(),
             entry_auth_client,
             gateway_metadata_update_version.clone(),
         );
         let wg_exit_client = Self::construct_bandwidth_client(
             exit_gateway_data.private_ipv4.into(),
             exit_signal_channel,
-            &selected_gateways.exit,
+            selected_gateways.exit_gateway(),
             exit_auth_client,
             gateway_metadata_update_version,
         );

@@ -36,6 +36,7 @@ use nym_registration_client::MixnetClientConfig;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
+use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -444,6 +445,7 @@ pub struct SharedState {
     statistics_event_sender: StatisticsSender,
     gateway_cache_handle: GatewayCacheHandle,
     topology_provider: VpnTopologyProvider,
+    wg_keys_db: WireguardKeysDb,
 }
 
 impl SharedState {
@@ -517,6 +519,10 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
+        let wg_keys_db = WireguardKeysDb::init(nym_config.data_path.clone())
+            .await
+            .map_err(|source| Error::WireguardKeyDb(source))?;
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
             allow_lan: tunnel_settings.allow_lan,
@@ -547,6 +553,7 @@ impl TunnelStateMachine {
             statistics_event_sender,
             gateway_cache_handle,
             topology_provider,
+            wg_keys_db,
         };
 
         let (current_state_handler, _) = if shared_state
@@ -701,6 +708,9 @@ pub enum Error {
 
     #[error("ipv6 is disabled in the system")]
     Ipv6Unavailable,
+
+    #[error("wireguard key database")]
+    WireguardKeyDb(#[source] nym_vpn_store::keys::wireguard::KeysDbError),
 }
 
 impl Error {
@@ -738,6 +748,7 @@ impl Error {
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
             Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
+            Self::WireguardKeyDb(e) => ErrorStateReason::Internal(e.to_string()),
         })
     }
 }

@@ -10,13 +10,10 @@ use futures::StreamExt;
 use tokio_stream::wrappers::ReadDirStream;
 
 use nym_common::trace_err_chain;
-use nym_registration_common::{
-    DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME, DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
-    DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME, DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
-};
 use nym_sdk::mixnet::StoragePaths;
-use nym_vpn_store::keys::device::{
-    DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
+use nym_vpn_store::keys::{
+    device::{DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME},
+    wireguard::DB_NAME,
 };
 
 use crate::Error;
@@ -31,12 +28,7 @@ pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
         DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
     ];
 
-    let wireguard_keys = [
-        DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
-        DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
-        DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
-        DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
-    ];
+    let wireguard_keys = [DB_NAME];
 
     let vpn_paths = device_key
         .iter()

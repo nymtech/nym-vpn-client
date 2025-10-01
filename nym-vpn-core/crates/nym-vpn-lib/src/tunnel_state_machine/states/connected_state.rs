@@ -68,7 +68,7 @@ impl ConnectedState {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
             wg_entry_endpoint,
-            ws_entry_endpoints: selected_gateways.entry.endpoints(),
+            ws_entry_endpoints: selected_gateways.entry_gateway().endpoints(),
             dns_config: shared_state.tunnel_settings.resolved_dns_config(),
             tunnel_interface: tunnel_interface.clone(),
         };
