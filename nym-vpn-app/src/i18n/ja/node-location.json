@@ -15,6 +15,42 @@
     "exit": "選択した出口ロケーションが利用できないため、{{location}}に切り替えました"
   },
   "node-details": {
-    "id-label": "認証キー"
+    "id-label": "認証キー",
+    "data": {
+      "advanced-privacy": "高度なプライバシー",
+      "with-mixnet": "With mixnet (5-hop)",
+      "ip-type": "ストリーミングとコンテンツ",
+      "ip-residential": "レジデンシャルIP",
+      "ip-datacenter": "データセンターの IP",
+      "anti-censorship": "検閲対策",
+      "quic-protocol": "QUICプロトコル",
+      "standard-protocol": "Standard protocol",
+      "overall-performance": "全体的なパフォーマンス",
+      "server-load": "サーバーの読み込み",
+      "speed": "速度",
+      "uptime": "稼働時間",
+      "exit-ipv4": "IPv4を終了",
+      "exit-ipv6": "IPv6 を終了",
+      "asn": "ASN",
+      "asn-name": "ASN 名",
+      "build-version": "Nym ビルド バージョン",
+      "identity-key": "アイデンティティキー:"
+    },
+    "score": {
+      "high": "良い",
+      "medium": "Mid",
+      "low": "低い",
+      "offline": "オフライン"
+    },
+    "notes": {
+      "anti-censorship": "この機能を使用するには、検閲防止設定で「QUICプロトコル」を有効にしてください",
+      "performance_with_date": "サーバーの負荷とアップタイムから計算されたパフォーマンススコア。24時間の平均稼働時間。最終更新 {{date}}。",
+      "performance": "サーバーの負荷とアップタイムから計算されたパフォーマンススコア。稼働時間は、直近24時間の平均で計算されます。"
+    },
+    "links": {
+      "missing-info": "なぜ情報が見つからない、または間違っているのですか？",
+      "explorer": "More details in the Nym <networkExplorerLink />"
+    },
+    "select-button": "サーバーを選択"
   }
 }

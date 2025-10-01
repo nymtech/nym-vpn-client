@@ -22,9 +22,10 @@
     "ipv6-unavailable": "Sistemde IPv6 desteklenmiyor. IPv4 kullanmak için ayarlardan IPv6’yı devre dışı bırakın.",
     "tun-device": "TUN aygıt hatası",
     "tunnel-provider": "Tünel sağlayıcısı hatası",
-    "bad-bandwidth-increase": "Bant genişliğini artırmak için girilen değer geçersiz",
     "inactive-account": "Hesabınız aktif değil",
-    "device-logged-out": "Bu cihazdan çıkış yapılmış. VPN’i kullanmaya devam etmek için lütfen tekrar giriş yapın."
+    "device-logged-out": "Bu cihazdan çıkış yapılmış. VPN’i kullanmaya devam etmek için lütfen tekrar giriş yapın.",
+    "entry-gateway-bandwidth-increase": "Giriş gateway'i yanıt vermiyor ya da bant genişliği artışına düzgün tepki vermiyor.",
+    "exit-gateway-bandwidth-increase": "Çıkış gateway'i yanıt vermiyor ya da bant genişliği artışına düzgün tepki vermiyor."
   },
   "account": {
     "internal": "Dahili hesap hatası",

@@ -15,6 +15,42 @@
     "exit": "所选出口位置不可用，切换到 {{location}}"
   },
   "node-details": {
-    "id-label": "身份密钥："
+    "id-label": "身份密钥：",
+    "data": {
+      "advanced-privacy": "高级隐私",
+      "with-mixnet": "使用 mixnet (5-hop)",
+      "ip-type": "流媒体和内容",
+      "ip-residential": "住宅IP",
+      "ip-datacenter": "基准IP",
+      "anti-censorship": "反检查",
+      "quic-protocol": "QUIC 协议",
+      "standard-protocol": "Standard protocol",
+      "overall-performance": "总体执行情况",
+      "server-load": "服务器负载",
+      "speed": "速度",
+      "uptime": "运行时间",
+      "exit-ipv4": "退出 IPv4",
+      "exit-ipv6": "退出 IPv6",
+      "asn": "ASN",
+      "asn-name": "ASN 名称",
+      "build-version": "Nym 构建版本",
+      "identity-key": "身份密钥："
+    },
+    "score": {
+      "high": "好",
+      "medium": "Mid",
+      "low": "低",
+      "offline": "离线的"
+    },
+    "notes": {
+      "anti-censorship": "在反新闻检查设置中启用“QUIC协议”来使用此功能",
+      "performance_with_date": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{date}}.",
+      "performance": "根据服务器负载和上班时间计算性能分数。上传时间为24小时平均值。"
+    },
+    "links": {
+      "missing-info": "为什么缺少或信息不正确",
+      "explorer": "Nym <networkExplorerLink /> 的更多详细信息"
+    },
+    "select-button": "选择服务器"
   }
 }

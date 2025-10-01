@@ -1,13 +1,13 @@
 {
   "connection-progress": {
-    "canceling": "取消…",
+    "canceling": "正在取消…",
     "resolving-api-addresses": "正在解析 API 地址…",
-    "awaiting-account-readiness": "Awaiting for account readiness…",
-    "refreshing-gateways": "Refreshing gateways…",
+    "awaiting-account-readiness": "正在准备您的账号…",
+    "refreshing-gateways": "正在更新网关…",
     "selecting-gateways": "选择网关…",
-    "connecting-mixnet-client": "正在连接到 mixnet客户端…",
-    "connecting-tunnel": "Connecting to the VPN tunnel…"
+    "connecting-mixnet-client": "正在连接到 mixnet 客户端…",
+    "connecting-tunnel": "正在连接到VPN…"
   },
-  "connection-attempt_one": "重试中… 尝试 {{count}}",
-  "connection-attempt_other": "重试… 尝试 {{count}}"
+  "connection-attempt_one": "重试中… 第 {{count}} 次尝试",
+  "connection-attempt_other": "重试中… 第 {{count}} 次尝试"
 }

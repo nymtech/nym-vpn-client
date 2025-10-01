@@ -24,5 +24,6 @@
     "light": "Lichtmodus"
   },
   "appearance": "Erscheinungsbild",
-  "language": "Sprache"
+  "language": "Sprache",
+  "server-details": "Serverdetails"
 }

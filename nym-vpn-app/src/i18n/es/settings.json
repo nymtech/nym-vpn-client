@@ -35,6 +35,22 @@
     "app": "Registros de la app",
     "daemon": "Registros del demonio"
   },
+  "anti-censorship": {
+    "title": "Anticensura",
+    "intro": "Activa estas funciones si estás experimentando problemas de conexión o si NymVPN bloquea en tu ubicación.",
+    "quic": {
+      "label": "Conexión mejorada (QUIC)",
+      "warning": "Los cambios se aplicarán después de la reconexión",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "Cómo mejora la calidad de las conexiones"
+    },
+    "stealth-api": {
+      "label": "Conexión API de sigilo",
+      "warning": "Los cambios se aplicarán después de la reconexión",
+      "content": "Disfraza las solicitudes de API detrás de los dominios populares, permitidos para eludir el bloqueo de VPN. Utilizado automáticamente por NymVPN cuando fallan los intentos de conexión estándar.",
+      "link": "Cómo funciona el modo de conexión de API de sigilo"
+    }
+  },
   "faq": "Preguntas Frecuentes",
   "display-theme": "Tema",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "Estadísticas de red anónimas",
       "sublabel": "Los cambios se aplicarán después de reiniciar la aplicación y el daemon.",
-      "desc1": "Ayúdanos a crear una red más rápida compartiendo datos de rendimiento anónimos de tu región. Lo usamos para optimizar velocidades, reducir desconexiones y dirigir la cobertura del servidor donde más se necesita.",
-      "desc2": "Solo se comparten datos de rendimiento de la red - nunca tu actividad de navegación o datos personales.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
       "link": "Descubre exactamente lo que se comparte"
     }
   },

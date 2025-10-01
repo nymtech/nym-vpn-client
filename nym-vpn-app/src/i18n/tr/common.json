@@ -24,5 +24,6 @@
     "light": "Açık tema"
   },
   "appearance": "Görünüm",
-  "language": "Dil"
+  "language": "Dil",
+  "server-details": "Sunucu detayları"
 }

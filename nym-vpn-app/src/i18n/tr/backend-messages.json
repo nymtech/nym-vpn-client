@@ -1,12 +1,12 @@
 {
   "connection-progress": {
-    "canceling": "Canceling…",
-    "resolving-api-addresses": "Resolving API addresses…",
-    "awaiting-account-readiness": "Awaiting for account readiness…",
-    "refreshing-gateways": "Refreshing gateways…",
-    "selecting-gateways": "Selecting gateways…",
-    "connecting-mixnet-client": "Connecting to the mixnet client…",
-    "connecting-tunnel": "Connecting to the VPN tunnel…"
+    "canceling": "İptal ediliyor…",
+    "resolving-api-addresses": "API adresleri çözümleniyor…",
+    "awaiting-account-readiness": "Hesabın hazır olması bekleniyor…",
+    "refreshing-gateways": "Gateway'ler yenileniyor…",
+    "selecting-gateways": "Gateway'ler seçiliyor…",
+    "connecting-mixnet-client": "Mixnet istemcisine bağlanılıyor…",
+    "connecting-tunnel": "VPN tüneline bağlanıyor…"
   },
   "connection-attempt_one": "tekrar deneniyor… {{count}}. deneme",
   "connection-attempt_other": "tekrar deneniyor… {{count}}. denemeler"

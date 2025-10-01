@@ -19,7 +19,7 @@
   "select-node-title": "कनेक्ट करें",
   "privacy-mode": {
     "title": "अनाम (मिक्सनेट)",
-    "desc": "भुगतान, ईमेल, संदेशों के लिए आदर्श"
+    "desc": "भुगतान, ईमेल, संदेशों के लिए"
   },
   "fast-mode": {
     "title": "तेज़ (WireGuard)",
@@ -51,17 +51,17 @@
     "button-update": "अपडेट करें"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
+    "title": "अपडेट उपलब्ध है",
+    "description": "संस्करण {{version}} प्रदर्शन सुधारों और नए सुविधाओं के साथ तैयार है।",
+    "restart-note": "अपडेट के बाद ऐप पुनः शुरू होगा।",
+    "button-update": "NymVPN अपडेट करें",
     "button-close": "बंद करें"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "संस्करण {{version}} में अपडेट किया जा रहा है…",
+    "description": "अपडेट्स इंस्टॉल हो रहे हैं - कृपया ऐप बंद न करें।",
+    "restart-note": "अपडेट के बाद ऐप पुनः शुरू होगी।",
+    "bar-label": "डाउनलोड प्रगति"
   },
   "get-started": "शुरू करें"
 }

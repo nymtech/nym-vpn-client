@@ -35,6 +35,22 @@
     "app": "Logs do aplicativo",
     "daemon": "Logs do daemon"
   },
+  "anti-censorship": {
+    "title": "Anti-censura",
+    "intro": "Ative esses recursos se estiver passando por problemas de conexão ou bloqueios de NymVPN na sua localização.",
+    "quic": {
+      "label": "Conexão aprimorada (QUIC)",
+      "warning": "As alterações serão aplicadas após reconectar",
+      "content": "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular.\n\nNota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC.",
+      "link": "Como o QUIC melhora as conexões"
+    },
+    "stealth-api": {
+      "label": "Conexão à API Furtiva",
+      "warning": "As alterações serão aplicadas após reconectar",
+      "content": "Disfarça solicitações de API por trás de domínios populares e permitidos para ignorar o bloqueio VPN. Usado automaticamente pelo NymVPN quando as tentativas de conexão padrão falham.",
+      "link": "Como funciona o modo de conexão de API furtiva"
+    }
+  },
   "faq": "Perguntas frequentes (FAQ)",
   "display-theme": "Modo de exibição",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "Estatísticas de rede anônimas",
       "sublabel": "As alterações serão aplicadas após a reinicialização do daemon.",
-      "desc1": "Ajude-nos a construir uma rede mais rápida compartilhando dados de desempenho anônimos da sua região. Usamos isso para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde é mais necessária.",
-      "desc2": "Somente dados de desempenho da rede são compartilhados - nunca sua atividade de navegação ou dados pessoais.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
       "link": "Saiba exatamente o que é compartilhado"
     }
   },

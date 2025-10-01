@@ -35,6 +35,22 @@
     "app": "Uygulama günlükleri",
     "daemon": "Daemon günlükleri"
   },
+  "anti-censorship": {
+    "title": "Sansür Karşıtı",
+    "intro": "Bağlantı sorunları yaşıyorsanız veya bulunduğunuz yerde NymVPN'i engelleme varsa, bu özellikleri etkinleştirin.",
+    "quic": {
+      "label": "Geliştirilmiş bağlantı (QUIC)",
+      "warning": "Değişiklikler yeniden bağlandıktan sonra uygulanacak",
+      "content": "Sınırlı ağlarda Hızlı Modun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) ile sararak normal web gezintisi gibi görünmesini sağlar.\n\nNot: Giriş sunucusu seçeneklerini yalnızca QUIC uyumlu gateway'lerle sınırlar.",
+      "link": "QUIC bağlantıları nasıl iyileştirir"
+    },
+    "stealth-api": {
+      "label": "Stealth API bağlantısı",
+      "warning": "Değişiklikler yeniden bağlandıktan sonra uygulanacak",
+      "content": "API isteklerini popüler ve izinli alan adlarının arkasına gizleyerek VPN engellemelerini aşar. Standart bağlantı denemeleri başarısız olduğunda NymVPN bunu otomatik olarak devreye alır.",
+      "link": "Stealth API bağlantı modu nasıl çalışır"
+    }
+  },
   "faq": "SSS",
   "display-theme": "Ekran modu",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "Anonim ağ istatistikleri",
       "sublabel": "Değişiklikler, arka plan hizmeti yeniden başlatıldıktan sonra geçerli olacaktır.",
-      "desc1": "Bölgenizden anonim performans verilerini paylaşarak daha hızlı bir ağ oluşturmamıza yardımcı olun. Bu verileri, hızı optimize etmek, bağlantı kopmalarını azaltmak ve sunucu kapsamını en çok ihtiyaç duyulan yerlere yönlendirmek için kullanıyoruz.",
-      "desc2": "Paylaşılan sadece ağ performans verileridir ve asla tarama etkinliğiniz veya kişisel bilgileriniz paylaşılmaz.",
+      "desc": "Bölgenizdeki anonim ağ performans verilerini paylaşarak bize daha hızlı bir internet ağı kurmamızda yardımcı olun. Bu veriler sayesinde hızları artırıyor, bağlantı kopmalarını azaltıyor ve sunucularımızı en çok ihtiyaç duyulan yerlere yönlendiriyoruz. \n\nPaylaşılan bilgiler yalnızca ağ performansına aittir – hiçbir zaman gezinme geçmişiniz veya kişisel verileriniz paylaşılmaz.",
       "link": "Paylaşılan verilerin tam olarak neler olduğunu öğrenin"
     }
   },
