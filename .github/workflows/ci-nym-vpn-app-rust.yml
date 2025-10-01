@@ -51,6 +51,17 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
 
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nym-vpn-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: nym-vpn-app
+        run: npm ci
+
       - name: Set env
         shell: bash
         run: |
@@ -92,3 +103,11 @@ jobs:
       - name: clippy check
         working-directory: nym-vpn-app/src-tauri
         run: cargo clippy -- -Dwarnings
+
+      - name: Generate TS types
+        working-directory: nym-vpn-app/src-tauri
+        run: cargo test
+
+      - name: Typecheck
+        working-directory: nym-vpn-app
+        run: npm run tscheck
