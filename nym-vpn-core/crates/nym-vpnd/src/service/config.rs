@@ -344,7 +344,7 @@ impl VpnServiceConfigManager {
     }
 
     pub fn generate_tunnel_settings(&self) -> TunnelSettings {
-        tracing::debug!("Using config: {:?}", self.config);
+        tracing::info!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
             mixnet_min_performance: self.config.min_gateway_mixnet_performance,
