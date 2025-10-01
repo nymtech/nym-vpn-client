@@ -173,7 +173,9 @@ To generate bindings, first
 [annotate](https://github.com/Aleph-Alpha/ts-rs/blob/main/example/src/lib.rs)
 Rust types, then run
 
-```
+```shell
+npm run tsgen
+# or
 cd src-tauri
 cargo test
 ```

@@ -196,7 +196,8 @@ FunctionEnd
       ${EndIf}
     ${If} $9 <> 0
       ; if vpnd fails to uninstall all we can do is to notify the user
-      ; !DO NOT ABORT HERE! this will lock the user from uninstalling the app!
+      ; !DO NOT ABORT HERE! this will lock forever the user with a broken uninstaller!
+      ; preventing user to install/uninstall/update
       DetailPrint "'nym-vpnd.exe uninstall-service' failed: $9"
       MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Failed to uninstall NymVPN service [$9]" /SD IDABORT IDRETRY vpnd-uninstall
     ${EndIf}
@@ -828,7 +829,6 @@ Function .onInstSuccess
 FunctionEnd
 
 Function Cleanup
-  ; cleanup
   Delete "$INSTDIR\${MAINBINARYNAME}.exe"
   Delete "$INSTDIR\nym-vpnd.exe"
   Delete "$INSTDIR\libwg.dll"
