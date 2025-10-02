@@ -75,11 +75,16 @@ public final class AppSettings: ObservableObject {
     public var statisticsConnectionCount = 0
 
     @AppStorage(AppSettingKey.quic.rawValue)
-    public var isQuicEnabled = false
+    public var isQuicEnabled = false {
+        didSet {
+            isQuicEnabledPublisher = isQuicEnabled
+        }
+    }
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
     @Published public var isCredentialImportedPublisher = false
+    @Published public var isQuicEnabledPublisher = false
 }
 
 #if os(iOS)

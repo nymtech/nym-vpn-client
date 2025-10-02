@@ -29046,6 +29046,28 @@
         }
       }
     },
+    "purchasePlan.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a plan now to activate your protection"
+          }
+        }
+      }
+    },
+    "purchasePlan.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+          }
+        }
+      }
+    },
     "purchasePlan.success.connectionPrivate" : {
       "extractionState" : "manual",
       "localizations" : {

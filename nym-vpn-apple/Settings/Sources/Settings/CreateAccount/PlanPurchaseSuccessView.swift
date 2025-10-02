@@ -56,7 +56,7 @@ private extension PlanPurchaseSuccessView {
     }
 
     var welcomeToTruePrivacyTitle: some View {
-        Text("purchasePlan.welcomToTruePrivacy".localizedString)
+        Text("purchasePlan.welcomeToTruePrivacy".localizedString)
             .foregroundStyle(NymColor.primary)
             .textStyle(.Headline.Large.regular)
             .multilineTextAlignment(.center)
