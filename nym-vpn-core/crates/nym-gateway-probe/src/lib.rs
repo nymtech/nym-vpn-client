@@ -37,10 +37,12 @@ use nym_ip_packet_requests::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
 };
-use nym_sdk::bandwidth::BandwidthImporter;
-use nym_sdk::mixnet::{
-    Ephemeral, EphemeralCredentialStorage, MixnetClient, MixnetClientBuilder, MixnetClientStorage,
-    NodeIdentity, ReconstructedMessage,
+use nym_sdk::{
+    bandwidth::BandwidthImporter,
+    mixnet::{
+        Ephemeral, EphemeralCredentialStorage, MixnetClient, MixnetClientBuilder,
+        MixnetClientStorage, NodeIdentity, ReconstructedMessage,
+    },
 };
 use nym_wireguard_types::PeerPublicKey;
 use tokio_util::{codec::Decoder, sync::CancellationToken};
@@ -263,7 +265,7 @@ impl Probe {
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
 
-        let entry_gateway = self.entrypoint.lookup_gateway(&gateways, None, None)?;
+        let entry_gateway = self.entrypoint.lookup_gateway(&gateways, None)?;
         let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {

@@ -102,6 +102,9 @@ pub enum Error {
 
     #[error("operation cancelled")]
     Cancelled,
+
+    #[error("invalid score value: {0}. Valid values are: offline, low, medium, high")]
+    InvalidScoreValue(String),
 }
 
 impl Error {
