@@ -86,8 +86,11 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&self, allow_lan: bool) -> Result<()> {
-        self.inner.clone().set_enable_bridges(allow_lan).await?;
+    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_enable_bridges(enable_bridges)
+            .await?;
         Ok(())
     }
 

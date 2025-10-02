@@ -59,10 +59,7 @@ private extension CensorshipView {
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
                     viewModel: ToggleViewModel(
-                        isOn: $appSettings.isQuicEnabled,
-                        action: { isOn in
-                            // TODO: enable on macOS
-                        }
+                        isOn: $appSettings.isQuicEnabled
                     )
                 ),
                 title: "censorship.quic.title".localizedString,

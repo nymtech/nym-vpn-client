@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import ConfigurationManager
 import FeatureFlagModels
 #if os(iOS)
 import NymVPNLib
@@ -11,6 +12,7 @@ public final class FeatureFlagsManager: ObservableObject {
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
+    private let configurationManager: ConfigurationManager
     private var featureFlags: [FeatureFlag]
     private var cancellables = Set<AnyCancellable>()
 
@@ -25,22 +27,27 @@ public final class FeatureFlagsManager: ObservableObject {
     }
 
 #if os(iOS)
-    init(featureFlags: [FeatureFlag] = [FeatureFlag]()) {
+    init(featureFlags: [FeatureFlag] = [FeatureFlag](), configurationManager: ConfigurationManager = .shared) {
         self.featureFlags = featureFlags
+        self.configurationManager = configurationManager
         setup()
     }
 #elseif os(macOS)
     init(
-        grpcManager: GRPCManager = GRPCManager.shared,
-        featureFlags: [FeatureFlag] = [FeatureFlag]()
+        featureFlags: [FeatureFlag] = [FeatureFlag](),
+        configurationManager: ConfigurationManager = .shared,
+        grpcManager: GRPCManager = GRPCManager.shared
     ) {
-        self.grpcManager = grpcManager
         self.featureFlags = featureFlags
+        self.configurationManager = configurationManager
+        self.grpcManager = grpcManager
         setupIsServingObserver()
+        setupEnvironmentChangeObserver()
     }
 #endif
 
     public func setup() {
+        setupEnvironmentChangeObserver()
         Task {
             await updateFeatureFlags()
         }
@@ -63,6 +70,16 @@ private extension FeatureFlagsManager {
     }
 }
 #endif
+
+private extension FeatureFlagsManager {
+    func setupEnvironmentChangeObserver() {
+        configurationManager.environmentDidChange = { [weak self] in
+            Task {
+                await self?.updateFeatureFlags()
+            }
+        }
+    }
+}
 
 private extension FeatureFlagsManager {
     @MainActor func updateFeatureFlags() {

@@ -104,6 +104,7 @@ let package = Package(
         .target(
             name: "FeatureFlagsManager",
             dependencies: [
+                "ConfigurationManager",
                 .product(name: "FeatureFlagModels", package: "ServicesMutual"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))

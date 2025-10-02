@@ -123,15 +123,15 @@ public final class ConfigurationManager: ObservableObject {
             else {
                 return
             }
-            await MainActor.run { [weak self] in
-                self?.currentEnv = env
-            }
             do {
                 try await configure()
+                await MainActor.run { [weak self] in
+                    self?.currentEnv = env
+                }
+                environmentDidChange?()
             } catch {
                 logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
             }
-            environmentDidChange?()
         }
     }
 
