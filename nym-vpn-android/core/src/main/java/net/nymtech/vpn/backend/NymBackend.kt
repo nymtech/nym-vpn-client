@@ -316,6 +316,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 						tunnel.exitPoint,
 						tunnel.mode.isTwoHop(),
 						false,
+						false,
 						vpnService.await(),
 						storagePath,
 						storagePath,
