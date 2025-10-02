@@ -158,16 +158,8 @@ impl From<nym_gateway_directory::ExitPoint> for proto::ExitNode {
 impl From<nym_gateway_directory::GatewayFilter> for proto::GatewayFilter {
     fn from(value: nym_gateway_directory::GatewayFilter) -> Self {
         match value {
-            nym_gateway_directory::GatewayFilter::MinPerformance {
-                min_wg_performance,
-                min_mixnet_performance,
-            } => proto::GatewayFilter {
-                filter: Some(proto::gateway_filter::Filter::MinPerformance(
-                    proto::MinPerformance {
-                        min_wg_performance: min_wg_performance.map(Into::into),
-                        min_mixnet_performance: min_mixnet_performance.map(Into::into),
-                    },
-                )),
+            nym_gateway_directory::GatewayFilter::MinScore(score) => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::MinScore(score as i32)),
             },
             nym_gateway_directory::GatewayFilter::Country(country_code) => proto::GatewayFilter {
                 filter: Some(proto::gateway_filter::Filter::Country(country_code)),
@@ -197,11 +189,13 @@ impl TryFrom<proto::GatewayFilter> for nym_gateway_directory::GatewayFilter {
                 .filter
                 .ok_or_else(|| ConversionError::Generic("missing filter".to_string()))?
             {
-                proto::gateway_filter::Filter::MinPerformance(perf) => {
-                    nym_gateway_directory::GatewayFilter::MinPerformance {
-                        min_wg_performance: perf.min_wg_performance.map(|p| p as u8),
-                        min_mixnet_performance: perf.min_mixnet_performance.map(|p| p as u8),
-                    }
+                proto::gateway_filter::Filter::MinScore(score) => {
+                    nym_gateway_directory::GatewayFilter::MinScore(
+                        nym_gateway_directory::ScoreValue::try_from(
+                            proto::Score::try_from(score)
+                                .map_err(|err| ConversionError::Decode("Score", err))?,
+                        )?,
+                    )
                 }
                 proto::gateway_filter::Filter::Country(country_code) => {
                     nym_gateway_directory::GatewayFilter::Country(country_code)
@@ -245,5 +239,29 @@ impl TryFrom<proto::GatewayFilters> for nym_gateway_directory::GatewayFilters {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self { gw_type, filters })
+    }
+}
+
+impl From<nym_gateway_directory::ScoreValue> for proto::Score {
+    fn from(value: nym_gateway_directory::ScoreValue) -> Self {
+        match value {
+            nym_gateway_directory::ScoreValue::Offline => proto::Score::Offline,
+            nym_gateway_directory::ScoreValue::Low => proto::Score::Low,
+            nym_gateway_directory::ScoreValue::Medium => proto::Score::Medium,
+            nym_gateway_directory::ScoreValue::High => proto::Score::High,
+        }
+    }
+}
+
+impl TryFrom<proto::Score> for nym_gateway_directory::ScoreValue {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::Score) -> Result<Self, ConversionError> {
+        match value {
+            proto::Score::Offline => Ok(nym_gateway_directory::ScoreValue::Offline),
+            proto::Score::Low => Ok(nym_gateway_directory::ScoreValue::Low),
+            proto::Score::Medium => Ok(nym_gateway_directory::ScoreValue::Medium),
+            proto::Score::High => Ok(nym_gateway_directory::ScoreValue::High),
+        }
     }
 }
