@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"net/http"
@@ -212,28 +213,29 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 		maxConsecutiveFailures := 3
 
 		for i := uint8(0); i < req.NumPing; i++ {
-			func() {
-				defer time.Sleep(5 * time.Second)
-				log.Printf("Pinging %s seq=%d", ip, i)
-				response.SentIps += 1
-				rt, err := sendPing(ip, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
-				if err != nil {
-					log.Printf("Failed to send ping: %v\n", err)
-					consecutiveFailures++
+			log.Printf("Pinging %s seq=%d", ip, i)
+			response.SentIps += 1
+			rt, err := sendPing(ip, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
+			if err != nil {
+				log.Printf("Failed to send ping: %v\n", err)
+				consecutiveFailures++
 
-					// Early exit if too many consecutive failures
-					if consecutiveFailures >= maxConsecutiveFailures {
-						log.Printf("Too many consecutive failures (%d), stopping ping attempts for %s", consecutiveFailures, ip)
-						return
-					}
-					return
+				// Early exit if too many consecutive failures
+				if consecutiveFailures >= maxConsecutiveFailures {
+					log.Printf("Too many consecutive failures (%d), stopping ping attempts for %s", consecutiveFailures, ip)
+					break
 				}
-
+			} else {
 				// Reset failure counter on success
 				consecutiveFailures = 0
 				response.ReceivedIps += 1
 				log.Printf("Ping latency: %v\n", rt)
-			}()
+			}
+
+			// Sleep between ping attempts (except for the last one)
+			if i < req.NumPing-1 {
+				time.Sleep(5 * time.Second)
+			}
 		}
 	}
 
@@ -365,7 +367,7 @@ func sendPingAttempt(address string, seq uint8, sendTtimeoutSecs uint64, receive
 
 		if bytes.Equal(replyPing.Data, requestPing.Data) {
 			// Accept sequence number matches or close matches (for out-of-order delivery)
-			if replyPing.Seq == requestPing.Seq || abs(replyPing.Seq-requestPing.Seq) <= 1 {
+			if replyPing.Seq == requestPing.Seq || math.Abs(float64(replyPing.Seq-requestPing.Seq)) <= 1 {
 				return time.Since(start), nil
 			}
 			log.Printf("Sequence mismatch (expected %d, received %d), retrying", requestPing.Seq, replyPing.Seq)
@@ -379,13 +381,6 @@ func sendPingAttempt(address string, seq uint8, sendTtimeoutSecs uint64, receive
 	}
 
 	return 0, fmt.Errorf("ping failed after %d read attempts", maxReadAttempts)
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
 }
 
 func downloadFileWithRetry(urls []string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, time.Duration, string, error) {

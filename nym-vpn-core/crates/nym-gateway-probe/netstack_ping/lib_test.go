@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ func TestAbs(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := abs(test.input)
+		result := int(math.Abs(float64(test.input)))
 		if result != test.expected {
 			t.Errorf("abs(%d) = %d, expected %d", test.input, result, test.expected)
 		}
@@ -269,4 +270,50 @@ func TestResultStructs(t *testing.T) {
 	if errorResult.Error != "test error" {
 		t.Error("ErrorResult should contain error message")
 	}
+}
+
+// TestConsecutiveFailureExit validates that the ping loop exits cleanly after consecutive failures
+func TestConsecutiveFailureExit(t *testing.T) {
+	// Create a test request that will trigger consecutive failures
+	req := NetstackRequestGo{
+		WgIp:               "10.0.0.1",
+		PrivateKey:         "test-key",
+		PublicKey:          "test-pub-key",
+		Endpoint:           "1.1.1.1:51820",
+		Dns:                "1.1.1.1",
+		IpVersion:          4,
+		PingHosts:          []string{},            // No hosts to ping
+		PingIps:            []string{"192.0.2.1"}, // RFC 5737 test IP that should fail
+		NumPing:            5,                     // Try 5 pings
+		SendTimeoutSec:     1,                     // Short timeout to ensure failures
+		RecvTimeoutSec:     1,
+		DownloadTimeoutSec: 1,
+		AwgArgs:            "",
+	}
+
+	// Execute the ping function - this should exit cleanly after consecutive failures
+	response, err := ping(req)
+
+	// Verify the response shows we attempted pings but got failures
+	if response.SentIps == 0 {
+		t.Error("Should have attempted to send at least one ping")
+	}
+
+	// Verify we received no successful pings (since we're using a test IP)
+	if response.ReceivedIps > 0 {
+		t.Logf("Unexpected success: received %d pings", response.ReceivedIps)
+	}
+
+	// The key test: verify we don't hang and return cleanly
+	if err != nil {
+		t.Logf("Function returned with error (expected): %v", err)
+	}
+
+	// Verify we didn't send all 5 pings due to early exit
+	// We should have sent at most 3 pings before hitting consecutive failure limit
+	if response.SentIps > 3 {
+		t.Errorf("Should have exited early after consecutive failures, but sent %d pings", response.SentIps)
+	}
+
+	t.Logf("Test completed cleanly: sent %d pings, received %d pings", response.SentIps, response.ReceivedIps)
 }
