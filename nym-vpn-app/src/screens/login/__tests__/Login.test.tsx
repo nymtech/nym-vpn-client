@@ -1,4 +1,5 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { invoke } from '@tauri-apps/api/core';
 import { render } from '../../../test/test-utils';
@@ -13,10 +14,12 @@ import { useI18nError } from '../../../hooks';
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockPush = jest.fn();
-const mockTe = jest.fn((key: string) => key);
+const mockTe = jest.fn((error: any) =>
+  typeof error === 'string' ? error : error.key || 'error',
+);
 
 jest.mock('react-router', () => ({
-  ...jest.requireActual('react-router'),
+  ...(jest.requireActual('react-router') as any),
   useNavigate: () => mockNavigate,
 }));
 

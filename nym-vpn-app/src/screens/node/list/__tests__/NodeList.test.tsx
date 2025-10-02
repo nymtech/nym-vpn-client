@@ -52,12 +52,6 @@ jest.mock('../GatewayItem', () => {
   };
 });
 
-jest.mock('../FoldButton', () => {
-  return function MockFoldButton() {
-    return <div data-testid="mocked-fold-button">Fold</div>;
-  };
-});
-
 describe('NodeList', () => {
   const mockCountryUS: UiCountry = {
     code: 'US',
@@ -210,7 +204,7 @@ describe('NodeList', () => {
       expect(
         screen.getByTestId('country-accordion-header-DE'),
       ).toBeInTheDocument();
-      expect(screen.getAllByTestId('mocked-fold-button')).toHaveLength(2);
+      expect(screen.getAllByTestId('fold-button')).toHaveLength(2);
     });
 
     it('renders standalone gateways section', () => {

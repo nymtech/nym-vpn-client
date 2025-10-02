@@ -100,6 +100,7 @@ jest.mock('../hooks', () => ({
   useI18nAccountState: jest.fn(),
   useI18nProgressMsg: jest.fn(),
   useNodesState: jest.fn(),
+  useClipboard: jest.fn(),
 }));
 
 jest.mock('../router', () => ({
@@ -109,11 +110,6 @@ jest.mock('../router', () => ({
     exitNodeLocation: '/exit-node',
     addCredential: '/add-credential',
   },
-}));
-
-jest.mock('../util', () => ({
-  setToString: (data: any) => JSON.stringify(data),
-  capFirst: (str: string) => str.charAt(0).toUpperCase() + str.slice(1),
 }));
 
 // Global test setup

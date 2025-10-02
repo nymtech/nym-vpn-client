@@ -20,14 +20,6 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../../../ui', () => ({
-  PulseDot: ({ color, ...props }: any) => (
-    <div data-testid="pulse-dot" data-color={color} {...props}>
-      Pulse
-    </div>
-  ),
-}));
-
 describe('ConnectionBadge Component', () => {
   const tunnelStates: TunnelState[] = [
     'connected',
@@ -136,7 +128,7 @@ describe('ConnectionBadge Component', () => {
 
       const pulseDot = screen.getByTestId('connection-pulse-dot');
       expect(pulseDot).toBeInTheDocument();
-      expect(pulseDot).toHaveAttribute('data-color', 'cornflower');
+      expect(pulseDot).toHaveAttribute('data-test-color', 'cornflower');
     });
 
     it('shows pulse dot for disconnecting state', () => {
@@ -144,7 +136,7 @@ describe('ConnectionBadge Component', () => {
 
       const pulseDot = screen.getByTestId('connection-pulse-dot');
       expect(pulseDot).toBeInTheDocument();
-      expect(pulseDot).toHaveAttribute('data-color', 'cornflower');
+      expect(pulseDot).toHaveAttribute('data-test-color', 'cornflower');
     });
 
     it('does not show pulse dot for stable states', () => {

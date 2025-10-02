@@ -36,16 +36,6 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('../ConnectionBadge', () => {
-  return function MockConnectionBadge({ state }: { state: string }) {
-    return (
-      <div data-testid="connection-badge" data-status={state}>
-        Badge: {state}
-      </div>
-    );
-  };
-});
-
 jest.mock('../ConnectionTimer', () => {
   return function MockConnectionTimer() {
     return <div data-testid="connection-timer">Timer</div>;
@@ -342,9 +332,7 @@ describe('TunnelState Component', () => {
         expect(screen.getByTestId('tunnel-error-key')).toBeInTheDocument();
         expect(screen.getByTestId('tunnel-error-data')).toBeInTheDocument();
         expect(screen.getByText('Error: NETWORK_ERROR')).toBeInTheDocument();
-        expect(
-          screen.getByText('{"code":500,"reason":"Server error"}'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('500 Server error')).toBeInTheDocument();
       });
     });
 

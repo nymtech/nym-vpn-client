@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, render as rtlRender } from '@testing-library/react';
+import { screen, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { invoke } from '@tauri-apps/api/core';
 import Home from '../Home';
@@ -9,8 +9,8 @@ import {
   useNodeListState,
 } from '../../../contexts';
 
-const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockInvoke = invoke as jest.MockedFunction<typeof invoke>;
 const mockUseMainState = useMainState as jest.MockedFunction<
   typeof useMainState
@@ -20,6 +20,7 @@ const mockUseMainDispatch = useMainDispatch as jest.MockedFunction<
 >;
 
 jest.mock('react-router', () => ({
+  ...(jest.requireActual('react-router') as any),
   useNavigate: () => mockNavigate,
 }));
 
