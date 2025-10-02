@@ -366,6 +366,12 @@ impl ConnectingState {
     ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
+            if _shared_state.tunnel_settings.bridges_enabled()
+                && let Some(params) = &gateways.entry.bridge_params
+            {
+                self.firewall_policy_params.bridge_endpoints = params.get_addrs()
+            }
+
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry.endpoints();
             Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)
         };
@@ -673,7 +679,7 @@ impl ConnectingPolicyParameters {
             .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
             .for_each(|addr| {
                 let allow_bridge_endpoint = AllowedEndpoint::new(
-                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Udp),
                     #[cfg(any(target_os = "linux", target_os = "macos"))]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]

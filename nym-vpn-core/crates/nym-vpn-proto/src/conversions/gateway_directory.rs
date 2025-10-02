@@ -154,3 +154,96 @@ impl From<nym_gateway_directory::ExitPoint> for proto::ExitNode {
         }
     }
 }
+
+impl From<nym_gateway_directory::GatewayFilter> for proto::GatewayFilter {
+    fn from(value: nym_gateway_directory::GatewayFilter) -> Self {
+        match value {
+            nym_gateway_directory::GatewayFilter::MinPerformance {
+                min_wg_performance,
+                min_mixnet_performance,
+            } => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::MinPerformance(
+                    proto::MinPerformance {
+                        min_wg_performance: min_wg_performance.map(Into::into),
+                        min_mixnet_performance: min_mixnet_performance.map(Into::into),
+                    },
+                )),
+            },
+            nym_gateway_directory::GatewayFilter::Country(country_code) => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::Country(country_code)),
+            },
+            nym_gateway_directory::GatewayFilter::Region(region) => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::Region(region)),
+            },
+            nym_gateway_directory::GatewayFilter::Residential => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::Residential(())),
+            },
+            nym_gateway_directory::GatewayFilter::Exit => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::Exit(())),
+            },
+            nym_gateway_directory::GatewayFilter::Vpn => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::Vpn(())),
+            },
+        }
+    }
+}
+
+impl TryFrom<proto::GatewayFilter> for nym_gateway_directory::GatewayFilter {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::GatewayFilter) -> Result<Self, ConversionError> {
+        Ok(
+            match value
+                .filter
+                .ok_or_else(|| ConversionError::Generic("missing filter".to_string()))?
+            {
+                proto::gateway_filter::Filter::MinPerformance(perf) => {
+                    nym_gateway_directory::GatewayFilter::MinPerformance {
+                        min_wg_performance: perf.min_wg_performance.map(|p| p as u8),
+                        min_mixnet_performance: perf.min_mixnet_performance.map(|p| p as u8),
+                    }
+                }
+                proto::gateway_filter::Filter::Country(country_code) => {
+                    nym_gateway_directory::GatewayFilter::Country(country_code)
+                }
+                proto::gateway_filter::Filter::Region(region) => {
+                    nym_gateway_directory::GatewayFilter::Region(region)
+                }
+                proto::gateway_filter::Filter::Residential(()) => {
+                    nym_gateway_directory::GatewayFilter::Residential
+                }
+                proto::gateway_filter::Filter::Exit(()) => {
+                    nym_gateway_directory::GatewayFilter::Exit
+                }
+                proto::gateway_filter::Filter::Vpn(()) => nym_gateway_directory::GatewayFilter::Vpn,
+            },
+        )
+    }
+}
+
+impl From<nym_gateway_directory::GatewayFilters> for proto::GatewayFilters {
+    fn from(value: nym_gateway_directory::GatewayFilters) -> Self {
+        Self {
+            kind: value.gw_type as i32,
+            filters: value.filters.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl TryFrom<proto::GatewayFilters> for nym_gateway_directory::GatewayFilters {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::GatewayFilters) -> Result<Self, ConversionError> {
+        let proto_gw_type = proto::GatewayType::try_from(value.kind)
+            .map_err(|err| ConversionError::Decode("GatewayFilters.kind", err))?;
+        let gw_type = nym_gateway_directory::GatewayType::from(proto_gw_type);
+
+        let filters = value
+            .filters
+            .into_iter()
+            .map(nym_gateway_directory::GatewayFilter::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self { gw_type, filters })
+    }
+}

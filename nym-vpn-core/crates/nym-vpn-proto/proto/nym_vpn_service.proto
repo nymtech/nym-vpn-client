@@ -18,8 +18,8 @@ message Address {
 }
 
 enum AsnKind {
-    RESIDENTIAL = 0;
-    OTHER = 1;
+  RESIDENTIAL = 0;
+  OTHER = 1;
 }
 
 message Asn {
@@ -87,7 +87,7 @@ message Dns {
   optional string ip = 1;
 }
 
-message Url { string url = 1; }
+message Url {string url = 1;}
 
 message ApiUrl {
   string url = 1;
@@ -336,12 +336,12 @@ enum TunnelType {
 }
 
 enum EstablishConnectionState {
-    RESOLVING_API_ADDRESSES = 0;
-    AWAITING_ACCOUNT_READINESS = 1;
-    REFRESHING_GATEWAYS = 2;
-    SELECTING_GATEWAYS = 3;
-    CONNECTING_MIXNET_CLIENT = 4;
-    CONNECTING_TUNNEL = 5;
+  RESOLVING_API_ADDRESSES = 0;
+  AWAITING_ACCOUNT_READINESS = 1;
+  REFRESHING_GATEWAYS = 2;
+  SELECTING_GATEWAYS = 3;
+  CONNECTING_MIXNET_CLIENT = 4;
+  CONNECTING_TUNNEL = 5;
 }
 
 message EstablishConnectionData {
@@ -596,6 +596,27 @@ message AccountControllerState {
   }
 }
 
+message MinPerformance {
+  optional uint32 min_wg_performance = 1;
+  optional uint32 min_mixnet_performance = 2;
+}
+
+message GatewayFilter {
+  oneof filter {
+    MinPerformance min_performance = 1;
+    string country = 2;
+    string region = 3;
+    google.protobuf.Empty residential = 4;
+    google.protobuf.Empty exit = 5;
+    google.protobuf.Empty vpn = 6;
+  }
+}
+
+message GatewayFilters {
+  GatewayType kind = 1;
+  repeated GatewayFilter filters = 2;
+}
+
 // --- Requests and responses ---
 
 message StoreAccountRequest {
@@ -603,7 +624,7 @@ message StoreAccountRequest {
 }
 
 message AccountCommandResponse {
- optional AccountCommandError error = 1;
+  optional AccountCommandError error = 1;
 }
 
 
@@ -700,17 +721,17 @@ service NymVpnService {
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
   // Get the VPN service configuration
-  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
+  rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
 
   // Set the VPN service configuration
-  rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
-  rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
-  rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEntryPoint (EntryNode) returns (google.protobuf.Empty) {}
+  rpc SetExitPoint (ExitNode) returns (google.protobuf.Empty) {}
+  rpc SetDisableIpv6 (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableTwoHop (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableBridges (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
@@ -744,6 +765,9 @@ service NymVpnService {
 
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+
+  // Get a filtered list of gateways for the selected mode and filters
+  rpc ListFilteredGateways (GatewayFilters) returns (ListGatewaysResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}

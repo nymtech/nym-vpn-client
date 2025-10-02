@@ -679,6 +679,7 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum GatewayFilter {
     MinPerformance {
         min_wg_performance: Option<u8>,
@@ -689,6 +690,12 @@ pub enum GatewayFilter {
     Residential,     // Has a residential ASN
     Exit,            // Has an IPR address
     Vpn,             // Has an authenticator address
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GatewayFilters {
+    pub gw_type: GatewayType,
+    pub filters: Vec<GatewayFilter>,
 }
 
 #[cfg(test)]
