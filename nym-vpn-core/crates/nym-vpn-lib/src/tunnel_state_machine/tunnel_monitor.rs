@@ -5,9 +5,9 @@ use futures::{FutureExt, future::Fuse};
 
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
-    RegistrationResult, WireguardRegistrationResult,
+    RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
-use nym_registration_common::NymNode as RegistrationNymNode;
+use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
 use nym_vpn_network_config::start_background_file_refresh;
@@ -434,30 +434,34 @@ impl TunnelMonitor {
             .map_err(Box::new)?;
 
         let entry_node = RegistrationNymNode {
-            identity: selected_gateways.entry_gateway().identity,
-            ipr_address: selected_gateways
-                .entry_gateway()
-                .ipr_address
-                .map(Into::into),
-            authenticator_address: selected_gateways
-                .entry_gateway()
-                .authenticator_address
-                .map(Into::into),
-            ip_address: entry_ip,
-            keypair: selected_gateways.entry_keypair().clone(),
-            version: selected_gateways.entry_gateway().version.clone().into(),
+            node: NymNode {
+                identity: selected_gateways.entry_gateway().identity,
+                ipr_address: selected_gateways
+                    .entry_gateway()
+                    .ipr_address
+                    .map(Into::into),
+                authenticator_address: selected_gateways
+                    .entry_gateway()
+                    .authenticator_address
+                    .map(Into::into),
+                ip_address: entry_ip,
+                version: selected_gateways.entry_gateway().version.clone().into(),
+            },
+            keys: selected_gateways.entry_keypair().clone(),
         };
 
         let exit_node = RegistrationNymNode {
-            identity: selected_gateways.exit_gateway().identity,
-            ipr_address: selected_gateways.exit_gateway().ipr_address.map(Into::into),
-            authenticator_address: selected_gateways
-                .exit_gateway()
-                .authenticator_address
-                .map(Into::into),
-            ip_address: exit_ip,
-            keypair: selected_gateways.exit_keypair().clone(),
-            version: selected_gateways.exit_gateway().version.clone().into(),
+            node: NymNode {
+                identity: selected_gateways.exit_gateway().identity,
+                ipr_address: selected_gateways.exit_gateway().ipr_address.map(Into::into),
+                authenticator_address: selected_gateways
+                    .exit_gateway()
+                    .authenticator_address
+                    .map(Into::into),
+                ip_address: exit_ip,
+                version: selected_gateways.exit_gateway().version.clone().into(),
+            },
+            keys: selected_gateways.exit_keypair().clone(),
         };
 
         let rc_builder_config = RegistrationClientBuilderConfig {
