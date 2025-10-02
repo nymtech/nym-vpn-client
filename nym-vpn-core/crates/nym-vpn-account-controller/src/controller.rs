@@ -93,7 +93,7 @@ where
         let credential_storage =
             VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
 
-        let vpn_api_account = account_storage.load_account().await?;
+        let vpn_api_account = account_storage.load_vpn_account().await?;
         let device_keys = account_storage.load_device_keys().await?;
 
         // Shared_state
@@ -107,12 +107,13 @@ where
             storage_op_sender,
         );
 
-        let (current_state_handler, initial_state) = if shared_state
+        let is_offline = shared_state
             .connectivity_handle
             .connectivity()
             .await
-            .is_offline()
-        {
+            .is_offline();
+
+        let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
         } else {
             SyncingState::enter(&shared_state, 0)

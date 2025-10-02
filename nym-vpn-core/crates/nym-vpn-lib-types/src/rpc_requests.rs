@@ -14,8 +14,13 @@ pub struct ListGatewaysOptions {
 }
 
 #[derive(zeroize::Zeroize)]
-pub struct StoreAccountRequest {
-    pub mnemonic: String,
+pub enum StoreAccountRequest {
+    Vpn {
+        mnemonic: String,
+    },
+    Decentralised {
+        // TBD
+    },
 }
 
 impl std::fmt::Debug for StoreAccountRequest {

@@ -13,8 +13,8 @@ workspace = true
 
 [dependencies]
 async-trait.workspace = true
-bip39.workspace = true
-nym-crypto = { workspace = true, features = ["rand", "asymmetric"] }
+bip39 = { workspace = true, features = ["zeroize"] }
+nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
 nym-pemstore.workspace = true
 rand.workspace = true
 rand_chacha.workspace = true
@@ -41,6 +41,7 @@ sqlx = { workspace = true, features = [
 ] }
 
 [dev-dependencies]
+anyhow = { workspace = true }
 bip39 = { workspace = true, features = ["rand"] }
 tempfile.workspace = true
 tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread"] }

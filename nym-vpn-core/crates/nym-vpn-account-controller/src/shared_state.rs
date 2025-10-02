@@ -4,7 +4,7 @@
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 
 use tokio::sync::mpsc;
@@ -31,7 +31,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     pub(crate) vpn_api_client: VpnApiClient,
 
     /// Stored account
-    pub(crate) vpn_api_account: Option<VpnApiAccount>,
+    pub(crate) vpn_api_account: Option<VpnAccount>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -49,7 +49,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         config: AccountControllerConfig,
         credential_storage: VpnCredentialStorage,
         vpn_api_client: VpnApiClient,
-        vpn_api_account: Option<VpnApiAccount>,
+        vpn_api_account: Option<VpnAccount>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
     ) -> Self {

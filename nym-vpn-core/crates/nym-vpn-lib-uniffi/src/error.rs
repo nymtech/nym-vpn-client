@@ -116,8 +116,8 @@ impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
     }
 }
 
-impl From<nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError> for VpnError {
-    fn from(value: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError) -> Self {
+impl From<nym_vpn_store::account::on_disk::OnDiskMnemonicStorageError> for VpnError {
+    fn from(value: nym_vpn_store::account::on_disk::OnDiskMnemonicStorageError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }

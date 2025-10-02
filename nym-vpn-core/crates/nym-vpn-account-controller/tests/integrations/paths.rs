@@ -299,3 +299,41 @@ async fn e2e_new_device_test() -> anyhow::Result<()> {
         .await;
     Ok(())
 }
+
+#[tokio::test]
+async fn decentralised_account_test() -> anyhow::Result<()> {
+    // Get the test_bench
+    let mut test_bench = TestBench::new_no_credentials().await?;
+
+    // Simulating offline mode
+    test_bench.go_offline()?;
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    test_bench.go_online()?;
+    test_bench
+        .assert_state(AccountControllerState::LoggedOut)
+        .await;
+
+    test_bench.store_mock_decentralised_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    test_bench.go_offline()?;
+    test_bench
+        .assert_state(AccountControllerState::Offline)
+        .await;
+
+    test_bench.go_online()?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    test_bench.forget_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::LoggedOut)
+        .await;
+    Ok(())
+}

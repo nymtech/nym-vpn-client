@@ -5404,6 +5404,7 @@ dependencies = [
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-validator-client",
+ "nym-vpn-store",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -5414,7 +5415,6 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
- "zeroize",
 ]
 
 [[package]]
@@ -5646,6 +5646,7 @@ dependencies = [
 name = "nym-vpn-store"
 version = "1.17.0-beta"
 dependencies = [
+ "anyhow",
  "async-trait",
  "bip39",
  "nym-crypto",

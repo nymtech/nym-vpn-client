@@ -6,12 +6,13 @@ use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
     response::{NymErrorResponse, NymVpnAccountStatusResponse},
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+use crate::state_machine::ReadyState;
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
@@ -44,6 +45,7 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 /// - SyncingState : We try again if there was an error while making an API request
 /// - ErrorState : An actual error happened, or one of the above questions has a negative answers, preventing us to proceed.
 /// - OfflineState : the connectivity monitor is telling we're not connected
+/// - ReadyState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
     attempts: u32,
@@ -60,6 +62,9 @@ impl SyncingState {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
             return LoggedOutState::enter();
         };
+        if vpn_api_account.mode().is_decentralised() {
+            return ReadyState::enter();
+        }
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
                 SyncError::Internal("Logged in, but no device keys".into()).into(),
@@ -83,7 +88,7 @@ impl SyncingState {
 
     async fn syncing_account(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnApiAccount,
+        vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
@@ -177,7 +182,7 @@ impl SyncingState {
 
     async fn register_device(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnApiAccount,
+        vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
         vpn_api_client

@@ -3,14 +3,13 @@
 
 use std::fmt;
 
+use crate::jwt::Jwt;
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
     DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
 };
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use time::{Duration, OffsetDateTime};
-use zeroize::Zeroizing;
-
-use crate::jwt::Jwt;
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
@@ -24,49 +23,100 @@ pub enum Error {
     NoAccounts,
 }
 
-#[derive(Clone, Debug)]
-pub struct VpnApiAccount {
-    wallet: Zeroizing<DirectSecp256k1HdWallet>,
+/// Defines the mode of operation of the associated account.
+#[derive(Debug, Copy, Clone)]
+pub enum VpnAccountMode {
+    /// Account works in the API mode, i.e. the subscription is managed
+    /// by the VPN API which provides required ticketbooks
+    Api,
 
+    /// Account works in the decentralised mode, i.e. there is no associated subscription
+    /// and the account uses its own funds for obtaining required ticketbooks
+    Decentralised,
+}
+
+impl VpnAccountMode {
+    pub fn is_decentralised(&self) -> bool {
+        matches!(self, Self::Decentralised)
+    }
+}
+
+impl From<StoredAccountMode> for VpnAccountMode {
+    fn from(mode: StoredAccountMode) -> Self {
+        match mode {
+            StoredAccountMode::Api => VpnAccountMode::Api,
+            StoredAccountMode::Decentralised => VpnAccountMode::Decentralised,
+        }
+    }
+}
+
+impl From<VpnAccountMode> for StoredAccountMode {
+    fn from(mode: VpnAccountMode) -> Self {
+        match mode {
+            VpnAccountMode::Api => StoredAccountMode::Api,
+            VpnAccountMode::Decentralised => StoredAccountMode::Decentralised,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct VpnAccount {
+    /// The underlying wallet behind the account that defines
+    /// the associated private key(s).
+    wallet: DirectSecp256k1HdWallet,
+
+    /// Cosmos account identifier of the first derived account.
     id: String,
 
+    /// Base58-encoded public (secp256k1) key of the first derived account.
     pub_key: String,
 
+    /// Mode of operation of this account
+    mode: VpnAccountMode,
+
+    /// Base64-encoded signature on the account identifier of this account.
+    // Note that it is seemingly (?) only ever used once during account creation,
+    // so lack of replay protection whilst sketchy is fine.
     signature_base64: String,
 }
 
-impl VpnApiAccount {
-    fn derive_from_wallet(wallet: DirectSecp256k1HdWallet) -> Result<Self, Error> {
-        let accounts = wallet.get_accounts()?;
-        let address = accounts.first().ok_or(Error::NoAccounts)?.address();
-        let id = address.to_string();
-        let pub_key = bs58::encode(
-            accounts
-                .first()
-                .ok_or(Error::NoAccounts)?
-                .public_key()
-                .to_bytes(),
-        )
-        .into_string();
+impl VpnAccount {
+    pub fn new(mnemonic: bip39::Mnemonic, mode: VpnAccountMode) -> Result<Self, Error> {
+        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
+        Self::derive_from_wallet(wallet, mode)
+    }
 
-        let message = id.clone().into_bytes();
-        let signature = wallet.sign_raw(address, message)?;
-        let signature_bytes = signature.to_bytes().to_vec();
+    pub fn generate_new() -> Result<(Self, bip39::Mnemonic), Error> {
+        let mnemonic = bip39::Mnemonic::generate(24).unwrap();
+        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
+        let account = Self::derive_from_wallet(wallet, VpnAccountMode::Api)?;
+        Ok((account, mnemonic))
+    }
+
+    fn derive_from_wallet(
+        wallet: DirectSecp256k1HdWallet,
+        mode: VpnAccountMode,
+    ) -> Result<Self, Error> {
+        let accounts = wallet.get_accounts()?;
+        let Some(first) = accounts.first() else {
+            return Err(Error::NoAccounts);
+        };
+        let address = first.address();
+        let id = address.to_string();
+        let raw_pub_key = first.public_key();
+        let pub_key = bs58::encode(raw_pub_key.to_bytes()).into_string();
+
+        let signature = wallet.sign_raw(address, &id)?;
+        let signature_bytes = signature.to_bytes();
         let signature_base64 = base64_url::encode(&signature_bytes);
 
         Ok(Self {
-            wallet: Zeroizing::new(wallet),
+            wallet,
             id,
             pub_key,
+            mode,
             signature_base64,
         })
-    }
-
-    pub fn random() -> Result<(Self, bip39::Mnemonic), Error> {
-        let mnemonic = bip39::Mnemonic::generate(24).unwrap();
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        let account = Self::derive_from_wallet(wallet)?;
-        Ok((account, mnemonic))
     }
 
     pub fn id(&self) -> &str {
@@ -99,14 +149,17 @@ impl VpnApiAccount {
     pub fn get_mnemonic(&self) -> String {
         self.wallet.mnemonic()
     }
+
+    pub fn mode(&self) -> VpnAccountMode {
+        self.mode
+    }
 }
 
-impl TryFrom<bip39::Mnemonic> for VpnApiAccount {
+impl TryFrom<StorableAccount> for VpnAccount {
     type Error = Error;
 
-    fn try_from(mnemonic: bip39::Mnemonic) -> Result<Self, Self::Error> {
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self::derive_from_wallet(wallet)
+    fn try_from(account: StorableAccount) -> Result<Self, Self::Error> {
+        Self::new(account.mnemonic, account.mode.into())
     }
 }
 
@@ -227,15 +280,17 @@ mod tests {
 
     #[test]
     fn create_account_from_mnemonic() {
-        let account =
-            VpnApiAccount::try_from(bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap())
-                .unwrap();
+        let account = VpnAccount::new(
+            bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap(),
+            VpnAccountMode::Api,
+        )
+        .unwrap();
         assert_eq!(account.id(), TEST_DEFAULT_MNEMONIC_ID);
     }
 
     #[test]
     fn create_random_account() {
-        let (_, mnemonic) = VpnApiAccount::random().unwrap();
+        let (_, mnemonic) = VpnAccount::generate_new().unwrap();
         assert_eq!(mnemonic.word_count(), 24);
     }
 
@@ -243,7 +298,7 @@ mod tests {
     fn derive_wallets() {
         for word_count in [12, 24] {
             let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
-            VpnApiAccount::derive_from_wallet(wallet).unwrap();
+            VpnAccount::derive_from_wallet(wallet, VpnAccountMode::Api).unwrap();
         }
     }
 }

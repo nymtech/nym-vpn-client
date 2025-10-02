@@ -603,7 +603,7 @@ message MinPerformance {
 
 message GatewayFilter {
   oneof filter {
-    MinPerformance min_performance = 1;
+    Score min_score = 1;
     string country = 2;
     string region = 3;
     google.protobuf.Empty residential = 4;
@@ -620,7 +620,19 @@ message GatewayFilters {
 // --- Requests and responses ---
 
 message StoreAccountRequest {
+  oneof request {
+    VpnAccountStoreRequest vpn_account_store = 1;
+    DecentralisedAccountStoreRequest decentralised_account_store = 2;
+  }
+}
+
+// VPN variant with mnemonic
+message VpnAccountStoreRequest {
   string mnemonic = 1;
+}
+
+message DecentralisedAccountStoreRequest {
+  // TODO: define fields when available
 }
 
 message AccountCommandResponse {

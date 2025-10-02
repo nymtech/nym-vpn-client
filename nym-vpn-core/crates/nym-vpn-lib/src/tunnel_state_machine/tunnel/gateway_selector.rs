@@ -5,23 +5,14 @@ use std::sync::Arc;
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
-    EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList, GatewayType,
+    EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList, GatewayType, ScoreValue,
 };
-use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::{
     GatewayDirectoryError,
     tunnel_state_machine::{TunnelSettings, TunnelType},
 };
-
-// First gateways with performance >= 75% are selected
-// Performance threshold expressed as percentage from 0 to 100
-const HIGH_PERFORMANCE_THRESHOLD: u8 = 75;
-
-// Second, fallback to gateways with performance >= 50%
-// Performance threshold expressed as percentage from 0 to 100
-const MEDIUM_PERFORMANCE_THRESHOLD: u8 = 50;
 
 #[derive(Clone)]
 pub struct GatewayWithKeys {
@@ -65,8 +56,6 @@ impl SelectedGateways {
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
     tunnel_settings: &TunnelSettings,
-    wg_score_thresholds: Option<ScoreThresholds>,
-    mix_score_thresholds: Option<ScoreThresholds>,
     wg_keys_db: WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
@@ -98,6 +87,7 @@ pub async fn select_gateways(
 
             let entry_gateways = if tunnel_settings.bridges_enabled() {
                 GatewayList::new(
+                    all_gateways.gw_type(),
                     all_gateways
                         .clone()
                         .into_iter()
@@ -128,23 +118,16 @@ pub async fn select_gateways(
     tracing::info!("Found {} entry gateways", entry_gateways.len());
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
-    let (min_wg_performance, min_mixnet_performance) = high_performance_tier(
-        tunnel_settings.tunnel_type,
-        wg_score_thresholds,
-        mix_score_thresholds,
-    );
     let exit_gateway = exit_point
-        .lookup_gateway(&exit_gateways, min_wg_performance, min_mixnet_performance, tunnel_settings.residential_exit)
+        .lookup_gateway(&exit_gateways, Some(ScoreValue::High), tunnel_settings.residential_exit)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
             if err.is_unmatched_non_specific_gateway() {
-                let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_settings.tunnel_type, wg_score_thresholds, mix_score_thresholds);
                 tracing::debug!("Could not locate high quality exit gateway. Lowering performance filter to medium and trying again");
 
                 exit_point.lookup_gateway(
                     &exit_gateways,
-                    min_wg_performance,
-                    min_mixnet_performance,
+                    Some(ScoreValue::Medium),
                     tunnel_settings.residential_exit
                 ).map_err(GatewayDirectoryError::PerformantExitGatewayUnavailable)
             } else {
@@ -156,17 +139,15 @@ pub async fn select_gateways(
     entry_gateways.remove_gateway(&exit_gateway);
 
     let entry_gateway = entry_point
-        .lookup_gateway(&entry_gateways, min_wg_performance, min_mixnet_performance)
+        .lookup_gateway(&entry_gateways, Some(ScoreValue::High))
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
             if err.is_unmatched_non_specific_gateway() {
-                let (min_wg_performance, min_mixnet_performance) = medium_performance_tier(tunnel_settings.tunnel_type, wg_score_thresholds, mix_score_thresholds);
                 tracing::debug!("Could not locate high quality entry gateway. Lowering performance filter to medium and trying again");
 
                 entry_point.lookup_gateway(
                     &entry_gateways,
-                    min_wg_performance,
-                    min_mixnet_performance,
+                    Some(ScoreValue::Medium)
                 ).map_err(GatewayDirectoryError::PerformantEntryGatewayUnavailable)
             } else {
                  Err(GatewayDirectoryError::SelectEntryGateway(err))
@@ -229,56 +210,4 @@ pub async fn select_gateways(
             keys: exit_keys,
         }),
     })
-}
-
-/// Returns minimum wireguard and mixnet performance thresholds for gateways with high performance.
-fn high_performance_tier(
-    tunnel_type: TunnelType,
-    wg_score_thresholds: Option<ScoreThresholds>,
-    mix_score_thresholds: Option<ScoreThresholds>,
-) -> (Option<u8>, Option<u8>) {
-    match tunnel_type {
-        TunnelType::Wireguard => (
-            Some(
-                wg_score_thresholds
-                    .map(|v| v.high)
-                    .unwrap_or(HIGH_PERFORMANCE_THRESHOLD),
-            ),
-            None,
-        ),
-        TunnelType::Mixnet => (
-            None,
-            Some(
-                mix_score_thresholds
-                    .map(|v| v.high)
-                    .unwrap_or(HIGH_PERFORMANCE_THRESHOLD),
-            ),
-        ),
-    }
-}
-
-/// Returns minimum wireguard and mixnet performance thresholds for gateways with medium performance.
-fn medium_performance_tier(
-    tunnel_type: TunnelType,
-    wg_score_thresholds: Option<ScoreThresholds>,
-    mix_score_thresholds: Option<ScoreThresholds>,
-) -> (Option<u8>, Option<u8>) {
-    match tunnel_type {
-        TunnelType::Wireguard => (
-            Some(
-                wg_score_thresholds
-                    .map(|v| v.medium)
-                    .unwrap_or(MEDIUM_PERFORMANCE_THRESHOLD),
-            ),
-            None,
-        ),
-        TunnelType::Mixnet => (
-            None,
-            Some(
-                mix_score_thresholds
-                    .map(|v| v.medium)
-                    .unwrap_or(MEDIUM_PERFORMANCE_THRESHOLD),
-            ),
-        ),
-    }
 }

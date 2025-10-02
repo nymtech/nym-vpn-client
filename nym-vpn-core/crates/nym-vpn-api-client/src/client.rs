@@ -27,8 +27,8 @@ use crate::{
     },
     routes,
     types::{
-        Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnApiAccount,
-        VpnApiTime, VpnApiTimeSynced,
+        Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
+        VpnApiTimeSynced,
     },
 };
 
@@ -309,7 +309,7 @@ impl VpnApiClient {
     async fn get_query<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
     ) -> std::result::Result<T, HttpClientError>
@@ -335,7 +335,7 @@ impl VpnApiClient {
     async fn get_authorized<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError>
     where
@@ -370,7 +370,7 @@ impl VpnApiClient {
     async fn get_authorized_debug<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError>
     where
@@ -472,7 +472,7 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
     ) -> std::result::Result<T, HttpClientError>
@@ -500,7 +500,7 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError>
     where
@@ -540,7 +540,7 @@ impl VpnApiClient {
     async fn delete_query<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
     ) -> std::result::Result<T, HttpClientError>
@@ -566,7 +566,7 @@ impl VpnApiClient {
     async fn delete_authorized<T>(
         &self,
         path: PathSegments<'_>,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError>
     where
@@ -601,7 +601,7 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
         jwt: Option<VpnApiTime>,
     ) -> std::result::Result<T, HttpClientError>
@@ -629,7 +629,7 @@ impl VpnApiClient {
         &self,
         path: PathSegments<'_>,
         json_body: &B,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: Option<&Device>,
     ) -> std::result::Result<T, HttpClientError>
     where
@@ -668,7 +668,7 @@ impl VpnApiClient {
 
     // ACCOUNT
 
-    pub async fn get_account(&self, account: &VpnApiAccount) -> Result<NymVpnAccountResponse> {
+    pub async fn get_account(&self, account: &VpnAccount) -> Result<NymVpnAccountResponse> {
         self.get_authorized(
             &[routes::PUBLIC, routes::V1, routes::ACCOUNT, account.id()],
             account,
@@ -681,7 +681,7 @@ impl VpnApiClient {
 
     pub async fn post_account(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         platform: Platform,
     ) -> Result<NymVpnRegisterAccountResponse> {
         let body = CreateAccountRequestBody {
@@ -750,7 +750,7 @@ impl VpnApiClient {
 
     pub async fn get_account_summary(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
     ) -> Result<NymVpnAccountSummaryResponse> {
         self.get_authorized(
             &[
@@ -770,7 +770,7 @@ impl VpnApiClient {
 
     pub async fn get_account_summary_with_device(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
     ) -> Result<NymVpnAccountSummaryWithDeviceResponse> {
         self.get_authorized(
@@ -793,7 +793,7 @@ impl VpnApiClient {
 
     // DEVICES
 
-    pub async fn get_devices(&self, account: &VpnApiAccount) -> Result<NymVpnDevicesResponse> {
+    pub async fn get_devices(&self, account: &VpnAccount) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -812,7 +812,7 @@ impl VpnApiClient {
 
     pub async fn register_device(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
     ) -> Result<NymVpnDevice> {
         let body = RegisterDeviceRequestBody {
@@ -837,10 +837,7 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::RegisterDevice)
     }
 
-    pub async fn get_active_devices(
-        &self,
-        account: &VpnApiAccount,
-    ) -> Result<NymVpnDevicesResponse> {
+    pub async fn get_active_devices(&self, account: &VpnAccount) -> Result<NymVpnDevicesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,
@@ -860,7 +857,7 @@ impl VpnApiClient {
 
     pub async fn get_device_by_id(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
     ) -> Result<NymVpnDevice> {
         self.get_authorized(
@@ -882,7 +879,7 @@ impl VpnApiClient {
 
     pub async fn update_device(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
         status: DeviceStatus,
     ) -> Result<NymVpnDevice> {
@@ -912,7 +909,7 @@ impl VpnApiClient {
 
     pub async fn get_device_zk_nyms(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -935,7 +932,7 @@ impl VpnApiClient {
 
     pub async fn request_zk_nym(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
         withdrawal_request: String,
         ecash_pubkey: String,
@@ -972,7 +969,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nyms_available_for_download(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
     ) -> Result<NymVpnZkNymResponse> {
         self.get_authorized(
@@ -996,7 +993,7 @@ impl VpnApiClient {
 
     pub async fn get_zk_nym_by_id(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
         id: &str,
     ) -> Result<NymVpnZkNym> {
@@ -1021,7 +1018,7 @@ impl VpnApiClient {
 
     pub async fn confirm_zk_nym_download_by_id(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         device: &Device,
         id: &str,
     ) -> Result<StatusOk> {
@@ -1048,7 +1045,7 @@ impl VpnApiClient {
 
     pub async fn get_free_passes(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
     ) -> Result<NymVpnSubscriptionsResponse> {
         self.get_authorized(
             &[
@@ -1068,7 +1065,7 @@ impl VpnApiClient {
 
     pub async fn apply_freepass(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
         code: String,
     ) -> Result<NymVpnSubscription> {
         let body = ApplyFreepassRequestBody { code };
@@ -1094,7 +1091,7 @@ impl VpnApiClient {
 
     pub async fn get_subscriptions(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
     ) -> Result<NymVpnSubscriptionsResponse> {
         self.get_authorized(
             &[
@@ -1112,7 +1109,7 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetSubscriptions)
     }
 
-    pub async fn create_subscription(&self, account: &VpnApiAccount) -> Result<NymVpnSubscription> {
+    pub async fn create_subscription(&self, account: &VpnAccount) -> Result<NymVpnSubscription> {
         let body = CreateSubscriptionRequestBody {
             valid_from_utc: "todo".to_string(),
             subscription_kind: CreateSubscriptionKind::OneMonth,
@@ -1137,7 +1134,7 @@ impl VpnApiClient {
 
     pub async fn get_active_subscriptions(
         &self,
-        account: &VpnApiAccount,
+        account: &VpnAccount,
     ) -> Result<NymVpnSubscriptionResponse> {
         self.get_authorized(
             &[
@@ -1156,7 +1153,7 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetActiveSubscriptions)
     }
 
-    pub async fn get_usage(&self, account: &VpnApiAccount) -> Result<NymVpnUsagesResponse> {
+    pub async fn get_usage(&self, account: &VpnAccount) -> Result<NymVpnUsagesResponse> {
         self.get_authorized(
             &[
                 routes::PUBLIC,

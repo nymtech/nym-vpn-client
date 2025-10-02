@@ -6,7 +6,7 @@ use std::{sync::Arc, time::Duration};
 use nym_credentials_interface::TicketType;
 use nym_vpn_api_client::{
     VpnApiClient,
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use tokio::task::JoinSet;
@@ -20,7 +20,7 @@ pub(crate) type ZkNymId = String;
 pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;
 
 pub(crate) struct RequestZkNymCommandHandler {
-    account: VpnApiAccount,
+    account: VpnAccount,
     device: Device,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     vpn_api_client: VpnApiClient,
@@ -29,7 +29,7 @@ pub(crate) struct RequestZkNymCommandHandler {
 
 impl RequestZkNymCommandHandler {
     pub(crate) fn new(
-        account: VpnApiAccount,
+        account: VpnAccount,
         device: Device,
         storage: VpnCredentialStorage,
         vpn_api_client: VpnApiClient,

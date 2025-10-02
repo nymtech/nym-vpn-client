@@ -49,7 +49,7 @@ impl Command {
             }
             Command::Set { mnemonic } => {
                 rpc_client
-                    .store_account(StoreAccountRequest { mnemonic })
+                    .store_account(StoreAccountRequest::Vpn { mnemonic })
                     .await?;
                 println!("Your account has been set. Welcome to the Nym VPN!");
                 Ok(())

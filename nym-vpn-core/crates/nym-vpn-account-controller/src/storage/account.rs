@@ -1,10 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
-use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
-
 use crate::{commands::ReturnSender, error::Error};
+use nym_vpn_api_client::types::{Device, VpnAccount};
+use nym_vpn_store::{VpnStorage, account::StorableAccount};
 
 #[derive(Debug)]
 pub(crate) struct AccountStorage<S>
@@ -22,37 +21,37 @@ where
         Self { storage }
     }
 
-    pub(crate) async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), Error> {
+    pub(crate) async fn store_account(&self, account: StorableAccount) -> Result<(), Error> {
         self.storage
-            .store_mnemonic(mnemonic)
+            .store_account(account)
             .await
-            .map_err(|err| Error::MnemonicStore {
+            .map_err(|err| Error::AccountStore {
                 source: Box::new(err),
             })
     }
 
-    pub(crate) async fn load_mnemonic(&self) -> Result<Option<Mnemonic>, Error> {
+    pub(crate) async fn load_stored_account(&self) -> Result<Option<StorableAccount>, Error> {
         self.storage
-            .load_mnemonic()
+            .load_account()
             .await
-            .map_err(|err| Error::MnemonicStore {
+            .map_err(|err| Error::AccountStore {
                 source: Box::new(err),
             })
     }
 
-    pub(crate) async fn load_account(&self) -> Result<Option<VpnApiAccount>, Error> {
-        let mnemonic = self.load_mnemonic().await?;
-        mnemonic
-            .map(VpnApiAccount::try_from)
+    pub(crate) async fn load_vpn_account(&self) -> Result<Option<VpnAccount>, Error> {
+        let account = self.load_stored_account().await?;
+        account
+            .map(VpnAccount::try_from)
             .transpose()
             .map_err(Error::internal)
     }
 
     pub(crate) async fn remove_account(&self) -> Result<(), Error> {
         self.storage
-            .remove_mnemonic()
+            .remove_account()
             .await
-            .map_err(|err| Error::MnemonicStore {
+            .map_err(|err| Error::AccountStore {
                 source: Box::new(err),
             })
     }
@@ -99,13 +98,13 @@ where
             })
     }
 
-    async fn init_account(&self, mnemonic: Mnemonic) -> Result<Device, Error> {
+    async fn init_account(&self, account: StorableAccount) -> Result<Device, Error> {
         self.init_keys().await?;
         let device = self
             .load_device_keys()
             .await?
             .ok_or(Error::internal("No keys loaded right after initing them"))?;
-        self.store_account(mnemonic).await?;
+        self.store_account(account).await?;
         Ok(device)
     }
 
@@ -123,11 +122,11 @@ where
 
     pub(crate) async fn handle_storage_op(&self, op: AccountStorageOp) {
         match op {
-            AccountStorageOp::GetStoredMnemonic(result_tx) => {
-                result_tx.send(self.load_mnemonic().await)
+            AccountStorageOp::GetStoredAccount(result_tx) => {
+                result_tx.send(self.load_stored_account().await)
             }
-            AccountStorageOp::StoreAccount(result_tx, mnemonic) => {
-                result_tx.send(self.init_account(mnemonic).await)
+            AccountStorageOp::StoreAccount(result_tx, account) => {
+                result_tx.send(self.init_account(account).await)
             }
             AccountStorageOp::ForgetAccount(result_tx) => {
                 result_tx.send(self.forget_account().await)
@@ -140,8 +139,8 @@ where
 }
 
 pub(crate) enum AccountStorageOp {
-    GetStoredMnemonic(ReturnSender<Option<Mnemonic>, Error>),
-    StoreAccount(ReturnSender<Device, Error>, Mnemonic),
+    GetStoredAccount(ReturnSender<Option<StorableAccount>, Error>),
+    StoreAccount(ReturnSender<Device, Error>, StorableAccount),
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
 }

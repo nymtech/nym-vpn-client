@@ -15,7 +15,7 @@ use nym_gateway_directory::GatewayType;
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, LogPath, Performance,
-    Score, StoreAccountRequest, VpnServiceInfo,
+    Score, VpnServiceInfo,
 };
 use nym_vpn_network_config::{
     ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
@@ -513,18 +513,44 @@ impl TryFrom<ListGatewaysOptions> for proto::ListGatewaysRequest {
     }
 }
 
-impl From<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequest {
-    fn from(value: proto::StoreAccountRequest) -> Self {
-        Self {
-            mnemonic: value.mnemonic,
-        }
+impl TryFrom<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::StoreAccountRequest) -> Result<Self, Self::Error> {
+        let request = value
+            .request
+            .ok_or(ConversionError::NoValueSet("StoreAccountRequest.request"))?;
+
+        Ok(match request {
+            proto::store_account_request::Request::VpnAccountStore(account) => {
+                nym_vpn_lib_types::StoreAccountRequest::Vpn {
+                    mnemonic: account.mnemonic,
+                }
+            }
+            proto::store_account_request::Request::DecentralisedAccountStore(_account) => {
+                nym_vpn_lib_types::StoreAccountRequest::Decentralised {}
+            }
+        })
     }
 }
 
-impl From<StoreAccountRequest> for proto::StoreAccountRequest {
-    fn from(value: StoreAccountRequest) -> Self {
-        Self {
-            mnemonic: value.mnemonic,
+impl From<nym_vpn_lib_types::StoreAccountRequest> for proto::StoreAccountRequest {
+    fn from(value: nym_vpn_lib_types::StoreAccountRequest) -> Self {
+        let request = match value {
+            nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic } => {
+                proto::store_account_request::Request::VpnAccountStore(
+                    proto::VpnAccountStoreRequest { mnemonic },
+                )
+            }
+            nym_vpn_lib_types::StoreAccountRequest::Decentralised { .. } => {
+                proto::store_account_request::Request::DecentralisedAccountStore(
+                    proto::DecentralisedAccountStoreRequest {},
+                )
+            }
+        };
+
+        proto::StoreAccountRequest {
+            request: Some(request),
         }
     }
 }
