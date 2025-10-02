@@ -315,7 +315,7 @@ impl ScoreValue {
             ScoreValue::High
         } else if percentage >= MEDIUM_SCORE_THRESHOLD {
             ScoreValue::Medium
-        } else if percentage > LOW_SCORE_THRESHOLD {
+        } else if percentage >= LOW_SCORE_THRESHOLD {
             ScoreValue::Low
         } else {
             ScoreValue::Offline
