@@ -1,6 +1,6 @@
 import Foundation
 
-public struct GatewayPerformance: Codable, Hashable {
+public struct GatewayNodePerformance: Codable, Hashable {
     public let lastUpdated: Date?
     public let score: GatewayNodeScore
     public let load: GatewayNodeScore

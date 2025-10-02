@@ -5,15 +5,17 @@ import CountriesManagerTypes
 
 extension GatewayManager {
     func loadGatewayStore() {
-        guard let gatewayStoreString = appSettings.gatewayStore,
-              let loadedGatewayStore = GatewayNodeStore(rawValue: gatewayStoreString)
-        else {
-            return
+        autoreleasepool {
+            guard let gatewayStoreString = appSettings.gatewayStore,
+                  let loadedGatewayStore = GatewayNodeStore(rawValue: gatewayStoreString)
+            else {
+                return
+            }
+            gatewayStore = loadedGatewayStore
+            entry = loadedGatewayStore.entry
+            exit = loadedGatewayStore.exit
+            vpn = loadedGatewayStore.vpn
         }
-        gatewayStore = loadedGatewayStore
-        entry = loadedGatewayStore.entry
-        exit = loadedGatewayStore.exit
-        vpn = loadedGatewayStore.vpn
     }
 
     func loadPrebundledServersIfNecessary() {
@@ -26,26 +28,28 @@ extension GatewayManager {
             return
         }
 
-        do {
-            let prebundledEntryServers = try loadPrebundledServers(from: entryServersURL)
-            let prebundledExitServers = try loadPrebundledServers(from: exitServersURL)
-            let prebundledVPNServers = try loadPrebundledServers(from: vpnServersURL)
+        autoreleasepool {
+            do {
+                let prebundledEntryServers = try loadPrebundledServers(from: entryServersURL)
+                let prebundledExitServers = try loadPrebundledServers(from: exitServersURL)
+                let prebundledVPNServers = try loadPrebundledServers(from: vpnServersURL)
 
-            gatewayStore.entry = prebundledEntryServers
-            gatewayStore.exit = prebundledExitServers
-            gatewayStore.vpn = prebundledVPNServers
+                gatewayStore.entry = prebundledEntryServers
+                gatewayStore.exit = prebundledExitServers
+                gatewayStore.vpn = prebundledVPNServers
 
-            entry = prebundledEntryServers
-            exit = prebundledExitServers
-            vpn = prebundledVPNServers
+                entry = prebundledEntryServers
+                exit = prebundledExitServers
+                vpn = prebundledVPNServers
 
-            logger.info("Loading prebundled servers")
-            logger.info("entry: \(gatewayStore.entry.count)")
-            logger.info("exit: \(gatewayStore.exit.count)")
-            logger.info("vpn: \(gatewayStore.vpn.count)")
-        } catch let error {
-            updateError(with: error)
-            return
+                logger.info("Loading prebundled servers")
+                logger.info("entry: \(gatewayStore.entry.count)")
+                logger.info("exit: \(gatewayStore.exit.count)")
+                logger.info("vpn: \(gatewayStore.vpn.count)")
+            } catch let error {
+                updateError(with: error)
+                return
+            }
         }
     }
 
@@ -73,27 +77,39 @@ extension GatewayManager {
             let nodes = try decoder.decode(Node.self, from: data)
 
             return nodes.map { node in
-                // perfV2 might be absent
                 let perfV2 = node.performanceV2
-                let performance = GatewayPerformance(
+                let performance = GatewayNodePerformance(
                     lastUpdated: perfV2?.lastUpdatedUTC,
                     score: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
-                    load: perfV2.map { mapScore(from: $0.load) }  ?? .noScore,
+                    load: perfV2.map { mapScore(from: $0.load) } ?? .noScore,
                     uptime: perfV2?.uptimePercentageLast24Hours ?? 0
                 )
 
-                let asn = GatewayASN(
+                let asn = GatewayNodeASN(
                     asn: node.location.asn?.asn ?? "",
                     asnName: node.location.asn?.name ?? "",
                     type: node.location.asn.map { mapASNType(from: $0.kind) } ?? .other
                 )
 
+                var gatewayNodeLocation: GatewayNodeLocation?
+                if let twoLetterIsoCountryCode = node.location.twoLetterISOCountryCode,
+                   let latitude = node.location.latitude,
+                   let longitude = node.location.longitude,
+                   let city = node.location.city,
+                   let region = node.location.region {
+                    gatewayNodeLocation = GatewayNodeLocation(
+                        twoLetterIsoCountryCode: twoLetterIsoCountryCode,
+                        latitude: latitude,
+                        longitude: longitude,
+                        city: city,
+                        region: region,
+                        asn: asn
+                    )
+                }
+
                 return GatewayNode(
                     id: node.identityKey,
-                    countryCode: node.location.twoLetterISOCountryCode ?? "",
-                    city: node.location.city ?? "",
-                    region: node.location.region ?? "",
-                    asn: asn,
+                    location: gatewayNodeLocation,
                     performance: performance,
                     mixnetScore: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
                     moniker: node.name,
@@ -103,7 +119,7 @@ extension GatewayManager {
                 )
             }
         } catch {
-            print(error)
+            print("🔥🔥🔥 \(error)")
             return []
         }
     }
@@ -135,7 +151,7 @@ private func mapScore(from load: Load?) -> GatewayNodeScore {
     }
 }
 
-private func mapASNType(from kind: Kind) -> GatewayASNType {
+private func mapASNType(from kind: Kind) -> GatewayNodeASNType {
     switch kind {
     case .residential:
         .residential

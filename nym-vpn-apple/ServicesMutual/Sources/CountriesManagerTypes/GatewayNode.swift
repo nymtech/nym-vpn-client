@@ -1,10 +1,7 @@
 public struct GatewayNode: Codable, Hashable {
     public let id: String
-    public let countryCode: String
-    public let city: String
-    public let region: String
-    public let asn: GatewayASN?
-    public let performance: GatewayPerformance
+    public let location: GatewayNodeLocation?
+    public let performance: GatewayNodePerformance?
     public let mixnetScore: GatewayNodeScore
     public let moniker: String?
     public let buildVersion: String?
@@ -13,11 +10,8 @@ public struct GatewayNode: Codable, Hashable {
 
     public init(
         id: String,
-        countryCode: String,
-        city: String,
-        region: String,
-        asn: GatewayASN?,
-        performance: GatewayPerformance,
+        location: GatewayNodeLocation?,
+        performance: GatewayNodePerformance?,
         mixnetScore: GatewayNodeScore,
         moniker: String?,
         buildVersion: String?,
@@ -25,10 +19,7 @@ public struct GatewayNode: Codable, Hashable {
         ipv6s: [String]
     ) {
         self.id = id
-        self.countryCode = countryCode
-        self.city = city
-        self.region = region
-        self.asn = asn
+        self.location = location
         self.performance = performance
         self.mixnetScore = mixnetScore
         self.moniker = moniker
