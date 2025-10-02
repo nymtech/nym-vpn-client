@@ -20,7 +20,7 @@ use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
     VpnApiClient,
     response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use time::Date;
@@ -33,7 +33,7 @@ const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
 
 pub(super) struct RequestZkNymTask {
-    account: VpnApiAccount,
+    account: VpnAccount,
     device: Device,
     vpn_api_client: VpnApiClient,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
@@ -42,7 +42,7 @@ pub(super) struct RequestZkNymTask {
 
 impl RequestZkNymTask {
     pub(super) fn new(
-        account: VpnApiAccount,
+        account: VpnAccount,
         device: Device,
         vpn_api_client: VpnApiClient,
         credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,

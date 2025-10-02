@@ -3,16 +3,17 @@
 
 use std::path::Path;
 
+use nym_vpn_store::types::StorableAccount;
 use nym_vpn_store::{
+    account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
-    mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
 
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
-    mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
+    account_storage: nym_vpn_store::account::on_disk::OnDiskAccountStorage,
 }
 
 impl VpnClientOnDiskStorage {
@@ -22,11 +23,11 @@ impl VpnClientOnDiskStorage {
 
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
         let mnemonic_storage =
-            nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage::new(mnemonic_storage_path);
+            nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(mnemonic_storage_path);
 
         VpnClientOnDiskStorage {
             key_store,
-            mnemonic_storage,
+            account_storage: mnemonic_storage,
         }
     }
 }
@@ -59,18 +60,18 @@ impl DeviceKeyStore for VpnClientOnDiskStorage {
 }
 
 #[async_trait::async_trait]
-impl MnemonicStorage for VpnClientOnDiskStorage {
+impl AccountInformationStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskMnemonicStorageError;
 
-    async fn load_mnemonic(&self) -> Result<Option<Mnemonic>, Self::StorageError> {
-        self.mnemonic_storage.load_mnemonic().await
+    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError> {
+        self.account_storage.load_account().await
     }
 
-    async fn store_mnemonic(&self, mnemonic: Mnemonic) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.store_mnemonic(mnemonic).await
+    async fn store_account(&self, mnemonic: StorableAccount) -> Result<(), Self::StorageError> {
+        self.account_storage.store_account(mnemonic).await
     }
 
-    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.remove_mnemonic().await
+    async fn remove_account(&self) -> Result<(), Self::StorageError> {
+        self.account_storage.remove_account().await
     }
 }

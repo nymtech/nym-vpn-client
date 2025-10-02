@@ -10,3 +10,51 @@ pub struct RawWireguardKeys {
     pub entry_private_key_bs58: String,
     pub exit_private_key_bs58: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct StorableAccount {
+    pub mnemonic: bip39::Mnemonic,
+    pub mode: StoredAccountMode,
+}
+
+impl StorableAccount {
+    pub fn new(mnemonic: bip39::Mnemonic, mode: StoredAccountMode) -> StorableAccount {
+        StorableAccount { mnemonic, mode }
+    }
+}
+
+// legacy case
+impl From<bip39::Mnemonic> for StorableAccount {
+    fn from(mnemonic: bip39::Mnemonic) -> Self {
+        StorableAccount {
+            mnemonic,
+            mode: StoredAccountMode::Api,
+        }
+    }
+}
+
+/// Defines the mode of operation of the associated account.
+#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum StoredAccountMode {
+    /// Account works in the API mode, i.e. the subscription is managed
+    /// by the VPN API which provides required ticketbooks
+    #[default]
+    Api,
+
+    /// Account works in the decentralised mode, i.e. there is no associated subscription
+    /// and the account uses its own funds for obtaining required ticketbooks
+    Decentralised,
+}
+
+#[cfg(test)]
+mod tests {
+    use zeroize::ZeroizeOnDrop;
+
+    fn _assert_zeroize_on_drop<T: ZeroizeOnDrop>() {}
+
+    #[test]
+    fn mnemonic_zeroize_feature_is_activated() {
+        _assert_zeroize_on_drop::<bip39::Mnemonic>();
+    }
+}

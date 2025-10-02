@@ -394,8 +394,8 @@ async fn get_feature_flags(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn store_account(mut rpc_client: RpcClient, store_args: StoreAccountArgs) -> Result<()> {
-    let request = StoreAccountRequest {
-        mnemonic: store_args.mnemonic.clone(),
+    let request = StoreAccountRequest::Vpn {
+        mnemonic: store_args.mnemonic,
     };
     let response = rpc_client.store_account(request).await?;
 

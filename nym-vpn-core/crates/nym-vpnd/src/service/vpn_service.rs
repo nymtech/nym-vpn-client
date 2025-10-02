@@ -983,9 +983,16 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
-            .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-        self.account_command_tx.store_account(mnemonic).await
+        match store_request {
+            StoreAccountRequest::Vpn { mnemonic } => {
+                let mnemonic = Mnemonic::parse::<String>(mnemonic)
+                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+                self.account_command_tx.store_account(mnemonic.into()).await
+            }
+            StoreAccountRequest::Decentralised {} => Err(AccountCommandError::Internal(
+                "attempted to store an unimplemented decentralised account".to_string(),
+            )),
+        }
     }
 
     async fn handle_is_account_stored(&self) -> bool {

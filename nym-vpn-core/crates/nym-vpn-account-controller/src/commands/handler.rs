@@ -1,24 +1,23 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
-    types::{DeviceStatus, VpnApiAccount},
+    types::{DeviceStatus, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
-use nym_vpn_store::mnemonic::Mnemonic;
-
-use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
+use nym_vpn_store::account::StorableAccount;
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
 pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-    mnemonic: Mnemonic,
+    account: StorableAccount,
 ) -> Result<(), AccountCommandError> {
-    let vpn_account = VpnApiAccount::try_from(mnemonic.clone())
+    let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
     // We don't check the account status here. The check was bypassed when offline anyway. We defer that job to the syncing state
@@ -27,7 +26,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
-        .send(AccountStorageOp::StoreAccount(tx, mnemonic.clone()))
+        .send(AccountStorageOp::StoreAccount(tx, account))
         .map_err(AccountCommandError::internal)?;
     let device = rx
         .await
@@ -44,12 +43,16 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
 pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
-    let (vpn_account, mnemonic) = VpnApiAccount::random().map_err(AccountCommandError::internal)?;
+    let (vpn_account, mnemonic) =
+        VpnAccount::generate_new().map_err(AccountCommandError::internal)?;
 
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
-        .send(AccountStorageOp::StoreAccount(tx, mnemonic.clone()))
+        .send(AccountStorageOp::StoreAccount(
+            tx,
+            StorableAccount::new(mnemonic, vpn_account.mode().into()),
+        ))
         .map_err(AccountCommandError::internal)?;
     let device = rx
         .await

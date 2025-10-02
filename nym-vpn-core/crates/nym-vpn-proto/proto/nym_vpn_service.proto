@@ -620,7 +620,19 @@ message GatewayFilters {
 // --- Requests and responses ---
 
 message StoreAccountRequest {
+  oneof request {
+    VpnAccountStoreRequest vpn_account_store = 1;
+    DecentralisedAccountStoreRequest decentralised_account_store = 2;
+  }
+}
+
+// VPN variant with mnemonic
+message VpnAccountStoreRequest {
   string mnemonic = 1;
+}
+
+message DecentralisedAccountStoreRequest {
+  // TODO: define fields when available
 }
 
 message AccountCommandResponse {

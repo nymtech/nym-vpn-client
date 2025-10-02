@@ -8,19 +8,19 @@ use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
 };
-use nym_vpn_api_client::{VpnApiClient, types::VpnApiAccount};
+use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
+    account::{AccountInformationStorage, Mnemonic, ephemeral::InMemoryAccountStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys},
-    mnemonic::{Mnemonic, MnemonicStorage, ephemeral::InMemoryMnemonicStorageError},
 };
 use wiremock::{Mock, MockServer};
 
+use crate::common::credential_proxy::MockCredentialProxy;
+use nym_vpn_store::account::{StorableAccount, StoredAccountMode};
 use tokio::{sync::watch, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
-
-use crate::common::credential_proxy::MockCredentialProxy;
 
 pub mod account_summary;
 pub mod credential_proxy;
@@ -60,12 +60,15 @@ pub fn mock_user_agent() -> nym_http_api_client::UserAgent {
     }
 }
 
-pub fn mock_mnemonic() -> Mnemonic {
-    Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap()
+pub fn mock_account(mode: StoredAccountMode) -> StorableAccount {
+    StorableAccount {
+        mnemonic: Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap(),
+        mode,
+    }
 }
 
 pub fn mock_account_id() -> String {
-    VpnApiAccount::try_from(mock_mnemonic())
+    VpnAccount::try_from(mock_account(StoredAccountMode::Api))
         .unwrap()
         .id()
         .to_string()
@@ -108,7 +111,7 @@ impl ConnectivityMonitor for MockConnectivityHandle {
 #[derive(Default)]
 pub struct MockEphemeralStorage {
     key_store: nym_vpn_store::keys::device::InMemEphemeralKeys,
-    mnemonic_storage: nym_vpn_store::mnemonic::ephemeral::InMemoryMnemonicStorage,
+    mnemonic_storage: nym_vpn_store::account::ephemeral::InMemoryAccountStorage,
 }
 
 impl nym_vpn_store::VpnStorage for MockEphemeralStorage {}
@@ -139,19 +142,19 @@ impl DeviceKeyStore for MockEphemeralStorage {
 }
 
 #[async_trait::async_trait]
-impl MnemonicStorage for MockEphemeralStorage {
-    type StorageError = InMemoryMnemonicStorageError;
+impl AccountInformationStorage for MockEphemeralStorage {
+    type StorageError = InMemoryAccountStorageError;
 
-    async fn load_mnemonic(&self) -> Result<Option<Mnemonic>, Self::StorageError> {
-        self.mnemonic_storage.load_mnemonic().await
+    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError> {
+        self.mnemonic_storage.load_account().await
     }
 
-    async fn store_mnemonic(&self, mnemonic: Mnemonic) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.store_mnemonic(mnemonic).await
+    async fn store_account(&self, account: StorableAccount) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.store_account(account).await
     }
 
-    async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.remove_mnemonic().await
+    async fn remove_account(&self) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage.remove_account().await
     }
 }
 
@@ -287,7 +290,16 @@ impl TestBench {
     }
 
     pub async fn store_mock_account(&self) -> anyhow::Result<()> {
-        self.command_sender.store_account(mock_mnemonic()).await?;
+        self.command_sender
+            .store_account(mock_account(StoredAccountMode::Api))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn store_mock_decentralised_account(&self) -> anyhow::Result<()> {
+        self.command_sender
+            .store_account(mock_account(StoredAccountMode::Decentralised))
+            .await?;
         Ok(())
     }
 

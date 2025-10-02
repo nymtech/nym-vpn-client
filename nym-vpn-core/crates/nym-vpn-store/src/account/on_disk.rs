@@ -1,14 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use super::{AccountInformationStorage, StoredAccount};
+use crate::types::StorableAccount;
+use std::path::Path;
 #[cfg(unix)]
 use std::{fs::Permissions, os::unix::fs::PermissionsExt};
 use std::{
     fs::{File, OpenOptions},
     path::PathBuf,
 };
-
-use super::{MnemonicStorage, StoredMnemonic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
@@ -34,29 +35,32 @@ pub enum OnDiskMnemonicStorageError {
     RemoveError(#[source] std::io::Error),
 }
 
-pub struct OnDiskMnemonicStorage {
+pub struct OnDiskAccountStorage {
     path: PathBuf,
 }
 
-impl OnDiskMnemonicStorage {
-    pub fn new(path: PathBuf) -> Self {
-        Self { path }
+impl OnDiskAccountStorage {
+    pub fn new<P: AsRef<Path>>(path: P) -> Self {
+        Self {
+            path: path.as_ref().to_path_buf(),
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl MnemonicStorage for OnDiskMnemonicStorage {
+impl AccountInformationStorage for OnDiskAccountStorage {
     type StorageError = OnDiskMnemonicStorageError;
 
-    async fn store_mnemonic(
+    async fn store_account(
         &self,
-        mnemonic: bip39::Mnemonic,
+        account: StorableAccount,
     ) -> Result<(), OnDiskMnemonicStorageError> {
         let name = "default".to_string();
         let nonce = 0;
-        let stored_mnemonic = StoredMnemonic {
+        let stored_account = StoredAccount {
             name,
-            mnemonic,
+            mnemonic: account.mnemonic,
+            mode: account.mode,
             nonce,
         };
 
@@ -107,7 +111,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
                 source: err,
             })?;
 
-        serde_json::to_writer(file, &stored_mnemonic)
+        serde_json::to_writer(file, &stored_account)
             .map_err(OnDiskMnemonicStorageError::WriteError)?;
 
         #[cfg(unix)]
@@ -127,7 +131,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         Ok(())
     }
 
-    async fn load_mnemonic(&self) -> Result<Option<bip39::Mnemonic>, OnDiskMnemonicStorageError> {
+    async fn load_account(&self) -> Result<Option<StorableAccount>, OnDiskMnemonicStorageError> {
         tracing::debug!("Opening: {}", self.path.display());
 
         // Make sure that the file has permissions set to 600 (rw------)
@@ -149,10 +153,10 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
 
         serde_json::from_reader(file)
             .map_err(OnDiskMnemonicStorageError::ReadError)
-            .map(|s: StoredMnemonic| Some(s.mnemonic.clone()))
+            .map(|s: StoredAccount| Some(s.into()))
     }
 
-    async fn remove_mnemonic(&self) -> Result<(), OnDiskMnemonicStorageError> {
+    async fn remove_account(&self) -> Result<(), OnDiskMnemonicStorageError> {
         if !self.path.exists() {
             return Ok(());
         }
@@ -165,34 +169,42 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::account::Nonce;
+    use crate::account::test_fixtures::{account_fixture, mnemonic_fixture};
+    use crate::types::StoredAccountMode;
+    use bip39::Mnemonic;
+    use serde::{Deserialize, Serialize};
 
     #[tokio::test]
-    async fn store_mnemonic() {
-        let mnemonic = bip39::Mnemonic::generate_in(bip39::Language::English, 12).unwrap();
+    async fn store_account() {
+        let account = account_fixture();
+
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
-        mnemonic_storage
-            .store_mnemonic(mnemonic.clone())
+
+        let account_storage = OnDiskAccountStorage::new(path.clone());
+        account_storage
+            .store_account(account.clone())
             .await
             .unwrap();
 
-        let stored_mnemonic = mnemonic_storage.load_mnemonic().await.unwrap();
-        assert_eq!(Some(mnemonic), stored_mnemonic);
+        let stored_account = account_storage.load_account().await.unwrap();
+        assert_eq!(Some(account), stored_account);
     }
 
     #[tokio::test]
     async fn store_twice_fails() {
-        let mnemonic = bip39::Mnemonic::generate_in(bip39::Language::English, 12).unwrap();
+        let account = account_fixture();
+
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
-        mnemonic_storage
-            .store_mnemonic(mnemonic.clone())
+        let account_storage = OnDiskAccountStorage::new(path.clone());
+        account_storage
+            .store_account(account.clone())
             .await
             .unwrap();
 
-        let result = mnemonic_storage.store_mnemonic(mnemonic).await;
+        let result = account_storage.store_account(account).await;
         assert!(matches!(
             result,
             Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored { .. })
@@ -203,8 +215,8 @@ mod tests {
     async fn load_return_none_if_file_does_not_exist() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
-        let result = mnemonic_storage.load_mnemonic().await;
+        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let result = account_storage.load_account().await;
         assert!(matches!(result, Ok(None)));
     }
 
@@ -212,12 +224,50 @@ mod tests {
     async fn load_fails_if_no_mnemonic_stored() {
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("test.txt");
-        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
+        let account_storage = OnDiskAccountStorage::new(path.clone());
         let _ = File::create(&path).unwrap();
-        let result = mnemonic_storage.load_mnemonic().await;
+        let result = account_storage.load_account().await;
         assert!(matches!(
             result,
             Err(OnDiskMnemonicStorageError::ReadError(_))
         ));
+    }
+
+    #[tokio::test]
+    async fn load_of_legacy_mnemonics_still_works() -> anyhow::Result<()> {
+        #[derive(Serialize, Deserialize)]
+        struct LegacyStoredMnemonic {
+            name: String,
+            mnemonic: Mnemonic,
+            nonce: Nonce,
+        }
+
+        let legacy = LegacyStoredMnemonic {
+            name: "foomp".to_string(),
+            mnemonic: mnemonic_fixture(),
+            nonce: 0,
+        };
+
+        let tempdir = tempfile::tempdir()?;
+        let path = tempdir.path().join("test.txt");
+
+        // save legacy data
+        tokio::fs::create_dir_all(tempdir.path()).await?;
+        let file = OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(&path)?;
+        serde_json::to_writer(file, &legacy)?;
+
+        let expected = StorableAccount {
+            mnemonic: mnemonic_fixture(),
+            mode: StoredAccountMode::Api,
+        };
+
+        let account_storage = OnDiskAccountStorage::new(path.clone());
+        let loaded = account_storage.load_account().await?;
+        assert_eq!(Some(expected), loaded);
+
+        Ok(())
     }
 }
