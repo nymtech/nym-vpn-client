@@ -840,14 +840,11 @@ impl TunnelMonitor {
             bw_controller,
         } = registration_result;
 
-        let entry_legacy_client = entry_gateway_client.into_legacy();
-        let exit_legacy_client = exit_gateway_client.into_legacy();
-
         let bw = BandwidthController::create(
             bw_controller,
             &selected_gateways,
-            entry_legacy_client,
-            exit_legacy_client,
+            entry_gateway_client,
+            exit_gateway_client,
             entry_gateway_data.clone(),
             exit_gateway_data.clone(),
             entry_signal_rx,
