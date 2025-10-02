@@ -40,7 +40,7 @@ default-members = [
     "crates/uniffi-bindgen",
 ]
 
-# For local feature/VPN-3518-two-kp-per-gatewayment
+# For local development
 # [patch."https://github.com/nymtech/nym"]
 # nym-authenticator-client = { path = "../../nym/nym-authenticator-client" }
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }

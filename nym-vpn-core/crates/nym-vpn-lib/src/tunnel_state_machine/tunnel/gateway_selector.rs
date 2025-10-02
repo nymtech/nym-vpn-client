@@ -33,7 +33,7 @@ impl std::fmt::Debug for GatewayWithKeys {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("GatewayWithKeys")
             .field("gateway", &self.gateway)
-            .field("public key", &self.keys.public_key())
+            .field("client_wireguard_public_key", &self.keys.public_key())
             .finish()
     }
 }
