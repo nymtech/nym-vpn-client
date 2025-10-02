@@ -15,6 +15,12 @@
     "same-entry-exit-gw": "同じエントリーと出口には接続できません。エントリーと出口の場所を変更してください。",
     "invalid-entry-gw-country": "無効なエントリーノードの国です。エントリーノードの場所を変更してください。",
     "invalid-exit-gw-country": "無効な出口ノードの国です。出口ノードの場所を変更してください",
+    "invalid-entry-gw-id": "Entry server is offline. Choose another and reconnect.",
+    "invalid-exit-gw-id": "サーバを終了するとオフラインです。別のサーバを選択して再接続します。",
+    "credential-wasted-entry-gw": "エントリーサーバーが帯域幅の増加に応答または不適切に応答していません。",
+    "credential-wasted-exit-gw": "Exit サーバーが帯域幅の増加に応答または不適切に応答していません。",
+    "performant-entry-gw-unavailable": "エントリサーバーにアクセスできません。別のものをお試しください！",
+    "performant-exit-gw-unavailable": "終了サーバーにアクセスできません。もう一度お試しください！",
     "max-devices-reached": "アカウントデバイスの上限を超えました。接続する前にアカウントからデバイスを削除してください。",
     "bandwidth-exceeded": "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。",
     "subscription-expired": "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。",
@@ -23,9 +29,7 @@
     "tun-device": "TUNデバイスエラー",
     "tunnel-provider": "トンネルプロバイダエラー",
     "inactive-account": "あなたのアカウントは無効です",
-    "device-logged-out": "このデバイスはログアウトされました。VPNを使用するにはログインしてください。",
-    "entry-gateway-bandwidth-increase": "エントリゲートウェイが帯域幅の増加に応答または不適切に応答していません。",
-    "exit-gateway-bandwidth-increase": "出口ゲートウェイは帯域幅の増加に応答または不適切に応答していません。"
+    "device-logged-out": "このデバイスはログアウトされました。VPNを使用するにはログインしてください。"
   },
   "account": {
     "internal": "内部アカウントエラー",

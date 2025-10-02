@@ -15,6 +15,12 @@
     "same-entry-exit-gw": "एक ही प्रवेश और निकासी नोड से कनेक्ट नहीं कर सकते। कृपया या तो प्रवेश या निकासी नोड स्थान बदलें।",
     "invalid-entry-gw-country": "अमान्य प्रवेश नोड देश, कृपया प्रवेश नोड स्थान बदलें",
     "invalid-exit-gw-country": "अमान्य निकास नोड देश, कृपया निकास नोड स्थान बदलें",
+    "invalid-entry-gw-id": "Entry server is offline. Choose another and reconnect.",
+    "invalid-exit-gw-id": "Exit server is offline. Choose another and reconnect.",
+    "credential-wasted-entry-gw": "Entry server is not responding or responding badly to a bandwidth increase.",
+    "credential-wasted-exit-gw": "Exit server is not responding or responding badly to a bandwidth increase.",
+    "performant-entry-gw-unavailable": "Can't reach entry server. Try another!",
+    "performant-exit-gw-unavailable": "Can't reach exit server. Try another!",
     "max-devices-reached": "खाता उपकरण सीमा पार हो गई। कृपया कनेक्ट करने से पहले अपने खाते से एक उपकरण हटाएं।",
     "bandwidth-exceeded": "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।",
     "subscription-expired": "सब्सक्रिप्शन समाप्त हो गई है। कृपया अपने खाते के लिए एक प्लान खरीदें।",
@@ -23,9 +29,7 @@
     "tun-device": "TUN डिवाइस त्रुटि",
     "tunnel-provider": "टनल प्रदाता त्रुटि",
     "inactive-account": "आपका खाता निष्क्रिय है",
-    "device-logged-out": "यह डिवाइस लॉग आउट हो चुका है। कृपया VPN का उपयोग जारी रखने के लिए लॉग इन करें।",
-    "entry-gateway-bandwidth-increase": "Entry gateway is not responding or responding badly to a bandwidth increase.",
-    "exit-gateway-bandwidth-increase": "Exit gateway is not responding or responding badly to a bandwidth increase."
+    "device-logged-out": "यह डिवाइस लॉग आउट हो चुका है। कृपया VPN का उपयोग जारी रखने के लिए लॉग इन करें।"
   },
   "account": {
     "internal": "आंतरिक खाता त्रुटि",

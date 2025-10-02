@@ -36,15 +36,21 @@
       "build-version": "Nym 构建版本",
       "identity-key": "身份密钥："
     },
-    "score": {
+    "perf-score": {
       "high": "好",
       "medium": "Mid",
       "low": "低",
       "offline": "离线的"
     },
+    "server-load-score": {
+      "high": "高",
+      "medium": "中",
+      "low": "低",
+      "offline": "离线的"
+    },
     "notes": {
       "anti-censorship": "在反新闻检查设置中启用“QUIC协议”来使用此功能",
-      "performance_with_date": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{date}}.",
+      "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
       "performance": "根据服务器负载和上班时间计算性能分数。上传时间为24小时平均值。"
     },
     "links": {

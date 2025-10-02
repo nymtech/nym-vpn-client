@@ -36,15 +36,21 @@
       "build-version": "Nym ビルド バージョン",
       "identity-key": "アイデンティティキー:"
     },
-    "score": {
+    "perf-score": {
       "high": "良い",
       "medium": "Mid",
       "low": "低い",
       "offline": "オフライン"
     },
+    "server-load-score": {
+      "high": "高い",
+      "medium": "ミディアム",
+      "low": "低い",
+      "offline": "オフライン"
+    },
     "notes": {
       "anti-censorship": "この機能を使用するには、検閲防止設定で「QUICプロトコル」を有効にしてください",
-      "performance_with_date": "サーバーの負荷とアップタイムから計算されたパフォーマンススコア。24時間の平均稼働時間。最終更新 {{date}}。",
+      "performance_with_time": "サーバーの負荷とアップタイムから計算されたパフォーマンススコア。24時間の平均稼働時間。最終更新 {{relativeTime}}。",
       "performance": "サーバーの負荷とアップタイムから計算されたパフォーマンススコア。稼働時間は、直近24時間の平均で計算されます。"
     },
     "links": {
