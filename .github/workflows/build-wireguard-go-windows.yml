@@ -29,13 +29,13 @@ jobs:
         uses: msys2/setup-msys2@v2
         id: msys2
         with:
-          update: false
+          update: true
           msystem: MINGW64
           install: mingw-w64-x86_64-clang
 
       - name: Install GNU make
         run: |
-          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Install cargo-get
