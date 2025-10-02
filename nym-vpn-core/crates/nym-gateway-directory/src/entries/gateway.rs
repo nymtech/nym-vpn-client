@@ -227,10 +227,10 @@ impl Gateway {
         min_mixnet_performance: Option<u8>,
     ) -> bool {
         let satisfies_wg_performance = if let Some(min_wg_performance_score) = min_wg_performance {
-            self.wg_performance.as_ref().is_some_and(|v| {
-                let percent = (v.uptime_percentage_last_24_hours * 100f32) as u8;
-                percent >= min_wg_performance_score
-            })
+            let score = ScoreValue::from_threshold(min_wg_performance_score);
+            self.wg_performance
+                .as_ref()
+                .is_some_and(|v| v.score >= score)
         } else {
             true
         };
@@ -301,12 +301,41 @@ pub struct Location {
     pub asn: Option<Asn>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScoreValue {
     Offline,
     Low,
     Medium,
     High,
+}
+
+impl ScoreValue {
+    pub fn from_threshold(percentage: u8) -> Self {
+        if percentage >= HIGH_SCORE_THRESHOLD {
+            ScoreValue::High
+        } else if percentage >= MEDIUM_SCORE_THRESHOLD {
+            ScoreValue::Medium
+        } else if percentage > LOW_SCORE_THRESHOLD {
+            ScoreValue::Low
+        } else {
+            ScoreValue::Offline
+        }
+    }
+
+    fn priority(&self) -> u8 {
+        match self {
+            ScoreValue::Offline => 0,
+            ScoreValue::Low => 1,
+            ScoreValue::Medium => 2,
+            ScoreValue::High => 3,
+        }
+    }
+}
+
+impl PartialOrd for ScoreValue {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.priority().cmp(&other.priority()))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
