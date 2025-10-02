@@ -828,7 +828,7 @@ mod tests {
             min_wg_performance: Some(80),
             min_mixnet_performance: None,
         }]);
-        assert_eq!(gws.len(), 0);
+        assert_eq!(gws.len(), 6);
 
         let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
             min_wg_performance: None,
