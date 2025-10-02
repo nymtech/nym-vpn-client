@@ -188,7 +188,7 @@ impl RpcClient {
         let response = self
             .inner
             .clone()
-            .store_account(nym_vpn_lib_types::StoreVpnAccountRequest { mnemonic })
+            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic })
             .await?;
 
         if let Some(err) = response.error {

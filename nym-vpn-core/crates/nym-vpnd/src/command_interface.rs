@@ -345,9 +345,11 @@ impl NymVpnService for CommandInterface {
 
     async fn store_account(
         &self,
-        request: tonic::Request<proto::StoreVpnAccountRequest>,
+        request: tonic::Request<proto::StoreAccountRequest>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let store_request = nym_vpn_lib_types::StoreVpnAccountRequest::from(request.into_inner());
+        let store_request = nym_vpn_lib_types::StoreAccountRequest::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+
         let result = self
             .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
             .await?;

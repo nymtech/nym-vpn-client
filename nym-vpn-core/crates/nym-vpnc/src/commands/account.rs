@@ -3,7 +3,7 @@
 
 use anyhow::Result;
 
-use nym_vpn_lib_types::StoreVpnAccountRequest;
+use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 #[derive(Debug, Clone, clap::Subcommand)]
@@ -49,7 +49,7 @@ impl Command {
             }
             Command::Set { mnemonic } => {
                 rpc_client
-                    .store_account(StoreVpnAccountRequest { mnemonic })
+                    .store_account(StoreAccountRequest::Vpn { mnemonic })
                     .await?;
                 println!("Your account has been set. Welcome to the Nym VPN!");
                 Ok(())

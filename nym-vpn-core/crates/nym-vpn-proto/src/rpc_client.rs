@@ -10,8 +10,8 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib_types::{
     AccountCommandResponse, AccountControllerState, AvailableTickets, ConnectArgs, Gateway,
-    ListGatewaysOptions, LogPath, StoreVpnAccountRequest, TunnelEvent, TunnelState,
-    VpnServiceConfig, VpnServiceInfo,
+    ListGatewaysOptions, LogPath, StoreAccountRequest, TunnelEvent, TunnelState, VpnServiceConfig,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio_stream::{Stream, StreamExt};
@@ -260,9 +260,9 @@ impl RpcClient {
 
     pub async fn store_account(
         &mut self,
-        store_request: StoreVpnAccountRequest,
+        store_request: StoreAccountRequest,
     ) -> Result<AccountCommandResponse> {
-        let request = proto::StoreVpnAccountRequest::from(store_request);
+        let request = proto::StoreAccountRequest::from(store_request);
         let response = self
             .0
             .store_account(request)

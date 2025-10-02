@@ -18,8 +18,8 @@ message Address {
 }
 
 enum AsnKind {
-    RESIDENTIAL = 0;
-    OTHER = 1;
+  RESIDENTIAL = 0;
+  OTHER = 1;
 }
 
 message Asn {
@@ -87,7 +87,7 @@ message Dns {
   optional string ip = 1;
 }
 
-message Url { string url = 1; }
+message Url {string url = 1;}
 
 message ApiUrl {
   string url = 1;
@@ -336,12 +336,12 @@ enum TunnelType {
 }
 
 enum EstablishConnectionState {
-    RESOLVING_API_ADDRESSES = 0;
-    AWAITING_ACCOUNT_READINESS = 1;
-    REFRESHING_GATEWAYS = 2;
-    SELECTING_GATEWAYS = 3;
-    CONNECTING_MIXNET_CLIENT = 4;
-    CONNECTING_TUNNEL = 5;
+  RESOLVING_API_ADDRESSES = 0;
+  AWAITING_ACCOUNT_READINESS = 1;
+  REFRESHING_GATEWAYS = 2;
+  SELECTING_GATEWAYS = 3;
+  CONNECTING_MIXNET_CLIENT = 4;
+  CONNECTING_TUNNEL = 5;
 }
 
 message EstablishConnectionData {
@@ -598,12 +598,24 @@ message AccountControllerState {
 
 // --- Requests and responses ---
 
-message StoreVpnAccountRequest {
+message StoreAccountRequest {
+  oneof request {
+    VpnAccountStoreRequest vpn_account_store = 1;
+    DecentralisedAccountStoreRequest decentralised_account_store = 2;
+  }
+}
+
+// VPN variant with mnemonic
+message VpnAccountStoreRequest {
   string mnemonic = 1;
 }
 
+message DecentralisedAccountStoreRequest {
+  // TODO: define fields when available
+}
+
 message AccountCommandResponse {
- optional AccountCommandError error = 1;
+  optional AccountCommandError error = 1;
 }
 
 
@@ -746,7 +758,7 @@ service NymVpnService {
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
-  rpc StoreAccount (StoreVpnAccountRequest) returns (AccountCommandResponse) {}
+  rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
