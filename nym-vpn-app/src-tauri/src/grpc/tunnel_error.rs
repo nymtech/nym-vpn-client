@@ -4,7 +4,7 @@ use serde::Serialize;
 use ts_rs::TS;
 
 #[derive(Serialize, Clone, Debug, strum::Display, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "key", content = "message")]
 pub enum TunnelError {

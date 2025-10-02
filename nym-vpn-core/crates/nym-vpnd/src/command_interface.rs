@@ -4,7 +4,8 @@
 use std::path::PathBuf;
 
 use futures::{StreamExt, stream::BoxStream};
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayFilters};
+use nym_vpn_lib_types::{ConnectArgs, ListGatewaysOptions, TargetState, TunnelEvent};
 use tokio::{
     sync::{
         broadcast,
@@ -16,7 +17,6 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 
-use nym_vpn_lib_types::{ConnectArgs, ListGatewaysOptions, TargetState, TunnelEvent};
 use nym_vpn_proto::proto::{
     self,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
@@ -333,6 +333,29 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::ListGateways, options)
             .await?
             .map_err(|err| tonic::Status::internal(format!("Failed to list gateways: {err}")))?;
+
+        let response = proto::ListGatewaysResponse {
+            gateways: gateways
+                .into_iter()
+                .map(proto::GatewayResponse::from)
+                .collect(),
+        };
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn list_filtered_gateways(
+        &self,
+        request: tonic::Request<proto::GatewayFilters>,
+    ) -> Result<tonic::Response<proto::ListGatewaysResponse>> {
+        let filters = GatewayFilters::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+
+        let gateways = self
+            .send_and_wait(VpnServiceCommand::ListFilteredGateways, filters)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to list filtered gateways: {err}"))
+            })?;
 
         let response = proto::ListGatewaysResponse {
             gateways: gateways

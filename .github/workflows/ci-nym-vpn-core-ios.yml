@@ -18,11 +18,20 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build:
-    runs-on: custom-macos-15
+    runs-on: ${{ matrix.runner }}
     needs: build-wireguard-go-ios
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - custom-macos-15
+          - macos-15
 
     steps:
-      - name: "Cleanup working directory"
+      - name: Cleanup working directory
+        if: matrix.runner == 'custom-macos-15'
         shell: bash
         run: |
           ls -la ./
@@ -45,6 +54,27 @@ jobs:
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache Cargo build
+        uses: actions/cache@v4
+        with:
+          path: nym-vpn-core/target/
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
         uses: actions/download-artifact@v5

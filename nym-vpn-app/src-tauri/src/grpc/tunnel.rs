@@ -9,7 +9,7 @@ use super::proto::ProtoConversionError;
 use super::tunnel_error::TunnelError;
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Address {
     pub nym_address: String,
@@ -17,7 +17,7 @@ pub struct Address {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct WgNode {
     pub endpoint: String,
@@ -27,7 +27,7 @@ pub struct WgNode {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct MixnetData {
     pub nym_address: Option<Address>,
@@ -39,7 +39,7 @@ pub struct MixnetData {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct WireguardData {
     pub entry: WgNode,
@@ -47,7 +47,7 @@ pub struct WireguardData {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(untagged)]
 pub enum TunnelData {
     Mixnet(MixnetData),
@@ -55,7 +55,7 @@ pub enum TunnelData {
 }
 
 #[derive(Serialize, Clone, PartialEq, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Tunnel {
     pub entry_gw_id: String,
@@ -65,7 +65,7 @@ pub struct Tunnel {
 }
 
 #[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum TunnelType {
     #[default]
@@ -74,7 +74,7 @@ pub enum TunnelType {
 }
 
 #[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum ConnectingProgress {
     #[default]
@@ -87,7 +87,7 @@ pub enum ConnectingProgress {
 }
 
 #[derive(Serialize, Clone, PartialEq, Debug, TS, Default)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectingState {
     pub tunnel_type: TunnelType,
@@ -99,7 +99,7 @@ pub struct ConnectingState {
 }
 
 #[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts", rename = "TTunnelState")]
 #[serde(rename_all = "camelCase")]
 pub enum TunnelState {
     #[default]
@@ -265,7 +265,7 @@ impl TryFrom<p::ConnectionData> for Tunnel {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS, strum::Display)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum TunnelAction {

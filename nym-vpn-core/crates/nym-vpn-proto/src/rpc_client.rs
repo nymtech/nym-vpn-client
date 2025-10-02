@@ -3,7 +3,7 @@
 
 use std::path::PathBuf;
 
-use nym_gateway_directory::{EntryPoint, ExitPoint};
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayFilters};
 use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
@@ -248,6 +248,25 @@ impl RpcClient {
         let gateways = self
             .0
             .list_gateways(request)
+            .await
+            .map(|v| v.into_inner().gateways)
+            .map_err(Error::Rpc)?;
+
+        gateways
+            .into_iter()
+            .map(|gateway| Gateway::try_from(gateway).map_err(Error::InvalidResponse))
+            .collect::<Result<Vec<_>>>()
+    }
+
+    pub async fn list_filtered_gateways(
+        &mut self,
+        filters: GatewayFilters,
+    ) -> Result<Vec<Gateway>> {
+        let request = proto::GatewayFilters::from(filters);
+
+        let gateways = self
+            .0
+            .list_filtered_gateways(request)
             .await
             .map(|v| v.into_inner().gateways)
             .map_err(Error::Rpc)?;

@@ -14,7 +14,8 @@ use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
+        TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
+        WireguardTunnelOptions,
     },
 };
 use nym_vpn_lib_types::TunnelType;
@@ -92,7 +93,10 @@ pub(super) async fn start_state_machine(
         residential_exit: config.residential_exit,
         tunnel_type,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
-        wireguard_tunnel_options: WireguardTunnelOptions::default(),
+        wireguard_tunnel_options: WireguardTunnelOptions {
+            multihop_mode: WireguardMultihopMode::Netstack,
+            enable_bridges: config.enable_bridges,
+        },
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_client_config: None,
         entry_point: Box::new(entry_point),

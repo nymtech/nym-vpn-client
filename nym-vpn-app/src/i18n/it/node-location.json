@@ -36,15 +36,21 @@
       "build-version": "Versione build Nym",
       "identity-key": "Chiave di identità:"
     },
-    "score": {
+    "perf-score": {
       "high": "Buono",
       "medium": "Mid",
       "low": "Basso",
       "offline": "Offline"
     },
+    "server-load-score": {
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Basso",
+      "offline": "Offline"
+    },
     "notes": {
       "anti-censorship": "Abilita “Protocollo QUIC” nelle impostazioni anti-censura per utilizzare questa funzione",
-      "performance_with_date": "Punteggio delle prestazioni calcolato dal carico del server e dall'uptime. Uptime come ultima media di 24 ore. Ultimo aggiornamento {{date}}.",
+      "performance_with_time": "Punteggio delle prestazioni calcolato dal carico del server e dall'uptime. Uptime come ultima media di 24 ore. Ultimo aggiornamento {{relativeTime}}.",
       "performance": "Punteggio delle prestazioni calcolato dal carico del server e dall'uptime. Uptime come ultima media di 24 ore."
     },
     "links": {

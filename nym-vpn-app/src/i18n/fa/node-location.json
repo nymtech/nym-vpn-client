@@ -36,15 +36,21 @@
       "build-version": "Nym build version",
       "identity-key": "Identity key:"
     },
-    "score": {
+    "perf-score": {
       "high": "Good",
       "medium": "Mid",
       "low": "Low",
       "offline": "Offline"
     },
+    "server-load-score": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "offline": "Offline"
+    },
     "notes": {
       "anti-censorship": "Enable “QUIC protocol” in Anti-censorship Settings to use this feature",
-      "performance_with_date": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{date}}.",
+      "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
       "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
     },
     "links": {

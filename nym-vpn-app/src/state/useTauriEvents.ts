@@ -5,6 +5,7 @@ import i18n from 'i18next';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import {
   AccountLinks,
+  BackendError,
   FeatureFlags,
   MixnetEventPayload,
   StateDispatch,
@@ -80,7 +81,7 @@ export function useTauriEvents(
         console.log('tunnel error', event.payload.error);
         dispatch({
           type: 'set-error',
-          error: event.payload.error,
+          error: event.payload.error as BackendError,
         });
       }
     });

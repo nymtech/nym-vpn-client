@@ -1,19 +1,17 @@
+import NymVPNRpc
 import CountriesManagerTypes
 
 extension GatewayNode {
-    init(with newGateway: NymVpnService_GatewayResponse) {
+    init(with newGateway: Gateway) {
         self.init(
-            id: newGateway.id.id,
-            countryCode: newGateway.location.twoLetterIsoCountryCode,
-            city: newGateway.location.city,
-            region: newGateway.location.region,
-            asn: GatewayASN(with: newGateway.location.asn),
-            performance: GatewayPerformance(with: newGateway.wgPerformance),
-            mixnetScore: GatewayNodeScore(with: newGateway.mixnetScore),
+            id: newGateway.id,
+            location: GatewayNodeLocation(with: newGateway.location),
+            performance: GatewayNodePerformance(with: newGateway.wgPerformance),
+            mixnetScore: GatewayNodeScore.convert(from: newGateway.mixnetScore) ?? .noScore,
             moniker: newGateway.moniker,
             buildVersion: newGateway.buildVersion,
-            ipv4s: newGateway.exitIpv4S,
-            ipv6s: newGateway.exitIpv6S
+            ipv4s: newGateway.exitIpv4s,
+            ipv6s: newGateway.exitIpv6s
         )
     }
 }

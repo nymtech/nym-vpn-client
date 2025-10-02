@@ -166,7 +166,9 @@ impl SyncingState {
                     Err(SyncError::UnregisteredAccount)
                 } else {
                     Err(SyncError::ApiResponseError {
-                        code_reference_id: error_response.code_reference_id,
+                        details: error_response
+                            .code_reference_id
+                            .unwrap_or(error_response.message),
                     })
                 }
             }
@@ -296,7 +298,7 @@ enum SyncError {
     UnregisteredAccount,
     InactiveSubscription,
     ApiRequestError(String),
-    ApiResponseError { code_reference_id: Option<String> },
+    ApiResponseError { details: String },
     DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,
@@ -315,7 +317,9 @@ impl From<VpnApiClientError> for SyncError {
     fn from(value: VpnApiClientError) -> Self {
         match NymErrorResponse::try_from(value) {
             Ok(error_response) => SyncError::ApiResponseError {
-                code_reference_id: error_response.code_reference_id,
+                details: error_response
+                    .code_reference_id
+                    .unwrap_or(error_response.message),
             },
             Err(e) => SyncError::ApiRequestError(e.to_string()),
         }
@@ -339,9 +343,9 @@ impl From<SyncError> for AccountControllerErrorStateReason {
                 context: SYNCING_STATE_CONTEXT.into(),
                 details: e,
             },
-            ApiResponseError { code_reference_id } => Self::ApiFailure {
+            ApiResponseError { details } => Self::ApiFailure {
                 context: SYNCING_STATE_CONTEXT.into(),
-                details: code_reference_id.unwrap_or("No code reference id".into()),
+                details,
             },
             DeviceTimeDesynced => Self::DeviceTimeDesynced,
             MaxDeviceReached => Self::MaxDeviceReached,

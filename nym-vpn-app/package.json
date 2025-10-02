@@ -23,6 +23,7 @@
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
+    "tsgen": "cd src-tauri && cargo test && prettier --write ../src/types/tauri.ts",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
     "gen:licenses:js": "npx --yes license-checker-rseidelsohn@4.3.0 --production --json > public/licenses-js.json",

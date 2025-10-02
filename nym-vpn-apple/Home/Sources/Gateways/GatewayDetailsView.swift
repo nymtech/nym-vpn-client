@@ -1,9 +1,9 @@
 import SwiftUI
 import Constants
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
 import ExternalLinkManager
+import GatewayManager
 #if os(iOS)
 import ImpactGenerator
 #endif
@@ -16,7 +16,7 @@ public struct GatewayDetailsView: View {
     private let hopType: HopType
     @Binding private var path: NavigationPath
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var messageOverlayText: String?
     @State private var displayMessageOverlay = false
 
@@ -97,7 +97,7 @@ private extension GatewayDetailsView {
 
     func location() -> some View {
         HStack(spacing: 0) {
-            FlagImage(countryCode: gateway.countryCode, width: 16, height: 16)
+            FlagImage(countryCode: gateway.location?.twoLetterIsoCountryCode, width: 16, height: 16)
             Spacer()
                 .frame(width: 8)
             Text(locationTitle())
@@ -234,7 +234,7 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.streamingAndContent".localizedString)
             Spacer()
-            switch gateway.asn?.type {
+            switch gateway.location?.asn?.type {
             case .residential:
                 GenericImage(systemImageName: "checkmark")
                     .frame(width: 10, height: 10)
@@ -283,11 +283,11 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.overallPerformance".localizedString)
             Spacer()
-            GenericImage(imageName: gateway.performance.score.imageName)
+            GenericImage(imageName: gateway.performance?.score.imageName)
                 .frame(width: 16, height: 16)
                 .padding(8)
-            Text(gateway.performance.score.localizedKey.localizedString)
-                .foregroundStyle(scoreOverallPerformanceImageColor(with: gateway.performance.score))
+            Text(gateway.performance?.score.localizedKey.localizedString ?? GatewayNodeScore.noScore.localizedKey.localizedString)
+                .foregroundStyle(scoreOverallPerformanceImageColor(with: gateway.performance?.score ?? GatewayNodeScore.noScore))
                 .textStyle(.Body.Medium.regular)
         }
     }
@@ -296,8 +296,8 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.serverLoad".localizedString)
             Spacer()
-            Text(gateway.performance.load.localizedKey.localizedString)
-                .foregroundStyle(scoreLoadImageColor(with: gateway.performance.load))
+            Text(gateway.performance?.load.localizedKey.localizedString ?? GatewayNodeScore.noScore.localizedKey.localizedString)
+                .foregroundStyle(scoreLoadImageColor(with: gateway.performance?.load ?? GatewayNodeScore.noScore))
                 .textStyle(.Body.Medium.regular)
         }
     }
@@ -437,7 +437,7 @@ private extension GatewayDetailsView {
 
     @ViewBuilder
     func asnRow() -> some View {
-        if let asn = gateway.asn {
+        if let asn = gateway.location?.asn {
             HStack(spacing: 0) {
                 rowTitle(with: "gatewayInfo.asn".localizedString)
                 Spacer()
@@ -448,7 +448,7 @@ private extension GatewayDetailsView {
 
     @ViewBuilder
     func asnNameRow() -> some View {
-        if let asn = gateway.asn {
+        if let asn = gateway.location?.asn {
             HStack(spacing: 0) {
                 rowTitle(with: "gatewayInfo.asnName".localizedString)
                 Spacer()
@@ -492,9 +492,9 @@ private extension GatewayDetailsView {
 #endif
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(gateway)
+            connectionManager.entryGateway = .gateway(gateway.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(gateway)
+            connectionManager.exitRouter = .gateway(gateway.id)
         }
         path = .init()
     }
@@ -502,9 +502,16 @@ private extension GatewayDetailsView {
 
 // MARK: - Helpers -
 private extension GatewayDetailsView {
+    // TODO: check if working
     func locationTitle() -> String {
-        let country = countriesManager.country(with: gateway.countryCode)?.name ?? ""
-        return "\(gateway.city), \(gateway.region), \(country)"
+        let parts = [
+            gateway.location?.city,
+            gateway.location?.region,
+            gatewayManager.country(with: gateway.location?.twoLetterIsoCountryCode)?.name
+        ]
+        .compactMap { $0 }
+        .filter { !$0.isEmpty }
+        return parts.joined(separator: ", ")
     }
 
     func scoreOverallPerformanceImageColor(with score: GatewayNodeScore) -> Color {
@@ -542,12 +549,16 @@ private extension GatewayDetailsView {
         formatter.numberStyle = .percent
         formatter.maximumFractionDigits = 0
         formatter.locale = .current
-        let number = formatter.string(from: NSNumber(value: gateway.performance.uptime))
-        return number ?? "noScore".localizedString
+        guard let uptime = gateway.performance?.uptime,
+              let number = formatter.string(from: NSNumber(value: uptime))
+        else {
+            return "noScore".localizedString
+        }
+        return number
     }
 
     func formattedLastUpdate() -> String {
-        guard let date = gateway.performance.lastUpdated
+        guard let date = gateway.performance?.lastUpdated
         else {
             return "noScore".localizedString
         }

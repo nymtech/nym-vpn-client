@@ -16,7 +16,7 @@ const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
 #[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub enum NetworkEnv {
     Mainnet,
     Canary,
