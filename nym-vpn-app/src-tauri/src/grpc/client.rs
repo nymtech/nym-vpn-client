@@ -283,6 +283,7 @@ impl GrpcClient {
         netstack: bool,
         dns: Option<Dns>,
         disable_ipv6: bool,
+        enable_bridges: bool,
     ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
@@ -290,7 +291,7 @@ impl GrpcClient {
             entry: Some(entry_node.into()),
             exit: Some(exit_node.into()),
             enable_two_hop: two_hop_mod,
-            enable_bridges: false,
+            enable_bridges,
             netstack,
             disable_poisson_rate: false,
             disable_background_cover_traffic: false,
