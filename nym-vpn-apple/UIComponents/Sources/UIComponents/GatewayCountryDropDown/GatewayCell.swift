@@ -1,7 +1,7 @@
 import SwiftUI
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
+import GatewayManager
 import Theme
 
 public struct GatewayCell: View {
@@ -10,7 +10,7 @@ public struct GatewayCell: View {
     private let isSearching: Bool
 
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @Binding private var path: NavigationPath
     @State private var isHovered = false
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
@@ -72,9 +72,9 @@ private extension GatewayCell {
     func tapAction() {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(server)
+            connectionManager.entryGateway = .gateway(server.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(server)
+            connectionManager.exitRouter = .gateway(server.id)
         }
         path = .init()
     }
@@ -124,7 +124,10 @@ private extension GatewayCell {
     }
 
     func serverSubtitleString() -> String {
-        if isSearching, let country = countriesManager.country(with: server.countryCode) {
+        if isSearching,
+           let countryCode = server.location?.twoLetterIsoCountryCode,
+           let country = gatewayManager.country(with: countryCode)
+        {
             "\(country.name), \(server.id)"
         } else {
             server.id
@@ -160,7 +163,7 @@ extension GatewayCell {
         case .mixnet5hop:
             score = server.mixnetScore
         case .wireguard:
-            score = server.performance.score
+            score = server.performance?.score
         }
         guard let score else { return "scoreLow"}
         switch score {

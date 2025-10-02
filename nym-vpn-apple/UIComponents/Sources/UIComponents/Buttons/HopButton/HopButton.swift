@@ -1,6 +1,5 @@
 import SwiftUI
 import AppSettings
-import CountriesManager
 import ConnectionManager
 import GatewayManager
 import Theme
@@ -10,7 +9,6 @@ public struct HopButton: View {
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
     @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var isHovered = false
 
@@ -24,14 +22,12 @@ public struct HopButton: View {
     }
 
     private var titleText: String {
-        let code: String
         switch hopType {
         case .entry:
-            code = connectionManager.entryGateway.name
+            gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway) ?? ""
         case .exit:
-            code = connectionManager.exitRouter.name
+            gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) ?? ""
         }
-        return countriesManager.country(with: code)?.name ?? code
     }
 
     private var subtitleText: String? {
@@ -47,9 +43,9 @@ public struct HopButton: View {
     private var hopCountryCode: String? {
         switch hopType {
         case .entry:
-            connectionManager.entryGateway.countryCode
+            gatewayManager.countryCode(with: connectionManager.entryGateway)
         case .exit:
-            connectionManager.exitRouter.countryCode
+            gatewayManager.countryCode(with: connectionManager.exitRouter)
         }
     }
 

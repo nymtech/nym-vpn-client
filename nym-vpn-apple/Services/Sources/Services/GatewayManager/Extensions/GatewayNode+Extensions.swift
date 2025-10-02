@@ -3,14 +3,11 @@ import CountriesManagerTypes
 import NymVPNLib
 
 extension GatewayNode {
-    init(with gatewayInfo: GatewayInfo) {
+    init(with gatewayInfo: Gateway) {
         self.init(
             id: gatewayInfo.id,
-            countryCode: gatewayInfo.location?.twoLetterIsoCountryCode ?? "",
-            city: gatewayInfo.location?.city ?? "",
-            region: gatewayInfo.location?.region ?? "",
-            asn: GatewayASN(with: gatewayInfo.location?.asn),
-            performance: GatewayPerformance(with: gatewayInfo.wgPerformance),
+            location: GatewayNodeLocation(with: gatewayInfo.location),
+            performance: GatewayNodePerformance(with: gatewayInfo.wgPerformance),
             mixnetScore: GatewayNodeScore(with: gatewayInfo.mixnetScore ?? .none),
             moniker: gatewayInfo.moniker,
             buildVersion: gatewayInfo.buildVersion,

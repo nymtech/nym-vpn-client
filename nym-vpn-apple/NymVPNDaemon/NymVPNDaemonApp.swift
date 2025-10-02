@@ -6,7 +6,6 @@ import AutoUpdates
 import ConnectionManager
 import ConfigurationManager
 import Constants
-import CountriesManager
 import FeatureFlagsManager
 import GatewayManager
 import GRPCManager
@@ -39,7 +38,6 @@ struct NymVPNDaemonApp: App {
 
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
-    @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
@@ -93,7 +91,6 @@ struct NymVPNDaemonApp: App {
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
-            .environmentObject(countriesManager)
             .environmentObject(featureFlagsManager)
             .environmentObject(gatewayManager)
             .environmentObject(grpcManager)
@@ -141,7 +138,6 @@ private extension NymVPNDaemonApp {
             // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup(for: .main)
             FeatureFlagsManager.shared.setup()
-            CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
@@ -249,22 +245,22 @@ private extension NymVPNDaemonApp {
 
     @ViewBuilder
     func connectionDetails() -> some View {
-        let entryName = connectionManager.entryGateway.name
-        let entry = countriesManager.country(with: entryName)?.name ?? entryName
+        if let entryName = gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway),
+           let exitName = gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) {
+            let entry = gatewayManager.country(with: entryName)?.name ?? entryName
+            let exit = gatewayManager.country(with: exitName)?.name ?? exitName
 
-        let exitName = connectionManager.exitRouter.name
-        let exit = countriesManager.country(with: exitName)?.name ?? exitName
+            let statusButtonConfig = StatusButtonConfig(
+                tunnelStatus: connectionManager.currentTunnelStatus,
+                hasInternet: true
+            )
 
-        let statusButtonConfig = StatusButtonConfig(
-            tunnelStatus: connectionManager.currentTunnelStatus,
-            hasInternet: true
-        )
-
-        if connectionManager.currentTunnelStatus == .connected {
-            Text("\(statusButtonConfig.rawValue.localizedString)")
-            Text("\("home.entryHop".localizedString): \(entry)")
-            Text("\("home.exitHop".localizedString): \(exit)")
-            Divider()
+            if connectionManager.currentTunnelStatus == .connected {
+                Text("\(statusButtonConfig.rawValue.localizedString)")
+                Text("\("home.entryHop".localizedString): \(entry)")
+                Text("\("home.exitHop".localizedString): \(exit)")
+                Divider()
+            }
         }
     }
 }

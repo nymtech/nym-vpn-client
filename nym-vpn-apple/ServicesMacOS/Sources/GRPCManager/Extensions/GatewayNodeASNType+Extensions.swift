@@ -1,13 +1,12 @@
 import CountriesManagerTypes
+import NymVPNRpc
 
-extension GatewayASNType {
-    init(with type: NymVpnService_AsnKind) {
+extension GatewayNodeASNType {
+    init(with type: AsnKind) {
         switch type {
         case .residential:
             self = .residential
         case .other:
-            self = .other
-        case .UNRECOGNIZED:
             self = .other
         }
     }

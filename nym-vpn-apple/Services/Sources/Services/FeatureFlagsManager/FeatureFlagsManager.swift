@@ -36,7 +36,7 @@ public final class FeatureFlagsManager: ObservableObject {
     ) {
         self.grpcManager = grpcManager
         self.featureFlags = featureFlags
-//        setupIsServingObserver()
+        setupIsServingObserver()
     }
 #endif
 
@@ -77,4 +77,3 @@ private extension FeatureFlagsManager {
         }
     }
 }
-
