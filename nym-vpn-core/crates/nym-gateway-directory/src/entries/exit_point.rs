@@ -7,7 +7,7 @@ use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Error, IpPacketRouterAddress,
+    Error, IpPacketRouterAddress, ScoreValue,
     entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, Gateway, GatewayFilter, GatewayList},
     error::Result,
 };
@@ -52,8 +52,7 @@ impl ExitPoint {
     pub fn lookup_gateway(
         &self,
         gateways: &GatewayList,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
+        min_score: Option<ScoreValue>,
         residential_exit: bool,
     ) -> Result<Gateway> {
         match &self {
@@ -88,10 +87,9 @@ impl ExitPoint {
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
 
-                let filters = Self::build_filters(
+                let filters = build_filters(
                     vec![GatewayFilter::Country(two_letter_iso_country_code.clone())],
-                    min_wg_performance,
-                    min_mixnet_performance,
+                    min_score,
                     residential_exit,
                 );
 
@@ -105,14 +103,13 @@ impl ExitPoint {
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
 
-                let filters = Self::build_filters(
+                let filters = build_filters(
                     vec![
                         // Currently only supported in the US
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
                         GatewayFilter::Region(region.to_string()),
                     ],
-                    min_wg_performance,
-                    min_mixnet_performance,
+                    min_score,
                     residential_exit,
                 );
 
@@ -126,12 +123,7 @@ impl ExitPoint {
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
 
-                let filters = Self::build_filters(
-                    vec![],
-                    min_wg_performance,
-                    min_mixnet_performance,
-                    residential_exit,
-                );
+                let filters = build_filters(vec![], min_score, residential_exit);
 
                 gateways
                     .choose_random(&filters)
@@ -139,22 +131,19 @@ impl ExitPoint {
             }
         }
     }
+}
 
-    #[inline]
-    fn build_filters(
-        mut base: Vec<GatewayFilter>,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-        residential_exit: bool,
-    ) -> Vec<GatewayFilter> {
-        base.push(GatewayFilter::MinPerformance {
-            min_wg_performance,
-            min_mixnet_performance,
-        });
-        if residential_exit {
-            base.push(GatewayFilter::Residential);
-            base.push(GatewayFilter::Exit);
-        }
-        base
+fn build_filters(
+    mut base_filters: Vec<GatewayFilter>,
+    min_score: Option<ScoreValue>,
+    residential_exit: bool,
+) -> Vec<GatewayFilter> {
+    if let Some(min_score) = min_score {
+        base_filters.push(GatewayFilter::MinScore(min_score));
     }
+    if residential_exit {
+        base_filters.push(GatewayFilter::Residential);
+        base_filters.push(GatewayFilter::Exit);
+    }
+    base_filters
 }

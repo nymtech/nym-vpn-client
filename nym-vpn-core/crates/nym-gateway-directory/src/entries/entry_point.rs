@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    Error,
+    Error, ScoreValue,
     entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, Gateway, GatewayFilter, GatewayList},
     error::Result,
 };
@@ -54,8 +54,7 @@ impl EntryPoint {
     pub fn lookup_gateway(
         &self,
         gateways: &GatewayList,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
+        min_score: Option<ScoreValue>,
     ) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
@@ -72,13 +71,10 @@ impl EntryPoint {
             } => {
                 debug!("Selecting gateway by country: {two_letter_iso_country_code}");
 
-                let filters = [
-                    GatewayFilter::MinPerformance {
-                        min_wg_performance,
-                        min_mixnet_performance,
-                    },
-                    GatewayFilter::Country(two_letter_iso_country_code.clone()),
-                ];
+                let filters = Self::build_filters(
+                    vec![GatewayFilter::Country(two_letter_iso_country_code.clone())],
+                    min_score,
+                );
 
                 gateways.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingEntryGatewayForLocation {
@@ -91,14 +87,13 @@ impl EntryPoint {
                 debug!("Selecting gateway by region/state: {region}");
 
                 // Currently only supported in the US
-                let filters = [
-                    GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
-                    GatewayFilter::Region(region.to_string()),
-                    GatewayFilter::MinPerformance {
-                        min_wg_performance,
-                        min_mixnet_performance,
-                    },
-                ];
+                let filters = Self::build_filters(
+                    vec![
+                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                        GatewayFilter::Region(region.to_string()),
+                    ],
+                    min_score,
+                );
 
                 gateways.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingEntryGatewayForLocation {
@@ -110,15 +105,25 @@ impl EntryPoint {
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");
 
-                let filters = [GatewayFilter::MinPerformance {
-                    min_wg_performance,
-                    min_mixnet_performance,
-                }];
+                let filters = Self::build_filters(vec![], min_score);
 
                 gateways
                     .choose_random(&filters)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
+        }
+    }
+
+    fn build_filters(
+        base_filters: Vec<GatewayFilter>,
+        min_score: Option<ScoreValue>,
+    ) -> Vec<GatewayFilter> {
+        if let Some(min_score) = min_score {
+            let mut all_filters = vec![GatewayFilter::MinScore(min_score)];
+            all_filters.extend(base_filters);
+            all_filters
+        } else {
+            base_filters
         }
     }
 }

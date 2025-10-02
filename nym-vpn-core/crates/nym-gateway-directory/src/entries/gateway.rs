@@ -11,8 +11,9 @@ use nym_vpn_api_client::{
 };
 use rand::seq::IteratorRandom;
 use std::{
-    fmt,
+    fmt::{self, Display},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    str::FromStr,
 };
 use tracing::error;
 
@@ -215,45 +216,23 @@ impl Gateway {
         }
     }
 
-    /// Tests whether the gateway satisfies the minimum performance requirements.
-    ///
-    /// Both `min_wg_performance` and `min_mixnet_performance` represent a value between 0 and 100.
-    ///
-    /// - `min_wg_performance` - minimum wg performance filter when set, has no effect when None
-    /// - `min_mixnet_performance` - minimum mixnet performance filter when set, has no effect when None
-    pub fn satisfies_min_performance(
-        &self,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    ) -> bool {
-        let satisfies_wg_performance = if let Some(min_wg_performance_score) = min_wg_performance {
-            let score = ScoreValue::from_threshold(min_wg_performance_score);
-            self.wg_performance
+    pub fn meets_score(&self, gw_type: Option<GatewayType>, min_score: ScoreValue) -> bool {
+        match gw_type {
+            Some(GatewayType::MixnetEntry) | Some(GatewayType::MixnetExit) => self
+                .mixnet_performance
+                .is_some_and(|p| p.round_to_integer() >= min_score.threshold()),
+            Some(GatewayType::Wg) => self
+                .wg_performance
                 .as_ref()
-                .is_some_and(|v| v.score >= score)
-        } else {
-            true
-        };
-
-        let satisfies_mixnet_performance =
-            if let Some(min_mixnet_performance_score) = min_mixnet_performance {
-                self.mixnet_performance
-                    .as_ref()
-                    .is_some_and(|v| v.round_to_integer() >= min_mixnet_performance_score)
-            } else {
-                true
-            };
-
-        satisfies_wg_performance && satisfies_mixnet_performance
+                .is_some_and(|p| p.score >= min_score),
+            None => false,
+        }
     }
 
     /// Tests whether the gateway matches a specific filter.
-    pub fn matches_filter(&self, filter: &GatewayFilter) -> bool {
+    pub fn matches_filter(&self, gw_type: Option<GatewayType>, filter: &GatewayFilter) -> bool {
         match filter {
-            GatewayFilter::MinPerformance {
-                min_wg_performance,
-                min_mixnet_performance,
-            } => self.satisfies_min_performance(*min_wg_performance, *min_mixnet_performance),
+            GatewayFilter::MinScore(score) => self.meets_score(gw_type, *score),
             GatewayFilter::Country(code) => self.is_in_country(code),
             GatewayFilter::Region(region) => self.is_in_region(region),
             GatewayFilter::Residential => self.is_residential_asn(),
@@ -263,8 +242,14 @@ impl Gateway {
     }
 
     /// Tests whether the gateway matches all of the filters.
-    pub fn matches_all_filters(&self, filters: &[GatewayFilter]) -> bool {
-        filters.iter().all(|filter| self.matches_filter(filter))
+    pub fn matches_all_filters(
+        &self,
+        gw_type: Option<GatewayType>,
+        filters: &[GatewayFilter],
+    ) -> bool {
+        filters
+            .iter()
+            .all(|filter| self.matches_filter(gw_type, filter))
     }
 
     pub fn get_bridge_params(&self) -> Option<BridgeParameters> {
@@ -310,18 +295,6 @@ pub enum ScoreValue {
 }
 
 impl ScoreValue {
-    pub fn from_threshold(percentage: u8) -> Self {
-        if percentage >= HIGH_SCORE_THRESHOLD {
-            ScoreValue::High
-        } else if percentage >= MEDIUM_SCORE_THRESHOLD {
-            ScoreValue::Medium
-        } else if percentage >= LOW_SCORE_THRESHOLD {
-            ScoreValue::Low
-        } else {
-            ScoreValue::Offline
-        }
-    }
-
     fn priority(&self) -> u8 {
         match self {
             ScoreValue::Offline => 0,
@@ -330,11 +303,46 @@ impl ScoreValue {
             ScoreValue::High => 3,
         }
     }
+
+    pub fn threshold(&self) -> u8 {
+        match self {
+            ScoreValue::Offline => 0,
+            ScoreValue::Low => LOW_SCORE_THRESHOLD,
+            ScoreValue::Medium => MEDIUM_SCORE_THRESHOLD,
+            ScoreValue::High => HIGH_SCORE_THRESHOLD,
+        }
+    }
 }
 
 impl PartialOrd for ScoreValue {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.priority().cmp(&other.priority()))
+    }
+}
+
+impl FromStr for ScoreValue {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "offline" => Ok(ScoreValue::Offline),
+            "low" => Ok(ScoreValue::Low),
+            "medium" => Ok(ScoreValue::Medium),
+            "high" => Ok(ScoreValue::High),
+            _ => Err(crate::Error::InvalidScoreValue(s.to_string())),
+        }
+    }
+
+    type Err = crate::Error;
+}
+
+impl Display for ScoreValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            ScoreValue::Offline => "Offline",
+            ScoreValue::Low => "Low",
+            ScoreValue::Medium => "Medium",
+            ScoreValue::High => "High",
+        };
+        write!(f, "{s}")
     }
 }
 
@@ -556,12 +564,14 @@ pub type NymNodeList = GatewayList;
 
 #[derive(Debug, Clone)]
 pub struct GatewayList {
+    /// If None, then the list contains mixed types.
+    gw_type: Option<GatewayType>,
     gateways: Vec<Gateway>,
 }
 
 impl GatewayList {
-    pub fn new(gateways: Vec<Gateway>) -> Self {
-        GatewayList { gateways }
+    pub fn new(gw_type: Option<GatewayType>, gateways: Vec<Gateway>) -> Self {
+        GatewayList { gw_type, gateways }
     }
 
     // Returns a list of all locations of the gateways, including duplicates
@@ -589,7 +599,7 @@ impl GatewayList {
     pub fn filter(&self, filters: &[GatewayFilter]) -> Vec<Gateway> {
         self.gateways
             .iter()
-            .filter(|gateway| gateway.matches_all_filters(filters))
+            .filter(|gateway| gateway.matches_all_filters(self.gw_type, filters))
             .cloned()
             .collect()
     }
@@ -616,6 +626,10 @@ impl GatewayList {
             .retain(|gateway| gateway.identity() != entry_gateway.identity());
     }
 
+    pub fn gw_type(&self) -> Option<GatewayType> {
+        self.gw_type
+    }
+
     pub fn len(&self) -> usize {
         self.gateways.len()
     }
@@ -625,11 +639,11 @@ impl GatewayList {
     }
 
     pub fn into_exit_gateways(self) -> GatewayList {
-        Self::new(self.filter(&[GatewayFilter::Exit]))
+        Self::new(self.gw_type, self.filter(&[GatewayFilter::Exit]))
     }
 
     pub fn into_vpn_gateways(self) -> GatewayList {
-        Self::new(self.filter(&[GatewayFilter::Vpn]))
+        Self::new(self.gw_type, self.filter(&[GatewayFilter::Vpn]))
     }
 
     pub fn into_inner(self) -> Vec<Gateway> {
@@ -710,15 +724,12 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GatewayFilter {
-    MinPerformance {
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
-    },
-    Country(String), // Two-letter ISO country code
-    Region(String),  // Region name
-    Residential,     // Has a residential ASN
-    Exit,            // Has an IPR address
-    Vpn,             // Has an authenticator address
+    MinScore(ScoreValue), // Mixnet or Wg score
+    Country(String),      // Two-letter ISO country code
+    Region(String),       // Region name
+    Residential,          // Has a residential ASN
+    Exit,                 // Has an IPR address
+    Vpn,                  // Has an authenticator address
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -732,7 +743,7 @@ mod tests {
     use super::*;
 
     // Create a list of Gateways with different properties set for testing
-    fn sample_gateway_list() -> GatewayList {
+    fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
         let asn = Asn {
             asn: "AS12345".to_string(),
             name: "Test ASN".to_string(),
@@ -787,59 +798,40 @@ mod tests {
                 }
             })
             .collect();
-        GatewayList::new(gateways)
+        GatewayList::new(Some(gw_type), gateways)
     }
 
     #[test]
-    fn test_gateway_filter_performance() {
-        let gateway_list = sample_gateway_list();
+    fn test_gateway_filter_score() {
+        let wg_list = sample_gateway_list(GatewayType::Wg);
+        let mixnet_entry_list = sample_gateway_list(GatewayType::MixnetEntry);
+        let mixnet_exit_list = sample_gateway_list(GatewayType::MixnetExit);
 
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: Some(70),
-            min_mixnet_performance: Some(70),
-        }]);
+        let gws = wg_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
+        assert_eq!(gws.len(), 6);
+        let gws = wg_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
+        assert_eq!(gws.len(), 6);
+        let gws = wg_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
         assert_eq!(gws.len(), 6);
 
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: None,
-            min_mixnet_performance: Some(70),
-        }]);
+        let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
+        assert_eq!(gws.len(), 6);
+        let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
+        assert_eq!(gws.len(), 6);
+        let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
         assert_eq!(gws.len(), 6);
 
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: Some(70),
-            min_mixnet_performance: None,
-        }]);
+        let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
         assert_eq!(gws.len(), 6);
-
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: Some(80),
-            min_mixnet_performance: Some(80),
-        }]);
-        assert_eq!(gws.len(), 0);
-
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: None,
-            min_mixnet_performance: Some(80),
-        }]);
-        assert_eq!(gws.len(), 0);
-
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: Some(80),
-            min_mixnet_performance: None,
-        }]);
+        let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
         assert_eq!(gws.len(), 6);
-
-        let gws = gateway_list.filter(&[GatewayFilter::MinPerformance {
-            min_wg_performance: None,
-            min_mixnet_performance: None,
-        }]);
+        let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
         assert_eq!(gws.len(), 6);
     }
 
     #[test]
     fn test_gateway_filter_exit_nodes() {
-        let gateway_list = sample_gateway_list();
+        let gateway_list = sample_gateway_list(GatewayType::MixnetEntry);
         let exit_gws = gateway_list.filter(&[GatewayFilter::Exit]);
         assert_eq!(exit_gws.len(), 2);
         assert_eq!(exit_gws[0].moniker, "Gateway 1");
@@ -848,7 +840,7 @@ mod tests {
 
     #[test]
     fn test_gateway_filter_vpn_nodes() {
-        let gateway_list = sample_gateway_list();
+        let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
         let vpn_gws = gateway_list.filter(&[GatewayFilter::Vpn]);
         assert_eq!(vpn_gws.len(), 3);
         assert_eq!(vpn_gws[0].moniker, "Gateway 1");
@@ -858,7 +850,7 @@ mod tests {
 
     #[test]
     fn test_gateway_filter_residential() {
-        let gateway_list = sample_gateway_list();
+        let gateway_list = sample_gateway_list(GatewayType::Wg);
         let residential_gws = gateway_list.filter(&[GatewayFilter::Residential]);
         assert_eq!(residential_gws.len(), 3);
         assert_eq!(residential_gws[0].moniker, "Gateway 2");
@@ -868,7 +860,7 @@ mod tests {
 
     #[test]
     fn test_gateway_random_country() {
-        let gateway_list = sample_gateway_list();
+        let gateway_list = sample_gateway_list(GatewayType::MixnetEntry);
 
         assert!(
             gateway_list
@@ -893,7 +885,7 @@ mod tests {
 
     #[test]
     fn test_gateway_random_region() {
-        let gateway_list = sample_gateway_list();
+        let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
 
         assert!(
             gateway_list

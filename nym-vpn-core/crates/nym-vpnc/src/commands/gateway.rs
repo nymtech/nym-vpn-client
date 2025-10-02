@@ -5,7 +5,7 @@ use anyhow::{Result, anyhow};
 use tabled::Table;
 
 use nym_gateway_directory::{
-    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, NodeIdentity, Recipient,
+    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, NodeIdentity, Recipient, ScoreValue,
 };
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::ListGatewaysOptions;
@@ -103,9 +103,9 @@ pub struct SetArgs {
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct FilterArgs {
-    /// Minimum performance (0-100)
-    #[arg(long)]
-    pub min_performance: Option<u8>,
+    /// Minimum score
+    #[arg(long, value_parser = clap::value_parser!(ScoreValue))]
+    pub min_score: Option<ScoreValue>,
 
     /// Filter by country (two-letter ISO code)
     #[arg(long)]
@@ -223,21 +223,10 @@ impl Args {
             filters: Vec::new(),
         };
 
-        if filters.min_performance.is_some() {
-            match gw_type {
-                GatewayType::Wg => {
-                    gateway_filters.filters.push(GatewayFilter::MinPerformance {
-                        min_wg_performance: filters.min_performance,
-                        min_mixnet_performance: None,
-                    });
-                }
-                GatewayType::MixnetEntry | GatewayType::MixnetExit => {
-                    gateway_filters.filters.push(GatewayFilter::MinPerformance {
-                        min_wg_performance: None,
-                        min_mixnet_performance: filters.min_performance,
-                    });
-                }
-            }
+        if let Some(ref min_score) = filters.min_score {
+            gateway_filters
+                .filters
+                .push(GatewayFilter::MinScore(*min_score));
         }
 
         if let Some(ref country) = filters.country {
