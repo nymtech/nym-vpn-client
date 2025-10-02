@@ -42,6 +42,12 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(_) => {
                 Self::AccountDoesntExistOnChain
             }
+            proto::account_command_error::ErrorDetail::AccountDecentralised(_) => {
+                Self::AccountDecentralised
+            }
+            proto::account_command_error::ErrorDetail::AccountNotDecentralised(_) => {
+                Self::AccountNotDecentralised
+            }
         })
     }
 }
@@ -141,6 +147,16 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::AccountDoesntExistOnChain => proto::AccountCommandError {
                 error_detail: Some(
                     proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(true),
+                ),
+            },
+            AccountCommandError::AccountNotDecentralised => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountNotDecentralised(true),
+                ),
+            },
+            AccountCommandError::AccountDecentralised => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountDecentralised(true),
                 ),
             },
         }

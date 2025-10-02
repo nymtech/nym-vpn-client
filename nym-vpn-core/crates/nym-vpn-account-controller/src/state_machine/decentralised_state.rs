@@ -1,0 +1,76 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use crate::commands::{AccountCommand, handler};
+use crate::shared_state::SharedAccountState;
+use crate::state_machine::{
+    AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
+    PrivateAccountControllerState,
+};
+use nym_offline_monitor::ConnectivityMonitor;
+use nym_vpn_lib_types::AccountCommandError;
+use tokio::sync::mpsc::UnboundedReceiver;
+use tokio_util::sync::CancellationToken;
+
+/// DecentralisedState
+/// We are operating independently of the VPN API which means:
+/// - A **decentralised** account is stored
+/// - The account exists on chain and has some tokens
+/// - Ticketbooks are obtaining through manual deposits
+///
+/// Possible next state :
+/// - OfflineState : the connectivity monitor is telling we're not connected
+/// - LoggedOutState : We successfully handled a forget_account command
+pub struct DecentralisedState;
+
+impl DecentralisedState {
+    pub fn enter<C: ConnectivityMonitor>() -> (
+        Box<dyn AccountControllerStateHandler<C>>,
+        PrivateAccountControllerState,
+    ) {
+        (Box::new(Self), PrivateAccountControllerState::Decentralised)
+    }
+}
+
+#[async_trait::async_trait]
+impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedState {
+    async fn handle_event(
+        self: Box<Self>,
+        shutdown_token: &CancellationToken,
+        command_rx: &'async_trait mut UnboundedReceiver<AccountCommand>,
+        shared_state: &'async_trait mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C> {
+        tokio::select! {
+            biased;
+            _ = shutdown_token.cancelled() => {
+                NextAccountControllerState::Finished
+            }
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
+                if connectivity.is_offline() {
+                    NextAccountControllerState::NewState(OfflineState::enter())
+                } else {
+                    NextAccountControllerState::SameState(self)
+                }
+            }
+            Some(command) = command_rx.recv() => {
+                match command {
+                    AccountCommand::ForgetAccount(return_sender) => {
+                        let res = handler::handle_forget_account(shared_state).await;
+                        let error = res.is_err();
+                        return_sender.send(res);
+                        if !error {
+                            return NextAccountControllerState::NewState(LoggedOutState::enter())
+                        }
+                    },
+                    AccountCommand::ObtainTicketbooks(return_sender, amount) => {
+                        return_sender.send(handler::handle_obtain_ticketbooks(shared_state, amount).await);
+                    }
+                    other => {
+                        other.return_error(AccountCommandError::AccountDecentralised);
+                    }
+                }
+                NextAccountControllerState::SameState(self)
+            }
+        }
+    }
+}

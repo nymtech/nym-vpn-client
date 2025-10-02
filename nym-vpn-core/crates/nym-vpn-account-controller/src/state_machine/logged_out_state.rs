@@ -65,7 +65,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
-
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_account(return_sender),
                     // We don't even have an identity at this point, so we might as well not do anything
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
 

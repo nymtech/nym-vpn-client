@@ -50,6 +50,12 @@ pub enum AccountCommandError {
     #[error("no connectivity")]
     Offline,
 
+    #[error("account is not set in decentralised mode")]
+    AccountNotDecentralised,
+
+    #[error("account is set in decentralised mode")]
+    AccountDecentralised,
+
     #[error("account does not have sufficient funds")]
     InsufficientFunds,
 

@@ -5,7 +5,7 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
-use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types_uniffi::{AccountControllerState, RegisterAccountResponse};
@@ -74,6 +74,8 @@ async fn start_account_controller(
         details: err.to_string(),
     })?;
 
+    let nyxd_client = NyxdClient::new(&network_env)?;
+
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
         credentials_mode: credential_mode,
@@ -82,6 +84,7 @@ async fn start_account_controller(
 
     let account_controller = nym_vpn_account_controller::AccountController::new(
         nym_vpn_api_client,
+        nyxd_client,
         account_controller_config,
         storage,
         connectivity_handle,

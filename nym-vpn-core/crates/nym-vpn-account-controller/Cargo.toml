@@ -27,6 +27,7 @@ nym-sdk.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
+nym-validator-client.workspace = true
 nym-vpn-store.workspace = true
 sqlx-pool-guard.workspace = true
 serde.workspace = true

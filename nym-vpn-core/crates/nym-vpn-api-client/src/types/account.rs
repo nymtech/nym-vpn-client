@@ -5,6 +5,7 @@ use std::fmt;
 
 use crate::jwt::Jwt;
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
+use nym_validator_client::nyxd::AccountId;
 use nym_validator_client::{
     DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
 };
@@ -70,7 +71,7 @@ pub struct VpnAccount {
     wallet: DirectSecp256k1HdWallet,
 
     /// Cosmos account identifier of the first derived account.
-    id: String,
+    id: AccountId,
 
     /// Base58-encoded public (secp256k1) key of the first derived account.
     pub_key: String,
@@ -116,14 +117,18 @@ impl VpnAccount {
 
         Ok(Self {
             wallet,
-            id,
+            id: address.clone(),
             pub_key,
             mode,
             signature_base64,
         })
     }
 
-    pub fn id(&self) -> &str {
+    pub fn id(&self) -> String {
+        self.id.to_string()
+    }
+
+    pub fn id_typed(&self) -> &AccountId {
         &self.id
     }
 

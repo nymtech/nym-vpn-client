@@ -10,6 +10,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{SharedAccountState, commands::AccountCommand};
 
+mod decentralised_state;
 mod error_state;
 mod logged_out_state;
 mod offline_state;
@@ -64,6 +65,7 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::Syncing => Self::Syncing,
             PrivateAccountControllerState::LoggedOut => Self::LoggedOut,
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
+            PrivateAccountControllerState::Decentralised => Self::Decentralised,
             PrivateAccountControllerState::Error(reason) => Self::Error(reason),
             PrivateAccountControllerState::RequestingZkNyms => Self::Syncing,
         }
@@ -77,6 +79,7 @@ pub(super) enum PrivateAccountControllerState {
     Syncing,
     LoggedOut,
     ReadyToConnect,
+    Decentralised,
     Error(AccountControllerErrorStateReason),
     RequestingZkNyms,
 }

@@ -16,11 +16,9 @@ use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
-use nym_validator_client::DirectSecp256k1HdWallet;
-use nym_validator_client::nyxd::CosmWasmClient;
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    AvailableTicketbooks,
+    AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_api_client::{
     NetworkCompatibility,
@@ -336,8 +334,16 @@ impl NymVpnService {
             }
         })?;
 
+        let nyxd_client = NyxdClient::new(&parameters.network_env).map_err(|err| {
+            trace_err_chain!(err, "Failed to create nyxd client");
+            AccountControllerError::Initialization {
+                reason: err.to_string(),
+            }
+        })?;
+
         let account_controller = AccountController::new(
             nym_vpn_api_client,
+            nyxd_client,
             account_controller_config,
             storage,
             connectivity_handle.clone(),
@@ -1003,56 +1009,14 @@ impl NymVpnService {
             StoreAccountRequest::Decentralised { mnemonic } => {
                 let mnemonic = Mnemonic::parse::<String>(mnemonic)
                     .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-                self.handle_store_decentralised_account(mnemonic).await
+                self.account_command_tx
+                    .store_account(StorableAccount::new(
+                        mnemonic,
+                        StoredAccountMode::Decentralised,
+                    ))
+                    .await
             }
         }
-    }
-
-    async fn handle_store_decentralised_account(
-        &mut self,
-        mnemonic: bip39::Mnemonic,
-    ) -> Result<(), AccountCommandError> {
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        let address = wallet
-            .try_derive_accounts()
-            .unwrap_or_default()
-            .pop()
-            .ok_or(AccountCommandError::InvalidMnemonic(
-                "did not manage to derive a single account".to_string(),
-            ))?
-            .address;
-
-        // NOTE: this client internally will NOT use any domain fronting, etc.
-        let nyxd_client = nym_validator_client::nyxd::NyxdClient::connect_with_network_details(
-            self.network_env.nyxd_url.as_str(),
-            self.network_env.nym_network_details().clone(),
-        )
-        .map_err(|err| AccountCommandError::NyxdConnectionFailure(err.to_string()))?;
-
-        // if we're attempting to store a decentralised account, it MUST exist on chain,
-        // i.e. it must have proper number and sequence
-        let Some(account_response) = nyxd_client
-            .get_account(&address)
-            .await
-            .map_err(|err| AccountCommandError::NyxdQueryFailure(err.to_string()))?
-        else {
-            return Err(AccountCommandError::AccountDoesntExistOnChain);
-        };
-
-        let Ok(base_account) = account_response.try_get_base_account() else {
-            return Err(AccountCommandError::AccountDoesntExistOnChain);
-        };
-        info!(
-            "importing decentralised account '{}' with account number: {} and sequence: {}",
-            base_account.address, base_account.account_number, base_account.sequence
-        );
-
-        self.account_command_tx
-            .store_account(StorableAccount::new(
-                mnemonic,
-                StoredAccountMode::Decentralised,
-            ))
-            .await
     }
 
     async fn handle_decentralised_obtain_ticketbooks(

@@ -547,6 +547,8 @@ message AccountCommandError {
     string nyxd_query_failure = 12;
     bool account_doesnt_exist_on_chain = 13;
     bool insufficient_funds = 14;
+    bool account_decentralised = 15;
+    bool account_not_decentralised = 16;
   }
 }
 
@@ -590,6 +592,7 @@ message AccountControllerState {
     optional string context = 3;
   }
   message Offline {}
+  message Decentralised {}
 
   oneof state {
     LoggedOut logged_out = 1;
@@ -597,6 +600,7 @@ message AccountControllerState {
     ReadyToConnect ready_to_connect = 3;
     Error error = 4;
     Offline offline = 5;
+    Decentralised decentralised = 6;
   }
 }
 

@@ -13,8 +13,9 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use crate::state_machine::ReadyState;
+use crate::state_machine::decentralised_state::DecentralisedState;
 use crate::{
-    SharedAccountState,
+    SharedAccountState, commands,
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
@@ -45,7 +46,7 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 /// - SyncingState : We try again if there was an error while making an API request
 /// - ErrorState : An actual error happened, or one of the above questions has a negative answers, preventing us to proceed.
 /// - OfflineState : the connectivity monitor is telling we're not connected
-/// - ReadyState : The loaded account is set to "decentralised" mode
+/// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
     attempts: u32,
@@ -63,7 +64,7 @@ impl SyncingState {
             return LoggedOutState::enter();
         };
         if vpn_api_account.mode().is_decentralised() {
-            return ReadyState::enter();
+            return DecentralisedState::enter();
         }
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
@@ -247,6 +248,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {

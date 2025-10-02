@@ -60,7 +60,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     // Before that command gets sent to the AC, the tunnel must be in Disconnected state, so we shouldn't ever end up here
                     // If we nevertheless do, we can't forget the account, because maybe the tunnel is in Offline {reconnect : true} state, and we shouldn't remove the account if it's the case
                     AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
-
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_connectivity(return_sender),
                     // Same comment as above
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender),
 

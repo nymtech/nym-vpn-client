@@ -13,7 +13,7 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AccountStateReceiver,
+    AccountCommandSender, AccountControllerConfig, AccountStateReceiver, NyxdClient,
     commands::AccountCommand,
     error::Error,
     shared_state::SharedAccountState,
@@ -69,6 +69,7 @@ where
 {
     pub async fn new(
         nym_vpn_api_client: VpnApiClient,
+        nyxd_client: NyxdClient,
         config: AccountControllerConfig,
         storage: S,
         connectivity_handle: C,
@@ -102,6 +103,7 @@ where
             config,
             credential_storage,
             nym_vpn_api_client,
+            nyxd_client,
             vpn_api_account,
             device_keys,
             storage_op_sender,
@@ -151,7 +153,7 @@ where
             .vpn_api_account
             .as_ref()
             .map(|account| account.id())
-            .unwrap_or_else(|| "(unset)");
+            .unwrap_or_else(|| "(unset)".to_string());
 
         let device_id = self
             .shared_state
@@ -160,8 +162,8 @@ where
             .map(|d| d.identity_key().to_base58_string())
             .unwrap_or_else(|| "(unset)".to_string());
 
-        tracing::info!("Account id: {}", account_id);
-        tracing::info!("Device id: {}", device_id);
+        tracing::info!("Account id: {account_id}");
+        tracing::info!("Device id: {device_id}");
     }
 
     pub async fn run(mut self) {
