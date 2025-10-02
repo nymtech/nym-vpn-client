@@ -2,7 +2,7 @@
 import CountriesManagerTypes
 import NymVPNLib
 
-public extension GatewayASNType {
+public extension GatewayNodeASNType {
     init(with type: AsnKind) {
         switch type {
         case .residential:

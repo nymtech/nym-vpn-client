@@ -3,14 +3,16 @@ import CountriesManagerTypes
 import Theme
 
 public enum EntryGateway: Codable, Equatable {
-    case country(Country)
-    case lowLatencyCountry(Country)
-    case gateway(GatewayNode)
+    case country(String)
+    case region(String)
+    case city(String)
+    case lowLatencyCountry(String)
+    case gateway(String)
     case random
 
     public var isQuickest: Bool {
         switch self {
-        case .country, .random, .gateway:
+        case .country, .random, .gateway, .region, .city:
             false
         case .lowLatencyCountry:
             true
@@ -21,39 +23,25 @@ public enum EntryGateway: Codable, Equatable {
         switch self {
         case .country:
             true
-        case .lowLatencyCountry, .random, .gateway:
+        case .lowLatencyCountry, .random, .gateway, .region, .city:
             false
         }
     }
 }
 
 extension EntryGateway: GatewayInfoProtocol {
-    // Returns moniker or country code
-    public var name: String {
-        switch self {
-        case let .country(country), let .lowLatencyCountry(country):
-            country.code
-        case .random:
-            "gateway.random".localizedString
-        case let .gateway(gateway):
-            gateway.moniker ?? gateway.id
-        }
-    }
-
     public var countryCode: String? {
         switch self {
-        case let .country(country), let .lowLatencyCountry(country):
-            country.code
-        case let .gateway(gateway):
-            gateway.countryCode
-        case .random:
+        case let .country(code), let .lowLatencyCountry(code):
+            code
+        case .random, .city, .region, .gateway:
             nil
         }
     }
 
     public var isGateway: Bool {
         switch self {
-        case .country, .lowLatencyCountry, .random:
+        case .country, .lowLatencyCountry, .random, .region, .city:
             false
         case .gateway:
             true
@@ -62,9 +50,9 @@ extension EntryGateway: GatewayInfoProtocol {
 
     public var gatewayId: String? {
         switch self {
-        case let .gateway(gateway):
-            gateway.id
-        case .country, .lowLatencyCountry, .random:
+        case let .gateway(identifier):
+            identifier
+        case .country, .lowLatencyCountry, .random, .region, .city:
             nil
         }
     }

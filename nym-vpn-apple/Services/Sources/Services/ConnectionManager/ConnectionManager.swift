@@ -2,7 +2,6 @@ import Combine
 import Foundation
 import NetworkExtension
 import AppSettings
-import CountriesManager
 import ConnectionTypes
 import CredentialsManager
 import TunnelMixnet
@@ -14,7 +13,6 @@ import GRPCManager
 
 public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
-    private let countriesManager: CountriesManager
 
     private var timerCancellable: AnyCancellable?
 
@@ -39,6 +37,7 @@ public final class ConnectionManager: ObservableObject {
 
     public static let shared = ConnectionManager()
 
+    @Published public var connectionConfig: ConnectionConfig?
     @Published public var connectedDate: Date?
     @Published public var connectedDateString: String?
     @Published public var connectionRetryAttempt: Int?
@@ -49,10 +48,14 @@ public final class ConnectionManager: ObservableObject {
 
     @Published public var connectionType: ConnectionType {
         didSet {
-            appSettings.connectionType = connectionType.rawValue
-            Task { @MainActor in
-                await reconnectIfNeeded()
+            switch connectionType {
+            case .mixnet5hop:
+                connectionConfig?.enableTwoHop = false
+            case .wireguard:
+                connectionConfig?.enableTwoHop = true
             }
+            appSettings.connectionType = connectionType.rawValue
+            updateConnectionConfig()
         }
     }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
@@ -76,16 +79,18 @@ public final class ConnectionManager: ObservableObject {
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
+                connectionConfig?.entry = entryGateway
                 connectionStorage.entryGateway = entryGateway
-                await reconnectIfNeeded()
+                updateConnectionConfig()
             }
         }
     }
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
+                connectionConfig?.exit = exitRouter
                 connectionStorage.exitRouter = exitRouter
-                await reconnectIfNeeded()
+                updateConnectionConfig()
             }
         }
     }
@@ -94,13 +99,11 @@ public final class ConnectionManager: ObservableObject {
     public init(
         appSettings: AppSettings = AppSettings.shared,
         connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
-        self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.entryGateway = connectionStorage.entryGateway
@@ -114,14 +117,12 @@ public final class ConnectionManager: ObservableObject {
     public init(
         appSettings: AppSettings = AppSettings.shared,
         connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
-        self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
@@ -155,11 +156,12 @@ private extension ConnectionManager {
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
-        setupCountriesManagerObserver()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
-
         configureConnectedTimeTimer()
+        Task { @MainActor in
+            await fetchConnectionConfig()
+        }
     }
 }
 
@@ -194,23 +196,6 @@ private extension ConnectionManager {
 // MARK: - Countries -
 
 private extension ConnectionManager {
-    func setupCountriesManagerObserver() {
-        countriesManager.$entryCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-
-        countriesManager.$exitCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-
-        countriesManager.$vpnCountries.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
-    }
-
     func setupConnectionChangeObserver() {
         $connectionType.sink { [weak self] _ in
             self?.updateCountries()

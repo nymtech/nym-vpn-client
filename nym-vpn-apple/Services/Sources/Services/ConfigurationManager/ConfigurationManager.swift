@@ -137,20 +137,21 @@ public final class ConfigurationManager: ObservableObject {
 
     public func updateAccountLinks() {
         Task {
+            let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
             do {
 #if os(iOS)
                 let links = try getAccountLinksRaw(
                     accountStorePath: credentialsManager.dataFolderURL().path(),
-                    locale: Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
+                    locale: locale
                 )
                 Task { @MainActor in
                     accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }
 #elseif os(macOS)
-                let links = try await grpcManager.accountLinks()
+                let links = try await grpcManager.accountLinks(for: locale)
                 Task { @MainActor in
-                    if !links.signIn.isEmpty, !links.signUp.isEmpty {
-                        accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
+                    if let signIn = links.signIn, !signIn.isEmpty, let signUp = links.signUp, !signUp.isEmpty {
+                        accountLinks = AccountLinks(account: links.account, signIn: signIn, signUp: signUp)
                     } else {
                         accountLinks = nil
                     }

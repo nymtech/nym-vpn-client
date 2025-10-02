@@ -1,13 +1,16 @@
-import GRPC
-import SwiftProtobuf
+import Shell
 
 extension GRPCManager {
     public func version() async throws {
+
         do {
-            let result = try await client.info(
-                Google_Protobuf_Empty(),
-                callOptions: CallOptions(timeLimit: .timeout(.seconds(3)))
-            )
+            guard let result = try await rpcClient?.getInfo()
+            else {
+                Task { @MainActor in
+                    daemonVersion = "noVersion"
+                }
+                return
+            }
             Task { @MainActor in
                 daemonVersion = result.version
                 networkName = result.nymNetwork.networkName
@@ -23,22 +26,22 @@ extension GRPCManager {
     }
 
     public func updateErrorReportingIfNeeded(with isEnabled: Bool) async throws {
-        let isSentryEnabled = try await client.isSentryEnabled(Google_Protobuf_Empty()).value
+        let isSentryEnabled = try await rpcClient?.isSentryEnabled()
         guard isSentryEnabled != isEnabled else { return }
         if isEnabled {
-            _ = try await client.enableSentry(Google_Protobuf_Empty())
+            try await rpcClient?.enableSentry()
         } else {
-            _ = try await client.disableSentry(Google_Protobuf_Empty())
+            try await rpcClient?.disableSentry()
         }
     }
 
     public func updateNetworkStatisticsIfNeeded(with isEnabled: Bool) async throws {
-        let isStatisticsEnabled = try await client.isCollectNetworkStatsEnabled(Google_Protobuf_Empty()).value
+        let isStatisticsEnabled = try await rpcClient?.isCollectNetworkStatsEnabled()
         guard isStatisticsEnabled != isEnabled else { return }
         if isEnabled {
-            _ = try await client.enableCollectNetworkStats(Google_Protobuf_Empty())
+            try await rpcClient?.enableCollectNetworkStats()
         } else {
-            _ = try await client.disableCollectNetworkStats(Google_Protobuf_Empty())
+            try await rpcClient?.disableCollectNetworkStats()
         }
     }
 }
