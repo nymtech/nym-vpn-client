@@ -30,7 +30,7 @@ jobs:
 
   build-windows:
     needs: [build-wireguard-go-windows, build-winfw-windows]
-    runs-on: windows-11
+    runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}

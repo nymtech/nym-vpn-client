@@ -13,7 +13,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: "custom-windows-11"
 
     steps:
       - name: Checkout repo
