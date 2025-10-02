@@ -14,7 +14,7 @@ use persistence::{
     on_disk::{OnDiskKeys, OnDiskKeysError},
 };
 
-pub const DB_NAME: &str = "wireguard_keys.sql";
+pub const DB_NAME: &str = "wireguard_keys.db";
 
 #[derive(Clone)]
 pub enum WireguardKeysDb {
