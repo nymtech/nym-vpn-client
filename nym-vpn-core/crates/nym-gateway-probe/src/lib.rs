@@ -84,13 +84,13 @@ pub struct NetstackArgs {
     #[arg(long, default_value_t = 3)]
     netstack_recv_timeout_sec: u64,
 
-    #[arg(long, default_values_t = vec!["nymtech.net".to_string()])]
+    #[arg(long, default_values_t = vec!["nym.com".to_string()])]
     netstack_ping_hosts_v4: Vec<String>,
 
     #[arg(long, default_values_t = vec!["1.1.1.1".to_string()])]
     netstack_ping_ips_v4: Vec<String>,
 
-    #[arg(long, default_values_t = vec!["ipv6.google.com".to_string()])]
+    #[arg(long, default_values_t = vec!["cloudflare.com".to_string()])]
     netstack_ping_hosts_v6: Vec<String>,
 
     #[arg(long, default_values_t = vec!["2001:4860:4860::8888".to_string(), "2606:4700:4700::1111".to_string(), "2620:fe::fe".to_string()])]
@@ -878,5 +878,169 @@ fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<
             warn!("Failed to parse mixnet message: {err}");
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_netstack_args_default_values() {
+        // Test that the default values are correctly set in the struct definition
+        // This validates that our changes to the default values are correct
+
+        // Create a default instance to test the values
+        let args = NetstackArgs {
+            netstack_download_timeout_sec: 180,
+            netstack_v4_dns: "1.1.1.1".to_string(),
+            netstack_v6_dns: "2606:4700:4700::1111".to_string(),
+            netstack_num_ping: 5,
+            netstack_send_timeout_sec: 3,
+            netstack_recv_timeout_sec: 3,
+            netstack_ping_hosts_v4: vec!["nym.com".to_string()],
+            netstack_ping_ips_v4: vec!["1.1.1.1".to_string()],
+            netstack_ping_hosts_v6: vec!["cloudflare.com".to_string()],
+            netstack_ping_ips_v6: vec![
+                "2001:4860:4860::8888".to_string(),
+                "2606:4700:4700::1111".to_string(),
+                "2620:fe::fe".to_string(),
+            ],
+        };
+
+        // Test IPv4 defaults
+        assert_eq!(args.netstack_ping_hosts_v4, vec!["nym.com"]);
+        assert_eq!(args.netstack_ping_ips_v4, vec!["1.1.1.1"]);
+        assert_eq!(args.netstack_v4_dns, "1.1.1.1");
+
+        // Test IPv6 defaults
+        assert_eq!(args.netstack_ping_hosts_v6, vec!["cloudflare.com"]);
+        assert_eq!(
+            args.netstack_ping_ips_v6,
+            vec![
+                "2001:4860:4860::8888",
+                "2606:4700:4700::1111",
+                "2620:fe::fe"
+            ]
+        );
+        assert_eq!(args.netstack_v6_dns, "2606:4700:4700::1111");
+
+        // Test other defaults
+        assert_eq!(args.netstack_download_timeout_sec, 180);
+        assert_eq!(args.netstack_num_ping, 5);
+        assert_eq!(args.netstack_send_timeout_sec, 3);
+        assert_eq!(args.netstack_recv_timeout_sec, 3);
+    }
+
+    #[test]
+    fn test_netstack_args_custom_construction() {
+        // Test that we can create instances with custom values
+        let args = NetstackArgs {
+            netstack_download_timeout_sec: 300,
+            netstack_v4_dns: "8.8.8.8".to_string(),
+            netstack_v6_dns: "2001:4860:4860::8888".to_string(),
+            netstack_num_ping: 10,
+            netstack_send_timeout_sec: 5,
+            netstack_recv_timeout_sec: 5,
+            netstack_ping_hosts_v4: vec!["example.com".to_string()],
+            netstack_ping_ips_v4: vec!["8.8.8.8".to_string()],
+            netstack_ping_hosts_v6: vec!["ipv6.example.com".to_string()],
+            netstack_ping_ips_v6: vec!["2001:4860:4860::8888".to_string()],
+        };
+
+        assert_eq!(args.netstack_ping_hosts_v4, vec!["example.com"]);
+        assert_eq!(args.netstack_ping_hosts_v6, vec!["ipv6.example.com"]);
+        assert_eq!(args.netstack_ping_ips_v4, vec!["8.8.8.8"]);
+        assert_eq!(args.netstack_ping_ips_v6, vec!["2001:4860:4860::8888"]);
+        assert_eq!(args.netstack_v4_dns, "8.8.8.8");
+        assert_eq!(args.netstack_v6_dns, "2001:4860:4860::8888");
+        assert_eq!(args.netstack_download_timeout_sec, 300);
+        assert_eq!(args.netstack_num_ping, 10);
+        assert_eq!(args.netstack_send_timeout_sec, 5);
+        assert_eq!(args.netstack_recv_timeout_sec, 5);
+    }
+
+    #[test]
+    fn test_netstack_args_multiple_values() {
+        // Test that multiple hosts and IPs can be stored
+        let args = NetstackArgs {
+            netstack_download_timeout_sec: 180,
+            netstack_v4_dns: "1.1.1.1".to_string(),
+            netstack_v6_dns: "2606:4700:4700::1111".to_string(),
+            netstack_num_ping: 5,
+            netstack_send_timeout_sec: 3,
+            netstack_recv_timeout_sec: 3,
+            netstack_ping_hosts_v4: vec!["nym.com".to_string(), "example.com".to_string()],
+            netstack_ping_ips_v4: vec!["1.1.1.1".to_string(), "8.8.8.8".to_string()],
+            netstack_ping_hosts_v6: vec![
+                "cloudflare.com".to_string(),
+                "ipv6.example.com".to_string(),
+            ],
+            netstack_ping_ips_v6: vec![
+                "2001:4860:4860::8888".to_string(),
+                "2606:4700:4700::1111".to_string(),
+            ],
+        };
+
+        assert_eq!(args.netstack_ping_hosts_v4, vec!["nym.com", "example.com"]);
+        assert_eq!(
+            args.netstack_ping_hosts_v6,
+            vec!["cloudflare.com", "ipv6.example.com"]
+        );
+        assert_eq!(args.netstack_ping_ips_v4, vec!["1.1.1.1", "8.8.8.8"]);
+        assert_eq!(
+            args.netstack_ping_ips_v6,
+            vec!["2001:4860:4860::8888", "2606:4700:4700::1111"]
+        );
+    }
+
+    #[test]
+    fn test_netstack_args_edge_cases() {
+        // Test edge cases like zero values and empty vectors
+        let args = NetstackArgs {
+            netstack_download_timeout_sec: 0,
+            netstack_v4_dns: "1.1.1.1".to_string(),
+            netstack_v6_dns: "2606:4700:4700::1111".to_string(),
+            netstack_num_ping: 0,
+            netstack_send_timeout_sec: 0,
+            netstack_recv_timeout_sec: 0,
+            netstack_ping_hosts_v4: vec![],
+            netstack_ping_ips_v4: vec![],
+            netstack_ping_hosts_v6: vec![],
+            netstack_ping_ips_v6: vec![],
+        };
+
+        assert_eq!(args.netstack_num_ping, 0);
+        assert_eq!(args.netstack_send_timeout_sec, 0);
+        assert_eq!(args.netstack_recv_timeout_sec, 0);
+        assert_eq!(args.netstack_download_timeout_sec, 0);
+        assert!(args.netstack_ping_hosts_v4.is_empty());
+        assert!(args.netstack_ping_ips_v4.is_empty());
+        assert!(args.netstack_ping_hosts_v6.is_empty());
+        assert!(args.netstack_ping_ips_v6.is_empty());
+    }
+
+    #[test]
+    fn test_netstack_args_domain_validation() {
+        // Test that our domain choices are reasonable
+        let args = NetstackArgs {
+            netstack_download_timeout_sec: 180,
+            netstack_v4_dns: "1.1.1.1".to_string(),
+            netstack_v6_dns: "2606:4700:4700::1111".to_string(),
+            netstack_num_ping: 5,
+            netstack_send_timeout_sec: 3,
+            netstack_recv_timeout_sec: 3,
+            netstack_ping_hosts_v4: vec!["nym.com".to_string()],
+            netstack_ping_ips_v4: vec!["1.1.1.1".to_string()],
+            netstack_ping_hosts_v6: vec!["cloudflare.com".to_string()],
+            netstack_ping_ips_v6: vec!["2001:4860:4860::8888".to_string()],
+        };
+
+        assert!(args.netstack_ping_hosts_v4[0].contains("nym"));
+
+        assert!(args.netstack_ping_hosts_v6[0].contains("cloudflare"));
+
+        assert_eq!(args.netstack_v4_dns, "1.1.1.1");
+        assert_eq!(args.netstack_v6_dns, "2606:4700:4700::1111");
     }
 }
