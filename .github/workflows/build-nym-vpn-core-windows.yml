@@ -30,7 +30,7 @@ jobs:
 
   build-windows:
     needs: [build-wireguard-go-windows, build-winfw-windows]
-    runs-on: custom-windows-11
+    runs-on: windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -43,7 +43,7 @@ jobs:
 
       - name: Install GNU make
         run: |
-          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Install rust toolchain

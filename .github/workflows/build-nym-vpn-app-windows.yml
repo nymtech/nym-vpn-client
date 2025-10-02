@@ -86,13 +86,13 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LIBS_PATH: '${{ github.workspace }}/lib'
+  LIBS_PATH: "${{ github.workspace }}/lib"
   UPLOAD_DIR_WINDOWS: windows_artifacts
-  TAURI_SRC: '${{ github.workspace }}/nym-vpn-app/src-tauri/'
+  TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
 
 jobs:
   build-windows:
-    runs-on: custom-windows-11
+    runs-on: windows-latest
     env:
       VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
@@ -145,7 +145,7 @@ jobs:
 
       - name: Install yq
         run: |
-          winget list MikeFarah.yq || winget install --disable-interactivity --id MikeFarah.yq
+          winget list MikeFarah.yq || winget install --disable-interactivity --accept-source-agreements --id MikeFarah.yq
 
       - name: Get nym-vpn-core release tag
         if: inputs.core_release_tag
