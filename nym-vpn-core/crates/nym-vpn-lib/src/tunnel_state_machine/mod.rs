@@ -521,7 +521,7 @@ impl TunnelStateMachine {
 
         let wg_keys_db = WireguardKeysDb::init(nym_config.data_path.clone())
             .await
-            .map_err(|source| Error::WireguardKeyDb(source))?;
+            .map_err(Error::WireguardKeyDb)?;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
