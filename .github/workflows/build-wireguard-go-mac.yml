@@ -13,7 +13,7 @@ env:
 
 jobs:
   build:
-    runs-on: custom-macos-15
+    runs-on: macos-15
     timeout-minutes: 5
 
     steps:
