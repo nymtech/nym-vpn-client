@@ -13099,8 +13099,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced privacy"
+            "state" : "translated",
+            "value" : "Gelişmiş gizlilik"
           }
         },
         "uk" : {
@@ -13195,19 +13195,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "С mixnet (5-хоп)"
+            "value" : "С микснетом (пятиступенчатым)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "With mixnet (5-hop)"
+            "state" : "translated",
+            "value" : "Mixnet ile (5-hop (atlama))"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Через mixnet (5-тривалість)"
+            "value" : "Через mixnet (5-hop)"
           }
         },
         "vi" : {
@@ -13296,19 +13296,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ОЗН"
+            "value" : "ASN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN"
+            "state" : "translated",
+            "value" : "Otonom Sistem Numarası"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "АСН"
+            "value" : "ASN"
           }
         },
         "vi" : {
@@ -13402,8 +13402,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN name"
+            "state" : "translated",
+            "value" : "Otonom Sistem'in adı"
           }
         },
         "uk" : {
@@ -13503,14 +13503,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Nym build version"
+            "state" : "translated",
+            "value" : "Nym sürüm versiyonu"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Версія збірки Nm"
+            "value" : "Версія збірки Nym"
           }
         },
         "vi" : {
@@ -13599,19 +13599,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "IP хранилища данных"
+            "value" : "IP дата-центра"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Datacenter IP"
+            "state" : "translated",
+            "value" : "Veri Merkezi IP'si"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Шифрування даних"
+            "value" : "IP-адреса центру обробки даних"
           }
         },
         "vi" : {
@@ -13700,13 +13700,13 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Личный ключ"
+            "value" : "Идентификационный ключ"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key"
+            "state" : "translated",
+            "value" : "Kimlik anahtarı"
           }
         },
         "uk" : {
@@ -13806,7 +13806,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Exit IPv4"
           }
         },
@@ -13907,7 +13907,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Exit IPv6"
           }
         },
@@ -14003,19 +14003,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оценка производительности, рассчитанная на основе нагрузки на сервер и времени обновления. Обновления в течение 24 часов. Последнее обновление"
+            "value" : "Показатель производительности, рассчитанный на основе нагрузки и времени обновления. Обновления в течение 24 часов. Последнее обновление"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update"
+            "state" : "translated",
+            "value" : "Performans puanı, sunucu yükü ve çalışma süresi dikkate alınarak hesaplanır. Çalışma süresi, son 24 saatin ortalamasıdır. Son güncelleme"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оцінка швидкості, обчислена від завантаження і оновленого сервера. Час за останні 24-годинне оновлення"
+            "value" : "Оцінка продуктивності розраховується на основі навантаження на сервер і часу безвідмовної роботи. Час безвідмовної роботи — середнє значення за останні 24 години. Останнє оновлення"
           }
         },
         "vi" : {
@@ -14104,19 +14104,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Почему там отсутствует или неправильная информация"
+            "value" : "Почему информация отсутствует или указана неверно"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Why is there missing or incorrect info"
+            "state" : "translated",
+            "value" : "Neden bazı bilgiler eksik veya hatalı?"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Чому немає інформації або неправильної"
+            "value" : "Чому інформація відсутня або неправильна?"
           }
         },
         "vi" : {
@@ -14205,19 +14205,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подробнее в Nym"
+            "value" : "Больше подробностей в Nym"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "More details in the Nym"
+            "state" : "translated",
+            "value" : "Detaylı bilgi için Nym ’i inceleyin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Детальніше в Нюмі"
+            "value" : "Більше деталей у Nym"
           }
         },
         "vi" : {
@@ -14306,19 +14306,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сетевой проводник"
+            "value" : "Эксплорер сети"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Network Explorer"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Огляд мережі"
+            "value" : "Мережевий провідник"
           }
         },
         "vi" : {
@@ -14412,8 +14412,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Overall performance"
+            "state" : "translated",
+            "value" : "Genel performans"
           }
         },
         "uk" : {
@@ -14508,19 +14508,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Жилой IP"
+            "value" : "Пользовательский IP-адрес"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Residential IP"
+            "state" : "translated",
+            "value" : "Yerleşik IP"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Житловий IP"
+            "value" : "Домашня IP"
           }
         },
         "vi" : {
@@ -14614,8 +14614,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select server"
+            "state" : "translated",
+            "value" : "Sunucu seçin"
           }
         },
         "uk" : {
@@ -14715,8 +14715,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server details"
+            "state" : "translated",
+            "value" : "Sunucu detayları"
           }
         },
         "uk" : {
@@ -14816,14 +14816,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server load"
+            "state" : "translated",
+            "value" : "Sunucunun mevcut yük durumu"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завантаження сервера"
+            "value" : "Навантаження на сервер"
           }
         },
         "vi" : {
@@ -14912,19 +14912,19 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вещание и контент"
+            "value" : "Стриминг и контент"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Streaming and content"
+            "state" : "translated",
+            "value" : "Akış ve içerik"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Потокове трансляції і зміст"
+            "value" : "Стрімінг та контент"
           }
         },
         "vi" : {
@@ -15018,8 +15018,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uptime"
+            "state" : "translated",
+            "value" : "Çalışma süresi"
           }
         },
         "uk" : {
@@ -20169,8 +20169,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "High"
+            "state" : "translated",
+            "value" : "Yüksek"
           }
         },
         "uk" : {
@@ -23906,14 +23906,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "Düşük"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Низька"
+            "value" : "Низький"
           }
         },
         "vi" : {
@@ -24007,14 +24007,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "Orta"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Медіум"
+            "value" : "Середній"
           }
         },
         "vi" : {
@@ -24916,8 +24916,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data"
+            "state" : "translated",
+            "value" : "Veri bulunamadı"
           }
         },
         "uk" : {
