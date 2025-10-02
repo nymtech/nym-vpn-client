@@ -22,7 +22,6 @@ nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-ecash-time.workspace = true
 nym-offline-monitor.workspace = true
-nym-registration-common.workspace = true
 nym-sdk.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }

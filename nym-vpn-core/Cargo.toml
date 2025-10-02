@@ -71,6 +71,8 @@ default-members = [
 # nym-statistics-common = { path = "../../nym/common/statistics" }
 # nym-topology = { path = "../../nym/common/topology" }
 # nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
+# nym-wireguard-private-metadata-client = { path = "../../nym/common/wireguard-private-metadata/client" }
+# nym-wireguard-private-metadata-shared = { path = "../../nym/common/wireguard-private-metadata/shared" }
 # nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 # sqlx-pool-guard = { path = "../../nym/sqlx-pool-guard" }
 # nym-credential-utils = { path = "../../nym/common/credential-utils" }

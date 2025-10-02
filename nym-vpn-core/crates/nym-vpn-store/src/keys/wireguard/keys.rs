@@ -51,11 +51,11 @@ impl WireguardKeys {
         store.load_or_create_keys(gateway_id).await
     }
 
-    pub fn entry_keypair(&self) -> &x25519::KeyPair {
+    pub fn entry_keypair(&self) -> &Arc<x25519::KeyPair> {
         &self.entry_keypair
     }
 
-    pub fn exit_keypair(&self) -> &x25519::KeyPair {
+    pub fn exit_keypair(&self) -> &Arc<x25519::KeyPair> {
         &self.exit_keypair
     }
 }

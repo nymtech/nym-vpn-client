@@ -32,4 +32,11 @@ pub enum GatewayDirectoryError {
 
     #[error("unable to use same entry and exit gateway: {identity}")]
     SameEntryAndExitGateway { identity: String },
+
+    #[error("failed to load wireguard keypair from database for {identity} gateway")]
+    LoadKeypair {
+        identity: String,
+        #[source]
+        source: nym_vpn_store::keys::wireguard::KeysDbError,
+    },
 }

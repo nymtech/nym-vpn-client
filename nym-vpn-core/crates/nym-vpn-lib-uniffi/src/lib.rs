@@ -436,10 +436,10 @@ async fn get_gateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
-    RUNTIME.block_on(start_vpn_inner(config))
+    RUNTIME.block_on(start_vpn_inner(Box::new(config)))
 }
 
-async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+async fn start_vpn_inner(config: Box<VPNConfig>) -> Result<(), VpnError> {
     log_build_info();
 
     // Get the network environment details. This relies on the network environment being set in

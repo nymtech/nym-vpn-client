@@ -1,24 +1,62 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
+use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
     EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList, GatewayType, ScoreValue,
 };
+use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::{
     GatewayDirectoryError,
     tunnel_state_machine::{TunnelSettings, TunnelType},
 };
 
+#[derive(Clone)]
+pub struct GatewayWithKeys {
+    gateway: Gateway,
+    keys: Arc<KeyPair>,
+}
+
+impl std::fmt::Debug for GatewayWithKeys {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GatewayWithKeys")
+            .field("gateway", &self.gateway)
+            .field("client_wireguard_public_key", &self.keys.public_key())
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
-    pub entry: Box<Gateway>,
-    pub exit: Box<Gateway>,
+    entry: Box<GatewayWithKeys>,
+    exit: Box<GatewayWithKeys>,
+}
+
+impl SelectedGateways {
+    pub fn entry_gateway(&self) -> &Gateway {
+        &self.entry.gateway
+    }
+
+    pub fn exit_gateway(&self) -> &Gateway {
+        &self.exit.gateway
+    }
+
+    pub fn entry_keypair(&self) -> &Arc<KeyPair> {
+        &self.entry.keys
+    }
+
+    pub fn exit_keypair(&self) -> &Arc<KeyPair> {
+        &self.exit.keys
+    }
 }
 
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
     tunnel_settings: &TunnelSettings,
+    wg_keys_db: WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
@@ -116,6 +154,25 @@ pub async fn select_gateways(
             }
         })?;
 
+    let entry_keys = wg_keys_db
+        .load_or_create_keys(&entry_gateway.identity().to_string())
+        .await
+        .map_err(|source| GatewayDirectoryError::LoadKeypair {
+            identity: entry_gateway.identity().to_string(),
+            source,
+        })?
+        .entry_keypair()
+        .clone();
+    let exit_keys = wg_keys_db
+        .load_or_create_keys(&exit_gateway.identity().to_string())
+        .await
+        .map_err(|source| GatewayDirectoryError::LoadKeypair {
+            identity: exit_gateway.identity().to_string(),
+            source,
+        })?
+        .exit_keypair()
+        .clone();
+
     tracing::info!(
         "Using entry gateway: {}, location: {}, performance: {}",
         entry_gateway.identity(),
@@ -144,7 +201,13 @@ pub async fn select_gateways(
     );
 
     Ok(SelectedGateways {
-        entry: Box::new(entry_gateway),
-        exit: Box::new(exit_gateway),
+        entry: Box::new(GatewayWithKeys {
+            gateway: entry_gateway,
+            keys: entry_keys,
+        }),
+        exit: Box::new(GatewayWithKeys {
+            gateway: exit_gateway,
+            keys: exit_keys,
+        }),
     })
 }

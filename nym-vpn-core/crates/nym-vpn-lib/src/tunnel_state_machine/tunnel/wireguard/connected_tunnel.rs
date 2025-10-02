@@ -1,11 +1,12 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{IpAddr, SocketAddr};
-#[cfg(target_os = "android")]
-use std::sync::Arc;
 #[cfg(target_os = "ios")]
 use std::time::Duration;
+use std::{
+    net::{IpAddr, SocketAddr},
+    sync::Arc,
+};
 
 #[cfg(target_os = "ios")]
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
@@ -57,8 +58,8 @@ use crate::{
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
 pub struct ConnectedTunnel {
-    entry_wg_keypair: x25519::KeyPair,
-    exit_wg_keypair: x25519::KeyPair,
+    entry_wg_keypair: Arc<x25519::KeyPair>,
+    exit_wg_keypair: Arc<x25519::KeyPair>,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
@@ -67,8 +68,8 @@ pub struct ConnectedTunnel {
 
 impl ConnectedTunnel {
     pub fn new(
-        entry_wg_keypair: x25519::KeyPair,
-        exit_wg_keypair: x25519::KeyPair,
+        entry_wg_keypair: Arc<x25519::KeyPair>,
+        exit_wg_keypair: Arc<x25519::KeyPair>,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
         transport_fwd_handle: Option<JoinHandle<()>>,

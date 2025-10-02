@@ -3,6 +3,7 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    sync::Arc,
     time::Duration,
 };
 
@@ -24,6 +25,7 @@ use nym_config::defaults::{
 };
 use nym_connection_monitor::self_ping_and_wait;
 use nym_credentials_interface::{CredentialSpendingData, TicketType};
+use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
     GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
@@ -260,6 +262,7 @@ impl Probe {
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
+        let mut rng = rand::thread_rng();
         let tickets_materials = self.credentials_args.decode_attached_ticket_materials()?;
 
         // Setup the entry gateways
@@ -364,13 +367,13 @@ impl Probe {
             let mixnet_listener_task =
                 AuthClientMixnetListener::new(mixnet_client, CancellationToken::new()).start();
 
-            let auth_client = AuthenticatorClient::new_entry(
-                &None,
+            let auth_client = AuthenticatorClient::new(
                 mixnet_listener_task.subscribe(),
                 mixnet_listener_task.mixnet_sender(),
                 nym_address,
                 authenticator.into(),
                 node_info.authenticator_version,
+                Arc::new(KeyPair::new(&mut rng)),
                 ip_address,
             );
             let config = nym_validator_client::nyxd::Config::try_from_nym_network_details(

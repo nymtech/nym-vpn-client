@@ -25,7 +25,7 @@ use crate::gateway_cache;
 use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
 pub(super) async fn init_state_machine(
-    config: VPNConfig,
+    config: Box<VPNConfig>,
     network_env: Network,
     account_controller_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
@@ -56,7 +56,7 @@ pub(super) async fn init_state_machine(
 }
 
 pub(super) async fn start_state_machine(
-    config: VPNConfig,
+    config: Box<VPNConfig>,
     network_env: Network,
     account_controller_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,

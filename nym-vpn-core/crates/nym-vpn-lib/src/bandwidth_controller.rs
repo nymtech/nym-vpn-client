@@ -3,7 +3,7 @@
 
 use std::{net::IpAddr, time::Duration};
 
-use nym_authenticator_client::LegacyAuthenticatorClient;
+use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 use nym_registration_common::GatewayData;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
@@ -169,14 +169,14 @@ impl DepletionRate {
 }
 
 pub(crate) enum TemporaryBandwidthClient {
-    Deprecated(Box<LegacyAuthenticatorClient>),
+    Deprecated(Box<AuthenticatorClient>),
     Latest(Box<MetadataClient>),
 }
 
 impl TemporaryBandwidthClient {
     pub(crate) fn new(
         gateway: &Gateway,
-        authenticator_client: LegacyAuthenticatorClient,
+        authenticator_client: AuthenticatorClient,
         metadata_client: MetadataClient,
         gateway_metadata_update_version: Option<semver::Version>,
     ) -> Self {
@@ -287,7 +287,7 @@ impl BandwidthController {
         bind_ip: IpAddr,
         signal_channel: TunUpReceiver,
         gateway: &Gateway,
-        authenticator_client: LegacyAuthenticatorClient,
+        authenticator_client: AuthenticatorClient,
         gateway_metadata_update_version: Option<semver::Version>,
     ) -> TemporaryBandwidthClient {
         // this shouldn't fail, verified by unit test as well
@@ -323,8 +323,8 @@ impl BandwidthController {
     pub(crate) async fn create(
         ticket_provider: Box<dyn BandwidthTicketProvider>,
         selected_gateways: &SelectedGateways,
-        entry_auth_client: LegacyAuthenticatorClient,
-        exit_auth_client: LegacyAuthenticatorClient,
+        entry_auth_client: AuthenticatorClient,
+        exit_auth_client: AuthenticatorClient,
         entry_gateway_data: GatewayData,
         exit_gateway_data: GatewayData,
         entry_signal_channel: TunUpReceiver,
@@ -335,14 +335,14 @@ impl BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_gateway_data.private_ipv4.into(),
             entry_signal_channel,
-            &selected_gateways.entry,
+            selected_gateways.entry_gateway(),
             entry_auth_client,
             gateway_metadata_update_version.clone(),
         );
         let wg_exit_client = Self::construct_bandwidth_client(
             exit_gateway_data.private_ipv4.into(),
             exit_signal_channel,
-            &selected_gateways.exit,
+            selected_gateways.exit_gateway(),
             exit_auth_client,
             gateway_metadata_update_version,
         );
