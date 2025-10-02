@@ -603,7 +603,7 @@ message MinPerformance {
 
 message GatewayFilter {
   oneof filter {
-    MinPerformance min_performance = 1;
+    Score min_score = 1;
     string country = 2;
     string region = 3;
     google.protobuf.Empty residential = 4;

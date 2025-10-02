@@ -312,7 +312,7 @@ impl GatewayClient {
             .collect::<Vec<_>>();
         append_performance(&mut gateways, skimmed_gateways.nodes);
         filter_on_mixnet_min_performance(&mut gateways, &self.min_gateway_performance);
-        Ok(GatewayList::new(gateways))
+        Ok(GatewayList::new(None, gateways))
     }
 
     pub async fn lookup_all_nymnodes(&self) -> Result<NymNodeList> {
@@ -331,7 +331,7 @@ impl GatewayClient {
             .collect::<Vec<_>>();
         append_performance(&mut nodes, skimmed_nodes.nodes);
         filter_on_mixnet_min_performance(&mut nodes, &self.min_gateway_performance);
-        Ok(GatewayList::new(nodes))
+        Ok(GatewayList::new(None, nodes))
     }
 
     pub async fn lookup_gateways_from_nym_api(&self, gw_type: GatewayType) -> Result<GatewayList> {
@@ -402,7 +402,7 @@ impl GatewayClient {
                         })
                 })
                 .collect();
-            Ok(GatewayList::new(gateways))
+            Ok(GatewayList::new(None, gateways))
         } else {
             warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_all_gateways_from_nym_api().await
@@ -426,7 +426,7 @@ impl GatewayClient {
                         })
                 })
                 .collect();
-            Ok(GatewayList::new(gateways))
+            Ok(GatewayList::new(Some(gw_type), gateways))
         } else {
             warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
             self.lookup_gateways_from_nym_api(gw_type).await

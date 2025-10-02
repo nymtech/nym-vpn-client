@@ -342,14 +342,6 @@ impl TunnelMonitor {
                 let new_gateways = tunnel::select_gateways(
                     self.gateway_cache_handle.clone(),
                     &self.tunnel_parameters.tunnel_settings,
-                    self.tunnel_parameters
-                        .nym_config
-                        .gateway_config
-                        .wg_score_thresholds,
-                    self.tunnel_parameters
-                        .nym_config
-                        .gateway_config
-                        .mix_score_thresholds,
                     self.shutdown_token.child_token(),
                 )
                 .await?;
