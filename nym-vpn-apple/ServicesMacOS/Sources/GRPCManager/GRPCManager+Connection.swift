@@ -22,6 +22,9 @@ extension GRPCManager {
         if oldConfig.enableTwoHop != newConfig.enableTwoHop {
             try await rpcClient?.setEnableTwoHop(enableTwoHop: newConfig.enableTwoHop)
         }
+        if oldConfig.enableBridges != newConfig.enableBridges {
+            try await rpcClient?.setEnableBridges(allowLan: newConfig.enableBridges)
+        }
     }
 
     public func connect() async throws {

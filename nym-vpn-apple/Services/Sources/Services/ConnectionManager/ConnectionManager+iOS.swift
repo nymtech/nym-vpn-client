@@ -101,6 +101,7 @@ extension ConnectionManager {
                 configPath: configURL.path(),
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
+                isQuicEnabled: appSettings.isQuicEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
@@ -111,6 +112,7 @@ extension ConnectionManager {
                 configPath: configURL.path(),
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
+                isQuicEnabled: appSettings.isQuicEnabled,
                 isTwoHopEnabled: true
             )
         }
