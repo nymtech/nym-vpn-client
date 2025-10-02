@@ -15,10 +15,9 @@ let package = Package(
         .library(name: "Shell", targets: ["Shell"])
     ],
     dependencies: [
+        .package(path: "../NymVPNRpc"),
         .package(path: "../ServicesMutual"),
         .package(name: "Theme", path: "../Theme"),
-        .package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.24.2"),
-        .package(url: "https://github.com/keefertaylor/Base58Swift", from: "2.1.7"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
@@ -40,10 +39,10 @@ let package = Package(
                 .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
                 .product(name: "FeatureFlagModels", package: "ServicesMutual"),
                 .product(name: "MessageModels", package: "ServicesMutual"),
+                .product(name: "NymVPNRpc", package: "NymVPNRpc"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "TunnelStatus", package: "ServicesMutual"),
-                .product(name: "Base58Swift", package: "Base58Swift"),
-                .product(name: "GRPC", package: "grpc-swift")
+                "Shell"
             ],
             path: "Sources/GRPCManager"
         ),

@@ -36,15 +36,21 @@
       "build-version": "Nym Build-Version",
       "identity-key": "Identitätsschlüssel:"
     },
-    "score": {
+    "perf-score": {
       "high": "Gut",
       "medium": "Mid",
       "low": "Niedrig",
       "offline": "Offline"
     },
+    "server-load-score": {
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig",
+      "offline": "Offline"
+    },
     "notes": {
       "anti-censorship": "Aktivieren Sie das „QUIC-Protokoll“ in den Anti-Zensur-Einstellungen um diese Funktion zu nutzen",
-      "performance_with_date": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit wie zuletzt 24 Stunden Durchschnitt. Letztes Update {{date}}.",
+      "performance_with_time": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit wie zuletzt 24 Stunden Durchschnitt. Letztes Update {{relativeTime}}.",
       "performance": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit als 24-Stunden Durchschnitt."
     },
     "links": {

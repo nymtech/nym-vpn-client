@@ -15,6 +15,12 @@
     "same-entry-exit-gw": "Impossibile connettersi con lo stesso nodo di entrata e uscita. Si prega di cambiare la posizione del nodo di uscita o di entrata.",
     "invalid-entry-gw-country": "Nodo di entrata non valido, si prega di cambiare la posizione del nodo di entrata",
     "invalid-exit-gw-country": "Nato nodo di uscita non valido, si prega di cambiare la posizione del nodo di uscita",
+    "invalid-entry-gw-id": "Il server degli elementi è offline. Scegliere un altro e riconnettersi.",
+    "invalid-exit-gw-id": "Il server di uscita è offline. Scegliere un altro e riconnettersi.",
+    "credential-wasted-entry-gw": "Il server degli elementi non risponde o risponde male ad un aumento della larghezza di banda.",
+    "credential-wasted-exit-gw": "Il server di uscita non risponde o risponde male ad un aumento della larghezza di banda.",
+    "performant-entry-gw-unavailable": "Impossibile raggiungere il server di ingresso. Provane un altro!",
+    "performant-exit-gw-unavailable": "Impossibile raggiungere il server di uscita. Provane un altro!",
     "max-devices-reached": "Limite di dispositivo dell'account superato. Si prega di rimuovere un dispositivo dal tuo account prima di connettersi.",
     "bandwidth-exceeded": "Larghezza di banda mensile superata. Si prega di aggiornare il piano dell'account.",
     "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
@@ -23,9 +29,7 @@
     "tun-device": "Errore dispositivo TUN",
     "tunnel-provider": "Errore nel provider tunnel",
     "inactive-account": "Il tuo account è inattivo",
-    "device-logged-out": "Questo dispositivo è stato disconnesso. Effettua il login per continuare a utilizzare la VPN.",
-    "entry-gateway-bandwidth-increase": "Il gateway di entrata non risponde o risponde male ad un aumento della larghezza di banda.",
-    "exit-gateway-bandwidth-increase": "Il gateway di uscita non risponde o risponde male ad un aumento della larghezza di banda."
+    "device-logged-out": "Questo dispositivo è stato disconnesso. Effettua il login per continuare a utilizzare la VPN."
   },
   "account": {
     "internal": "Errore account interno",

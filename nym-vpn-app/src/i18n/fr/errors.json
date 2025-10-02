@@ -15,6 +15,12 @@
     "same-entry-exit-gw": "Impossible de se connecter avec la même entrée et le même noeud de sortie. Veuillez modifier soit l'emplacement de l'entrée ou du noeud de sortie.",
     "invalid-entry-gw-country": "Pays de noeud d'entrée non valide, veuillez changer l'emplacement du noeud d'entrée",
     "invalid-exit-gw-country": "Pays de noeud de sortie non valide, veuillez changer l'emplacement du noeud de sortie",
+    "invalid-entry-gw-id": "Le serveur d'entrée est hors ligne. Choisissez un autre serveur et reconnectez-vous.",
+    "invalid-exit-gw-id": "La sortie du serveur est hors ligne. Choisissez un autre et reconnectez-vous.",
+    "credential-wasted-entry-gw": "Le serveur d'entrée ne répond pas ou ne répond pas mal à une augmentation de la bande passante.",
+    "credential-wasted-exit-gw": "Quitter le serveur ne répond pas ou ne répond pas mal à une augmentation de la bande passante.",
+    "performant-entry-gw-unavailable": "Impossible d'accéder au serveur d'entrée. Essayez un autre !",
+    "performant-exit-gw-unavailable": "Impossible d'accéder au serveur de sortie. Essayez un autre !",
     "max-devices-reached": "Le nombre maximum d'appareils ajoutés a été atteint. Veuillez Supprimer un appareil de votre compte et réessayez.",
     "bandwidth-exceeded": "La bande passante mensuelle a été dépassée. Veuillez mettre à niveau l'abonnement de votre compte.",
     "subscription-expired": "Votre abonnement a expiré. Le kill-switch vous protège, cliquez \"Stop\" et souscrivez à un nouvel abonnement dans votre compte.",
@@ -23,9 +29,7 @@
     "tun-device": "Erreur d'appareil TUN",
     "tunnel-provider": "Erreur de fournisseur de tunnels",
     "inactive-account": "Votre compte est inactif",
-    "device-logged-out": "Cet appareil a été déconnecté. Veuillez vous connecter pour continuer à utiliser le VPN.",
-    "entry-gateway-bandwidth-increase": "La passerelle d'entrée ne répond pas ou répond mal à une augmentation de la bande passante.",
-    "exit-gateway-bandwidth-increase": "La passerelle de sortie ne répond pas ou répond mal à une augmentation de la bande passante."
+    "device-logged-out": "Cet appareil a été déconnecté. Veuillez vous connecter pour continuer à utiliser le VPN."
   },
   "account": {
     "internal": "Erreur interne du compte",

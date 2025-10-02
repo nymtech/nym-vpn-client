@@ -15,6 +15,12 @@
     "same-entry-exit-gw": "Não é possível conectar-se com o mesmo nó de entrada e saída. Por favor alterar a entrada ou sair do local do nó.",
     "invalid-entry-gw-country": "País do servidor de entrada inválido. Mude o local do nó de entrada",
     "invalid-exit-gw-country": "País do servidor de saída inválido, por favor, altere o local de saída do nó",
+    "invalid-entry-gw-id": "O servidor de entrada está offline. Escolha outro e reconecte-se.",
+    "invalid-exit-gw-id": "Sair do servidor está offline. Escolha outro e reconecte-se.",
+    "credential-wasted-entry-gw": "O servidor de entrada não está respondendo mal a um aumento da largura de banda.",
+    "credential-wasted-exit-gw": "Sair do servidor não está respondendo ou respondendo mal a um aumento da largura de banda.",
+    "performant-entry-gw-unavailable": "Impossível encontrar o servidor de entrada. Tente outro!",
+    "performant-exit-gw-unavailable": "Não foi possível encontrar o servidor de saída. Tente outro!",
     "max-devices-reached": "O limite de dispositivos da conta excedido. Remova um dispositivo da sua conta antes de conectar.",
     "bandwidth-exceeded": "Largura de banda mensal excedida. Por favor, atualize seu plano de conta.",
     "subscription-expired": "A assinatura expirou. Compre um plano para sua conta.",
@@ -23,9 +29,7 @@
     "tun-device": "Erro no dispositivo TUN",
     "tunnel-provider": "Erro provedor de túnel",
     "inactive-account": "Sua conta está inativa",
-    "device-logged-out": "Este dispositivo foi desconectado. Efetue o login para continuar usando a VPN.",
-    "entry-gateway-bandwidth-increase": "O gateway de entrada não está respondendo ou respondendo mal a um aumento na largura de banda.",
-    "exit-gateway-bandwidth-increase": "O gateway de saída não está respondendo ou respondendo mal a um aumento na largura de banda."
+    "device-logged-out": "Este dispositivo foi desconectado. Efetue o login para continuar usando a VPN."
   },
   "account": {
     "internal": "Erro interno da conta",

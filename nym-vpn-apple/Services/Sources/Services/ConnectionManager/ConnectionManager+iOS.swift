@@ -169,6 +169,15 @@ extension ConnectionManager {
             return false
         }
     }
+
+    // Placeholders after rpcClient
+    func updateConnectionConfig() {
+        Task { @MainActor in
+            await reconnectIfNeeded()
+        }
+    }
+
+    func fetchConnectionConfig() async {}
 }
 
 extension ConnectionManager {

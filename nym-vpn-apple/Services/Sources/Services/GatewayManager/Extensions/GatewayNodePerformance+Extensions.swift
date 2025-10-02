@@ -3,7 +3,7 @@ import Foundation
 import CountriesManagerTypes
 import NymVPNLib
 
-extension GatewayPerformance {
+extension GatewayNodePerformance {
     init(with performance: Performance?) {
         self.init(
             lastUpdated: ISO8601DateFormatter().date(from: performance?.lastUpdatedUtc ?? ""),

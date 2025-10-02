@@ -1,32 +1,27 @@
 import Foundation
+import Combine
 import NymLogger
 import SwiftUI
-import Base58Swift
-import GRPC
 import ErrorReason
+import NymVPNRpc
 import Logging
-import NIO
-import NIOConcurrencyHelpers
-import SwiftProtobuf
 import AppVersionProvider
 import Constants
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
-    private let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-    private let channel: GRPCChannel
-    private let unixDomainSocket = "/var/run/nym-vpn.sock"
-
-    let client: NymVpnService_NymVpnServiceAsyncClient
     let logger = Logger(label: "GRPC Manager")
 
-    var userAgent: NymVpnService_UserAgent {
-        var agent = NymVpnService_UserAgent()
-        agent.application = AppVersionProvider.app
-        agent.version = "\(AppVersionProvider.appVersion()) (\(daemonVersion))"
-        agent.platform = AppVersionProvider.platform
-        return agent
+    var userAgent: UserAgent {
+        UserAgent(
+            application: AppVersionProvider.app,
+            version: "\(AppVersionProvider.appVersion()) (\(daemonVersion))",
+            platform: AppVersionProvider.platform,
+            gitCommit: ""
+        )
     }
+    var rpcClient: RpcClient?
+    var listenToEventsObserver: StreamObserver?
     var versionPingTask: Task<Void, Never>?
 
     public static let shared = GRPCManager()
@@ -51,26 +46,26 @@ public final class GRPCManager: ObservableObject {
     }
 
     private init() {
-        channel = ClientConnection(
-            configuration:
-                    .default(
-                        target: .unixDomainSocket(unixDomainSocket),
-                        eventLoopGroup: group
-                    )
-        )
-
-        client = NymVpnService_NymVpnServiceAsyncClient(channel: channel)
         setup()
     }
 
-    deinit {
-        try? channel.close().wait()
-        try? group.syncShutdownGracefully()
-        stopInitialStatusPinger()
+    func setup() {
+        Task {
+            try? await configureRpcCLient()
+            Task { @MainActor in
+                await pingDaemonInitialStatus()
+            }
+        }
     }
 
-    func setup() {
-        setupListenToTunnelStateChangesObserver()
+    func configureRpcCLient() async throws {
+        do {
+            rpcClient = try await RpcClient()
+        } catch {
+            setup()
+        }
+        listenToEventsObserver = try await rpcClient?.listenToEvents(observer: self)
+
         stopInitialStatusPinger()
         startDaemonInitialStatusPingerIfNeeded()
     }

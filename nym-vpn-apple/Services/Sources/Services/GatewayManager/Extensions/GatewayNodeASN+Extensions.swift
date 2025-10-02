@@ -2,10 +2,10 @@
 import CountriesManagerTypes
 import NymVPNLib
 
-extension GatewayASN {
+extension GatewayNodeASN {
     init?(with asn: Asn?) {
         guard let asn else { return nil }
-        self.init(asn: asn.asn, asnName: asn.name, type: GatewayASNType(with: asn.kind))
+        self.init(asn: asn.asn, asnName: asn.name, type: GatewayNodeASNType(with: asn.kind))
     }
 }
 #endif

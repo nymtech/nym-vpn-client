@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"net/http"
@@ -33,10 +34,16 @@ import (
 
 var fileUrls = []string{
 	"https://proof.ovh.net/files/1Mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/1mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/10mb.dat",
+	// "https://nym-bandwidth-monitoring.ops-d86.workers.dev/100mb.dat", to be introduced later
 }
 
 var fileUrlsV6 = []string{
 	"https://proof.ovh.net/files/1Mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/1mb.dat",
+	"https://nym-bandwidth-monitoring.ops-d86.workers.dev/10mb.dat",
+	// "https://nym-bandwidth-monitoring.ops-d86.workers.dev/100mb.dat", to be introduced later
 }
 
 type NetstackRequestGo struct {
@@ -174,14 +181,27 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	response.CanHandshake = true
 
 	for _, host := range req.PingHosts {
+		consecutiveFailures := 0
+		maxConsecutiveFailures := 3
+
 		for i := uint8(0); i < req.NumPing; i++ {
 			log.Printf("Pinging %s seq=%d", host, i)
 			response.SentHosts += 1
 			rt, err := sendPing(host, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
 			if err != nil {
 				log.Printf("Failed to send ping: %v\n", err)
+				consecutiveFailures++
+
+				// Early exit if too many consecutive failures
+				if consecutiveFailures >= maxConsecutiveFailures {
+					log.Printf("Too many consecutive failures (%d), stopping ping attempts for %s", consecutiveFailures, host)
+					break
+				}
 				continue
 			}
+
+			// Reset failure counter on success
+			consecutiveFailures = 0
 			response.ReceivedHosts += 1
 			response.CanResolveDns = true
 			log.Printf("Ping latency: %v\n", rt)
@@ -189,43 +209,55 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	}
 
 	for _, ip := range req.PingIps {
+		consecutiveFailures := 0
+		maxConsecutiveFailures := 3
+
 		for i := uint8(0); i < req.NumPing; i++ {
-			func() {
-				defer time.Sleep(5 * time.Second)
-				log.Printf("Pinging %s seq=%d", ip, i)
-				response.SentIps += 1
-				rt, err := sendPing(ip, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
-				if err != nil {
-					log.Printf("Failed to send ping: %v\n", err)
-					return
+			log.Printf("Pinging %s seq=%d", ip, i)
+			response.SentIps += 1
+			rt, err := sendPing(ip, i, req.SendTimeoutSec, req.RecvTimeoutSec, tnet, req.IpVersion)
+			if err != nil {
+				log.Printf("Failed to send ping: %v\n", err)
+				consecutiveFailures++
+
+				// Early exit if too many consecutive failures
+				if consecutiveFailures >= maxConsecutiveFailures {
+					log.Printf("Too many consecutive failures (%d), stopping ping attempts for %s", consecutiveFailures, ip)
+					break
 				}
+			} else {
+				// Reset failure counter on success
+				consecutiveFailures = 0
 				response.ReceivedIps += 1
 				log.Printf("Ping latency: %v\n", rt)
-			}()
+			}
+
+			// Sleep between ping attempts (except for the last one)
+			if i < req.NumPing-1 {
+				time.Sleep(5 * time.Second)
+			}
 		}
 	}
 
-	var fileURL string
+	var urlsToTry []string
 
 	if req.IpVersion == 4 {
-		randomIndex := rand.Intn(len(fileUrls))
-		fileURL = fileUrls[randomIndex]
+		urlsToTry = fileUrls
 	} else {
-		randomIndex := rand.Intn(len(fileUrlsV6))
-		fileURL = fileUrlsV6[randomIndex]
+		urlsToTry = fileUrlsV6
 	}
 
-	// Download the file
-	fileContent, downloadDuration, err := downloadFile(fileURL, req.DownloadTimeoutSec, tnet)
+	// Try URLs with retry logic
+	fileContent, downloadDuration, usedURL, err := downloadFileWithRetry(urlsToTry, req.DownloadTimeoutSec, tnet)
 	if err != nil {
-		log.Printf("Failed to download file: %v\n", err)
+		log.Printf("Failed to download file from any URL: %v\n", err)
 	} else {
 		log.Printf("Downloaded file content length: %.2f MB\n", float64(len(fileContent))/1024/1024)
 		log.Printf("Download duration: %v\n", downloadDuration)
 	}
 
 	response.DownloadDurationSec = uint64(downloadDuration.Seconds())
-	response.DownloadedFile = fileURL
+	response.DownloadedFile = usedURL
 	if err != nil {
 		response.DownloadError = err.Error()
 	} else {
@@ -236,6 +268,28 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 }
 
 func sendPing(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutSecs uint64, tnet *netstack.Net, ipVersion uint8) (time.Duration, error) {
+	maxPingRetries := 2
+	baseTimeout := receiveTimoutSecs
+
+	for attempt := 0; attempt < maxPingRetries; attempt++ {
+		// Slightly increase timeout on retries, but keep it reasonable
+		adjustedTimeout := baseTimeout + uint64(attempt*1) // +1s per retry only
+
+		duration, err := sendPingAttempt(address, seq, sendTtimeoutSecs, adjustedTimeout, tnet, ipVersion)
+		if err == nil {
+			return duration, nil
+		}
+
+		log.Printf("Ping attempt %d/%d failed: %v", attempt+1, maxPingRetries, err)
+		if attempt < maxPingRetries-1 {
+			time.Sleep(200 * time.Millisecond) // Very brief delay between retries
+		}
+	}
+
+	return 0, fmt.Errorf("ping failed after %d attempts", maxPingRetries)
+}
+
+func sendPingAttempt(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutSecs uint64, tnet *netstack.Net, ipVersion uint8) (time.Duration, error) {
 	var socket net.Conn
 	var err error
 	if ipVersion == 4 {
@@ -247,6 +301,7 @@ func sendPing(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutS
 	if err != nil {
 		return 0, err
 	}
+	defer socket.Close()
 
 	var icmpBytes []byte
 
@@ -270,11 +325,16 @@ func sendPing(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutS
 		return 0, err
 	}
 
-	// Wait until either the right reply arrives or timeout
-	for {
+	// Wait for reply with limited read attempts to avoid long delays
+	maxReadAttempts := 2
+	for readAttempt := 0; readAttempt < maxReadAttempts; readAttempt++ {
 		socket.SetReadDeadline(time.Now().Add(time.Second * time.Duration(receiveTimoutSecs)))
 		n, err := socket.Read(icmpBytes[:])
 		if err != nil {
+			if readAttempt < maxReadAttempts-1 {
+				log.Printf("Read attempt %d failed, retrying: %v", readAttempt+1, err)
+				continue
+			}
 			return 0, err
 		}
 
@@ -287,28 +347,83 @@ func sendPing(address string, seq uint8, sendTtimeoutSecs uint64, receiveTimoutS
 
 		replyPacket, err := icmp.ParseMessage(proto, icmpBytes[:n])
 		if err != nil {
+			if readAttempt < maxReadAttempts-1 {
+				log.Printf("Parse attempt %d failed, retrying: %v", readAttempt+1, err)
+				continue
+			}
 			return 0, err
 		}
 
 		var ok bool
-
 		replyPing, ok := replyPacket.Body.(*icmp.Echo)
 
 		if !ok {
+			if readAttempt < maxReadAttempts-1 {
+				log.Printf("Invalid reply type attempt %d, retrying", readAttempt+1)
+				continue
+			}
 			return 0, fmt.Errorf("invalid reply type: %v", replyPacket)
 		}
 
 		if bytes.Equal(replyPing.Data, requestPing.Data) {
-			// Check if seq is the same, because otherwise we might have received a reply from the preceding ping request.
-			if replyPing.Seq != requestPing.Seq {
-				log.Printf("Got echo reply from timed out request (expected %d, received %d)", requestPing.Seq, replyPing.Seq)
-			} else {
+			// Accept sequence number matches or close matches (for out-of-order delivery)
+			if replyPing.Seq == requestPing.Seq || math.Abs(float64(replyPing.Seq-requestPing.Seq)) <= 1 {
 				return time.Since(start), nil
 			}
+			log.Printf("Sequence mismatch (expected %d, received %d), retrying", requestPing.Seq, replyPing.Seq)
 		} else {
+			if readAttempt < maxReadAttempts-1 {
+				log.Printf("Data mismatch attempt %d, retrying", readAttempt+1)
+				continue
+			}
 			return 0, fmt.Errorf("invalid ping reply: %v (request: %v)", replyPing, requestPing)
 		}
 	}
+
+	return 0, fmt.Errorf("ping failed after %d read attempts", maxReadAttempts)
+}
+
+func downloadFileWithRetry(urls []string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, time.Duration, string, error) {
+	maxRetries := 3
+	baseDelay := 1 * time.Second
+	consecutiveFailures := 0
+	maxConsecutiveFailures := 3
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		// Shuffle URLs for each attempt to try different ones
+		shuffledUrls := make([]string, len(urls))
+		copy(shuffledUrls, urls)
+		rand.Shuffle(len(shuffledUrls), func(i, j int) {
+			shuffledUrls[i], shuffledUrls[j] = shuffledUrls[j], shuffledUrls[i]
+		})
+
+		for _, url := range shuffledUrls {
+			log.Printf("Attempting download from: %s (attempt %d/%d)", url, attempt+1, maxRetries)
+			// Increase timeout on retries to handle slow servers
+			adjustedTimeout := timeoutSecs + uint64(attempt*5) // +5s per retry
+			content, duration, err := downloadFile(url, adjustedTimeout, tnet)
+			if err == nil {
+				log.Printf("Successfully downloaded from: %s", url)
+				return content, duration, url, nil
+			}
+			log.Printf("Failed to download from %s: %v", url, err)
+			consecutiveFailures++
+
+			// Early exit if too many consecutive failures
+			if consecutiveFailures >= maxConsecutiveFailures {
+				log.Printf("Too many consecutive download failures (%d), stopping attempts", consecutiveFailures)
+				return nil, 0, "", fmt.Errorf("too many consecutive failures (%d), stopping download attempts", consecutiveFailures)
+			}
+		}
+
+		if attempt < maxRetries-1 {
+			delay := baseDelay * time.Duration(attempt+1)
+			log.Printf("All URLs failed, retrying in %v...", delay)
+			time.Sleep(delay)
+		}
+	}
+
+	return nil, 0, "", fmt.Errorf("failed to download from any URL after %d attempts", maxRetries)
 }
 
 func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, time.Duration, error) {
