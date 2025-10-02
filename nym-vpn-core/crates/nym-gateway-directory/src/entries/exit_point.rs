@@ -87,7 +87,7 @@ impl ExitPoint {
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
 
-                let filters = build_filters(
+                let filters = Self::build_filters(
                     vec![GatewayFilter::Country(two_letter_iso_country_code.clone())],
                     min_score,
                     residential_exit,
@@ -103,7 +103,7 @@ impl ExitPoint {
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
 
-                let filters = build_filters(
+                let filters = Self::build_filters(
                     vec![
                         // Currently only supported in the US
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
@@ -123,7 +123,7 @@ impl ExitPoint {
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
 
-                let filters = build_filters(vec![], min_score, residential_exit);
+                let filters = Self::build_filters(vec![], min_score, residential_exit);
 
                 gateways
                     .choose_random(&filters)
@@ -131,19 +131,20 @@ impl ExitPoint {
             }
         }
     }
-}
 
-fn build_filters(
-    mut base_filters: Vec<GatewayFilter>,
-    min_score: Option<ScoreValue>,
-    residential_exit: bool,
-) -> Vec<GatewayFilter> {
-    if let Some(min_score) = min_score {
-        base_filters.push(GatewayFilter::MinScore(min_score));
+    #[inline]
+    fn build_filters(
+        mut base_filters: Vec<GatewayFilter>,
+        min_score: Option<ScoreValue>,
+        residential_exit: bool,
+    ) -> Vec<GatewayFilter> {
+        if let Some(min_score) = min_score {
+            base_filters.push(GatewayFilter::MinScore(min_score));
+        }
+        if residential_exit {
+            base_filters.push(GatewayFilter::Residential);
+            base_filters.push(GatewayFilter::Exit);
+        }
+        base_filters
     }
-    if residential_exit {
-        base_filters.push(GatewayFilter::Residential);
-        base_filters.push(GatewayFilter::Exit);
-    }
-    base_filters
 }

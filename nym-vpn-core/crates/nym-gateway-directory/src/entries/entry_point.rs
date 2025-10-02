@@ -114,16 +114,14 @@ impl EntryPoint {
         }
     }
 
+    #[inline]
     fn build_filters(
-        base_filters: Vec<GatewayFilter>,
+        mut base_filters: Vec<GatewayFilter>,
         min_score: Option<ScoreValue>,
     ) -> Vec<GatewayFilter> {
         if let Some(min_score) = min_score {
-            let mut all_filters = vec![GatewayFilter::MinScore(min_score)];
-            all_filters.extend(base_filters);
-            all_filters
-        } else {
-            base_filters
+            base_filters.push(GatewayFilter::MinScore(min_score));
         }
+        base_filters
     }
 }

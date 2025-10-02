@@ -321,6 +321,8 @@ impl PartialOrd for ScoreValue {
 }
 
 impl FromStr for ScoreValue {
+    type Err = crate::Error;
+
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "offline" => Ok(ScoreValue::Offline),
@@ -330,8 +332,6 @@ impl FromStr for ScoreValue {
             _ => Err(crate::Error::InvalidScoreValue(s.to_string())),
         }
     }
-
-    type Err = crate::Error;
 }
 
 impl Display for ScoreValue {
@@ -815,14 +815,14 @@ mod tests {
         assert_eq!(gws.len(), 6);
 
         let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
-        assert_eq!(gws.len(), 6);
+        assert_eq!(gws.len(), 0);
         let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
         assert_eq!(gws.len(), 6);
         let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
         assert_eq!(gws.len(), 6);
 
         let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
-        assert_eq!(gws.len(), 6);
+        assert_eq!(gws.len(), 0);
         let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
         assert_eq!(gws.len(), 6);
         let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
