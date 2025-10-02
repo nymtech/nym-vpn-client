@@ -15,6 +15,12 @@
     "same-entry-exit-gw": "لا يمكن الاتصال بنفس عقدة الدخول والخروج. الرجاء تغيير موقع الدخول أو الخروج من العقدة.",
     "invalid-entry-gw-country": "بلد عقدة الإدخال غير صالح، يرجى تغيير موقع عقدة الإدخال",
     "invalid-exit-gw-country": "بلد الخروج من العقدة غير صالح، يرجى تغيير موقع الخروج من العقدة",
+    "invalid-entry-gw-id": "خادم الإدخال غير متصل. اختر آخر وإعادة الاتصال.",
+    "invalid-exit-gw-id": "خروج السيرفر غير متصل. اختر آخر وإعادة الاتصال.",
+    "credential-wasted-entry-gw": "خادم الدخول لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض النطاق الترددي.",
+    "credential-wasted-exit-gw": "خروج الخادم لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض الترددات.",
+    "performant-entry-gw-unavailable": "لا يمكن الوصول إلى خادم الدخول. جرب آخر!",
+    "performant-exit-gw-unavailable": "لا يمكن الوصول إلى خادم الخروج. جرب آخر!",
     "max-devices-reached": "تجاوز حد جهاز الحساب. الرجاء إزالة جهاز من حسابك قبل الاتصال.",
     "bandwidth-exceeded": "تجاوز عرض النطاق الترددي الشهري. الرجاء ترقية خطة حسابك.",
     "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
@@ -23,9 +29,7 @@
     "tun-device": "خطأ في جهاز TUN",
     "tunnel-provider": "خطأ موفر النفق",
     "inactive-account": "حسابك غير نشط",
-    "device-logged-out": "تم تسجيل خروج هذا الجهاز. الرجاء تسجيل الدخول للاستمرار في استخدام VPN.",
-    "entry-gateway-bandwidth-increase": "بوابة الدخول لا تستجيب أو تستجيب بشكل سيئ لزيادة عرض النطاق الترددي.",
-    "exit-gateway-bandwidth-increase": "مدخل الخروج لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض التردد."
+    "device-logged-out": "تم تسجيل خروج هذا الجهاز. الرجاء تسجيل الدخول للاستمرار في استخدام VPN."
   },
   "account": {
     "internal": "خطأ في الحساب الداخلي",

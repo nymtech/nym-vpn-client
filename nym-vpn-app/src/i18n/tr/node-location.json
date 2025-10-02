@@ -36,15 +36,21 @@
       "build-version": "Nym sürüm versiyonu",
       "identity-key": "Kimlik anahtarı:"
     },
-    "score": {
-      "high": "İyi",
-      "medium": "Orta",
-      "low": "Düşük",
-      "offline": "Çevrimdışı"
+    "perf-score": {
+      "high": "Good",
+      "medium": "Mid",
+      "low": "Low",
+      "offline": "Offline"
+    },
+    "server-load-score": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "offline": "Offline"
     },
     "notes": {
       "anti-censorship": "Bu özelliği kullanmak için Sansüre Karşı Ayarlar’da ‘QUIC protokolü’nü etkinleştirin.",
-      "performance_with_date": "Performans puanı, sunucu yükü ve çalışma süresi dikkate alınarak hesaplanır. Çalışma süresi, son 24 saatin ortalamasıdır. Son güncelleme: {{date}}",
+      "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
       "performance": "Performans puanı, sunucu yükü ve son 24 saatin ortalaması alınarak hesaplanan çalışma süresine göre belirlenir."
     },
     "links": {

@@ -36,15 +36,21 @@
       "build-version": "Versão da compilação Nym",
       "identity-key": "Chave de identidade:"
     },
-    "score": {
+    "perf-score": {
       "high": "Excelente",
       "medium": "Mid",
       "low": "baixa",
       "offline": "Desconectado"
     },
+    "server-load-score": {
+      "high": "alta",
+      "medium": "Média",
+      "low": "baixa",
+      "offline": "Desconectado"
+    },
     "notes": {
       "anti-censorship": "Ative o \"protocolo QUIC\" nas Configurações de Anti-censura para usar este recurso",
-      "performance_with_date": "Pontuação de desempenho calculada a partir da carga do servidor e do tempo de utilização. Atualizado como última média de 24 horas. Última atualização {{date}}.",
+      "performance_with_time": "Pontuação de desempenho calculada a partir da carga do servidor e do tempo de utilização. Atualizado como última média de 24 horas. Última atualização {{relativeTime}}.",
       "performance": "Pontuação de desempenho calculada a partir da carga do servidor e do tempo de utilização. Atualizar como última média de 24 horas."
     },
     "links": {
