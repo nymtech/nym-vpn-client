@@ -25,6 +25,12 @@ pub enum Command {
         #[arg(long)]
         locale: String,
     },
+    /// Attempt to obtain additional accounts for a 'decentralised' account
+    DecentralisedObtainTicketbooks {
+        /// Amount of ticketbooks (per type) to attempt to obtain
+        #[arg(long)]
+        amount: u64,
+    },
     /// Refresh account state
     #[clap(hide = true)]
     Refresh,
@@ -85,6 +91,17 @@ impl Command {
                 println!("Sign in: {}", account_links.sign_in);
                 if let Some(account_url) = account_links.account {
                     println!("Account: {account_url}");
+                }
+
+                Ok(())
+            }
+            Command::DecentralisedObtainTicketbooks { amount } => {
+                let response = rpc_client.decentralised_obtain_ticketbooks(amount).await?;
+                if let Some(err) = response.error {
+                    println!("Failed to obtain ticketbooks: {err}");
+                    return Err(err.into());
+                } else {
+                    println!("Successfully managed to obtain {amount} (per type) ticketbooks!");
                 }
 
                 Ok(())

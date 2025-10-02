@@ -426,6 +426,26 @@ impl NymVpnService for CommandInterface {
         }))
     }
 
+    async fn decentralised_obtain_ticketbooks(
+        &self,
+        request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let ticketbook_request =
+            nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest::from(request.into_inner());
+        let result = self
+            .send_and_wait(
+                VpnServiceCommand::DecentralisedObtainTicketbooks,
+                ticketbook_request,
+            )
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_account_links(
         &self,
         request: tonic::Request<proto::GetAccountLinksRequest>,

@@ -28,6 +28,11 @@ impl std::fmt::Debug for StoreAccountRequest {
 }
 
 #[derive(Debug)]
+pub struct DecentralisedObtainTicketbooksRequest {
+    pub amount: u64,
+}
+
+#[derive(Debug)]
 pub struct AccountCommandResponse {
     pub error: Option<crate::AccountCommandError>,
 }

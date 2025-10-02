@@ -36,9 +36,9 @@ use nym_vpn_lib::{
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, ConnectArgs, Gateway, ListGatewaysOptions,
-    LogPath, StoreAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    AccountCommandError, AccountControllerState, ConnectArgs,
+    DecentralisedObtainTicketbooksRequest, Gateway, ListGatewaysOptions, LogPath,
+    StoreAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -91,6 +91,10 @@ pub enum VpnServiceCommand {
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
+    ),
+    DecentralisedObtainTicketbooks(
+        oneshot::Sender<Result<(), AccountCommandError>>,
+        DecentralisedObtainTicketbooksRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
@@ -715,6 +719,9 @@ impl NymVpnService {
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
             }
+            VpnServiceCommand::DecentralisedObtainTicketbooks(tx, request) => {
+                let _ = tx.send(self.handle_decentralised_obtain_ticketbooks(request).await);
+            }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
             }
@@ -1003,7 +1010,7 @@ impl NymVpnService {
 
     async fn handle_store_decentralised_account(
         &mut self,
-        mnemonic: bip39::Mnemonic
+        mnemonic: bip39::Mnemonic,
     ) -> Result<(), AccountCommandError> {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
         let address = wallet
@@ -1020,7 +1027,7 @@ impl NymVpnService {
             self.network_env.nyxd_url.as_str(),
             self.network_env.nym_network_details().clone(),
         )
-            .map_err(|err| AccountCommandError::NyxdConnectionFailure(err.to_string()))?;
+        .map_err(|err| AccountCommandError::NyxdConnectionFailure(err.to_string()))?;
 
         // if we're attempting to store a decentralised account, it MUST exist on chain,
         // i.e. it must have proper number and sequence
@@ -1046,6 +1053,16 @@ impl NymVpnService {
                 StoredAccountMode::Decentralised,
             ))
             .await
+    }
+
+    async fn handle_decentralised_obtain_ticketbooks(
+        &mut self,
+        request: DecentralisedObtainTicketbooksRequest,
+    ) -> Result<(), AccountCommandError> {
+        let amount = request.amount;
+        info!("received request to attempt to obtain {amount} ticketbooks of each type");
+
+        todo!();
     }
 
     async fn handle_is_account_stored(&self) -> bool {

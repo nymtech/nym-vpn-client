@@ -15,7 +15,7 @@ use nym_gateway_directory::GatewayType;
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, LogPath, Performance,
-    Score, VpnServiceInfo,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{
     ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
@@ -38,7 +38,7 @@ impl TryFrom<proto::Location> for nym_vpn_lib_types::Location {
     }
 }
 
-impl From<proto::Score> for Score {
+impl From<proto::Score> for nym_vpn_lib_types::Score {
     fn from(score: proto::Score) -> Self {
         match score {
             proto::Score::Offline => nym_vpn_lib_types::Score::Offline,
@@ -49,13 +49,13 @@ impl From<proto::Score> for Score {
     }
 }
 
-impl From<Score> for proto::Score {
-    fn from(score: Score) -> Self {
+impl From<nym_vpn_lib_types::Score> for proto::Score {
+    fn from(score: nym_vpn_lib_types::Score) -> Self {
         match score {
-            Score::High => proto::Score::High,
-            Score::Medium => proto::Score::Medium,
-            Score::Low => proto::Score::Low,
-            Score::Offline => proto::Score::Offline,
+            nym_vpn_lib_types::Score::High => proto::Score::High,
+            nym_vpn_lib_types::Score::Medium => proto::Score::Medium,
+            nym_vpn_lib_types::Score::Low => proto::Score::Low,
+            nym_vpn_lib_types::Score::Offline => proto::Score::Offline,
         }
     }
 }
@@ -212,7 +212,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .map(proto::Score::try_from)
             .transpose()
             .map_err(|err| ConversionError::Decode("GatewayResponse.mixnet_score", err))?
-            .map(Score::from);
+            .map(nym_vpn_lib_types::Score::from);
         let mixnet_performance = gateway.mixnet_performance.map(|x| x as u8);
         let wg_performance = gateway
             .wg_performance
@@ -553,6 +553,26 @@ impl From<nym_vpn_lib_types::StoreAccountRequest> for proto::StoreAccountRequest
 
         proto::StoreAccountRequest {
             request: Some(request),
+        }
+    }
+}
+
+impl From<proto::DecentralisedObtainTicketbooksRequest>
+    for nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest
+{
+    fn from(value: proto::DecentralisedObtainTicketbooksRequest) -> Self {
+        Self {
+            amount: value.amount,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest>
+    for proto::DecentralisedObtainTicketbooksRequest
+{
+    fn from(value: nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest) -> Self {
+        Self {
+            amount: value.amount,
         }
     }
 }

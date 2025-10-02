@@ -546,6 +546,7 @@ message AccountCommandError {
     string nyxd_connection_failure = 11;
     string nyxd_query_failure = 12;
     bool account_doesnt_exist_on_chain = 13;
+    bool insufficient_funds = 14;
   }
 }
 
@@ -636,6 +637,10 @@ message VpnAccountStoreRequest {
 
 message DecentralisedAccountStoreRequest {
   string mnemonic = 1;
+}
+
+message DecentralisedObtainTicketbooksRequest {
+  uint64 amount = 1;
 }
 
 message AccountCommandResponse {
@@ -786,6 +791,9 @@ service NymVpnService {
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
+
+  // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
+  rpc DecentralisedObtainTicketbooks (DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

@@ -27,6 +27,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
             proto::account_command_error::ErrorDetail::ExistingAccount(_) => Self::ExistingAccount,
             proto::account_command_error::ErrorDetail::Offline(_) => Self::Offline,
+            proto::account_command_error::ErrorDetail::InsufficientFunds(_) => {
+                Self::InsufficientFunds
+            }
             proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
             }
@@ -114,6 +117,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             },
             AccountCommandError::Offline => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::Offline(true)),
+            },
+            AccountCommandError::InsufficientFunds => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::InsufficientFunds(true),
+                ),
             },
             AccountCommandError::InvalidMnemonic(err) => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(

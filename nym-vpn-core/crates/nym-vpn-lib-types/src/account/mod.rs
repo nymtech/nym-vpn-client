@@ -50,6 +50,9 @@ pub enum AccountCommandError {
     #[error("no connectivity")]
     Offline,
 
+    #[error("account does not have sufficient funds")]
+    InsufficientFunds,
+
     #[error("invalid mnemonic: {0}")]
     InvalidMnemonic(String),
 }

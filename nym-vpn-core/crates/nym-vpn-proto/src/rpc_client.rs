@@ -331,6 +331,21 @@ impl RpcClient {
         ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    pub async fn decentralised_obtain_ticketbooks(
+        &mut self,
+        amount: u64,
+    ) -> Result<AccountCommandResponse> {
+        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+        let response = self
+            .0
+            .decentralised_obtain_ticketbooks(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
     pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {
         let state = self
             .0
