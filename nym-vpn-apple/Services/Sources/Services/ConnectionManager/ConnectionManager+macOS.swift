@@ -78,6 +78,14 @@ extension ConnectionManager {
             .receive(on: DispatchQueue.main)
             .assign(to: \.connectionInfoData, on: self)
             .store(in: &cancellables)
+
+        appSettings.$isQuicEnabledPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newValue in
+                self?.connectionConfig?.enableBridges = newValue
+                self?.updateConnectionConfig()
+            }
+            .store(in: &cancellables)
     }
 }
 
