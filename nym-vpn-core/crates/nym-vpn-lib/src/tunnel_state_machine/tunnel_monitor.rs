@@ -610,18 +610,18 @@ impl TunnelMonitor {
         }
 
         loop {
+            let mixnet_monitoring_token = tunnel_handle
+                .mixnet_client_token()
+                .map(|token| token.cancelled_owned().fuse())
+                .unwrap_or(Fuse::terminated());
+
             let fused_discovery_refresher_rx = discovery_refresher_rx
                 .as_mut()
                 .map(|r| r.recv().fuse())
                 .unwrap_or(Fuse::terminated());
 
             tokio::select! {
-                _  = async {
-                    match tunnel_handle.mixnet_client_token() {
-                        Some(token) => token.cancelled().await,
-                        None => std::future::pending().await,
-                    }
-                } => {
+                _  = mixnet_monitoring_token => {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
                 }
