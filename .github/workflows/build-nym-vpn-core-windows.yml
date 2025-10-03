@@ -30,23 +30,9 @@ jobs:
   build-winfw-windows:
     uses: ./.github/workflows/build-winfw-windows.yml
 
-  check-runner:
-    runs-on: ubuntu-latest
-    outputs:
-      runner: ${{ steps.check.outputs.use-runner }}
-    steps:
-      - name: Check runner availability
-        id: check
-        uses: jimmygchen/runner-fallback-action@7246e8f85ff2dae37a443f8367f988a764a81cc6
-        with:
-          primary-runner: "custom-windows-11"
-          fallback-runner: "windows-latest"
-          organization: "nymtech"
-          github-token: ${{ secrets.GH_RUNNER_PAT }}
-
   build-windows:
-    needs: [build-wireguard-go-windows, build-winfw-windows, check-runner]
-    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
+    needs: [build-wireguard-go-windows, build-winfw-windows]
+    runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}

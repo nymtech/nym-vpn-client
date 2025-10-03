@@ -18,19 +18,6 @@ jobs:
   build-wireguard-go-ios:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
-  # check-runner:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     runner: ${{ steps.check.outputs.use-runner }}
-  #   steps:
-  #     - name: Check runner availability
-  #       id: check
-  #       uses: jimmygchen/runner-fallback-action@v0.1.1
-  #       with:
-  #         primary-runner: "custom-macos-15"
-  #         fallback-runner: "macos-15"
-  #         github-token: ${{ secrets.GITHUB_TOKEN }}
-
   build-ios:
     needs: [build-wireguard-go-ios]
     runs-on: macos-15

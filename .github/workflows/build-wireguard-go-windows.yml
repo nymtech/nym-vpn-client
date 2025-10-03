@@ -12,22 +12,8 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  check-runner:
-    runs-on: ubuntu-latest
-    outputs:
-      runner: ${{ steps.check.outputs.use-runner }}
-    steps:
-      - name: Check runner availability
-        id: check
-        uses: jimmygchen/runner-fallback-action@v0.1.1
-        with:
-          primary-runner: "custom-windows-11"
-          fallback-runner: "windows-latest"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
   build:
-    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
-    needs: check-runner
+    runs-on: custom-windows-11
 
     steps:
       - name: Checkout repo
