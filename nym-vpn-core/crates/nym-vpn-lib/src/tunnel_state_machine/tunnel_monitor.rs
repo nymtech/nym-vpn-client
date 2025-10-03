@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse};
+use futures::{FutureExt, future::Fuse, pin_mut};
 
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
@@ -609,26 +609,29 @@ impl TunnelMonitor {
             }
         }
 
+        let mixnet_monitoring_token = tunnel_handle
+            .mixnet_client_token()
+            .map(|token| token.cancelled_owned().fuse())
+            .unwrap_or(Fuse::terminated());
+
+        let fused_discovery_refresher_rx = discovery_refresher_rx
+            .as_mut()
+            .map(|r| r.recv().fuse())
+            .unwrap_or(Fuse::terminated());
+
+        pin_mut!(mixnet_monitoring_token);
+        pin_mut!(fused_discovery_refresher_rx);
+
         loop {
-            let mixnet_monitoring_token = tunnel_handle
-                .mixnet_client_token()
-                .map(|token| token.cancelled_owned().fuse())
-                .unwrap_or(Fuse::terminated());
-
-            let fused_discovery_refresher_rx = discovery_refresher_rx
-                .as_mut()
-                .map(|r| r.recv().fuse())
-                .unwrap_or(Fuse::terminated());
-
             tokio::select! {
-                _  = mixnet_monitoring_token => {
+                _  = &mut mixnet_monitoring_token => {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
                 }
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
-                ret = fused_discovery_refresher_rx => {
+                ret = &mut fused_discovery_refresher_rx => {
                     match ret {
                         Some(Ok(network)) => {
                             tracing::info!("Refreshed discovery file");
