@@ -69,7 +69,7 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
     Ok(shared_state
         .vpn_api_account
         .as_ref()
-        .map(|account| account.id().into()))
+        .map(|account| account.id()))
 }
 
 async fn handle_get_usage<C: ConnectivityMonitor>(
