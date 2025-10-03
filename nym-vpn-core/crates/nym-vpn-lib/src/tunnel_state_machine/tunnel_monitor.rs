@@ -21,7 +21,6 @@ use std::os::fd::{AsRawFd, IntoRawFd};
 use std::os::fd::{FromRawFd, OwnedFd};
 use std::{
     net::{IpAddr, SocketAddr},
-    path::PathBuf,
     time::Duration,
 };
 #[cfg(unix)]
@@ -552,24 +551,20 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
-        let (discovery_refresher_handle, mut discovery_refresher_rx) = self
-            .tunnel_parameters
-            .nym_config
-            .config_path
-            .as_ref()
-            .and_then(|config_path: &PathBuf| config_path.parent())
-            .map(|config_dir| {
-                let (discovery_refresher_tx, discovery_refresher_rx) =
-                    tokio::sync::mpsc::channel(1);
-                let discovery_refresher_handle = start_background_file_refresh(
-                    config_dir.to_path_buf(),
-                    self.tunnel_parameters.nym_config.network_env.clone(),
-                    discovery_refresher_tx,
-                    self.shutdown_token.child_token(),
-                );
-                (discovery_refresher_handle, discovery_refresher_rx)
-            })
-            .unzip();
+        let (discovery_refresher_tx, mut discovery_refresher_rx) = tokio::sync::mpsc::channel(1);
+        let discovery_refresher_handle = if let Some(config_path) =
+            self.tunnel_parameters.nym_config.config_path.as_ref()
+            && let Some(config_dir) = config_path.parent()
+        {
+            Some(start_background_file_refresh(
+                config_dir.to_path_buf(),
+                self.tunnel_parameters.nym_config.network_env.clone(),
+                discovery_refresher_tx.clone(),
+                self.shutdown_token.child_token(),
+            ))
+        } else {
+            None
+        };
 
         let connection_data = ConnectionData {
             entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
@@ -613,14 +608,7 @@ impl TunnelMonitor {
             .mixnet_client_token()
             .map(|token| token.cancelled_owned().fuse())
             .unwrap_or(Fuse::terminated());
-
-        let fused_discovery_refresher_rx = discovery_refresher_rx
-            .as_mut()
-            .map(|r| r.recv().fuse())
-            .unwrap_or(Fuse::terminated());
-
         pin_mut!(mixnet_monitoring_token);
-        pin_mut!(fused_discovery_refresher_rx);
 
         loop {
             tokio::select! {
@@ -631,7 +619,7 @@ impl TunnelMonitor {
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
-                ret = &mut fused_discovery_refresher_rx => {
+                ret = discovery_refresher_rx.recv() => {
                     match ret {
                         Some(Ok(network)) => {
                             tracing::info!("Refreshed discovery file");
