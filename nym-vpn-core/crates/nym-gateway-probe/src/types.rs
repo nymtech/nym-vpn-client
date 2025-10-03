@@ -31,10 +31,14 @@ pub struct WgProbeResults {
     pub ping_ips_performance_v6: f32,
 
     pub download_duration_sec_v4: u64,
+    pub download_duration_milliseconds_v4: u64,
+    pub downloaded_file_size_bytes_v4: u64,
     pub downloaded_file_v4: String,
     pub download_error_v4: String,
 
     pub download_duration_sec_v6: u64,
+    pub downloaded_file_size_bytes_v6: u64,
+    pub download_duration_milliseconds_v6: u64,
     pub downloaded_file_v6: String,
     pub download_error_v6: String,
 }

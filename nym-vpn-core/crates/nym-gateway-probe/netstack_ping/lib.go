@@ -63,15 +63,17 @@ type NetstackRequestGo struct {
 }
 
 type NetstackResponse struct {
-	CanHandshake        bool   `json:"can_handshake"`
-	SentIps             uint16 `json:"sent_ips"`
-	ReceivedIps         uint16 `json:"received_ips"`
-	SentHosts           uint16 `json:"sent_hosts"`
-	ReceivedHosts       uint16 `json:"received_hosts"`
-	CanResolveDns       bool   `json:"can_resolve_dns"`
-	DownloadedFile      string `json:"downloaded_file"`
-	DownloadDurationSec uint64 `json:"download_duration_sec"`
-	DownloadError       string `json:"download_error"`
+	CanHandshake                 bool   `json:"can_handshake"`
+	SentIps                      uint16 `json:"sent_ips"`
+	ReceivedIps                  uint16 `json:"received_ips"`
+	SentHosts                    uint16 `json:"sent_hosts"`
+	ReceivedHosts                uint16 `json:"received_hosts"`
+	CanResolveDns                bool   `json:"can_resolve_dns"`
+	DownloadedFile               string `json:"downloaded_file"`
+	DownloadedFileSizeBytes      uint64 `json:"downloaded_file_size_bytes"`
+	DownloadDurationSec          uint64 `json:"download_duration_sec"`
+	DownloadDurationMilliseconds uint64 `json:"download_duration_milliseconds"`
+	DownloadError                string `json:"download_error"`
 }
 
 type SuccessResult = struct {
@@ -163,7 +165,7 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 		ipc.WriteString("\nallowed_ip=::/0\n")
 	}
 
-	response := NetstackResponse{false, 0, 0, 0, 0, false, "", 0, ""}
+	response := NetstackResponse{false, 0, 0, 0, 0, false, "", 0, 0, 0, ""}
 
 	dev.IpcSet(ipc.String())
 
@@ -257,11 +259,14 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	}
 
 	response.DownloadDurationSec = uint64(downloadDuration.Seconds())
+	response.DownloadDurationMilliseconds = uint64(downloadDuration.Milliseconds())
 	response.DownloadedFile = usedURL
 	if err != nil {
 		response.DownloadError = err.Error()
+		response.DownloadedFileSizeBytes = 0
 	} else {
 		response.DownloadError = ""
+		response.DownloadedFileSizeBytes = uint64(len(fileContent))
 	}
 
 	return response, nil
