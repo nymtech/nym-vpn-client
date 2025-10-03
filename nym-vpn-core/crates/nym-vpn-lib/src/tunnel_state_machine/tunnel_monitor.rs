@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use futures::{FutureExt, future::Fuse};
+
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
     RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
@@ -608,6 +610,11 @@ impl TunnelMonitor {
         }
 
         loop {
+            let fused_discovery_refresher_rx = discovery_refresher_rx
+                .as_mut()
+                .map(|r| r.recv().fuse())
+                .unwrap_or(Fuse::terminated());
+
             tokio::select! {
                 _  = async {
                     match tunnel_handle.mixnet_client_token() {
@@ -621,12 +628,7 @@ impl TunnelMonitor {
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
-                ret = async {
-                    match &mut discovery_refresher_rx {
-                        Some(rx) => rx.recv().await,
-                        None => std::future::pending().await,
-                    }
-                } => {
+                ret = fused_discovery_refresher_rx => {
                     match ret {
                         Some(Ok(network)) => {
                             tracing::info!("Refreshed discovery file");
