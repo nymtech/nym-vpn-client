@@ -107,7 +107,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
           cache-dependency-path: |
