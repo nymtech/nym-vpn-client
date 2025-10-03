@@ -8,7 +8,7 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
-      RUNNER_PAT:
+      GH_RUNNER_PAT:
         required: true
     outputs:
       RUST_VERSION:
@@ -42,7 +42,7 @@ jobs:
           primary-runner: "custom-windows-11"
           fallback-runner: "windows-latest"
           organization: "nymtech"
-          github-token: ${{ secrets.RUNNER_PAT }}
+          github-token: ${{ secrets.GH_RUNNER_PAT }}
 
   build-windows:
     needs: [build-wireguard-go-windows, build-winfw-windows, check-runner]
