@@ -17,8 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [arc-linux-latest, macos-15, windows-latest, custom-windows-11]
-        # os: [arc-linux-latest, custom-macos-15, macos-15, custom-windows-11]
+        os: [arc-linux-latest, macos-15, custom-windows-11]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
