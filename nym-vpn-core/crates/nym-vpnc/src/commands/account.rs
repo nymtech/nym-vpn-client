@@ -113,7 +113,9 @@ impl Command {
                 Ok(())
             }
             Command::DecentralisedObtainTicketbooks { amount } => {
-                println!("starting acquisition of {amount} ticketbooks (per type). this might take a while...");
+                println!(
+                    "starting acquisition of {amount} ticketbooks (per type). this might take a while..."
+                );
                 let response = rpc_client.decentralised_obtain_ticketbooks(amount).await?;
                 if let Some(err) = response.error {
                     println!("Failed to obtain ticketbooks: {err}");

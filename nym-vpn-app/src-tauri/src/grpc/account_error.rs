@@ -1,4 +1,5 @@
 use crate::error::{BackendError, ErrorKey};
+use nym_vpn_proto::proto::account_command_error::ErrorDetail;
 use nym_vpn_proto::proto::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
     account_command_error::ErrorDetail as AccountError,
@@ -77,6 +78,31 @@ impl From<AccountCommandError> for BackendError {
                 ErrorKey::AccountInvalidMnemonic,
                 format!("invalid mnemonic: {e}"),
             ),
+            ErrorDetail::NyxdConnectionFailure(e) => {
+                BackendError::internal_with_detail("failed to connect to nyxd", e)
+            }
+            ErrorDetail::NyxdQueryFailure(e) => {
+                BackendError::internal_with_detail("failed to resolve query to a nyxd instance", e)
+            }
+            ErrorDetail::AccountDoesntExistOnChain(v) => BackendError::internal_with_detail(
+                "account doesn't exist on chain",
+                format!("account doesn't exist on chain: {v}"),
+            ),
+            ErrorDetail::InsufficientFunds(v) => BackendError::internal_with_detail(
+                "account does not have sufficient funds",
+                format!("account does not have sufficient funds: {v}"),
+            ),
+            ErrorDetail::AccountDecentralised(v) => BackendError::internal_with_detail(
+                "account is set in decentralised mode",
+                format!("account is set in decentralised mode: {v}"),
+            ),
+            ErrorDetail::AccountNotDecentralised(v) => BackendError::internal_with_detail(
+                "account is not set in decentralised mode",
+                format!("account is not set in decentralised mode: {v}"),
+            ),
+            ErrorDetail::ZkNymAcquisitionFailure(e) => {
+                BackendError::internal_with_detail("failed to obtain zk-nym", e)
+            }
         }
     }
 }
