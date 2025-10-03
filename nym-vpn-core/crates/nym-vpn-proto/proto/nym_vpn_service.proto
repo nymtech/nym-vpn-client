@@ -160,7 +160,7 @@ message NymVpnNetworkDetails {
 message AccountManagement {
   string sign_up = 1;
   string sign_in = 2;
-  string account = 3;
+  optional string account = 3;
 }
 
 message ValidatorDetails {

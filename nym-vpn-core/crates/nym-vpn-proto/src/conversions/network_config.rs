@@ -110,7 +110,7 @@ impl From<proto::AccountManagement> for nym_vpn_lib_types::ParsedAccountLinks {
     fn from(account_management: proto::AccountManagement) -> Self {
         let sign_up = account_management.sign_up;
         let sign_in = account_management.sign_in;
-        let account = Some(account_management.account);
+        let account = account_management.account;
 
         Self {
             sign_up,
@@ -287,8 +287,7 @@ impl From<nym_vpn_lib_types::ParsedAccountLinks> for proto::AccountManagement {
         proto::AccountManagement {
             sign_up: account_links.sign_up,
             sign_in: account_links.sign_in,
-            // todo: account can be None
-            account: account_links.account.unwrap_or_default(),
+            account: account_links.account,
         }
     }
 }
