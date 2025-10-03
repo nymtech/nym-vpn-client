@@ -37,6 +37,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+      RUNNER_PAT: ${{ secrets.RUNNER_PAT }}
 
   generate-build-info-core:
     uses: ./.github/workflows/generate-build-info-core.yml
