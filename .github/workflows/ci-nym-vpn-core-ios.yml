@@ -17,29 +17,33 @@ jobs:
   build-wireguard-go-ios:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
+  # check-runner:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     runner: ${{ steps.check.outputs.use-runner }}
+  #   steps:
+  #     - name: Check runner availability
+  #       id: check
+  #       uses: jimmygchen/runner-fallback-action@v1
+  #       with:
+  #         primary-runner: "custom-macos-15"
+  #         fallback-runner: "macos-15"
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+
   build:
-    runs-on: ${{ matrix.runner }}
-    needs: build-wireguard-go-ios
+    runs-on: macos-15
+    needs: [build-wireguard-go-ios]
     timeout-minutes: 30
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - macos-15
-        # runner:
-        #   - custom-macos-15
-        #   - macos-15
-
     steps:
-      - name: Cleanup working directory
-        if: matrix.runner == 'custom-macos-15'
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
+      # - name: Cleanup working directory
+      #   if: fromJson(needs.check-runner.outputs.runner) == 'custom-macos-15'
+      #   shell: bash
+      #   run: |
+      #     ls -la ./
+      #     rm -rf ./* || true
+      #     rm -rf ./.??* || true
+      #     ls -la ./
 
       - name: Checkout repo
         uses: actions/checkout@v4

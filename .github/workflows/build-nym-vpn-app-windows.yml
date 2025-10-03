@@ -91,15 +91,22 @@ env:
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-app/src-tauri/'
 
 jobs:
-  build-windows:
-    runs-on: ${{ matrix.runner }}
+  check-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.check.outputs.use-runner }}
+    steps:
+      - name: Check runner availability
+        id: check
+        uses: jimmygchen/runner-fallback-action@v1
+        with:
+          primary-runner: "custom-windows-11"
+          fallback-runner: "windows-latest"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - windows-latest
-          - custom-windows-11
+  build-windows:
+    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
+    needs: check-runner
     env:
       VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json

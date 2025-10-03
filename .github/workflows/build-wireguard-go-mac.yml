@@ -12,9 +12,21 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # check-runner:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     runner: ${{ steps.check.outputs.use-runner }}
+  #   steps:
+  #     - name: Check runner availability
+  #       id: check
+  #       uses: jimmygchen/runner-fallback-action@v1
+  #       with:
+  #         primary-runner: "custom-macos-15"
+  #         fallback-runner: "macos-15"
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+
   build:
     runs-on: macos-15
-    # runs-on: custom-macos-15
     timeout-minutes: 5
 
     steps:

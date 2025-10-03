@@ -12,15 +12,22 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  build:
-    runs-on: ${{ matrix.runner }}
+  check-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.check.outputs.use-runner }}
+    steps:
+      - name: Check runner availability
+        id: check
+        uses: jimmygchen/runner-fallback-action@v1
+        with:
+          primary-runner: "custom-windows-11"
+          fallback-runner: "windows-latest"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - windows-latest
-          - custom-windows-11
+  build:
+    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
+    needs: check-runner
 
     steps:
       - name: Checkout repo
@@ -59,7 +66,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc-${{ matrix.runner }}
+          name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc
           if-no-files-found: error
           retention-days: 1

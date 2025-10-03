@@ -9,15 +9,22 @@ env:
 # https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
 jobs:
-  build:
-    runs-on: ${{ matrix.runner }}
+  check-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.check.outputs.use-runner }}
+    steps:
+      - name: Check runner availability
+        id: check
+        uses: jimmygchen/runner-fallback-action@v1
+        with:
+          primary-runner: "custom-windows-11"
+          fallback-runner: "windows-latest"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - windows-latest
-          - custom-windows-11
+  build:
+    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
+    needs: check-runner
 
     steps:
       - name: Cleanup working directory
@@ -54,7 +61,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: winfw-${{ matrix.runner }}
+          name: winfw
           path: |
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib

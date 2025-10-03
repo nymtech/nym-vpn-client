@@ -16,16 +16,22 @@ jobs:
   build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
-  build:
-    runs-on: ${{ matrix.runner }}
-    needs: build-wireguard-go-windows
+  check-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.check.outputs.use-runner }}
+    steps:
+      - name: Check runner availability
+        id: check
+        uses: jimmygchen/runner-fallback-action@v1
+        with:
+          primary-runner: "custom-windows-11"
+          fallback-runner: "windows-latest"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - windows-latest
-          - custom-windows-11
+  build:
+    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
+    needs: [build-wireguard-go-windows, check-runner]
 
     steps:
       - name: "Cleanup working directory"
@@ -76,7 +82,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v5
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc-${{ matrix.runner }}
+          name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc
 
       - name: Build Windows dependencies

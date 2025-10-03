@@ -17,8 +17,21 @@ jobs:
   build-wireguard-go-mac:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
+  # check-runner:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     runner: ${{ steps.check.outputs.use-runner }}
+  #   steps:
+  #     - name: Check runner availability
+  #       id: check
+  #       uses: jimmygchen/runner-fallback-action@v1
+  #       with:
+  #         primary-runner: "custom-macos-15"
+  #         fallback-runner: "macos-15"
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+
   build-mac:
-    needs: build-wireguard-go-mac
+    needs: [build-wireguard-go-mac]
     runs-on: macos-15
     timeout-minutes: 45
     outputs:

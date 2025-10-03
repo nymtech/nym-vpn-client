@@ -28,16 +28,22 @@ jobs:
   build-winfw-windows:
     uses: ./.github/workflows/build-winfw-windows.yml
 
-  build-windows:
-    needs: [build-wireguard-go-windows, build-winfw-windows]
-    runs-on: ${{ matrix.runner }}
+  check-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.check.outputs.use-runner }}
+    steps:
+      - name: Check runner availability
+        id: check
+        uses: jimmygchen/runner-fallback-action@v1
+        with:
+          primary-runner: "custom-windows-11"
+          fallback-runner: "windows-latest"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - windows-latest
-          - custom-windows-11
+  build-windows:
+    needs: [build-wireguard-go-windows, build-winfw-windows, check-runner]
+    runs-on: ${{ fromJson(needs.check-runner.outputs.runner) }}
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -82,13 +88,13 @@ jobs:
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v5
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc-${{ matrix.runner }}
+          name: wireguard-go_x86_64-pc-windows-msvc
           path: ${{ env.LIBS_PATH }}
 
       - name: Download winfw artifacts
         uses: actions/download-artifact@v5
         with:
-          name: winfw-${{ matrix.runner }}
+          name: winfw
           path: ${{ env.WINFW_PATH }}
 
       - name: Download wintun
