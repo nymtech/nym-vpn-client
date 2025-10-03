@@ -580,6 +580,10 @@ async fn wg_probe(
                     netstack_response_v4.received_ips as f32 / netstack_response_v4.sent_ips as f32;
 
                 wg_outcome.download_duration_sec_v4 = netstack_response_v4.download_duration_sec;
+                wg_outcome.download_duration_milliseconds_v4 =
+                    netstack_response_v4.download_duration_milliseconds;
+                wg_outcome.downloaded_file_size_bytes_v4 =
+                    netstack_response_v4.downloaded_file_size_bytes;
                 wg_outcome.downloaded_file_v4 = netstack_response_v4.downloaded_file;
                 wg_outcome.download_error_v4 = netstack_response_v4.download_error;
             }
@@ -608,6 +612,10 @@ async fn wg_probe(
                     netstack_response_v6.received_ips as f32 / netstack_response_v6.sent_ips as f32;
 
                 wg_outcome.download_duration_sec_v6 = netstack_response_v6.download_duration_sec;
+                wg_outcome.download_duration_milliseconds_v6 =
+                    netstack_response_v6.download_duration_milliseconds;
+                wg_outcome.downloaded_file_size_bytes_v6 =
+                    netstack_response_v6.downloaded_file_size_bytes;
                 wg_outcome.downloaded_file_v6 = netstack_response_v6.downloaded_file;
                 wg_outcome.download_error_v6 = netstack_response_v6.download_error;
             }
