@@ -1,1 +1,91 @@
-{"network_name":"mainnet","nym_api_url":"https://validator.nymtech.net/api/","nym_api_urls":[{"url":"https://validator.nymtech.net/api/"},{"url":"https://nym-frontdoor.vercel.app/api/","fronts":["vercel.app","vercel.com"]},{"url":"https://nym-frontdoor.global.ssl.fastly.net/api/","fronts":["yelp.global.ssl.fastly.net"]}],"nym_vpn_api_url":"https://nymvpn.com/api/","nym_vpn_api_urls":[{"url":"https://nymvpn.com/api/","fronts":["vercel.app","vercel.com"]},{"url":"https://nymvpn-frontdoor.global.ssl.fastly.net/api","fronts":["yelp.global.ssl.fastly.net"]}],"account_management":{"url":"https://nym.com/","paths":{"sign_up":"{locale}/account/create","sign_in":"{locale}/account/login","account":"{locale}/account/{account_id}"}},"system_configuration":{"mix_thresholds":{"high":75,"medium":50,"low":25},"wg_thresholds":{"high":75,"medium":50,"low":25},"iOSinAppPurchasesPlanIds":{"1":"1_month_may_2025","2":"1_year_may_2025"},"min_supported_app_versions":{"android":"1.5.0","core":"1.9.0","ios":"2.7.1","macos":"2.4.0","tauri":"1.9.0"},"statistics_api":"https://nym-statistics-api.nymtech.cc"},"network_compatibility":{"core":"1.9.0","macos":"2.4.0","ios":"2.7.1","tauri":"1.9.0","android":"1.5.0"},"feature_flags":{"domain_fronting":{"enabled":"true"},"quic":{"enabled":"true"},"versions":{"gatewayMetadataUpdate":"1.19.0"},"zkNyms":{"credentialMode":"true"}}}
+{
+  "network_name": "mainnet",
+  "nym_api_url": "https://validator.nymtech.net/api/",
+  "nym_api_urls": [
+    {
+      "url": "https://validator.nymtech.net/api/"
+    },
+    {
+      "url": "https://nym-frontdoor.vercel.app/api/",
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
+    },
+    {
+      "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
+      "fronts": [
+        "yelp.global.ssl.fastly.net"
+      ]
+    }
+  ],
+  "nym_vpn_api_url": "https://nymvpn.com/api/",
+  "nym_vpn_api_urls": [
+    {
+      "url": "https://nymvpn.com/api/",
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
+    },
+    {
+      "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api",
+      "fronts": [
+        "yelp.global.ssl.fastly.net"
+      ]
+    }
+  ],
+  "account_management": {
+    "url": "https://nym.com/",
+    "paths": {
+      "sign_up": "{locale}/account/create",
+      "sign_in": "{locale}/account/login",
+      "account": "{locale}/account/{account_id}"
+    }
+  },
+  "system_configuration": {
+    "mix_thresholds": {
+      "high": 75,
+      "medium": 50,
+      "low": 25
+    },
+    "wg_thresholds": {
+      "high": 75,
+      "medium": 50,
+      "low": 25
+    },
+    "iOSinAppPurchasesPlanIds": {
+      "1": "1_month_may_2025",
+      "2": "1_year_may_2025"
+    },
+    "min_supported_app_versions": {
+      "android": "1.5.0",
+      "core": "1.9.0",
+      "ios": "2.7.1",
+      "macos": "2.4.0",
+      "tauri": "1.9.0"
+    },
+    "statistics_api": "https://nym-statistics-api.nymtech.cc"
+  },
+  "network_compatibility": {
+    "core": "1.9.0",
+    "macos": "2.4.0",
+    "ios": "2.7.1",
+    "tauri": "1.9.0",
+    "android": "1.5.0"
+  },
+  "feature_flags": {
+    "domain_fronting": {
+      "enabled": "true"
+    },
+    "quic": {
+      "enabled": "true"
+    },
+    "versions": {
+      "gatewayMetadataUpdate": "1.19.0"
+    },
+    "zkNyms": {
+      "credentialMode": "true"
+    }
+  }
+}
