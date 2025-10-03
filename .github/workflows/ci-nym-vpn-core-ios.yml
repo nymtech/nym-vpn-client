@@ -35,7 +35,7 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
-        with:gi
+        with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
           targets: aarch64-apple-ios
