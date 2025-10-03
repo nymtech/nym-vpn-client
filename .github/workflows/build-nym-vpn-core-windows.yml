@@ -8,8 +8,6 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
-      GH_RUNNER_PAT:
-        required: true
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-windows.outputs.RUST_VERSION }}
