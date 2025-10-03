@@ -77,6 +77,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         let res = handler::handle_reset_device_identity(shared_state, seed).await;

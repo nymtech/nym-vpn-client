@@ -74,7 +74,7 @@ async fn start_account_controller(
         details: err.to_string(),
     })?;
 
-    let nyxd_client = NyxdClient::new(&network_env)?;
+    let nyxd_client = NyxdClient::new(&network_env);
 
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,

@@ -5360,6 +5360,7 @@ dependencies = [
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
  "nym-credential-storage",
+ "nym-credential-utils",
  "nym-credentials",
  "nym-credentials-interface",
  "nym-ecash-time",
@@ -5420,6 +5421,7 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
+ "zeroize",
 ]
 
 [[package]]
@@ -5675,13 +5677,13 @@ dependencies = [
  "anyhow",
  "celes",
  "clap",
+ "itertools 0.13.0",
  "nym-bin-common",
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "serde",
  "serde_json",
  "sysinfo",
  "tabled",

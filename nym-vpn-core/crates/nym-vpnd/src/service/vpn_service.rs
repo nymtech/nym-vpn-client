@@ -34,7 +34,7 @@ use nym_vpn_lib::{
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, ConnectArgs,
+    AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
     DecentralisedObtainTicketbooksRequest, Gateway, ListGatewaysOptions, LogPath,
     StoreAccountRequest, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
@@ -90,6 +90,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
     ),
+    DecentralisedBalance(oneshot::Sender<AccountBalanceResponse>, ()),
     DecentralisedObtainTicketbooks(
         oneshot::Sender<Result<(), AccountCommandError>>,
         DecentralisedObtainTicketbooksRequest,
@@ -334,12 +335,7 @@ impl NymVpnService {
             }
         })?;
 
-        let nyxd_client = NyxdClient::new(&parameters.network_env).map_err(|err| {
-            trace_err_chain!(err, "Failed to create nyxd client");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        let nyxd_client = NyxdClient::new(&parameters.network_env);
 
         let account_controller = AccountController::new(
             nym_vpn_api_client,
@@ -725,6 +721,9 @@ impl NymVpnService {
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
             }
+            VpnServiceCommand::DecentralisedBalance(tx, ()) => {
+                let _ = tx.send(self.handle_decentralised_balance().await);
+            }
             VpnServiceCommand::DecentralisedObtainTicketbooks(tx, request) => {
                 let _ = tx.send(self.handle_decentralised_obtain_ticketbooks(request).await);
             }
@@ -1019,6 +1018,12 @@ impl NymVpnService {
         }
     }
 
+    async fn handle_decentralised_balance(&mut self) -> AccountBalanceResponse {
+        AccountBalanceResponse {
+            result: self.account_command_tx.decentralised_balance().await,
+        }
+    }
+
     async fn handle_decentralised_obtain_ticketbooks(
         &mut self,
         request: DecentralisedObtainTicketbooksRequest,
@@ -1026,7 +1031,9 @@ impl NymVpnService {
         let amount = request.amount;
         info!("received request to attempt to obtain {amount} ticketbooks of each type");
 
-        todo!();
+        self.account_command_tx
+            .decentralised_obtain_ticketbooks(amount)
+            .await
     }
 
     async fn handle_is_account_stored(&self) -> bool {

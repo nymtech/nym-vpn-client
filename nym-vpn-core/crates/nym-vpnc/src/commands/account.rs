@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+use itertools::Itertools;
 use nym_vpn_api_client::types::VpnAccountMode;
 use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
@@ -25,10 +26,12 @@ pub enum Command {
         #[arg(long)]
         locale: String,
     },
+    /// Get account balance
+    Balance,
     /// Attempt to obtain additional accounts for a 'decentralised' account
     DecentralisedObtainTicketbooks {
         /// Amount of ticketbooks (per type) to attempt to obtain
-        #[arg(long)]
+        #[arg(long, default_value_t = 1)]
         amount: u64,
     },
     /// Refresh account state
@@ -59,11 +62,11 @@ impl Command {
             Command::Set { mnemonic, mode } => {
                 let request = match mode {
                     VpnAccountMode::Api => StoreAccountRequest::Vpn { mnemonic },
-                    VpnAccountMode::Decentralised => StoreAccountRequest::Decentralised { mnemonic }
+                    VpnAccountMode::Decentralised => {
+                        StoreAccountRequest::Decentralised { mnemonic }
+                    }
                 };
-                let response = rpc_client
-                    .store_account(request)
-                    .await?;
+                let response = rpc_client.store_account(request).await?;
 
                 if let Some(err) = response.error {
                     println!("Failed to set account: {err}");
@@ -95,7 +98,22 @@ impl Command {
 
                 Ok(())
             }
+            Command::Balance => {
+                let response = rpc_client.account_balance().await?;
+                match response.result {
+                    Err(err) => {
+                        println!("Failed to get account balance: {err}");
+                        return Err(err.into());
+                    }
+                    Ok(balance) => println!(
+                        "account balance: {}",
+                        balance.into_iter().map(|c| c.to_string()).join(", ")
+                    ),
+                }
+                Ok(())
+            }
             Command::DecentralisedObtainTicketbooks { amount } => {
+                println!("starting acquisition of {amount} ticketbooks (per type). this might take a while...");
                 let response = rpc_client.decentralised_obtain_ticketbooks(amount).await?;
                 if let Some(err) = response.error {
                     println!("Failed to obtain ticketbooks: {err}");

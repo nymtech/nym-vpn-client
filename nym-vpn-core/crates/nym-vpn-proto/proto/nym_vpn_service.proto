@@ -195,6 +195,14 @@ message NetworkCompatibility {
   string android = 5;
 }
 
+// no point in importing entire cosmos-sdk protobuf definition for just this one type
+message Coin {
+  string denom = 1;
+  // technically this should be a 128bit value,
+  // but for our particular coin, 64bits is enough
+  uint64 amount = 2;
+}
+
 message GetConfigResponse {
   VpnServiceConfig config = 1;
 }
@@ -549,6 +557,7 @@ message AccountCommandError {
     bool insufficient_funds = 14;
     bool account_decentralised = 15;
     bool account_not_decentralised = 16;
+    string zk_nym_acquisition_failure = 17;
   }
 }
 
@@ -643,6 +652,7 @@ message DecentralisedAccountStoreRequest {
   string mnemonic = 1;
 }
 
+
 message DecentralisedObtainTicketbooksRequest {
   uint64 amount = 1;
 }
@@ -651,6 +661,16 @@ message AccountCommandResponse {
   optional AccountCommandError error = 1;
 }
 
+message BalanceList {
+  repeated Coin coins = 1;
+}
+
+message AccountBalanceResponse {
+  oneof account_balance {
+    AccountCommandError error = 1;
+    BalanceList balance = 2;
+  }
+}
 
 message GetAccountIdentityResponse {
   optional string account_identity = 1;
@@ -795,6 +815,9 @@ service NymVpnService {
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
+
+  /// Retrieve current, on-chain, account balance
+  rpc AccountBalance (google.protobuf.Empty) returns (AccountBalanceResponse) {}
 
   // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
   rpc DecentralisedObtainTicketbooks (DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}

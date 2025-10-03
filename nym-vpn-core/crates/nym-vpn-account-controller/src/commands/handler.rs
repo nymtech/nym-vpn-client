@@ -3,7 +3,6 @@
 
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_validator_client::nyxd::AccountId;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
@@ -19,28 +18,25 @@ async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: &VpnAccount,
 ) -> Result<(), AccountCommandError> {
-    todo!()
-    // // if we're attempting to store a decentralised account, it MUST exist on chain,
-    // // i.e. it must have proper number and sequence
-    // let Some(account_response) = shared_state
-    //     .nyxd_client
-    //     .0
-    //     .get_account(account.id_typed())
-    //     .await
-    //     .map_err(|err| AccountCommandError::NyxdQueryFailure(err.to_string()))?
-    // else {
-    //     return Err(AccountCommandError::AccountDoesntExistOnChain);
-    // };
-    //
-    // let Ok(base_account) = account_response.try_get_base_account() else {
-    //     return Err(AccountCommandError::AccountDoesntExistOnChain);
-    // };
-    // info!(
-    //     "importing decentralised account '{}' with account number: {} and sequence: {}",
-    //     base_account.address, base_account.account_number, base_account.sequence
-    // );
-    //
-    // Ok(())
+    // if we're attempting to store a decentralised account, it MUST exist on chain,
+    // i.e. it must have proper number and sequence
+    let Some(account_response) = shared_state
+        .nyxd_client
+        .get_account_details(&account.get_mnemonic())
+        .await?
+    else {
+        return Err(AccountCommandError::AccountDoesntExistOnChain);
+    };
+
+    let Ok(base_account) = account_response.try_get_base_account() else {
+        return Err(AccountCommandError::AccountDoesntExistOnChain);
+    };
+    info!(
+        "importing decentralised account '{}' with account number: {} and sequence: {}",
+        base_account.address, base_account.account_number, base_account.sequence
+    );
+
+    Ok(())
 }
 
 pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
@@ -150,6 +146,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.vpn_api_account = None;
     shared_state.device = None;
+    shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {
         return Err(AccountCommandError::Storage(format!(
@@ -213,11 +210,4 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state.device = Some(device);
 
     Ok(())
-}
-
-pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
-    shared_state: &mut SharedAccountState<C>,
-    amount: u64,
-) -> Result<(), AccountCommandError> {
-    todo!()
 }

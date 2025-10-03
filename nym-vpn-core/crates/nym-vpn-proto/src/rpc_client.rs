@@ -9,9 +9,9 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
 };
 use nym_vpn_lib_types::{
-    AccountCommandResponse, AccountControllerState, AvailableTickets, ConnectArgs, Gateway,
-    ListGatewaysOptions, LogPath, StoreAccountRequest, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
+    ConnectArgs, Gateway, ListGatewaysOptions, LogPath, StoreAccountRequest, TunnelEvent,
+    TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio_stream::{Stream, StreamExt};
@@ -329,6 +329,17 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn account_balance(&mut self) -> Result<AccountBalanceResponse> {
+        let response = self
+            .0
+            .account_balance(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn decentralised_obtain_ticketbooks(

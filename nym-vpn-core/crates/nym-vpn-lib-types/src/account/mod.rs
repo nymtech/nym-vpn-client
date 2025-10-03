@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_validator_client::nyxd::error::NyxdError;
 use std::{fmt::Debug, sync::Arc};
 
 pub mod controller_error;
@@ -59,6 +60,9 @@ pub enum AccountCommandError {
     #[error("account does not have sufficient funds")]
     InsufficientFunds,
 
+    #[error("failed to obtain zk-nym: {0}")]
+    ZkNymAcquisitionFailure(String),
+
     #[error("invalid mnemonic: {0}")]
     InvalidMnemonic(String),
 }
@@ -74,6 +78,12 @@ impl AccountCommandError {
 
     pub fn unexpected_response(message: impl Debug) -> Self {
         AccountCommandError::UnexpectedVpnApiResponse(format!("{message:?}"))
+    }
+}
+
+impl From<NyxdError> for AccountCommandError {
+    fn from(e: NyxdError) -> Self {
+        AccountCommandError::NyxdQueryFailure(e.to_string())
     }
 }
 

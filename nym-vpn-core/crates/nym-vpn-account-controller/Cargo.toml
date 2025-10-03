@@ -20,6 +20,7 @@ nym-credential-proxy-requests.workspace = true
 nym-credential-storage.workspace = true
 nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
+nym-credential-utils.workspace = true
 nym-ecash-time.workspace = true
 nym-offline-monitor.workspace = true
 nym-registration-common.workspace = true

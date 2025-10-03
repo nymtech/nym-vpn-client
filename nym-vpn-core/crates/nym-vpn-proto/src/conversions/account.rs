@@ -48,6 +48,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::AccountNotDecentralised(_) => {
                 Self::AccountNotDecentralised
             }
+            proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err) => {
+                Self::ZkNymAcquisitionFailure(err)
+            }
         })
     }
 }
@@ -157,6 +160,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::AccountDecentralised => proto::AccountCommandError {
                 error_detail: Some(
                     proto::account_command_error::ErrorDetail::AccountDecentralised(true),
+                ),
+            },
+            AccountCommandError::ZkNymAcquisitionFailure(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err),
                 ),
             },
         }

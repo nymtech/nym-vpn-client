@@ -426,6 +426,19 @@ impl NymVpnService for CommandInterface {
         }))
     }
 
+    async fn account_balance(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountBalanceResponse>> {
+        let response = self
+            .send_and_wait(VpnServiceCommand::DecentralisedBalance, ())
+            .await?;
+
+        let response = proto::AccountBalanceResponse::from(response);
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn decentralised_obtain_ticketbooks(
         &self,
         request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,

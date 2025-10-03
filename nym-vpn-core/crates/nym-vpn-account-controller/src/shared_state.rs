@@ -48,6 +48,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 }
 
 impl<C: ConnectivityMonitor> SharedAccountState<C> {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         connectivity_handle: C,
         config: AccountControllerConfig,

@@ -32,9 +32,10 @@ pub use gateway::{
     Asn, AsnKind, Country, Entry, Exit, Gateway, Location, Performance, Probe, ProbeOutcome, Score,
 };
 pub use log_path::LogPath;
+pub use nym_validator_client::nyxd::Coin;
 pub use rpc_requests::{
-    AccountCommandResponse, ConnectArgs, ConnectOptions, DecentralisedObtainTicketbooksRequest,
-    ListGatewaysOptions, StoreAccountRequest,
+    AccountBalanceResponse, AccountCommandResponse, ConnectArgs, ConnectOptions,
+    DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use tunnel_event::{

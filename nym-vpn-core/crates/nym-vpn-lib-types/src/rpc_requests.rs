@@ -5,6 +5,7 @@ use std::net::IpAddr;
 
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayType};
 use nym_sdk::UserAgent;
+use nym_validator_client::nyxd;
 
 #[derive(Debug)]
 pub struct ListGatewaysOptions {
@@ -35,6 +36,11 @@ pub struct DecentralisedObtainTicketbooksRequest {
 #[derive(Debug)]
 pub struct AccountCommandResponse {
     pub error: Option<crate::AccountCommandError>,
+}
+
+#[derive(Debug)]
+pub struct AccountBalanceResponse {
+    pub result: Result<Vec<nyxd::Coin>, crate::AccountCommandError>,
 }
 
 // Deprecated

@@ -11,6 +11,7 @@ use nym_validator_client::{
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use time::{Duration, OffsetDateTime};
+use zeroize::Zeroizing;
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
@@ -148,10 +149,17 @@ impl VpnAccount {
     }
 
     pub fn create_ecash_keypair(&self) -> Result<KeyPairUser, Error> {
+        let seed = self.ecash_keypair_seed()?;
+        Ok(KeyPairUser::new_seeded(&seed))
+    }
+
+    pub fn ecash_keypair_seed(&self) -> Result<Zeroizing<Vec<u8>>, Error> {
         let hd_path = cosmos_derivation_path();
+        // TODO: private key is NOT zeroized here
         let extended_private_key = self.wallet.derive_extended_private_key(&hd_path)?;
-        Ok(KeyPairUser::new_seeded(
-            extended_private_key.private_key().to_bytes(),
+
+        Ok(Zeroizing::new(
+            extended_private_key.private_key().to_bytes().to_vec(),
         ))
     }
 

@@ -12,10 +12,9 @@ use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::state_machine::ReadyState;
 use crate::state_machine::decentralised_state::DecentralisedState;
 use crate::{
-    SharedAccountState, commands,
+    SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
@@ -248,6 +247,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                        AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));

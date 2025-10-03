@@ -4,12 +4,12 @@
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::account::StorableAccount;
 
-use std::net::SocketAddr;
-
+use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
+use std::net::SocketAddr;
 use tokio::sync::oneshot;
 
 use crate::AvailableTicketbooks;
@@ -31,6 +31,9 @@ pub enum AccountCommand {
 
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
+
+    /// Retrieve current, on-chain, balance of the account. Only applicable for decentralised accounts
+    AccountBalance(ReturnSender<Vec<Coin>, AccountCommandError>),
 
     /// Attempt to obtain specified amount of ticketbooks (per type) for the decentralised account
     ObtainTicketbooks(ReturnSender<(), AccountCommandError>, u64),
@@ -58,6 +61,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RefreshAccountState(return_sender) => return_sender.send(Err(error)),

@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::commands::{AccountCommand, handler};
+use crate::commands::{AccountCommand, common_handler, decentralised_zknym_handler, handler};
 use crate::shared_state::SharedAccountState;
 use crate::state_machine::{
     AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
@@ -62,9 +62,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             return NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
-                    AccountCommand::ObtainTicketbooks(return_sender, amount) => {
-                        return_sender.send(handler::handle_obtain_ticketbooks(shared_state, amount).await);
+                    AccountCommand::AccountBalance(return_sender) => {
+                        return_sender.send(decentralised_zknym_handler::handle_account_balance(shared_state).await);
                     }
+                    AccountCommand::ObtainTicketbooks(return_sender, amount) => {
+                        return_sender.send(decentralised_zknym_handler::handle_obtain_ticketbooks(shared_state, amount).await);
+                    }
+                    AccountCommand::Common(common_command) => {
+                        common_handler::handle_common_command(common_command, shared_state).await
+                    },
                     other => {
                         other.return_error(AccountCommandError::AccountDecentralised);
                     }
