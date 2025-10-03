@@ -1,9 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_validator_client::nyxd::cosmwasm_client::types::Account;
-use nym_validator_client::nyxd::{Coin, CosmWasmClient};
-use nym_validator_client::{DirectSigningHttpRpcNyxdClient, nyxd::Config};
+use nym_validator_client::{
+    DirectSigningHttpRpcNyxdClient,
+    nyxd::{Coin, Config, CosmWasmClient, cosmwasm_client::types::Account},
+};
 use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::account::Mnemonic;

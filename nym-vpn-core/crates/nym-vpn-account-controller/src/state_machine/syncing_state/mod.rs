@@ -12,13 +12,12 @@ use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::state_machine::decentralised_state::DecentralisedState;
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState,
+        OfflineState, PrivateAccountControllerState, decentralised_state::DecentralisedState,
     },
 };
 use requesting_zknym_state::RequestingZkNymsState;

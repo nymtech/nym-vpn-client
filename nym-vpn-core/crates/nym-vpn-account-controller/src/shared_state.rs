@@ -9,9 +9,9 @@ use nym_vpn_api_client::{
 
 use tokio::sync::mpsc;
 
-use crate::nyxd_client::NyxdClient;
 use crate::{
     AccountControllerConfig,
+    nyxd_client::NyxdClient,
     storage::{AccountStorageOp, VpnCredentialStorage},
 };
 

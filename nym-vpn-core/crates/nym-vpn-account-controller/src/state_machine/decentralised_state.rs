@@ -1,11 +1,13 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::commands::{AccountCommand, common_handler, decentralised_zknym_handler, handler};
-use crate::shared_state::SharedAccountState;
-use crate::state_machine::{
-    AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
-    PrivateAccountControllerState,
+use crate::{
+    commands::{AccountCommand, common_handler, decentralised_zknym_handler, handler},
+    shared_state::SharedAccountState,
+    state_machine::{
+        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
+        PrivateAccountControllerState,
+    },
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;

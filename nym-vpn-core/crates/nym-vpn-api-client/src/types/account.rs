@@ -5,9 +5,10 @@ use std::fmt;
 
 use crate::jwt::Jwt;
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
-use nym_validator_client::nyxd::AccountId;
 use nym_validator_client::{
-    DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
+    DirectSecp256k1HdWallet,
+    nyxd::{AccountId, bip32::DerivationPath},
+    signing::signer::OfflineSigner as _,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use time::{Duration, OffsetDateTime};

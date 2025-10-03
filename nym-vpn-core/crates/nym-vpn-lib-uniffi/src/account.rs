@@ -276,11 +276,10 @@ pub(crate) mod raw {
     use crate::environment;
     use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
-    use nym_vpn_api_client::types::VpnAccountMode;
     use nym_vpn_api_client::{
         VpnApiClient,
         response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
-        types::{Device, DeviceStatus},
+        types::{Device, DeviceStatus, VpnAccountMode},
     };
     use nym_vpn_store::account::AccountInformationStorage;
 
