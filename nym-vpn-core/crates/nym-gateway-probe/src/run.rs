@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::anyhow;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
@@ -26,6 +26,9 @@ fn validate_node_identity(s: &str) -> Result<NodeIdentity, String> {
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, long_version = pretty_build_info_static(), about)]
 struct CliArgs {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Path pointing to an env file describing the network.
     #[arg(short, long)]
     config_env_file: Option<PathBuf>,
@@ -65,6 +68,19 @@ struct CliArgs {
     /// Arguments to manage credentials
     #[command(flatten)]
     credential_args: CredentialArgs,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Run the probe locally
+    RunLocal {
+        /// Provide a mnemonic to get credentials
+        #[arg(long)]
+        mnemonic: String,
+
+        #[arg(long, default = "/tmp/nym-gateway-probe/config/")]
+        config_dir: PathBuf,
+    },
 }
 
 fn setup_logging() {
@@ -130,12 +146,30 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }
-    Box::pin(trial.probe(
-        gateway_config,
-        args.ignore_egress_epoch_role,
-        args.only_wireguard,
-    ))
-    .await
+
+    match &args.command {
+        Some(Commands::RunLocal {
+            mnemonic,
+            config_dir,
+        }) => {
+            Box::pin(trial.probe_run_locally(
+                config_dir,
+                mnemonic,
+                gateway_config,
+                args.ignore_egress_epoch_role,
+                args.only_wireguard,
+            ))
+            .await
+        }
+        None => {
+            Box::pin(trial.probe(
+                gateway_config,
+                args.ignore_egress_epoch_role,
+                args.only_wireguard,
+            ))
+            .await
+        }
+    }
 }
 
 async fn fetch_random_gateway_with_ipr(

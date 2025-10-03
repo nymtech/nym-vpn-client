@@ -1,12 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    time::Duration,
-};
-
 use crate::{netstack::NetstackResult, types::Entry};
+use anyhow::Context;
 use anyhow::{anyhow, bail};
 use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
@@ -17,6 +13,7 @@ use nym_authenticator_requests::{
     AuthenticatorVersion, client_message::ClientMessage, response::AuthenticatorResponse, v2, v3,
     v4, v5,
 };
+use nym_bandwidth_controller::error::BandwidthControllerError;
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     NymNetworkDetails,
@@ -39,10 +36,16 @@ use nym_ip_packet_requests::{
 };
 use nym_sdk::bandwidth::BandwidthImporter;
 use nym_sdk::mixnet::{
-    Ephemeral, EphemeralCredentialStorage, MixnetClient, MixnetClientBuilder, MixnetClientStorage,
-    NodeIdentity, ReconstructedMessage,
+    DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage, MixnetClient,
+    MixnetClientBuilder, MixnetClientStorage, NodeIdentity, ReconstructedMessage, StoragePaths,
 };
+use nym_validator_client::nyxd::error::NyxdError;
 use nym_wireguard_types::PeerPublicKey;
+use std::path::PathBuf;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    time::Duration,
+};
 use tokio_util::{codec::Decoder, sync::CancellationToken};
 use tracing::*;
 use types::WgProbeResults;
@@ -64,7 +67,7 @@ use crate::monorepo_ns_client_types::AttachedTicketMaterials;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
-#[derive(Args)]
+#[derive(Args, Clone)]
 pub struct NetstackArgs {
     #[arg(long, default_value_t = 180)]
     netstack_download_timeout_sec: u64,
@@ -104,6 +107,9 @@ pub struct CredentialArgs {
 
     #[arg(long)]
     ticket_materials_revision: u8,
+
+    #[arg(long, default_value = None)]
+    mnemonic: Option<String>,
 }
 
 impl CredentialArgs {
@@ -260,11 +266,201 @@ impl Probe {
     ) -> anyhow::Result<ProbeResult> {
         let tickets_materials = self.credentials_args.decode_attached_ticket_materials()?;
 
+        let tested_entry = self.tested_node.is_same_as_entry();
+        let (mixnet_entry_gateway_id, node_info) =
+            self.lookup_gateway(gateway_config.clone()).await?;
+
+        let storage = Ephemeral::default();
+
+        // Connect to the mixnet via the entry gateway
+        let disconnected_mixnet_client = MixnetClientBuilder::new_with_storage(storage.clone())
+            .request_gateway(mixnet_entry_gateway_id.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(mixnet_debug_config(
+                gateway_config.min_gateway_performance,
+                ignore_egress_epoch_role,
+            ))
+            .with_forget_me(ForgetMe::new_all())
+            .credentials_mode(true)
+            .build()?;
+
+        // in normal operation expects the ticket material to be provided as an argument
+        let bandwidth_import = disconnected_mixnet_client.begin_bandwidth_import();
+        import_bandwidth(bandwidth_import, tickets_materials).await?;
+
+        let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
+
+        self.do_probe_test(
+            gateway_config,
+            mixnet_client,
+            storage,
+            mixnet_entry_gateway_id,
+            node_info,
+            tested_entry,
+            only_wireguard,
+        )
+        .await
+    }
+
+    pub async fn probe_run_locally(
+        self,
+        config_dir: &PathBuf,
+        mnemonic: &str,
+        gateway_config: GatewayDirectoryConfig,
+        ignore_egress_epoch_role: bool,
+        only_wireguard: bool,
+    ) -> anyhow::Result<ProbeResult> {
+        let tested_entry = self.tested_node.is_same_as_entry();
+        let (mixnet_entry_gateway_id, node_info) =
+            self.lookup_gateway(gateway_config.clone()).await?;
+
+        let storage_paths = StoragePaths::new_from_dir(config_dir)?;
+        let storage = storage_paths
+            .initialise_default_persistent_storage()
+            .await?;
+
+        // Connect to the mixnet via the entry gateway, without forget-me flag so that gateway remembers client
+        // and keeps its bandwidth between probe runs
+        let disconnected_mixnet_client = MixnetClientBuilder::new_with_storage(storage.clone())
+            .request_gateway(mixnet_entry_gateway_id.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(mixnet_debug_config(
+                gateway_config.min_gateway_performance,
+                ignore_egress_epoch_role,
+            ))
+            .credentials_mode(true)
+            .build()?;
+
+        for ticketbook_type in [
+            TicketType::V1MixnetEntry,
+            TicketType::V1WireguardEntry,
+            TicketType::V1WireguardExit,
+        ] {
+            self.acquire_bandwidth(mnemonic, &disconnected_mixnet_client, ticketbook_type)
+                .await?;
+        }
+
+        let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
+
+        self.do_probe_test(
+            gateway_config,
+            mixnet_client,
+            storage,
+            mixnet_entry_gateway_id,
+            node_info,
+            tested_entry,
+            only_wireguard,
+        )
+        .await
+    }
+
+    async fn acquire_bandwidth<T>(
+        &self,
+        mnemonic: &str,
+        disconnected_mixnet_client: &DisconnectedMixnetClient<T>,
+        ticketbook_type: TicketType,
+    ) -> anyhow::Result<()>
+    where
+        T: MixnetClientStorage,
+    {
+        // TODO: make it configurable
+        const MAX_RETRIES: usize = 50;
+        for i in 0..MAX_RETRIES {
+            let attempt = i + 1; // since humans usually don't count from 0 in this instance
+            info!(
+                "attempt {attempt}/{MAX_RETRIES} for attempting to acquire {ticketbook_type} bandwidth"
+            );
+            let bw_client = disconnected_mixnet_client
+                .create_bandwidth_client(mnemonic.to_string(), ticketbook_type)
+                .await?;
+            info!("Calling bandwidth controller acquire() for {ticketbook_type}");
+            match bw_client.acquire().await {
+                Ok(_) => {
+                    if i > 0 {
+                        info!(
+                            "managed to acquire {ticketbook_type} bandwidth after {attempt} attempts",
+                        );
+                    }
+                    return Ok(());
+                }
+                Err(nym_sdk::Error::CredentialIssuanceError { source }) => match source {
+                    nym_credential_utils::errors::Error::BandwidthControllerError(
+                        BandwidthControllerError::Nyxd(nyxd_error),
+                    ) => match nyxd_error {
+                        // happens when sequence issue occurs during tx delivery
+                        NyxdError::BroadcastTxErrorDeliverTx {
+                            hash,
+                            height,
+                            code,
+                            raw_log,
+                        } => {
+                            // unfortunately at this point we have to do string matching as the log
+                            // is returned from the go nyxd binary
+                            if raw_log.contains("account sequence mismatch") {
+                                error!(
+                                    "another process is using the same mnemonic. we failed to broadcast transaction {hash} due to mismatched sequence number"
+                                )
+                            } else {
+                                return Err(NyxdError::BroadcastTxErrorDeliverTx {
+                                    hash,
+                                    height,
+                                    code,
+                                    raw_log,
+                                }
+                                .into());
+                            }
+                        }
+                        // happens when sequence issue occurs during tx simulate
+                        NyxdError::AbciError {
+                            code,
+                            log,
+                            pretty_log,
+                        } => {
+                            // unfortunately at this point we have to do string matching as the log
+                            // is returned from the go nyxd binary
+                            if log.contains("account sequence mismatch") {
+                                error!(
+                                    "another process is using the same mnemonic. we failed to simulate transaction due to mismatched sequence number"
+                                )
+                            } else {
+                                return Err(NyxdError::AbciError {
+                                    code,
+                                    log,
+                                    pretty_log,
+                                }
+                                .into());
+                            }
+                        }
+                        other => {
+                            return Err(other)
+                                .context("another nyxd failure during bandwidth acquisition");
+                        }
+                    },
+                    other => {
+                        return Err(other.into());
+                    }
+                },
+                Err(other) => {
+                    return Err(other.into());
+                }
+            }
+
+            // add a bit of backoff as if the rpc node is slightly out of sync,
+            // we might use our retry budget for abci queries to the simulate endpoint
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+
+        bail!("failed to acquire bandwidth after {MAX_RETRIES} attempts")
+    }
+
+    pub async fn lookup_gateway(
+        &self,
+        gateway_config: GatewayDirectoryConfig,
+    ) -> anyhow::Result<(NodeIdentity, TestedNodeDetails)> {
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
 
         let entry_gateway = self.entrypoint.lookup_gateway(&gateways, None, None)?;
-        let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {
             TestedNode::Custom { identity } => {
@@ -286,25 +482,23 @@ impl Probe {
             node_info.authenticator_version
         );
 
-        let storage = Ephemeral::default();
+        Ok((mixnet_entry_gateway_id, node_info))
+    }
 
-        // Connect to the mixnet via the entry gateway
-        let disconnected_mixnet_client = MixnetClientBuilder::new_with_storage(storage.clone())
-            .request_gateway(mixnet_entry_gateway_id.to_string())
-            .network_details(NymNetworkDetails::new_from_env())
-            .debug_config(mixnet_debug_config(
-                gateway_config.min_gateway_performance,
-                ignore_egress_epoch_role,
-            ))
-            .with_forget_me(ForgetMe::new_all())
-            .credentials_mode(true)
-            .build()?;
-
-        let bandwidth_import = disconnected_mixnet_client.begin_bandwidth_import();
-        import_bandwidth(bandwidth_import, tickets_materials).await?;
-
-        let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
-
+    #[allow(clippy::too_many_arguments)]
+    pub async fn do_probe_test<T>(
+        &self,
+        gateway_config: GatewayDirectoryConfig,
+        mixnet_client: nym_sdk::Result<MixnetClient>,
+        storage: T,
+        mixnet_entry_gateway_id: NodeIdentity,
+        node_info: TestedNodeDetails,
+        tested_entry: bool,
+        only_wireguard: bool,
+    ) -> anyhow::Result<ProbeResult>
+    where
+        T: MixnetClientStorage,
+    {
         let mixnet_client = match mixnet_client {
             Ok(mixnet_client) => mixnet_client,
             Err(err) => {
@@ -395,8 +589,8 @@ impl Probe {
                 auth_client,
                 ip_address,
                 node_info.authenticator_version,
-                self.amnezia_args,
-                self.netstack_args,
+                self.amnezia_args.clone(),
+                self.netstack_args.clone(),
                 credential,
             )
             .await
