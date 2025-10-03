@@ -125,8 +125,6 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         api_url,
         nym_vpn_api_url: network.nym_vpn_api_url(),
         min_gateway_performance: Some(min_gateway_performance),
-        mix_score_thresholds: None,
-        wg_score_thresholds: None,
     };
 
     let entry = if let Some(gateway) = &args.entry_gateway {

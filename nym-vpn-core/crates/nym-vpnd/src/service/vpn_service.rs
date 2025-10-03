@@ -1,16 +1,19 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
-    },
-};
-use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
+use std::{path::PathBuf, pin::Pin};
+
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use tokio::{
+    sync::{broadcast, mpsc, oneshot},
+    task::JoinHandle,
+    time::{Duration, Instant},
+};
+use tokio_stream::wrappers::WatchStream;
+use tokio_util::sync::CancellationToken;
+
 use nym_common::trace_err_chain;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
@@ -20,7 +23,6 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
@@ -35,16 +37,15 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
-use std::{path::PathBuf, pin::Pin};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use tokio::{
-    sync::{broadcast, mpsc, oneshot},
-    task::JoinHandle,
-    time::{Duration, Instant},
+
+use super::{
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError,
+    },
 };
-use tokio_stream::wrappers::WatchStream;
-use tokio_util::sync::CancellationToken;
-use tracing::info;
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -381,32 +382,11 @@ impl NymVpnService {
         let nyxd_url = parameters.network_env.nyxd_url();
         let api_url = parameters.network_env.api_url();
 
-        let mix_score_thresholds = parameters
-            .network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-        let wg_score_thresholds = parameters
-            .network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.wg_thresholds.high,
-                medium: sc.wg_thresholds.medium,
-                low: sc.wg_thresholds.low,
-            });
-
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url: api_url.clone(),
             nym_vpn_api_url: Some(parameters.network_env.vpn_api_url()),
             min_gateway_performance: None,
-            mix_score_thresholds,
-            wg_score_thresholds,
         };
         let nym_config = NymConfig {
             config_path: Some(config_dir),
@@ -1039,7 +1019,7 @@ impl NymVpnService {
         request: DecentralisedObtainTicketbooksRequest,
     ) -> Result<(), AccountCommandError> {
         let amount = request.amount;
-        info!("received request to attempt to obtain {amount} ticketbooks of each type");
+        tracing::info!("received request to attempt to obtain {amount} ticketbooks of each type");
 
         self.account_command_tx
             .decentralised_obtain_ticketbooks(amount)
