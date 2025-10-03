@@ -546,27 +546,24 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
-        let (discovery_refresher_handle, mut background_error_rx) = self
+        let (discovery_refresher_handle, mut discovery_refresher_rx) = self
             .tunnel_parameters
             .nym_config
             .config_path
             .as_ref()
             .and_then(|config_path: &PathBuf| config_path.parent())
             .map(|config_dir| {
-                let (background_error_tx, background_error_rx) = tokio::sync::mpsc::channel(1);
+                let (discovery_refresher_tx, discovery_refresher_rx) =
+                    tokio::sync::mpsc::channel(1);
                 let discovery_refresher_handle = start_background_file_refresh(
                     config_dir.to_path_buf(),
                     self.tunnel_parameters.nym_config.network_env.clone(),
-                    background_error_tx,
+                    discovery_refresher_tx,
                     self.shutdown_token.child_token(),
                 );
-                (discovery_refresher_handle, background_error_rx)
+                (discovery_refresher_handle, discovery_refresher_rx)
             })
             .unzip();
-        let fused_background_error = background_error_rx
-            .as_mut()
-            .map(|r| r.recv().fuse())
-            .unwrap_or(Fuse::terminated());
 
         let connection_data = ConnectionData {
             entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
@@ -606,10 +603,49 @@ impl TunnelMonitor {
             }
         }
 
-        self.recv_error(tunnel_handle.mixnet_client_token(), fused_background_error)
-            .await;
+        let mixnet_monitoring_token = tunnel_handle
+            .mixnet_client_token()
+            .map(|token| token.cancelled_owned().fuse())
+            .unwrap_or(Fuse::terminated());
 
-        tracing::info!("Wait for tunnel to exit");
+        loop {
+            tokio::select! {
+                _  = mixnet_monitoring_token => {
+                    tracing::error!("MixnetClient exited unexpectedly");
+                    break;
+                }
+                _ = self.shutdown_token.cancelled() => {
+                    break;
+                }
+                ret = async {
+                    match &mut discovery_refresher_rx {
+                        Some(rx) => rx.recv().await,
+                        None => std::future::pending().await,
+                    }
+                } => {
+                    match ret {
+                        Some(Ok(discovery)) => {
+                            tracing::info!("Refreshed discovery file");
+                            if let Err(err) = self.custom_topology_provider.update_discovery(discovery).await {
+                                trace_err_chain!(err, "Failed to update discovery in custom topology provider");
+                            }
+                        }
+                        Some(Err(err)) => {
+                            trace_err_chain!(err, "Failed to refresh discovery file");
+                        }
+                        None => {
+                            // channel closed
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Trigger cancellation since many other tasks depend on shutdown token
+        self.shutdown_token.cancel();
+
+        tracing::info!("Waiting for tunnel to exit");
         tunnel_handle.cancel();
 
         let tun_devices = tunnel_handle
@@ -634,7 +670,7 @@ impl TunnelMonitor {
     async fn recv_error(
         &self,
         mixnet_cancel_token: Option<CancellationToken>,
-        background_error_rx: Fuse<impl Future<Output = Option<()>>>,
+        background_file_rx: Fuse<impl Future<Output = Option<()>>>,
     ) {
         // Watch on the mixnet client of nothing if it doesn't exist
         let mixnet_monitoring_token = mixnet_cancel_token
@@ -645,7 +681,7 @@ impl TunnelMonitor {
                 tracing::error!("MixnetClient exited unexpectedly");
             }
             _ = self.shutdown_token.cancelled() => {}
-            ret = background_error_rx => {
+            ret = background_file_rx => {
                 if ret.is_some() {
                     tracing::error!("Background task errored out");
                 } else {

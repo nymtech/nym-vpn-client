@@ -7,14 +7,14 @@ use nym_common::trace_err_chain;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks};
+use crate::{Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks};
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
 struct FileRefresher {
     config_path: PathBuf,
     network: Network,
-    background_error_tx: tokio::sync::mpsc::Sender<()>,
+    discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Discovery>>,
     cancel_token: CancellationToken,
 }
 
@@ -22,13 +22,13 @@ impl FileRefresher {
     fn new(
         config_path: PathBuf,
         network: Network,
-        background_error_tx: tokio::sync::mpsc::Sender<()>,
+        discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Discovery>>,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
             config_path,
             network,
-            background_error_tx,
+            discovery_refresher_tx,
             cancel_token,
         }
     }
@@ -47,7 +47,7 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_nym_network_file(&self, discovery: Discovery) -> Result<()> {
+    async fn refresh_nym_network_file(&self, discovery: &Discovery) -> Result<()> {
         if NymNetwork::path_is_stale(
             self.config_path.as_path(),
             &self.network.nym_network.network.network_name,
@@ -78,8 +78,10 @@ impl FileRefresher {
                             Err(e) => tracing::warn!("Could not check consistency: {e:?}"),
                             Ok(false) => {
                                 tracing::error!("Inconsistent network");
-                                self.background_error_tx.send(()).await.ok();
-                                return;
+                                self.discovery_refresher_tx
+                                    .send(Err(Error::InconsistentNetwork))
+                                    .await
+                                    .ok();
                             }
                             Ok(true) => {
                                 checked_consistency = true;
@@ -94,11 +96,16 @@ impl FileRefresher {
                     match self.refresh_discovery_file().await {
                         Err(err) => {
                             trace_err_chain!(err, "Failed to refresh discovery file");
+                            self.discovery_refresher_tx
+                                .send(Err(Error::FailedToRefreshDiscoveryFile))
+                                .await
+                                .ok();
                         }
                         Ok(Some(discovery)) => {
-                            if let Err(err) = self.refresh_nym_network_file(discovery).await {
+                            if let Err(err) = self.refresh_nym_network_file(&discovery).await {
                                 trace_err_chain!(err, "Failed to refresh nym network file");
                             }
+                            self.discovery_refresher_tx.send(Ok(discovery)).await.ok();
                         }
                         _ => {}
                     }
@@ -112,9 +119,9 @@ impl FileRefresher {
 pub fn start_background_file_refresh(
     config_path: PathBuf,
     network: Network,
-    background_error_tx: tokio::sync::mpsc::Sender<()>,
+    discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Discovery>>,
     cancel_token: CancellationToken,
 ) -> JoinHandle<()> {
-    let refresher = FileRefresher::new(config_path, network, background_error_tx, cancel_token);
+    let refresher = FileRefresher::new(config_path, network, discovery_refresher_tx, cancel_token);
     tokio::spawn(refresher.run())
 }

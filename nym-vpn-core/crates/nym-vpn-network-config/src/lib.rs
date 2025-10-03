@@ -35,6 +35,7 @@ use crate::{
     discovery::DiscoveryFromNymWellknownDiscoveryError,
     nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
 };
+
 use nym_http_api_client::HttpClientError;
 use std::{
     fmt::Debug,
@@ -372,6 +373,12 @@ pub enum Error {
 
     #[error("HTTP Client Error: {0}")]
     HttpClient(#[from] Box<HttpClientError>),
+
+    #[error("inconsistent network detected")]
+    InconsistentNetwork,
+
+    #[error("failed to refresh discovery file")]
+    FailedToRefreshDiscoveryFile,
 }
 
 impl Error {
