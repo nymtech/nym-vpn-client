@@ -103,7 +103,6 @@ tokio-rustls = { workspace = true, features = [
     "logging",
 ], default-features = false }
 quinn-proto.workspace = true
-rcgen.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
 bs58.workspace = true
