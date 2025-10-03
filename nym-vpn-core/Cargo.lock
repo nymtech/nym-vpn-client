@@ -3812,7 +3812,7 @@ dependencies = [
  "semver",
  "serde",
  "sha2 0.10.9",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "x25519-dalek",
 ]
@@ -4155,7 +4155,7 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "strum",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "time",
  "utoipa",
@@ -4665,7 +4665,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "time",
  "utoipa",
@@ -4685,7 +4685,7 @@ dependencies = [
  "sha2 0.10.9",
  "snow",
  "strum",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "tokio",
  "tokio-util",
@@ -5221,7 +5221,7 @@ dependencies = [
  "sha2 0.10.9",
  "si-scale",
  "strum",
- "strum_macros 0.27.2",
+ "strum_macros",
  "sysinfo",
  "thiserror 2.0.17",
  "time",
@@ -5407,7 +5407,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "strum",
- "strum_macros 0.26.4",
+ "strum_macros",
  "thiserror 2.0.17",
  "time",
  "tokio",
@@ -8104,20 +8104,7 @@ version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
 dependencies = [
- "strum_macros 0.27.2",
-]
-
-[[package]]
-name = "strum_macros"
-version = "0.26.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "rustversion",
- "syn 2.0.106",
+ "strum_macros",
 ]
 
 [[package]]
