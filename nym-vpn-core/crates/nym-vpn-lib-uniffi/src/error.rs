@@ -66,6 +66,27 @@ pub enum VpnError {
 
     #[error("http client error: {0}")]
     HttpClient(String),
+
+    #[error("account doesn't exist on chain")]
+    AccountDoesntExistOnChain,
+
+    #[error("account is not set in decentralised mode")]
+    AccountNotDecentralised,
+
+    #[error("account is set in decentralised mode")]
+    AccountDecentralised,
+
+    #[error("account does not have sufficient funds")]
+    InsufficientFunds,
+
+    #[error("failed to obtain zk-nym: {details}")]
+    ZkNymAcquisitionFailure { details: String },
+
+    #[error("failed to connect to nyxd instance: {details}")]
+    NyxdConnectionFailure { details: String },
+
+    #[error("failed to resolve query to a nyxd instance: {details}")]
+    NyxdQueryFailure { details: String },
 }
 
 impl From<HttpClientError> for VpnError {
@@ -96,6 +117,17 @@ impl From<AccountCommandError> for VpnError {
             },
             AccountCommandError::ExistingAccount => Self::ExistingAccount,
             AccountCommandError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
+            AccountCommandError::NyxdConnectionFailure(details) => {
+                Self::NyxdConnectionFailure { details }
+            }
+            AccountCommandError::NyxdQueryFailure(details) => Self::NyxdQueryFailure { details },
+            AccountCommandError::AccountDoesntExistOnChain => Self::AccountDoesntExistOnChain,
+            AccountCommandError::AccountNotDecentralised => Self::AccountNotDecentralised,
+            AccountCommandError::AccountDecentralised => Self::AccountDecentralised,
+            AccountCommandError::InsufficientFunds => Self::InsufficientFunds,
+            AccountCommandError::ZkNymAcquisitionFailure(details) => {
+                Self::ZkNymAcquisitionFailure { details }
+            }
         }
     }
 }
