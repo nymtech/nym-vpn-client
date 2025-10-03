@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: false
+          cache: true
 
       - name: Cache Go modules
         uses: actions/cache@v4

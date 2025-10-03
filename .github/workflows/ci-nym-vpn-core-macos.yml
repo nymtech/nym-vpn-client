@@ -2,8 +2,10 @@ name: ci-nym-vpn-core-macos
 
 on:
   pull_request:
+    types: [opened]
     paths:
-      - "nym-vpn-core/**"
+      - "nym-vpn-core/src/**"
+      - "nym-vpn-core/Cargo.toml"
       - ".github/workflows/ci-nym-vpn-core-macos.yml"
   workflow_dispatch:
 
@@ -16,27 +18,11 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
   build:
-    runs-on: ${{ matrix.runner }}
+    runs-on: custom-macos-15
     needs: build-wireguard-go-mac
-    timeout-minutes: 30
-
-    strategy:
-      fail-fast: false
-      matrix:
-        runner:
-          - custom-macos-15
-          - macos-15
+    timeout-minutes: 60
 
     steps:
-      - name: Cleanup working directory
-        if: matrix.runner == 'custom-macos-15'
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -50,7 +36,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: false
+          cache: true
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -66,17 +52,17 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-registry-
+            ${{ runner.os }}-cargo-
 
       - name: Cache Cargo build
         uses: actions/cache@v4
         with:
           path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
             ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
@@ -95,12 +81,8 @@ jobs:
         run: |
           cargo clippy --workspace --locked -- -Dwarnings
 
-      - name: Build
+      - name: Build and test
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --locked
-
-      - name: Run tests
-        working-directory: nym-vpn-core
-        run: |
-          cargo test --verbose --workspace --locked
+          cargo build --workspace --locked
+          cargo test --workspace --locked
