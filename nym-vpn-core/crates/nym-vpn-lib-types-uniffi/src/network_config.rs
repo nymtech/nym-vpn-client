@@ -37,11 +37,21 @@ pub struct NetworkEnvironment {
     pub feature_flags: Option<FeatureFlags>,
 }
 
+impl From<nym_vpn_lib_types::Network> for NetworkEnvironment {
+    fn from(value: nym_vpn_lib_types::Network) -> Self {
+        NetworkEnvironment {
+            nym_network: value.nym_network.into(),
+            nym_vpn_network: value.nym_vpn_network.into(),
+            feature_flags: value.feature_flags.map(FeatureFlags::from),
+        }
+    }
+}
+
 impl From<nym_vpn_network_config::Network> for NetworkEnvironment {
     fn from(network: nym_vpn_network_config::Network) -> Self {
         NetworkEnvironment {
-            nym_network: network.nym_network.network.into(),
-            nym_vpn_network: network.nym_vpn_network.into(),
+            nym_network: NymNetworkDetails::from(network.nym_network.network),
+            nym_vpn_network: NymVpnNetwork::from(network.nym_vpn_network),
             feature_flags: network.feature_flags.map(FeatureFlags::from),
         }
     }
@@ -55,12 +65,31 @@ pub struct NymNetworkDetails {
     pub contracts: NymContracts,
 }
 
+impl From<nym_vpn_lib_types::NymNetworkDetails> for NymNetworkDetails {
+    fn from(value: nym_vpn_lib_types::NymNetworkDetails) -> Self {
+        NymNetworkDetails {
+            network_name: value.network_name,
+            chain_details: value.chain_details.into(),
+            endpoints: value
+                .endpoints
+                .into_iter()
+                .map(ValidatorDetails::from)
+                .collect(),
+            contracts: value.contracts.into(),
+        }
+    }
+}
+
 impl From<nym_config::defaults::NymNetworkDetails> for NymNetworkDetails {
     fn from(value: nym_config::defaults::NymNetworkDetails) -> Self {
         NymNetworkDetails {
             network_name: value.network_name,
             chain_details: value.chain_details.into(),
-            endpoints: value.endpoints.into_iter().map(|e| e.into()).collect(),
+            endpoints: value
+                .endpoints
+                .into_iter()
+                .map(ValidatorDetails::from)
+                .collect(),
             contracts: value.contracts.into(),
         }
     }
@@ -71,6 +100,16 @@ pub struct ChainDetails {
     pub bech32_account_prefix: String,
     pub mix_denom: DenomDetails,
     pub stake_denom: DenomDetails,
+}
+
+impl From<nym_vpn_lib_types::ChainDetails> for ChainDetails {
+    fn from(value: nym_vpn_lib_types::ChainDetails) -> Self {
+        ChainDetails {
+            bech32_account_prefix: value.bech32_account_prefix,
+            mix_denom: value.mix_denom.into(),
+            stake_denom: value.stake_denom.into(),
+        }
+    }
 }
 
 impl From<nym_config::defaults::ChainDetails> for ChainDetails {
@@ -90,6 +129,16 @@ pub struct DenomDetails {
     pub display_exponent: u32,
 }
 
+impl From<nym_vpn_lib_types::DenomDetailsOwned> for DenomDetails {
+    fn from(value: nym_vpn_lib_types::DenomDetailsOwned) -> Self {
+        DenomDetails {
+            base: value.base,
+            display: value.display,
+            display_exponent: value.display_exponent,
+        }
+    }
+}
+
 impl From<nym_config::defaults::DenomDetailsOwned> for DenomDetails {
     fn from(value: nym_config::defaults::DenomDetailsOwned) -> Self {
         DenomDetails {
@@ -105,6 +154,16 @@ pub struct ValidatorDetails {
     pub nyxd_url: String,
     pub websocket_url: Option<String>,
     pub api_url: Option<String>,
+}
+
+impl From<nym_vpn_lib_types::ValidatorDetails> for ValidatorDetails {
+    fn from(value: nym_vpn_lib_types::ValidatorDetails) -> Self {
+        ValidatorDetails {
+            nyxd_url: value.nyxd_url,
+            websocket_url: value.websocket_url,
+            api_url: value.api_url,
+        }
+    }
 }
 
 impl From<nym_config::defaults::ValidatorDetails> for ValidatorDetails {
@@ -127,6 +186,19 @@ pub struct NymContracts {
     pub coconut_dkg_contract_address: Option<String>,
 }
 
+impl From<nym_vpn_lib_types::NymContracts> for NymContracts {
+    fn from(value: nym_vpn_lib_types::NymContracts) -> Self {
+        NymContracts {
+            mixnet_contract_address: value.mixnet_contract_address,
+            vesting_contract_address: value.vesting_contract_address,
+            ecash_contract_address: value.ecash_contract_address,
+            group_contract_address: value.group_contract_address,
+            multisig_contract_address: value.multisig_contract_address,
+            coconut_dkg_contract_address: value.coconut_dkg_contract_address,
+        }
+    }
+}
+
 impl From<nym_config::defaults::NymContracts> for NymContracts {
     fn from(value: nym_config::defaults::NymContracts) -> Self {
         NymContracts {
@@ -143,6 +215,15 @@ impl From<nym_config::defaults::NymContracts> for NymContracts {
 #[derive(uniffi::Record)]
 pub struct NymVpnNetwork {
     pub nym_vpn_api_url: String,
+    // todo: missing fields
+}
+
+impl From<nym_vpn_lib_types::NymVpnNetwork> for NymVpnNetwork {
+    fn from(value: nym_vpn_lib_types::NymVpnNetwork) -> Self {
+        NymVpnNetwork {
+            nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
+        }
+    }
 }
 
 impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
@@ -155,6 +236,7 @@ impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
 
 #[derive(Clone, uniffi::Record)]
 pub struct FeatureFlags {
+    // todo: hold as nym_vpn_network_config::FeatureFlags
     pub flags: HashMap<String, FlagValue>,
 }
 
@@ -178,6 +260,18 @@ pub enum FlagValue {
     Group(HashMap<String, String>),
 }
 
+impl From<FeatureFlags> for nym_vpn_network_config::FeatureFlags {
+    fn from(value: FeatureFlags) -> Self {
+        Self::from(
+            value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, nym_vpn_network_config::FlagValue::from(v)))
+                .collect::<HashMap<String, nym_vpn_network_config::FlagValue>>(),
+        )
+    }
+}
+
 impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
     fn from(value: nym_vpn_network_config::FeatureFlags) -> Self {
         FeatureFlags {
@@ -190,32 +284,62 @@ impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
     }
 }
 
-impl From<FeatureFlags> for nym_vpn_network_config::FeatureFlags {
-    fn from(value: FeatureFlags) -> Self {
-        nym_vpn_network_config::FeatureFlags::from(
-            value
-                .flags
-                .into_iter()
-                .map(|(k, v)| (k, v.into()))
-                .collect::<HashMap<_, _>>(),
-        )
-    }
-}
-
-impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
-    fn from(value: nym_vpn_network_config::feature_flags::FlagValue) -> Self {
+impl From<nym_vpn_network_config::FlagValue> for FlagValue {
+    fn from(value: nym_vpn_network_config::FlagValue) -> Self {
         match value {
-            nym_vpn_network_config::feature_flags::FlagValue::Value(v) => FlagValue::Value(v),
-            nym_vpn_network_config::feature_flags::FlagValue::Group(g) => FlagValue::Group(g),
+            nym_vpn_network_config::FlagValue::Value(v) => FlagValue::Value(v),
+            nym_vpn_network_config::FlagValue::Group(g) => FlagValue::Group(g),
         }
     }
 }
 
-impl From<FlagValue> for nym_vpn_network_config::feature_flags::FlagValue {
+impl From<FlagValue> for nym_vpn_network_config::FlagValue {
     fn from(value: FlagValue) -> Self {
         match value {
-            FlagValue::Value(v) => nym_vpn_network_config::feature_flags::FlagValue::Value(v),
-            FlagValue::Group(g) => nym_vpn_network_config::feature_flags::FlagValue::Group(g),
+            FlagValue::Value(v) => nym_vpn_network_config::FlagValue::Value(v),
+            FlagValue::Group(g) => nym_vpn_network_config::FlagValue::Group(g),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::FeatureFlags> for FeatureFlags {
+    fn from(value: nym_vpn_lib_types::FeatureFlags) -> Self {
+        FeatureFlags {
+            flags: value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect(),
+        }
+    }
+}
+
+impl From<FeatureFlags> for nym_vpn_lib_types::FeatureFlags {
+    fn from(value: FeatureFlags) -> Self {
+        nym_vpn_lib_types::FeatureFlags {
+            flags: value
+                .flags
+                .into_iter()
+                .map(|(k, v)| (k, v.into()))
+                .collect::<HashMap<_, _>>(),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::FlagValue> for FlagValue {
+    fn from(value: nym_vpn_lib_types::FlagValue) -> Self {
+        match value {
+            nym_vpn_lib_types::FlagValue::Value(v) => FlagValue::Value(v),
+            nym_vpn_lib_types::FlagValue::Group(g) => FlagValue::Group(g),
+        }
+    }
+}
+
+impl From<FlagValue> for nym_vpn_lib_types::FlagValue {
+    fn from(value: FlagValue) -> Self {
+        match value {
+            FlagValue::Value(v) => nym_vpn_lib_types::FlagValue::Value(v),
+            FlagValue::Group(g) => nym_vpn_lib_types::FlagValue::Group(g),
         }
     }
 }
@@ -225,6 +349,16 @@ pub struct SystemMessage {
     pub name: String,
     pub message: String,
     pub properties: HashMap<String, String>,
+}
+
+impl From<nym_vpn_lib_types::SystemMessage> for SystemMessage {
+    fn from(value: nym_vpn_lib_types::SystemMessage) -> Self {
+        SystemMessage {
+            name: value.name,
+            message: value.message,
+            properties: value.properties.unwrap_or_default(),
+        }
+    }
 }
 
 impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
@@ -237,19 +371,28 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
     }
 }
 
-#[derive(uniffi::Record, Clone, PartialEq)]
-pub struct AccountLinks {
+#[derive(uniffi::Record, Clone, Debug)]
+pub struct ParsedAccountLinks {
     pub sign_up: String,
     pub sign_in: String,
     pub account: Option<String>,
 }
 
-impl From<nym_vpn_network_config::ParsedAccountLinks> for AccountLinks {
+impl From<nym_vpn_network_config::ParsedAccountLinks> for ParsedAccountLinks {
     fn from(value: nym_vpn_network_config::ParsedAccountLinks) -> Self {
-        AccountLinks {
+        Self {
             sign_up: value.sign_up.to_string(),
             sign_in: value.sign_in.to_string(),
             account: value.account.map(|s| s.to_string()),
+        }
+    }
+}
+impl From<nym_vpn_lib_types::ParsedAccountLinks> for ParsedAccountLinks {
+    fn from(value: nym_vpn_lib_types::ParsedAccountLinks) -> Self {
+        Self {
+            sign_up: value.sign_up,
+            sign_in: value.sign_in,
+            account: value.account,
         }
     }
 }

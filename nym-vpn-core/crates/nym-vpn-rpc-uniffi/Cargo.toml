@@ -24,4 +24,3 @@ uniffi = { workspace = true, features = ["tokio"] }
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types-uniffi.workspace = true
 nym-vpn-lib-types.workspace = true
-nym-gateway-directory.workspace = true

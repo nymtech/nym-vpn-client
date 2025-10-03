@@ -23,9 +23,6 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true
 
 nym-bin-common.workspace = true
-nym-gateway-directory = { workspace = true }
-nym-http-api-client.workspace = true
-nym-vpn-api-client.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpn-lib-types = { workspace = true }
 

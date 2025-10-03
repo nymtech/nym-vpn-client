@@ -68,8 +68,8 @@ pub(super) async fn start_state_machine(
         TunnelType::Mixnet
     };
 
-    let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
-    let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
+    let entry_point = nym_vpn_lib_types::EntryPoint::from(config.entry_gateway);
+    let exit_point = nym_vpn_lib_types::ExitPoint::from(config.exit_router);
 
     // Bootstrap the state machines gateway client with the static gateway client, so that we can
     // use the existing cached directory data.

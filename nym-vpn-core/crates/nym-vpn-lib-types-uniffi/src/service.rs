@@ -34,8 +34,8 @@ pub struct VpnServiceConfig {
 impl From<nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfig {
     fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         Self {
-            entry_point: value.entry_point.into(),
-            exit_point: value.exit_point.into(),
+            entry_point: EntryPoint::from(value.entry_point),
+            exit_point: ExitPoint::from(value.exit_point),
             dns: value.dns.map(|ip| ip.to_string()),
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
@@ -92,7 +92,7 @@ impl From<nym_vpn_lib_types::VpnServiceInfo> for VpnServiceInfo {
             triple: info.triple,
             platform: info.platform,
             git_commit: info.git_commit,
-            nym_network: NymNetworkDetails::from(info.nym_network.network),
+            nym_network: NymNetworkDetails::from(info.nym_network),
             nym_vpn_network: NymVpnNetwork::from(info.nym_vpn_network),
         }
     }

@@ -5459,6 +5459,7 @@ dependencies = [
  "nym-statistics",
  "nym-validator-client",
  "nym-vpn-account-controller",
+ "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
@@ -5495,7 +5496,9 @@ version = "1.17.0-beta"
 dependencies = [
  "nym-bandwidth-controller",
  "nym-connection-monitor",
+ "nym-crypto",
  "nym-gateway-directory",
+ "nym-network-defaults",
  "nym-registration-common",
  "nym-sdk",
  "nym-statistics-common",
@@ -5504,7 +5507,6 @@ dependencies = [
  "nym-vpn-network-config",
  "serde",
  "si-scale",
- "strum_macros 0.26.4",
  "thiserror 2.0.17",
  "time",
  "zeroize",
@@ -5597,14 +5599,8 @@ dependencies = [
 name = "nym-vpn-proto"
 version = "1.17.0-beta"
 dependencies = [
- "nym-config",
- "nym-gateway-directory",
- "nym-http-api-client",
  "nym-ipc",
- "nym-sdk",
- "nym-vpn-api-client",
  "nym-vpn-lib-types",
- "nym-vpn-network-config",
  "prost 0.14.1",
  "prost-types",
  "thiserror 2.0.17",
@@ -5614,7 +5610,6 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tower",
- "url",
 ]
 
 [[package]]
@@ -5622,7 +5617,6 @@ name = "nym-vpn-rpc-uniffi"
 version = "1.17.0-beta"
 dependencies = [
  "futures",
- "nym-gateway-directory",
  "nym-vpn-lib-types",
  "nym-vpn-lib-types-uniffi",
  "nym-vpn-proto",
@@ -5661,9 +5655,6 @@ dependencies = [
  "celes",
  "clap",
  "nym-bin-common",
- "nym-gateway-directory",
- "nym-http-api-client",
- "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "serde_json",
@@ -5686,6 +5677,7 @@ dependencies = [
  "log-panics",
  "nym-bin-common",
  "nym-common",
+ "nym-gateway-directory",
  "nym-http-api-client",
  "nym-ipc",
  "nym-offline-monitor",

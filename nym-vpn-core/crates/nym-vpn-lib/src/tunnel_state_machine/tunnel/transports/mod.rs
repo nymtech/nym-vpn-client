@@ -17,7 +17,7 @@ use tracing::*;
 
 mod certs;
 use certs::*;
-pub use nym_vpn_lib_types::{BridgeInformation, BridgeParameters, QuicClientOptions};
+pub use nym_vpn_api_client::response::{BridgeInformation, BridgeParameters, QuicClientOptions};
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
 const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);

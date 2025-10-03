@@ -177,7 +177,7 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ErrorStateReason {
     /// Failure to set firewall policy.
     SetFirewallPolicy,
@@ -246,6 +246,39 @@ pub enum ErrorStateReason {
 
     /// Program errors that must not happen.
     Internal(String),
+}
+
+impl std::fmt::Display for ErrorStateReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SetFirewallPolicy => f.write_str("SetFirewallPolicy"),
+            Self::SetRouting => f.write_str("SetRouting"),
+            Self::SetDns => f.write_str("SetDns"),
+            Self::TunDevice => f.write_str("TunDevice"),
+            Self::TunnelProvider => f.write_str("TunnelProvider"),
+            Self::Ipv6Unavailable => f.write_str("Ipv6Unavailable"),
+            Self::SameEntryAndExitGateway => f.write_str("SameEntryAndExitGateway"),
+            Self::PerformantEntryGatewayUnavailable => {
+                f.write_str("PerformantEntryGatewayUnavailable")
+            }
+            Self::PerformantExitGatewayUnavailable => {
+                f.write_str("PerformantExitGatewayUnavailable")
+            }
+            Self::InvalidEntryGatewayIdentity => f.write_str("InvalidEntryGatewayIdentity"),
+            Self::InvalidExitGatewayIdentity => f.write_str("InvalidExitGatewayIdentity"),
+            Self::InvalidEntryGatewayCountry => f.write_str("InvalidEntryGatewayCountry"),
+            Self::InvalidExitGatewayCountry => f.write_str("InvalidExitGatewayCountry"),
+            Self::CredentialWastedOnEntryGateway => f.write_str("CredentialWastedOnEntryGateway"),
+            Self::CredentialWastedOnExitGateway => f.write_str("CredentialWastedOnExitGateway"),
+            Self::BandwidthExceeded => f.write_str("BandwidthExceeded"),
+            Self::InactiveAccount => f.write_str("InactiveAccount"),
+            Self::InactiveSubscription => f.write_str("InactiveSubscription"),
+            Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
+            Self::DeviceTimeOutOfSync => f.write_str("DeviceTimeOutOfSync"),
+            Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),
+            Self::Internal(str) => write!(f, "Internal({str})"),
+        }
+    }
 }
 
 impl ErrorStateReason {
