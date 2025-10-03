@@ -5459,6 +5459,7 @@ dependencies = [
  "nym-statistics",
  "nym-validator-client",
  "nym-vpn-account-controller",
+ "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
