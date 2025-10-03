@@ -102,7 +102,7 @@ function Settings() {
           },
           showAntiCensorship && {
             title: t('anti-censorship.title', { ns: 'settings' }),
-            leadingIcon: 'dns',
+            leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
