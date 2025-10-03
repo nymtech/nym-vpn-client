@@ -51,6 +51,7 @@ type NetstackRequestGo struct {
 	PrivateKey         string   `json:"private_key"`
 	PublicKey          string   `json:"public_key"`
 	Endpoint           string   `json:"endpoint"`
+	MetadataEndpoint   string   `json:"metadata_endpoint"`
 	Dns                string   `json:"dns"`
 	IpVersion          uint8    `json:"ip_version"`
 	PingHosts          []string `json:"ping_hosts"`
@@ -59,11 +60,13 @@ type NetstackRequestGo struct {
 	SendTimeoutSec     uint64   `json:"send_timeout_sec"`
 	RecvTimeoutSec     uint64   `json:"recv_timeout_sec"`
 	DownloadTimeoutSec uint64   `json:"download_timeout_sec"`
+	MetadataTimeoutSec uint64   `json:"metadata_timeout_sec"`
 	AwgArgs            string   `json:"awg_args"`
 }
 
 type NetstackResponse struct {
 	CanHandshake        bool   `json:"can_handshake"`
+	CanQueryMetadata    bool   `json:"can_query_metadata"`
 	SentIps             uint16 `json:"sent_ips"`
 	ReceivedIps         uint16 `json:"received_ips"`
 	SentHosts           uint16 `json:"sent_hosts"`
@@ -157,13 +160,15 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	ipc.WriteString(req.PublicKey)
 	ipc.WriteString("\nendpoint=")
 	ipc.WriteString(req.Endpoint)
+	ipc.WriteString("\nmetadata_endpoint=")
+	ipc.WriteString(req.MetadataEndpoint)
 	if req.IpVersion == 4 {
 		ipc.WriteString("\nallowed_ip=0.0.0.0/0\n")
 	} else {
 		ipc.WriteString("\nallowed_ip=::/0\n")
 	}
 
-	response := NetstackResponse{false, 0, 0, 0, 0, false, "", 0, ""}
+	response := NetstackResponse{false, false, 0, 0, 0, 0, false, "", 0, ""}
 
 	dev.IpcSet(ipc.String())
 
@@ -179,6 +184,16 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	}
 
 	response.CanHandshake = true
+
+	version, duration, err := queryMetadata(req.MetadataEndpoint, req.MetadataTimeoutSec, tnet)
+	if err != nil {
+		log.Printf("Failed to query metadata URLs: %v\n", err)
+		response.CanQueryMetadata = false
+	} else {
+		log.Printf("Queried metadata endpoint with version: %v\n", version)
+		log.Printf("Query duration: %v\n", duration)
+		response.CanQueryMetadata = true
+	}
 
 	for _, host := range req.PingHosts {
 		consecutiveFailures := 0
@@ -459,6 +474,42 @@ func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, t
 	duration := time.Since(start) // Calculate duration
 
 	return buf.Bytes(), duration, nil
+}
+
+func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (uint8, time.Duration, error) {
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return tnet.Dial(network, addr)
+		},
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Second * time.Duration(timeoutSecs),
+	}
+
+	start := time.Now() // Start timing
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, 0, fmt.Errorf("failed to query metadata endpoint: %s", resp.Status)
+	}
+
+	var buf bytes.Buffer
+	_, err = io.Copy(&buf, resp.Body)
+	version := buf.Next(1)[0]
+	if err != nil {
+		return 0, 0, err
+	}
+
+	duration := time.Since(start) // Calculate duration
+
+	return version, duration, nil
 }
 
 func main() {}

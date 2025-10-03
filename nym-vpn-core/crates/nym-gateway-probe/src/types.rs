@@ -20,6 +20,7 @@ pub struct ProbeOutcome {
 pub struct WgProbeResults {
     pub can_register: bool,
 
+    pub can_query_metadata_v4: bool,
     pub can_handshake_v4: bool,
     pub can_resolve_dns_v4: bool,
     pub ping_hosts_performance_v4: f32,

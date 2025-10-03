@@ -20,7 +20,7 @@ use nym_authenticator_requests::{
 };
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
-    NymNetworkDetails,
+    NymNetworkDetails, WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4,
     mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
 };
 use nym_connection_monitor::self_ping_and_wait;
@@ -72,6 +72,9 @@ pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 pub struct NetstackArgs {
     #[arg(long, default_value_t = 180)]
     netstack_download_timeout_sec: u64,
+
+    #[arg(long, default_value_t = 30)]
+    metadata_timeout_sec: u64,
 
     #[arg(long, default_value = "1.1.1.1")]
     netstack_v4_dns: String,
@@ -563,6 +566,7 @@ async fn wg_probe(
             &private_key_hex,
             &public_key_hex,
             &wg_endpoint,
+            &format!("http://{WG_TUN_DEVICE_IP_ADDRESS_V4}:{WG_METADATA_PORT}"),
             netstack_args.netstack_download_timeout_sec,
             &awg_args,
             netstack_args,
@@ -577,6 +581,7 @@ async fn wg_probe(
                     "Wireguard probe response for IPv4: {:#?}",
                     netstack_response_v4
                 );
+                wg_outcome.can_query_metadata_v4 = netstack_response_v4.can_query_metadata;
                 wg_outcome.can_handshake_v4 = netstack_response_v4.can_handshake;
                 wg_outcome.can_resolve_dns_v4 = netstack_response_v4.can_resolve_dns;
                 wg_outcome.ping_hosts_performance_v4 = netstack_response_v4.received_hosts as f32
@@ -898,6 +903,7 @@ mod tests {
         // Create a default instance to test the values
         let args = NetstackArgs {
             netstack_download_timeout_sec: 180,
+            metadata_timeout_sec: 30,
             netstack_v4_dns: "1.1.1.1".to_string(),
             netstack_v6_dns: "2606:4700:4700::1111".to_string(),
             netstack_num_ping: 5,
@@ -942,6 +948,7 @@ mod tests {
         // Test that we can create instances with custom values
         let args = NetstackArgs {
             netstack_download_timeout_sec: 300,
+            metadata_timeout_sec: 30,
             netstack_v4_dns: "8.8.8.8".to_string(),
             netstack_v6_dns: "2001:4860:4860::8888".to_string(),
             netstack_num_ping: 10,
@@ -970,6 +977,7 @@ mod tests {
         // Test that multiple hosts and IPs can be stored
         let args = NetstackArgs {
             netstack_download_timeout_sec: 180,
+            metadata_timeout_sec: 30,
             netstack_v4_dns: "1.1.1.1".to_string(),
             netstack_v6_dns: "2606:4700:4700::1111".to_string(),
             netstack_num_ping: 5,
@@ -1004,6 +1012,7 @@ mod tests {
         // Test edge cases like zero values and empty vectors
         let args = NetstackArgs {
             netstack_download_timeout_sec: 0,
+            metadata_timeout_sec: 30,
             netstack_v4_dns: "1.1.1.1".to_string(),
             netstack_v6_dns: "2606:4700:4700::1111".to_string(),
             netstack_num_ping: 0,
@@ -1030,6 +1039,7 @@ mod tests {
         // Test that our domain choices are reasonable
         let args = NetstackArgs {
             netstack_download_timeout_sec: 180,
+            metadata_timeout_sec: 30,
             netstack_v4_dns: "1.1.1.1".to_string(),
             netstack_v6_dns: "2606:4700:4700::1111".to_string(),
             netstack_num_ping: 5,
