@@ -1,6 +1,5 @@
 {
   "network_name": "mainnet",
-  "nyxd_url": "https://rpc.nymtech.net/",
   "nym_api_url": "https://validator.nymtech.net/api/",
   "nym_api_urls": [
     {
@@ -8,32 +7,22 @@
     },
     {
       "url": "https://nym-frontdoor.vercel.app/api/",
-      "fronts": [
-        "vercel.app",
-        "vercel.com"
-      ]
+      "fronts": ["vercel.app", "vercel.com"]
     },
     {
       "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
-      "fronts": [
-        "yelp.global.ssl.fastly.net"
-      ]
+      "fronts": ["yelp.global.ssl.fastly.net"]
     }
   ],
   "nym_vpn_api_url": "https://nymvpn.com/api/",
   "nym_vpn_api_urls": [
     {
       "url": "https://nymvpn.com/api/",
-      "fronts": [
-        "vercel.app",
-        "vercel.com"
-      ]
+      "fronts": ["vercel.app", "vercel.com"]
     },
     {
       "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api",
-      "fronts": [
-        "yelp.global.ssl.fastly.net"
-      ]
+      "fronts": ["yelp.global.ssl.fastly.net"]
     }
   ],
   "account_management": {

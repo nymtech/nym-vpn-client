@@ -41,7 +41,6 @@ static DEFAULT_VPN_API_URL: LazyLock<Url> =
 pub struct Discovery {
     // Base network setup
     pub(super) network_name: String,
-    pub(super) nyxd_url: Url,
     pub(super) nym_api_url: Url,
     pub(super) nym_api_urls: Vec<ApiUrl>,
     pub(super) nym_vpn_api_url: Url,
@@ -222,7 +221,6 @@ impl Discovery {
 }
 
 #[derive(Debug, thiserror::Error)]
-#[allow(clippy::enum_variant_names)]
 pub enum DiscoveryFromNymWellknownDiscoveryError {
     #[error("Failed to parse nym api url: {value}")]
     ParseNymApiUrl {
@@ -232,12 +230,6 @@ pub enum DiscoveryFromNymWellknownDiscoveryError {
 
     #[error("Failed to parse nym vpn api url: {value}")]
     ParseNymVpnApiUrl {
-        value: String,
-        source: url::ParseError,
-    },
-
-    #[error("Failed to parse nyxd url: {value}")]
-    ParseNyxdUrl {
         value: String,
         source: url::ParseError,
     },
@@ -275,13 +267,6 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             }
         })?;
 
-        let nyxd_url = discovery.nyxd_url.parse().map_err(|source| {
-            DiscoveryFromNymWellknownDiscoveryError::ParseNyxdUrl {
-                value: discovery.nyxd_url,
-                source,
-            }
-        })?;
-
         let nym_api_urls = discovery
             .nym_api_urls
             .into_iter()
@@ -308,7 +293,6 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
 
         Ok(Self {
             network_name: discovery.network_name,
-            nyxd_url,
             nym_api_url,
             nym_api_urls,
             nym_vpn_api_url,
@@ -456,7 +440,6 @@ mod tests {
 
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
-            nyxd_url: "https://rpc.foo.ch/".parse().unwrap(),
             nym_api_url: "https://foo.ch/api/".parse().unwrap(),
             nym_api_urls: vec![ApiUrl {
                 url: "https://foo.ch/api/".parse().unwrap(),
