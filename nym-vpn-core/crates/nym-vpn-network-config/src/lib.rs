@@ -202,6 +202,10 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Netw
         discovery.system_messages.clone().into_current_messages()
     );
 
+    network_from_discovery(config_path, discovery).await
+}
+
+pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) -> Result<Network> {
     let feature_flags = discovery.feature_flags.clone();
     if let Some(ref feature_flags) = feature_flags {
         tracing::debug!("Feature flags: {}", feature_flags);
@@ -378,7 +382,10 @@ pub enum Error {
     InconsistentNetwork,
 
     #[error("failed to refresh discovery file")]
-    FailedToRefreshDiscoveryFile,
+    RefreshDiscoveryFile,
+
+    #[error("failed to parse refreshed discovery file")]
+    ParseDiscoveryFile,
 }
 
 impl Error {

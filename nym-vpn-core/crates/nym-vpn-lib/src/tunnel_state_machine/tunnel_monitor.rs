@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse};
-
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
     RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
@@ -603,14 +601,14 @@ impl TunnelMonitor {
             }
         }
 
-        let mixnet_monitoring_token = tunnel_handle
-            .mixnet_client_token()
-            .map(|token| token.cancelled_owned().fuse())
-            .unwrap_or(Fuse::terminated());
-
         loop {
             tokio::select! {
-                _  = mixnet_monitoring_token => {
+                _  = async {
+                    match tunnel_handle.mixnet_client_token() {
+                        Some(token) => token.cancelled().await,
+                        None => std::future::pending().await,
+                    }
+                } => {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
                 }
@@ -624,11 +622,11 @@ impl TunnelMonitor {
                     }
                 } => {
                     match ret {
-                        Some(Ok(discovery)) => {
+                        Some(Ok(_discovery)) => {
                             tracing::info!("Refreshed discovery file");
-                            if let Err(err) = self.custom_topology_provider.update_discovery(discovery).await {
-                                trace_err_chain!(err, "Failed to update discovery in custom topology provider");
-                            }
+                            //if let Err(err) = self.custom_topology_provider.update_discovery(discovery).await {
+                            //    trace_err_chain!(err, "Failed to update discovery in custom topology provider");
+                            //}
                         }
                         Some(Err(err)) => {
                             trace_err_chain!(err, "Failed to refresh discovery file");
@@ -665,33 +663,6 @@ impl TunnelMonitor {
         tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
-    }
-
-    async fn recv_error(
-        &self,
-        mixnet_cancel_token: Option<CancellationToken>,
-        background_file_rx: Fuse<impl Future<Output = Option<()>>>,
-    ) {
-        // Watch on the mixnet client of nothing if it doesn't exist
-        let mixnet_monitoring_token = mixnet_cancel_token
-            .map(|token| token.cancelled_owned().fuse())
-            .unwrap_or(Fuse::terminated());
-        tokio::select! {
-            _  = mixnet_monitoring_token => {
-                tracing::error!("MixnetClient exited unexpectedly");
-            }
-            _ = self.shutdown_token.cancelled() => {}
-            ret = background_file_rx => {
-                if ret.is_some() {
-                    tracing::error!("Background task errored out");
-                } else {
-                    tracing::debug!("Background task finished");
-                }
-            }
-        }
-
-        // Trigger cancellation since many other tasks depend on shutdown token
-        self.shutdown_token.cancel();
     }
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {
