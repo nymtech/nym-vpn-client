@@ -305,9 +305,8 @@ message GatewayResponse {
   Location location = 2;
   Probe last_probe = 3;
   optional uint32 mixnet_performance = 10;
-  optional Performance wg_performance = 4;
-  optional Score mixnet_score = 5;
   optional BridgeInformation bridge_params = 11;
+  optional Performance performance = 4;
   string moniker = 6;
   repeated string exit_ipv4s = 7;
   repeated string exit_ipv6s = 8;
@@ -334,6 +333,7 @@ message QuicClientOptions {
 message Performance {
   string last_updated_utc = 1;
   Score score = 2;
+  Score mixnet_score = 5;
   Score load = 3;
   float uptime_percentage_last_24_hours = 4;
 }

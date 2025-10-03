@@ -85,8 +85,6 @@ async fn make_gateway_config() -> nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url,
         min_gateway_performance: None,
-        mix_score_thresholds,
-        wg_score_thresholds,
     }
 }
 

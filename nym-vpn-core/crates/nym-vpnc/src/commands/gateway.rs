@@ -370,11 +370,18 @@ impl GatewayModel {
                 .unwrap_or("N/A".to_owned()),
             performance: match gw_type {
                 GatewayType::MixnetEntry | GatewayType::MixnetExit => gateway
-                    .mixnet_performance
-                    .map(|p| format!("{p}%"))
+                    .performance
+                    .map(|p| {
+                        format!(
+                            "{:?} (load: {:?}, uptime: {:?}%)",
+                            p.mixnet_score,
+                            p.load,
+                            (p.uptime_percentage_last_24_hours * 100f32) as u8,
+                        )
+                    })
                     .unwrap_or("N/A".to_owned()),
                 GatewayType::Wg => gateway
-                    .wg_performance
+                    .performance
                     .map(|p| {
                         format!(
                             "{:?} (load: {:?}, uptime: {:?}%)",

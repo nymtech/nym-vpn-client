@@ -7,7 +7,7 @@ use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters},
-    types::{Percent, ScoreThresholds},
+    types::Percent,
 };
 use rand::seq::IteratorRandom;
 use std::{
@@ -17,18 +17,13 @@ use std::{
 };
 use tracing::error;
 
-use crate::{
-    AuthAddress, Country, Error, IpPacketRouterAddress,
-    entries::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score},
-    error::Result,
-    helpers,
-};
+use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
 
 pub type NymNode = Gateway;
 
 pub const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Gateway {
     pub identity: NodeIdentity,
     pub moniker: String,
@@ -41,9 +36,9 @@ pub struct Gateway {
     pub host: Option<String>,
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
+    // todo: remove since it's unused?
     pub mixnet_performance: Option<Percent>,
-    pub mixnet_score: Option<Score>,
-    pub wg_performance: Option<Performance>,
+    pub performance: Option<Performance>,
     pub version: Option<String>,
 }
 
@@ -115,8 +110,7 @@ impl Gateway {
             clients_ws_port,
             clients_wss_port,
             mixnet_performance: None,
-            mixnet_score: None,
-            wg_performance: None,
+            performance: None,
             version,
         })
     }
@@ -191,19 +185,14 @@ impl Gateway {
         }
     }
 
-    pub fn update_to_new_thresholds(&mut self, mix_thresholds: Option<ScoreThresholds>) {
-        if let (Some(mix_thresholds), Some(score)) = (mix_thresholds, self.mixnet_score.as_mut()) {
-            score.update_to_new_thresholds(mix_thresholds);
-        }
-    }
-
     pub fn meets_score(&self, gw_type: Option<GatewayType>, min_score: ScoreValue) -> bool {
         match gw_type {
             Some(GatewayType::MixnetEntry) | Some(GatewayType::MixnetExit) => self
-                .mixnet_performance
-                .is_some_and(|p| p.round_to_integer() >= min_score.threshold()),
+                .performance
+                .as_ref()
+                .is_some_and(|p| p.mixnet_score >= min_score),
             Some(GatewayType::Wg) => self
-                .wg_performance
+                .performance
                 .as_ref()
                 .is_some_and(|p| p.score >= min_score),
             None => false,
@@ -284,15 +273,6 @@ impl ScoreValue {
             ScoreValue::High => 3,
         }
     }
-
-    pub fn threshold(&self) -> u8 {
-        match self {
-            ScoreValue::Offline => 0,
-            ScoreValue::Low => LOW_SCORE_THRESHOLD,
-            ScoreValue::Medium => MEDIUM_SCORE_THRESHOLD,
-            ScoreValue::High => HIGH_SCORE_THRESHOLD,
-        }
-    }
 }
 
 impl PartialOrd for ScoreValue {
@@ -317,20 +297,22 @@ impl FromStr for ScoreValue {
 
 impl Display for ScoreValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
+        f.write_str(match self {
             ScoreValue::Offline => "Offline",
             ScoreValue::Low => "Low",
             ScoreValue::Medium => "Medium",
             ScoreValue::High => "High",
-        };
-        write!(f, "{s}")
+        })
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Performance {
     pub last_updated_utc: String,
+    /// WireGuard performance score
     pub score: ScoreValue,
+    /// Mixnet performance score
+    pub mixnet_score: ScoreValue,
     pub load: ScoreValue,
     pub uptime_percentage_last_24_hours: f32,
 }
@@ -420,6 +402,7 @@ impl From<nym_vpn_api_client::response::DVpnGatewayPerformance> for Performance 
         Performance {
             last_updated_utc: value.last_updated_utc,
             score: value.score.into(),
+            mixnet_score: value.mixnet_score.into(),
             load: value.load.into(),
             uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
@@ -431,21 +414,6 @@ impl From<nym_vpn_api_client::response::Probe> for Probe {
         Probe {
             last_updated_utc: probe.last_updated_utc,
             outcome: ProbeOutcome::from(probe.outcome),
-        }
-    }
-}
-
-impl From<Percent> for Score {
-    fn from(percent: Percent) -> Self {
-        let rounded_percent = percent.round_to_integer();
-        if rounded_percent >= HIGH_SCORE_THRESHOLD {
-            Score::High(rounded_percent)
-        } else if rounded_percent >= MEDIUM_SCORE_THRESHOLD {
-            Score::Medium(rounded_percent)
-        } else if rounded_percent > LOW_SCORE_THRESHOLD {
-            Score::Low(rounded_percent)
-        } else {
-            Score::None
         }
     }
 }
@@ -534,8 +502,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
-            mixnet_score: Some(Score::from(gateway.performance)),
-            wg_performance: gateway.performance_v2.map(Performance::from),
+            performance: gateway.performance_v2.map(Performance::from),
             version: gateway.build_information.map(|info| info.build_version),
         })
     }
@@ -768,10 +735,10 @@ mod tests {
                     clients_ws_port: None,
                     clients_wss_port: None,
                     mixnet_performance: Some(Percent::from_percentage_value(75).unwrap()),
-                    mixnet_score: None,
-                    wg_performance: Some(Performance {
+                    performance: Some(Performance {
                         last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
                         score: ScoreValue::High,
+                        mixnet_score: ScoreValue::High,
                         load: ScoreValue::Low,
                         uptime_percentage_last_24_hours: 0.75,
                     }),
