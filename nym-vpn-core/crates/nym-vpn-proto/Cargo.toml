@@ -59,4 +59,4 @@ rpc_client = [
 ]
 
 [package.metadata.cargo-machete]
-ignored = ["tonic-build"]
+ignored = ["tonic-prost"]
