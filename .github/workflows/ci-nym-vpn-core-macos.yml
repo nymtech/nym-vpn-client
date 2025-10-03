@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: true
+          cache: false
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
