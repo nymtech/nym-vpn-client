@@ -180,11 +180,11 @@ async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
         config.statistics_enabled,
     )
     .await?;
-    account::init_account_controller(
+    Box::pin(account::init_account_controller(
         PathBuf::from(config.data_dir),
         config.credential_mode,
         network,
-    )
+    ))
     .await?;
 
     let connectivity_handle = offline_monitor::get_connectivity_handle().await?;

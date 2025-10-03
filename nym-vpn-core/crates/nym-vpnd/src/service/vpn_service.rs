@@ -239,13 +239,13 @@ impl NymVpnService {
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async move {
-            let Ok(service) = NymVpnService::new(
+            let Ok(service) = Box::pin(NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
                 log_file_remover_handle,
                 parameters,
                 shutdown_token,
-            )
+            ))
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to initialize VPN service");
