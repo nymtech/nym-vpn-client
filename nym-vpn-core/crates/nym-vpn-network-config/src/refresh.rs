@@ -7,39 +7,35 @@ use nym_common::trace_err_chain;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks};
+use crate::{
+    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
+    network_from_discovery,
+};
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
 struct FileRefresher {
     config_path: PathBuf,
-    network: Network,
-    background_error_tx: tokio::sync::mpsc::Sender<()>,
+    discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Network>>,
     cancel_token: CancellationToken,
 }
 
 impl FileRefresher {
     fn new(
         config_path: PathBuf,
-        network: Network,
-        background_error_tx: tokio::sync::mpsc::Sender<()>,
+        discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Network>>,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
             config_path,
-            network,
-            background_error_tx,
+            discovery_refresher_tx,
             cancel_token,
         }
     }
 
-    async fn refresh_discovery_file(&self) -> Result<Option<Discovery>> {
-        if Discovery::path_is_stale(
-            self.config_path.as_path(),
-            &self.network.nym_network.network.network_name,
-        )? {
-            let discovery =
-                Discovery::fetch(&self.network.nym_network.network.network_name).await?;
+    async fn refresh_discovery_file(&self, network_name: &str) -> Result<Option<Discovery>> {
+        if Discovery::path_is_stale(self.config_path.as_path(), network_name)? {
+            let discovery = Discovery::fetch(network_name).await?;
             discovery.write_to_file(self.config_path.as_path())?;
             Ok(Some(discovery))
         } else {
@@ -47,11 +43,12 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_nym_network_file(&self, discovery: Discovery) -> Result<()> {
-        if NymNetwork::path_is_stale(
-            self.config_path.as_path(),
-            &self.network.nym_network.network.network_name,
-        )? {
+    async fn refresh_nym_network_file(
+        &self,
+        network_name: &str,
+        discovery: &Discovery,
+    ) -> Result<()> {
+        if NymNetwork::path_is_stale(self.config_path.as_path(), network_name)? {
             discovery.update_nym_network_file(&self.config_path).await?;
         }
 
@@ -62,7 +59,7 @@ impl FileRefresher {
         RegisteredNetworks::try_update_file(&self.config_path).await
     }
 
-    async fn run(self) {
+    async fn run(self, mut network: Network) {
         let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
 
@@ -73,13 +70,15 @@ impl FileRefresher {
                 loop {
                     interval.tick().await;
                     if !checked_consistency {
-                        match self.network.check_consistency().await {
+                        match network.check_consistency().await {
                             // This is probably because of network unavailability, so consistency can't be checked yet
                             Err(e) => tracing::warn!("Could not check consistency: {e:?}"),
                             Ok(false) => {
                                 tracing::error!("Inconsistent network");
-                                self.background_error_tx.send(()).await.ok();
-                                return;
+                                self.discovery_refresher_tx
+                                    .send(Err(Error::InconsistentNetwork))
+                                    .await
+                                    .ok();
                             }
                             Ok(true) => {
                                 checked_consistency = true;
@@ -91,13 +90,43 @@ impl FileRefresher {
                         trace_err_chain!(err, "Failed to refresh envs file");
                     }
 
-                    match self.refresh_discovery_file().await {
+                    match self
+                        .refresh_discovery_file(&network.nym_network.network.network_name)
+                        .await
+                    {
                         Err(err) => {
                             trace_err_chain!(err, "Failed to refresh discovery file");
+                            self.discovery_refresher_tx
+                                .send(Err(Error::RefreshDiscoveryFile))
+                                .await
+                                .ok();
                         }
                         Ok(Some(discovery)) => {
-                            if let Err(err) = self.refresh_nym_network_file(discovery).await {
+                            if let Err(err) = self
+                                .refresh_nym_network_file(
+                                    &network.nym_network.network.network_name,
+                                    &discovery,
+                                )
+                                .await
+                            {
                                 trace_err_chain!(err, "Failed to refresh nym network file");
+                            }
+
+                            match network_from_discovery(&self.config_path, discovery).await {
+                                Err(err) => {
+                                    trace_err_chain!(
+                                        err,
+                                        "Failed to parse refreshed discovery file"
+                                    );
+                                    self.discovery_refresher_tx
+                                        .send(Err(Error::ParseDiscoveryFile))
+                                        .await
+                                        .ok();
+                                }
+                                Ok(new_network) => {
+                                    network = new_network.clone();
+                                    self.discovery_refresher_tx.send(Ok(new_network)).await.ok();
+                                }
                             }
                         }
                         _ => {}
@@ -112,9 +141,9 @@ impl FileRefresher {
 pub fn start_background_file_refresh(
     config_path: PathBuf,
     network: Network,
-    background_error_tx: tokio::sync::mpsc::Sender<()>,
+    discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Network>>,
     cancel_token: CancellationToken,
 ) -> JoinHandle<()> {
-    let refresher = FileRefresher::new(config_path, network, background_error_tx, cancel_token);
-    tokio::spawn(refresher.run())
+    let refresher = FileRefresher::new(config_path, discovery_refresher_tx, cancel_token);
+    tokio::spawn(refresher.run(network))
 }
