@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse};
+use futures::{FutureExt, future::Fuse, pin_mut};
 
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
@@ -10,7 +10,7 @@ use nym_registration_client::{
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::start_background_file_refresh;
+use nym_vpn_network_config::{Network, start_background_file_refresh};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -21,7 +21,6 @@ use std::os::fd::{AsRawFd, IntoRawFd};
 use std::os::fd::{FromRawFd, OwnedFd};
 use std::{
     net::{IpAddr, SocketAddr},
-    path::PathBuf,
     time::Duration,
 };
 #[cfg(unix)]
@@ -170,6 +169,12 @@ pub enum TunnelMonitorEvent {
         error_state_reason: Option<ErrorStateReason>,
         /// Back channel to acknowledge that the event has been processed
         reply_tx: tokio::sync::oneshot::Sender<()>,
+    },
+
+    /// A new network environment was discovered
+    NewNetworkEnv {
+        /// The new network environment
+        network: Box<Network>,
     },
 }
 
@@ -546,27 +551,20 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
-        let (discovery_refresher_handle, mut background_error_rx) = self
-            .tunnel_parameters
-            .nym_config
-            .config_path
-            .as_ref()
-            .and_then(|config_path: &PathBuf| config_path.parent())
-            .map(|config_dir| {
-                let (background_error_tx, background_error_rx) = tokio::sync::mpsc::channel(1);
-                let discovery_refresher_handle = start_background_file_refresh(
-                    config_dir.to_path_buf(),
-                    self.tunnel_parameters.nym_config.network_env.clone(),
-                    background_error_tx,
-                    self.shutdown_token.child_token(),
-                );
-                (discovery_refresher_handle, background_error_rx)
-            })
-            .unzip();
-        let fused_background_error = background_error_rx
-            .as_mut()
-            .map(|r| r.recv().fuse())
-            .unwrap_or(Fuse::terminated());
+        let (discovery_refresher_tx, mut discovery_refresher_rx) = tokio::sync::mpsc::channel(1);
+        let discovery_refresher_handle = if let Some(config_path) =
+            self.tunnel_parameters.nym_config.config_path.as_ref()
+            && let Some(config_dir) = config_path.parent()
+        {
+            Some(start_background_file_refresh(
+                config_dir.to_path_buf(),
+                self.tunnel_parameters.nym_config.network_env.clone(),
+                discovery_refresher_tx.clone(),
+                self.shutdown_token.child_token(),
+            ))
+        } else {
+            None
+        };
 
         let connection_data = ConnectionData {
             entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
@@ -606,10 +604,43 @@ impl TunnelMonitor {
             }
         }
 
-        self.recv_error(tunnel_handle.mixnet_client_token(), fused_background_error)
-            .await;
+        let mixnet_monitoring_token = tunnel_handle
+            .mixnet_client_token()
+            .map(|token| token.cancelled_owned().fuse())
+            .unwrap_or(Fuse::terminated());
+        pin_mut!(mixnet_monitoring_token);
 
-        tracing::info!("Wait for tunnel to exit");
+        loop {
+            tokio::select! {
+                _  = &mut mixnet_monitoring_token => {
+                    tracing::error!("MixnetClient exited unexpectedly");
+                    break;
+                }
+                _ = self.shutdown_token.cancelled() => {
+                    break;
+                }
+                ret = discovery_refresher_rx.recv() => {
+                    match ret {
+                        Some(Ok(network)) => {
+                            tracing::info!("Refreshed discovery file");
+                            self.send_event(TunnelMonitorEvent::NewNetworkEnv { network: Box::new(network) });
+                        }
+                        Some(Err(err)) => {
+                            trace_err_chain!(err, "Failed to refresh discovery file");
+                        }
+                        None => {
+                            // channel closed
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Trigger cancellation since many other tasks depend on shutdown token
+        self.shutdown_token.cancel();
+
+        tracing::info!("Waiting for tunnel to exit");
         tunnel_handle.cancel();
 
         let tun_devices = tunnel_handle
@@ -629,33 +660,6 @@ impl TunnelMonitor {
         tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
-    }
-
-    async fn recv_error(
-        &self,
-        mixnet_cancel_token: Option<CancellationToken>,
-        background_error_rx: Fuse<impl Future<Output = Option<()>>>,
-    ) {
-        // Watch on the mixnet client of nothing if it doesn't exist
-        let mixnet_monitoring_token = mixnet_cancel_token
-            .map(|token| token.cancelled_owned().fuse())
-            .unwrap_or(Fuse::terminated());
-        tokio::select! {
-            _  = mixnet_monitoring_token => {
-                tracing::error!("MixnetClient exited unexpectedly");
-            }
-            _ = self.shutdown_token.cancelled() => {}
-            ret = background_error_rx => {
-                if ret.is_some() {
-                    tracing::error!("Background task errored out");
-                } else {
-                    tracing::debug!("Background task finished");
-                }
-            }
-        }
-
-        // Trigger cancellation since many other tasks depend on shutdown token
-        self.shutdown_token.cancel();
     }
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {
