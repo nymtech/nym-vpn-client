@@ -12,7 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [arc-linux-latest, custom-windows-11]
+        os: [arc-linux-latest, windows-latest, custom-windows-11]
+        # os: [arc-linux-latest, custom-windows-11]
     runs-on: ${{ matrix.os }}
 
     steps:

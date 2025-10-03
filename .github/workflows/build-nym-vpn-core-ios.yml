@@ -20,7 +20,8 @@ jobs:
 
   build-ios:
     needs: build-wireguard-go-ios
-    runs-on: custom-macos-15
+    runs-on: macos-15
+    # runs-on: custom-macos-15
     timeout-minutes: 30
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}

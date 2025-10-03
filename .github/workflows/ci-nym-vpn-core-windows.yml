@@ -17,8 +17,15 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
-    runs-on: custom-windows-11
+    runs-on: ${{ matrix.runner }}
     needs: build-wireguard-go-windows
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-latest
+          - custom-windows-11
 
     steps:
       - name: "Cleanup working directory"
@@ -69,7 +76,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v5
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc
+          name: wireguard-go_x86_64-pc-windows-msvc-${{ matrix.runner }}
           path: build/lib/x86_64-pc-windows-msvc
 
       - name: Build Windows dependencies

@@ -13,7 +13,14 @@ env:
 
 jobs:
   build:
-    runs-on: "custom-windows-11"
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-latest
+          - custom-windows-11
 
     steps:
       - name: Checkout repo
@@ -52,7 +59,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc
+          name: wireguard-go_x86_64-pc-windows-msvc-${{ matrix.runner }}
           path: build/lib/x86_64-pc-windows-msvc
           if-no-files-found: error
           retention-days: 1

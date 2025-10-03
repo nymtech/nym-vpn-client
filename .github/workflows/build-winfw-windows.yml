@@ -10,7 +10,14 @@ env:
 
 jobs:
   build:
-    runs-on: "custom-windows-11"
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-latest
+          - custom-windows-11
 
     steps:
       - name: Cleanup working directory
@@ -47,7 +54,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: winfw
+          name: winfw-${{ matrix.runner }}
           path: |
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib

@@ -30,7 +30,14 @@ jobs:
 
   build-windows:
     needs: [build-wireguard-go-windows, build-winfw-windows]
-    runs-on: custom-windows-11
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-latest
+          - custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -75,13 +82,13 @@ jobs:
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v5
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc
+          name: wireguard-go_x86_64-pc-windows-msvc-${{ matrix.runner }}
           path: ${{ env.LIBS_PATH }}
 
       - name: Download winfw artifacts
         uses: actions/download-artifact@v5
         with:
-          name: winfw
+          name: winfw-${{ matrix.runner }}
           path: ${{ env.WINFW_PATH }}
 
       - name: Download wintun
