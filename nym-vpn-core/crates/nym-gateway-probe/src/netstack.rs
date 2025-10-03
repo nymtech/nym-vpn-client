@@ -163,6 +163,8 @@ pub struct NetstackResponse {
     pub can_resolve_dns: bool,
     pub downloaded_file: String,
     pub download_duration_sec: u64,
+    pub downloaded_file_size_bytes: u64,
+    pub download_duration_milliseconds: u64,
     pub download_error: String,
 }
 

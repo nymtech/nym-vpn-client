@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::anyhow;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
@@ -26,36 +26,39 @@ fn validate_node_identity(s: &str) -> Result<NodeIdentity, String> {
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, long_version = pretty_build_info_static(), about)]
 struct CliArgs {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
     /// Path pointing to an env file describing the network.
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     config_env_file: Option<PathBuf>,
 
     /// The specific gateway specified by ID.
-    #[arg(long, short = 'g', alias = "gateway")]
+    #[arg(long, short = 'g', alias = "gateway", global = true)]
     entry_gateway: Option<String>,
 
     /// Identity of the node to test
-    #[arg(long, short, value_parser = validate_node_identity)]
+    #[arg(long, short, value_parser = validate_node_identity, global = true)]
     node: Option<NodeIdentity>,
 
-    #[arg(long)]
+    #[arg(long, global = true)]
     min_gateway_mixnet_performance: Option<u8>,
 
-    #[arg(long)]
+    #[arg(long, global = true)]
     min_gateway_vpn_performance: Option<u8>,
 
-    #[arg(long)]
+    #[arg(long, global = true)]
     only_wireguard: bool,
 
     /// Disable logging during probe
     #[arg(long, short)]
     ignore_egress_epoch_role: bool,
 
-    #[arg(long)]
+    #[arg(long, global = true)]
     no_log: bool,
 
     /// Arguments to be appended to the wireguard config enabling amnezia-wg configuration
-    #[arg(long, short)]
+    #[arg(long, short, global = true)]
     amnezia_args: Option<String>,
 
     /// Arguments to manage netstack downloads
@@ -65,6 +68,19 @@ struct CliArgs {
     /// Arguments to manage credentials
     #[command(flatten)]
     credential_args: CredentialArgs,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Run the probe locally
+    RunLocal {
+        /// Provide a mnemonic to get credentials
+        #[arg(long)]
+        mnemonic: String,
+
+        #[arg(long, default_value = "/tmp/nym-gateway-probe/config/")]
+        config_dir: PathBuf,
+    },
 }
 
 fn setup_logging() {
@@ -113,8 +129,8 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
         wg_score_thresholds: None,
     };
 
-    let entry = if let Some(gateway) = args.entry_gateway {
-        EntryPoint::from_base58_string(&gateway)?
+    let entry = if let Some(gateway) = &args.entry_gateway {
+        EntryPoint::from_base58_string(gateway)?
     } else {
         fetch_random_gateway_with_ipr(gateway_config.clone()).await?
     };
@@ -130,12 +146,30 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }
-    Box::pin(trial.probe(
-        gateway_config,
-        args.ignore_egress_epoch_role,
-        args.only_wireguard,
-    ))
-    .await
+
+    match &args.command {
+        Some(Commands::RunLocal {
+            mnemonic,
+            config_dir,
+        }) => {
+            Box::pin(trial.probe_run_locally(
+                config_dir,
+                mnemonic,
+                gateway_config,
+                args.ignore_egress_epoch_role,
+                args.only_wireguard,
+            ))
+            .await
+        }
+        None => {
+            Box::pin(trial.probe(
+                gateway_config,
+                args.ignore_egress_epoch_role,
+                args.only_wireguard,
+            ))
+            .await
+        }
+    }
 }
 
 async fn fetch_random_gateway_with_ipr(
