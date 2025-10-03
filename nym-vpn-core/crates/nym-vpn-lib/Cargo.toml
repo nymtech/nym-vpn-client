@@ -27,16 +27,6 @@ itertools.workspace = true
 rand.workspace = true
 serial_test.workspace = true
 semver = { workspace = true }
-sentry = { workspace = true, features = [
-    "backtrace",
-    "contexts",
-    "panic",
-    "reqwest",
-    "rustls",
-    "tracing",
-    "logs",
-] }
-sysinfo.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -60,7 +50,6 @@ nym-crypto.workspace = true
 nym-http-api-client.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
-nym-statistics-common.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
@@ -76,13 +65,11 @@ nym-registration-client.workspace = true
 nym-registration-common.workspace = true
 nym-statistics.workspace = true
 nym-vpn-account-controller.workspace = true
-nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
-nym-platform-metadata.workspace = true
 
 ed25519-dalek = { workspace = true, features = [
     "pkcs8",
@@ -96,14 +83,7 @@ rustls = { workspace = true, default-features = false, features = [
     "ring",
     "logging",
 ] }
-rustls-pki-types.workspace = true
-tokio-rustls = { workspace = true, features = [
-    "ring",
-    "tls12",
-    "logging",
-], default-features = false }
 quinn-proto.workspace = true
-rcgen.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
 bs58.workspace = true
