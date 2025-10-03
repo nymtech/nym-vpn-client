@@ -8,7 +8,7 @@ use nym_registration_client::{
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::start_background_file_refresh;
+use nym_vpn_network_config::{Network, start_background_file_refresh};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -168,6 +168,12 @@ pub enum TunnelMonitorEvent {
         error_state_reason: Option<ErrorStateReason>,
         /// Back channel to acknowledge that the event has been processed
         reply_tx: tokio::sync::oneshot::Sender<()>,
+    },
+
+    /// A new network environment was discovered
+    NewNetworkEnv {
+        /// The new network environment
+        network: Box<Network>,
     },
 }
 
@@ -622,11 +628,9 @@ impl TunnelMonitor {
                     }
                 } => {
                     match ret {
-                        Some(Ok(_discovery)) => {
+                        Some(Ok(network)) => {
                             tracing::info!("Refreshed discovery file");
-                            //if let Err(err) = self.custom_topology_provider.update_discovery(discovery).await {
-                            //    trace_err_chain!(err, "Failed to update discovery in custom topology provider");
-                            //}
+                            self.send_event(TunnelMonitorEvent::NewNetworkEnv { network: Box::new(network) });
                         }
                         Some(Err(err)) => {
                             trace_err_chain!(err, "Failed to refresh discovery file");

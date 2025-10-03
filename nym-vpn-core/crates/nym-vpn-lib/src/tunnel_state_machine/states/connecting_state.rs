@@ -523,6 +523,10 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
+                    TunnelMonitorEvent::NewNetworkEnv { network } => {
+                        shared_state.nym_config.network_env = *network;
+                        NextTunnelState::SameState(self)
+                    }
                 }
            }
             Some(command) = command_rx.recv() => {

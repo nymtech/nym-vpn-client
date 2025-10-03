@@ -272,6 +272,10 @@ impl TunnelStateHandler for ConnectedState {
                         _ = reply_tx.send(());
                         self.handle_tunnel_down(error_state_reason, shared_state).await
                     }
+                    TunnelMonitorEvent::NewNetworkEnv { network } => {
+                        shared_state.nym_config.network_env = *network;
+                        NextTunnelState::SameState(self)
+                    }
                     _ => {
                         NextTunnelState::SameState(self)
                     }
