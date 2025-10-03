@@ -14,6 +14,7 @@ use nym_authenticator_requests::{
     v4, v5,
 };
 use nym_bandwidth_controller::error::BandwidthControllerError;
+use nym_client_core::client::base_client::storage::OnDiskPersistent;
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     NymNetworkDetails,
@@ -36,8 +37,9 @@ use nym_ip_packet_requests::{
 };
 use nym_sdk::bandwidth::BandwidthImporter;
 use nym_sdk::mixnet::{
-    DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage, MixnetClient,
-    MixnetClientBuilder, MixnetClientStorage, NodeIdentity, ReconstructedMessage, StoragePaths,
+    CredentialStorage, DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage,
+    MixnetClient, MixnetClientBuilder, MixnetClientStorage, NodeIdentity, ReconstructedMessage,
+    StoragePaths,
 };
 use nym_validator_client::nyxd::error::NyxdError;
 use nym_wireguard_types::PeerPublicKey;
@@ -354,15 +356,12 @@ impl Probe {
         .await
     }
 
-    async fn acquire_bandwidth<T>(
+    async fn acquire_bandwidth(
         &self,
         mnemonic: &str,
-        disconnected_mixnet_client: &DisconnectedMixnetClient<T>,
+        disconnected_mixnet_client: &DisconnectedMixnetClient<OnDiskPersistent>,
         ticketbook_type: TicketType,
-    ) -> anyhow::Result<()>
-    where
-        T: MixnetClientStorage,
-    {
+    ) -> anyhow::Result<()> {
         // TODO: make it configurable
         const MAX_RETRIES: usize = 50;
         for i in 0..MAX_RETRIES {
@@ -497,7 +496,8 @@ impl Probe {
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult>
     where
-        T: MixnetClientStorage,
+        T: MixnetClientStorage + Clone + 'static,
+        <T::CredentialStore as CredentialStorage>::StorageError: Send + Sync,
     {
         let mixnet_client = match mixnet_client {
             Ok(mixnet_client) => mixnet_client,

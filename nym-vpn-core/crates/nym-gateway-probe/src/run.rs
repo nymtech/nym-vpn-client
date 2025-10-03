@@ -78,7 +78,7 @@ enum Commands {
         #[arg(long)]
         mnemonic: String,
 
-        #[arg(long, default = "/tmp/nym-gateway-probe/config/")]
+        #[arg(long, default_value = "/tmp/nym-gateway-probe/config/")]
         config_dir: PathBuf,
     },
 }
