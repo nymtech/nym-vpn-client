@@ -35,10 +35,11 @@ jobs:
     steps:
       - name: Check runner availability
         id: check
-        uses: jimmygchen/runner-fallback-action@v0.1.1
+        uses: jimmygchen/runner-fallback-action@7246e8f85ff2dae37a443f8367f988a764a81cc6
         with:
           primary-runner: "custom-windows-11"
           fallback-runner: "windows-latest"
+          organization: "nymtech"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   build-windows:
