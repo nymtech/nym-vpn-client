@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Check runner availability
         id: check
-        uses: jimmygchen/runner-fallback-action@v1
+        uses: jimmygchen/runner-fallback-action@v0.1.1
         with:
           primary-runner: "custom-windows-11"
           fallback-runner: "windows-latest"
