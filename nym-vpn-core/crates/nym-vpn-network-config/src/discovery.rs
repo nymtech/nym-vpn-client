@@ -362,24 +362,34 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_discovery_default_same_as_fetched() {
-        for discovery in [
-            Discovery::default_mainnet(),
-            Discovery::default_sandbox(),
-            Discovery::default_canary(),
-            Discovery::default_evil(),
-        ] {
-            let fetched = Discovery::fetch(&discovery.network_name)
-                .await
-                .unwrap_or_else(|_| {
-                    panic!("failed to fetch discovery for {}", discovery.network_name)
-                });
+    async fn test_mainnet_discovery_same_as_fetched() {
+        test_discovery_equality(Discovery::default_mainnet()).await;
+    }
 
-            // Only compare the base fields
-            assert_eq!(discovery.network_name, fetched.network_name);
-            assert_eq!(discovery.nym_api_url, fetched.nym_api_url);
-            assert_eq!(discovery.nym_vpn_api_url, fetched.nym_vpn_api_url);
-        }
+    #[tokio::test]
+    async fn test_sandbox_discovery_same_as_fetched() {
+        test_discovery_equality(Discovery::default_sandbox()).await;
+    }
+
+    #[tokio::test]
+    async fn test_canary_discovery_same_as_fetched() {
+        test_discovery_equality(Discovery::default_canary()).await;
+    }
+
+    // todo: remove ignore once evil discovery is back online
+    #[tokio::test]
+    #[ignore]
+    async fn test_evil_discovery_same_as_fetched() {
+        test_discovery_equality(Discovery::default_evil()).await;
+    }
+
+    async fn test_discovery_equality(discovery: Discovery) {
+        let fetched = Discovery::fetch(&discovery.network_name).await.unwrap();
+
+        // Only compare the base fields
+        assert_eq!(discovery.network_name, fetched.network_name);
+        assert_eq!(discovery.nym_api_url, fetched.nym_api_url);
+        assert_eq!(discovery.nym_vpn_api_url, fetched.nym_vpn_api_url);
     }
 
     #[test]
