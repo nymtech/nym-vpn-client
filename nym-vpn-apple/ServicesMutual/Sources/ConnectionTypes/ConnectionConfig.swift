@@ -1,5 +1,4 @@
 #if os(iOS)
-
 #elseif os(macOS)
 import NymVPNRpc
 #endif
@@ -94,8 +93,8 @@ private extension ConnectionConfig {
             return .gateway(identity)
         case let .country(twoLetterIsoCountryCode):
             return .country(twoLetterIsoCountryCode)
-        case let .region(region):
-            return .region(region)
+        case let .region(region: region):
+            return .region(countryCode: "", region: region)
         case .random:
             return .random
         }
@@ -110,7 +109,7 @@ private extension ConnectionConfig {
         case let .country(twoLetterIsoCountryCode):
             ExitRouter.country(twoLetterIsoCountryCode)
         case let .region(region):
-            ExitRouter.region(region)
+            ExitRouter.region(countryCode: "", region: region)
         case .random:
             ExitRouter.random
         }
@@ -126,7 +125,7 @@ private extension ConnectionConfig {
             EntryPoint.gateway(identity: node)
         case .random:
             EntryPoint.random
-        case let .region(region):
+        case let .region(countryCode: _, region: region):
             EntryPoint.region(region: region)
         case .city:
             EntryPoint.random
@@ -141,7 +140,7 @@ private extension ConnectionConfig {
             ExitPoint.gateway(identity: node)
         case let .address(address):
             ExitPoint.address(address: address)
-        case let .region(region):
+        case let .region(countryCode: _, region: region):
             ExitPoint.region(region: region)
         case .random:
             ExitPoint.random

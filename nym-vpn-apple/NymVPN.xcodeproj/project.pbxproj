@@ -608,7 +608,6 @@
 				D9BEF2CD2BEB63310036C566 /* Frameworks */,
 				D9BEF2CE2BEB63310036C566 /* Resources */,
 				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
-				D97883B12E4B6E1300C6C9CC /* Download Helper Tool if needed */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
 				D956A8042D4B9609006651E7 /* Embed Helper Plist */,
 			);
@@ -825,24 +824,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint --no-cache\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
-		};
-		D97883B12E4B6E1300C6C9CC /* Download Helper Tool if needed */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Download Helper Tool if needed";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\nset -euo pipefail\n\nHELPER_PATH=\"${SRCROOT}/Daemon/net.nymtech.vpn.helper\"\nSCRIPTS_DIR=\"${SRCROOT}/Scripts\"\nSCRIPT_NAME=\"FetchMacOSCore.sh\"\n\nif [[ ! -f \"$HELPER_PATH\" ]]; then\n    echo \"⚠️  net.nymtech.vpn.helper missing, running ${SCRIPT_NAME}...\"\n    cd \"$SCRIPTS_DIR\"\n    /bin/bash \"./${SCRIPT_NAME}\"\n    cd ..\nelse\n    echo \"✅ net.nymtech.vpn.helper already exists, skipping core fetch.\"\nfi\n";
 		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;

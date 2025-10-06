@@ -9105,6 +9105,39 @@
         }
       }
     },
+    "errorReason.accountDecentralised" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account decentralized."
+          }
+        }
+      }
+    },
+    "errorReason.accountDoesntExistOnChain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account does not exist on chain."
+          }
+        }
+      }
+    },
+    "errorReason.accountNotDecentralised" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account not decentralized."
+          }
+        }
+      }
+    },
     "errorReason.accountNotRegistered" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10436,6 +10469,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The account is not active."
+          }
+        }
+      }
+    },
+    "errorReason.insufficientFunds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insufficient funds."
           }
         }
       }

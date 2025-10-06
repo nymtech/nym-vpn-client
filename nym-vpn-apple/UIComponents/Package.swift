@@ -18,7 +18,6 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../Services"),
-        .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMutual"),
         .package(path: "../Theme"),
         .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.2")
