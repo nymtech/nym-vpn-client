@@ -15,9 +15,8 @@ import TunnelMixnet
 import TunnelStatus
 import Tunnels
 import UIComponents
-#if os(iOS)
 import ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
 import GRPCManager
 import HelperInstall
 import HelperManager
@@ -34,9 +33,8 @@ public class HomeViewModel: HomeFlowState {
     let externalLinkManager: ExternalLinkManager
     let gatewayManager: GatewayManager
     let networkMonitor: NetworkMonitor
-#if os(iOS)
     let impactGenerator: ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
 #endif
@@ -136,6 +134,7 @@ public class HomeViewModel: HomeFlowState {
         helperManager: HelperManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
         gatewayManager: GatewayManager = .shared,
+        impactGenerator: ImpactGenerator = .shared,
         messagesManager: MessagesManager = .shared
     ) {
         self.appSettings = appSettings
@@ -147,6 +146,7 @@ public class HomeViewModel: HomeFlowState {
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
+        self.impactGenerator = impactGenerator
         self.gatewayManager = gatewayManager
         self.messagesManager = messagesManager
         super.init()
@@ -168,10 +168,12 @@ public extension HomeViewModel {
     }
 
     @MainActor func navigateToEntryGateways() {
+        impactGenerator.softImpact()
         path.append(HomeLink.entryGateways)
     }
 
     @MainActor func navigateToExitGateways() {
+        impactGenerator.softImpact()
         path.append(HomeLink.exitGateways)
     }
 

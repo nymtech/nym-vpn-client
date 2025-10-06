@@ -38,13 +38,6 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
 
-    // TODO: remove after migration. Introduced in 1.6.0
-    @AppStorage(AppSettingKey.entryCountry.rawValue)
-    public var entryCountryCode = ""
-    // TODO: remove after migration. Introduced in 1.6.0
-    @AppStorage(AppSettingKey.exitCountry.rawValue)
-    public var exitCountryCode = ""
-
     @AppStorage(AppSettingKey.entryGateway.rawValue)
     public var entryGateway: String?
     @AppStorage(AppSettingKey.exitRouter.rawValue)
@@ -111,10 +104,6 @@ public enum AppSettingKey: String {
     case welcomeScreenDidDisplay
     case entryGateway
     case exitRouter
-    // TODO: remove after migration. Introduced in 1.6.0
-    case entryCountry
-    // TODO: remove after migration. Introduced in 1.6.0
-    case exitCountry
     case connectionType
     case lastConnectionIntent
     case currentEnv

@@ -4,7 +4,7 @@ import Theme
 
 public enum EntryGateway: Codable, Equatable {
     case country(String)
-    case region(String)
+    case region(countryCode: String, region: String)
     case city(String)
     case lowLatencyCountry(String)
     case gateway(String)
@@ -24,6 +24,15 @@ public enum EntryGateway: Codable, Equatable {
         case .country:
             true
         case .lowLatencyCountry, .random, .gateway, .region, .city:
+            false
+        }
+    }
+
+    public var isRegion: Bool {
+        switch self {
+        case .region:
+            true
+        case .gateway, .random, .country, .city, .lowLatencyCountry:
             false
         }
     }

@@ -247,8 +247,8 @@ private extension NymVPNDaemonApp {
     func connectionDetails() -> some View {
         if let entryName = gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway),
            let exitName = gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) {
-            let entry = gatewayManager.country(with: entryName)?.name ?? entryName
-            let exit = gatewayManager.country(with: exitName)?.name ?? exitName
+            let entry = gatewayManager.localizedCountry(with: entryName)?.name ?? entryName
+            let exit = gatewayManager.localizedCountry(with: exitName)?.name ?? exitName
 
             let statusButtonConfig = StatusButtonConfig(
                 tunnelStatus: connectionManager.currentTunnelStatus,

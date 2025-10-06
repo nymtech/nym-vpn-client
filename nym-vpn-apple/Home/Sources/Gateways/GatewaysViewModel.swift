@@ -6,19 +6,19 @@ import GatewayManager
 import UIComponents
 
 @MainActor public class GatewaysViewModel: ObservableObject {
-    private let connectionManager: ConnectionManager
     private let gatewayManager: GatewayManager
 
     let type: HopType
     let minimumSearchSymbols = 2
 
+    @ObservedObject var connectionManager: ConnectionManager
     @Binding var path: NavigationPath
     @Published var isGeolocationModalDisplayed = false
     @Published var gateways = [GatewayNode]()
     @Published var countries = [Country]()
-    @Published var scrollToServer: GatewayNode?
     @Published var foundCountries = [Country]()
     @Published var foundGateways = [GatewayNode]()
+    @Published var scrollToModel: GatewayScrollToModel
     @Published var searchText: String = "" {
         didSet {
             searchCountriesGateways()
@@ -36,6 +36,12 @@ import UIComponents
         self.connectionManager = connectionManager
         self.gatewayManager = gatewayManager
 
+        switch type {
+        case .entry:
+            scrollToModel = .init(entryGateaway: connectionManager.entryGateway)
+        case .exit:
+            scrollToModel = .init(exitRouter: connectionManager.exitRouter)
+        }
         setup()
     }
 }
@@ -81,7 +87,7 @@ import UIComponents
             gateways = gatewayManager.vpn
         }
         countries = Array(Set(gateways.map { $0.location?.twoLetterIsoCountryCode }))
-            .compactMap { gatewayManager.country(with: $0) }
+            .compactMap { gatewayManager.localizedCountry(with: $0) }
             .sorted {
                 $0.name.compare(
                     $1.name,

@@ -82,13 +82,15 @@ private extension ConnectionStorage {
                 return .gateway(existingGateway.id)
             } else {
                 let existingCountry = existingCountry(
-                    with: gatewayManager.country(with: identifier, nodeType: entryGatewayType)?.code ?? fallbackCountry(nodeType: .entry).code,
+                    with: gatewayManager.country(
+                        with: identifier,
+                        nodeType: entryGatewayType)?.code ?? fallbackCountry(nodeType: .entry).code,
                     nodeType: entryGatewayType
                 )
                 return .country(existingCountry.code)
             }
-        case let .region(region):
-            return .region(region)
+        case let .region(countryCode: code, region: region):
+            return .region(countryCode: code, region: region)
         case let .city(city):
             return .city(city)
         case .random:
@@ -115,15 +117,16 @@ private extension ConnectionStorage {
                 return .gateway(existingGateway.id)
             } else {
                 let existingCountry = existingCountry(
-                    with: gatewayManager.country(with: identifier, nodeType: exitGatewayType)?.code ?? fallbackCountry(nodeType: .exit).code,
+                    with: gatewayManager.country(with: identifier, nodeType: exitGatewayType)?.code
+                    ?? fallbackCountry(nodeType: .exit).code,
                     nodeType: exitGatewayType
                 )
                 return .country(existingCountry.code)
             }
         case let .address(address):
             return .address(address)
-        case let .region(region):
-            return .region(region)
+        case let .region(countryCode: code, region: region):
+            return .region(countryCode: code, region: region)
         case .random:
             return .random
         }
@@ -145,7 +148,7 @@ private extension ConnectionStorage {
     }
 
     func fallbackCountry(nodeType: NodeType) -> Country {
-        let fallbackCountry = Country(name: "Switzerland", code: "CH")
+        let fallbackCountry = Country(name: "Switzerland", code: "CH", regions: [])
         switch nodeType {
         case .entry:
 

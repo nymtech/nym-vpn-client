@@ -1,7 +1,6 @@
 import SwiftUI
-#if os(iOS)
 import ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
 import GRPCManager
 #endif
 import NymLogger
@@ -10,9 +9,8 @@ import Theme
 public final class LogsViewModel: ObservableObject {
     private let logFileManager: LogFileManager
 
-#if os(iOS)
     let impactGenerator: ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
     let grpcManager: GRPCManager
 #endif
 
@@ -53,9 +51,14 @@ public final class LogsViewModel: ObservableObject {
         readLogs()
     }
 #elseif os(macOS)
-    init(path: Binding<NavigationPath>, logFileManager: LogFileManager, grpcManager: GRPCManager = .shared) {
+    init(
+        path: Binding<NavigationPath>,
+        logFileManager: LogFileManager,
+        impactGenerator: ImpactGenerator = ImpactGenerator.shared,
+        grpcManager: GRPCManager = .shared) {
         _path = path
         self.logFileManager = logFileManager
+            self.impactGenerator = impactGenerator
         self.grpcManager = grpcManager
         readLogs()
     }

@@ -34,8 +34,8 @@ struct NymVPNApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
 
-    @StateObject private var homeViewModel = HomeViewModel()
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @ObservedObject private var homeViewModel = HomeViewModel()
+    @ObservedObject private var welcomeViewModel = WelcomeViewModel()
 
     @State private var splashScreenDidDisplay = false
     @State private var isSecureScreenVisible = false
