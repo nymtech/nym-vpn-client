@@ -14,17 +14,12 @@ on:
 
 jobs:
   check:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
     defaults:
       run:
         working-directory: nym-vpn-android
     steps:
-      - name: Skip if dependabot
-        if: github.actor == 'dependabot[bot]'
-        run: |
-          echo "Skipping Android CI for dependabot PR"
-          exit 0
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -51,6 +46,7 @@ jobs:
         run: ./gradlew detekt --info
 
   build-nym-vpn-android:
+    if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/build-nym-vpn-android.yml
     with:
       build_type: "debug"

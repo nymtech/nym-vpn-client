@@ -14,15 +14,10 @@ env:
 
 jobs:
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: "custom-windows-11"
 
     steps:
-      - name: Skip if dependabot
-        if: github.actor == 'dependabot[bot]'
-        run: |
-          echo "Skipping wireguard build for dependabot PR"
-          exit 0
-
       - name: Checkout repo
         uses: actions/checkout@v4
 

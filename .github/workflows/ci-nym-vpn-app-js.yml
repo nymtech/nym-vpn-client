@@ -10,6 +10,7 @@ on:
 
 jobs:
   check:
+    if: github.actor != 'dependabot[bot]'
     strategy:
       fail-fast: false
       matrix:
@@ -17,12 +18,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Skip if dependabot
-        if: github.actor == 'dependabot[bot]'
-        run: |
-          echo "Skipping JS CI for dependabot PR"
-          exit 0
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
