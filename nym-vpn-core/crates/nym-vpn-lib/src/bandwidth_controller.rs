@@ -258,6 +258,7 @@ pub(crate) struct BandwidthController {
     entry_previous_error_query: bool,
     exit_previous_error_query: bool,
     shutdown_token: CancellationToken,
+    successful_checks: u64,
 }
 
 impl BandwidthController {
@@ -280,6 +281,7 @@ impl BandwidthController {
             entry_previous_error_query: false,
             exit_previous_error_query: false,
             shutdown_token,
+            successful_checks: 0,
         }
     }
 
@@ -401,6 +403,8 @@ impl BandwidthController {
             ret = wg_metadata_client.query_bandwidth() => {
                 match ret {
                     Ok(remaining_bandwidth) => {
+                        self.successful_checks += 1;
+
                         if entry {
                             self.entry_previous_error_query = false;
                         } else {
@@ -436,8 +440,10 @@ impl BandwidthController {
                         tracing::warn!("{e}");
                         if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query) {
                             tracing::error!("gateway {} is erroring out", wg_metadata_client.gateway_id());
-                            // For now let's keep the old behavior of stopping
-                            self.shutdown_token.cancel();
+                            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
+                            if self.successful_checks != 0 {
+                                self.shutdown_token.cancel();
+                            }
                         } else {
                             if entry {
                                 self.entry_previous_error_query = true;
