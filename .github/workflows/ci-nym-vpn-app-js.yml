@@ -1,14 +1,16 @@
 name: ci-nym-vpn-app-js
 
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/ci-nym-vpn-app-js.yml"
       - "nym-vpn-app/**"
+  workflow_dispatch:
 
 jobs:
   check:
+    if: github.actor != 'dependabot[bot]'
     strategy:
       fail-fast: false
       matrix:

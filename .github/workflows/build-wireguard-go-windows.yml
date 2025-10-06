@@ -1,11 +1,12 @@
 name: build-wireguard-go-windows
 on:
-  workflow_dispatch:
-  workflow_call:
   pull_request:
+    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-windows.yml"
+  workflow_dispatch:
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,6 +14,7 @@ env:
 
 jobs:
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: "custom-windows-11"
 
     steps:

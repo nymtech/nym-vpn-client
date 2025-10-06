@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-linux
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
+  workflow_dispatch:
   workflow_call:
     secrets:
       VPND_SENTRY_DSN:
@@ -21,6 +22,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build-linux:
+    if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
     runs-on: ubuntu-22.04
     outputs:

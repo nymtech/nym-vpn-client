@@ -2,8 +2,10 @@ name: ci-nym-vpn-core-windows
 
 on:
   pull_request:
+    types: [opened]
     paths:
-      - "nym-vpn-core/**"
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
       - "nym-vpn-windows/**"
       - ".github/workflows/ci-nym-vpn-core-windows.yml"
   workflow_dispatch:
@@ -17,6 +19,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: custom-windows-11
     needs: build-wireguard-go-windows
 

@@ -1,10 +1,11 @@
 name: ci-nym-vpn-core-android
 
 on:
-  # push:
   pull_request:
+    types: [opened]
     paths:
-      - "nym-vpn-core/**"
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
       - ".github/workflows/ci-nym-vpn-core-android.yml"
   workflow_dispatch:
 
@@ -17,6 +18,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
     needs: build-wireguard-go-android
 
