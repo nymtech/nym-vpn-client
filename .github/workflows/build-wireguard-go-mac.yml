@@ -1,12 +1,13 @@
 name: build-wireguard-go-mac
 
 on:
-  workflow_dispatch:
-  workflow_call:
   pull_request:
+    types: [opened]
     paths:
       - "wireguard/**"
       - ".github/workflows/build-wireguard-go-mac.yml"
+  workflow_dispatch:
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always

@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-linux
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
+  workflow_dispatch:
   workflow_call:
     secrets:
       VPND_SENTRY_DSN:
@@ -27,6 +28,12 @@ jobs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
+      - name: Skip if dependabot
+        if: github.actor == 'dependabot[bot]'
+        run: |
+          echo "Skipping build for dependabot PR"
+          exit 0
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
