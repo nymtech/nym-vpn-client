@@ -4,7 +4,8 @@ on:
   pull_request:
     types: [opened]
     paths:
-      - "nym-vpn-core/**"
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
       - ".github/workflows/ci-nym-vpn-core-android.yml"
   workflow_dispatch:
 
