@@ -4,10 +4,10 @@
 use std::path::PathBuf;
 
 use nym_vpn_lib_types::{
-    AccountCommandResponse, AccountControllerState, AvailableTickets, ConnectArgs, EntryPoint,
-    ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions, LogPath,
-    NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
-    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
+    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
+    LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -330,6 +330,32 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         Ok(ParsedAccountLinks::from(response))
+    }
+
+    pub async fn account_balance(&mut self) -> Result<AccountBalanceResponse> {
+        let response = self
+            .0
+            .account_balance(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn decentralised_obtain_ticketbooks(
+        &mut self,
+        amount: u64,
+    ) -> Result<AccountCommandResponse> {
+        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+        let response = self
+            .0
+            .decentralised_obtain_ticketbooks(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {

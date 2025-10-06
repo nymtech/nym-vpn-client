@@ -10,8 +10,9 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_registration_common::GatewayData;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-use nym_wg_go::amnezia::AmneziaConfig;
-use nym_wg_go::{PeerConfig, PrivateKey, PublicKey, netstack, wireguard_go};
+use nym_wg_go::{
+    PeerConfig, PrivateKey, PublicKey, amnezia::AmneziaConfig, netstack, wireguard_go,
+};
 
 #[derive(Debug, Clone)]
 pub struct WgNodeConfig {

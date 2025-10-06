@@ -236,6 +236,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                        AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         self.zk_nym_fetching_handle.abort();
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);

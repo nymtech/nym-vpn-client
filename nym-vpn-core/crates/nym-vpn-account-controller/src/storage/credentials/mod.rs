@@ -54,6 +54,10 @@ impl VpnCredentialStorage {
         })
     }
 
+    pub fn credential_storage(&self) -> &PersistentCredentialStorage {
+        &self.credential_storage
+    }
+
     pub async fn close(&self) {
         self.credential_storage.close().await;
         self.pending_requests_storage.close().await;

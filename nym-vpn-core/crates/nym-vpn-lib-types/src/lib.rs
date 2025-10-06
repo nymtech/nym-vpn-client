@@ -40,9 +40,10 @@ pub use network::{
     NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
+pub use nym_validator_client::nyxd::Coin;
 pub use rpc_requests::{
-    AccountCommandResponse, ConnectArgs, ConnectOptions, ListGatewaysOptions, StoreAccountRequest,
-    UserAgent,
+    AccountBalanceResponse, AccountCommandResponse, ConnectArgs, ConnectOptions,
+    DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest, UserAgent,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use tunnel_event::{

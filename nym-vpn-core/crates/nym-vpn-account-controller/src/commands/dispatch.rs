@@ -4,12 +4,12 @@
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::account::StorableAccount;
 
-use std::net::SocketAddr;
-
+use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
+use std::net::SocketAddr;
 use tokio::sync::oneshot;
 
 use crate::AvailableTicketbooks;
@@ -32,6 +32,12 @@ pub enum AccountCommand {
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
+    /// Retrieve current, on-chain, balance of the account. Only applicable for decentralised accounts
+    AccountBalance(ReturnSender<Vec<Coin>, AccountCommandError>),
+
+    /// Attempt to obtain specified amount of ticketbooks (per type) for the decentralised account
+    ObtainTicketbooks(ReturnSender<(), AccountCommandError>, u64),
+
     /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
 
@@ -46,6 +52,35 @@ pub enum AccountCommand {
 
     /// Read-only commands
     Common(CommonCommand),
+}
+
+impl AccountCommand {
+    pub fn return_error(self, error: AccountCommandError) {
+        match self {
+            AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
+            AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::RefreshAccountState(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::Common(common_command) => match common_command {
+                CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::SetStaticApiAddresses(return_sender, _) => {
+                    return_sender.send(Err(error))
+                }
+            },
+        }
+    }
 }
 
 /// These commands have no impact on the state. Handling can be grouped in some cases

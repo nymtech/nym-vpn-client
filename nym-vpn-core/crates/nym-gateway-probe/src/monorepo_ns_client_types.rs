@@ -1,10 +1,9 @@
-use nym_credentials::ecash::bandwidth::serialiser::{VersionSerialised, VersionedSerialise};
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
     Error, IssuedTicketBook,
+    ecash::bandwidth::serialiser::{VersionSerialised, VersionedSerialise},
 };
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tracing::error;
 
 #[derive(Serialize, Deserialize)]

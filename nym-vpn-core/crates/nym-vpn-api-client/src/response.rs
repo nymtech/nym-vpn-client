@@ -7,8 +7,7 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use crate::error::VpnApiClientError;
-use crate::network_compatibility::NetworkCompatibility;
+use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;

@@ -37,6 +37,7 @@ tracing.workspace = true
 nym-bin-common.workspace = true
 nym-registration-client.workspace = true
 nym-http-api-client.workspace = true
+nym-validator-client.workspace = true
 nym-windows.workspace = true
 sentry = { workspace = true, features = [
     "backtrace",
@@ -58,6 +59,7 @@ nym-vpn-account-controller = { workspace = true }
 nym-vpn-api-client = { workspace = true }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true }
+nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
 nym-platform-metadata = { workspace = true }
 nym-gateway-directory = { workspace = true }

@@ -10,8 +10,34 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
 use nym_vpn_store::account::StorableAccount;
+use tracing::info;
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
+
+async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    account: &VpnAccount,
+) -> Result<(), AccountCommandError> {
+    // if we're attempting to store a decentralised account, it MUST exist on chain,
+    // i.e. it must have proper number and sequence
+    let Some(account_response) = shared_state
+        .nyxd_client
+        .get_account_details(&account.get_mnemonic())
+        .await?
+    else {
+        return Err(AccountCommandError::AccountDoesntExistOnChain);
+    };
+
+    let Ok(base_account) = account_response.try_get_base_account() else {
+        return Err(AccountCommandError::AccountDoesntExistOnChain);
+    };
+    info!(
+        "importing decentralised account '{}' with account number: {} and sequence: {}",
+        base_account.address, base_account.account_number, base_account.sequence
+    );
+
+    Ok(())
+}
 
 pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
@@ -19,6 +45,11 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
 ) -> Result<(), AccountCommandError> {
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+
+    // if the account is decentralised, it must exist on the chain
+    if vpn_account.mode().is_decentralised() {
+        ensure_account_exists_on_chain(shared_state, &vpn_account).await?;
+    }
 
     // We don't check the account status here. The check was bypassed when offline anyway. We defer that job to the syncing state
 
@@ -115,6 +146,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.vpn_api_account = None;
     shared_state.device = None;
+    shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {
         return Err(AccountCommandError::Storage(format!(

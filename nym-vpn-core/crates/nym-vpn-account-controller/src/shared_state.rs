@@ -11,6 +11,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     AccountControllerConfig,
+    nyxd_client::NyxdClient,
     storage::{AccountStorageOp, VpnCredentialStorage},
 };
 
@@ -30,6 +31,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// VPN API client
     pub(crate) vpn_api_client: VpnApiClient,
 
+    /// Nyxd RPC client
+    pub(crate) nyxd_client: NyxdClient,
+
     /// Stored account
     pub(crate) vpn_api_account: Option<VpnAccount>,
 
@@ -44,11 +48,13 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 }
 
 impl<C: ConnectivityMonitor> SharedAccountState<C> {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         connectivity_handle: C,
         config: AccountControllerConfig,
         credential_storage: VpnCredentialStorage,
         vpn_api_client: VpnApiClient,
+        nyxd_client: NyxdClient,
         vpn_api_account: Option<VpnAccount>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
@@ -58,6 +64,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             config,
             credential_storage,
             vpn_api_client,
+            nyxd_client,
             vpn_api_account,
             device,
             firewall_active: false,

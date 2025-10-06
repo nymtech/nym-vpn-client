@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::common::{TestBench, account_summary::*, endpoints};
+use crate::common::{TestBench, account_summary::*, endpoints, nyxd_endpoints};
 
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
@@ -26,7 +26,7 @@ async fn offline_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     // Simulating offline mode
     test_bench.go_offline()?;
@@ -77,7 +77,7 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_403(unrelated_error()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     // Commands
     test_bench.store_mock_account().await?;
@@ -103,7 +103,7 @@ async fn unregistered_account_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_403(unregistered_account()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -127,7 +127,7 @@ async fn desynced_device_test() -> anyhow::Result<()> {
         endpoints::desynced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -149,7 +149,7 @@ async fn inactive_account_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(inactive_account()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -173,7 +173,7 @@ async fn account_with_inactive_sub_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_with_inactive_sub()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -195,7 +195,7 @@ async fn account_with_max_device_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_max_devices()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -217,7 +217,7 @@ async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_no_fair_usage()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
 
@@ -248,7 +248,7 @@ async fn zk_nym_issuance_test() -> anyhow::Result<()> {
         endpoints::partial_verification_key_200(credential_proxy.clone()),
         endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     // Commands start there
     test_bench.store_mock_account().await?;
@@ -278,7 +278,7 @@ async fn e2e_new_device_test() -> anyhow::Result<()> {
         endpoints::partial_verification_key_200(credential_proxy.clone()),
         endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     // Commands start there
     test_bench.store_mock_account().await?;
@@ -305,6 +305,9 @@ async fn decentralised_account_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new_no_credentials().await?;
 
+    let mocks = vec![nyxd_endpoints::get_account_exists()];
+    test_bench.register_nyxd_mocks(mocks).await;
+
     // Simulating offline mode
     test_bench.go_offline()?;
     test_bench
@@ -317,8 +320,9 @@ async fn decentralised_account_test() -> anyhow::Result<()> {
         .await;
 
     test_bench.store_mock_decentralised_account().await?;
+
     test_bench
-        .assert_state(AccountControllerState::ReadyToConnect)
+        .assert_state(AccountControllerState::Decentralised)
         .await;
 
     test_bench.go_offline()?;
@@ -328,7 +332,7 @@ async fn decentralised_account_test() -> anyhow::Result<()> {
 
     test_bench.go_online()?;
     test_bench
-        .assert_state(AccountControllerState::ReadyToConnect)
+        .assert_state(AccountControllerState::Decentralised)
         .await;
 
     test_bench.forget_account().await?;
