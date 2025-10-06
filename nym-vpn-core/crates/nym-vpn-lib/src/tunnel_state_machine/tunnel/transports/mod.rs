@@ -1,5 +1,5 @@
 use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -198,6 +198,7 @@ pub async fn process_udp<R, W>(
     let _ = tasks.join_all().await;
 }
 
+// Assumes that the socket has already had `connect` called.
 async fn udp_to_transport_task<W>(
     sock: Arc<UdpSocket>,
     mut framed_writer: W,
@@ -213,17 +214,12 @@ where
 
     loop {
         tokio::select! {
-            res = sock.recv_buf_from(&mut dn_buf) => {
-                let (len, src) = res.map_err(|e| {
+            res = sock.recv_buf(&mut dn_buf) => {
+                let len = res.map_err(|e| {
                     error!("error receiving from forward socket: {e}");
                     token.cancel();
                     e
                 })?;
-
-                if !address_match(fwd_addr, src) {
-                    debug!("received {len}B from alt addr {src} -- ignoring");
-                    continue;
-                }
 
                 trace!(" <-{fwd_addr} read {len}B");
                 framed_writer.send(dn_buf.copy_to_bytes(len)).await.map_err(|e| {
@@ -248,6 +244,7 @@ where
     Ok(())
 }
 
+// Assumes that the socket has already had `connect` called.
 async fn transport_to_udp_task<R>(
     mut framed_reader: R,
     sock: Arc<UdpSocket>,
@@ -271,7 +268,7 @@ where
                         let mut sent = 0;
                         let mut sends = 1;
                         while sent < len {
-                            let len_sent = sock.send_to(&buf[sent..len], fwd_addr).await.map_err(|e| {
+                            let len_sent = sock.send(&buf[sent..len]).await.map_err(|e| {
                                 error!("error sending to egress socket: {e}");
                                 token.cancel();
                                 e
@@ -295,22 +292,6 @@ where
         }
     }
     Ok(())
-}
-
-fn address_match(original: SocketAddr, incoming: SocketAddr) -> bool {
-    if incoming == original {
-        true
-    } else {
-        match (original.ip(), incoming.ip()) {
-            (IpAddr::V4(orig), IpAddr::V6(_)) => {
-                SocketAddr::from((orig.to_ipv6_mapped(), original.port())) == incoming
-            }
-            (IpAddr::V6(_), IpAddr::V4(inc)) => {
-                original == SocketAddr::from((inc.to_ipv6_mapped(), incoming.port()))
-            }
-            _ => false,
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
