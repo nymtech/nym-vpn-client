@@ -241,6 +241,7 @@ nym-config = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "develop", default-features = false }
 nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credentials = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-crypto = { git = "https://github.com/nymtech/nym", branch = "develop" }
@@ -263,4 +264,3 @@ nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym"
 nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }

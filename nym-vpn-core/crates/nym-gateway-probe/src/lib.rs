@@ -44,7 +44,7 @@ use nym_ip_packet_requests::{
 };
 use nym_sdk::bandwidth::BandwidthImporter;
 use nym_sdk::mixnet::{
-    CredentialStorage, DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage,
+    CredentialStorage, DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage, KeyStore,
     MixnetClient, MixnetClientBuilder, MixnetClientStorage, NodeIdentity, ReconstructedMessage,
     StoragePaths,
 };
@@ -273,7 +273,6 @@ impl Probe {
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
-        let mut rng = rand::thread_rng();
         let tickets_materials = self.credentials_args.decode_attached_ticket_materials()?;
 
         let tested_entry = self.tested_node.is_same_as_entry();
@@ -524,6 +523,7 @@ impl Probe {
         T: MixnetClientStorage + Clone + 'static,
         <T::CredentialStore as CredentialStorage>::StorageError: Send + Sync,
     {
+        let mut rng = rand::thread_rng();
         let mixnet_client = match mixnet_client {
             Ok(mixnet_client) => mixnet_client,
             Err(err) => {
