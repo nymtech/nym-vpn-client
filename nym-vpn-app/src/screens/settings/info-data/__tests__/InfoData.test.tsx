@@ -140,7 +140,7 @@ describe('InfoData Component', () => {
     it('copies client version when clicked', () => {
       render(<InfoData />);
 
-      const clientVersionButton = screen.getByTestId('client-version-value');
+      const clientVersionButton = screen.getByRole('button', { name: '1.0.0' });
       fireEvent.click(clientVersionButton);
 
       expect(mockCopy).toHaveBeenCalledWith('1.0.0', true);
@@ -149,7 +149,7 @@ describe('InfoData Component', () => {
     it('copies daemon version when clicked', () => {
       render(<InfoData />);
 
-      const daemonVersionButton = screen.getByTestId('daemon-version-value');
+      const daemonVersionButton = screen.getByRole('button', { name: '2.0.0' });
       fireEvent.click(daemonVersionButton);
 
       expect(mockCopy).toHaveBeenCalledWith('2.0.0');
@@ -158,7 +158,7 @@ describe('InfoData Component', () => {
     it('copies network name when clicked', () => {
       render(<InfoData />);
 
-      const networkNameButton = screen.getByTestId('network-name-value');
+      const networkNameButton = screen.getByRole('button', { name: 'mainnet' });
       fireEvent.click(networkNameButton);
 
       expect(mockCopy).toHaveBeenCalledWith('mainnet');
@@ -184,7 +184,7 @@ describe('InfoData Component', () => {
 
       render(<InfoData />);
 
-      const clientVersionButton = screen.getByTestId('client-version-value');
+      const clientVersionButton = screen.getByRole('button', { name: '1.0.0' });
       fireEvent.click(clientVersionButton);
 
       expect(mockCopy).toHaveBeenCalledWith('1.0.0', true);

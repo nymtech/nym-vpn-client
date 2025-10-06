@@ -18,9 +18,7 @@ describe('CountryInfo', () => {
 
     expect(screen.getByTestId('country-info-US')).toBeInTheDocument();
     expect(screen.getByTestId('country-flag-US')).toBeInTheDocument();
-    expect(screen.getByTestId('country-name-US')).toHaveTextContent(
-      'United States',
-    );
+    expect(screen.getByText('United States')).toBeInTheDocument();
   });
 
   it('renders server count with correct pluralization', () => {
@@ -28,9 +26,7 @@ describe('CountryInfo', () => {
       <CountryInfo country={mockCountry} name="United States" gwCount={5} />,
     );
 
-    const serverCount = screen.getByTestId('country-server-count-US');
-    expect(serverCount).toBeInTheDocument();
-    expect(serverCount).toHaveTextContent('5');
+    expect(screen.getByText('5 server')).toBeInTheDocument();
   });
 
   it('renders single server count correctly', () => {
@@ -38,9 +34,7 @@ describe('CountryInfo', () => {
       <CountryInfo country={mockCountry} name="United States" gwCount={1} />,
     );
 
-    const serverCount = screen.getByTestId('country-server-count-US');
-    expect(serverCount).toBeInTheDocument();
-    expect(serverCount).toHaveTextContent('1');
+    expect(screen.getByText('1 server')).toBeInTheDocument();
   });
 
   it('renders zero server count correctly', () => {
@@ -48,9 +42,7 @@ describe('CountryInfo', () => {
       <CountryInfo country={mockCountry} name="United States" gwCount={0} />,
     );
 
-    const serverCount = screen.getByTestId('country-server-count-US');
-    expect(serverCount).toBeInTheDocument();
-    expect(serverCount).toHaveTextContent('0');
+    expect(screen.getByText('0 server')).toBeInTheDocument();
   });
 
   it('handles different country codes', () => {
@@ -65,17 +57,14 @@ describe('CountryInfo', () => {
 
     expect(screen.getByTestId('country-info-DE')).toBeInTheDocument();
     expect(screen.getByTestId('country-flag-DE')).toBeInTheDocument();
-    expect(screen.getByTestId('country-name-DE')).toHaveTextContent(
-      'Deutschland',
-    );
+    expect(screen.getByText('Deutschland')).toBeInTheDocument();
   });
 
   it('truncates long country names', () => {
     const longName = 'Very Long Country Name That Should Be Truncated';
     render(<CountryInfo country={mockCountry} name={longName} gwCount={2} />);
 
-    const nameElement = screen.getByTestId('country-name-US');
+    const nameElement = screen.getByText(longName);
     expect(nameElement).toHaveClass('truncate');
-    expect(nameElement).toHaveTextContent(longName);
   });
 });

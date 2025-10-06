@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { UiGateway, UiCountry } from '../../../../contexts';
 import { NodeHop, VpnMode } from '../../../../types';
 import GatewayItem from '../GatewayItem';
@@ -49,8 +49,8 @@ describe('GatewayItem', () => {
 
   describe('Rendering', () => {
     it('renders basic gateway structure', () => {
-      const { container } = render(<GatewayItem {...mockProps} />);
-      expect(container.firstChild).toBeInTheDocument();
+      render(<GatewayItem {...mockProps} />);
+      expect(screen.getByText('Test Gateway')).toBeInTheDocument();
     });
 
     it('renders with different gateway data', () => {
@@ -59,10 +59,8 @@ describe('GatewayItem', () => {
         id: 'custom-id-123',
       });
 
-      const { container } = render(
-        <GatewayItem {...mockProps} gateway={gateway} />,
-      );
-      expect(container.firstChild).toBeInTheDocument();
+      render(<GatewayItem {...mockProps} gateway={gateway} />);
+      expect(screen.getByText('Custom Gateway')).toBeInTheDocument();
     });
   });
 

@@ -4,7 +4,6 @@ import { render, mockDialogProps } from '../../test/test-utils';
 import Dialog from '../Dialog';
 import { useMainState } from '../../contexts';
 
-// Mock the useMainState hook
 const mockUseMainState = useMainState as jest.MockedFunction<
   typeof useMainState
 >;
@@ -14,7 +13,6 @@ describe('Dialog Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset to default mock state
     mockUseMainState.mockReturnValue({
       uiTheme: 'light' as const,
     } as any);
@@ -25,7 +23,7 @@ describe('Dialog Component', () => {
       const props = mockDialogProps({ open: true });
       render(<Dialog {...props} />);
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
       expect(dialog).toHaveAttribute('data-test-open', 'true');
     });
@@ -34,7 +32,7 @@ describe('Dialog Component', () => {
       const props = mockDialogProps({ open: true });
       render(<Dialog {...props} />);
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
     });
 
@@ -47,10 +45,9 @@ describe('Dialog Component', () => {
 
       render(<Dialog {...props} />);
 
-      const dialog = screen.getByTestId(customTestId);
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      // Check that related elements use the custom test id
       expect(
         screen.getByTestId(`${customTestId}-backdrop`),
       ).toBeInTheDocument();
@@ -65,7 +62,6 @@ describe('Dialog Component', () => {
       const props = mockDialogProps({ open: true });
       render(<Dialog {...props} />);
 
-      // Check all dialog elements are present
       expect(screen.getByTestId('dialog-backdrop')).toBeInTheDocument();
       expect(screen.getByTestId('dialog-container')).toBeInTheDocument();
       expect(screen.getByTestId('dialog-wrapper')).toBeInTheDocument();
@@ -101,16 +97,14 @@ describe('Dialog Component', () => {
 
   describe('Props and State', () => {
     it('reflects open state in data attributes', () => {
-      // When closed, dialog should not be in DOM
       const { rerender } = render(<Dialog {...defaultProps} open={false} />);
 
-      const dialog = screen.queryByTestId('dialog');
+      const dialog = screen.queryByRole('dialog');
       expect(dialog).not.toBeInTheDocument();
 
-      // When open, dialog should be in DOM with correct attribute
       rerender(<Dialog {...defaultProps} open={true} />);
 
-      const openDialog = screen.getByTestId('dialog');
+      const openDialog = screen.getByRole('dialog');
       expect(openDialog).toBeInTheDocument();
       expect(openDialog).toHaveAttribute('data-test-open', 'true');
     });
@@ -135,7 +129,7 @@ describe('Dialog Component', () => {
       const props = mockDialogProps({ open: true });
       render(<Dialog {...props} />);
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('data-test-theme', 'light');
       expect(dialog).not.toHaveClass('dark');
     });
@@ -148,7 +142,7 @@ describe('Dialog Component', () => {
       const props = mockDialogProps({ open: true });
       render(<Dialog {...props} />);
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('data-test-theme', 'dark');
       expect(dialog).toHaveClass('dark');
     });
@@ -161,18 +155,17 @@ describe('Dialog Component', () => {
       const props = mockDialogProps({ open: true });
       const { rerender } = render(<Dialog {...props} />);
 
-      let dialog = screen.getByTestId('dialog');
+      let dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('data-test-theme', 'light');
       expect(dialog).not.toHaveClass('dark');
 
-      // Change theme to dark
       mockUseMainState.mockReturnValue({
         uiTheme: 'dark' as const,
       } as any);
 
       rerender(<Dialog {...props} />);
 
-      dialog = screen.getByTestId('dialog');
+      dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('data-test-theme', 'dark');
       expect(dialog).toHaveClass('dark');
     });
@@ -213,7 +206,7 @@ describe('Dialog Component', () => {
 
       expect(() => render(<Dialog {...props} />)).not.toThrow();
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
     });
 
@@ -222,7 +215,7 @@ describe('Dialog Component', () => {
 
       expect(() => render(<Dialog {...props} />)).not.toThrow();
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
     });
 
@@ -231,7 +224,7 @@ describe('Dialog Component', () => {
 
       render(<Dialog {...props} />);
 
-      const dialog = screen.getByTestId('dialog');
+      const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
     });
   });

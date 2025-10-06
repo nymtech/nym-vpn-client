@@ -60,64 +60,48 @@ describe('ConnectionBadge Component', () => {
     it('shows "Connected" for connected state', () => {
       render(<ConnectionBadge state="connected" />);
 
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Connected',
-      );
+      expect(screen.getByText('Connected')).toBeInTheDocument();
     });
 
     it('shows "Disconnected" for disconnected state', () => {
       render(<ConnectionBadge state="disconnected" />);
 
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Disconnected',
-      );
+      expect(screen.getByText('Disconnected')).toBeInTheDocument();
     });
 
     it('shows "Disconnected" for unknown state', () => {
       render(<ConnectionBadge state="unknown" />);
 
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Disconnected',
-      );
+      expect(screen.getByText('Disconnected')).toBeInTheDocument();
     });
 
     it('shows "Connecting" for connecting state', () => {
       render(<ConnectionBadge state="connecting" />);
 
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Connecting',
-      );
+      expect(screen.getByText('Connecting')).toBeInTheDocument();
     });
 
     it('shows "Disconnecting" for disconnecting state', () => {
       render(<ConnectionBadge state="disconnecting" />);
 
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Disconnecting',
-      );
+      expect(screen.getByText('Disconnecting')).toBeInTheDocument();
     });
 
     it('shows "Error" for error state', () => {
       render(<ConnectionBadge state="error" />);
 
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Error',
-      );
+      expect(screen.getByText('Error')).toBeInTheDocument();
     });
 
     it('shows "Offline" for offline states', () => {
       const { unmount: unmount1 } = render(<ConnectionBadge state="offline" />);
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Offline',
-      );
+      expect(screen.getByText('Offline')).toBeInTheDocument();
       unmount1();
 
       const { unmount: unmount2 } = render(
         <ConnectionBadge state="offline-auto-reconnect" />,
       );
-      expect(screen.getByTestId('connection-status-text')).toHaveTextContent(
-        'Offline',
-      );
+      expect(screen.getByText('Offline')).toBeInTheDocument();
       unmount2();
     });
   });

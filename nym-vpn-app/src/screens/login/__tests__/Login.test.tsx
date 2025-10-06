@@ -80,14 +80,16 @@ describe('Login Component', () => {
       render(<Login />);
 
       expect(screen.getByTestId('login-page')).toBeInTheDocument();
-      expect(screen.getByTestId('login-welcome-text')).toHaveTextContent(
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
         'Welcome to Nym VPN',
       );
-      expect(screen.getByTestId('login-description')).toHaveTextContent(
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
         'Enter your account credentials to continue',
       );
-      expect(screen.getByTestId('login-mnemonic-input')).toBeInTheDocument();
-      expect(screen.getByTestId('login-submit-button')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Enter your mnemonic phrase here...'),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
       expect(
         screen.getByTestId('login-create-account-section'),
       ).toBeInTheDocument();
@@ -96,7 +98,9 @@ describe('Login Component', () => {
     it('shows correct placeholder and label for input', () => {
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
       expect(input).toHaveAttribute(
         'placeholder',
         'Enter your mnemonic phrase here...',
@@ -106,9 +110,7 @@ describe('Login Component', () => {
     it('shows create account link', () => {
       render(<Login />);
 
-      expect(screen.getByTestId('login-create-account-text')).toHaveTextContent(
-        "Don't have an account?",
-      );
+      expect(screen.getByText("Don't have an account?")).toBeInTheDocument();
       expect(
         screen.getByTestId('login-create-account-link'),
       ).toBeInTheDocument();
@@ -120,7 +122,9 @@ describe('Login Component', () => {
       const user = userEvent.setup();
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
       await user.type(input, 'test mnemonic phrase');
 
       expect(input).toHaveValue('test mnemonic phrase');
@@ -130,7 +134,9 @@ describe('Login Component', () => {
       const user = userEvent.setup();
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
 
       await user.type(input, 'test');
 
@@ -146,7 +152,7 @@ describe('Login Component', () => {
     it('enables submit button when daemon is up and state is disconnected', () => {
       render(<Login />);
 
-      const button = screen.getByTestId('login-submit-button');
+      const button = screen.getByRole('button', { name: 'Login' });
       expect(button).not.toBeDisabled();
     });
 
@@ -158,7 +164,7 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const button = screen.getByTestId('login-submit-button');
+      const button = screen.getByRole('button', { name: 'Login' });
       expect(button).toBeDisabled();
     });
 
@@ -170,7 +176,7 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const button = screen.getByTestId('login-submit-button');
+      const button = screen.getByRole('button', { name: 'Login' });
       expect(button).toBeDisabled();
     });
 
@@ -180,8 +186,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, 'test mnemonic phrase');
       await user.click(button);
@@ -195,7 +203,7 @@ describe('Login Component', () => {
       const user = userEvent.setup();
       render(<Login />);
 
-      const button = screen.getByTestId('login-submit-button');
+      const button = screen.getByRole('button', { name: 'Login' });
       await user.click(button);
 
       expect(mockInvoke).not.toHaveBeenCalled();
@@ -207,8 +215,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, 'test mnemonic phrase');
 
@@ -227,8 +237,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, 'test mnemonic phrase');
       await user.click(button);
@@ -242,8 +254,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, '  test mnemonic phrase  ');
       await user.click(button);
@@ -261,8 +275,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, 'test mnemonic phrase');
       await user.click(button);
@@ -293,8 +309,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, 'invalid mnemonic');
       await user.click(button);
@@ -314,8 +332,10 @@ describe('Login Component', () => {
 
       render(<Login />);
 
-      const input = screen.getByTestId('login-mnemonic-input');
-      const button = screen.getByTestId('login-submit-button');
+      const input = screen.getByPlaceholderText(
+        'Enter your mnemonic phrase here...',
+      );
+      const button = screen.getByRole('button', { name: 'Login' });
 
       await user.type(input, 'test mnemonic');
       await user.click(button);

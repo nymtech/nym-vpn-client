@@ -18,7 +18,7 @@ describe('TextInput Component', () => {
   it('renders with basic props', () => {
     render(<TextInput {...defaultProps} />);
 
-    const input = screen.getByTestId('text-input');
+    const input = screen.getByPlaceholderText('Test input');
     expect(input).toBeInTheDocument();
     expect(input).toHaveAttribute('placeholder', 'Test input');
   });
@@ -30,7 +30,7 @@ describe('TextInput Component', () => {
     render(<TextInput {...defaultProps} onChange={onChange} />);
 
     const inputValue = 'hello';
-    const input = screen.getByTestId('text-input');
+    const input = screen.getByPlaceholderText('Test input');
     await user.type(input, inputValue);
 
     expect(onChange).toHaveBeenCalled();
@@ -52,7 +52,7 @@ describe('TextInput Component', () => {
 
     render(<TextInput {...defaultProps} label={label} />);
 
-    const labelElement = screen.getByTestId('text-input-label');
+    const labelElement = screen.getByText(label);
     expect(labelElement).toBeInTheDocument();
     expect(labelElement).toHaveTextContent(label);
   });
@@ -65,14 +65,14 @@ describe('TextInput Component', () => {
     const iconElement = screen.getByTestId('text-input-left-icon');
     expect(iconElement).toBeInTheDocument();
 
-    const input = screen.getByTestId('text-input');
+    const input = screen.getByPlaceholderText('Test input');
     expect(input).toHaveAttribute('data-test-has-left-icon', 'true');
   });
 
   it('supports autoFocus', () => {
     render(<TextInput {...defaultProps} autoFocus />);
 
-    const input = screen.getByTestId('text-input');
+    const input = screen.getByPlaceholderText('Test input');
     expect(input).toHaveFocus();
   });
 
@@ -81,7 +81,7 @@ describe('TextInput Component', () => {
 
     render(<TextInput {...defaultProps} data-testid={customTestId} />);
 
-    const input = screen.getByTestId(customTestId);
+    const input = screen.getByPlaceholderText('Test input');
     expect(input).toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe('TextInput Component', () => {
 
     render(<TextInput {...defaultProps} className={customClass} />);
 
-    const input = screen.getByTestId('text-input');
+    const input = screen.getByPlaceholderText('Test input');
     expect(input).toHaveClass(customClass);
   });
 });

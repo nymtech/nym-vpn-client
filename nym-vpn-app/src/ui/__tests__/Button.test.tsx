@@ -8,7 +8,7 @@ describe('Button Component', () => {
     const props = mockButtonProps();
     render(<Button {...props} />);
 
-    const button = screen.getByTestId('button');
+    const button = screen.getByRole('button', { name: 'Test Button' });
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent('Test Button');
   });
@@ -19,7 +19,7 @@ describe('Button Component', () => {
 
     render(<Button {...props} />);
 
-    const button = screen.getByTestId('button');
+    const button = screen.getByRole('button', { name: 'Test Button' });
     fireEvent.click(button);
 
     expect(onClick).toHaveBeenCalledTimes(1);
@@ -31,7 +31,7 @@ describe('Button Component', () => {
 
     render(<Button {...props} />);
 
-    const button = screen.getByTestId('button');
+    const button = screen.getByRole('button', { name: 'Test Button' });
     expect(button).toBeDisabled();
 
     fireEvent.click(button);
@@ -42,7 +42,7 @@ describe('Button Component', () => {
     const props = mockButtonProps({ color: 'cornflower' });
     render(<Button {...props} />);
 
-    const button = screen.getByTestId('button');
+    const button = screen.getByRole('button', { name: 'Test Button' });
     expect(button).toHaveAttribute('data-test-color', 'cornflower');
   });
 
@@ -50,7 +50,7 @@ describe('Button Component', () => {
     const props = mockButtonProps({ outline: true });
     render(<Button {...props} />);
 
-    const button = screen.getByTestId('button');
+    const button = screen.getByRole('button', { name: 'Test Button' });
     expect(button).toHaveAttribute('data-test-outline', 'true');
   });
 
@@ -72,7 +72,7 @@ describe('Button Component', () => {
 
     render(<Button {...props} />);
 
-    const button = screen.getByTestId('button');
+    const button = screen.getByRole('button', { name: 'Test Button' });
     expect(button).toHaveClass(customClass);
   });
 
@@ -82,7 +82,7 @@ describe('Button Component', () => {
 
     render(<Button {...props} />);
 
-    const button = screen.getByTestId(customTestId);
+    const button = screen.getByRole('button', { name: 'Test Button' });
     expect(button).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe('Button Component', () => {
         const props = mockButtonProps({ color });
         render(<Button {...props} />);
 
-        const button = screen.getByTestId('button');
+        const button = screen.getByRole('button', { name: 'Test Button' });
         expect(button).toHaveAttribute('data-test-color', color);
       });
     });
@@ -105,7 +105,7 @@ describe('Button Component', () => {
       const props = mockButtonProps();
       render(<Button {...props} />);
 
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('button', { name: 'Test Button' });
       expect(button).toBeInTheDocument();
     });
 
@@ -115,7 +115,7 @@ describe('Button Component', () => {
 
       render(<Button {...props} />);
 
-      const button = screen.getByTestId('button');
+      const button = screen.getByRole('button', { name: 'Test Button' });
       button.focus();
 
       fireEvent.keyDown(button, { key: 'Enter' });

@@ -155,9 +155,7 @@ describe('Home Component', () => {
       expect(
         screen.getByTestId('home-node-select-section'),
       ).toBeInTheDocument();
-      expect(screen.getByTestId('home-node-select-title')).toHaveTextContent(
-        'Select nodes',
-      );
+      expect(screen.getByText('Select nodes')).toBeInTheDocument();
       expect(
         screen.getByTestId('home-hop-selects-container'),
       ).toBeInTheDocument();
@@ -173,7 +171,7 @@ describe('Home Component', () => {
     it('shows connection button', () => {
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).toBeInTheDocument();
     });
   });
@@ -188,7 +186,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).not.toBeDisabled();
       expect(button).toHaveTextContent('connect');
     });
@@ -202,7 +200,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).not.toBeDisabled();
       expect(button).toHaveTextContent('disconnect');
     });
@@ -216,7 +214,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).toBeDisabled();
     });
 
@@ -229,7 +227,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).toBeDisabled();
     });
 
@@ -242,7 +240,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).toBeDisabled();
       expect(screen.getByTestId('button-spinner')).toBeInTheDocument();
     });
@@ -337,7 +335,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       await user.click(button);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -355,7 +353,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       await user.click(button);
 
       expect(mockInvoke).toHaveBeenCalledWith('connect', {
@@ -376,7 +374,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       await user.click(button);
 
       expect(mockInvoke).toHaveBeenCalledWith('disconnect');
@@ -394,7 +392,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).toHaveTextContent('get-started');
     });
 
@@ -408,7 +406,7 @@ describe('Home Component', () => {
 
       render(<Home />);
 
-      const button = screen.getByTestId('home-connection-button');
+      const button = screen.getByRole('button');
       expect(button).toHaveTextContent('get-started');
     });
   });

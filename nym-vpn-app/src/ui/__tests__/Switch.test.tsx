@@ -16,7 +16,7 @@ describe('Switch Component', () => {
   it('renders correctly', () => {
     render(<Switch {...defaultProps} />);
 
-    const switchElement = screen.getByTestId('switch');
+    const switchElement = screen.getByRole('switch');
     expect(switchElement).toBeInTheDocument();
 
     const thumb = screen.getByTestId('switch-thumb');
@@ -27,7 +27,7 @@ describe('Switch Component', () => {
     const onChange = jest.fn();
     render(<Switch {...defaultProps} onChange={onChange} />);
 
-    const switchElement = screen.getByTestId('switch');
+    const switchElement = screen.getByRole('switch');
     fireEvent.click(switchElement);
 
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -37,12 +37,12 @@ describe('Switch Component', () => {
   it('reflects checked state in data attributes', () => {
     const { rerender } = render(<Switch {...defaultProps} checked={false} />);
 
-    let switchElement = screen.getByTestId('switch');
+    let switchElement = screen.getByRole('switch');
     expect(switchElement).toHaveAttribute('data-test-checked', 'false');
 
     rerender(<Switch {...defaultProps} checked={true} />);
 
-    switchElement = screen.getByTestId('switch');
+    switchElement = screen.getByRole('switch');
     expect(switchElement).toHaveAttribute('data-test-checked', 'true');
   });
 
@@ -50,7 +50,7 @@ describe('Switch Component', () => {
     const onChange = jest.fn();
     render(<Switch {...defaultProps} onChange={onChange} disabled={true} />);
 
-    const switchElement = screen.getByTestId('switch');
+    const switchElement = screen.getByRole('switch');
     expect(switchElement).toHaveAttribute('data-test-disabled', 'true');
 
     fireEvent.click(switchElement);
@@ -60,12 +60,12 @@ describe('Switch Component', () => {
   it('applies correct CSS classes based on checked state', () => {
     const { rerender } = render(<Switch {...defaultProps} checked={false} />);
 
-    let switchElement = screen.getByTestId('switch');
+    let switchElement = screen.getByRole('switch');
     expect(switchElement).toHaveClass('bg-bombay/60');
 
     rerender(<Switch {...defaultProps} checked={true} />);
 
-    switchElement = screen.getByTestId('switch');
+    switchElement = screen.getByRole('switch');
     expect(switchElement).toHaveClass('bg-malachite');
   });
 
@@ -74,7 +74,7 @@ describe('Switch Component', () => {
 
     render(<Switch {...defaultProps} data-testid={customTestId} />);
 
-    const switchElement = screen.getByTestId(customTestId);
+    const switchElement = screen.getByRole('switch');
     expect(switchElement).toBeInTheDocument();
 
     const thumb = screen.getByTestId('custom-switch-thumb');
@@ -86,7 +86,7 @@ describe('Switch Component', () => {
 
     render(<Switch {...defaultProps} className={customClass} />);
 
-    const switchElement = screen.getByTestId('switch');
+    const switchElement = screen.getByRole('switch');
     expect(switchElement).toHaveClass(customClass);
   });
 });
