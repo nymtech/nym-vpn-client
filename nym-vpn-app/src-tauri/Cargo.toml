@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.17.0-elderberry-rc1"
+version = "1.17.0-elderberry-rc2"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",
@@ -19,7 +19,13 @@ toml = "0.9.5"
 
 [dependencies]
 tauri = { version = "2.8.5", features = ["tray-icon", "image-png"] }
-tokio = { version = "1.47.1", features = ["rt", "sync", "time", "fs", "macros"] }
+tokio = { version = "1.47.1", features = [
+    "rt",
+    "sync",
+    "time",
+    "fs",
+    "macros",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1"
