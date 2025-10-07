@@ -263,7 +263,7 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	}
 
 	// Try URLs with retry logic
-	fileContent, downloadDuration, err := downloadFile(urlsToTry[0], req.DownloadTimeoutSec, tnet)
+	fileContent, downloadDuration, usedURL, err := downloadFileWithRetry(urlsToTry, req.DownloadTimeoutSec, tnet)
 	if err != nil {
 		log.Printf("Failed to download file from any URL: %v\n", err)
 	} else {
@@ -273,7 +273,7 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 
 	response.DownloadDurationSec = uint64(downloadDuration.Seconds())
 	response.DownloadDurationMilliseconds = uint64(downloadDuration.Milliseconds())
-	response.DownloadedFile = urlsToTry[0]
+	response.DownloadedFile = usedURL
 	if err != nil {
 		response.DownloadError = err.Error()
 		response.DownloadedFileSizeBytes = 0
