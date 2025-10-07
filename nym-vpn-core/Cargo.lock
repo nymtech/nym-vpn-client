@@ -4380,6 +4380,7 @@ dependencies = [
  "nym-client-core",
  "nym-config",
  "nym-connection-monitor",
+ "nym-credential-utils",
  "nym-credentials",
  "nym-credentials-interface",
  "nym-crypto",

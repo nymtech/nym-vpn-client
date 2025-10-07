@@ -20,6 +20,8 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	netUrl "net/url"
+	"os"
 	"strings"
 	"time"
 	"unsafe"
@@ -51,6 +53,7 @@ type NetstackRequestGo struct {
 	PrivateKey         string   `json:"private_key"`
 	PublicKey          string   `json:"public_key"`
 	Endpoint           string   `json:"endpoint"`
+	MetadataEndpoint   string   `json:"metadata_endpoint"`
 	Dns                string   `json:"dns"`
 	IpVersion          uint8    `json:"ip_version"`
 	PingHosts          []string `json:"ping_hosts"`
@@ -59,19 +62,23 @@ type NetstackRequestGo struct {
 	SendTimeoutSec     uint64   `json:"send_timeout_sec"`
 	RecvTimeoutSec     uint64   `json:"recv_timeout_sec"`
 	DownloadTimeoutSec uint64   `json:"download_timeout_sec"`
+	MetadataTimeoutSec uint64   `json:"metadata_timeout_sec"`
 	AwgArgs            string   `json:"awg_args"`
 }
 
 type NetstackResponse struct {
-	CanHandshake        bool   `json:"can_handshake"`
-	SentIps             uint16 `json:"sent_ips"`
-	ReceivedIps         uint16 `json:"received_ips"`
-	SentHosts           uint16 `json:"sent_hosts"`
-	ReceivedHosts       uint16 `json:"received_hosts"`
-	CanResolveDns       bool   `json:"can_resolve_dns"`
-	DownloadedFile      string `json:"downloaded_file"`
-	DownloadDurationSec uint64 `json:"download_duration_sec"`
-	DownloadError       string `json:"download_error"`
+	CanHandshake                 bool   `json:"can_handshake"`
+	CanQueryMetadata             bool   `json:"can_query_metadata"`
+	SentIps                      uint16 `json:"sent_ips"`
+	ReceivedIps                  uint16 `json:"received_ips"`
+	SentHosts                    uint16 `json:"sent_hosts"`
+	ReceivedHosts                uint16 `json:"received_hosts"`
+	CanResolveDns                bool   `json:"can_resolve_dns"`
+	DownloadedFile               string `json:"downloaded_file"`
+	DownloadedFileSizeBytes      uint64 `json:"downloaded_file_size_bytes"`
+	DownloadDurationSec          uint64 `json:"download_duration_sec"`
+	DownloadDurationMilliseconds uint64 `json:"download_duration_milliseconds"`
+	DownloadError                string `json:"download_error"`
 }
 
 type SuccessResult = struct {
@@ -163,15 +170,22 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 		ipc.WriteString("\nallowed_ip=::/0\n")
 	}
 
-	response := NetstackResponse{false, 0, 0, 0, 0, false, "", 0, ""}
+	response := NetstackResponse{false, false, 0, 0, 0, 0, false, "", 0, 0, 0, ""}
 
-	dev.IpcSet(ipc.String())
+	err = dev.IpcSet(ipc.String())
+	if err != nil {
+		return NetstackResponse{}, err
+	}
 
 	config, err := dev.IpcGet()
 	if err != nil {
 		return NetstackResponse{}, err
 	}
-	log.Printf("%s", config)
+
+	// do not print the config by default, because it contains the wg private key
+	if os.Getenv("SHOW_WG_CONFIG") == "true" {
+		log.Printf("%s", config)
+	}
 
 	err = dev.Up()
 	if err != nil {
@@ -179,6 +193,16 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	}
 
 	response.CanHandshake = true
+
+	version, duration, err := queryMetadata(req.MetadataEndpoint, req.MetadataTimeoutSec, tnet)
+	if err != nil {
+		log.Printf("Failed to query metadata URLs: %v\n", err)
+		response.CanQueryMetadata = false
+	} else {
+		log.Printf("Queried metadata endpoint with version: %v\n", version)
+		log.Printf("Query duration: %v\n", duration)
+		response.CanQueryMetadata = true
+	}
 
 	for _, host := range req.PingHosts {
 		consecutiveFailures := 0
@@ -257,11 +281,14 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	}
 
 	response.DownloadDurationSec = uint64(downloadDuration.Seconds())
+	response.DownloadDurationMilliseconds = uint64(downloadDuration.Milliseconds())
 	response.DownloadedFile = usedURL
 	if err != nil {
 		response.DownloadError = err.Error()
+		response.DownloadedFileSizeBytes = 0
 	} else {
 		response.DownloadError = ""
+		response.DownloadedFileSizeBytes = uint64(len(fileContent))
 	}
 
 	return response, nil
@@ -461,4 +488,79 @@ func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, t
 	return buf.Bytes(), duration, nil
 }
 
-func main() {}
+func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (int, time.Duration, error) {
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return tnet.Dial(network, addr)
+		},
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Second * time.Duration(timeoutSecs),
+	}
+
+	bandwidthVersionUrl, err := netUrl.JoinPath(url, "v1/bandwidth/version")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	start := time.Now() // Start timing
+
+	log.Printf("Querying metadata encoding: url = %s", bandwidthVersionUrl)
+	resp, err := client.Get(bandwidthVersionUrl)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, 0, fmt.Errorf("failed to query metadata endpoint: %s", resp.Status)
+	}
+
+	var contentType = resp.Header.Get("Content-Type")
+
+	log.Printf("Metadata Content-Type: %s", contentType)
+
+	var reader io.Reader = resp.Body
+	bodyBytes, err := io.ReadAll(reader)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var version int
+	err = json.Unmarshal(bodyBytes, &version)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	duration := time.Since(start) // Calculate duration
+
+	return version, duration, nil
+}
+
+func main() {
+	// uncomment the lines below to run locally and see README.md for how to get the Wireguard config
+	/*	var _, err = ping(NetstackRequestGo{
+			WgIp:             "10.1.155.153",
+			PrivateKey:       "...",
+			PublicKey:        "...",
+			Endpoint:         "13.245.9.123:51822",
+			MetadataEndpoint: "http://10.1.0.1:51830",
+			Dns:              "1.1.1.1",
+			IpVersion:        4,
+			//PingHosts:          nil,
+			//PingIps:            nil,
+			//NumPing:            0,
+			//SendTimeoutSec:     0,
+			//RecvTimeoutSec:     0,
+			//DownloadTimeoutSec: 0,
+			MetadataTimeoutSec: 5,
+			//AwgArgs:            "",
+		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+}

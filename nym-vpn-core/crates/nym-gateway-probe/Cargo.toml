@@ -48,6 +48,7 @@ nym-crypto.workspace = true
 nym-config.workspace = true
 nym-connection-monitor = { workspace = true }
 nym-credentials-interface.workspace = true
+nym-credential-utils.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-ip-packet-client = { workspace = true }
 nym-authenticator-client = { workspace = true }
