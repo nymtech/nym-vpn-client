@@ -20,6 +20,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	netUrl "net/url"
 	"os"
 	"strings"
 	"time"
@@ -499,7 +500,10 @@ func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (int, tim
 		Timeout:   time.Second * time.Duration(timeoutSecs),
 	}
 
-	bandwidthVersionUrl := fmt.Sprintf("%s/v1/bandwidth/version", url)
+	bandwidthVersionUrl, err := netUrl.JoinPath(url, "v1/bandwidth/version")
+	if err != nil {
+		return 0, 0, err
+	}
 
 	start := time.Now() // Start timing
 
