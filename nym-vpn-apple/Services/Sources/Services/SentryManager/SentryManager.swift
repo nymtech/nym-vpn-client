@@ -2,13 +2,13 @@ import Combine
 import Sentry
 import AppSettings
 
-public final class SentryManager {
+@MainActor public final class SentryManager {
     private var appSettings: AppSettings
     private var cancellables = Set<AnyCancellable>()
 
-    public static let shared = SentryManager()
+    public static let shared = SentryManager(appSettings: .shared)
 
-    public init(appSettings: AppSettings = AppSettings.shared) {
+    public init(appSettings: AppSettings) {
         self.appSettings = appSettings
         SentrySDK.start { _ in }
     }

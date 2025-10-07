@@ -22,7 +22,7 @@ import HelperInstall
 import HelperManager
 #endif
 
-public class HomeViewModel: HomeFlowState {
+@MainActor public class HomeViewModel: HomeFlowState {
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
@@ -39,8 +39,16 @@ public class HomeViewModel: HomeFlowState {
     let helperManager: HelperManager
 #endif
     let messagesManager: MessagesManager
-    let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
-    let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
+    let anonymousButtonViewModel = NetworkButtonViewModel(
+        type: .mixnet5hop,
+        appSettings: .shared,
+        connectionManager: .shared
+    )
+    let fastButtonViewModel = NetworkButtonViewModel(
+        type: .wireguard,
+        appSettings: .shared,
+        connectionManager: .shared
+    )
 
     @ObservedObject var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
@@ -100,15 +108,15 @@ public class HomeViewModel: HomeFlowState {
 
 #if os(iOS)
     public init(
-        appSettings: AppSettings = .shared,
-        connectionManager: ConnectionManager = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        networkMonitor: NetworkMonitor = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        gatewayManager: GatewayManager = .shared,
-        impactGenerator: ImpactGenerator = .shared,
-        messagesManager: MessagesManager = .shared
+        appSettings: AppSettings,
+        connectionManager: ConnectionManager,
+        configurationManager: ConfigurationManager,
+        credentialsManager: CredentialsManager,
+        networkMonitor: NetworkMonitor,
+        externalLinkManager: ExternalLinkManager,
+        gatewayManager: GatewayManager,
+        impactGenerator: ImpactGenerator,
+        messagesManager: MessagesManager
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -125,17 +133,17 @@ public class HomeViewModel: HomeFlowState {
     }
 #elseif os(macOS)
     public init(
-        appSettings: AppSettings = .shared,
-        connectionManager: ConnectionManager = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        networkMonitor: NetworkMonitor = .shared,
-        grpcManager: GRPCManager = .shared,
-        helperManager: HelperManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        gatewayManager: GatewayManager = .shared,
-        impactGenerator: ImpactGenerator = .shared,
-        messagesManager: MessagesManager = .shared
+        appSettings: AppSettings,
+        connectionManager: ConnectionManager,
+        configurationManager: ConfigurationManager,
+        credentialsManager: CredentialsManager,
+        networkMonitor: NetworkMonitor,
+        grpcManager: GRPCManager,
+        helperManager: HelperManager,
+        externalLinkManager: ExternalLinkManager,
+        gatewayManager: GatewayManager,
+        impactGenerator: ImpactGenerator,
+        messagesManager: MessagesManager
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
@@ -154,10 +162,6 @@ public class HomeViewModel: HomeFlowState {
         setup()
     }
 #endif
-
-    deinit {
-        cancellables.forEach { $0.cancel() }
-    }
 }
 
 // MARK: - Navigation -

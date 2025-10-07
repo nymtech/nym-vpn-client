@@ -6,7 +6,7 @@ import GRPCManager
 import NymLogger
 import Theme
 
-public final class LogsViewModel: ObservableObject {
+@MainActor public final class LogsViewModel: ObservableObject {
     private let logFileManager: LogFileManager
 
     let impactGenerator: ImpactGenerator
@@ -43,7 +43,7 @@ public final class LogsViewModel: ObservableObject {
     init(
         path: Binding<NavigationPath>,
         logFileManager: LogFileManager,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared
+        impactGenerator: ImpactGenerator
     ) {
         _path = path
         self.logFileManager = logFileManager
@@ -54,8 +54,9 @@ public final class LogsViewModel: ObservableObject {
     init(
         path: Binding<NavigationPath>,
         logFileManager: LogFileManager,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared,
-        grpcManager: GRPCManager = .shared) {
+        impactGenerator: ImpactGenerator,
+        grpcManager: GRPCManager
+    ) {
         _path = path
         self.logFileManager = logFileManager
             self.impactGenerator = impactGenerator

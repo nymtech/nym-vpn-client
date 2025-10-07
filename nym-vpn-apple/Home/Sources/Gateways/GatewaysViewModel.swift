@@ -28,8 +28,8 @@ import UIComponents
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
-        connectionManager: ConnectionManager = .shared,
-        gatewayManager: GatewayManager = .shared
+        connectionManager: ConnectionManager,
+        gatewayManager: GatewayManager
     ) {
         _path = path
         self.type = type

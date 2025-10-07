@@ -23,7 +23,8 @@ extension HomeView {
             ActionDialogView(
                 viewModel: ActionDialogViewModel(
                     isDisplayed: $viewModel.isOfflineOverlayDisplayed,
-                    configuration: viewModel.offlineOverlayConfiguration
+                    configuration: viewModel.offlineOverlayConfiguration,
+                    impactGenerator: .shared
                 )
             )
             .transition(.opacity)
@@ -37,7 +38,8 @@ extension HomeView {
             ActionDialogView(
                 viewModel: ActionDialogViewModel(
                     isDisplayed: $viewModel.isUpdateAvailableOverlayDisplayed,
-                    configuration: viewModel.updateAvailableOverlayConfiguration
+                    configuration: viewModel.updateAvailableOverlayConfiguration,
+                    impactGenerator: .shared
                 )
             )
             .transition(.opacity)

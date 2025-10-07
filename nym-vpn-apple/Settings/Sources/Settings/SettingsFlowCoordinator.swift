@@ -20,33 +20,40 @@ struct SettingsFlowCoordinator<Content: View>: View {
     private func linkDestination(link: SettingLink) -> some View {
         switch link {
         case .appearance:
-            AppearanceView(path: $flowState.path)
+            appearanceDestination()
         case .displayTheme:
-            DisplayThemeView(viewModel: DisplayThemeViewModel(path: $flowState.path, appSettings: AppSettings.shared))
+            displayThemeDestination()
         case .support:
-            SupportView(viewModel: SupportViewModel(path: $flowState.path))
+            supportDestination()
         case .legal:
-            LegalView(viewModel: LegalViewModel(path: $flowState.path))
+            legalDestination()
         case .addCredentials:
-            AddCredentialsView(viewModel: AddCredentialsViewModel(path: $flowState.path))
+            addCredentialsDestination()
         case .createAccountWelcome:
-            CreateAccountWelcomeView(path: $flowState.path)
+            createAccountWelcomeDestination()
         case .createAccount:
-            CreateAccountView(path: $flowState.path)
+            createAccountDestination()
         case .createAccountSuccess:
-            CreateAccountSuccessView(path: $flowState.path)
+            createAccountSuccessDestination()
         case .planPurchaseSuccess:
-            PlanPurchaseSuccessView(path: $flowState.path)
+            planPurchaseSuccessDestination()
         case .logs:
-            LogsView(viewModel: LogsViewModel(path: $flowState.path, logFileManager: logFileManager))
+            logsDestination()
         case .acknowledgments:
-            AcknowledgmentsView(viewModel: AcknowledgeMentsViewModel(navigationPath: $flowState.path))
+            acknowledgmentsDestination()
         case let .licence(details: details):
-            LicenseView(viewModel: LicenseViewModel(path: $flowState.path, details: details))
+            LicenseView(
+                viewModel: LicenseViewModel(
+                    path: $flowState.path,
+                    details: details,
+                    externalLinkManager: .shared
+                )
+            )
         case .santasMenu:
-            SantasView(viewModel: SantasViewModel(path: $flowState.path))
+            santasMenuDestination()
 #if os(macOS)
         case let .installHelper(afterInstallAction):
+            // Kept inline due to associated value whose concrete type lives in your domain.
             HelperInstallView(
                 viewModel: HelperInstallViewModel(
                     path: $flowState.path,
@@ -54,12 +61,167 @@ struct SettingsFlowCoordinator<Content: View>: View {
                 )
             )
         case .appMode:
-            AppModeView(path: $flowState.path)
+            appModeDestination()
 #endif
         case .privacyAndData:
-            PrivacyAndDataView(path: $flowState.path)
+            privacyAndDataDestination()
         case .censorship:
-            CensorshipView(path: $flowState.path)
+            censorshipDestination()
         }
+    }
+}
+
+// MARK: - Private Destinations
+
+private extension SettingsFlowCoordinator {
+    @ViewBuilder
+    func appearanceDestination() -> some View {
+        AppearanceView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func displayThemeDestination() -> some View {
+        DisplayThemeView(
+            viewModel: DisplayThemeViewModel(
+                path: $flowState.path,
+                appSettings: AppSettings.shared
+            )
+        )
+    }
+
+    @ViewBuilder
+    func supportDestination() -> some View {
+        SupportView(
+            viewModel: SupportViewModel(
+                path: $flowState.path,
+                connectionManager: .shared,
+                externalLinkManager: .shared
+            )
+        )
+    }
+
+    @ViewBuilder
+    func legalDestination() -> some View {
+        LegalView(
+            viewModel: LegalViewModel(
+                path: $flowState.path,
+                externalLinkManager: .shared
+            )
+        )
+    }
+
+    @ViewBuilder
+    func addCredentialsDestination() -> some View {
+#if os(iOS)
+        AddCredentialsView(
+            viewModel:
+                AddCredentialsViewModel(
+                    path: $flowState.path,
+                    appSettings: .shared,
+                    credentialsManager: .shared,
+                    configurationManager: .shared,
+                    keyboardManager: .shared
+                )
+        )
+#elseif os(macOS)
+        AddCredentialsView(
+            viewModel: AddCredentialsViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                configurationManager: .shared,
+                credentialsManager: .shared
+            )
+        )
+#endif
+    }
+
+    @ViewBuilder
+    func createAccountWelcomeDestination() -> some View {
+        CreateAccountWelcomeView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func createAccountDestination() -> some View {
+        CreateAccountView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func createAccountSuccessDestination() -> some View {
+        CreateAccountSuccessView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func planPurchaseSuccessDestination() -> some View {
+        PlanPurchaseSuccessView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func logsDestination() -> some View {
+#if os(iOS)
+        LogsView(
+            viewModel: LogsViewModel(
+                path: $flowState.path,
+                logFileManager: logFileManager,
+                impactGenerator: .shared
+            )
+        )
+#elseif os(macOS)
+        LogsView(
+            viewModel: LogsViewModel(
+                path: $flowState.path,
+                logFileManager: logFileManager,
+                impactGenerator: .shared,
+                grpcManager: .shared
+            )
+        )
+#endif
+    }
+
+    @ViewBuilder
+    func acknowledgmentsDestination() -> some View {
+        AcknowledgmentsView(
+            viewModel: AcknowledgeMentsViewModel(
+                navigationPath: $flowState.path
+            )
+        )
+    }
+
+    @ViewBuilder
+    func santasMenuDestination() -> some View {
+#if os(iOS)
+        SantasView(
+            viewModel: SantasViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                configurationManager: .shared
+            )
+        )
+#elseif os(macOS)
+        SantasView(
+            viewModel: SantasViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                configurationManager: .shared,
+                grpcManager: .shared
+            )
+        )
+#endif
+    }
+
+#if os(macOS)
+    @ViewBuilder
+    func appModeDestination() -> some View {
+        AppModeView(path: $flowState.path)
+    }
+#endif
+
+    @ViewBuilder
+    func privacyAndDataDestination() -> some View {
+        PrivacyAndDataView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func censorshipDestination() -> some View {
+        CensorshipView(path: $flowState.path)
     }
 }

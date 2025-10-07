@@ -5,7 +5,7 @@ import ImpactGenerator
 import UIComponents
 import Theme
 
-public final class WelcomeViewModel: ObservableObject {
+@MainActor public final class WelcomeViewModel: ObservableObject {
     private var appSettings: AppSettings
 
     let titleText = "welcome.title".localizedString
@@ -19,7 +19,7 @@ public final class WelcomeViewModel: ObservableObject {
     let sentryText = "welcome.sentry".localizedString
     let continueText = "welcome.continue".localizedString
 
-    public init(appSettings: AppSettings = AppSettings.shared) {
+    public init(appSettings: AppSettings) {
         self.appSettings = appSettings
     }
 

@@ -12,7 +12,7 @@ public struct SnackbarView: View {
     public init(
         isDisplayed: Binding<Bool>,
         message: SnackBarMessage?,
-        appSettings: AppSettings = AppSettings.shared
+        appSettings: AppSettings
     ) {
         self._isDisplayed = isDisplayed
         self.message = message

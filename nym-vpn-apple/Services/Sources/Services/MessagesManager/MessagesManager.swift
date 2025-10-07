@@ -9,7 +9,7 @@ import GRPCManager
 #endif
 import MessageModels
 
-public final class MessagesManager: ObservableObject {
+@MainActor public final class MessagesManager: ObservableObject {
     private let appSettings: AppSettings
 #if os(macOS)
     private let grpcManager: GRPCManager
@@ -18,19 +18,21 @@ public final class MessagesManager: ObservableObject {
 
     private var messages: [SnackBarMessage] = []
     private var timer: Timer?
-
-    public static let shared = MessagesManager()
-
+#if os(iOS)
+    public static let shared = MessagesManager(appSettings: .shared)
+#elseif os(macOS)
+    public static let shared = MessagesManager(appSettings: .shared, grpcManager: .shared)
+#endif
     @Published public var currentMessage: SnackBarMessage?
 
 #if os(iOS)
-    init(appSettings: AppSettings = .shared) {
+    init(appSettings: AppSettings) {
         self.appSettings = appSettings
     }
 #elseif os(macOS)
     init(
-        appSettings: AppSettings = .shared,
-        grpcManager: GRPCManager = .shared
+        appSettings: AppSettings,
+        grpcManager: GRPCManager
     ) {
         self.appSettings = appSettings
         self.grpcManager = grpcManager
@@ -38,7 +40,9 @@ public final class MessagesManager: ObservableObject {
 #endif
 
     nonisolated public func setup() {
-        fetchSystemMessages()
+        Task { @MainActor [weak self] in
+            self?.fetchSystemMessages()
+        }
     }
 
     public func processMessages() {
@@ -53,7 +57,9 @@ public final class MessagesManager: ObservableObject {
 
         currentMessage = message
         timer = Timer.scheduledTimer(withTimeInterval: 20, repeats: false) { [weak self] _ in
-            self?.currentMessage = nil
+            Task { @MainActor in
+                self?.currentMessage = nil
+            }
         }
     }
 

@@ -4,7 +4,7 @@ import ConnectionManager
 import ExternalLinkManager
 import UIComponents
 
-final class SupportViewModel: ObservableObject {
+@MainActor final class SupportViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
     private let newSupportRequest = Constants.newSupportRequest.rawValue
@@ -36,8 +36,8 @@ final class SupportViewModel: ObservableObject {
 
     init(
         path: Binding<NavigationPath>,
-        connectionManager: ConnectionManager = ConnectionManager.shared,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        connectionManager: ConnectionManager,
+        externalLinkManager: ExternalLinkManager
     ) {
         _path = path
         self.connectionManager = connectionManager

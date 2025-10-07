@@ -1,7 +1,7 @@
 import SwiftUI
 import ImpactGenerator
 
-public final class ActionDialogViewModel: ObservableObject {
+@MainActor public final class ActionDialogViewModel: ObservableObject {
     let impactGenerator: ImpactGenerator
     let configuration: ActionDialogConfiguration
 
@@ -10,7 +10,7 @@ public final class ActionDialogViewModel: ObservableObject {
     public init(
         isDisplayed: Binding<Bool>,
         configuration: ActionDialogConfiguration,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared
+        impactGenerator: ImpactGenerator
     ) {
         _isDisplayed = isDisplayed
         self.impactGenerator = impactGenerator

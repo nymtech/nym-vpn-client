@@ -1,7 +1,7 @@
 import SwiftUI
 import ImpactGenerator
 
-final class LogsDeleteConfirmationDialogViewModel: ObservableObject {
+@MainActor final class LogsDeleteConfirmationDialogViewModel: ObservableObject {
     let impactGenerator: ImpactGenerator
     let trashIconImageName = "trash"
     let deleteAllLogsLocalizedString = "logs.deleteAllLogs".localizedString
@@ -15,7 +15,7 @@ final class LogsDeleteConfirmationDialogViewModel: ObservableObject {
 
     init(
         isDisplayed: Binding<Bool>,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared,
+        impactGenerator: ImpactGenerator,
         action: @escaping () -> Void
     ) {
         _isDisplayed = isDisplayed

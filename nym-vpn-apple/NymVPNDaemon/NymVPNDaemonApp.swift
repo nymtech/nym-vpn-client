@@ -41,9 +41,21 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
-    @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var homeViewModel = HomeViewModel(
+        appSettings: .shared,
+        connectionManager: .shared,
+        configurationManager: .shared,
+        credentialsManager: .shared,
+        networkMonitor: .shared,
+        grpcManager: .shared,
+        helperManager: .shared,
+        externalLinkManager: .shared,
+        gatewayManager: .shared,
+        impactGenerator: .shared,
+        messagesManager: .shared
+    )
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @StateObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var splashScreenDidDisplay = false

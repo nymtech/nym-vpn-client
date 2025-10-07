@@ -82,7 +82,7 @@ private extension BouncingMarqueeTextView {
         guard textWidth > 0, containerWidth > 0 else { return }
         guard textWidth > containerWidth
         else {
-            withAnimation() { offset = 0 }
+            withAnimation { offset = 0 }
             return
         }
         startAnimation()

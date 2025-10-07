@@ -116,11 +116,11 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountDecentralised
         case .InsufficientFunds:
             self = .insufficientFunds
-        case let .ZkNymAcquisitionFailure(details:  details):
+        case let .ZkNymAcquisitionFailure(details: details):
             self = .zkNymAcquisitionFailure(details: details)
-        case let .NyxdConnectionFailure(details:  details):
+        case let .NyxdConnectionFailure(details: details):
             self = .nyxdConnectionFailure(details: details)
-        case let .NyxdQueryFailure(details:  details):
+        case let .NyxdQueryFailure(details: details):
             self = .nyxdQueryFailure(details: details)
         }
     }

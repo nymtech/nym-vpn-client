@@ -69,7 +69,7 @@ public struct GatewayDetailsView: View {
         path: Binding<NavigationPath>,
         gateway: GatewayNode,
         hopType: HopType,
-        externalLinkManager: ExternalLinkManager = .shared
+        externalLinkManager: ExternalLinkManager
     ) {
         _path = path
         self.gateway = gateway

@@ -2,7 +2,7 @@
 import UIKit
 #endif
 
-public final class ImpactGenerator {
+@MainActor public final class ImpactGenerator {
 #if os(iOS)
     private let mediumFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     private let softFeedbackGenerator = UIImpactFeedbackGenerator(style: .soft)

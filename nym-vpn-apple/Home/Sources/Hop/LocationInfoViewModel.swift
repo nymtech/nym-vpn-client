@@ -2,7 +2,7 @@ import SwiftUI
 import ExternalLinkManager
 import Theme
 
-final class LocationInfoViewModel {
+@MainActor final class LocationInfoViewModel {
     let externalLinkManager: ExternalLinkManager
     let infoIconImageName = "info.circle"
     let titleLocalizedString = "locationModal.title".localizedString

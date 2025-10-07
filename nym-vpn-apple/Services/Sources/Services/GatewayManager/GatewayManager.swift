@@ -11,7 +11,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 
-public final class GatewayManager: ObservableObject {
+@MainActor public final class GatewayManager: ObservableObject {
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager
 #if os(macOS)
@@ -24,7 +24,15 @@ public final class GatewayManager: ObservableObject {
     var gatewayStore = GatewayNodeStore()
     var cancellables = Set<AnyCancellable>()
 
-    public static let shared = GatewayManager()
+#if os(iOS)
+    public static let shared = GatewayManager(appSettings: .shared, configurationManager: .shared)
+#elseif os(macOS)
+    public static let shared = GatewayManager(
+        appSettings: .shared,
+        configurationManager: .shared,
+        grpcManager: .shared
+    )
+#endif
 
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
@@ -41,7 +49,7 @@ public final class GatewayManager: ObservableObject {
     }()
 
 #if os(iOS)
-    public init(appSettings: AppSettings = .shared, configurationManager: ConfigurationManager = .shared) {
+    public init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.entry = []
@@ -55,9 +63,9 @@ public final class GatewayManager: ObservableObject {
     }
 #elseif os(macOS)
     public init(
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        grpcManager: GRPCManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        grpcManager: GRPCManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager

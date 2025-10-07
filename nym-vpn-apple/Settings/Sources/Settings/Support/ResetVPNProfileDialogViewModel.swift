@@ -1,7 +1,7 @@
 import SwiftUI
 import ImpactGenerator
 
-final class ResetVPNProfileDialogViewModel: ObservableObject {
+@MainActor final class ResetVPNProfileDialogViewModel: ObservableObject {
     let impactGenerator: ImpactGenerator
     let resetVpnProfileTitle = "settings.resetVpnProfileTitle".localizedString
     let resetVpnProfileSubtitle = "settings.resetVpnProfileSubtitle".localizedString
@@ -14,7 +14,7 @@ final class ResetVPNProfileDialogViewModel: ObservableObject {
 
     init(
         isDisplayed: Binding<Bool>,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared,
+        impactGenerator: ImpactGenerator,
         action: @escaping () -> Void
     ) {
         _isDisplayed = isDisplayed
