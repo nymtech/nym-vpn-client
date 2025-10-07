@@ -2,7 +2,9 @@ import SwiftUI
 import ConnectionManager
 import CountriesManagerTypes
 import GatewayManager
+import ImpactGenerator
 import Theme
+import UIComponents
 
 public struct GatewayCell: View {
     private let server: GatewayNode
@@ -12,13 +14,16 @@ public struct GatewayCell: View {
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
     @Binding private var path: NavigationPath
+    @Binding private var scrollToModel: GatewayScrollToModel
     @State private var isHovered = false
+    @State private var isSelected: Bool
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     public init(
         server: GatewayNode,
         type: HopType,
         path: Binding<NavigationPath>,
+        scrollToModel: Binding<GatewayScrollToModel>,
         isSearching: Bool = false,
         infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
     ) {
@@ -26,7 +31,12 @@ public struct GatewayCell: View {
         self.hopType = type
         self.isSearching = isSearching
         _path = path
+        _scrollToModel = scrollToModel
         self.infoButtonTapCompletion = infoButtonTapCompletion
+
+        let unwrappedScrollToModel = scrollToModel.wrappedValue
+        let shouldSelect = unwrappedScrollToModel.serverId == server.id && unwrappedScrollToModel.isServer
+        _isSelected = State(initialValue: shouldSelect)
     }
 
     public var body: some View {
@@ -39,7 +49,7 @@ public struct GatewayCell: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(server.moniker ?? server.id)")
-            .accessibilityValue(isSelected() ? "selected".localizedString : "")
+            .accessibilityValue(isSelected ? "selected".localizedString : "")
             .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
             .onTapGesture {
@@ -70,6 +80,7 @@ public struct GatewayCell: View {
 
 private extension GatewayCell {
     func tapAction() {
+        ImpactGenerator.shared.softImpact()
         switch hopType {
         case .entry:
             connectionManager.entryGateway = .gateway(server.id)
@@ -80,23 +91,15 @@ private extension GatewayCell {
     }
 
     func infoButtonTapAction() {
+        ImpactGenerator.shared.softImpact()
         infoButtonTapCompletion?(server)
     }
 }
 
 private extension GatewayCell {
-    func isSelected() -> Bool {
-        switch hopType {
-        case .entry:
-            connectionManager.entryGateway.gatewayId == server.id && connectionManager.entryGateway.isGateway
-        case .exit:
-            connectionManager.exitRouter.gatewayId == server.id && connectionManager.exitRouter.isGateway
-        }
-    }
-
     @ViewBuilder
     func selectionMarkerView() -> some View {
-        if isSelected() {
+        if isSelected {
             SelectionMarker()
         }
     }
@@ -126,8 +129,7 @@ private extension GatewayCell {
     func serverSubtitleString() -> String {
         if isSearching,
            let countryCode = server.location?.twoLetterIsoCountryCode,
-           let country = gatewayManager.country(with: countryCode)
-        {
+           let country = gatewayManager.localizedCountry(with: countryCode) {
             "\(country.name), \(server.id)"
         } else {
             server.id

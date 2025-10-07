@@ -1,4 +1,3 @@
-// swiftlint:disable file_name
 import Foundation
 import NymVPNLib
 import Tunnels

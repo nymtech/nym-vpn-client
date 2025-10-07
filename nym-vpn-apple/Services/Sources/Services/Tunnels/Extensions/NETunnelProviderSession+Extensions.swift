@@ -1,6 +1,6 @@
 import NetworkExtension
 
-extension NETunnelProviderSession {
+@MainActor extension NETunnelProviderSession {
     public func sendProviderMessageAsync(_ message: Data) async throws -> Data? {
         try await withCheckedThrowingContinuation { continuation in
             do {
@@ -15,5 +15,9 @@ extension NETunnelProviderSession {
                 continuation.resume(throwing: error)
             }
         }
+    }
+
+    public func sendMessageOnMainActor(_ data: Data) async throws -> Data? {
+        try await sendProviderMessageAsync(data)
     }
 }

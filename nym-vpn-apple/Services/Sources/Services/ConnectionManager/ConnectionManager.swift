@@ -11,7 +11,7 @@ import TunnelStatus
 import GRPCManager
 #endif
 
-public final class ConnectionManager: ObservableObject {
+@MainActor public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
 
     private var timerCancellable: AnyCancellable?
@@ -35,7 +35,22 @@ public final class ConnectionManager: ObservableObject {
     public var isReconnecting = false
     public var isDisconnecting = false
 
-    public static let shared = ConnectionManager()
+#if os(iOS)
+    public static let shared = ConnectionManager(
+        appSettings: .shared,
+        connectionStorage: .shared,
+        credentialsManager: .shared,
+        tunnelsManager: .shared
+    )
+#elseif os(macOS)
+    public static let shared = ConnectionManager(
+        appSettings: .shared,
+        connectionStorage: .shared,
+        credentialsManager: .shared,
+        tunnelsManager: .shared,
+        grpcManager: .shared
+    )
+#endif
 
     @Published public var connectionConfig: ConnectionConfig?
     @Published public var connectedDate: Date?
@@ -97,10 +112,10 @@ public final class ConnectionManager: ObservableObject {
 
 #if os(iOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        tunnelsManager: TunnelsManager = TunnelsManager.shared
+        appSettings: AppSettings,
+        connectionStorage: ConnectionStorage,
+        credentialsManager: CredentialsManager,
+        tunnelsManager: TunnelsManager
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
@@ -115,11 +130,11 @@ public final class ConnectionManager: ObservableObject {
 
 #if os(macOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        tunnelsManager: TunnelsManager = TunnelsManager.shared,
-        grpcManager: GRPCManager = GRPCManager.shared
+        appSettings: AppSettings,
+        connectionStorage: ConnectionStorage,
+        credentialsManager: CredentialsManager,
+        tunnelsManager: TunnelsManager,
+        grpcManager: GRPCManager
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage

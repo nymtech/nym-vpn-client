@@ -9105,6 +9105,39 @@
         }
       }
     },
+    "errorReason.accountDecentralised" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account decentralized."
+          }
+        }
+      }
+    },
+    "errorReason.accountDoesntExistOnChain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account does not exist on chain."
+          }
+        }
+      }
+    },
+    "errorReason.accountNotDecentralised" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account not decentralized."
+          }
+        }
+      }
+    },
     "errorReason.accountNotRegistered" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9812,30 +9845,41 @@
         }
       }
     },
+    "errorReason.deviceLoggedOut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device logged out."
+          }
+        }
+      }
+    },
     "errorReason.deviceTimeOutOfSync" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"وقت الجهاز غير متزامن. يرجى مزامنة وقت جهازك مع الإنترنت.\""
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"Gerätezeit ist nicht synchronisiert. Bitte synchronisieren Sie die Zeit Ihres Geräts mit dem Internet.\""
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "value" : "Device time is out of sync. Please synchronize your device's time with the internet."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"El tiempo del dispositivo no está sincronizado. Por favor, sincroniza el tiempo de tu dispositivo con el internet.\""
           }
         },
@@ -9847,67 +9891,67 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "L'horloge de l'appareil n'est pas synchronisée. Veuillez synchroniser l'heure sur une horloge réseau."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"डिवाइस का समय समन्वय में नहीं है। कृपया अपने डिवाइस के समय को इंटरनेट के साथ समन्वयित करें।\""
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"Il tempo del dispositivo non è sincronizzato. Sincronizza il tempo del dispositivo con Internet.\""
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"デバイスの時間が同期されていません。お使いのデバイスの時間をインターネットと同期してください。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "O tempo do dispositivo está fora de sincronização. Por favor, sincronize o tempo do seu dispositivo com a internet."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"O tempo do dispositivo está fora de sincronia. Por favor, sincronize o horário do seu dispositivo com a internet.\""
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"Время на устройстве не синхронизировано. Пожалуйста, синхронизируйте время на вашем устройстве с интернетом.\""
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin.\""
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"Час пристрою не синхронізований. Будь ласка, синхронізуйте час вашого пристрою з інтернетом.\""
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "\"Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet.\""
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "设备时间不同步。请将您的设备时间与互联网同步。"
           }
         }
@@ -10414,6 +10458,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "防火墙配置失败"
+          }
+        }
+      }
+    },
+    "errorReason.inactiveAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The account is not active."
+          }
+        }
+      }
+    },
+    "errorReason.insufficientFunds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insufficient funds."
           }
         }
       }

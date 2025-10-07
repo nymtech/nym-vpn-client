@@ -254,7 +254,7 @@ private extension ErrorReason {
         case .inactiveAccount:
             "errorReason.inactiveAccount".localizedString
         case .deviceLoggedOut:
-            "".localizedString
+            "errorReason.deviceLoggedOut".localizedString
         case .credentialWastedOnEntryGateway:
             "errorReason.credentialWastedOnEntryGateway".localizedString
         case .credentialWastedOnExitGateway:
@@ -262,7 +262,7 @@ private extension ErrorReason {
         case .performantEntryGatewayUnavailable:
             "errorReason.performantEntryGatewayUnavailable".localizedString
         case .performantExitGatewayUnavailable:
-            "errorReason.performantExitGatewayUnavailable"
+            "errorReason.performantExitGatewayUnavailable".localizedString
 #if os(macOS)
         case .existingAccount:
             "errorReason.existingAccount".localizedString

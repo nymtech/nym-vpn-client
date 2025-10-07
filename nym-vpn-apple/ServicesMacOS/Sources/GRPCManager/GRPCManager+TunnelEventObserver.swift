@@ -1,22 +1,24 @@
 import NymVPNRpc
 
 extension GRPCManager: TunnelEventObserver {
-    public func onTunnelEvent(event: TunnelEvent) {
+    nonisolated public func onTunnelEvent(event: TunnelEvent) {
         switch event {
         case let .newState(tunnelState):
-            Task { @MainActor in
-                updateTunnelStatus(with: tunnelState)
+            Task { @MainActor [weak self] in
+                self?.updateTunnelStatus(with: tunnelState)
             }
-        case let .mixnetState(mixnetEvent):
-            print("mixnet event: \(mixnetEvent)")
-        case let .configChanged(boxedVpnServiceConfig):
-            print("configChanged: \(boxedVpnServiceConfig)")
-        case let .accountState(accountControllerState):
-            print("accountControllerState: \(accountControllerState)")
+        case .mixnetState:
+            Task { @MainActor in }
+        case .configChanged:
+            Task { @MainActor in }
+        case .accountState:
+            Task { @MainActor in }
         }
     }
 
-    public func onClose() {
-        setup()
+    nonisolated public func onClose() {
+        Task { @MainActor [weak self] in
+            self?.setup()
+        }
     }
 }

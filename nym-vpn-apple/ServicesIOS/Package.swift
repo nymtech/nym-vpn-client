@@ -12,7 +12,6 @@ let package = Package(
     products: [
         .library(name: "Extensions", targets: ["Extensions"]),
         .library(name: "ErrorHandler", targets: ["ErrorHandler"]),
-        .library(name: "ImpactGenerator", targets: ["ImpactGenerator"]),
         .library(name: "KeyboardManager", targets: ["KeyboardManager"])
     ],
     dependencies: [
@@ -32,11 +31,6 @@ let package = Package(
                 .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/ErrorHandler"
-        ),
-        .target(
-            name: "ImpactGenerator",
-            dependencies: [],
-            path: "Sources/ImpactGenerator"
         ),
         .target(
             name: "KeyboardManager",

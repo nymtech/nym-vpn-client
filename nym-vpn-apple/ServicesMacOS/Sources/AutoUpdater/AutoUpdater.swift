@@ -1,7 +1,7 @@
 import SwiftUI
 import Sparkle
 
-public final class AutoUpdater: NSObject {
+@MainActor public final class AutoUpdater: NSObject {
     public static let shared = AutoUpdater()
 
     public var didPrepareForQuit = false
@@ -14,9 +14,7 @@ public final class AutoUpdater: NSObject {
         )
     }()
 
-    public var updater: SPUUpdater {
-        updaterController.updater
-    }
+    public var updater: SPUUpdater { updaterController.updater }
 
     public init(didPrepareForQuit: Bool = false) {
         self.didPrepareForQuit = didPrepareForQuit
@@ -24,8 +22,11 @@ public final class AutoUpdater: NSObject {
 }
 
 extension AutoUpdater: SPUUpdaterDelegate {
-    public func updaterWillRelaunchApplication(_ updater: SPUUpdater) {
-        didPrepareForQuit = true
-        NSApp.setActivationPolicy(.regular)
+    nonisolated public func updaterWillRelaunchApplication(_ updater: SPUUpdater) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.didPrepareForQuit = true
+            NSApp.setActivationPolicy(.regular)
+        }
     }
 }

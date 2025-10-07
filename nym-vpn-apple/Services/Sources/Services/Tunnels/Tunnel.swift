@@ -3,9 +3,10 @@ import SwiftUI
 import Logging
 import TunnelStatus
 
-public final class Tunnel: NSObject, ObservableObject {
+@MainActor public final class Tunnel: NSObject, ObservableObject {
     public var name: String
     public var tunnel: NETunnelProviderManager
+
     @Published public var status: TunnelStatus
     @Published public var retryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
@@ -33,9 +34,12 @@ public final class Tunnel: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Actions
+
     func connect(recursionCount: UInt = 0, lastError: Error? = nil) async throws {
         self.lastError = nil
         startPollingTunnelStatus()
+
         if recursionCount >= 8 {
             logger.log(level: .error, "Connecting failed after 8 attempts. Last error: \(String(describing: lastError))")
             if let lastError {
@@ -46,12 +50,9 @@ public final class Tunnel: NSObject, ObservableObject {
         }
 
         logger.log(level: .info, "Connecting tunnel \(name)")
+        status = .connecting
 
-        status = .connecting // Ensure that no other tunnel can attempt activation until this tunnel is done trying
-
-        guard tunnel.isEnabled
-        else {
-            // Re-enable the tunnel and save it
+        guard tunnel.isEnabled else {
             logger.log(level: .info, "Connecting. Enabling tunnel.")
             tunnel.isEnabled = true
 
@@ -68,14 +69,11 @@ public final class Tunnel: NSObject, ObservableObject {
                 recursionCount: recursionCount + 1,
                 lastError: NEVPNError(NEVPNError.configurationUnknown)
             )
-
             return
         }
 
-        // Start the tunnel
         do {
             logger.log(level: .info, "Connecting starting tunnel...")
-
             try tunnel.connection.startVPNTunnel()
             logger.log(level: .info, "Connecting starting tunnel success")
             status = TunnelStatus(from: tunnel.connection.status)
@@ -114,23 +112,25 @@ public final class Tunnel: NSObject, ObservableObject {
 
     func sendProviderMessage(with messageData: Data) async throws -> Data? {
         let session = tunnel.connection as? NETunnelProviderSession
-        return try await session?.sendProviderMessageAsync(messageData)
+        return try await session?.sendMessageOnMainActor(messageData)
     }
 }
 
+// MARK: - Manager helper
 extension Tunnel {
     public func saveToPreferencesAndLoadTunnels() async throws {
-        try await tunnel.saveToPreferencesAndLoadTunnels()
+        try await tunnel.savePrefsAndReloadOnMainActor()
     }
 }
 
+// MARK: - Polling
 private extension Tunnel {
     func startPollingTunnelStatus() {
         isPolling = true
-        pollingTask = Task { [weak self] in
+        pollingTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            while isPolling {
-                await pollTunnelStatus()
+            while self.isPolling {
+                await self.pollTunnelStatus()
                 try? await Task.sleep(for: .seconds(1))
             }
         }
@@ -145,24 +145,22 @@ private extension Tunnel {
     func pollTunnelStatus() async {
         guard let session = tunnel.connection as? NETunnelProviderSession,
               let message = try? TunnelProviderMessage.status.encode(),
-              let response = try? await session.sendProviderMessageAsync(message),
-              let decodedResponse = try? JSONDecoder().decode(TunnelStatusResponse.self, from: response)
-        else {
-            return
-        }
-        retryAttempt = decodedResponse.retryAttempt
-        afterDisconnectAction = decodedResponse.afterDisconnectAction
-        tunnelConnectingState = decodedResponse.tunnelConnectingState
-        connectionInfoData = decodedResponse.connectionInfoData
+              let response = try? await session.sendMessageOnMainActor(message),
+              let decoded = try? JSONDecoder().decode(TunnelStatusResponse.self, from: response)
+        else { return }
+
+        retryAttempt = decoded.retryAttempt
+        afterDisconnectAction = decoded.afterDisconnectAction
+        tunnelConnectingState = decoded.tunnelConnectingState
+        connectionInfoData = decoded.connectionInfoData
 
         guard isPolling else { return }
-        if let newError = decodedResponse.lastError {
+        if let newError = decoded.lastError {
             guard status != .error else { return }
             status = .error
             lastError = newError
-        } else {
-            guard status != decodedResponse.status else { return }
-            status = decodedResponse.status
+        } else if status != decoded.status {
+            status = decoded.status
         }
     }
 }
