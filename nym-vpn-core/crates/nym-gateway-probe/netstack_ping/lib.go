@@ -535,4 +535,28 @@ func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (int, tim
 	return version, duration, nil
 }
 
-func main() {}
+func main() {
+	// uncomment the lines below to run locally and see README.md for how to get the Wireguard config
+	/*	var _, err = ping(NetstackRequestGo{
+			WgIp:             "10.1.155.153",
+			PrivateKey:       "...",
+			PublicKey:        "...",
+			Endpoint:         "13.245.9.123:51822",
+			MetadataEndpoint: "http://10.1.0.1:51830",
+			Dns:              "1.1.1.1",
+			IpVersion:        4,
+			//PingHosts:          nil,
+			//PingIps:            nil,
+			//NumPing:            0,
+			//SendTimeoutSec:     0,
+			//RecvTimeoutSec:     0,
+			//DownloadTimeoutSec: 0,
+			MetadataTimeoutSec: 5,
+			//AwgArgs:            "",
+		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+}
