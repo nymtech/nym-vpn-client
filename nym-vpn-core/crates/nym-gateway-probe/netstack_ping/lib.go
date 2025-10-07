@@ -20,6 +20,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	"os"
 	"strings"
 	"time"
 	"unsafe"
@@ -170,13 +171,20 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 
 	response := NetstackResponse{false, false, 0, 0, 0, 0, false, "", 0, 0, 0, ""}
 
-	dev.IpcSet(ipc.String())
+	err = dev.IpcSet(ipc.String())
+	if err != nil {
+		return NetstackResponse{}, err
+	}
 
 	config, err := dev.IpcGet()
 	if err != nil {
 		return NetstackResponse{}, err
 	}
-	log.Printf("%s", config)
+
+	// do not print the config by default, because it contains the wg private key
+	if os.Getenv("SHOW_WG_CONFIG") == "true" {
+		log.Printf("%s", config)
+	}
 
 	err = dev.Up()
 	if err != nil {
@@ -479,7 +487,7 @@ func downloadFile(url string, timeoutSecs uint64, tnet *netstack.Net) ([]byte, t
 	return buf.Bytes(), duration, nil
 }
 
-func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (uint8, time.Duration, error) {
+func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (int, time.Duration, error) {
 	transport := &http.Transport{
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			return tnet.Dial(network, addr)
@@ -491,9 +499,12 @@ func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (uint8, t
 		Timeout:   time.Second * time.Duration(timeoutSecs),
 	}
 
+	bandwidthVersionUrl := fmt.Sprintf("%s/v1/bandwidth/version", url)
+
 	start := time.Now() // Start timing
 
-	resp, err := client.Get(url)
+	log.Printf("Querying metadata encoding: url = %s", bandwidthVersionUrl)
+	resp, err := client.Get(bandwidthVersionUrl)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -503,9 +514,18 @@ func queryMetadata(url string, timeoutSecs uint64, tnet *netstack.Net) (uint8, t
 		return 0, 0, fmt.Errorf("failed to query metadata endpoint: %s", resp.Status)
 	}
 
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, resp.Body)
-	version := buf.Next(1)[0]
+	var contentType = resp.Header.Get("Content-Type")
+
+	log.Printf("Metadata Content-Type: %s", contentType)
+
+	var reader io.Reader = resp.Body
+	bodyBytes, err := io.ReadAll(reader)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var version int
+	err = json.Unmarshal(bodyBytes, &version)
 	if err != nil {
 		return 0, 0, err
 	}
