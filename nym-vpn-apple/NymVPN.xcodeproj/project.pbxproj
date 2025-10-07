@@ -94,7 +94,6 @@
 		D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */; };
 		D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */; };
 		D9D336672E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
-		D9D336682E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
 		D9D3366A2E7B0D7700590D81 /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D336692E7B0D7700590D81 /* FeatureFlagsManager */; };
 		D9D381332E7B1683006DAFBB /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D381322E7B1683006DAFBB /* FeatureFlagsManager */; };
 		D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */ = {isa = PBXBuildFile; productRef = D9D483572BEBA72F0005A41C /* UIComponents */; };
@@ -778,7 +777,6 @@
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 				D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
-				D9D336682E7A8EDE00590D81 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
