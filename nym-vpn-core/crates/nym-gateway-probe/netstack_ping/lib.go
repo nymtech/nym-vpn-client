@@ -66,7 +66,7 @@ type NetstackRequestGo struct {
 
 type NetstackResponse struct {
 	CanHandshake                 bool   `json:"can_handshake"`
-	CanQueryMetadata    bool   `json:"can_query_metadata"`
+	CanQueryMetadata             bool   `json:"can_query_metadata"`
 	SentIps                      uint16 `json:"sent_ips"`
 	ReceivedIps                  uint16 `json:"received_ips"`
 	SentHosts                    uint16 `json:"sent_hosts"`
@@ -162,8 +162,6 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 	ipc.WriteString(req.PublicKey)
 	ipc.WriteString("\nendpoint=")
 	ipc.WriteString(req.Endpoint)
-	ipc.WriteString("\nmetadata_endpoint=")
-	ipc.WriteString(req.MetadataEndpoint)
 	if req.IpVersion == 4 {
 		ipc.WriteString("\nallowed_ip=0.0.0.0/0\n")
 	} else {
