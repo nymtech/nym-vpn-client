@@ -360,7 +360,11 @@ impl Probe {
             nym_client_core::init::generate_new_client_keys(&mut rng, key_store).await?;
         }
 
-        let ticketbook_count = storage.credential_store().get_ticketbooks_info().await?.len();
+        let ticketbook_count = storage
+            .credential_store()
+            .get_ticketbooks_info()
+            .await?
+            .len();
 
         info!("Credential store contains {} ticketbooks", ticketbook_count);
 
