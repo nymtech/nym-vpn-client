@@ -3,6 +3,7 @@ import Cocoa
 import AppSettings
 import Logging
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let appSettings = AppSettings.shared
 

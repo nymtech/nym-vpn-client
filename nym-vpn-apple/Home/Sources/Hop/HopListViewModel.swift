@@ -6,6 +6,7 @@ import CountriesManagerTypes
 import GatewayManager
 import UIComponents
 
+@MainActor
 public class HopListViewModel: ObservableObject {
     let type: HopType
 

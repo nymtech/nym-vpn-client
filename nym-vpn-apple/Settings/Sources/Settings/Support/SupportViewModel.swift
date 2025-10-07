@@ -4,6 +4,7 @@ import ConnectionManager
 import ExternalLinkManager
 import UIComponents
 
+@MainActor
 final class SupportViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue

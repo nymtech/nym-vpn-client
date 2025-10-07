@@ -4,6 +4,7 @@ import AppSettings
 import ConnectionManager
 import Theme
 
+@MainActor
 public final class NetworkButtonViewModel: ObservableObject {
     let type: ConnectionType
 

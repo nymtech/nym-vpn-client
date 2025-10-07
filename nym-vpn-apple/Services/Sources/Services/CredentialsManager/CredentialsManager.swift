@@ -12,6 +12,7 @@ import GRPCManager
 import HelperManager
 #endif
 
+@MainActor
 public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)

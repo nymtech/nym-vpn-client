@@ -10,6 +10,7 @@ import GRPCManager
 #endif
 import Theme
 
+@MainActor
 public final class SantasViewModel: ObservableObject {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager

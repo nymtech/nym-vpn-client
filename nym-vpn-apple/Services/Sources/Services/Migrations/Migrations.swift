@@ -7,6 +7,7 @@ import ConfigurationManager
 import ConnectionTypes
 import CountriesManagerTypes
 
+@MainActor
 public final class Migrations {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager

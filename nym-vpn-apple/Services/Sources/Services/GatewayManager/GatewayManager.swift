@@ -11,6 +11,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 
+@MainActor
 public final class GatewayManager: ObservableObject {
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager

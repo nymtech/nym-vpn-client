@@ -4,6 +4,7 @@ import ConfigurationManager
 import Device
 import Theme
 
+@MainActor
 public struct SettingsListViewModel {
     private let appVersion: String
     private let configurationManager: ConfigurationManager

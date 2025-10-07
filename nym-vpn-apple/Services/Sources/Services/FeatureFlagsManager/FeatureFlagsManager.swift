@@ -8,6 +8,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 
+@MainActor
 public final class FeatureFlagsManager: ObservableObject {
 #if os(macOS)
     private let grpcManager: GRPCManager

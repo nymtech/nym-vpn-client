@@ -6,6 +6,7 @@ import ConnectionManager
 import Tunnels
 import TunnelStatus
 
+@MainActor
 public final class NetworkMonitor: ObservableObject {
     private let connectionManager: ConnectionManager
     private let monitor = NWPathMonitor()
@@ -34,16 +35,19 @@ private extension NetworkMonitor {
 
     func setupNetworkMonitor() {
         monitor.pathUpdateHandler = { [weak self] path in
+            // compute outside main actor (pure values)
             let isConnected = path.status == .satisfied || path.status == .requiresConnection
             let interfaceType = NWInterface.InterfaceType.allCases.first { path.usesInterfaceType($0) }
 
-            guard self?.connectionManager.currentTunnelStatus != .connected,
-                isConnected != self?.isAvailable || interfaceType != self?.connectionType
-            else {
-                return
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                guard self.connectionManager.currentTunnelStatus != .connected,
+                      isConnected != self.isAvailable || interfaceType != self.connectionType
+                else { return }
+
+                self.isAvailable = isConnected
+                self.connectionType = interfaceType
             }
-            self?.isAvailable = isConnected
-            self?.connectionType = interfaceType
         }
     }
 

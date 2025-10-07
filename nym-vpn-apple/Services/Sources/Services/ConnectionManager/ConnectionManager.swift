@@ -11,6 +11,7 @@ import TunnelStatus
 import GRPCManager
 #endif
 
+@MainActor
 public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
 

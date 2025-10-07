@@ -4,6 +4,7 @@ import ConnectionTypes
 import CountriesManagerTypes
 import GatewayManager
 
+@MainActor
 public final class ConnectionStorage {
     public static let shared = ConnectionStorage()
 

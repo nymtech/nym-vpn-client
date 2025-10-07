@@ -127,9 +127,9 @@ extension PacketTunnelProvider {
 
     static func configureLogger() {
         let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
-        let logLevel = ConfigurationManager.shared.debugLevel
 
-        Task.detached {
+        Task {
+            let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
             await initLogger(
                 path: logPath,
                 debugLevel: logLevel,
