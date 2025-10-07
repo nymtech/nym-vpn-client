@@ -2,24 +2,50 @@ import Foundation
 import Logging
 import os
 
-public class OSLogHandler: LogHandler {
-    private let store: OSLog
+private final class Lock {
+    private let lock = NSLock()
+    @discardableResult func with<T>(_ body: () throws -> T) rethrows -> T {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        return try body()
+    }
+}
 
-    public var metadata = Logger.Metadata()
-    public var logLevel = Logger.Level.info
+/// A `LogHandler` that forwards messages to Apple's unified logging (`os_log`).
+public final class OSLogHandler: LogHandler, @unchecked Sendable {
+    private let store: OSLog
+    private let lock = Lock()
+
+    // Guarded by `lock`
+    private var _metadata = Logging.Logger.Metadata()
+    private var _logLevel: Logging.Logger.Level = .info
+
+    // MARK: - Init
 
     public init(subsystem: String, category: String) {
         self.store = OSLog(subsystem: subsystem, category: category)
     }
 
-    public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
-        get { metadata[key] }
-        set { metadata[key] = newValue }
+    // MARK: - LogHandler conformance (use fully-qualified Logging.Logger.*)
+
+    public var metadata: Logging.Logger.Metadata {
+        get { lock.with { _metadata } }
+        set { lock.with { _metadata = newValue } }
     }
 
-    // MARK: - Required LogHandler implementation
+    public var logLevel: Logging.Logger.Level {
+        get { lock.with { _logLevel } }
+        set { lock.with { _logLevel = newValue } }
+    }
 
-    /// This is the new required method (with `source:`) that replaces the deprecated default impl.
+    public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
+        get { lock.with { _metadata[key] } }
+        set { lock.with { _metadata[key] = newValue } }
+    }
+
+    // swiftlint:disable:next function_parameter_count
     public func log(
         level: Logging.Logger.Level,
         message: Logging.Logger.Message,
@@ -29,20 +55,14 @@ public class OSLogHandler: LogHandler {
         function: String,
         line: UInt
     ) {
-        // Merge in any per-handler metadata
-        var fullMetadata = self.metadata
-        if let metadata = metadata {
-            fullMetadata.merge(metadata) { $1 }
-        }
+        // Snapshot handler metadata
+        let base = lock.with { _metadata }
 
-        // Format metadata as key=value pairs
-        var metadataOutput = fullMetadata.formatted()
-        if !metadataOutput.isEmpty {
-            metadataOutput += " "
-        }
+        // Merge per-call metadata
+        var full = base
+        if let metadata { full.merge(metadata) { $1 } }
 
-        // You can choose whether to include `source` in your output.
-        // Here we prepend it in square brackets, but you could omit it if you prefer.
+        let metadataOutput = formatMetadata(full)
         let sourceInfo = "[\(source)] "
         let logLine = "\(sourceInfo)\(metadataOutput)\(message)\n"
 
@@ -50,8 +70,15 @@ public class OSLogHandler: LogHandler {
     }
 }
 
-extension Logging.Logger.Level {
-    fileprivate var osLogType: OSLogType {
+// MARK: - Helpers (no global extensions to avoid redeclaration)
+
+private func formatMetadata(_ md: Logging.Logger.Metadata) -> String {
+    guard !md.isEmpty else { return "" }
+    return md.map { "\($0.key)=\($0.value)" }.joined(separator: " ") + " "
+}
+
+private extension Logging.Logger.Level {
+    var osLogType: OSLogType {
         switch self {
         case .trace, .debug:
             return .debug

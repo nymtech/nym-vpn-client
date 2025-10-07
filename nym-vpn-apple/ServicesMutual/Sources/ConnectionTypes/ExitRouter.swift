@@ -6,7 +6,7 @@ public enum ExitRouter: Codable, Equatable {
     case address(String)
     case country(String)
     case gateway(String)
-    case region(String)
+    case region(countryCode: String, region: String)
     case random
 
     public var isCountry: Bool {
@@ -14,6 +14,15 @@ public enum ExitRouter: Codable, Equatable {
         case .country:
             true
         case .gateway, .random, .region, .address:
+            false
+        }
+    }
+
+    public var isRegion: Bool {
+        switch self {
+        case .region:
+            true
+        case .gateway, .random, .address, .country:
             false
         }
     }

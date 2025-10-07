@@ -9,22 +9,14 @@ import AppVersionProvider
 import Constants
 import TunnelStatus
 
-public final class GRPCManager: ObservableObject {
+@MainActor public final class GRPCManager: ObservableObject {
+    public static let shared = GRPCManager()
+
     let logger = Logger(label: "GRPC Manager")
 
-    var userAgent: UserAgent {
-        UserAgent(
-            application: AppVersionProvider.app,
-            version: "\(AppVersionProvider.appVersion()) (\(daemonVersion))",
-            platform: AppVersionProvider.platform,
-            gitCommit: ""
-        )
-    }
     var rpcClient: RpcClient?
-    var listenToEventsObserver: StreamObserver?
+    private var listenToEventsObserver: StreamObserver?
     var versionPingTask: Task<Void, Never>?
-
-    public static let shared = GRPCManager()
 
     @Published public var isServing = false
     @Published public var tunnelStatus: TunnelStatus = .unknown
@@ -35,9 +27,8 @@ public final class GRPCManager: ObservableObject {
     @Published public var connectionInfoData: ConnectionInfoData?
     @Published public var networkName: String?
     @Published public var daemonVersion = "unknown"
-    public var requiredVersion: String {
-        AppVersionProvider.libVersion
-    }
+
+    public var requiredVersion: String { AppVersionProvider.libVersion }
 
     public var requiresUpdate: Bool {
         let required = daemonVersion.semVerCore
@@ -45,25 +36,36 @@ public final class GRPCManager: ObservableObject {
         return required.compare(current, options: .numeric) == .orderedAscending
     }
 
+    public var userAgent: UserAgent {
+        UserAgent(
+            application: AppVersionProvider.app,
+            version: "\(AppVersionProvider.appVersion()) (\(daemonVersion))",
+            platform: AppVersionProvider.platform,
+            gitCommit: ""
+        )
+    }
+
     private init() {
         setup()
     }
 
     func setup() {
-        Task {
-            try? await configureRpcCLient()
-            Task { @MainActor in
-                await pingDaemonInitialStatus()
-            }
+        Task { @MainActor in
+            try? await configureRpcClient()
+            await pingDaemonInitialStatus()
         }
     }
+}
 
-    func configureRpcCLient() async throws {
+private extension GRPCManager {
+    func configureRpcClient() async throws {
         do {
             rpcClient = try await RpcClient()
         } catch {
-            setup()
+            logger.error("Failed to create RpcClient: \(error.localizedDescription)")
+            return
         }
+
         listenToEventsObserver = try await rpcClient?.listenToEvents(observer: self)
 
         stopInitialStatusPinger()
@@ -71,10 +73,11 @@ public final class GRPCManager: ObservableObject {
     }
 }
 
+// MARK: - Helpers
 private extension String {
     /// Keep only the first three "."-separated segments (e.g. "1.9.0-beta")
     var semVerCore: String {
-        let parts = self.split(separator: ".")
+        let parts = split(separator: ".")
         guard parts.count >= 3 else { return self }
         return parts[0...2].joined(separator: ".")
     }

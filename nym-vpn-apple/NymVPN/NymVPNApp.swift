@@ -34,8 +34,18 @@ struct NymVPNApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
 
-    @StateObject private var homeViewModel = HomeViewModel()
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @ObservedObject private var homeViewModel = HomeViewModel(
+        appSettings: .shared,
+        connectionManager: .shared,
+        configurationManager: .shared,
+        credentialsManager: .shared,
+        networkMonitor: .shared,
+        externalLinkManager: .shared,
+        gatewayManager: .shared,
+        impactGenerator: .shared,
+        messagesManager: .shared
+    )
+    @ObservedObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
 
     @State private var splashScreenDidDisplay = false
     @State private var isSecureScreenVisible = false

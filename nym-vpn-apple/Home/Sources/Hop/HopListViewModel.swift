@@ -6,7 +6,7 @@ import CountriesManagerTypes
 import GatewayManager
 import UIComponents
 
-public class HopListViewModel: ObservableObject {
+@MainActor public class HopListViewModel: ObservableObject {
     let type: HopType
 
     public let noResultsText = "search.noResults".localizedString
@@ -29,10 +29,10 @@ public class HopListViewModel: ObservableObject {
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        gatewayManager: GatewayManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        gatewayManager: GatewayManager
     ) {
         _path = path
         self.type = type

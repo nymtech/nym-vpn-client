@@ -39,7 +39,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         await tunnelActor.setTunnelProvider(self)
 
         guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
-              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
+              let mixnetConfig = await tunnelProviderProtocol.asMixnetConfig()
         else {
             logger.error("Failed to obtain tunnel configuration")
             throw PacketTunnelProviderError.invalidSavedConfiguration
@@ -127,9 +127,9 @@ extension PacketTunnelProvider {
 
     static func configureLogger() {
         let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
-        let logLevel = ConfigurationManager.shared.debugLevel
 
-        Task.detached {
+        Task {
+            let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
             await initLogger(
                 path: logPath,
                 debugLevel: logLevel,

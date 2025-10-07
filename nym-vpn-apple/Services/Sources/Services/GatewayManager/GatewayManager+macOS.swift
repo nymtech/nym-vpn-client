@@ -38,6 +38,8 @@ extension GatewayManager {
             gatewayStore.lastFetchDate = Date()
 
             storeGatewayStore()
+            updateCountriesFromGateways()
+            isLoading = false
         } catch {
             logger.error("Failed to fetch: \(error.localizedDescription)")
         }

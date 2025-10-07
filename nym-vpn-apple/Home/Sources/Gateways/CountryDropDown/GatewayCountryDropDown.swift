@@ -1,19 +1,27 @@
 import SwiftUI
 import ConnectionManager
+import ConnectionTypes
 import CountriesManagerTypes
+import GatewayManager
+import ImpactGenerator
 import Theme
+import UIComponents
 
 public struct GatewayCountryDropDown: View {
     private let country: Country
+    private let regions: [String]
     private let servers: [GatewayNode]
     private let hopType: HopType
     private let isSearching: Bool
 
-    @EnvironmentObject private var connectionManager: ConnectionManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var isHovered = false
-    @State private var isExpanded = false
+    @State private var isExpanded: Bool
+    @State private var isCountrySelected = false
     @Binding private var path: NavigationPath
-    @Binding private var scrollToServer: GatewayNode?
+    @Binding private var scrollToModel: GatewayScrollToModel
+    @Binding private var entryGateway: EntryGateway
+    @Binding private var exitRouter: ExitRouter
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     public init(
@@ -21,7 +29,9 @@ public struct GatewayCountryDropDown: View {
         servers: [GatewayNode],
         type: HopType,
         path: Binding<NavigationPath>,
-        scrollToServer: Binding<GatewayNode?>,
+        scrollToModel: Binding<GatewayScrollToModel>,
+        entryGateway: Binding<EntryGateway>,
+        exitRouter: Binding<ExitRouter>,
         infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?,
         isSearching: Bool = false
     ) {
@@ -30,31 +40,58 @@ public struct GatewayCountryDropDown: View {
         self.hopType = type
         self.isSearching = isSearching
         self.infoButtonTapCompletion = infoButtonTapCompletion
+        self.regions = Array(Set(servers.compactMap { $0.location?.region })).sorted()
         _path = path
-        _scrollToServer = scrollToServer
+        _scrollToModel = scrollToModel
+        _entryGateway = entryGateway
+        _exitRouter = exitRouter
+
+        let unwrappedScrollToModel = scrollToModel.wrappedValue
+        let selectedServer = servers.first { $0.id == unwrappedScrollToModel.serverId }
+        let shouldExpand = unwrappedScrollToModel.countryCode == country.code
+        || selectedServer?.location?.twoLetterIsoCountryCode == country.code
+        _isExpanded = State(initialValue: shouldExpand)
+        let shouldSelect = unwrappedScrollToModel.countryCode == country.code && unwrappedScrollToModel.isCountry
+        _isCountrySelected = State(initialValue: shouldSelect)
     }
 
     public var body: some View {
         VStack(spacing: 0) {
             countryCell()
+                .id(GatewayScrollToModel.country(code: country.code).scrollToIdentifier)
             if isExpanded {
-                ForEach(servers, id: \.id) { server in
-                    GatewayCell(
-                        server: server,
-                        type: hopType,
-                        path: $path,
-                        infoButtonTapCompletion: { server in
-                            infoButtonTapCompletion?(server)
-                        }
-                    )
-                    .id(server.id)
+                if !regions.isEmpty && country.code == "US" {
+                    ForEach(regions, id: \.self) { region in
+                        Spacer()
+                            .frame(height: 6)
+                        GatewaysRegionCell(
+                            hopType: hopType,
+                            country: country,
+                            region: region,
+                            servers: servers.filter { $0.location?.region == region },
+                            infoButtonTapCompletion: infoButtonTapCompletion,
+                            path: $path,
+                            entryGateway: $entryGateway,
+                            exitRouter: $exitRouter,
+                            scrollToModel: $scrollToModel
+                        )
+                        .id(GatewayScrollToModel.region(countryCode: country.code, region: region).scrollToIdentifier)
+                    }
+                } else {
+                    ForEach(servers, id: \.id) { server in
+                        GatewayCell(
+                            server: server,
+                            type: hopType,
+                            path: $path,
+                            scrollToModel: $scrollToModel,
+                            infoButtonTapCompletion: { server in
+                                infoButtonTapCompletion?(server)
+                            }
+                        )
+                        .id(GatewayScrollToModel.server(id: server.id).scrollToIdentifier)
+                    }
                 }
             }
-        }
-        .onAppear {
-            guard let server = selectedServer() else { return }
-            isExpanded = true
-            scrollToServer = server
         }
     }
 }
@@ -66,7 +103,7 @@ private extension GatewayCountryDropDown {
             HStack(spacing: 0) {
                 isSelectedMarker()
                 FlagImage(countryCode: country.code)
-                    .padding(EdgeInsets(top: 0, leading: isCountrySelected() ? 12 : 16, bottom: 0, trailing: 16))
+                    .padding(EdgeInsets(top: 0, leading: isCountrySelected ? 12 : 16, bottom: 0, trailing: 16))
                 VStack(alignment: .leading, spacing: 0) {
                     countryNameTitle()
                     serverCountNumberSubtitle()
@@ -75,7 +112,7 @@ private extension GatewayCountryDropDown {
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(country.name) \(servers.count) \("servers".localizedString)")
-            .accessibilityValue(isCountrySelected() ? "selected".localizedString : "")
+            .accessibilityValue(isCountrySelected ? "selected".localizedString : "")
             .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
             .onTapGesture {
@@ -93,14 +130,14 @@ private extension GatewayCountryDropDown {
             .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
             .onTapGesture {
-                isExpanded.toggle()
+                expandDidTap()
             }
             .accessibilityAction {
-                isExpanded.toggle()
+                expandDidTap()
             }
         }
         .onHover { newValue in
-            isHovered = newValue
+            if newValue != isHovered { isHovered = newValue }
         }
         .background {
             isHovered ? NymColor.elevationHover : NymColor.elevation
@@ -109,7 +146,7 @@ private extension GatewayCountryDropDown {
 
     @ViewBuilder
     func isSelectedMarker() -> some View {
-        if isCountrySelected() {
+        if isCountrySelected {
             SelectionMarker()
         }
     }
@@ -143,32 +180,19 @@ private extension GatewayCountryDropDown {
 }
 
 private extension GatewayCountryDropDown {
-    func isCountrySelected() -> Bool {
-        switch hopType {
-        case .entry:
-            connectionManager.entryGateway.countryCode == country.code && connectionManager.entryGateway.isCountry
-        case .exit:
-            connectionManager.exitRouter.countryCode == country.code && connectionManager.entryGateway.isCountry
-        }
-    }
-
-    func selectedServer() -> GatewayNode? {
-        guard connectionManager.entryGateway.isGateway else { return nil }
-        switch hopType {
-        case .entry:
-            return servers.first { $0.id == connectionManager.entryGateway.gatewayId }
-        case .exit:
-            return servers.first { $0.id == connectionManager.exitRouter.gatewayId }
-        }
-    }
-
     func countryTapAction() {
+        ImpactGenerator.shared.softImpact()
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .country(country.code)
+            entryGateway = .country(country.code)
         case .exit:
-            connectionManager.exitRouter = .country(country.code)
+            exitRouter = .country(country.code)
         }
         path = .init()
+    }
+
+    func expandDidTap() {
+        ImpactGenerator.shared.softImpact()
+        isExpanded.toggle()
     }
 }

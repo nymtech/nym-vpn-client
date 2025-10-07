@@ -1,7 +1,5 @@
 import SwiftUI
-#if os(iOS)
 import ImpactGenerator
-#endif
 import UIComponents
 import Theme
 
@@ -139,16 +137,12 @@ private extension CreateAccountWelcomeView {
     }
 
     func navigateToCreateAccount() {
-#if os(iOS)
         ImpactGenerator.shared.impact()
-#endif
         path.append(SettingLink.createAccount)
     }
 
     func navigateToLogin() {
-#if os(iOS)
         ImpactGenerator.shared.impact()
-#endif
         path.append(SettingLink.addCredentials)
     }
 }

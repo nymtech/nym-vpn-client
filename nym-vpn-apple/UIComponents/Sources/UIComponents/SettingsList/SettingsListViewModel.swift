@@ -4,7 +4,7 @@ import ConfigurationManager
 import Device
 import Theme
 
-public struct SettingsListViewModel {
+@MainActor public struct SettingsListViewModel {
     private let appVersion: String
     private let configurationManager: ConfigurationManager
     private let navigateToSantasMenuAction: (() -> Void)

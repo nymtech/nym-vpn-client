@@ -13,7 +13,7 @@ import HelperManager
 #endif
 import UIComponents
 
-public class SettingsViewModel: SettingsFlowState {
+@MainActor public class SettingsViewModel: SettingsFlowState {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
     private let connectionManager: ConnectionManager
@@ -58,12 +58,12 @@ public class SettingsViewModel: SettingsFlowState {
 #if os(iOS)
     public init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        featureFlagsManager: FeatureFlagsManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        credentialsManager: CredentialsManager,
+        externalLinkManager: ExternalLinkManager,
+        featureFlagsManager: FeatureFlagsManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -77,13 +77,13 @@ public class SettingsViewModel: SettingsFlowState {
 #elseif os(macOS)
     public init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        helperManager: HelperManager = .shared,
-        featureFlagsManager: FeatureFlagsManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        credentialsManager: CredentialsManager,
+        externalLinkManager: ExternalLinkManager,
+        helperManager: HelperManager,
+        featureFlagsManager: FeatureFlagsManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager

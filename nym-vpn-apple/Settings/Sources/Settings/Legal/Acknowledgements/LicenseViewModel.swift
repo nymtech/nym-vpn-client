@@ -2,7 +2,7 @@ import SwiftUI
 import AcknowList
 import ExternalLinkManager
 
-public final class LicenseViewModel: ObservableObject {
+@MainActor public final class LicenseViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
 
     @Binding private var path: NavigationPath
@@ -14,7 +14,7 @@ public final class LicenseViewModel: ObservableObject {
     public init(
         path: Binding<NavigationPath>,
         details: LicenceDetails,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        externalLinkManager: ExternalLinkManager
     ) {
         _path = path
         self.acknowledgement = Acknow(

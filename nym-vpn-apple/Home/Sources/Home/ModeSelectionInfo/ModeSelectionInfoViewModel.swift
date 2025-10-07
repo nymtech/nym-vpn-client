@@ -2,7 +2,7 @@ import SwiftUI
 import ExternalLinkManager
 import Theme
 
-final class ModeSelectionInfoViewModel {
+@MainActor final class ModeSelectionInfoViewModel {
     let externalLinkManager: ExternalLinkManager
     let infoIconImageName = "info.circle"
     let titleLocalizedString = "modeSelectionInfo.title".localizedString

@@ -2,7 +2,7 @@ import StoreKit
 import SwiftUI
 import AppSettings
 
-public final class PurchasesManager: ObservableObject {
+@MainActor public final class PurchasesManager: ObservableObject {
     private let productIds = ["1_month_may_2025", "1_year_may_2025"]
     private var productsLoaded = false
     private var updates: Task<Void, Never>?
@@ -57,7 +57,7 @@ private extension PurchasesManager {
     }
 
     func observeTransactionUpdates() -> Task<Void, Never> {
-        Task(priority: .background) { 
+        Task(priority: .background) {
             for await _ in Transaction.updates {}
         }
     }

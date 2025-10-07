@@ -33,15 +33,13 @@ public struct LogsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background {
-            NymColor.elevation
-                .ignoresSafeArea()
-        }
+        .background(NymColor.background)
         .overlay {
             if viewModel.isDeleteDialogDisplayed {
                 LogsDeleteConfirmationDialog(
                     viewModel: LogsDeleteConfirmationDialogViewModel(
                         isDisplayed: $viewModel.isDeleteDialogDisplayed,
+                        impactGenerator: .shared,
                         action: {
                             viewModel.deleteLogs()
                             viewModel.isDeleteDialogDisplayed = false
@@ -52,7 +50,7 @@ public struct LogsView: View {
         }
         .fileExporter(
             isPresented: $viewModel.isFileExporterPresented,
-            document: TextFile(lineArrray: viewModel.logLines),
+            document: TextFile(lineArray: viewModel.logLines),
             contentType: .plainText,
             defaultFilename: Constants.logFileName.rawValue
         ) { _ in }

@@ -25,13 +25,54 @@ private extension HomeFlowCoordinator {
     private func linkDestination(link: HomeLink) -> some View {
         switch link {
         case .entryGateways:
-            GatewaysView(viewModel: GatewaysViewModel(type: .entry, path: $state.path))
+            GatewaysView(
+                viewModel: GatewaysViewModel(
+                    type: .entry,
+                    path: $state.path,
+                    connectionManager: .shared,
+                    gatewayManager: .shared
+                )
+            )
         case .exitGateways:
-            GatewaysView(viewModel: GatewaysViewModel(type: .exit, path: $state.path))
+            GatewaysView(
+                viewModel: GatewaysViewModel(
+                    type: .exit,
+                    path: $state.path,
+                    connectionManager: .shared,
+                    gatewayManager: .shared
+                )
+            )
         case .settings:
-            SettingsView(viewModel: SettingsViewModel(path: $state.path))
+#if os(iOS)
+            SettingsView(
+                viewModel:
+                    SettingsViewModel(
+                        path: $state.path,
+                        appSettings: .shared,
+                        configurationManager: .shared,
+                        connectionManager: .shared,
+                        credentialsManager: .shared,
+                        externalLinkManager: .shared,
+                        featureFlagsManager: .shared
+                    )
+            )
+#elseif os(macOS)
+            SettingsView(
+                viewModel:
+                    SettingsViewModel(
+                        path: $state.path,
+                        appSettings: .shared,
+                        configurationManager: .shared,
+                        connectionManager: .shared,
+                        credentialsManager: .shared,
+                        externalLinkManager: .shared,
+                        helperManager: .shared,
+                        featureFlagsManager: .shared
+                    )
+            )
+#endif
         case let .gatewayDetails(gateway: gateway, hopType: hopType):
-            GatewayDetailsView(path: $state.path, gateway: gateway, hopType: hopType)
+            GatewayDetailsView(path: $state.path, gateway: gateway, hopType: hopType, externalLinkManager: .shared)
 #if os(macOS)
         case let .installHelper(afterInstallAction):
             HelperInstallView(

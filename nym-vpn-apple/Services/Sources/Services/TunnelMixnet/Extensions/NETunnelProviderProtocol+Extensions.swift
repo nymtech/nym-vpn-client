@@ -1,19 +1,23 @@
 import NetworkExtension
 import Keychain
 
-extension NETunnelProviderProtocol {
+@MainActor extension NETunnelProviderProtocol {
     convenience init?(mixnetConfiguration: MixnetConfig) {
         self.init()
+
         guard
             let appId = Bundle.main.bundleIdentifier,
             let configString = mixnetConfiguration.toJson()
-        else {
-            return nil
-        }
+        else { return nil }
 
         providerBundleIdentifier = "\(appId).network-extension"
         serverAddress = "127.0.0.1"
-        passwordReference = Keychain.updateReferenceOrCreateNew(called: mixnetConfiguration.name, with: configString)
+
+        passwordReference = Keychain.updateReferenceOrCreateNew(
+            called: mixnetConfiguration.name,
+            with: configString
+        )
+
         if passwordReference == nil {
             return nil
         }
@@ -32,11 +36,9 @@ extension NETunnelProviderProtocol {
     public func asMixnetConfig(called name: String? = nil) -> MixnetConfig? {
         guard
             let passwordReference,
-            let encodedConfig = Keychain.openReference(called: passwordReference),
-            let mixnetConfig = MixnetConfig.from(jsonString: encodedConfig)
-        else {
-            return nil
-        }
-        return mixnetConfig
+            let encoded = Keychain.openReference(called: passwordReference),
+            let cfg = MixnetConfig.from(jsonString: encoded)
+        else { return nil }
+        return cfg
     }
 }

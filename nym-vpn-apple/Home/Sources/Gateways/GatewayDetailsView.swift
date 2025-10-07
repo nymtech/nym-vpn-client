@@ -1,12 +1,12 @@
 import SwiftUI
+import AppSettings
 import Constants
 import ConnectionManager
 import CountriesManagerTypes
+import Device
 import ExternalLinkManager
 import GatewayManager
-#if os(iOS)
 import ImpactGenerator
-#endif
 import Theme
 import UIComponents
 
@@ -15,6 +15,7 @@ public struct GatewayDetailsView: View {
     private let gateway: GatewayNode
     private let hopType: HopType
     @Binding private var path: NavigationPath
+    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var messageOverlayText: String?
@@ -68,7 +69,7 @@ public struct GatewayDetailsView: View {
         path: Binding<NavigationPath>,
         gateway: GatewayNode,
         hopType: HopType,
-        externalLinkManager: ExternalLinkManager = .shared
+        externalLinkManager: ExternalLinkManager
     ) {
         _path = path
         self.gateway = gateway
@@ -164,10 +165,10 @@ private extension GatewayDetailsView {
                 .frame(height: 1)
             GenericButton(title: "gatewayInfo.selectServer".localizedString)
                 .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
-#if os(macOS)
-            Spacer()
-                .frame(height: 24)
-#endif
+            if Device.isMacOS || appSettings.isSmallScreen {
+                Spacer()
+                    .frame(height: 24)
+            }
         }
         .background(NymColor.elevation)
         .frame(maxWidth: .infinity, alignment: .center)
@@ -507,7 +508,7 @@ private extension GatewayDetailsView {
         let parts = [
             gateway.location?.city,
             gateway.location?.region,
-            gatewayManager.country(with: gateway.location?.twoLetterIsoCountryCode)?.name
+            gatewayManager.localizedCountry(with: gateway.location?.twoLetterIsoCountryCode)?.name
         ]
         .compactMap { $0 }
         .filter { !$0.isEmpty }

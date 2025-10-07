@@ -11,8 +11,8 @@ extension ExitRouter {
             .gateway(identity: gateway)
         case .address:
             .random
-        case .region:
-            .random
+        case let .region(countryCode: _, region: region):
+            .region(region: region)
         case .random:
             .random
         }

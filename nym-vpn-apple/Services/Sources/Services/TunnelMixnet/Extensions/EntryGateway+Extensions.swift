@@ -13,8 +13,8 @@ extension EntryGateway {
             .gateway(identity: gateway)
         case .random:
             .random
-        case let .region(region):
-            .random
+        case let .region(countryCode: _, region: region):
+            .region(region: region)
         case let .city(city):
             .random
         }
