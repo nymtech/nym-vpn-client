@@ -64,6 +64,7 @@
 		D99035C62E92F53C00E42A82 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D52BA1CBE000489055 /* Network.framework */; };
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
+		D99B4F332E95900100A224A9 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
 		D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -771,6 +772,7 @@
 				D9DE89412CFE54CD006C4071 /* launchLogo@3x.png in Resources */,
 				D9DE89422CFE54CD006C4071 /* launchLogo.png in Resources */,
 				D9DE89432CFE54CD006C4071 /* launchLogo@2x.png in Resources */,
+				D99B4F332E95900100A224A9 /* AppIcon.icon in Resources */,
 				D9CACB0F2D67B7090004F9E0 /* gatewaysEntry.json in Resources */,
 				D9CACB102D67B7090004F9E0 /* gatewaysExit.json in Resources */,
 				D9CACB112D67B7090004F9E0 /* gatewaysVpn.json in Resources */,
