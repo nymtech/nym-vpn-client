@@ -360,13 +360,19 @@ impl Probe {
             nym_client_core::init::generate_new_client_keys(&mut rng, key_store).await?;
         }
 
-        for ticketbook_type in [
-            TicketType::V1MixnetEntry,
-            TicketType::V1WireguardEntry,
-            TicketType::V1WireguardExit,
-        ] {
-            self.acquire_bandwidth(mnemonic, &disconnected_mixnet_client, ticketbook_type)
-                .await?;
+        let ticketbook_count = storage.credential_store().get_ticketbooks_info().await?.len();
+
+        info!("Credential store contains {} ticketbooks", ticketbook_count);
+
+        if ticketbook_count < 1 {
+            for ticketbook_type in [
+                TicketType::V1MixnetEntry,
+                TicketType::V1WireguardEntry,
+                TicketType::V1WireguardExit,
+            ] {
+                self.acquire_bandwidth(mnemonic, &disconnected_mixnet_client, ticketbook_type)
+                    .await?;
+            }
         }
 
         let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
