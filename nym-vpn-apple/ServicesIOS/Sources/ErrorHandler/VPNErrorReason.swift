@@ -23,13 +23,6 @@ public enum VPNErrorReason: LocalizedError {
     case existingAccount
     case accountControllerError(details: String)
     case httpClient(details: String)
-    case accountDoesntExistOnChain
-    case accountNotDecentralised
-    case accountDecentralised
-    case insufficientFunds
-    case zkNymAcquisitionFailure(details: String)
-    case nyxdConnectionFailure(details: String)
-    case nyxdQueryFailure(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -108,20 +101,6 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: details)
         case let .HttpClient(details):
             self = .httpClient(details: details)
-        case .AccountDoesntExistOnChain:
-            self = .accountDoesntExistOnChain
-        case .AccountNotDecentralised:
-            self = .accountNotDecentralised
-        case .AccountDecentralised:
-            self = .accountDecentralised
-        case .InsufficientFunds:
-            self = .insufficientFunds
-        case let .ZkNymAcquisitionFailure(details: details):
-            self = .zkNymAcquisitionFailure(details: details)
-        case let .NyxdConnectionFailure(details: details):
-            self = .nyxdConnectionFailure(details: details)
-        case let .NyxdQueryFailure(details: details):
-            self = .nyxdQueryFailure(details: details)
         }
     }
 
@@ -177,20 +156,6 @@ public enum VPNErrorReason: LocalizedError {
             self = .existingAccount
         case .httpClient:
             self = .httpClient(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .accountDoesntExistOnChain:
-            self = .accountDecentralised
-        case .accountNotDecentralised:
-            self = .accountNotDecentralised
-        case .accountDecentralised:
-            self = .accountDecentralised
-        case .insufficientFunds:
-            self = .insufficientFunds
-        case .zkNymAcquisitionFailure:
-            self = .zkNymAcquisitionFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .nyxdConnectionFailure:
-            self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .nyxdQueryFailure:
-            self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -259,20 +224,6 @@ extension VPNErrorReason {
             details
         case let .httpClient(details: details):
             details
-        case .accountDoesntExistOnChain:
-            "errorReason.accountDoesntExistOnChain".localizedString
-        case .accountNotDecentralised:
-            "errorReason.accountNotDecentralised".localizedString
-        case .accountDecentralised:
-            "errorReason.accountDecentralised".localizedString
-        case .insufficientFunds:
-            "errorReason.insufficientFunds".localizedString
-        case let .zkNymAcquisitionFailure(details: details):
-            details
-        case let .nyxdConnectionFailure(details: details):
-            details
-        case let .nyxdQueryFailure(details: details):
-            details
         }
     }
 }
@@ -305,13 +256,6 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case existingAccount
     case accountControllerError
     case httpClient
-    case accountDoesntExistOnChain
-    case accountNotDecentralised
-    case accountDecentralised
-    case insufficientFunds
-    case zkNymAcquisitionFailure
-    case nyxdConnectionFailure
-    case nyxdQueryFailure
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -355,20 +299,6 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .accountControllerError
         case .httpClient:
             self = .httpClient
-        case .accountDoesntExistOnChain:
-            self = .accountDoesntExistOnChain
-        case .accountNotDecentralised:
-            self = .accountNotDecentralised
-        case .accountDecentralised:
-            self = .accountDecentralised
-        case .insufficientFunds:
-            self = .insufficientFunds
-        case .zkNymAcquisitionFailure:
-            self = .zkNymAcquisitionFailure
-        case .nyxdConnectionFailure:
-            self = .nyxdConnectionFailure
-        case .nyxdQueryFailure:
-            self = .nyxdQueryFailure
         }
     }
 }
