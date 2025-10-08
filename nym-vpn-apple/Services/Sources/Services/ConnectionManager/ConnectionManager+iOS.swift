@@ -132,7 +132,7 @@ extension ConnectionManager {
 
     /// Sends connect command to lib if entry/exit gateways changed while connected,
     /// to initiate reconnect
-    @MainActor func reconnectIfNeeded() async {
+    func reconnectIfNeeded() async {
         do {
             let newConfig = try generateConfig()
             guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
