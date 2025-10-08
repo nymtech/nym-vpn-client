@@ -48,8 +48,11 @@ public struct GatewayCountryDropDown: View {
 
         let unwrappedScrollToModel = scrollToModel.wrappedValue
         let selectedServer = servers.first { $0.id == unwrappedScrollToModel.serverId }
-        let shouldExpand = unwrappedScrollToModel.countryCode == country.code
-        || selectedServer?.location?.twoLetterIsoCountryCode == country.code
+        let shouldExpand = unwrappedScrollToModel.shouldExpand(
+            countryCode: country.code,
+            region: nil,
+            server: selectedServer
+        )
         _isExpanded = State(initialValue: shouldExpand)
         let shouldSelect = unwrappedScrollToModel.countryCode == country.code && unwrappedScrollToModel.isCountry
         _isCountrySelected = State(initialValue: shouldSelect)
