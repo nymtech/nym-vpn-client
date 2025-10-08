@@ -15,8 +15,8 @@ import UIComponents
     @Binding var path: NavigationPath
     @Published var isGeolocationModalDisplayed = false
     @Published var gateways = [GatewayNode]()
-    @Published var countries = [Country]()
-    @Published var foundCountries = [Country]()
+    @Published var countries = [NymCountry]()
+    @Published var foundCountries = [NymCountry]()
     @Published var foundGateways = [GatewayNode]()
     @Published var scrollToModel: GatewayScrollToModel
     @Published var searchText: String = "" {
@@ -101,7 +101,7 @@ import UIComponents
     func searchCountriesGateways() {
         guard searchText.count >= minimumSearchSymbols
         else {
-            foundCountries = [Country]()
+            foundCountries = [NymCountry]()
             foundGateways = [GatewayNode]()
             return
         }

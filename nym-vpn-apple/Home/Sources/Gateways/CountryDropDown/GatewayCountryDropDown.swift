@@ -8,7 +8,7 @@ import Theme
 import UIComponents
 
 public struct GatewayCountryDropDown: View {
-    private let country: Country
+    private let country: NymCountry
     private let regions: [String]
     private let servers: [GatewayNode]
     private let hopType: HopType
@@ -25,7 +25,7 @@ public struct GatewayCountryDropDown: View {
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     public init(
-        country: Country,
+        country: NymCountry,
         servers: [GatewayNode],
         type: HopType,
         path: Binding<NavigationPath>,

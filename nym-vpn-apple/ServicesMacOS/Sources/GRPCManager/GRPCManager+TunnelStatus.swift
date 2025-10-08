@@ -66,9 +66,7 @@ extension GRPCManager {
     @MainActor func updateTunnelStatus(with state: TunnelState) {
         switch state {
         case let .connected(details):
-            if let connectedAt = details.connectedAt {
-                connectedDate = Date(timeIntervalSince1970: Double(connectedAt))
-            }
+            connectedDate = Date(timeIntervalSince1970: Double(details.connectedAt))
             tunnelStatus = .connected
             connectionInfoData = ConnectionInfoData(
                 entryGatewayId: details.entryGateway.id,

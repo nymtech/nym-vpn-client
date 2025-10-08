@@ -9,7 +9,7 @@ import UIComponents
 
 public struct GatewaysRegionCell: View {
     private let hopType: HopType
-    private let country: Country
+    private let country: NymCountry
     private let region: String
     private let servers: [GatewayNode]
     @EnvironmentObject private var gatewayManager: GatewayManager
@@ -44,7 +44,7 @@ public struct GatewaysRegionCell: View {
 
     public init(
         hopType: HopType,
-        country: Country,
+        country: NymCountry,
         region: String,
         servers: [GatewayNode],
         infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?,

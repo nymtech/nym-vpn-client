@@ -142,7 +142,7 @@ private extension ConnectionStorage {
     /// - Parameter countryCode: String
     /// - Parameter isEntryHop: Bool. Determines from which country array(entry/exit) to return the country from
     /// - Returns: String with countryCode
-    func existingCountry(with countryCode: String, nodeType: NodeType) -> Country {
+    func existingCountry(with countryCode: String, nodeType: NodeType) -> NymCountry {
         if let country = gatewayManager.country(with: countryCode, gatewayType: nodeType) {
             return country
         } else {
@@ -150,8 +150,8 @@ private extension ConnectionStorage {
         }
     }
 
-    func fallbackCountry(nodeType: NodeType) -> Country {
-        let fallbackCountry = Country(name: "Switzerland", code: "CH", regions: [])
+    func fallbackCountry(nodeType: NodeType) -> NymCountry {
+        let fallbackCountry = NymCountry(name: "Switzerland", code: "CH", regions: [])
         switch nodeType {
         case .entry:
 

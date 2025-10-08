@@ -4,7 +4,7 @@ import CountriesManagerTypes
 extension GatewayNode {
     init(with newGateway: Gateway) {
         self.init(
-            id: newGateway.id,
+            id: newGateway.identityKey,
             location: GatewayNodeLocation(with: newGateway.location),
             performance: GatewayNodePerformance(with: newGateway.wgPerformance),
             mixnetScore: GatewayNodeScore.convert(from: newGateway.mixnetScore) ?? .noScore,

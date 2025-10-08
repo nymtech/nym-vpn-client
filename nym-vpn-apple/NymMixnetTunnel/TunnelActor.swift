@@ -60,21 +60,7 @@ actor TunnelActor {
                 tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
             }
             lastError = ErrorReason(with: errorStateReason)
-            tunnelState = .connected(
-                connectionData: ConnectionData(
-                    entryGateway: GatewayId(id: ""),
-                    exitGateway: GatewayId(id: ""),
-                    connectedAt: nil,
-                    tunnel: .mixnet(
-                        MixnetConnectionData(
-                            nymAddress: NymAddress(nymAddress: "127.0.0.1", gatewayId: "127.0.0.1"),
-                            exitIpr: NymAddress(nymAddress: "127.0.0.1", gatewayId: "127.0.0.1"),
-                            ipv4: "0.0.0.0",
-                            ipv6: "0.0.0.0"
-                        )
-                    )
-                )
-            )
+            tunnelState = .error(errorStateReason)
             return
         case .disconnecting(.error):
             await NotificationMessages.scheduleDisconnectNotification()
