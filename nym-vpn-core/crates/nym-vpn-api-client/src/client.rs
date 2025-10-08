@@ -96,7 +96,7 @@ impl VpnApiClient {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
+        // TODO: ClientBuilder::from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
         // nym_http_api_client::ClientBuilder::from_network(network)
         #[allow(deprecated)]
         let inner = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
@@ -218,7 +218,10 @@ impl VpnApiClient {
                 static_addresses,
             )?
         };
+        // refresh full client state so domain-fronting follows changes
         self.inner = new_client.inner;
+        self.base_url = new_client.base_url;
+        self.network_details = new_client.network_details;
         Ok(())
     }
 
