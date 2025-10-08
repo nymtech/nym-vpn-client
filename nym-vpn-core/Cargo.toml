@@ -2,13 +2,10 @@
 resolver = "2"
 members = [
     "crates/nym-apple-network",
-    "crates/nym-common",
-    "crates/nym-connection-monitor",
     "crates/nym-dbus",
     "crates/nym-dns",
     "crates/nym-firewall",
     "crates/nym-gateway-directory",
-    "crates/nym-gateway-probe",
     "crates/nym-ipc",
     "crates/nym-macos",
     "crates/nym-offline-monitor",
@@ -205,8 +202,6 @@ x509-parser = "0.17.0"
 zeroize = "1.8.1"
 
 nym-apple-network = { path = "crates/nym-apple-network" }
-nym-common = { path = "crates/nym-common" }
-nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-dbus = { path = "crates/nym-dbus" }
 nym-dns = { path = "crates/nym-dns" }
 nym-firewall = { path = "crates/nym-firewall" }
@@ -236,8 +231,10 @@ nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "develop" 
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-client-core = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-config = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-connection-monitor = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "develop", default-features = false }
 nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "develop" }
