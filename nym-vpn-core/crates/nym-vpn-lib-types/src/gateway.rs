@@ -6,7 +6,10 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 // The least of evil in terms of dependencies
 use nym_crypto::asymmetric::{
@@ -37,7 +40,8 @@ pub enum ParseRecipientError {
     InvalidGatewayKey,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Recipient {
     client_identity: ClientIdentity,
     client_encryption_key: ClientEncryptionKey,
@@ -163,15 +167,24 @@ impl From<nym_gateway_directory::Recipient> for Recipient {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum EntryPoint {
     // An explicit entry gateway identity.
-    Gateway { identity: NodeIdentity },
+    Gateway {
+        #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        identity: NodeIdentity,
+    },
     // Select a random entry gateway in a specific country.
-    Country { two_letter_iso_country_code: String },
+    Country {
+        two_letter_iso_country_code: String,
+    },
     // Select a random entry gateway in a specific region/state.
-    Region { region: String },
+    Region {
+        region: String,
+    },
     // Select an entry gateway at random.
     Random,
 }
@@ -218,22 +231,34 @@ impl From<EntryPoint> for nym_gateway_directory::EntryPoint {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
-    Address { address: Box<Recipient> },
+    Address {
+        #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        address: Box<Recipient>,
+    },
 
     // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
     // embedded on a gateway.
-    Gateway { identity: NodeIdentity },
+    Gateway {
+        #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+        identity: NodeIdentity,
+    },
 
     // Select a random entry gateway in a specific country.
-    Country { two_letter_iso_country_code: String },
+    Country {
+        two_letter_iso_country_code: String,
+    },
 
     // Select a random entry gateway in a specific region/state.
-    Region { region: String },
+    Region {
+        region: String,
+    },
 
     // Select an exit gateway at random.
     Random,
@@ -283,6 +308,8 @@ impl From<nym_gateway_directory::ExitPoint> for ExitPoint {
 
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,
@@ -302,6 +329,8 @@ impl From<GatewayType> for nym_gateway_directory::GatewayType {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum GatewayFilter {
     MinScore(Score),
     Country(String),
@@ -362,8 +391,10 @@ impl From<GatewayFilters> for nym_gateway_directory::GatewayFilters {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Gateway {
     pub identity_key: String,
     pub moniker: String,
@@ -377,8 +408,10 @@ pub struct Gateway {
     pub build_version: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Performance {
     pub last_updated_utc: String,
     pub score: Score,
@@ -398,23 +431,29 @@ impl From<nym_gateway_directory::Performance> for Performance {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum AsnKind {
     Residential,
     Other,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Asn {
     pub asn: String,
     pub name: String,
     pub kind: AsnKind,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Location {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
@@ -430,8 +469,10 @@ impl fmt::Display for Location {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Probe {
     pub last_updated_utc: String,
     pub outcome: ProbeOutcome,
@@ -443,8 +484,10 @@ impl fmt::Display for Probe {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Score {
     High,
     Medium,
@@ -464,22 +507,28 @@ impl From<nym_gateway_directory::ScoreValue> for Score {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Entry {
     pub can_connect: bool,
     pub can_route: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Exit {
     pub can_connect: bool,
     pub can_route_ip_v4: bool,
@@ -488,8 +537,10 @@ pub struct Exit {
     pub can_route_ip_external_v6: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Country {
     pub iso_code: String,
 }

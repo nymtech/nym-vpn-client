@@ -3,10 +3,17 @@
 
 use std::net::IpAddr;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
+
 use crate::{EntryPoint, ExitPoint, GatewayType};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
@@ -90,6 +97,8 @@ pub struct AccountCommandResponse {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Coin {
     pub amount: u128,
     pub denom: String,
