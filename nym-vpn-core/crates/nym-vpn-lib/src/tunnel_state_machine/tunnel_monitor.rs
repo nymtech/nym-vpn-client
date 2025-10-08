@@ -885,11 +885,19 @@ impl TunnelMonitor {
             // and the bind address of that UDP listener is provided to the entry wireguard tunnel
             // as the endpoint address.
             tracing::info!("Establishing DVPN QUIC transport tunnel");
-            let udp_fwd_cancel = self.shutdown_token.child_token();
-            let bridge_conn = transports::BridgeConn::try_connect(entry_bridge_params).await?;
+
+            let bridge_conn = transports::BridgeConn::try_connect(
+                entry_bridge_params,
+                self.shutdown_token.child_token(),
+            )
+            .await?;
             connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
-            let (local_fwd_listen_addr, fwd_handle) =
-                transports::UdpForwarder::launch(bridge_conn, None, udp_fwd_cancel.clone()).await?;
+            let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
+                bridge_conn,
+                None,
+                self.shutdown_token.child_token(),
+            )
+            .await?;
             transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"

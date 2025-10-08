@@ -36,6 +36,9 @@ pub enum TransportError {
     #[error("insufficient or broken transport params: {0}")]
     Config(String),
 
+    #[error("transport connection was cancelled")]
+    Cancelled,
+
     #[error("transport error: {0}")]
     Other(String),
 }
@@ -61,16 +64,26 @@ pub struct BridgeConn {
 }
 
 impl BridgeConn {
-    pub async fn try_connect(params: BridgeParameters) -> Result<Self, TransportError> {
+    pub async fn try_connect(
+        params: BridgeParameters,
+        token: CancellationToken,
+    ) -> Result<Self, TransportError> {
         let start = Instant::now();
 
         match params {
             BridgeParameters::QuicPlain(ref opts) => {
                 let opts = ClientOptions::try_from(opts)?;
-                let conn = transport_conn(&opts).await?;
+
+                let conn = token
+                    .run_until_cancelled(transport_conn(&opts))
+                    .await
+                    .ok_or(TransportError::Cancelled)??;
                 let endpoint = conn.remote_address();
                 // .context("failed to connect to transport conn")?;
-                let (writer, reader) = conn.open_bi().await?;
+                let (writer, reader) = token
+                    .run_until_cancelled(conn.open_bi())
+                    .await
+                    .ok_or(TransportError::Cancelled)??;
                 // .context("failed to connect to transport stream")?;
                 info!("quic transport connected in {:?}", start.elapsed());
                 Ok(Self {
