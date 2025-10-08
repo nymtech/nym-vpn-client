@@ -37,9 +37,9 @@ import GRPCManager
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
     @Published public var vpn: [GatewayNode]
-    @Published public var entryCountries: [Country]
-    @Published public var exitCountries: [Country]
-    @Published public var vpnCountries: [Country]
+    @Published public var entryCountries: [NymCountry]
+    @Published public var exitCountries: [NymCountry]
+    @Published public var vpnCountries: [NymCountry]
     @Published public var lastError: Error?
 
     lazy var iso8601Flexible: ISO8601DateFormatter = {
@@ -100,7 +100,7 @@ import GRPCManager
     ///   - code: countryCode
     ///   - gatewayType: gateway type
     /// - Returns: Countrry if any of the gateways are located in it or nil.
-    public func country(with code: String, gatewayType: NodeType) -> Country? {
+    public func country(with code: String, gatewayType: NodeType) -> NymCountry? {
         let gateway: GatewayNode?
         switch gatewayType {
         case .entry:
@@ -120,14 +120,14 @@ import GRPCManager
     /// Localized country
     /// - Parameter countryCode: String
     /// - Returns: Country
-    public func localizedCountry(with countryCode: String?) -> Country? {
+    public func localizedCountry(with countryCode: String?) -> NymCountry? {
         guard let countryCode,
               !countryCode.isEmpty,
               let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             return nil
         }
-        return Country(name: countryName, code: countryCode, regions: [])
+        return NymCountry(name: countryName, code: countryCode, regions: [])
     }
 
     /// Country from gateway id for node type
@@ -135,7 +135,7 @@ import GRPCManager
     ///   - gatewayId: String
     ///   - nodeType: NodeType
     /// - Returns: Country?
-    public func country(with gatewayId: String?, nodeType: NodeType) -> Country? {
+    public func country(with gatewayId: String?, nodeType: NodeType) -> NymCountry? {
         guard let gatewayId else { return nil }
         switch nodeType {
         case .entry:
@@ -291,7 +291,7 @@ extension GatewayManager {
 }
 
 private extension GatewayManager {
-    func countries(from nodes: [GatewayNode]) -> [Country] {
+    func countries(from nodes: [GatewayNode]) -> [NymCountry] {
         var regionsByCode: [String: Set<String>] = [:]
         nodes.compactMap(\.location).forEach { location in
             let code = location.twoLetterIsoCountryCode.uppercased()
@@ -300,7 +300,7 @@ private extension GatewayManager {
             regionsByCode[code, default: []].insert(region)
         }
 
-        var result: [Country] = []
+        var result: [NymCountry] = []
         result.reserveCapacity(regionsByCode.count)
 
         regionsByCode.forEach { code, regionsSet in

@@ -5,7 +5,7 @@ import NymVPNLib
 extension GatewayNode {
     init(with gatewayInfo: Gateway) {
         self.init(
-            id: gatewayInfo.id,
+            id: gatewayInfo.identityKey,
             location: GatewayNodeLocation(with: gatewayInfo.location),
             performance: GatewayNodePerformance(with: gatewayInfo.wgPerformance),
             mixnetScore: GatewayNodeScore(with: gatewayInfo.mixnetScore ?? .none),

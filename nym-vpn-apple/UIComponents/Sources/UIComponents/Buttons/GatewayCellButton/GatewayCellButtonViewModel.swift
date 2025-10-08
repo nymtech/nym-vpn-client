@@ -4,11 +4,11 @@ import Theme
 
 public struct GatewayCellButtonViewModel {
     public enum GatewayyCellButtonType {
-        case fastest(country: Country)
-        case country(country: Country)
+        case fastest(country: NymCountry)
+        case country(country: NymCountry)
         case gateway(identifier: String)
 
-        var country: Country? {
+        var country: NymCountry? {
             switch self {
             case let .fastest(country), let .country(country):
                 country

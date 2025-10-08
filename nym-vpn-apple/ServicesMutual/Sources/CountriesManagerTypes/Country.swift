@@ -1,4 +1,4 @@
-public struct Country: Codable, Hashable {
+public struct NymCountry: Codable, Hashable {
     public let name: String
     public let code: String
     public var regions: [String]
