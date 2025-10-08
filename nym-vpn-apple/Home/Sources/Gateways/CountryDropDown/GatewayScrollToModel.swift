@@ -105,7 +105,7 @@ public enum GatewayScrollToModel: Equatable {
         case .country:
             return false
         case let .region(regionCountryCode, _):
-            if let region {
+            if region != nil {
                 return false
             } else {
                 return countryCode == regionCountryCode
