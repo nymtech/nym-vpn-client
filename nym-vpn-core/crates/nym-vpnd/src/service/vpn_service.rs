@@ -379,7 +379,6 @@ impl NymVpnService {
 
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
-        let api_url = parameters.network_env.api_url();
 
         let mix_score_thresholds = parameters
             .network_env
@@ -402,8 +401,21 @@ impl NymVpnService {
 
         let gateway_config = gateway_directory::Config {
             nyxd_url,
-            api_url: api_url.clone(),
-            nym_vpn_api_url: Some(parameters.network_env.vpn_api_url()),
+            api_url: {
+                // Use domain-fronted API URL for DNS/firewall coordination
+                parameters
+                    .network_env
+                    .effective_fronted_api_url()
+                    .unwrap_or_else(|| parameters.network_env.api_url())
+            }
+            .clone(),
+            nym_vpn_api_url: Some({
+                // Use domain-fronted VPN API URL for DNS/firewall coordination
+                parameters
+                    .network_env
+                    .effective_fronted_vpn_api_url()
+                    .unwrap_or_else(|| parameters.network_env.vpn_api_url())
+            }),
             min_gateway_performance: None,
             mix_score_thresholds,
             wg_score_thresholds,
@@ -423,13 +435,19 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let validator_client = nym_http_api_client::Client::builder(api_url)
+        // Build validator client against the same (fronted) API URL to match resolver/firewall rules
+        let effective_api_url = parameters
+            .network_env
+            .effective_fronted_api_url()
+            .unwrap_or_else(|| parameters.network_env.api_url());
+
+        let validator_client = nym_http_api_client::Client::builder(effective_api_url.clone())
             .map_err(Box::new)?
             .with_user_agent(parameters.user_agent.clone())
             .build()
             .map_err(Box::new)?;
         let topology_provider = VpnTopologyProvider::new(
-            parameters.network_env.api_url(),
+            effective_api_url,
             validator_client,
             false,
             services_shutdown_token.child_token(),

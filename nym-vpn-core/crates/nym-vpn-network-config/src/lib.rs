@@ -90,6 +90,23 @@ impl Network {
         &self.nym_network.network
     }
 
+    pub fn effective_fronted_api_url(&self) -> Option<Url> {
+        #[allow(deprecated)]
+        let list = self.nym_network.network.nym_api_urls.as_ref()?;
+        let first = list.first()?;
+        // `first.url` is the fronted connection URL (host that gets resolved); parse into Url
+        #[allow(deprecated)]
+        first.url.parse().ok()
+    }
+
+    pub fn effective_fronted_vpn_api_url(&self) -> Option<Url> {
+        #[allow(deprecated)]
+        let first = self.nym_vpn_network.nym_vpn_api_urls.first()?;
+        // `first.url` is the fronted connection URL (host that gets resolved); parse into Url
+        #[allow(deprecated)]
+        first.url.parse().ok()
+    }
+
     pub fn export_to_env(&self) {
         self.nym_network.export_to_env();
         self.nym_vpn_network.export_to_env();
