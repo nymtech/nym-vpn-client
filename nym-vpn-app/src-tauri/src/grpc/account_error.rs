@@ -1,9 +1,9 @@
 use crate::error::{BackendError, ErrorKey};
 use nym_vpn_proto::proto::{
-    AccountCommandError, VpnApiError, VpnApiErrorResponse,
     account_command_error::ErrorDetail as AccountError,
     account_controller_state::Error as StateError, account_controller_state::ErrorStateReason,
-    vpn_api_error::ErrorDetail as VpnApiErrorDetail,
+    vpn_api_error::ErrorDetail as VpnApiErrorDetail, AccountCommandError, VpnApiError,
+    VpnApiErrorResponse,
 };
 use tracing::error;
 
@@ -17,7 +17,7 @@ impl From<VpnApiError> for BackendError {
             VpnApiErrorDetail::Timeout(_) => BackendError::internal("nym-vpn-api timeout", None),
             VpnApiErrorDetail::StatusCode(code) => BackendError::internal_with_detail(
                 "nym-vpn-api error",
-                format!("nym-vpn-api returned: {code}"),
+                format!("nym-vpn-api returned: {code:?}"),
             ),
             VpnApiErrorDetail::Response(response) => BackendError::from(response),
         }
