@@ -1,10 +1,17 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
+
 // todo: rename this type back to ErrorStateReason once support for renaming uniffi structs is released
 //       see: https://github.com/mozilla/uniffi-rs/issues/2212
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum AccountControllerErrorStateReason {
     /// Error due to storage
     Storage { context: String },

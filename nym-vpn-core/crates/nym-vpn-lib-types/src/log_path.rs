@@ -3,8 +3,12 @@
 
 use std::path::PathBuf;
 
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 pub struct LogPath {
     pub dir: PathBuf,
     pub filename: String,

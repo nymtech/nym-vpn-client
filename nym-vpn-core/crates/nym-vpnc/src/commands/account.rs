@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
-use itertools::Itertools;
-use nym_vpn_api_client::types::VpnAccountMode;
 use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum VpnAccountMode {
+    Api,
+    Decentralised,
+}
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -16,7 +20,7 @@ pub enum Command {
         #[arg(index = 1)]
         mnemonic: String,
 
-        #[clap(long, default_value_t = VpnAccountMode::Api)]
+        #[clap(long, default_value = "VpnAccountMode::Api")]
         mode: VpnAccountMode,
     },
     /// Forget account
@@ -107,7 +111,11 @@ impl Command {
                     }
                     Ok(balance) => println!(
                         "account balance: {}",
-                        balance.into_iter().map(|c| c.to_string()).join(", ")
+                        balance
+                            .into_iter()
+                            .map(|c| c.to_string())
+                            .collect::<Vec<String>>()
+                            .join(", ")
                     ),
                 }
                 Ok(())

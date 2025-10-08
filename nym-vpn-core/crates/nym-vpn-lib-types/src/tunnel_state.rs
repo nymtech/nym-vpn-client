@@ -1,12 +1,19 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
+
 use super::connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, TunnelConnectionData,
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TunnelType {
     Mixnet,
     Wireguard,
@@ -24,6 +31,8 @@ impl TunnelType {
 /// Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TunnelState {
     /// Tunnel is disconnected and network connectivity is available.
     Disconnected,
@@ -166,6 +175,8 @@ impl std::fmt::Display for TunnelState {
 /// Public enum describing action to perform after disconnect
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
@@ -182,6 +193,8 @@ pub enum ActionAfterDisconnect {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ErrorStateReason {
     /// Failure to set firewall policy.
     SetFirewallPolicy,

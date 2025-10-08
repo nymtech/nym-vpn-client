@@ -2,10 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::collections::HashMap;
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct NymNetworkDetails {
     pub network_name: String,
     pub chain_details: ChainDetails,
@@ -18,6 +25,8 @@ pub struct NymNetworkDetails {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ChainDetails {
     pub bech32_account_prefix: String,
     pub mix_denom: DenomDetailsOwned,
@@ -26,6 +35,8 @@ pub struct ChainDetails {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct DenomDetailsOwned {
     pub base: String,
     pub display: String,
@@ -34,6 +45,8 @@ pub struct DenomDetailsOwned {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ValidatorDetails {
     pub nyxd_url: String,
     pub websocket_url: Option<String>,
@@ -42,6 +55,8 @@ pub struct ValidatorDetails {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct NymContracts {
     pub mixnet_contract_address: Option<String>,
     pub vesting_contract_address: Option<String>,
@@ -54,6 +69,8 @@ pub struct NymContracts {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ApiUrl {
     pub url: String,
     pub front_hosts: Option<Vec<String>>,
@@ -61,6 +78,8 @@ pub struct ApiUrl {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct NymVpnNetwork {
     pub nym_vpn_api_url: String,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
@@ -68,6 +87,8 @@ pub struct NymVpnNetwork {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Network {
     pub nym_network: NymNetworkDetails,
     pub nyxd_url: String,
@@ -79,6 +100,8 @@ pub struct Network {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct FeatureFlags {
     pub flags: HashMap<String, FlagValue>,
 }
@@ -103,8 +126,7 @@ impl FeatureFlags {
         if let Some(FlagValue::Group(group)) = self.flags.get(group_name)
             && let Some(value) = group.get(flag_name)
         {
-            // todo: check how String::parse::<bool> works
-            Some(value == "true" || value == "enabled")
+            Some(value == "true")
         } else {
             None
         }
@@ -113,6 +135,8 @@ impl FeatureFlags {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum FlagValue {
     Value(String),
     Group(HashMap<String, String>),
@@ -120,6 +144,8 @@ pub enum FlagValue {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ParsedAccountLinks {
     pub sign_up: String,
     pub sign_in: String,
@@ -128,6 +154,8 @@ pub struct ParsedAccountLinks {
 
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ScoreThresholds {
     pub high: u8,
     pub medium: u8,
@@ -136,6 +164,8 @@ pub struct ScoreThresholds {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SystemConfiguration {
     pub mix_thresholds: ScoreThresholds,
     pub wg_thresholds: ScoreThresholds,
@@ -145,9 +175,15 @@ pub struct SystemConfiguration {
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SystemMessage {
     pub name: String,
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
     pub display_from: Option<OffsetDateTime>,
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
     pub display_until: Option<OffsetDateTime>,
     pub message: String,
     pub properties: Option<HashMap<String, String>>,
@@ -155,6 +191,8 @@ pub struct SystemMessage {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct NetworkCompatibility {
     pub core: String,
     pub ios: String,
