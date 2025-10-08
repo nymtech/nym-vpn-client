@@ -10,12 +10,13 @@ import Constants
 import TunnelStatus
 
 @MainActor public final class GRPCManager: ObservableObject {
+    private var cancellables = Set<AnyCancellable>()
+    private var listenToEventsObserver: StreamObserver?
+
     public static let shared = GRPCManager()
 
     let logger = Logger(label: "GRPC Manager")
-
     var rpcClient: RpcClient?
-    private var listenToEventsObserver: StreamObserver?
     var versionPingTask: Task<Void, Never>?
 
     @Published public var isServing = false
@@ -59,17 +60,55 @@ import TunnelStatus
 
 private extension GRPCManager {
     func configureRpcClient() async throws {
+        print("configure")
         do {
             rpcClient = try await RpcClient()
+            let newRpcObserver = RPCTunnelObserver()
+            listenToEventsObserver = try await rpcClient?.listenToEvents(observer: newRpcObserver)
+
+            newRpcObserver.$didClose
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] value in
+                    guard value else { return }
+                    self?.tunnelStatus = .unknown
+                    self?.listenToEventsObserver = nil
+                    self?.stopInitialStatusPinger()
+                    self?.rpcClient = nil
+                    self?.setup()
+                }
+                .store(in: &cancellables)
+
+            newRpcObserver.$tunnelEvent
+                .removeDuplicates()
+                .sink { [weak self] value in
+                    guard let value else { return }
+                    self?.didReceive(event: value)
+                }
+                .store(in: &cancellables)
+
+            stopInitialStatusPinger()
+            startDaemonInitialStatusPingerIfNeeded()
         } catch {
+            try? await Task.sleep(for: .seconds(3))
+            setup()
             logger.error("Failed to create RpcClient: \(error.localizedDescription)")
             return
         }
+    }
 
-        listenToEventsObserver = try await rpcClient?.listenToEvents(observer: self)
-
-        stopInitialStatusPinger()
-        startDaemonInitialStatusPingerIfNeeded()
+    @MainActor func didReceive(event: TunnelEvent) {
+        switch event {
+        case let .newState(tunnelState):
+            Task { @MainActor in
+                updateTunnelStatus(with: tunnelState)
+            }
+        case .mixnetState:
+            Task { @MainActor in }
+        case .configChanged:
+            Task { @MainActor in }
+        case .accountState:
+            Task { @MainActor in }
+        }
     }
 }
 
