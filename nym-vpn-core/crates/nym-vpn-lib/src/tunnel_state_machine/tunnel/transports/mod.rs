@@ -207,8 +207,12 @@ pub async fn process_udp<R, W>(
         token.clone(),
     ));
 
-    // Wait for both tasks to complete
-    let _ = tasks.join_all().await;
+    // Wait for both tasks to complete, if either one exits it _should_ cancel the other as well.
+    for res in tasks.join_all().await {
+        if let Err(e) = res {
+            tracing::error!("bridge udp forwarder error: {e}");
+        }
+    }
 }
 
 // Assumes that the socket has already had `connect` called.
