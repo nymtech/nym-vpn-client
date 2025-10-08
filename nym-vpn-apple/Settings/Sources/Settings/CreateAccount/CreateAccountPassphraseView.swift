@@ -1,8 +1,6 @@
 import SwiftUI
 import Keychain
-#if os(iOS)
 import ImpactGenerator
-#endif
 import Theme
 import UIComponents
 

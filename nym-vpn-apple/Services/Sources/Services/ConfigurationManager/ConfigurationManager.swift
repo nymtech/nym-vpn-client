@@ -17,7 +17,7 @@ public enum AppType {
     case networkExtension
 }
 
-public final class ConfigurationManager: ObservableObject {
+@MainActor public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings
     private let credentialsManager: CredentialsManager
     private let logger = Logger(label: "Configuration Manager")

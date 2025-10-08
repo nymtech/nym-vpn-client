@@ -1,12 +1,12 @@
 import SwiftUI
 import AppSettings
 
-public struct SplashAnimationViewModel {
+@MainActor public struct SplashAnimationViewModel {
     let appSettings: AppSettings
 
     @Binding var splashScreenDidDisplay: Bool
 
-    public init(splashScreenDidDisplay: Binding<Bool>, appSettings: AppSettings = AppSettings.shared) {
+    public init(splashScreenDidDisplay: Binding<Bool>, appSettings: AppSettings) {
         self.appSettings = appSettings
         _splashScreenDidDisplay = splashScreenDidDisplay
     }

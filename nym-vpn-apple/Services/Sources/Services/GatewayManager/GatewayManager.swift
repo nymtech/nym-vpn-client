@@ -11,7 +11,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 
-public final class GatewayManager: ObservableObject {
+@MainActor public final class GatewayManager: ObservableObject {
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager
 #if os(macOS)
@@ -24,7 +24,15 @@ public final class GatewayManager: ObservableObject {
     var gatewayStore = GatewayNodeStore()
     var cancellables = Set<AnyCancellable>()
 
-    public static let shared = GatewayManager()
+#if os(iOS)
+    public static let shared = GatewayManager(appSettings: .shared, configurationManager: .shared)
+#elseif os(macOS)
+    public static let shared = GatewayManager(
+        appSettings: .shared,
+        configurationManager: .shared,
+        grpcManager: .shared
+    )
+#endif
 
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
@@ -41,7 +49,7 @@ public final class GatewayManager: ObservableObject {
     }()
 
 #if os(iOS)
-    public init(appSettings: AppSettings = .shared, configurationManager: ConfigurationManager = .shared) {
+    public init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.entry = []
@@ -55,9 +63,9 @@ public final class GatewayManager: ObservableObject {
     }
 #elseif os(macOS)
     public init(
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        grpcManager: GRPCManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        grpcManager: GRPCManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -103,7 +111,7 @@ public final class GatewayManager: ObservableObject {
             gateway = vpn.first(where: { $0.location?.twoLetterIsoCountryCode == code })
         }
         if let gateway {
-            return country(with: gateway.location?.twoLetterIsoCountryCode)
+            return localizedCountry(with: gateway.location?.twoLetterIsoCountryCode)
         } else {
             return nil
         }
@@ -112,14 +120,14 @@ public final class GatewayManager: ObservableObject {
     /// Localized country
     /// - Parameter countryCode: String
     /// - Returns: Country
-    public func country(with countryCode: String?) -> Country? {
+    public func localizedCountry(with countryCode: String?) -> Country? {
         guard let countryCode,
               !countryCode.isEmpty,
               let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             return nil
         }
-        return Country(name: countryName, code: countryCode)
+        return Country(name: countryName, code: countryCode, regions: [])
     }
 
     /// Country from gateway id for node type
@@ -132,26 +140,24 @@ public final class GatewayManager: ObservableObject {
         switch nodeType {
         case .entry:
             let code = entry.first { $0.id == gatewayId }?.location?.twoLetterIsoCountryCode
-            return country(with: code)
+            return localizedCountry(with: code)
         case .exit:
             let code = exit.first { $0.id == gatewayId }?.location?.twoLetterIsoCountryCode
-            return country(with: code)
+            return localizedCountry(with: code)
         case .vpn:
             let code = vpn.first { $0.id == gatewayId }?.location?.twoLetterIsoCountryCode
-            return country(with: code)
+            return localizedCountry(with: code)
         }
     }
 
     public func countryCode(with gateway: EntryGateway) -> String? {
         switch gateway {
-        case let .country(code):
+        case let .country(code), let .lowLatencyCountry(code):
             return code
-        case let .region(region):
+        case let .region(countryCode: code, region: _):
+            return localizedCountry(with: code)?.code
+        case .city:
             return nil
-        case .city(let string):
-            return nil
-        case let .lowLatencyCountry(code):
-            return code
         case let .gateway(identifier):
             return country(with: identifier, nodeType: .entry)?.code ?? country(with: identifier, nodeType: .vpn)?.code
         case .random:
@@ -161,14 +167,14 @@ public final class GatewayManager: ObservableObject {
 
     public func countryCode(with router: ExitRouter) -> String? {
         switch router {
-        case let .address(string):
+        case .address:
             return nil
         case let .country(code):
             return code
         case let .gateway(identifier):
             return country(with: identifier, nodeType: .exit)?.code ?? country(with: identifier, nodeType: .vpn)?.code
-        case .region:
-            return nil
+        case let .region(countryCode: code, region: _):
+            return localizedCountry(with: code)?.code
         case .random:
             return nil
         }
@@ -177,10 +183,14 @@ public final class GatewayManager: ObservableObject {
     public func userFriendlyTitle(with gateway: EntryGateway) -> String? {
         switch gateway {
         case let .country(code), let .lowLatencyCountry(code):
-            return country(with: code)?.name
-        case let .region(region):
-            return nil
-        case .city(let string):
+            return localizedCountry(with: code)?.name
+        case let .region(countryCode: code, region: region):
+            if let country = localizedCountry(with: code) {
+                return "\(country.name), \(region)"
+            } else {
+                return region
+            }
+        case .city:
             return nil
         case let .gateway(identifier):
             return moniker(with: identifier) ?? identifier
@@ -191,17 +201,29 @@ public final class GatewayManager: ObservableObject {
 
     public func userFriendlyTitle(with router: ExitRouter) -> String? {
         switch router {
-        case let .address(string):
+        case .address:
             return nil
         case let .country(code):
-            return country(with: code)?.name
+            return localizedCountry(with: code)?.name
         case let .gateway(identifier):
             return moniker(with: identifier) ?? identifier
-        case .region:
-            return nil
+        case let .region(countryCode: code, region: region):
+            if let country = localizedCountry(with: code) {
+                return "\(country.name), \(region)"
+            } else {
+                return region
+            }
         case .random:
             return nil
         }
+    }
+}
+
+extension GatewayManager {
+    func updateCountriesFromGateways() {
+        entryCountries = countries(from: entry)
+        exitCountries = countries(from: exit)
+        vpnCountries = countries(from: vpn)
     }
 }
 
@@ -253,16 +275,10 @@ private extension GatewayManager {
         configurationManager.environmentDidChange = { [weak self] in
             self?.gatewayStore.lastFetchDate = nil
             Task {
-                try? await Task.sleep(for: .seconds(7))
+                try? await Task.sleep(for: .seconds(3))
                 await self?.fetchGateways()
             }
         }
-    }
-
-    func updateCountriesFromGateways() {
-        entryCountries = countries(from: entry)
-        exitCountries = countries(from: exit)
-        vpnCountries = countries(from: vpn)
     }
 }
 
@@ -276,9 +292,26 @@ extension GatewayManager {
 
 private extension GatewayManager {
     func countries(from nodes: [GatewayNode]) -> [Country] {
-        let codes = nodes.compactMap { $0.location?.twoLetterIsoCountryCode }
-        let countries = codes.compactMap { country(with: $0) }
-            .sorted(by: { $0.name < $1.name })
-        return countries
+        var regionsByCode: [String: Set<String>] = [:]
+        nodes.compactMap(\.location).forEach { location in
+            let code = location.twoLetterIsoCountryCode.uppercased()
+            let region = location.region.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !region.isEmpty else { return }
+            regionsByCode[code, default: []].insert(region)
+        }
+
+        var result: [Country] = []
+        result.reserveCapacity(regionsByCode.count)
+
+        regionsByCode.forEach { code, regionsSet in
+            guard var country = localizedCountry(with: code) else { return }
+            country.regions = regionsSet.sorted {
+                $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
+            }
+            result.append(country)
+        }
+
+        result.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return result
     }
 }

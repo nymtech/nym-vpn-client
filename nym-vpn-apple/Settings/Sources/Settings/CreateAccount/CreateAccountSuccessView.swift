@@ -1,8 +1,8 @@
 import SwiftUI
 import ConfigurationManager
 import CredentialsManager
-#if os(iOS)
 import ImpactGenerator
+#if os(iOS)
 import NymVPNLib
 import ErrorHandler
 #endif
@@ -106,7 +106,7 @@ private extension CreateAccountSuccessView {
             Spacer()
                 .frame(height: 24)
 
-            Text("purchasePlan.subtile1".localizedString)
+            Text("purchasePlan.subtitle1".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
                 .multilineTextAlignment(.center)
@@ -114,7 +114,7 @@ private extension CreateAccountSuccessView {
             Spacer()
                 .frame(height: 16)
 
-            Text("purchasePlan.subtile2".localizedString)
+            Text("purchasePlan.subtitle2".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
                 .multilineTextAlignment(.center)
@@ -192,9 +192,7 @@ private extension CreateAccountSuccessView {
             isLoading = false
         }
         isLoading = true
-#if os(iOS)
         ImpactGenerator.shared.impact()
-#endif
         do {
             guard let token = credentialsManager.accountToken
             else {

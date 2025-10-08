@@ -18,7 +18,8 @@ public struct LaunchView: View {
                 SplashAnimationView(
                     viewModel:
                         SplashAnimationViewModel(
-                            splashScreenDidDisplay: $splashScreenDidDisplay
+                            splashScreenDidDisplay: $splashScreenDidDisplay,
+                            appSettings: .shared
                         )
                 )
                 .frame(maxWidth: MagicNumbers.maxWidth)

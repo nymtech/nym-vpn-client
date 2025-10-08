@@ -1,6 +1,6 @@
 import Logging
 
-public class NymLogger {
+@MainActor public class NymLogger {
     public let logFileManager: LogFileManager
 
     public init() {

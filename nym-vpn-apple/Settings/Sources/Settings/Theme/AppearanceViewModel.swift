@@ -2,7 +2,7 @@ import SwiftUI
 import AppSettings
 import Theme
 
-public final class AppearanceViewModel: ObservableObject {
+@MainActor public final class AppearanceViewModel: ObservableObject {
     @ObservedObject private var appSettings: AppSettings
 
     let title = "settings.appearance".localizedString
@@ -14,7 +14,7 @@ public final class AppearanceViewModel: ObservableObject {
         AppSetting.Appearance.allCases
     }
 
-    public init(path: Binding<NavigationPath>, appSettings: AppSettings = AppSettings.shared) {
+    public init(path: Binding<NavigationPath>, appSettings: AppSettings) {
         _path = path
         self.appSettings = appSettings
         currentAppearance = appSettings.currentAppearance

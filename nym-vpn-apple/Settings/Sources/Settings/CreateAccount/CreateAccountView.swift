@@ -1,7 +1,7 @@
 import SwiftUI
 import CredentialsManager
-#if os(iOS)
 import ImpactGenerator
+#if os(iOS)
 import NymVPNLib
 import ErrorHandler
 #endif
