@@ -5500,6 +5500,7 @@ dependencies = [
 name = "nym-vpn-lib-types"
 version = "1.17.0-beta"
 dependencies = [
+ "ipnetwork",
  "nym-bandwidth-controller",
  "nym-connection-monitor",
  "nym-crypto",
@@ -5515,25 +5516,8 @@ dependencies = [
  "si-scale",
  "thiserror 2.0.17",
  "time",
- "zeroize",
-]
-
-[[package]]
-name = "nym-vpn-lib-types-uniffi"
-version = "1.17.0-beta"
-dependencies = [
- "ipnetwork",
- "nym-config",
- "nym-gateway-directory",
- "nym-ip-packet-requests",
- "nym-sdk",
- "nym-vpn-api-client",
- "nym-vpn-lib-types",
- "nym-vpn-network-config",
- "thiserror 2.0.17",
- "time",
  "uniffi",
- "url",
+ "zeroize",
 ]
 
 [[package]]
@@ -5558,7 +5542,6 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib",
  "nym-vpn-lib-types",
- "nym-vpn-lib-types-uniffi",
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpn-store",
@@ -5624,7 +5607,6 @@ version = "1.17.0-beta"
 dependencies = [
  "futures",
  "nym-vpn-lib-types",
- "nym-vpn-lib-types-uniffi",
  "nym-vpn-proto",
  "tokio",
  "tokio-util",

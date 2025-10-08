@@ -30,7 +30,6 @@ members = [
     "crates/nym-windows",
     "crates/uniffi-bindgen",
     "crates/nym-vpn-lib-uniffi",
-    "crates/nym-vpn-lib-types-uniffi",
     "crates/nym-vpn-rpc-uniffi",
 ]
 
@@ -228,7 +227,6 @@ nym-wg-go = { path = "crates/nym-wg-go" }
 nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
-nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
 
 nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }

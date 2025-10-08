@@ -1,8 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
-
 use nym_vpn_lib_types::{AccountCommandError, AvailableTickets, VpnApiError, VpnApiErrorResponse};
 
 use crate::{conversions::ConversionError, proto};
@@ -55,11 +53,6 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
     }
 }
 
-// We don't pass the source error across grpc, so on the recipient it will be empty. That's OK.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("(empty)")]
-struct EmptyError;
-
 impl TryFrom<proto::VpnApiError> for VpnApiError {
     type Error = ConversionError;
 
@@ -68,10 +61,12 @@ impl TryFrom<proto::VpnApiError> for VpnApiError {
             .error_detail
             .ok_or(ConversionError::NoValueSet("VpnApiError.error_detail"))?;
         Ok(match error_detail {
-            proto::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout(Arc::new(EmptyError)),
-            proto::vpn_api_error::ErrorDetail::StatusCode(code) => Self::StatusCode {
-                code: code.try_into().map_err(ConversionError::generic)?,
-                source: Arc::new(EmptyError),
+            proto::vpn_api_error::ErrorDetail::Timeout(msg) => Self::Timeout(msg),
+            proto::vpn_api_error::ErrorDetail::StatusCode(e) => Self::StatusCode {
+                code: e.code.try_into().map_err(|e| {
+                    ConversionError::Generic(format!("failed to convert status code: {}", e))
+                })?,
+                message: e.message,
             },
             proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response) => {
                 Self::Response(vpn_api_error_response.into())
@@ -212,9 +207,12 @@ impl From<proto::AvailableTickets> for AvailableTickets {
 impl From<VpnApiError> for proto::VpnApiError {
     fn from(value: VpnApiError) -> Self {
         let error_detail = match value {
-            VpnApiError::Timeout(..) => proto::vpn_api_error::ErrorDetail::Timeout(true),
-            VpnApiError::StatusCode { code, .. } => {
-                proto::vpn_api_error::ErrorDetail::StatusCode(code.into())
+            VpnApiError::Timeout(msg) => proto::vpn_api_error::ErrorDetail::Timeout(msg),
+            VpnApiError::StatusCode { code, message } => {
+                proto::vpn_api_error::ErrorDetail::StatusCode(proto::vpn_api_error::StatusError {
+                    code: u32::from(code),
+                    message,
+                })
             }
             VpnApiError::Response(vpn_api_error_response) => {
                 proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response.into())

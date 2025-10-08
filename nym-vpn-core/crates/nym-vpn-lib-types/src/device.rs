@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NymVpnDevice {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -10,6 +11,7 @@ pub struct NymVpnDevice {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum NymVpnDeviceStatus {
     Active,
     Inactive,
@@ -17,6 +19,7 @@ pub enum NymVpnDeviceStatus {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NymVpnUsage {
     pub created_on_utc: String,
     pub last_updated_utc: String,

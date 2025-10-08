@@ -196,9 +196,8 @@ message NetworkCompatibility {
 // no point in importing entire cosmos-sdk protobuf definition for just this one type
 message Coin {
   string denom = 1;
-  // technically this should be a 128bit value,
-  // but for our particular coin, 64bits is enough
-  uint64 amount = 2;
+  // u128 value represented as a string
+  string amount = 2;
 }
 
 message GetConfigResponse {
@@ -565,9 +564,13 @@ message DeleteLogFileError {
 
 message VpnApiError {
   oneof error_detail {
-    bool timeout = 1;
-    uint32 status_code = 2;
+    string timeout = 1;
+    StatusError status_code = 2;
     VpnApiErrorResponse response = 3;
+  }
+  message StatusError {
+    uint32 code = 1;
+    string message = 2;
   }
 }
 

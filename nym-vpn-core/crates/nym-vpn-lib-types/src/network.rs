@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use time::OffsetDateTime;
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NymNetworkDetails {
     pub network_name: String,
     pub chain_details: ChainDetails,
@@ -16,6 +17,7 @@ pub struct NymNetworkDetails {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ChainDetails {
     pub bech32_account_prefix: String,
     pub mix_denom: DenomDetailsOwned,
@@ -23,6 +25,7 @@ pub struct ChainDetails {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct DenomDetailsOwned {
     pub base: String,
     pub display: String,
@@ -30,6 +33,7 @@ pub struct DenomDetailsOwned {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ValidatorDetails {
     pub nyxd_url: String,
     pub websocket_url: Option<String>,
@@ -37,6 +41,7 @@ pub struct ValidatorDetails {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NymContracts {
     pub mixnet_contract_address: Option<String>,
     pub vesting_contract_address: Option<String>,
@@ -48,18 +53,21 @@ pub struct NymContracts {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ApiUrl {
     pub url: String,
     pub front_hosts: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NymVpnNetwork {
     pub nym_vpn_api_url: String,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct Network {
     pub nym_network: NymNetworkDetails,
     pub nyxd_url: String,
@@ -70,17 +78,48 @@ pub struct Network {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct FeatureFlags {
     pub flags: HashMap<String, FlagValue>,
 }
 
+#[cfg(feature = "uniffi-bindings")]
+impl FeatureFlags {
+    /// If domain fronting is enabled or not, if set
+    #[uniffi::method]
+    pub fn domain_fronting_enabled(&self) -> Option<bool> {
+        // todo: harmonize with nym-vpn-network-config/src/feature_flags.rs
+        self.get_group_flag("domain_fronting", "enabled")
+    }
+
+    /// If quic is enabled or not, if set
+    #[uniffi::method]
+    pub fn quic_enabled(&self) -> Option<bool> {
+        // todo: harmonize with nym-vpn-network-config/src/feature_flags.rs
+        self.get_group_flag("quic", "enabled")
+    }
+
+    fn get_group_flag(&self, group_name: &str, flag_name: &str) -> Option<bool> {
+        if let Some(FlagValue::Group(group)) = self.flags.get(group_name)
+            && let Some(value) = group.get(flag_name)
+        {
+            // todo: check how String::parse::<bool> works
+            Some(value == "true" || value == "enabled")
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum FlagValue {
     Value(String),
     Group(HashMap<String, String>),
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ParsedAccountLinks {
     pub sign_up: String,
     pub sign_in: String,
@@ -88,6 +127,7 @@ pub struct ParsedAccountLinks {
 }
 
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct ScoreThresholds {
     pub high: u8,
     pub medium: u8,
@@ -95,6 +135,7 @@ pub struct ScoreThresholds {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct SystemConfiguration {
     pub mix_thresholds: ScoreThresholds,
     pub wg_thresholds: ScoreThresholds,
@@ -103,6 +144,7 @@ pub struct SystemConfiguration {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct SystemMessage {
     pub name: String,
     pub display_from: Option<OffsetDateTime>,
@@ -112,6 +154,7 @@ pub struct SystemMessage {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct NetworkCompatibility {
     pub core: String,
     pub ios: String,
@@ -135,12 +178,51 @@ impl From<nym_vpn_api_client::response::SystemConfigurationResponse> for SystemC
 }
 
 #[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_network_config::SystemConfiguration> for SystemConfiguration {
+    fn from(value: nym_vpn_network_config::SystemConfiguration) -> Self {
+        SystemConfiguration {
+            wg_thresholds: ScoreThresholds::from(value.wg_thresholds),
+            mix_thresholds: ScoreThresholds::from(value.mix_thresholds),
+            statistics_api: value.statistics_api.map(|url| url.to_string()),
+            min_supported_app_versions: value
+                .min_supported_app_versions
+                .map(NetworkCompatibility::from),
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_vpn_api_client::response::ScoreThresholdsResponse> for ScoreThresholds {
     fn from(value: nym_vpn_api_client::response::ScoreThresholdsResponse) -> Self {
         Self {
             high: value.high,
             medium: value.medium,
             low: value.low,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_network_config::ScoreThresholds> for ScoreThresholds {
+    fn from(value: nym_vpn_network_config::ScoreThresholds) -> Self {
+        Self {
+            high: value.high,
+            medium: value.medium,
+            low: value.low,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_network_config::Network> for Network {
+    fn from(value: nym_vpn_network_config::Network) -> Self {
+        Self {
+            nym_network: NymNetworkDetails::from(value.nym_network),
+            nyxd_url: value.nyxd_url.to_string(),
+            api_url: value.api_url.to_string(),
+            nym_vpn_network: NymVpnNetwork::from(value.nym_vpn_network),
+            feature_flags: value.feature_flags.map(FeatureFlags::from),
+            system_configuration: value.system_configuration.map(SystemConfiguration::from),
         }
     }
 }

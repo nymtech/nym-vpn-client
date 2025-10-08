@@ -75,13 +75,12 @@ use nym_platform_metadata::SysInfo;
 use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
-use crate::gateway_cache::UniffiGatewayCacheHandle;
-
 use self::error::VpnError;
+use crate::gateway_cache::UniffiGatewayCacheHandle;
 use account::AccountControllerHandle;
-use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, NetworkCompatibility,
-    NetworkEnvironment, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
+use nym_vpn_lib_types::{
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
+    NetworkCompatibility, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
     UserAgent,
 };
 use offline_monitor::OfflineMonitorHandle;
@@ -92,13 +91,13 @@ use tunnel_provider::android::{AndroidConnectivityMonitor, AndroidTunProvider};
 #[cfg(target_os = "ios")]
 use tunnel_provider::ios::OSTunProvider;
 
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpAddr);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Addr);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Addr);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpNetwork);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Network);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Network);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::PathBuf);
+uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types::IpNetwork);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Network);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Network);
+uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
 
 // todo: refactor this, stop using statics
 lazy_static! {
@@ -141,7 +140,7 @@ pub fn initFallbackMainnetEnvironment() -> Result<(), VpnError> {
 /// Returns the currently set network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
+pub fn currentEnvironment() -> Result<Network, VpnError> {
     RUNTIME.block_on(environment::current_environment())
 }
 

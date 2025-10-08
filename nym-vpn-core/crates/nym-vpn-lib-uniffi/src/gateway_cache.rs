@@ -4,7 +4,7 @@
 use nym_gateway_directory::{GatewayCache, GatewayCacheHandle, GatewayClient};
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_api_client::types::ScoreThresholds;
-use nym_vpn_lib_types_uniffi::UserAgent;
+use nym_vpn_lib_types::UserAgent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 

@@ -7,6 +7,7 @@ use crate::AccountControllerErrorStateReason;
 
 // Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum AccountControllerState {
     /// We don't have network
     Offline,

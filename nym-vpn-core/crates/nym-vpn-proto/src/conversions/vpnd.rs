@@ -11,8 +11,8 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, ConnectArgs, ConnectOptions, GatewayType, ListGatewaysOptions,
-    LogPath, NymNetworkDetails, NymVpnNetwork, Performance, SystemMessage, UserAgent,
-    VpnServiceInfo,
+    LogPath, NymNetworkDetails, NymVpnNetwork, Performance, StoreAccountRequest, SystemMessage,
+    UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -458,7 +458,7 @@ impl TryFrom<ListGatewaysOptions> for proto::ListGatewaysRequest {
     }
 }
 
-impl TryFrom<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequest {
+impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
     type Error = ConversionError;
 
     fn try_from(value: proto::StoreAccountRequest) -> Result<Self, Self::Error> {
@@ -468,7 +468,7 @@ impl TryFrom<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequ
 
         Ok(match request {
             proto::store_account_request::Request::VpnAccountStore(account) => {
-                nym_vpn_lib_types::StoreAccountRequest::Vpn {
+                StoreAccountRequest::Vpn {
                     mnemonic: account.mnemonic,
                 }
             }
@@ -481,10 +481,10 @@ impl TryFrom<proto::StoreAccountRequest> for nym_vpn_lib_types::StoreAccountRequ
     }
 }
 
-impl From<nym_vpn_lib_types::StoreAccountRequest> for proto::StoreAccountRequest {
-    fn from(value: nym_vpn_lib_types::StoreAccountRequest) -> Self {
+impl From<StoreAccountRequest> for proto::StoreAccountRequest {
+    fn from(value: StoreAccountRequest) -> Self {
         let request = match value {
-            nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic } => {
+            StoreAccountRequest::Vpn { mnemonic } => {
                 proto::store_account_request::Request::VpnAccountStore(
                     proto::VpnAccountStoreRequest { mnemonic },
                 )
@@ -555,19 +555,31 @@ impl TryFrom<AccountCommandResponse> for proto::AccountCommandResponse {
 
 impl TryFrom<proto::AccountBalanceResponse> for nym_vpn_lib_types::AccountBalanceResponse {
     type Error = ConversionError;
-    fn try_from(value: proto::AccountBalanceResponse) -> Result<Self, Self::Error> {
-        let result = match value.account_balance.ok_or(ConversionError::NoValueSet(
-            "AccountBalanceResponse.account_balance",
-        ))? {
-            proto::account_balance_response::AccountBalance::Error(err) => Err(err.try_into()?),
-            proto::account_balance_response::AccountBalance::Balance(balance) => Ok(balance
-                .coins
-                .into_iter()
-                .map(|c| nym_vpn_lib_types::Coin::new(c.amount as u128, c.denom))
-                .collect()),
-        };
 
-        Ok(nym_vpn_lib_types::AccountBalanceResponse { result })
+    fn try_from(value: proto::AccountBalanceResponse) -> Result<Self, Self::Error> {
+        let value = value.account_balance.ok_or(ConversionError::NoValueSet(
+            "AccountBalanceResponse.account_balance",
+        ))?;
+
+        match value {
+            proto::account_balance_response::AccountBalance::Error(err) => {
+                Ok(nym_vpn_lib_types::AccountBalanceResponse {
+                    result: Err(err.try_into()?),
+                })
+            }
+            proto::account_balance_response::AccountBalance::Balance(balance) => {
+                let coins = balance
+                    .coins
+                    .into_iter()
+                    .map(|c| {
+                        let amount = u128::from_str(&c.amount)
+                            .map_err(|e| ConversionError::ParseInteger("Coin.amount", e))?;
+                        Ok(nym_vpn_lib_types::Coin::new(amount, c.denom))
+                    })
+                    .collect::<Result<Vec<_>, ConversionError>>()?;
+                Ok(nym_vpn_lib_types::AccountBalanceResponse { result: Ok(coins) })
+            }
+        }
     }
 }
 
@@ -581,7 +593,7 @@ impl From<nym_vpn_lib_types::AccountBalanceResponse> for proto::AccountBalanceRe
                         .into_iter()
                         .map(|c| proto::Coin {
                             denom: c.denom,
-                            amount: c.amount as u64,
+                            amount: c.amount.to_string(),
                         })
                         .collect(),
                 })
