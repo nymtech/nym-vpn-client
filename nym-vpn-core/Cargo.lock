@@ -3925,8 +3925,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.18.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#827c13b69e86b50e47e06297576df8a9b7b288c4"
+version = "1.17.0-beta"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -3972,8 +3971,7 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "1.18.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#827c13b69e86b50e47e06297576df8a9b7b288c4"
+version = "1.17.0-beta"
 dependencies = [
  "bincode",
  "bytes",
