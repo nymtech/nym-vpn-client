@@ -72,10 +72,13 @@ private extension HomeView {
         )
     }
 
-    @ViewBuilder
     func statusAreaSection() -> some View {
-        StatusAreaView(statusButtonConfig: $viewModel.statusButtonConfig, statusInfoState: $viewModel.statusInfoState)
-            .padding(.horizontal, 16)
+        StatusAreaView(
+            statusButtonConfig: $viewModel.statusButtonConfig,
+            statusInfoState: $viewModel.statusInfoState,
+            connectedDate: $viewModel.connectionManager.connectedDate
+        )
+        .padding(.horizontal, 16)
     }
 
     @ViewBuilder
