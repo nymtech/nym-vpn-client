@@ -1,4 +1,5 @@
 import ConnectionTypes
+import CountriesManagerTypes
 
 public enum GatewayScrollToModel: Equatable {
     case country(code: String)
@@ -96,6 +97,24 @@ public enum GatewayScrollToModel: Equatable {
             true
         case .country, .region, .empty:
             false
+        }
+    }
+
+    func shouldExpand(countryCode: String, region: String?, server: GatewayNode?) -> Bool {
+        switch self {
+        case .country:
+            return false
+        case let .region(regionCountryCode, _):
+            if region != nil {
+                return false
+            } else {
+                return countryCode == regionCountryCode
+            }
+        case let .server(id):
+            return server?.id == id && server?.location?.twoLetterIsoCountryCode == countryCode
+            || server?.id == id && server?.location?.region == region
+        case .empty:
+            return false
         }
     }
 }

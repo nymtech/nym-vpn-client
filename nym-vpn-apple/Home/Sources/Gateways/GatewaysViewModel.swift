@@ -6,8 +6,7 @@ import GatewayManager
 import UIComponents
 
 @MainActor public class GatewaysViewModel: ObservableObject {
-    private let gatewayManager: GatewayManager
-
+    let gatewayManager: GatewayManager
     let type: HopType
     let minimumSearchSymbols = 2
 
@@ -15,8 +14,9 @@ import UIComponents
     @Binding var path: NavigationPath
     @Published var isGeolocationModalDisplayed = false
     @Published var gateways = [GatewayNode]()
-    @Published var countries = [Country]()
-    @Published var foundCountries = [Country]()
+    @Published var countries = [NymCountry]()
+    @Published var foundCountries = [NymCountry]()
+    @Published var foundUSRegions = [String]()
     @Published var foundGateways = [GatewayNode]()
     @Published var scrollToModel: GatewayScrollToModel
     @Published var searchText: String = "" {
@@ -106,12 +106,23 @@ import UIComponents
             return
         }
         foundCountries = countries.filter {
-            $0.name.lowercased().contains(searchText.lowercased())
-            || $0.code.lowercased().contains(searchText.lowercased())
+            $0.name.lowercased().localizedCaseInsensitiveContains(searchText.lowercased())
+            || $0.code.lowercased().localizedCaseInsensitiveContains(searchText.lowercased())
         }
+
+        var seen = Set<String>()
+        foundUSRegions = gateways
+            .lazy
+            .filter { $0.location?.twoLetterIsoCountryCode.caseInsensitiveCompare("US") == .orderedSame }
+            .compactMap { $0.location?.region.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter {
+                !$0.isEmpty && $0.range(of: self.searchText, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+            }
+            .filter { seen.insert($0).inserted }
+
         foundGateways = gateways.filter {
-            $0.moniker?.lowercased().contains(searchText.lowercased()) ?? false
-            || $0.id.lowercased().contains(searchText.lowercased())
+            $0.moniker?.lowercased().localizedCaseInsensitiveContains(searchText.lowercased()) ?? false
+            || $0.id.lowercased().localizedCaseInsensitiveContains(searchText.lowercased())
         }
     }
 }

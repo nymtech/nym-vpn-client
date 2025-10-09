@@ -65,7 +65,11 @@ public struct GatewaysRegionCell: View {
 
         let unwrappedScrollToModel = scrollToModel.wrappedValue
         let selectedServer = servers.first { $0.id == unwrappedScrollToModel.serverId }
-        let shouldExpand = unwrappedScrollToModel.region == region || selectedServer?.location?.region == region
+        let shouldExpand = unwrappedScrollToModel.shouldExpand(
+            countryCode: country.code,
+            region: region,
+            server: selectedServer
+        )
         _isExpanded = State(initialValue: shouldExpand)
         let shouldSelect = unwrappedScrollToModel.region == region && unwrappedScrollToModel.isRegion
         _isRegionSelected = State(initialValue: shouldSelect)
