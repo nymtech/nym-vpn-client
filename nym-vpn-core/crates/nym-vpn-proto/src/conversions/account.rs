@@ -66,7 +66,7 @@ impl TryFrom<proto::VpnApiError> for VpnApiError {
                 code: e.code.try_into().map_err(|e| {
                     ConversionError::Generic(format!("failed to convert status code: {e}"))
                 })?,
-                message: e.message,
+                msg: e.message,
             },
             proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response) => {
                 Self::Response(vpn_api_error_response.into())
@@ -208,7 +208,7 @@ impl From<VpnApiError> for proto::VpnApiError {
     fn from(value: VpnApiError) -> Self {
         let error_detail = match value {
             VpnApiError::Timeout(msg) => proto::vpn_api_error::ErrorDetail::Timeout(msg),
-            VpnApiError::StatusCode { code, message } => {
+            VpnApiError::StatusCode { code, msg: message } => {
                 proto::vpn_api_error::ErrorDetail::StatusCode(proto::vpn_api_error::StatusError {
                     code: u32::from(code),
                     message,

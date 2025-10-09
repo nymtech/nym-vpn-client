@@ -31,7 +31,7 @@ data class NymGateway(
 	companion object {
 		fun from(gateway: Gateway): NymGateway {
 			return NymGateway(
-				identity = gateway.id,
+				identity = gateway.identityKey,
 				name = gateway.moniker,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
 				mixnetScore = gateway.mixnetScore,
