@@ -34,11 +34,11 @@ LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build uniffi libwg clean clean-build-artifacts
+.PHONY: build uniffi libwg clean
 
 all: $(ARM64_V8_BUILD_DIR)/libwg.so build uniffi $(LICENSES_FILE)
 
-build: clean-build-artifacts $(ARM64_V8_BUILD_DIR)/libwg.so
+build: $(ARM64_V8_BUILD_DIR)/libwg.so
 	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	cd $(ARM64_V8_BUILD_DIR) ; \
 	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
@@ -56,15 +56,6 @@ libwg: $(ARM64_V8_BUILD_DIR)/libwg.so
 clean:
 	rm -rf $(ARM64_V8_BUILD_DIR) || true
 	rm -rf $(JNI_LIBS_DIR) || true
-
-# Clean build artifacts created by `cargo ndk` except libwg.so
-# This is needed because rustc outputs additional dynamic libraries along our artifacts, for ex: librustls_platform_verifier-e39f954511af018a.so
-# Where the hash part of the library name is generated and may change over time
-clean-build-artifacts:
-	if [ -d $(ARM64_V8_BUILD_DIR) ]; then \
-	    cd $(ARM64_V8_BUILD_DIR) ; \
-		find . ! -name 'libwg.so' -type f -exec rm -f {} + ; \
-	fi
 
 $(LICENSES_FILE): $(CURDIR)/Cargo.lock
 	cargo license -j --avoid-dev-deps --current-dir $(CURDIR)/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > $(LICENSES_FILE)
