@@ -171,6 +171,7 @@ private extension ConnectionManager {
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
+        setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
         configureConnectedTimeTimer()
@@ -211,8 +212,19 @@ private extension ConnectionManager {
 // MARK: - Countries -
 
 private extension ConnectionManager {
+    func setupAppSettingsObservers() {
+        appSettings.$isQuicEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] value in
+                self?.connectionConfig?.enableBridges = value
+                self?.updateConnectionConfig()
+            }
+            .store(in: &cancellables)
+    }
+
     func setupConnectionChangeObserver() {
-        $connectionType.sink { [weak self] _ in
+        $connectionType
+            .sink { [weak self] _ in
             self?.updateCountries()
         }
         .store(in: &cancellables)

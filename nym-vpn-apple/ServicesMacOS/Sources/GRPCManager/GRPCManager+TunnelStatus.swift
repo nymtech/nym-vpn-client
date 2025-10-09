@@ -94,12 +94,6 @@ extension GRPCManager {
             case .offline:
                 tunnelStatus = .offline
             }
-            // TODO: check with new reconnecting
-//            if afterDisconnect == .reconnect {
-//                tunnelStatus = .connecting
-//            } else {
-//                tunnelStatus = .disconnecting
-//            }
             connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
