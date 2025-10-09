@@ -5453,7 +5453,6 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-network-config",
  "serde",
- "serde_json",
  "si-scale",
  "thiserror 2.0.17",
  "time",

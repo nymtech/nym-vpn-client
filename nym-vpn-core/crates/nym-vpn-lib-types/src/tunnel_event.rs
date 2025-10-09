@@ -24,7 +24,12 @@ use super::tunnel_state::TunnelState;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelEvent {
@@ -47,7 +52,12 @@ impl fmt::Display for TunnelEvent {
 
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum MixnetEvent {
@@ -68,7 +78,12 @@ impl fmt::Display for MixnetEvent {
 
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum BandwidthEvent {
@@ -93,7 +108,12 @@ impl fmt::Display for BandwidthEvent {
 
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum ConnectionEvent {
@@ -134,7 +154,12 @@ impl fmt::Display for ConnectionEvent {
 
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct ConnectionStatisticsEvent {
@@ -149,7 +174,12 @@ impl fmt::Display for ConnectionStatisticsEvent {
 
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct SphinxPacketRates {

@@ -10,7 +10,12 @@ use ts_rs::TS;
 //       see: https://github.com/mozilla/uniffi-rs/issues/2212
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum AccountControllerErrorStateReason {

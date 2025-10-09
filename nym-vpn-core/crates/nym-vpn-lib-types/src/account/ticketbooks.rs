@@ -9,7 +9,12 @@ use ts_rs::TS;
 // todo: this type is not used anywhere in the codebase for some reason
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-#[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct AvailableTickets {

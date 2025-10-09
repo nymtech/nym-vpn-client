@@ -56,7 +56,3 @@ nym-network-defaults = { workspace = true, optional = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
-
-[dev-dependencies]
-serde_json.workspace = true
-serde.workspace = true

@@ -10,6 +10,10 @@
 //! - Not all types are supported or can be bridged. Keep exported types simple.
 //!
 //! 2. TypeScript bindings using [ts-rs](https://docs.rs/ts-rs) (feature flag: typescript-bindings). Serialization (using serde) uses camelCase for compatibility with TypeScript/Tauri.
+//!    Run the following command to generate TypeScript bindings:
+//!    ```sh
+//!    cargo test -p nym-vpn-lib-types -F typescript-bindings
+//!    ```
 //!
 //! ## Serde support
 //!
