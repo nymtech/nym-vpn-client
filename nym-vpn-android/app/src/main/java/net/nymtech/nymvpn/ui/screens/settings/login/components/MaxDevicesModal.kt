@@ -17,10 +17,10 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import nym_vpn_lib_types.AccountLinks
+import nym_vpn_lib_types.ParsedAccountLinks
 
 @Composable
-fun MaxDevicesModal(show: Boolean, accountLinks: AccountLinks?, onDismiss: () -> Unit) {
+fun MaxDevicesModal(show: Boolean, accountLinks: ParsedAccountLinks?, onDismiss: () -> Unit) {
 	val context = LocalContext.current
 
 	Modal(
@@ -37,8 +37,8 @@ fun MaxDevicesModal(show: Boolean, accountLinks: AccountLinks?, onDismiss: () ->
 		},
 		text = {
 			CredentialModalBody {
-				accountLinks?.signIn?.let {
-					context.openWebUrl(it)
+				accountLinks?.let {
+					context.openWebUrl(it.signIn)
 					onDismiss()
 				}
 			}
