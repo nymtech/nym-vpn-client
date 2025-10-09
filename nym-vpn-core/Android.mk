@@ -61,8 +61,10 @@ clean:
 # This is needed because rustc outputs additional dynamic libraries along our artifacts, for ex: librustls_platform_verifier-e39f954511af018a.so
 # Where the hash part of the library name is generated and may change over time
 clean-build-artifacts:
-	cd $(ARM64_V8_BUILD_DIR) ; \
-	find . ! -name 'libwg.so' -type f -exec rm -f {} +
+	if [ -d $(ARM64_V8_BUILD_DIR) ]; then \
+	    cd $(ARM64_V8_BUILD_DIR) ; \
+		find . ! -name 'libwg.so' -type f -exec rm -f {} + ; \
+	fi
 
 $(LICENSES_FILE): $(CURDIR)/Cargo.lock
 	cargo license -j --avoid-dev-deps --current-dir $(CURDIR)/crates/nym-vpn-lib --filter-platform aarch64-linux-android --avoid-build-deps > $(LICENSES_FILE)
