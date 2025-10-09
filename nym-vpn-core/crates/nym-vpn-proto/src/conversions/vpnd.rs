@@ -292,7 +292,7 @@ impl From<QuicClientOptions> for proto::QuicClientOptions {
             addresses: value
                 .addresses
                 .into_iter()
-                .map(|addr| addr.to_string())
+                .map(proto::SocketAddr::from)
                 .collect(),
             host: value.host,
             id_pubkey: value.id_pubkey,
@@ -306,11 +306,8 @@ impl TryFrom<proto::QuicClientOptions> for QuicClientOptions {
     fn try_from(value: proto::QuicClientOptions) -> Result<Self, Self::Error> {
         let addresses = value
             .addresses
-            .iter()
-            .map(|addr| {
-                SocketAddr::from_str(addr)
-                    .map_err(|err| ConversionError::ParseAddr("QuickClientOptions.addresses", err))
-            })
+            .into_iter()
+            .map(SocketAddr::try_from)
             .collect::<Result<Vec<SocketAddr>, ConversionError>>()?;
         Ok(Self {
             host: value.host,

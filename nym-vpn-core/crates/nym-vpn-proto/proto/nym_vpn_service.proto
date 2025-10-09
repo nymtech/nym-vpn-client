@@ -6,6 +6,18 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
+message IpAddr {
+  oneof ip_addr {
+    fixed32 v4 = 1;
+    bytes v6 = 2;
+  }
+}
+
+message SocketAddr {
+  IpAddr addr = 1;
+  uint32 port = 2;
+}
+
 // Represents the identity of a gateway
 message GatewayId {
   string id = 1;
@@ -314,7 +326,7 @@ message BridgeParameters {
 }
 
 message QuicClientOptions {
-    repeated string addresses = 1;
+    repeated SocketAddr addresses = 1;
     optional string host = 2;
     string id_pubkey = 3;
 }
