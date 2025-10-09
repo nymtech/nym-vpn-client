@@ -47,6 +47,9 @@ uniffi: build
 	cargo run --bin uniffi-bindgen generate \
 		--library $(DYNAMIC_LIB_PATH) \
 		--language kotlin --out-dir $(UNIFFI_OUT_DIR) -n
+	cargo run --bin uniffi-bindgen generate \
+		--library $(ARM64_V8_BUILD_DIR)/libnym_vpn_lib_types.so \
+		--language kotlin --out-dir $(UNIFFI_OUT_DIR) -n
 
 $(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh --android $(DOCKER_FLAG)
