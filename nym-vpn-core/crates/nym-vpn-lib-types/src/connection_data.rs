@@ -19,6 +19,7 @@ use crate::TunnelType;
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct GatewayId {
     pub id: String,
 }
@@ -40,6 +41,7 @@ impl From<nym_gateway_directory::Gateway> for GatewayId {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: GatewayId,
@@ -57,6 +59,7 @@ pub struct EstablishConnectionData {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum EstablishConnectionState {
     /// Resolving API IP addresses
     ResolvingApiAddresses,
@@ -94,6 +97,7 @@ impl fmt::Display for EstablishConnectionState {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: GatewayId,
@@ -114,6 +118,7 @@ pub struct ConnectionData {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelConnectionData {
     Mixnet(MixnetConnectionData),
     Wireguard(WireguardConnectionData),
@@ -133,6 +138,7 @@ impl TunnelConnectionData {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct NymAddress {
     pub nym_address: String,
     pub gateway_id: String,
@@ -175,6 +181,7 @@ impl From<nym_gateway_directory::IpPacketRouterAddress> for NymAddress {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct MixnetConnectionData {
     pub nym_address: NymAddress,
     pub exit_ipr: NymAddress,
@@ -188,6 +195,7 @@ pub struct MixnetConnectionData {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct WireguardConnectionData {
     pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: WireguardNode,
@@ -198,6 +206,7 @@ pub struct WireguardConnectionData {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct WireguardNode {
     pub endpoint: SocketAddr,
     pub public_key: String,

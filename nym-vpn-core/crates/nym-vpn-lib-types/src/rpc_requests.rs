@@ -14,6 +14,7 @@ use crate::{EntryPoint, ExitPoint, GatewayType};
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
@@ -99,6 +100,7 @@ pub struct AccountCommandResponse {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct Coin {
     pub amount: u128,
     pub denom: String,

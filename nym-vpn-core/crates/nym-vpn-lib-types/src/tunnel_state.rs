@@ -14,6 +14,7 @@ use super::connection_data::{
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelType {
     Mixnet,
     Wireguard,
@@ -33,6 +34,7 @@ impl TunnelType {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelState {
     /// Tunnel is disconnected and network connectivity is available.
     Disconnected,
@@ -177,6 +179,7 @@ impl std::fmt::Display for TunnelState {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum ActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
@@ -195,6 +198,7 @@ pub enum ActionAfterDisconnect {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum ErrorStateReason {
     /// Failure to set firewall policy.
     SetFirewallPolicy,

@@ -3,9 +3,17 @@
 
 //! Types shared between nym-vpn-lib and other crates in the workspace.
 //!
-//! This crate supports [uniffi](https://mozilla.github.io/uniffi-rs/latest/) bindings via feature flag. The following limitations apply:
+//! ## Supported bindings
+//!
+//! 1. [uniffi](https://mozilla.github.io/uniffi-rs/latest/) bindings (feature flag: uniffi-bindings). The following limitations apply:
 //! - Namespaces are not supported, all exported types should have unique names.
 //! - Not all types are supported or can be bridged. Keep exported types simple.
+//!
+//! 2. TypeScript bindings using [ts-rs](https://docs.rs/ts-rs) (feature flag: typescript-bindings). Serialization (using serde) uses camelCase for compatibility with TypeScript/Tauri.
+//!
+//! ## Serde support
+//!
+//! Serde can be enabled using `serde` feature flag. Note that TypeScript adds camelCase transformation for keys. Do not mix both feature flags in the same workspace.
 
 mod account;
 mod connection_data;

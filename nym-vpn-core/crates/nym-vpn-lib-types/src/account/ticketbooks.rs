@@ -11,6 +11,7 @@ use ts_rs::TS;
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct AvailableTickets {
     pub mixnet_entry_tickets: u64,
     pub mixnet_entry_data: u64,

@@ -10,6 +10,7 @@ use ts_rs::TS;
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct NymVpnDevice {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -21,6 +22,7 @@ pub struct NymVpnDevice {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum NymVpnDeviceStatus {
     Active,
     Inactive,
@@ -31,6 +33,7 @@ pub enum NymVpnDeviceStatus {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct NymVpnUsage {
     pub created_on_utc: String,
     pub last_updated_utc: String,

@@ -15,6 +15,7 @@ use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
@@ -106,6 +107,7 @@ uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TargetState {
     /// Unsecure the device.
     Unsecured,
@@ -128,6 +130,7 @@ impl std::fmt::Display for TargetState {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(feature = "typescript-bindings", derive(TS), ts(export))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct VpnServiceInfo {
     pub version: String,
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]

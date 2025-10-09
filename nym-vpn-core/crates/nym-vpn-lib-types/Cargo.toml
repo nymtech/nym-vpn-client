@@ -43,7 +43,7 @@ ipnetwork = { workspace = true, optional = true }
 uniffi = { workspace = true, features = ["tokio"], optional = true }
 
 nym-registration-common = { workspace = true, optional = true }
-nym-crypto = { workspace = true, features = ["asymmetric", "serde"] }
+nym-crypto = { workspace = true, features = ["asymmetric"] }
 nym-bandwidth-controller = { workspace = true, optional = true }
 nym-connection-monitor = { workspace = true, optional = true }
 nym-gateway-directory = { workspace = true, optional = true }
@@ -56,3 +56,7 @@ nym-network-defaults = { workspace = true, optional = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+serde_json.workspace = true
+serde.workspace = true
