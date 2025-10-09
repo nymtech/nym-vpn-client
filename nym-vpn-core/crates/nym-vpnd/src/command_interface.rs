@@ -1159,6 +1159,7 @@ async fn remove_previous_socket_file(socket_path: &std::path::Path) {
 }
 
 fn default_socket_path() -> PathBuf {
+    // VERY IMPORTANT to sync this with the socket nym-vpnd binds to
     #[cfg(unix)]
     {
         PathBuf::from("/var/run/nym-vpn.sock")

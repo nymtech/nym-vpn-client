@@ -21,7 +21,8 @@ use nym_vpn_lib_types::{
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
-type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
+// TODO dz this wasn't `pub`, does it need to be? look into test-manager usage
+pub type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 
 #[derive(Debug, Clone)]
 pub struct RpcClient(ServiceClient);
@@ -48,6 +49,10 @@ impl RpcClient {
                     err.into()
                 }
             })
+    }
+
+    pub fn from_rpc_client(client: ServiceClient) -> Self {
+        Self(client)
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
@@ -264,6 +269,14 @@ impl RpcClient {
         Ok(ip_vec)
     }
 
+    pub async fn connect_tunnel_friendly(&mut self) -> Result<()> {
+        self.0
+            .connect_tunnel(())
+            .await
+            .map(|_| ())
+            .map_err(Error::Rpc)
+    }
+
     pub async fn connect_tunnel(&mut self) -> Result<bool> {
         self.0
             .connect_tunnel(())
@@ -350,6 +363,23 @@ impl RpcClient {
             .into_iter()
             .map(|gateway| Gateway::try_from(gateway).map_err(Error::InvalidResponse))
             .collect::<Result<Vec<_>>>()
+    }
+
+    pub async fn store_account_friendly(
+        &mut self,
+        mnemonic: &str,
+    ) -> Result<AccountCommandResponse> {
+        let request = proto::StoreAccountRequest::from(StoreAccountRequest::Vpn {
+            mnemonic: mnemonic.to_string(),
+        });
+        let response = self
+            .0
+            .store_account(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn store_account(

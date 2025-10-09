@@ -35,6 +35,7 @@ members = [
     "crates/nym-wg-metadata-client",
     "crates/nym-windows",
     "crates/uniffi-bindgen",
+    "crates/test/test-manager",
 ]
 
 default-members = [
@@ -300,3 +301,11 @@ nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/re
 #nym-wireguard-private-metadata-shared = { path = "../../nym/common/wireguard-private-metadata/shared" }
 #nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 #nym-sqlx-pool-guard = { path = "../../nym/nym-sqlx-pool-guard" }
+
+# TODO dz added to make test/ crates work, revisit after it compiles and remove unused ones
+env_logger = "0.11.7"
+colored = "2.0.0"
+
+tarpc = { version = "0.30", features = ["tokio1", "serde-transport", "serde1"] }
+tokio-serde = { version = "0.8.0", features = ["json"] }
+tokio-serial = "5.4.1"
