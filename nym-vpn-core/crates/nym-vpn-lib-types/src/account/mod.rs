@@ -93,8 +93,8 @@ pub enum VpnApiError {
     #[error("timeout: {0}")]
     Timeout(String),
 
-    #[error("status code: {code}, error: {message}")]
-    StatusCode { code: u16, message: String },
+    #[error("status code: {code}, error: {msg}")]
+    StatusCode { code: u16, msg: String },
 
     #[error(transparent)]
     Response(#[from] VpnApiErrorResponse),
@@ -150,7 +150,7 @@ impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
         {
             Some(code) => Ok(Self::StatusCode {
                 code: code.into(),
-                message: err.to_string(),
+                msg: err.to_string(),
             }),
             None => Err(err),
         }
