@@ -5,12 +5,6 @@ use anyhow::Result;
 use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
 
-#[derive(Debug, Clone, clap::ValueEnum)]
-pub enum VpnAccountMode {
-    Api,
-    Decentralised,
-}
-
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
     /// Get current account information
@@ -20,7 +14,7 @@ pub enum Command {
         #[arg(index = 1)]
         mnemonic: String,
 
-        #[clap(long, default_value = "VpnAccountMode::Api")]
+        #[clap(long, default_value_t = VpnAccountMode::Api)]
         mode: VpnAccountMode,
     },
     /// Forget account
@@ -148,6 +142,21 @@ impl Command {
                 println!("{response:#?}");
                 Ok(())
             }
+        }
+    }
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum VpnAccountMode {
+    Api,
+    Decentralised,
+}
+
+impl std::fmt::Display for VpnAccountMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VpnAccountMode::Api => write!(f, "api"),
+            VpnAccountMode::Decentralised => write!(f, "decentralised"),
         }
     }
 }
