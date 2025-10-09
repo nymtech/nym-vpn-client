@@ -144,8 +144,8 @@ pnet_packet = "0.35.0"
 prost = "0.14.1"
 prost-types = "0.14.1"
 pretty_assertions = "1.4.1"
-quinn = "0.11"
-quinn-proto = "0.11"
+quinn = {version = "0.11", default-features = false, features = ["ring", "rustls", "runtime-tokio"] }
+quinn-proto = {version = "0.11", default-features = false, features = ["rustls"] }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 resolv-conf = "0.7"
