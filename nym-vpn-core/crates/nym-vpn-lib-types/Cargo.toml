@@ -29,18 +29,21 @@ nym-type-conversions = [
     "dep:nym-vpn-network-config",
 ]
 uniffi-bindings = ["dep:uniffi", "ipnetwork"]
+typescript-bindings = ["dep:ts-rs", "serde"]
+serde = ["dep:serde"]
 
 [dependencies]
-serde = { workspace = true, features = ["derive"] }
+time = { workspace = true, features = ["serde", "parsing", "formatting"] }
+serde = { workspace = true, features = ["derive"], optional = true }
 si-scale.workspace = true
 thiserror.workspace = true
-time.workspace = true
+ts-rs = { workspace = true, optional = true }
 zeroize.workspace = true
 ipnetwork = { workspace = true, optional = true }
-uniffi = { workspace = true, features = ["tokio"], optional = true }
+uniffi = { workspace = true, optional = true }
 
 nym-registration-common = { workspace = true, optional = true }
-nym-crypto = { workspace = true, features = ["asymmetric", "serde"] }
+nym-crypto = { workspace = true, features = ["asymmetric"] }
 nym-bandwidth-controller = { workspace = true, optional = true }
 nym-connection-monitor = { workspace = true, optional = true }
 nym-gateway-directory = { workspace = true, optional = true }

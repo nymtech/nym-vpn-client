@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
-use itertools::Itertools;
-use nym_vpn_api_client::types::VpnAccountMode;
 use nym_vpn_lib_types::StoreAccountRequest;
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -107,7 +105,11 @@ impl Command {
                     }
                     Ok(balance) => println!(
                         "account balance: {}",
-                        balance.into_iter().map(|c| c.to_string()).join(", ")
+                        balance
+                            .into_iter()
+                            .map(|c| c.to_string())
+                            .collect::<Vec<String>>()
+                            .join(", ")
                     ),
                 }
                 Ok(())
@@ -140,6 +142,21 @@ impl Command {
                 println!("{response:#?}");
                 Ok(())
             }
+        }
+    }
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum VpnAccountMode {
+    Api,
+    Decentralised,
+}
+
+impl std::fmt::Display for VpnAccountMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VpnAccountMode::Api => write!(f, "api"),
+            VpnAccountMode::Decentralised => write!(f, "decentralised"),
         }
     }
 }

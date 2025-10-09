@@ -6,13 +6,25 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
 };
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 use crate::TunnelType;
 
 // Represents the identity of a gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct GatewayId {
     pub id: String,
 }
@@ -32,6 +44,14 @@ impl From<nym_gateway_directory::Gateway> for GatewayId {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: GatewayId,
@@ -47,6 +67,14 @@ pub struct EstablishConnectionData {
 /// Describes the current state when establishing connection.
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum EstablishConnectionState {
     /// Resolving API IP addresses
     ResolvingApiAddresses,
@@ -82,6 +110,14 @@ impl fmt::Display for EstablishConnectionState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
     pub entry_gateway: GatewayId,
@@ -90,6 +126,8 @@ pub struct ConnectionData {
     pub exit_gateway: GatewayId,
 
     /// When the tunnel connection was last established.
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
     pub connected_at: OffsetDateTime,
 
     /// Tunnel connection data.
@@ -98,6 +136,14 @@ pub struct ConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelConnectionData {
     Mixnet(MixnetConnectionData),
     Wireguard(WireguardConnectionData),
@@ -115,6 +161,14 @@ impl TunnelConnectionData {
 // Represents a nym-address of the form id.enc@gateway
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct NymAddress {
     pub nym_address: String,
     pub gateway_id: String,
@@ -155,6 +209,14 @@ impl From<nym_gateway_directory::IpPacketRouterAddress> for NymAddress {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct MixnetConnectionData {
     pub nym_address: NymAddress,
     pub exit_ipr: NymAddress,
@@ -166,6 +228,14 @@ pub struct MixnetConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct WireguardConnectionData {
     pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: WireguardNode,
@@ -174,6 +244,14 @@ pub struct WireguardConnectionData {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct WireguardNode {
     pub endpoint: SocketAddr,
     pub public_key: String,
