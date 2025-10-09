@@ -213,6 +213,7 @@ pub async fn process_udp<R, W>(
             tracing::error!("bridge udp forwarder error: {e}");
         }
     }
+    info!("transport udp forwarder shutdown");
 }
 
 // Assumes that the socket has already had `connect` called.
@@ -328,16 +329,7 @@ pub struct ClientOptions {
 impl TryFrom<&QuicClientOptions> for ClientOptions {
     type Error = TransportError;
     fn try_from(value: &QuicClientOptions) -> Result<Self, Self::Error> {
-        let mut pubkey_bytes = [0u8; 32];
-        BASE64_STANDARD
-            .decode_slice(&value.id_pubkey, &mut pubkey_bytes)
-            .map_err(|e| {
-                TransportError::config_err(format!(
-                    "failed to decode Quic bridge public key as base64: {e}"
-                ))
-            })?;
-        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes)
-            .map_err(|e| TransportError::config_err(format!("bad Quic bridge public key: {e}")))?;
+        let id_pubkey = Self::parse_base64_pubkey(&value.id_pubkey)?;
 
         Ok(Self {
             addresses: value.addresses.clone(),
@@ -348,6 +340,19 @@ impl TryFrom<&QuicClientOptions> for ClientOptions {
 }
 
 impl ClientOptions {
+    fn parse_base64_pubkey(key: impl AsRef<str>) -> Result<VerifyingKey, TransportError> {
+        let mut pubkey_bytes = [0u8; 32];
+        BASE64_STANDARD
+            .decode_slice(key.as_ref(), &mut pubkey_bytes)
+            .map_err(|e| {
+                TransportError::config_err(format!(
+                    "failed to decode Quic bridge public key as base64: {e}"
+                ))
+            })?;
+        VerifyingKey::from_bytes(&pubkey_bytes)
+            .map_err(|e| TransportError::config_err(format!("bad Quic bridge public key: {e}")))
+    }
+
     fn get_ipv4(&self) -> Option<SocketAddr> {
         self.addresses.iter().find(|s| s.is_ipv4()).cloned()
     }

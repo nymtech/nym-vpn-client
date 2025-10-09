@@ -888,16 +888,15 @@ impl TunnelMonitor {
 
             let bridge_conn = transports::BridgeConn::try_connect(
                 entry_bridge_params,
-                self.shutdown_token.child_token(),
+                self.shutdown_token.clone(),
             )
-            .await?;
+            .await
+            .inspect_err(|_| self.shutdown_token.cancel())?;
             connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
-            let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
-                bridge_conn,
-                None,
-                self.shutdown_token.child_token(),
-            )
-            .await?;
+            let (local_fwd_listen_addr, fwd_handle) =
+                transports::UdpForwarder::launch(bridge_conn, None, self.shutdown_token.clone())
+                    .await
+                    .inspect_err(|_| self.shutdown_token.cancel())?;
             transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"

@@ -619,60 +619,22 @@ impl TunnelHandle {
 
     /// Wait until the tunnel finished execution.
     ///
-    /// If one of the required subsystems encounters an error and closes early, signal for the
-    /// tunnel to shutdown using the cancellation token.
-    ///
-    /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on
-    /// Windows).
+    /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
     pub async fn wait(self) -> Result<Tombstone, JoinError> {
-        // Wrap handles with auto-cancel behavior
-        let shutdown_token = self.shutdown_token.clone();
-        let bandwidth_handle = async move {
-            let res = self.bandwidth_controller_handle.await;
-            if !shutdown_token.is_cancelled() {
-                shutdown_token.cancel();
-            }
-            res
-        };
-        let shutdown_token = self.shutdown_token.clone();
-        let transport_handle = async move {
-            if let Some(handle) = self.transport_fwd_handle {
-                let res = handle.await;
-                if !shutdown_token.is_cancelled() {
-                    shutdown_token.cancel();
-                }
-                res
-            } else {
-                Ok(())
-            }
-        };
-
-        // spawn all required tasks by their join handles
-        let mut required_tasks = tokio::task::JoinSet::new();
-        // Bandwidth controller - auto-cancels token on exit
-        required_tasks.spawn(bandwidth_handle);
-        // Transport forwarder - auto-cancels token on exit if task it exists.
-        required_tasks.spawn(transport_handle);
-
-        // Await the event handler task and use its result as tombstone
-        let tombstone = self.event_handler_task.await;
-        if !self.shutdown_token.is_cancelled() {
-            self.shutdown_token.cancel();
+        if let Err(e) = self.bandwidth_controller_handle.await {
+            tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
-
-        // Make sure all tasks finish before we move on
-        for result in required_tasks.join_all().await {
-            if let Err(e) = &result {
-                tracing::error!("failed to join or encountered subsystem error : {e}",);
-            }
-        }
-
-        // Clean up auth client handle
         if let Some(auth_client_handle) = self.auth_client_mixnet_listener_handle {
             auth_client_handle.stop().await;
         }
 
-        tombstone
+        if let Some(handle) = self.transport_fwd_handle
+            && let Err(e) = handle.await
+        {
+            tracing::error!("Failed to join on transport forwarder: {}", e);
+        }
+
+        self.event_handler_task.await
     }
 
     /// Returns entry wintun interface descriptor when available.
