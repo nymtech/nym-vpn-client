@@ -39,7 +39,7 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(ARM64_V8_BUILD_DIR)/libwg.so build uniffi $(LICENSES_FILE)
 
 build: $(ARM64_V8_BUILD_DIR)/libwg.so
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi --package nym-vpn-lib-types $(RELEASE_FLAG)
 	cd $(ARM64_V8_BUILD_DIR) ; \
 	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
 
