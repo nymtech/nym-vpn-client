@@ -3,6 +3,19 @@
 
 //! Types shared between nym-vpn-lib and other crates in the workspace.
 //!
+//! ## Abstract
+//!
+//! - This crate contains all types necessary for interaction with nym-vpn-lib and daemon.
+//! - Please do not re-export types from other crates, instead define them here.
+//!   When mirroring external types, consider providing `From` implementations for easier conversions. Feature-gate conversions to `nym-type-conversions`.
+//! - Types visible via bindings should contain proper attributes and feature gated to `uniffi-bindings` for uniffi, `typescript-bindings` for TypeScript bindings.
+//! - TypeScript bindings use serde for conversion from Rust to TS and feature-gated to `typescript-bindings`. Camel case is preferred for compatibility with TypeScript/Tauri.
+//! - Be mindful of limitations of TypeScript and uniffi limitations. Keep exported types simple.
+//!
+//! ## Dependency considerations
+//!
+//! Please keep direct dependencies to other crates to a minimum to avoid dependency conflicts which can happen, especially when using it in other large projects such as Tauri.
+
 //! ## Supported bindings
 //!
 //! 1. [uniffi](https://mozilla.github.io/uniffi-rs/latest/) bindings (feature flag: uniffi-bindings). The following limitations apply:

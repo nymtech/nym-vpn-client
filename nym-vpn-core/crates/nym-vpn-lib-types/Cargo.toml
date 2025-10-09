@@ -40,7 +40,7 @@ thiserror.workspace = true
 ts-rs = { workspace = true, optional = true }
 zeroize.workspace = true
 ipnetwork = { workspace = true, optional = true }
-uniffi = { workspace = true, features = ["tokio"], optional = true }
+uniffi = { workspace = true, optional = true }
 
 nym-registration-common = { workspace = true, optional = true }
 nym-crypto = { workspace = true, features = ["asymmetric"] }
