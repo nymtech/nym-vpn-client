@@ -745,9 +745,9 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
 // Legacy TOML version of config file.
 //
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 enum LegacyEntryPoint {
-    Gateway { identity: NodeIdentity },
+    Gateway { identity: Vec<u8> },
     Location { location: String },
     Random,
 }
@@ -757,7 +757,10 @@ impl TryFrom<LegacyEntryPoint> for EntryPoint {
 
     fn try_from(value: LegacyEntryPoint) -> Result<Self, Self::Error> {
         match value {
-            LegacyEntryPoint::Gateway { identity } => Ok(EntryPoint::Gateway { identity }),
+            LegacyEntryPoint::Gateway { identity } => Ok(EntryPoint::Gateway {
+                identity: NodeIdentity::from_bytes(&identity)
+                    .map_err(|e| ConfigSetupError::EntryPoint(e.to_string()))?,
+            }),
             LegacyEntryPoint::Location { location } => Ok(EntryPoint::Country {
                 two_letter_iso_country_code: location,
             }),
@@ -766,10 +769,10 @@ impl TryFrom<LegacyEntryPoint> for EntryPoint {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 enum LegacyExitPoint {
     Address { address: String },
-    Gateway { identity: NodeIdentity },
+    Gateway { identity: Vec<u8> },
     Location { location: String },
     Random,
 }
@@ -786,7 +789,10 @@ impl TryFrom<LegacyExitPoint> for ExitPoint {
                     address: Box::new(recipient),
                 })
             }
-            LegacyExitPoint::Gateway { identity } => Ok(ExitPoint::Gateway { identity }),
+            LegacyExitPoint::Gateway { identity } => Ok(ExitPoint::Gateway {
+                identity: NodeIdentity::from_bytes(&identity)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?,
+            }),
             LegacyExitPoint::Location { location } => Ok(ExitPoint::Country {
                 two_letter_iso_country_code: location,
             }),

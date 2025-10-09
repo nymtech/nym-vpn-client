@@ -38,6 +38,10 @@ impl NodeIdentity {
         &self.key
     }
 
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Ed25519RecoveryError> {
+        ed25519::PublicKey::from_bytes(bytes).map(Self::from)
+    }
+
     pub fn from_base58_string(s: impl AsRef<[u8]>) -> Result<Self, Ed25519RecoveryError> {
         ed25519::PublicKey::from_base58_string(s).map(Self::from)
     }
