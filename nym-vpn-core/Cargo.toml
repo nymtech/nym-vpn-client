@@ -38,6 +38,7 @@ members = [
     "crates/nym-vpn-lib-types-uniffi",
     "crates/nym-vpn-rpc-uniffi",
     "crates/nym-vpnd-types-uniffi",
+    "crates/test/test-manager",
 ]
 
 default-members = [
@@ -253,3 +254,12 @@ nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym"
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration-fork" }
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration-fork" }
 nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "domain-fronting-integration-fork" }
+
+# TODO dz added to make test/ crates work, revisit after it compiles and remove unused ones
+env_logger = "0.11.7"
+colored = "2.0.0"
+
+socket2 = "0.5.7"
+tarpc = { version = "0.30", features = ["tokio1", "serde-transport", "serde1"] }
+tokio-serde = { version = "0.8.0", features = ["json"] }
+tokio-serial = "5.4.1"

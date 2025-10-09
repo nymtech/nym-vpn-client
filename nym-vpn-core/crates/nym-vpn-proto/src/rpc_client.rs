@@ -9,20 +9,15 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib_types::{AccountControllerState, AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
-use nym_vpnd_types::{
-    AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest,
-    gateway::{Country, Gateway},
-    log_path::LogPath,
-    service::VpnServiceInfo,
-};
+use nym_vpnd_types::{AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest, gateway::{Country, Gateway}, log_path::LogPath, service::VpnServiceInfo, ConnectOptions};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
-type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
+// TODO dz this wasn't `pub`, does it need to be? look into test-manager usage
+pub type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 
 #[derive(Debug, Clone)]
 pub struct RpcClient(ServiceClient);
@@ -36,6 +31,10 @@ impl RpcClient {
             }))
             .await?;
         Ok(RpcClient(ServiceClient::new(channel)))
+    }
+
+    pub fn from_rpc_client(client: ServiceClient) -> Self {
+        Self(client)
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
@@ -86,6 +85,21 @@ impl RpcClient {
             .into_inner();
 
         Ok(FeatureFlags::from(response))
+    }
+
+    pub async fn connect_tunnel_friendly(&mut self) -> Result<()> {
+        let request = proto::ConnectRequest::try_from(ConnectArgs {
+            entry: None,
+            exit: None,
+            options: ConnectOptions::default(),
+        })
+        .map_err(Error::InvalidRequest)?;
+
+        self.0
+            .connect_tunnel(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
@@ -180,6 +194,23 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         Ok(countries.into_iter().map(Country::from).collect())
+    }
+
+    pub async fn store_account_friendly(
+        &mut self,
+        mnemonic: &str,
+    ) -> Result<AccountCommandResponse> {
+        let request = proto::StoreAccountRequest::from(StoreAccountRequest {
+            mnemonic: mnemonic.to_string(),
+        });
+        let response = self
+            .0
+            .store_account(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn store_account(
