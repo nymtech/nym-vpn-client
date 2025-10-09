@@ -29,6 +29,7 @@ public struct GatewaysView: View {
                     countriesGatewaysList()
                     noSearchResultsView()
                     foundCountriesList()
+                    foundUSRegionsList()
                     foundGatewaysList()
                 }
                 .scrollDismissesKeyboard(.immediately)
@@ -198,6 +199,26 @@ private extension GatewaysView {
                     viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                 }
             )
+        }
+    }
+
+    @ViewBuilder
+    func foundUSRegionsList() -> some View {
+        if let usCountry = viewModel.gatewayManager.localizedCountry(with: "US") {
+            ForEach(viewModel.foundUSRegions, id: \.self) { region in
+                GatewaysRegionCell(
+                    hopType: viewModel.type,
+                    country: usCountry,
+                    region: region,
+                    servers: viewModel.gatewayManager.vpn.filter { $0.location?.region == region},
+                    infoButtonTapCompletion: { _ in },
+                    path: $viewModel.path,
+                    entryGateway: $viewModel.connectionManager.entryGateway,
+                    exitRouter: $viewModel.connectionManager.exitRouter,
+                    scrollToModel: .constant(.empty)
+                )
+            }
+
         }
     }
 }

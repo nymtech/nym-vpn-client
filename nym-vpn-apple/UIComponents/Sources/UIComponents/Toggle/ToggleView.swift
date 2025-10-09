@@ -48,5 +48,5 @@ private extension ToggleView {
 }
 
 #Preview {
-    ToggleView(viewModel: ToggleViewModel(isOn: .constant(true), action: { _ in }))
+    ToggleView(viewModel: ToggleViewModel(isOn: .constant(true), isDisplayingAlert: .constant(false), action: { _ in }))
 }
