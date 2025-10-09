@@ -3398,7 +3398,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.17.0-elderberry-rc1"
+version = "1.17.0-elderberry-rc2"
 dependencies = [
  "anyhow",
  "build-info",
