@@ -3,7 +3,7 @@
 
 use std::{
     fmt,
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
 };
 
@@ -516,10 +516,56 @@ pub struct Gateway {
     pub last_probe: Option<Probe>,
     pub mixnet_performance: Option<u8>,
     pub mixnet_score: Option<Score>,
+    pub bridge_params: Option<BridgeInformation>,
     pub wg_performance: Option<Performance>,
     pub exit_ipv4s: Vec<Ipv4Addr>,
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct BridgeInformation {
+    pub version: String,
+    pub transports: Vec<BridgeParameters>,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum BridgeParameters {
+    QuicPlain(QuicClientOptions),
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct QuicClientOptions {
+    pub addresses: Vec<SocketAddr>,
+    pub host: Option<String>,
+    pub id_pubkey: String,
 }
 
 #[derive(Debug, Clone)]
@@ -777,6 +823,7 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
             mixnet_performance: None,
             mixnet_score: None,
             wg_performance: None,
+            bridge_params: None,
             exit_ipv4s,
             exit_ipv6s,
             build_version,
@@ -887,9 +934,46 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             mixnet_performance: gateway.mixnet_performance.map(|p| p.round_to_integer()),
             mixnet_score: gateway.mixnet_score.map(Score::from),
             wg_performance: gateway.wg_performance.map(Performance::from),
+            bridge_params: gateway.bridge_params.map(BridgeInformation::from),
             exit_ipv4s,
             exit_ipv6s,
             build_version: gateway.version,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::BridgeInformation> for BridgeInformation {
+    fn from(value: nym_vpn_api_client::response::BridgeInformation) -> Self {
+        Self {
+            version: value.version,
+            transports: value
+                .transports
+                .into_iter()
+                .map(BridgeParameters::from)
+                .collect(),
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::BridgeParameters> for BridgeParameters {
+    fn from(value: nym_vpn_api_client::response::BridgeParameters) -> Self {
+        match value {
+            nym_vpn_api_client::response::BridgeParameters::QuicPlain(options) => {
+                BridgeParameters::QuicPlain(QuicClientOptions::from(options))
+            }
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::QuicClientOptions> for QuicClientOptions {
+    fn from(value: nym_vpn_api_client::response::QuicClientOptions) -> Self {
+        Self {
+            addresses: value.addresses,
+            host: value.host,
+            id_pubkey: value.id_pubkey,
         }
     }
 }

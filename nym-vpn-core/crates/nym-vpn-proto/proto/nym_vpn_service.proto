@@ -295,11 +295,28 @@ message GatewayResponse {
   optional uint32 mixnet_performance = 10;
   optional Performance wg_performance = 4;
   optional Score mixnet_score = 5;
+  optional BridgeInformation bridge_params = 11;
   string moniker = 6;
   repeated string exit_ipv4s = 7;
   repeated string exit_ipv6s = 8;
   optional string build_version = 9;
+}
 
+message BridgeInformation {
+  string version = 1;
+  repeated BridgeParameters transports = 2;
+}
+
+message BridgeParameters {
+    oneof state {
+        QuicClientOptions quic_plain = 1;
+    }
+}
+
+message QuicClientOptions {
+    repeated string addresses = 1;
+    optional string host = 2;
+    string id_pubkey = 3;
 }
 
 message Performance {
