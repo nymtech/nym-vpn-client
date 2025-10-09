@@ -39,16 +39,15 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(ARM64_V8_BUILD_DIR)/libwg.so build uniffi $(LICENSES_FILE)
 
 build: $(ARM64_V8_BUILD_DIR)/libwg.so
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi --package nym-vpn-lib-types $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	cd $(ARM64_V8_BUILD_DIR) ; \
-	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
+	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so ; \
+	mv libnym_vpn_lib_types.so libnym_vpn_lib_types.so
+
 
 uniffi: build
 	cargo run --bin uniffi-bindgen generate \
 		--library $(DYNAMIC_LIB_PATH) \
-		--language kotlin --out-dir $(UNIFFI_OUT_DIR) -n
-	cargo run --bin uniffi-bindgen generate \
-		--library $(ARM64_V8_BUILD_DIR)/libnym_vpn_lib_types.so \
 		--language kotlin --out-dir $(UNIFFI_OUT_DIR) -n
 
 $(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
