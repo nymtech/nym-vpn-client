@@ -489,7 +489,7 @@ fn multibyte_to_wide(mb_string: &CStr, codepage: u32) -> Result<Vec<u16>, window
     };
 
     if wc_size == 0 {
-        return Err(windows::core::Error::from_win32());
+        return Err(windows::core::Error::from_thread());
     }
 
     let wc_buffer_len = usize::try_from(wc_size).unwrap();
@@ -507,7 +507,7 @@ fn multibyte_to_wide(mb_string: &CStr, codepage: u32) -> Result<Vec<u16>, window
     };
 
     if chars_written == 0 {
-        return Err(windows::core::Error::from_win32());
+        return Err(windows::core::Error::from_thread());
     }
 
     wc_buffer.truncate(usize::try_from(chars_written - 1).unwrap());

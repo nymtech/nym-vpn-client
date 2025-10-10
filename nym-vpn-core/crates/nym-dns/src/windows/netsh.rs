@@ -218,7 +218,7 @@ fn get_system_dir() -> windows::core::Result<PathBuf> {
     let mut sysdir = [0u16; MAX_PATH as usize];
     let len = unsafe { GetSystemDirectoryW(Some(&mut sysdir)) };
     if len == 0 {
-        Err(windows::core::Error::from_win32())
+        Err(windows::core::Error::from_thread())
     } else {
         Ok(PathBuf::from(OsString::from_wide(
             &sysdir[0..(len as usize)],

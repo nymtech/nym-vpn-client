@@ -195,7 +195,7 @@ vergen-gitcl = { version = "1.0.8", default-features = false }
 webpki-roots = "0.26"
 which = "8.0"
 widestring = "1.2"
-windows = "0.61"
+windows = "0.62.2"
 windows-service = "0.8.0"
 winreg = "0.55"
 wiremock = "0.6.4"
