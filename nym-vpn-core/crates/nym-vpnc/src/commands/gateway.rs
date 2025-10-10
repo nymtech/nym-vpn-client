@@ -336,7 +336,7 @@ impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
 pub struct GatewayModel {
     #[tabled(rename = "ID")]
     pub id: String,
-    #[tabled(rename = "Name")]
+    #[tabled(rename = "Name", display("tabled::derive::display::wrap", 40))]
     pub name: String,
     #[tabled(rename = "Location")]
     pub location: String,
