@@ -321,6 +321,7 @@ pub struct DVpnGatewayPerformance {
 pub struct NymDirectoryGateway {
     pub identity_key: String,
     pub name: String,
+    pub description: Option<String>,
     pub ip_packet_router: Option<IpPacketRouter>,
     pub authenticator: Option<Authenticator>,
     pub location: Location,

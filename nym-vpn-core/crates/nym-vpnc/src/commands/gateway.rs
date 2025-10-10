@@ -354,7 +354,7 @@ impl GatewayModel {
     fn new(gateway: nym_vpn_lib_types::Gateway, gw_type: GatewayType) -> Self {
         Self {
             id: gateway.identity_key,
-            name: gateway.moniker,
+            name: gateway.name,
             location: gateway
                 .location
                 .map(|s| {

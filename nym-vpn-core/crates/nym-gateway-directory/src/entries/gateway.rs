@@ -31,7 +31,8 @@ pub const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 #[derive(Debug, Clone)]
 pub struct Gateway {
     pub identity: NodeIdentity,
-    pub moniker: String,
+    pub name: String,
+    pub description: Option<String>,
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
@@ -104,7 +105,8 @@ impl Gateway {
         let ips = node_description.description.host_information.ip_address;
         Ok(Gateway {
             identity,
-            moniker: String::new(),
+            name: "".to_owned(),
+            description: None,
             location,
             ipr_address,
             authenticator_address,
@@ -523,7 +525,8 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
 
         Ok(Gateway {
             identity,
-            moniker: gateway.name,
+            name: gateway.name,
+            description: gateway.description,
             location: Some(gateway.location.into()),
             ipr_address,
             authenticator_address,
@@ -752,7 +755,8 @@ mod tests {
                         "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
                     )
                     .unwrap(),
-                    moniker: format!("Gateway {instance}"),
+                    name: format!("Gateway {instance}"),
+                    description: None,
                     location: Some(Location {
                         two_letter_iso_country_code: country.to_string(),
                         region: region.to_string(),
@@ -815,8 +819,8 @@ mod tests {
         let gateway_list = sample_gateway_list(GatewayType::MixnetEntry);
         let exit_gws = gateway_list.filter(&[GatewayFilter::Exit]);
         assert_eq!(exit_gws.len(), 2);
-        assert_eq!(exit_gws[0].moniker, "Gateway 1");
-        assert_eq!(exit_gws[1].moniker, "Gateway 5");
+        assert_eq!(exit_gws[0].name, "Gateway 1");
+        assert_eq!(exit_gws[1].name, "Gateway 5");
     }
 
     #[test]
@@ -824,9 +828,9 @@ mod tests {
         let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
         let vpn_gws = gateway_list.filter(&[GatewayFilter::Vpn]);
         assert_eq!(vpn_gws.len(), 3);
-        assert_eq!(vpn_gws[0].moniker, "Gateway 1");
-        assert_eq!(vpn_gws[1].moniker, "Gateway 3");
-        assert_eq!(vpn_gws[2].moniker, "Gateway 4");
+        assert_eq!(vpn_gws[0].name, "Gateway 1");
+        assert_eq!(vpn_gws[1].name, "Gateway 3");
+        assert_eq!(vpn_gws[2].name, "Gateway 4");
     }
 
     #[test]
@@ -834,9 +838,9 @@ mod tests {
         let gateway_list = sample_gateway_list(GatewayType::Wg);
         let residential_gws = gateway_list.filter(&[GatewayFilter::Residential]);
         assert_eq!(residential_gws.len(), 3);
-        assert_eq!(residential_gws[0].moniker, "Gateway 2");
-        assert_eq!(residential_gws[1].moniker, "Gateway 4");
-        assert_eq!(residential_gws[2].moniker, "Gateway 5");
+        assert_eq!(residential_gws[0].name, "Gateway 2");
+        assert_eq!(residential_gws[1].name, "Gateway 4");
+        assert_eq!(residential_gws[2].name, "Gateway 5");
     }
 
     #[test]
