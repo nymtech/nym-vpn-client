@@ -60,7 +60,6 @@ import TunnelStatus
 
 private extension GRPCManager {
     func configureRpcClient() async throws {
-        print("configure")
         do {
             rpcClient = try await RpcClient()
             let newRpcObserver = RPCTunnelObserver()
