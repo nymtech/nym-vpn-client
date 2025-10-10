@@ -183,15 +183,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .map(nym_vpn_lib_types::Probe::try_from)
             .transpose()?;
         let mixnet_performance = gateway.mixnet_performance.map(|x| x as u8);
-<<<<<<< HEAD
-        let wg_performance = gateway
-            .wg_performance
-            .map(Performance::try_from)
-            .transpose()?;
-=======
         let performance = gateway.performance.map(Performance::try_from).transpose()?;
-
->>>>>>> eca4eae6c (Add performance.mixnet_score, remove mix/wg thresholds)
         let exit_ipv4s = gateway
             .exit_ipv4s
             .iter()
@@ -240,6 +232,7 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
             mixnet_performance: gateway.mixnet_performance.map(u32::from),
             performance: gateway.performance.map(proto::Performance::from),
             name: gateway.name,
+            description: gateway.description,
             exit_ipv4s,
             exit_ipv6s,
             build_version: gateway.build_version,
