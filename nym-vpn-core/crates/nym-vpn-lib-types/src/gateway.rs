@@ -869,6 +869,7 @@ impl From<nym_gateway_directory::Location> for Location {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Entry> for Entry {
     fn from(entry: nym_gateway_directory::Entry) -> Self {
         Self {
