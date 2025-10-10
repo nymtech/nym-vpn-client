@@ -146,12 +146,12 @@ impl AccountCommandSender {
 
     pub async fn set_static_api_addresses(
         &self,
-        static_addresses: Option<Vec<SocketAddr>>,
+        static_api_addresses: Option<Vec<SocketAddr>>,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(
-                CommonCommand::SetStaticApiAddresses(tx, static_addresses),
+                CommonCommand::SetStaticApiAddresses(tx, static_api_addresses),
             ))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?

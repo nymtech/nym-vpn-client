@@ -39,10 +39,10 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         CommonCommand::GetAvailableTickets(result_tx) => {
             result_tx.send(handle_get_available_tickets(shared_state).await);
         }
-        CommonCommand::SetStaticApiAddresses(result_tx, static_addresses) => {
+        CommonCommand::SetStaticApiAddresses(result_tx, static_api_addresses) => {
             result_tx.send(handle_set_static_api_addresses(
                 shared_state,
-                static_addresses,
+                static_api_addresses,
             ));
         }
     };
@@ -159,11 +159,11 @@ pub(crate) async fn handle_get_available_tickets<C: ConnectivityMonitor>(
 
 pub(crate) fn handle_set_static_api_addresses<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-    static_addresses: Option<Vec<SocketAddr>>,
+    static_api_addresses: Option<Vec<SocketAddr>>,
 ) -> Result<(), AccountCommandError> {
     shared_state
         .vpn_api_client
-        .override_resolver_addresses(static_addresses.as_ref())
+        .override_resolver_addresses(static_api_addresses.as_ref())
         .map_err(|e| {
             AccountCommandError::internal(format!("Failed to set resolver overrides: {e}"))
         })
