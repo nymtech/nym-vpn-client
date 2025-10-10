@@ -9,7 +9,8 @@ extension GatewayNode {
             location: GatewayNodeLocation(with: gatewayInfo.location),
             performance: GatewayNodePerformance(with: gatewayInfo.wgPerformance),
             mixnetScore: GatewayNodeScore(with: gatewayInfo.mixnetScore ?? .none),
-            moniker: gatewayInfo.moniker,
+            name: gatewayInfo.name,
+            description: gatewayInfo.description,
             buildVersion: gatewayInfo.buildVersion,
             ipv4s: gatewayInfo.exitIpv4s,
             ipv6s: gatewayInfo.exitIpv6s
