@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse, pin_mut};
-
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
     RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
@@ -461,6 +459,9 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
+        // todo: fix design flaw: JoinHandle should be returned and awaited upon. We should not be polling a child token to know when it's done.
+        let mixnet_cancellation_token = self.shutdown_token.child_token();
+
         let rc_builder_config = RegistrationClientBuilderConfig {
             entry_node,
             exit_node,
@@ -476,10 +477,13 @@ impl TunnelMonitor {
                 .nym_network
                 .network
                 .clone(),
-            cancel_token: self.shutdown_token.child_token(),
+            cancel_token: mixnet_cancellation_token.clone(),
             #[cfg(unix)]
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
+
+        // Setup shutdown guard to cancel pending tasks that otherwise may continue running upon return
+        let shutdown_guard = self.shutdown_token.clone().drop_guard();
 
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
@@ -604,15 +608,9 @@ impl TunnelMonitor {
             }
         }
 
-        let mixnet_monitoring_token = tunnel_handle
-            .mixnet_client_token()
-            .map(|token| token.cancelled_owned().fuse())
-            .unwrap_or(Fuse::terminated());
-        pin_mut!(mixnet_monitoring_token);
-
         loop {
             tokio::select! {
-                _  = &mut mixnet_monitoring_token => {
+                _  = mixnet_cancellation_token.cancelled() => {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
                 }
@@ -638,7 +636,7 @@ impl TunnelMonitor {
         }
 
         // Trigger cancellation since many other tasks depend on shutdown token
-        self.shutdown_token.cancel();
+        drop(shutdown_guard);
 
         tracing::info!("Waiting for tunnel to exit");
         tunnel_handle.cancel();
@@ -890,13 +888,11 @@ impl TunnelMonitor {
                 entry_bridge_params,
                 self.shutdown_token.clone(),
             )
-            .await
-            .inspect_err(|_| self.shutdown_token.cancel())?;
+            .await?;
             connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
             let (local_fwd_listen_addr, fwd_handle) =
                 transports::UdpForwarder::launch(bridge_conn, None, self.shutdown_token.clone())
-                    .await
-                    .inspect_err(|_| self.shutdown_token.cancel())?;
+                    .await?;
             transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
