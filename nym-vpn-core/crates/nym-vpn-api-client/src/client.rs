@@ -59,7 +59,7 @@ impl VpnApiClient {
     #[cfg(feature = "network-defaults")]
     pub fn from_network(
         network: &nym_network_defaults::NymNetworkDetails,
-        use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use true if unsure)
+        use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use false if unsure)
         user_agent: UserAgent,
     ) -> Result<Self> {
         let vpn_urls = if use_nym_api_urls {
