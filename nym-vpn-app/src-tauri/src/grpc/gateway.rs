@@ -124,7 +124,7 @@ impl Gateway {
         Ok(Self {
             id: id.id,
             kind: gw_type,
-            name: gateway.moniker,
+            name: gateway.name,
             country: Country::try_from(&location)?,
             location: location.into(),
             asn,
