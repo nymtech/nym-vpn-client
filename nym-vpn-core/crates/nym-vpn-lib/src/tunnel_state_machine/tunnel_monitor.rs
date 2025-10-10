@@ -327,13 +327,29 @@ impl TunnelMonitor {
             .user_agent
             .clone()
             .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+
+        let resolver_overrides = if let Some(socket_addrs) = self
+            .tunnel_parameters
+            .resolved_gateway_config
+            .nym_vpn_api_socket_addrs
+            .as_deref()
+        {
+            Some(nym_vpn_api_client::ResolverOverrides::from([(
+                gateway_config
+                    .api_url
+                    .domain()
+                    .unwrap_or_default()
+                    .to_string(),
+                socket_addrs.to_vec(),
+            )]))
+        } else {
+            None
+        };
+
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
             gateway_config.clone(),
             user_agent.clone(),
-            self.tunnel_parameters
-                .resolved_gateway_config
-                .nym_vpn_api_socket_addrs
-                .as_deref(),
+            resolver_overrides.as_ref(),
         )
         .unwrap();
 

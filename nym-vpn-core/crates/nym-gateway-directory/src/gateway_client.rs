@@ -108,6 +108,7 @@ impl ResolvedConfig {
 
 #[derive(Clone)]
 pub struct GatewayClient {
+    // TODO: Now that VpnApiClient can be constructed from both types of URLs, we can use it here.
     api_client: nym_http_api_client::Client,
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
     nyxd_url: Url,
@@ -124,7 +125,7 @@ impl GatewayClient {
     pub fn new_with_resolver_overrides(
         config: Config,
         user_agent: UserAgent,
-        static_nym_api_ip_addresses: Option<&[SocketAddr]>,
+        resolver_overrides: Option<&nym_vpn_api_client::ResolverOverrides>,
     ) -> Result<Self> {
         let api_client = nym_http_api_client::Client::builder(config.api_url.clone())
             .map_err(|e| Error::FailedToLookupDescribedGateways(e.into()))?
@@ -137,7 +138,7 @@ impl GatewayClient {
                 nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
                     url,
                     user_agent.clone(),
-                    static_nym_api_ip_addresses,
+                    resolver_overrides,
                 )
             })
             .transpose()?;
@@ -156,7 +157,7 @@ impl GatewayClient {
         config: Config,
         network_details: &nym_network_defaults::NymNetworkDetails,
         user_agent: UserAgent,
-        static_nym_api_ip_addresses: Option<&[SocketAddr]>,
+        resolver_overrides: Option<&nym_vpn_api_client::ResolverOverrides>,
     ) -> Result<Self> {
         // Use the new unified HTTP client with domain fronting for the main API client
         let api_client = nym_http_api_client::ClientBuilder::from_network(network_details)
@@ -170,8 +171,9 @@ impl GatewayClient {
             Some(
                 nym_vpn_api_client::VpnApiClient::from_network_with_resolver_overrides(
                     network_details,
+                    true, // Using nym_vpn_api_urls from network_details
                     user_agent.clone(),
-                    static_nym_api_ip_addresses,
+                    resolver_overrides,
                 )?,
             )
         } else {

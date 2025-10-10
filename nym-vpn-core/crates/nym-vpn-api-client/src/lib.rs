@@ -12,5 +12,5 @@ mod client;
 mod network_compatibility;
 mod routes;
 
-pub use client::VpnApiClient;
+pub use client::{ResolverOverrides, VpnApiClient};
 pub use network_compatibility::NetworkCompatibility;
