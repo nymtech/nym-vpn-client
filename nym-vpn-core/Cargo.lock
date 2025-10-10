@@ -4298,6 +4298,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "typed-builder",
  "url",
 ]
 

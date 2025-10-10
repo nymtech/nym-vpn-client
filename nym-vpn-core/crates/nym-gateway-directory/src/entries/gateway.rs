@@ -16,6 +16,7 @@ use std::{
     str::FromStr,
 };
 use tracing::error;
+use typed_builder::TypedBuilder;
 
 use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
 
@@ -23,23 +24,37 @@ pub type NymNode = Gateway;
 
 pub const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, TypedBuilder)]
 pub struct Gateway {
     pub identity: NodeIdentity,
+    #[builder(default="".to_owned())]
     pub name: String,
+    #[builder(default)]
     pub description: Option<String>,
+    #[builder(default, setter(strip_option))]
     pub location: Option<Location>,
+    #[builder(default, setter(strip_option))]
     pub ipr_address: Option<IpPacketRouterAddress>,
+    #[builder(default, setter(strip_option))]
     pub authenticator_address: Option<AuthAddress>,
+    #[builder(default)]
     pub bridge_params: Option<BridgeInformation>,
+    #[builder(default)]
     pub last_probe: Option<Probe>,
+    #[builder(default=vec![])]
     pub ips: Vec<IpAddr>,
+    #[builder(default)]
     pub host: Option<String>,
+    #[builder(default)]
     pub clients_ws_port: Option<u16>,
+    #[builder(default)]
     pub clients_wss_port: Option<u16>,
     // todo: remove since it's unused?
+    #[builder(default)]
     pub mixnet_performance: Option<Percent>,
+    #[builder(default, setter(strip_option))]
     pub performance: Option<Performance>,
+    #[builder(default)]
     pub version: Option<String>,
 }
 
@@ -130,8 +145,7 @@ impl Gateway {
     pub fn is_in_country(&self, two_letter_iso_country_code: &str) -> bool {
         self.location
             .as_ref()
-            .map(|loc| loc.two_letter_iso_country_code == two_letter_iso_country_code)
-            .unwrap_or(false)
+            .is_some_and(|v| v.two_letter_iso_country_code == two_letter_iso_country_code)
     }
 
     pub fn region(&self) -> Option<&str> {
@@ -139,18 +153,15 @@ impl Gateway {
     }
 
     pub fn is_in_region(&self, region: &str) -> bool {
-        self.location
-            .as_ref()
-            .map(|loc| loc.region == region)
-            .unwrap_or(false)
+        self.location.as_ref().is_some_and(|v| v.region == region)
     }
 
     pub fn is_residential_asn(&self) -> bool {
-        self.location
-            .as_ref()
-            .and_then(|loc| loc.asn.as_ref())
-            .map(|asn| asn.kind == AsnKind::Residential)
-            .unwrap_or(false)
+        self.location.as_ref().is_some_and(|v| {
+            v.asn
+                .as_ref()
+                .is_some_and(|v| v.kind == AsnKind::Residential)
+        })
     }
 
     pub fn is_exit_node(&self) -> bool {
@@ -693,121 +704,209 @@ pub struct GatewayFilters {
 mod tests {
     use super::*;
 
-    // Create a list of Gateways with different properties set for testing
-    fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
-        let asn = Asn {
-            asn: "AS12345".to_string(),
-            name: "Test ASN".to_string(),
-            kind: AsnKind::Residential,
-        };
-        let addr = "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e";
-        let ipr = IpPacketRouterAddress::try_from_base58_string(addr).unwrap();
-        let aa = AuthAddress::try_from_base58_string(addr).unwrap();
-        let variables = [
-            ("US", "CA", None, Some(ipr), Some(aa)),     // Gateway 1
-            ("US", "NY", Some(asn.clone()), None, None), // Gateway 2
-            ("DE", "BE", None, None, Some(aa)),          // Gateway 3
-            ("FR", "Aquitaine", Some(asn.clone()), None, Some(aa)), // Gateway 4
-            ("US", "TX", Some(asn.clone()), Some(ipr), None), // Gateway 5
-            ("GB", "Hampshire", None, None, None),       // Gateway 6
-        ];
-
-        let mut instance = 0;
-        let gateways: Vec<Gateway> = variables
-            .into_iter()
-            .map(|(country, region, asn, ipr, aa)| {
-                instance += 1;
-                Gateway {
-                    identity: NodeIdentity::from_base58_string(
-                        "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
-                    )
+    #[test]
+    fn test_matching_mixnet_score() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
                     .unwrap(),
-                    name: format!("Gateway {instance}"),
-                    description: None,
-                    location: Some(Location {
-                        two_letter_iso_country_code: country.to_string(),
-                        region: region.to_string(),
-                        asn,
-                        ..Default::default()
-                    }),
-                    ipr_address: ipr,
-                    authenticator_address: aa,
-                    bridge_params: None,
-                    last_probe: None,
-                    ips: Vec::new(),
-                    host: None,
-                    clients_ws_port: None,
-                    clients_wss_port: None,
-                    mixnet_performance: Some(Percent::from_percentage_value(75).unwrap()),
-                    performance: Some(Performance {
-                        last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
-                        score: ScoreValue::High,
-                        mixnet_score: ScoreValue::High,
-                        load: ScoreValue::Low,
-                        uptime_percentage_last_24_hours: 0.75,
-                    }),
-                    version: None,
-                }
+            )
+            .performance(Performance {
+                last_updated_utc: "".to_owned(),
+                score: ScoreValue::Offline,
+                mixnet_score: ScoreValue::High,
+                load: ScoreValue::Medium,
+                uptime_percentage_last_24_hours: 1f32,
             })
-            .collect();
-        GatewayList::new(Some(gw_type), gateways)
+            .build();
+
+        for gw_type in [GatewayType::MixnetEntry, GatewayType::MixnetExit] {
+            assert!(
+                gateway.matches_filter(Some(gw_type), &GatewayFilter::MinScore(ScoreValue::Low))
+            );
+        }
+
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .performance(Performance {
+                last_updated_utc: "".to_owned(),
+                score: ScoreValue::Offline,
+                mixnet_score: ScoreValue::Low,
+                load: ScoreValue::Medium,
+                uptime_percentage_last_24_hours: 1f32,
+            })
+            .build();
+
+        for gw_type in [GatewayType::MixnetEntry, GatewayType::MixnetExit] {
+            assert!(
+                !gateway.matches_filter(Some(gw_type), &GatewayFilter::MinScore(ScoreValue::High))
+            );
+        }
     }
 
     #[test]
-    fn test_gateway_filter_score() {
-        let wg_list = sample_gateway_list(GatewayType::Wg);
-        let mixnet_entry_list = sample_gateway_list(GatewayType::MixnetEntry);
-        let mixnet_exit_list = sample_gateway_list(GatewayType::MixnetExit);
+    fn test_matching_wg_score() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .performance(Performance {
+                last_updated_utc: "".to_owned(),
+                score: ScoreValue::High,
+                mixnet_score: ScoreValue::Offline,
+                load: ScoreValue::Medium,
+                uptime_percentage_last_24_hours: 1f32,
+            })
+            .build();
 
-        let gws = wg_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
-        assert_eq!(gws.len(), 6);
-        let gws = wg_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
-        assert_eq!(gws.len(), 6);
-        let gws = wg_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
-        assert_eq!(gws.len(), 6);
+        assert!(gateway.matches_filter(
+            Some(GatewayType::Wg),
+            &GatewayFilter::MinScore(ScoreValue::Low)
+        ));
 
-        let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
-        assert_eq!(gws.len(), 0);
-        let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
-        assert_eq!(gws.len(), 6);
-        let gws = mixnet_entry_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
-        assert_eq!(gws.len(), 6);
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .performance(Performance {
+                last_updated_utc: "".to_owned(),
+                score: ScoreValue::Low,
+                mixnet_score: ScoreValue::Offline,
+                load: ScoreValue::Medium,
+                uptime_percentage_last_24_hours: 1f32,
+            })
+            .build();
 
-        let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::High)]);
-        assert_eq!(gws.len(), 0);
-        let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::Medium)]);
-        assert_eq!(gws.len(), 6);
-        let gws = mixnet_exit_list.filter(&[GatewayFilter::MinScore(ScoreValue::Low)]);
-        assert_eq!(gws.len(), 6);
+        assert!(!gateway.matches_filter(
+            Some(GatewayType::Wg),
+            &GatewayFilter::MinScore(ScoreValue::High)
+        ));
     }
 
     #[test]
-    fn test_gateway_filter_exit_nodes() {
-        let gateway_list = sample_gateway_list(GatewayType::MixnetEntry);
-        let exit_gws = gateway_list.filter(&[GatewayFilter::Exit]);
-        assert_eq!(exit_gws.len(), 2);
-        assert_eq!(exit_gws[0].name, "Gateway 1");
-        assert_eq!(exit_gws[1].name, "Gateway 5");
+    fn test_matching_exit_node() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .ipr_address(IpPacketRouterAddress::try_from_base58_string(
+               "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+            ).unwrap())
+            .build();
+
+        assert!(gateway.matches_filter(None, &GatewayFilter::Exit));
+
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .build();
+        assert!(!gateway.matches_filter(None, &GatewayFilter::Exit));
     }
 
     #[test]
-    fn test_gateway_filter_vpn_nodes() {
-        let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
-        let vpn_gws = gateway_list.filter(&[GatewayFilter::Vpn]);
-        assert_eq!(vpn_gws.len(), 3);
-        assert_eq!(vpn_gws[0].name, "Gateway 1");
-        assert_eq!(vpn_gws[1].name, "Gateway 3");
-        assert_eq!(vpn_gws[2].name, "Gateway 4");
+    fn test_matching_residential() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .location(Location {
+                asn: Some(Asn {
+                    kind: AsnKind::Residential,
+                    asn: "".to_owned(),
+                    name: "".to_owned(),
+                }),
+                ..Default::default()
+            })
+            .build();
+
+        assert!(gateway.matches_filter(None, &GatewayFilter::Residential));
+
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .location(Location {
+                asn: Some(Asn {
+                    kind: AsnKind::Other,
+                    asn: "".to_owned(),
+                    name: "".to_owned(),
+                }),
+                ..Default::default()
+            })
+            .build();
+
+        assert!(!gateway.matches_filter(None, &GatewayFilter::Residential));
     }
 
     #[test]
-    fn test_gateway_filter_residential() {
-        let gateway_list = sample_gateway_list(GatewayType::Wg);
-        let residential_gws = gateway_list.filter(&[GatewayFilter::Residential]);
-        assert_eq!(residential_gws.len(), 3);
-        assert_eq!(residential_gws[0].name, "Gateway 2");
-        assert_eq!(residential_gws[1].name, "Gateway 4");
-        assert_eq!(residential_gws[2].name, "Gateway 5");
+    fn test_matching_vpn_nodes() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .authenticator_address(
+                AuthAddress::try_from_base58_string(
+                    "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+                ).unwrap()
+            )
+            .build();
+
+        assert!(gateway.matches_filter(None, &GatewayFilter::Vpn));
+
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .build();
+
+        assert!(!gateway.matches_filter(None, &GatewayFilter::Vpn));
+    }
+
+    #[test]
+    fn test_matching_country() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .location(Location {
+                two_letter_iso_country_code: "CA".to_owned(),
+                ..Default::default()
+            })
+            .build();
+
+        assert!(gateway.matches_filter(None, &GatewayFilter::Country("CA".to_owned())));
+        assert!(!gateway.matches_filter(None, &GatewayFilter::Country("US".to_owned())));
+    }
+
+    #[test]
+    fn test_matching_region() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .location(Location {
+                two_letter_iso_country_code: "US".to_owned(),
+                region: "CA".to_owned(),
+                ..Default::default()
+            })
+            .build();
+
+        assert!(gateway.matches_filter(None, &GatewayFilter::Region("CA".to_owned())));
+        assert!(!gateway.matches_filter(None, &GatewayFilter::Region("FL".to_owned())));
     }
 
     #[test]
@@ -867,5 +966,64 @@ mod tests {
                 ])
                 .is_none()
         );
+    }
+
+    // Create a list of Gateways with different properties set for testing
+    fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
+        let asn = Asn {
+            asn: "AS12345".to_string(),
+            name: "Test ASN".to_string(),
+            kind: AsnKind::Residential,
+        };
+        let addr = "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e";
+        let ipr = IpPacketRouterAddress::try_from_base58_string(addr).unwrap();
+        let aa = AuthAddress::try_from_base58_string(addr).unwrap();
+        let variables = [
+            ("US", "CA", None, Some(ipr), Some(aa)),     // Gateway 1
+            ("US", "NY", Some(asn.clone()), None, None), // Gateway 2
+            ("DE", "BE", None, None, Some(aa)),          // Gateway 3
+            ("FR", "Aquitaine", Some(asn.clone()), None, Some(aa)), // Gateway 4
+            ("US", "TX", Some(asn.clone()), Some(ipr), None), // Gateway 5
+            ("GB", "Hampshire", None, None, None),       // Gateway 6
+        ];
+
+        let mut instance = 0;
+        let gateways: Vec<Gateway> = variables
+            .into_iter()
+            .map(|(country, region, asn, ipr, aa)| {
+                instance += 1;
+                Gateway {
+                    identity: NodeIdentity::from_base58_string(
+                        "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+                    )
+                    .unwrap(),
+                    moniker: format!("Gateway {instance}"),
+                    location: Some(Location {
+                        two_letter_iso_country_code: country.to_string(),
+                        region: region.to_string(),
+                        asn,
+                        ..Default::default()
+                    }),
+                    ipr_address: ipr,
+                    authenticator_address: aa,
+                    bridge_params: None,
+                    last_probe: None,
+                    ips: Vec::new(),
+                    host: None,
+                    clients_ws_port: None,
+                    clients_wss_port: None,
+                    mixnet_performance: Some(Percent::from_percentage_value(75).unwrap()),
+                    performance: Some(Performance {
+                        last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
+                        score: ScoreValue::High,
+                        mixnet_score: ScoreValue::High,
+                        load: ScoreValue::Low,
+                        uptime_percentage_last_24_hours: 0.75,
+                    }),
+                    version: None,
+                }
+            })
+            .collect();
+        GatewayList::new(Some(gw_type), gateways)
     }
 }
