@@ -1,8 +1,7 @@
-// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: GPL-3.0-only
-
 use std::net::SocketAddr;
 
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::AccountCommandError;
@@ -40,10 +39,10 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         CommonCommand::GetAvailableTickets(result_tx) => {
             result_tx.send(handle_get_available_tickets(shared_state).await);
         }
-        CommonCommand::SetStaticApiAddresses(result_tx, static_api_addresses) => {
+        CommonCommand::SetStaticApiAddresses(result_tx, static_addresses) => {
             result_tx.send(handle_set_static_api_addresses(
                 shared_state,
-                static_api_addresses,
+                static_addresses,
             ));
         }
     };
@@ -160,10 +159,12 @@ pub(crate) async fn handle_get_available_tickets<C: ConnectivityMonitor>(
 
 pub(crate) fn handle_set_static_api_addresses<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-    static_api_addresses: Option<Vec<SocketAddr>>,
+    static_addresses: Option<Vec<SocketAddr>>,
 ) -> Result<(), AccountCommandError> {
     shared_state
         .vpn_api_client
-        .override_resolver(static_api_addresses.as_deref())
-        .map_err(|e| AccountCommandError::internal(format!("Failed to set static addresses: {e}")))
+        .override_resolver_addresses(static_addresses.as_ref())
+        .map_err(|e| {
+            AccountCommandError::internal(format!("Failed to set resolver overrides: {e}"))
+        })
 }
