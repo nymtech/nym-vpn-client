@@ -308,7 +308,8 @@ message GatewayResponse {
   optional Performance wg_performance = 4;
   optional Score mixnet_score = 5;
   optional BridgeInformation bridge_params = 11;
-  string moniker = 6;
+  string name = 6;
+  optional string description = 12;
   repeated string exit_ipv4s = 7;
   repeated string exit_ipv6s = 8;
   optional string build_version = 9;

@@ -170,7 +170,6 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .id
             .map(|id| id.id)
             .ok_or_else(|| ConversionError::generic("missing gateway id"))?;
-        let moniker = gateway.moniker;
         let location = gateway
             .location
             .map(nym_vpn_lib_types::Location::try_from)
@@ -190,7 +189,6 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .wg_performance
             .map(Performance::try_from)
             .transpose()?;
-
         let exit_ipv4s = gateway
             .exit_ipv4s
             .iter()
@@ -209,8 +207,9 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .map(BridgeInformation::try_from)
             .transpose()?;
         Ok(Self {
+            name: gateway.name,
+            description: gateway.description,
             identity_key,
-            moniker,
             location,
             last_probe,
             wg_performance,
@@ -229,27 +228,24 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
         let id = Some(proto::GatewayId {
             id: gateway.identity_key.to_string(),
         });
-        let location = gateway.location.map(proto::Location::from);
-        let last_probe = gateway.last_probe.map(proto::Probe::from);
-        let moniker = gateway.moniker;
         let exit_ipv4s = gateway.exit_ipv4s.iter().map(|ip| ip.to_string()).collect();
         let exit_ipv6s = gateway.exit_ipv6s.iter().map(|ip| ip.to_string()).collect();
-        let build_version = gateway.build_version;
-        let bridge_params = gateway.bridge_params.map(proto::BridgeInformation::from);
+
         proto::GatewayResponse {
             id,
-            location,
-            last_probe,
+            location: gateway.location.map(proto::Location::from),
+            last_probe: gateway.last_probe.map(proto::Probe::from),
             mixnet_performance: gateway.mixnet_performance.map(u32::from),
             mixnet_score: gateway
                 .mixnet_score
                 .map(|score| proto::Score::from(score) as i32),
             wg_performance: gateway.wg_performance.map(Into::into),
-            moniker,
+            name: gateway.name,
+            description: gateway.description,
             exit_ipv4s,
             exit_ipv6s,
-            build_version,
-            bridge_params,
+            build_version: gateway.build_version,
+            bridge_params: gateway.bridge_params.map(proto::BridgeInformation::from),
         }
     }
 }

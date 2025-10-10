@@ -336,7 +336,7 @@ impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
 pub struct GatewayModel {
     #[tabled(rename = "ID")]
     pub id: String,
-    #[tabled(rename = "Name")]
+    #[tabled(rename = "Name", display("tabled::derive::display::wrap", 40))]
     pub name: String,
     #[tabled(rename = "Location")]
     pub location: String,
@@ -354,7 +354,7 @@ impl GatewayModel {
     fn new(gateway: nym_vpn_lib_types::Gateway, gw_type: GatewayType) -> Self {
         Self {
             id: gateway.identity_key,
-            name: gateway.moniker,
+            name: gateway.name,
             location: gateway
                 .location
                 .map(|s| {

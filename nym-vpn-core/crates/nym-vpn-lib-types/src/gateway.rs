@@ -511,7 +511,8 @@ impl From<GatewayFilters> for nym_gateway_directory::GatewayFilters {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct Gateway {
     pub identity_key: String,
-    pub moniker: String,
+    pub name: String,
+    pub description: Option<String>,
     pub location: Option<Location>,
     pub last_probe: Option<Probe>,
     pub mixnet_performance: Option<u8>,
@@ -817,7 +818,8 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
                 .keys
                 .ed25519
                 .to_string(),
-            moniker: String::new(),
+            name: "".to_owned(),
+            description: None,
             location: None,
             last_probe: None,
             mixnet_performance: None,
@@ -928,7 +930,8 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
 
         Self {
             identity_key: gateway.identity.to_string(),
-            moniker: gateway.moniker,
+            name: gateway.name,
+            description: gateway.description,
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
             mixnet_performance: gateway.mixnet_performance.map(|p| p.round_to_integer()),
