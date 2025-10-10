@@ -320,7 +320,6 @@ impl TunnelMonitor {
             }
         }
 
-        // todo: user_agent must not be a part of tunnel_settings
         let user_agent = self
             .tunnel_parameters
             .tunnel_settings
@@ -346,6 +345,7 @@ impl TunnelMonitor {
             None
         };
 
+        // TODO: user_agent must not be a part of tunnel_settings
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
             gateway_config.clone(),
             user_agent.clone(),

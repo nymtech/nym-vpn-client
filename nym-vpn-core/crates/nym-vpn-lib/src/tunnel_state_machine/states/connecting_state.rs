@@ -524,7 +524,13 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::NewNetworkEnv { network } => {
+                        self.firewall_policy_params.api_endpoints = network.fronted_ip_addresses();
                         shared_state.nym_config.network_env = *network;
+                        if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                            trace_err_chain!(e, "failed to set firewall policy");
+                            // Should this be fatal?
+                            //return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                        }
                         NextTunnelState::SameState(self)
                     }
                 }
