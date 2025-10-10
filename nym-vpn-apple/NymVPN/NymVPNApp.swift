@@ -97,6 +97,7 @@ struct NymVPNApp: App {
 
 private extension NymVPNApp {
     func setup() {
+        SentryManager.shared.setup()
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
@@ -109,7 +110,6 @@ private extension NymVPNApp {
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
-            SentryManager.shared.setup()
             Migrations.shared.setup()
         }
     }

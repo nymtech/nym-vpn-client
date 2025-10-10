@@ -146,6 +146,7 @@ struct NymVPNDaemonApp: App {
 
 private extension NymVPNDaemonApp {
     func setup() {
+        SentryManager.shared.setup()
         ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.
@@ -154,7 +155,6 @@ private extension NymVPNDaemonApp {
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
-            SentryManager.shared.setup()
             Migrations.shared.setup()
         }
     }
