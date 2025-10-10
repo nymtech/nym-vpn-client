@@ -85,7 +85,7 @@ impl IphlpApi {
         let set_interface_dns_settings =
             unsafe { GetProcAddress(module, s!("SetInterfaceDnsSettings")) };
         let set_interface_dns_settings = set_interface_dns_settings.ok_or_else(|| {
-            let error = windows::core::Error::from_win32();
+            let error = windows::core::Error::from_thread();
 
             if error.code() != ERROR_PROC_NOT_FOUND.to_hresult() {
                 tracing::error!(

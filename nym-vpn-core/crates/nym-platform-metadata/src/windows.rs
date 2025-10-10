@@ -48,7 +48,7 @@ impl WindowsVersion {
     pub fn current() -> Result<WindowsVersion, windows::core::Error> {
         let ntdll = unsafe { GetModuleHandleW(w!("ntdll"))? };
         let function_address = unsafe { GetProcAddress(ntdll, s!("RtlGetVersion")) }
-            .ok_or_else(windows::core::Error::from_win32)?;
+            .ok_or_else(windows::core::Error::from_thread)?;
 
         let rtl_get_version: extern "system" fn(*mut RTL_OSVERSIONINFOEXW) =
             unsafe { *(&function_address as *const _ as *const _) };
