@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::SocketAddr;
+
 use crate::{
     AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender},
@@ -12,7 +14,6 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::types::StorableAccount;
-use std::net::SocketAddr;
 use tokio::sync::mpsc::UnboundedSender;
 
 #[derive(Clone)]
