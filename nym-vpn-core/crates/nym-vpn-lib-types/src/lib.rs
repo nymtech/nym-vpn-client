@@ -59,9 +59,9 @@ pub use connection_data::{
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use gateway::{
-    Asn, AsnKind, Country, Entry, EntryPoint, Exit, ExitPoint, Gateway, GatewayFilter,
-    GatewayFilters, GatewayType, Location, NodeIdentity, ParseRecipientError, Performance, Probe,
-    ProbeOutcome, Recipient, Score,
+    Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
+    Gateway, GatewayFilter, GatewayFilters, GatewayType, Location, NodeIdentity,
+    ParseRecipientError, Performance, Probe, ProbeOutcome, QuicClientOptions, Recipient, Score,
 };
 pub use log_path::LogPath;
 pub use network::{

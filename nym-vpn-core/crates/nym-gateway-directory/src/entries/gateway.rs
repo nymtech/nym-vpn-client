@@ -28,7 +28,7 @@ pub type NymNode = Gateway;
 
 pub const COUNTRY_WITH_REGION_SELECTOR: &str = "US";
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Gateway {
     pub identity: NodeIdentity,
     pub moniker: String,
@@ -45,25 +45,6 @@ pub struct Gateway {
     pub mixnet_score: Option<Score>,
     pub wg_performance: Option<Performance>,
     pub version: Option<String>,
-}
-
-impl fmt::Debug for Gateway {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Gateway")
-            .field("identity", &self.identity.to_base58_string())
-            .field("location", &self.location)
-            .field("ipr_address", &self.ipr_address)
-            .field("authenticator_address", &self.authenticator_address)
-            .field("last_probe", &self.last_probe)
-            .field("host", &self.host)
-            .field("clients_ws_port", &self.clients_ws_port)
-            .field("clients_wss_port", &self.clients_wss_port)
-            .field("mixnet_performance", &self.mixnet_performance)
-            .field("mixnet_score", &self.mixnet_score)
-            .field("wg_performance", &self.wg_performance)
-            .field("version", &self.version)
-            .finish()
-    }
 }
 
 impl Gateway {

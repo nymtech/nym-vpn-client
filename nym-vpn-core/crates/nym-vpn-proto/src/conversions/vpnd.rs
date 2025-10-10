@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
 };
@@ -10,9 +10,9 @@ use std::{
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use nym_vpn_lib_types::{
-    AccountCommandResponse, ApiUrl, ConnectArgs, ConnectOptions, GatewayType, ListGatewaysOptions,
-    LogPath, NymNetworkDetails, NymVpnNetwork, Performance, StoreAccountRequest, SystemMessage,
-    UserAgent, VpnServiceInfo,
+    AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, ConnectArgs,
+    ConnectOptions, GatewayType, ListGatewaysOptions, LogPath, NymNetworkDetails, NymVpnNetwork,
+    Performance, QuicClientOptions, StoreAccountRequest, SystemMessage, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -204,6 +204,10 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| ConversionError::ParseAddr("GatewayResponse.exit_ipv6s", e))?;
         let build_version = gateway.build_version;
+        let bridge_params = gateway
+            .bridge_params
+            .map(BridgeInformation::try_from)
+            .transpose()?;
         Ok(Self {
             identity_key,
             moniker,
@@ -215,6 +219,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             exit_ipv4s,
             exit_ipv6s,
             build_version,
+            bridge_params,
         })
     }
 }
@@ -230,6 +235,7 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
         let exit_ipv4s = gateway.exit_ipv4s.iter().map(|ip| ip.to_string()).collect();
         let exit_ipv6s = gateway.exit_ipv6s.iter().map(|ip| ip.to_string()).collect();
         let build_version = gateway.build_version;
+        let bridge_params = gateway.bridge_params.map(proto::BridgeInformation::from);
         proto::GatewayResponse {
             id,
             location,
@@ -243,7 +249,98 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
             exit_ipv4s,
             exit_ipv6s,
             build_version,
+            bridge_params,
         }
+    }
+}
+
+impl From<BridgeInformation> for proto::BridgeInformation {
+    fn from(value: BridgeInformation) -> Self {
+        let transports = value
+            .transports
+            .into_iter()
+            .map(proto::BridgeParameters::from)
+            .collect::<Vec<_>>();
+
+        Self {
+            version: value.version,
+            transports,
+        }
+    }
+}
+
+impl TryFrom<proto::BridgeInformation> for BridgeInformation {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::BridgeInformation) -> Result<Self, Self::Error> {
+        let transports = value
+            .transports
+            .into_iter()
+            .map(BridgeParameters::try_from)
+            .collect::<Result<Vec<BridgeParameters>, ConversionError>>()?;
+
+        Ok(Self {
+            version: value.version,
+            transports,
+        })
+    }
+}
+
+impl From<QuicClientOptions> for proto::QuicClientOptions {
+    fn from(value: QuicClientOptions) -> Self {
+        Self {
+            addresses: value
+                .addresses
+                .into_iter()
+                .map(proto::SocketAddr::from)
+                .collect(),
+            host: value.host,
+            id_pubkey: value.id_pubkey,
+        }
+    }
+}
+
+impl TryFrom<proto::QuicClientOptions> for QuicClientOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::QuicClientOptions) -> Result<Self, Self::Error> {
+        let addresses = value
+            .addresses
+            .into_iter()
+            .map(SocketAddr::try_from)
+            .collect::<Result<Vec<SocketAddr>, ConversionError>>()?;
+        Ok(Self {
+            host: value.host,
+            id_pubkey: value.id_pubkey,
+            addresses,
+        })
+    }
+}
+
+impl From<BridgeParameters> for proto::BridgeParameters {
+    fn from(value: BridgeParameters) -> Self {
+        match value {
+            BridgeParameters::QuicPlain(options) => proto::BridgeParameters {
+                state: Some(proto::bridge_parameters::State::QuicPlain(
+                    proto::QuicClientOptions::from(options),
+                )),
+            },
+        }
+    }
+}
+
+impl TryFrom<proto::BridgeParameters> for BridgeParameters {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::BridgeParameters) -> Result<Self, Self::Error> {
+        let state = value
+            .state
+            .ok_or(ConversionError::NoValueSet("BridgeParameters.state"))?;
+        Ok(match state {
+            proto::bridge_parameters::State::QuicPlain(options) => {
+                BridgeParameters::QuicPlain(QuicClientOptions::try_from(options)?)
+            }
+        })
     }
 }
 
