@@ -72,10 +72,13 @@ private extension HomeView {
         )
     }
 
-    @ViewBuilder
     func statusAreaSection() -> some View {
-        StatusAreaView(statusButtonConfig: $viewModel.statusButtonConfig, statusInfoState: $viewModel.statusInfoState)
-            .padding(.horizontal, 16)
+        StatusAreaView(
+            statusButtonConfig: $viewModel.statusButtonConfig,
+            statusInfoState: $viewModel.statusInfoState,
+            connectedDate: $viewModel.connectionManager.connectedDate
+        )
+        .padding(.horizontal, 16)
     }
 
     @ViewBuilder
@@ -96,6 +99,7 @@ private extension HomeView {
                 .frame(width: 14, height: 14)
                 .onTapGesture {
                     withAnimation {
+                        viewModel.impactGenerator.softImpact()
                         viewModel.isModeInfoOverlayDisplayed.toggle()
                     }
                 }
@@ -107,18 +111,22 @@ private extension HomeView {
         NetworkButton(viewModel: viewModel.fastButtonViewModel)
             .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
             .onTapGesture {
+                viewModel.impactGenerator.softImpact()
                 viewModel.connectionManager.connectionType = .wireguard
             }
             .accessibilityAction {
+                viewModel.impactGenerator.softImpact()
                 viewModel.connectionManager.connectionType = .wireguard
             }
 
         NetworkButton(viewModel: viewModel.anonymousButtonViewModel)
             .padding(.horizontal, 16)
             .onTapGesture {
+                viewModel.impactGenerator.softImpact()
                 viewModel.connectionManager.connectionType = .mixnet5hop
             }
             .accessibilityAction {
+                viewModel.impactGenerator.softImpact()
                 viewModel.connectionManager.connectionType = .mixnet5hop
             }
         Spacer()

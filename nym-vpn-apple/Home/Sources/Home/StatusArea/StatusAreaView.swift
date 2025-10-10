@@ -1,13 +1,10 @@
 import SwiftUI
-import AppSettings
-import ConnectionManager
 import UIComponents
 
 struct StatusAreaView: View {
-    @EnvironmentObject private var connectionManager: ConnectionManager
-
     @Binding var statusButtonConfig: StatusButtonConfig
     @Binding var statusInfoState: StatusInfoState
+    @Binding var connectedDate: Date?
 
     var body: some View {
         VStack {
@@ -20,7 +17,7 @@ struct StatusAreaView: View {
                 .frame(height: 8)
 
             StatusInfoView(
-                timeConnectedString: $connectionManager.connectedDateString,
+                connectedDate: $connectedDate,
                 infoState: $statusInfoState
             )
         }

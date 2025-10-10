@@ -54,7 +54,6 @@ import GRPCManager
 
     @Published public var connectionConfig: ConnectionConfig?
     @Published public var connectedDate: Date?
-    @Published public var connectedDateString: String?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
     @Published public var lastError: Error?
@@ -174,7 +173,6 @@ private extension ConnectionManager {
         setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
-        configureConnectedTimeTimer()
         Task { @MainActor in
             await fetchConnectionConfig()
         }
@@ -257,34 +255,5 @@ private extension ConnectionManager {
     func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway
         exitRouter = connectionStorage.exitRouter
-    }
-}
-
-// MARK: - Connection time -
-private extension ConnectionManager {
-    func configureConnectedTimeTimer() {
-        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                updateConnectedDateString()
-            }
-    }
-
-    func updateConnectedDateString() {
-        guard let connectedDate
-        else {
-            guard connectedDateString != nil else { return }
-            connectedDateString = nil
-            return
-        }
-        let timeElapsed = Date().timeIntervalSince(connectedDate)
-        let hours = Int(timeElapsed) / 3600
-        let minutes = (Int(timeElapsed) % 3600) / 60
-        let seconds = Int(timeElapsed) % 60
-        let newConnectedDateString = "\(String(format: "%02d:%02d:%02d", hours, minutes, seconds))"
-        guard connectedDateString != newConnectedDateString else { return }
-        connectedDateString = newConnectedDateString
     }
 }

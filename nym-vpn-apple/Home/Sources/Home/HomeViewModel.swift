@@ -168,6 +168,7 @@ import HelperManager
 
 public extension HomeViewModel {
     @MainActor func navigateToSettings() {
+        impactGenerator.softImpact()
         path.append(HomeLink.settings)
     }
 
