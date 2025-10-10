@@ -16,7 +16,6 @@ backon.workspace = true
 base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
-clap = { workspace = true, features = ["derive"], optional = true }
 chrono = { workspace = true, features = ["serde"] }
 itertools.workspace = true
 nym-compact-ecash.workspace = true
@@ -47,6 +46,8 @@ tokio = { workspace = true, features = ["full"] }
 bip39 = { workspace = true, features = ["zeroize"] }
 
 [features]
-cli = ["clap"]
 default = ["network-defaults"]
-network-defaults = ["dep:nym-network-defaults", "nym-http-api-client/network-defaults"]
+network-defaults = [
+    "dep:nym-network-defaults",
+    "nym-http-api-client/network-defaults",
+]
