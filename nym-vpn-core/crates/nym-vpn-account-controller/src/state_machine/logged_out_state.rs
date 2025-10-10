@@ -84,7 +84,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
 
                     AccountCommand::Common(common_command) => {
                         match common_command {
-                            CommonCommand::SetStaticApiAddresses(return_sender, static_addresses) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state, static_addresses)),
+                            CommonCommand::SetStaticApiAddresses(return_sender, static_api_addresses) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state, static_api_addresses)),
 
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
                             CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Ok(None)),

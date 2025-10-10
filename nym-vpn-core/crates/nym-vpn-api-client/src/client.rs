@@ -261,7 +261,7 @@ impl VpnApiClient {
     ) -> Result<()> {
         let resolver_overrides = static_addresses.map(|addrs| {
             let base_url_domain = self.base_url.domain().unwrap_or_default().to_string();
-            ResolverOverrides::from([(base_url_domain, addrs.clone())])
+            ResolverOverrides::from([(base_url_domain, addrs.to_owned())])
         });
 
         // If we have network details, use them to preserve domain fronting

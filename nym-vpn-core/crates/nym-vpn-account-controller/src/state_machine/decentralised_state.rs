@@ -78,7 +78,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             CommonCommand::GetStoredAccount(return_sender) => return_sender.send(common_handler::handle_get_stored_account(shared_state).await),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_account_identity(shared_state)),
-                            CommonCommand::SetStaticApiAddresses(return_sender, static_addresses) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state, static_addresses)),
+                            CommonCommand::SetStaticApiAddresses(return_sender, static_api_addresses) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state, static_api_addresses)),
                             CommonCommand::GetUsage(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetDevices(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_decentralised(return_sender),
