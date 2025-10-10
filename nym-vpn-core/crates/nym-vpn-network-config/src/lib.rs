@@ -38,7 +38,9 @@ use crate::{
 
 use nym_http_api_client::HttpClientError;
 use std::{
+    collections::HashSet,
     fmt::Debug,
+    net::SocketAddr,
     path::{Path, PathBuf},
     str::FromStr,
     time::Duration,
@@ -179,6 +181,24 @@ impl Network {
 
     pub fn quic_enabled(&self) -> Option<bool> {
         self.feature_flags.as_ref().and_then(|ff| ff.quic_enabled())
+    }
+
+    pub fn fronted_ip_addresses(&self) -> Vec<SocketAddr> {
+        let mut unique: HashSet<SocketAddr> = HashSet::with_capacity(16);
+        self.nym_vpn_network
+            .nym_vpn_api_urls
+            .iter()
+            .filter_map(|api_url| api_url.fronts.as_ref())
+            .flat_map(|fronts| fronts.iter())
+            .for_each(|front| match SocketAddr::from_str(front) {
+                Ok(addr) => {
+                    unique.insert(addr);
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to parse fronted address '{front}': {e:#?}");
+                }
+            });
+        unique.into_iter().collect()
     }
 }
 

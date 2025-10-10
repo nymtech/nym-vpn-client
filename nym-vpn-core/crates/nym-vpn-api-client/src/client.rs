@@ -140,7 +140,7 @@ impl VpnApiClient {
 
     pub fn from_network_with_resolver_overrides(
         network: &nym_network_defaults::NymNetworkDetails,
-        use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use true if unsure)
+        use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use false if unsure)
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
