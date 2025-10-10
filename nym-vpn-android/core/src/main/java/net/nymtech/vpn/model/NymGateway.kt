@@ -32,7 +32,7 @@ data class NymGateway(
 		fun from(gateway: Gateway): NymGateway {
 			return NymGateway(
 				identity = gateway.identityKey,
-				name = gateway.moniker,
+				name = gateway.name,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
 				mixnetScore = gateway.mixnetScore,
 				wgScore = gateway.wgPerformance?.score,
