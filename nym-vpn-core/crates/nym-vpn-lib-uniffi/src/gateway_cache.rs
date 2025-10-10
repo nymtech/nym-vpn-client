@@ -65,21 +65,6 @@ async fn make_gateway_config() -> nym_gateway_directory::Config {
     let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
 
-    let mix_score_thresholds =
-        network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.wg_thresholds.high,
-        medium: sc.wg_thresholds.medium,
-        low: sc.wg_thresholds.low,
-    });
-
     nym_gateway_directory::Config {
         nyxd_url,
         api_url,
