@@ -539,6 +539,7 @@ impl TunnelStateHandler for ConnectingState {
                         {
                             shared_state.nym_config.network_env = *network;
                         }
+
                         NextTunnelState::SameState(self)
                     }
                 }
