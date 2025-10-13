@@ -152,7 +152,11 @@ import HelperManager
 
 private extension CredentialsManager {
     func setup() {
+#if os(iOS)
+        checkCredentialImport()
+#elseif os(macOS)
         setupGRPCManagerObservers()
+#endif
     }
 
     func setupGRPCManagerObservers() {

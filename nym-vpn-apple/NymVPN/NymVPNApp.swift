@@ -58,9 +58,11 @@ struct NymVPNApp: App {
         // swiftlint:disable:next closure_body_length
         WindowGroup {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+                // DISABLED until we figure out where the crash is coming from
+//                if !splashScreenDidDisplay {
+//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+//                } else
+            if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -95,6 +97,7 @@ struct NymVPNApp: App {
 
 private extension NymVPNApp {
     func setup() {
+        SentryManager.shared.setup()
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
@@ -107,7 +110,6 @@ private extension NymVPNApp {
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
-            SentryManager.shared.setup()
             Migrations.shared.setup()
         }
     }

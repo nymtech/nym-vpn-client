@@ -7,14 +7,14 @@ public enum GatewayNodeScore: Codable {
 
     public var imageName: String {
         switch self {
-        case .low, .noScore:
+        case .low:
             return "scoreLow"
         case .medium:
             return "scoreMedium"
         case .high:
             return "scoreHigh"
-        case .offline:
-            return "scoreLow"
+        case .offline, .noScore:
+            return "scoreOffline"
         }
     }
 

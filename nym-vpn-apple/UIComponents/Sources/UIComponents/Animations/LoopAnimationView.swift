@@ -11,5 +11,6 @@ public struct LoopAnimationView: View {
     public var body: some View {
         LottieView(animation: .named(animationName, bundle: .module))
             .playing(loopMode: .loop)
+            .backgroundBehavior(.pauseAndRestore)
     }
 }
