@@ -56,86 +56,54 @@ impl VpnApiClient {
         Self::new_with_resolver_overrides(base_url, user_agent, None)
     }
 
+    pub fn new_with_resolver_overrides(
+        base_url: Url,
+        user_agent: UserAgent,
+        resolver_overrides: Option<&ResolverOverrides>,
+    ) -> Result<Self> {
+        nym_http_api_client::Client::builder(base_url.clone())
+            .map(|builder| {
+                let mut builder = builder
+                    .with_user_agent(user_agent.clone())
+                    .with_timeout(NYM_VPN_API_TIMEOUT)
+                    .with_fronting(FrontPolicy::OnRetry);
+
+                // Add resolver overrides
+                if let Some(resolver_overrides) = resolver_overrides.as_ref() {
+                    for (domain, addresses) in resolver_overrides.iter() {
+                        tracing::info!(
+                            "Enabling Resolver override for {domain}: {}",
+                            addresses
+                                .iter()
+                                .map(|addr| addr.to_string())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        );
+                        builder = builder.resolve_to_addrs(domain, addresses);
+                    }
+                }
+
+                builder
+            })
+            .and_then(|builder| builder.build())
+            .map(|c| Self {
+                inner: c,
+                base_url,
+                user_agent,
+                network_details: None,
+                using_nym_api_urls: true,
+            })
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::CreateVpnApiClient)
+    }
+
     #[cfg(feature = "network-defaults")]
     pub fn from_network(
         network: &nym_network_defaults::NymNetworkDetails,
         use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use false if unsure)
         user_agent: UserAgent,
     ) -> Result<Self> {
-        let vpn_urls = if use_nym_api_urls {
-            #[allow(deprecated)]
-            network.nym_api_urls.as_ref().ok_or_else(|| {
-                let err: HttpClientError = HttpClientError::GenericRequestFailure(
-                    "No Nym API URLs configured in network details".to_string(),
-                );
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?
-        } else {
-            #[allow(deprecated)]
-            network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
-                let err: HttpClientError = HttpClientError::GenericRequestFailure(
-                    "No Nym VPN API URLs configured in network details".to_string(),
-                );
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?
-        };
-
-        // Use the first URL as base
-        #[allow(deprecated)]
-        let base_url = vpn_urls
-            .first()
-            .ok_or_else(|| {
-                let err: HttpClientError = HttpClientError::GenericRequestFailure(
-                    "VPN API URLs list is empty".to_string(),
-                );
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?
-            .url
-            .parse()
-            .map_err(|e| {
-                let err: HttpClientError =
-                    HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?;
-
-        // Build client with domain fronting support from network details
-        #[allow(deprecated)]
-        let nym_vpn_api_urls = vpn_urls
-            .iter()
-            .map(|v| {
-                v.url.parse().map_err(|e| {
-                    let err: HttpClientError =
-                        HttpClientError::GenericRequestFailure(format!("Invalid VPN API URL: {e}"));
-                    VpnApiClientError::CreateVpnApiClient(Box::new(err))
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
-        // nym_http_api_client::ClientBuilder::from_network(network)
-        #[allow(deprecated)]
-        let inner = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
-            // .map_err(|e| {
-            //     let err: HttpClientError =
-            //         HttpClientError::GenericRequestFailure(e.to_string());
-            //     VpnApiClientError::CreateVpnApiClient(err)
-            // })?
-            .with_user_agent(user_agent.clone())
-            .with_timeout(NYM_VPN_API_TIMEOUT)
-            .with_fronting(FrontPolicy::OnRetry)
-            .build()
-            .map_err(|e| {
-                let err: HttpClientError = HttpClientError::GenericRequestFailure(e.to_string());
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?;
-
-        Ok(Self {
-            inner,
-            base_url,
-            user_agent,
-            network_details: Some(network.clone()),
-            using_nym_api_urls: use_nym_api_urls,
-        })
+        Self::from_network_with_resolver_overrides(network, use_nym_api_urls, user_agent, None)
     }
 
     pub fn from_network_with_resolver_overrides(
@@ -204,7 +172,7 @@ impl VpnApiClient {
             .with_fronting(FrontPolicy::OnRetry);
 
         // Add resolver overrides
-        if let Some(resolver_overrides) = resolver_overrides.as_ref() {
+        if let Some(resolver_overrides) = resolver_overrides {
             for (domain, addresses) in resolver_overrides.iter() {
                 tracing::info!(
                     "Enabling Resolver override for {domain}: {}",
@@ -264,64 +232,7 @@ impl VpnApiClient {
             ResolverOverrides::from([(base_url_domain, addrs.to_owned())])
         });
 
-        // If we have network details, use them to preserve domain fronting
-        let new_client = if let Some(ref network) = self.network_details {
-            Self::from_network_with_resolver_overrides(
-                network,
-                self.using_nym_api_urls,
-                self.user_agent.clone(),
-                resolver_overrides.as_ref(),
-            )?
-        } else {
-            Self::new_with_resolver_overrides(
-                self.base_url.clone(),
-                self.user_agent.clone(),
-                resolver_overrides.as_ref(),
-            )?
-        };
-        self.inner = new_client.inner;
-        Ok(())
-    }
-
-    pub fn new_with_resolver_overrides(
-        base_url: Url,
-        user_agent: UserAgent,
-        resolver_overrides: Option<&ResolverOverrides>,
-    ) -> Result<Self> {
-        nym_http_api_client::Client::builder(base_url.clone())
-            .map(|builder| {
-                let mut builder = builder
-                    .with_user_agent(user_agent.clone())
-                    .with_timeout(NYM_VPN_API_TIMEOUT)
-                    .with_fronting(FrontPolicy::OnRetry);
-
-                // Add resolver overrides
-                if let Some(resolver_overrides) = resolver_overrides.as_ref() {
-                    for (domain, addresses) in resolver_overrides.iter() {
-                        tracing::info!(
-                            "Enabling Resolver override for {domain}: {}",
-                            addresses
-                                .iter()
-                                .map(|addr| addr.to_string())
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        );
-                        builder = builder.resolve_to_addrs(domain, addresses);
-                    }
-                }
-
-                builder
-            })
-            .and_then(|builder| builder.build())
-            .map(|c| Self {
-                inner: c,
-                base_url,
-                user_agent,
-                network_details: None,
-                using_nym_api_urls: true,
-            })
-            .map_err(Box::new)
-            .map_err(VpnApiClientError::CreateVpnApiClient)
+        self.override_resolver(resolver_overrides.as_ref())
     }
 
     pub fn api_client(&self) -> &impl ApiClient {
