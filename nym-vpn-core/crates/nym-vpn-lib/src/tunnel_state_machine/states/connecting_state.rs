@@ -524,7 +524,8 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::NewNetworkEnv { network } => {
-                        if cfg!(not(any(target_os = "android", target_os = "ios"))) {
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
                             self.firewall_policy_params.api_endpoints = network.fronted_ip_addresses();
                             shared_state.nym_config.network_env = *network;
                             if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
@@ -532,7 +533,10 @@ impl TunnelStateHandler for ConnectingState {
                                 // Should this be fatal?
                                 //return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                             }
-                        } else {
+                        }
+
+                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        {
                             shared_state.nym_config.network_env = *network;
                         }
                         NextTunnelState::SameState(self)
