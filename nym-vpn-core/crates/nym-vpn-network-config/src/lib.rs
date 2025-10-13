@@ -20,6 +20,7 @@ pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
+use nym_vpn_api_client::str_to_socket_addr;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use refresh::start_background_file_refresh;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
@@ -190,12 +191,13 @@ impl Network {
             .iter()
             .filter_map(|api_url| api_url.fronts.as_ref())
             .flat_map(|fronts| fronts.iter())
-            .for_each(|front| match SocketAddr::from_str(front) {
-                Ok(addr) => {
-                    unique.insert(addr);
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to parse fronted address '{front}': {e:#?}");
+            .for_each(|front| {
+                if let Ok(addrs) =
+                    tokio::runtime::Handle::current().block_on(str_to_socket_addr(front))
+                {
+                    for addr in addrs {
+                        unique.insert(addr);
+                    }
                 }
             });
         unique.into_iter().collect()

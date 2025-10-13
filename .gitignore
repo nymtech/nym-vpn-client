@@ -39,3 +39,6 @@ nym-vpn-core/upload/mac/nym-vpnd
 # Visual Studio
 *.vcxproj.user
 .vs/
+
+# GitHub Copilot
+.github/copilot-settings.json
