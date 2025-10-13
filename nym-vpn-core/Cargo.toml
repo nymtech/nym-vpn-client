@@ -77,7 +77,7 @@ default-members = [
 # nym-credential-utils = { path = "../../nym/common/credential-utils" }
 
 [workspace.package]
-version = "1.17.0-beta"
+version = "1.18.0-beta"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
@@ -144,8 +144,14 @@ pnet_packet = "0.35.0"
 prost = "0.14.1"
 prost-types = "0.14.1"
 pretty_assertions = "1.4.1"
-quinn = {version = "0.11", default-features = false, features = ["ring", "rustls", "runtime-tokio"] }
-quinn-proto = {version = "0.11", default-features = false, features = ["rustls"] }
+quinn = { version = "0.11", default-features = false, features = [
+    "ring",
+    "rustls",
+    "runtime-tokio",
+] }
+quinn-proto = { version = "0.11", default-features = false, features = [
+    "rustls",
+] }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 resolv-conf = "0.7"

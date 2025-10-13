@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
+
+
+## [1.17.0] - 2025-10-13
+
 ### Added
 
 - Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
@@ -20,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LAN sharing is off by default. Use "Allow LAN" setting to allow it (https://github.com/nymtech/nym-vpn-client/pull/3496)
 - Differentiate between entry and exit gateway errors (https://github.com/nymtech/nym-vpn-client/pull/3458)
 - New CLI command interface. Legacy commands will continue working until the following release. (https://github.com/nymtech/nym-vpn-client/pull/3559)
-- Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
 
 ### Fixed
 
