@@ -48,7 +48,7 @@ public struct GatewayCell: View {
                 Spacer()
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(server.moniker ?? server.id)")
+            .accessibilityLabel("\(server.name ?? server.id)")
             .accessibilityValue(isSelected ? "selected".localizedString : "")
             .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
@@ -120,7 +120,7 @@ private extension GatewayCell {
     }
 
     func serverTitle() -> some View {
-        Text(server.moniker ?? server.id)
+        Text(server.name ?? server.id)
             .lineLimit(1)
             .foregroundStyle(NymColor.primary)
             .textStyle(.Body.Large.regular)
@@ -163,7 +163,7 @@ extension GatewayCell {
         let score: GatewayNodeScore?
         switch connectionManager.connectionType {
         case .mixnet5hop:
-            score = server.mixnetScore
+            score = server.performance?.mixnetScore
         case .wireguard:
             score = server.performance?.score
         }

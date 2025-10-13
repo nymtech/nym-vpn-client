@@ -121,7 +121,7 @@ import UIComponents
             .filter { seen.insert($0).inserted }
 
         foundGateways = gateways.filter {
-            $0.moniker?.lowercased().localizedCaseInsensitiveContains(searchText.lowercased()) ?? false
+            $0.name?.lowercased().localizedCaseInsensitiveContains(searchText.lowercased()) ?? false
             || $0.id.lowercased().localizedCaseInsensitiveContains(searchText.lowercased())
         }
     }
