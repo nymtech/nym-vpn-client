@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.17.0-elderberry-rc2"
+version = "1.17.0-elderberry"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",

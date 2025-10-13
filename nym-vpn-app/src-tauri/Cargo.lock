@@ -3361,7 +3361,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "1.17.0-beta"
+version = "1.17.0"
 dependencies = [
  "dbus",
  "libc",
@@ -3372,7 +3372,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.17.0-beta"
+version = "1.17.0"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -3386,7 +3386,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "1.17.0-beta"
+version = "1.17.0"
 dependencies = [
  "nym-dbus",
  "objc2-foundation 0.3.1",
@@ -3398,7 +3398,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.17.0-elderberry-rc2"
+version = "1.17.0-elderberry"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3447,7 +3447,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.17.0-beta"
+version = "1.17.0"
 dependencies = [
  "prost",
  "prost-types",
@@ -3458,7 +3458,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.17.0-beta"
+version = "1.17.0"
 dependencies = [
  "bitflags 2.9.0",
  "futures",
