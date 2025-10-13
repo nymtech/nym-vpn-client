@@ -3,7 +3,10 @@ use std::net::SocketAddr;
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
+use nym_vpn_api_client::{
+    ResolverOverrides,
+    response::{NymVpnDevice, NymVpnUsage},
+};
 use nym_vpn_lib_types::AccountCommandError;
 
 use crate::{
@@ -43,6 +46,12 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
             result_tx.send(handle_set_static_api_addresses(
                 shared_state,
                 static_api_addresses,
+            ));
+        }
+        CommonCommand::SetResolverOverrides(result_tx, resolver_overrides) => {
+            result_tx.send(handle_set_resolver_overrides(
+                shared_state,
+                resolver_overrides,
             ));
         }
     };
@@ -164,6 +173,18 @@ pub(crate) fn handle_set_static_api_addresses<C: ConnectivityMonitor>(
     shared_state
         .vpn_api_client
         .override_resolver_addresses(static_api_addresses.as_ref())
+        .map_err(|e| {
+            AccountCommandError::internal(format!("Failed to set resolver overrides: {e}"))
+        })
+}
+
+pub(crate) fn handle_set_resolver_overrides<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    resolver_overrides: Option<ResolverOverrides>,
+) -> Result<(), AccountCommandError> {
+    shared_state
+        .vpn_api_client
+        .override_resolver(resolver_overrides.as_ref())
         .map_err(|e| {
             AccountCommandError::internal(format!("Failed to set resolver overrides: {e}"))
         })

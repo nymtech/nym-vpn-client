@@ -8,6 +8,7 @@ use nym_vpn_store::account::StorableAccount;
 
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
@@ -79,6 +80,9 @@ impl AccountCommand {
                 CommonCommand::SetStaticApiAddresses(return_sender, _) => {
                     return_sender.send(Err(error))
                 }
+                CommonCommand::SetResolverOverrides(return_sender, _) => {
+                    return_sender.send(Err(error))
+                }
             },
         }
     }
@@ -112,6 +116,12 @@ pub enum CommonCommand {
     SetStaticApiAddresses(
         ReturnSender<(), AccountCommandError>,
         Option<Vec<SocketAddr>>,
+    ),
+
+    /// Override the VPN API client resolver to allow him to go through the firewall (witg Domain Fronting)
+    SetResolverOverrides(
+        ReturnSender<(), AccountCommandError>,
+        Option<ResolverOverrides>,
     ),
 }
 
