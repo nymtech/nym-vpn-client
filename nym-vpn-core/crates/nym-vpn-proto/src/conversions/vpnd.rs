@@ -41,6 +41,9 @@ impl TryFrom<proto::Performance> for nym_vpn_lib_types::Performance {
             score: proto::Score::try_from(value.score)
                 .map_err(|err| ConversionError::Decode("Performance.score", err))?
                 .into(),
+            mixnet_score: proto::Score::try_from(value.score)
+                .map_err(|err| ConversionError::Decode("Performance.mixnet_score", err))?
+                .into(),
             load: proto::Score::try_from(value.load)
                 .map_err(|err| ConversionError::Decode("Performance.load", err))?
                 .into(),
@@ -54,6 +57,7 @@ impl From<nym_vpn_lib_types::Performance> for proto::Performance {
         Self {
             last_updated_utc: value.last_updated_utc,
             score: proto::Score::from(value.score).into(),
+            mixnet_score: proto::Score::from(value.mixnet_score).into(),
             load: proto::Score::from(value.load).into(),
             uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
@@ -178,17 +182,8 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .last_probe
             .map(nym_vpn_lib_types::Probe::try_from)
             .transpose()?;
-        let mixnet_score = gateway
-            .mixnet_score
-            .map(proto::Score::try_from)
-            .transpose()
-            .map_err(|err| ConversionError::Decode("GatewayResponse.mixnet_score", err))?
-            .map(nym_vpn_lib_types::Score::from);
         let mixnet_performance = gateway.mixnet_performance.map(|x| x as u8);
-        let wg_performance = gateway
-            .wg_performance
-            .map(Performance::try_from)
-            .transpose()?;
+        let performance = gateway.performance.map(Performance::try_from).transpose()?;
         let exit_ipv4s = gateway
             .exit_ipv4s
             .iter()
@@ -212,9 +207,8 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             identity_key,
             location,
             last_probe,
-            wg_performance,
+            performance,
             mixnet_performance,
-            mixnet_score,
             exit_ipv4s,
             exit_ipv6s,
             build_version,
@@ -236,10 +230,7 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
             location: gateway.location.map(proto::Location::from),
             last_probe: gateway.last_probe.map(proto::Probe::from),
             mixnet_performance: gateway.mixnet_performance.map(u32::from),
-            mixnet_score: gateway
-                .mixnet_score
-                .map(|score| proto::Score::from(score) as i32),
-            wg_performance: gateway.wg_performance.map(Into::into),
+            performance: gateway.performance.map(proto::Performance::from),
             name: gateway.name,
             description: gateway.description,
             exit_ipv4s,

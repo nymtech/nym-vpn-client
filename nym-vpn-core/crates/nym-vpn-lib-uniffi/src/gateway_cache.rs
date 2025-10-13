@@ -3,7 +3,6 @@
 
 use nym_gateway_directory::{GatewayCache, GatewayCacheHandle, GatewayClient};
 use nym_offline_monitor::ConnectivityHandle;
-use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_lib_types::UserAgent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -65,28 +64,11 @@ async fn make_gateway_config() -> nym_gateway_directory::Config {
     let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
 
-    let mix_score_thresholds =
-        network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.wg_thresholds.high,
-        medium: sc.wg_thresholds.medium,
-        low: sc.wg_thresholds.low,
-    });
-
     nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
         min_gateway_performance: None,
-        mix_score_thresholds,
-        wg_score_thresholds,
     }
 }
 
