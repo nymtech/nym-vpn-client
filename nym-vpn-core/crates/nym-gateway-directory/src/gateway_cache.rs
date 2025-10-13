@@ -180,11 +180,8 @@ impl GatewayCache {
 
         self.gateway_client = gateway_client;
 
-        // Invalidate cache immediately if gateway performance or thresholds change
-        if new_config.min_gateway_performance != old_config.min_gateway_performance
-            || new_config.mix_score_thresholds != old_config.mix_score_thresholds
-            || new_config.wg_score_thresholds != old_config.wg_score_thresholds
-        {
+        // Invalidate cache immediately if gateway performance change
+        if new_config.min_gateway_performance != old_config.min_gateway_performance {
             self.cached_gateways.clear();
         }
     }

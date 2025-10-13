@@ -313,6 +313,7 @@ pub enum ScoreValue {
 pub struct DVpnGatewayPerformance {
     pub last_updated_utc: String,
     pub score: ScoreValue,
+    pub mixnet_score: ScoreValue,
     pub load: ScoreValue,
     pub uptime_percentage_last_24_hours: f32,
 }

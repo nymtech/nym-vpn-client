@@ -10,7 +10,7 @@ use nym_sdk::UserAgent;
 use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
-use nym_vpn_api_client::types::{GatewayMinPerformance, Percent, ScoreThresholds};
+use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
 use rand::{prelude::SliceRandom, thread_rng};
 use tracing::{debug, error, warn};
 use url::Url;
@@ -26,9 +26,8 @@ pub struct Config {
     pub nyxd_url: Url,
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
+    // todo: remove as it's being unused?
     pub min_gateway_performance: Option<GatewayMinPerformance>,
-    pub mix_score_thresholds: Option<ScoreThresholds>,
-    pub wg_score_thresholds: Option<ScoreThresholds>,
 }
 
 fn to_string<T: fmt::Display>(value: &Option<T>) -> String {
@@ -78,6 +77,7 @@ impl Config {
         self
     }
 
+    // todo: remove as it's being unused?
     pub fn with_min_gateway_performance(
         mut self,
         min_gateway_performance: GatewayMinPerformance,
@@ -112,8 +112,6 @@ pub struct GatewayClient {
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
     nyxd_url: Url,
     min_gateway_performance: Option<GatewayMinPerformance>,
-    mix_score_thresholds: Option<ScoreThresholds>,
-    wg_score_thresholds: Option<ScoreThresholds>,
 }
 
 impl GatewayClient {
@@ -146,9 +144,8 @@ impl GatewayClient {
             api_client,
             nym_vpn_api_client,
             nyxd_url: config.nyxd_url,
+            // todo: remove as it's being unused?
             min_gateway_performance: config.min_gateway_performance,
-            mix_score_thresholds: config.mix_score_thresholds,
-            wg_score_thresholds: config.wg_score_thresholds,
         })
     }
 
@@ -182,9 +179,8 @@ impl GatewayClient {
             api_client,
             nym_vpn_api_client,
             nyxd_url: config.nyxd_url,
+            // todo: remove as it's being unused?
             min_gateway_performance: config.min_gateway_performance,
-            mix_score_thresholds: config.mix_score_thresholds,
-            wg_score_thresholds: config.wg_score_thresholds,
         })
     }
 
@@ -197,9 +193,8 @@ impl GatewayClient {
                 .as_ref()
                 .map(|client| client.current_url().clone()),
             nyxd_url: self.nyxd_url.clone(),
+            // todo: remove as it's being unused?
             min_gateway_performance: self.min_gateway_performance,
-            mix_score_thresholds: self.mix_score_thresholds,
-            wg_score_thresholds: self.wg_score_thresholds,
         }
     }
 
@@ -396,10 +391,6 @@ impl GatewayClient {
                     Gateway::try_from(gw)
                         .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                         .ok()
-                        .map(|mut gw| {
-                            gw.update_to_new_thresholds(self.mix_score_thresholds);
-                            gw
-                        })
                 })
                 .collect();
             Ok(GatewayList::new(None, gateways))
@@ -420,10 +411,6 @@ impl GatewayClient {
                     Gateway::try_from(gw)
                         .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                         .ok()
-                        .map(|mut gw| {
-                            gw.update_to_new_thresholds(self.mix_score_thresholds);
-                            gw
-                        })
                 })
                 .collect();
             Ok(GatewayList::new(Some(gw_type), gateways))
@@ -510,9 +497,8 @@ mod test {
             nyxd_url: default_nyxd_url,
             api_url: default_api_url,
             nym_vpn_api_url: Some(default_nym_vpn_api_url),
+            // todo: remove as it's being unused?
             min_gateway_performance: None,
-            mix_score_thresholds: None,
-            wg_score_thresholds: None,
         }
     }
 

@@ -99,16 +99,17 @@ impl Gateway {
         };
 
         let mx_score = gateway
-            .mixnet_score
+            .performance
+            .as_ref()
             .map(|s| {
-                p::Score::try_from(s)
+                p::Score::try_from(s.mixnet_score)
                     .inspect_err(|e| error!("failed to parse proto gw mixnet score: {}", e))
             })
             .transpose()?
             .unwrap_or(p::Score::Offline);
 
         let wg_score = gateway
-            .wg_performance
+            .performance
             .as_ref()
             .map(|s| {
                 p::Score::try_from(s.score)
@@ -130,7 +131,7 @@ impl Gateway {
             asn,
             mx_score: Score::from(mx_score),
             wg_score: Score::from(wg_score),
-            wg_performance: gateway.wg_performance.map(|p| p.into()),
+            wg_performance: gateway.performance.map(|p| p.into()),
             exit_ipv4,
             exit_ipv6,
             build_version: gateway.build_version,

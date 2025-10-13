@@ -515,10 +515,10 @@ pub struct Gateway {
     pub description: Option<String>,
     pub location: Option<Location>,
     pub last_probe: Option<Probe>,
+    // todo: remove since it's unused?
     pub mixnet_performance: Option<u8>,
-    pub mixnet_score: Option<Score>,
     pub bridge_params: Option<BridgeInformation>,
-    pub wg_performance: Option<Performance>,
+    pub performance: Option<Performance>,
     pub exit_ipv4s: Vec<Ipv4Addr>,
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
@@ -582,6 +582,7 @@ pub struct QuicClientOptions {
 pub struct Performance {
     pub last_updated_utc: String,
     pub score: Score,
+    pub mixnet_score: Score,
     pub load: Score,
     pub uptime_percentage_last_24_hours: f32,
 }
@@ -592,6 +593,7 @@ impl From<nym_gateway_directory::Performance> for Performance {
         Performance {
             last_updated_utc: value.last_updated_utc,
             score: value.score.into(),
+            mixnet_score: value.mixnet_score.into(),
             load: value.load.into(),
             uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
@@ -823,9 +825,8 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
             location: None,
             last_probe: None,
             mixnet_performance: None,
-            mixnet_score: None,
-            wg_performance: None,
             bridge_params: None,
+            performance: None,
             exit_ipv4s,
             exit_ipv6s,
             build_version,
@@ -864,18 +865,6 @@ impl From<nym_gateway_directory::Location> for Location {
             city: location.city,
             region: location.region,
             asn: location.asn.map(Into::into),
-        }
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_gateway_directory::Score> for Score {
-    fn from(score: nym_gateway_directory::Score) -> Self {
-        match score {
-            nym_gateway_directory::Score::High(_) => Score::High,
-            nym_gateway_directory::Score::Medium(_) => Score::Medium,
-            nym_gateway_directory::Score::Low(_) => Score::Low,
-            nym_gateway_directory::Score::None => Score::Offline,
         }
     }
 }
@@ -935,9 +924,8 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
             mixnet_performance: gateway.mixnet_performance.map(|p| p.round_to_integer()),
-            mixnet_score: gateway.mixnet_score.map(Score::from),
-            wg_performance: gateway.wg_performance.map(Performance::from),
             bridge_params: gateway.bridge_params.map(BridgeInformation::from),
+            performance: gateway.performance.map(Performance::from),
             exit_ipv4s,
             exit_ipv6s,
             build_version: gateway.version,
