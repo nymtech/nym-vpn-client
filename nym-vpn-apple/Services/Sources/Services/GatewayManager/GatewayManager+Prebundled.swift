@@ -88,6 +88,7 @@ extension GatewayManager {
                 let performance = GatewayNodePerformance(
                     lastUpdated: perfV2?.lastUpdatedUTC,
                     score: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
+                    mixnetScore: .noScore,
                     load: perfV2.map { mapScore(from: $0.load) } ?? .noScore,
                     uptime: perfV2?.uptimePercentageLast24Hours ?? 0
                 )
@@ -119,7 +120,8 @@ extension GatewayManager {
                     location: gatewayNodeLocation,
                     performance: performance,
                     mixnetScore: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
-                    moniker: node.name,
+                    name: node.name,
+                    description: node.description,
                     buildVersion: node.buildInformation?.buildVersion,
                     ipv4s: node.ipAddresses?.ipv4s ?? [],
                     ipv6s: node.ipAddresses?.ipv6s ?? []
@@ -171,6 +173,7 @@ private func mapASNType(from kind: Kind) -> GatewayNodeASNType {
 private struct NodeElement: Codable, Sendable {
     let identityKey: String
     let name: String
+    let description: String?
     let ipPacketRouter: Authenticator?
     let authenticator: Authenticator?
     let location: Location
@@ -186,6 +189,7 @@ private struct NodeElement: Codable, Sendable {
     enum CodingKeys: String, CodingKey {
         case identityKey = "identity_key"
         case name
+        case description
         case ipPacketRouter = "ip_packet_router"
         case authenticator, location
         case lastProbe = "last_probe"
