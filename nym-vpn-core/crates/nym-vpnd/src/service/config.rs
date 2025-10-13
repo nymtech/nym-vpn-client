@@ -91,7 +91,6 @@ pub struct VpnServiceConfigManager {
     tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
 }
 
-#[allow(dead_code)]
 impl VpnServiceConfigManager {
     pub async fn new(
         network_config_dir: &Path,
@@ -108,7 +107,7 @@ impl VpnServiceConfigManager {
                         "Failed to read service config file {}; using default",
                         json_config_path.display()
                     );
-                    (VpnServiceConfig::default(), 0)
+                    (VpnServiceConfig::default(), None)
                 }
             };
 
@@ -119,7 +118,7 @@ impl VpnServiceConfigManager {
         };
 
         // If we didn't read the latest version then write the config straight back to file
-        if version != LATEST_CONFIG_VERSION {
+        if version != Some(VpnServiceConfigVersion::latest()) {
             config_manager.write_to_file().await;
         }
 
@@ -162,6 +161,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_dns(&mut self, dns: Option<IpAddr>) {
         if self.config.dns != dns {
             self.config.dns = dns;
@@ -211,6 +211,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         if self.config.disable_poisson_rate != disable_poisson_rate {
             self.config.disable_poisson_rate = disable_poisson_rate;
@@ -218,6 +219,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_disable_background_cover_traffic(&mut self, disable: bool) {
         if self.config.disable_background_cover_traffic != disable {
             self.config.disable_background_cover_traffic = disable;
@@ -225,6 +227,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
         if self.config.min_mixnode_performance != min_mixnode_performance {
             self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
@@ -232,6 +235,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_min_gateway_mixnet_performance(
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
@@ -243,6 +247,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_min_gateway_vpn_performance(
         &mut self,
         min_gateway_vpn_performance: Option<u8>,
@@ -275,7 +280,7 @@ impl VpnServiceConfigManager {
     async fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
-    ) -> Result<(VpnServiceConfig, u8)> {
+    ) -> Result<(VpnServiceConfig, Option<VpnServiceConfigVersion>)> {
         let (config, version) = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .await
@@ -289,7 +294,7 @@ impl VpnServiceConfigManager {
 
             let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
 
-            (config, version)
+            (config, Some(version))
         } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .await
@@ -299,11 +304,11 @@ impl VpnServiceConfigManager {
 
             let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
 
-            (config, 0)
+            (config, None)
         } else {
             tracing::info!("Using default service config");
 
-            (VpnServiceConfig::default(), 0)
+            (VpnServiceConfig::default(), None)
         };
 
         Ok((config, version))
@@ -397,7 +402,29 @@ impl VpnServiceConfigManager {
 //
 
 type VpnServiceConfigExtLatest = VpnServiceConfigExtV2;
-const LATEST_CONFIG_VERSION: u8 = 2;
+
+/// Represents the version of the vpn service config file.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum VpnServiceConfigVersion {
+    V1,
+    V2,
+}
+
+impl VpnServiceConfigVersion {
+    /// Returns the latest version of the config file.
+    pub fn latest() -> Self {
+        VpnServiceConfigVersion::V2
+    }
+}
+
+impl std::fmt::Display for VpnServiceConfigVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            VpnServiceConfigVersion::V1 => "v1",
+            VpnServiceConfigVersion::V2 => "v2",
+        })
+    }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "version")]
@@ -408,10 +435,10 @@ enum VpnServiceConfigExt {
 }
 
 impl VpnServiceConfigExt {
-    fn version(&self) -> u8 {
+    fn version(&self) -> VpnServiceConfigVersion {
         match self {
-            VpnServiceConfigExt::V1(_) => 1,
-            VpnServiceConfigExt::V2(_) => 2,
+            VpnServiceConfigExt::V1(_) => VpnServiceConfigVersion::V1,
+            VpnServiceConfigExt::V2(_) => VpnServiceConfigVersion::V2,
         }
     }
 }
