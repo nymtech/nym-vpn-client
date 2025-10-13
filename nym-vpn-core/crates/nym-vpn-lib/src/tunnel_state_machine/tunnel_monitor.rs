@@ -459,9 +459,6 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
-        // todo: fix design flaw: JoinHandle should be returned and awaited upon. We should not be polling a child token to know when it's done.
-        let mixnet_cancellation_token = self.shutdown_token.child_token();
-
         let rc_builder_config = RegistrationClientBuilderConfig {
             entry_node,
             exit_node,
@@ -477,7 +474,7 @@ impl TunnelMonitor {
                 .nym_network
                 .network
                 .clone(),
-            cancel_token: mixnet_cancellation_token.clone(),
+            cancel_token: self.shutdown_token.child_token(),
             #[cfg(unix)]
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
@@ -487,6 +484,7 @@ impl TunnelMonitor {
 
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
+        // todo: fix design flaw: JoinHandle should be returned and awaited upon.
         let registration_client = Box::pin(rc_builder.build()).await?;
         let registration_result = Box::pin(registration_client.register()).await?;
 
@@ -610,10 +608,6 @@ impl TunnelMonitor {
 
         loop {
             tokio::select! {
-                _  = mixnet_cancellation_token.cancelled() => {
-                    tracing::error!("MixnetClient exited unexpectedly");
-                    break;
-                }
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
@@ -886,13 +880,16 @@ impl TunnelMonitor {
 
             let bridge_conn = transports::BridgeConn::try_connect(
                 entry_bridge_params,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await?;
             connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
-            let (local_fwd_listen_addr, fwd_handle) =
-                transports::UdpForwarder::launch(bridge_conn, None, self.shutdown_token.clone())
-                    .await?;
+            let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
+                bridge_conn,
+                None,
+                self.shutdown_token.child_token(),
+            )
+            .await?;
             transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
