@@ -459,6 +459,7 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
+        let mixnet_cancel_token = self.shutdown_token.child_token();
         let rc_builder_config = RegistrationClientBuilderConfig {
             entry_node,
             exit_node,
@@ -474,7 +475,7 @@ impl TunnelMonitor {
                 .nym_network
                 .network
                 .clone(),
-            cancel_token: self.shutdown_token.child_token(),
+            cancel_token: mixnet_cancel_token.clone(),
             #[cfg(unix)]
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
@@ -608,6 +609,12 @@ impl TunnelMonitor {
 
         loop {
             tokio::select! {
+                // todo: we should have a back channel to know when the mixnet is down instead of relying on the mixnet cancel token
+                // which can be cancelled by state machine and by mixnet client or surrounding facilities in the event of error
+                _ = mixnet_cancel_token.cancelled() => {
+                    tracing::info!("Mixnet is down. Exiting (is parent cancelled? {})", self.shutdown_token.is_cancelled());
+                    break;
+                }
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
