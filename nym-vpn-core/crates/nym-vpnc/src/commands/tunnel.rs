@@ -21,11 +21,11 @@ pub enum Command {
 pub struct SetParams {
     /// Enable or disable IPv6
     #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
-    enable_ipv6: Option<BooleanOption>,
+    ipv6: Option<BooleanOption>,
 
     /// Enable or disable two-hop mode
     #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
-    enable_two_hop: Option<BooleanOption>,
+    two_hop: Option<BooleanOption>,
 
     /// Enable or disable netstack in two-hop mode
     /// Normally this is only used for testing purposes and should always be off
@@ -52,21 +52,21 @@ impl Command {
                 Ok(())
             }
             Command::Set(SetParams {
-                enable_two_hop,
+                two_hop,
                 netstack,
-                enable_ipv6,
+                ipv6,
                 circumvention_transports,
             }) => {
-                if let Some(enable_two_hop) = enable_two_hop {
-                    rpc_client.set_enable_two_hop(*enable_two_hop).await?;
+                if let Some(two_hop) = two_hop {
+                    rpc_client.set_enable_two_hop(*two_hop).await?;
                 }
 
                 if let Some(netstack) = netstack {
                     rpc_client.set_netstack(*netstack).await?;
                 }
 
-                if let Some(enable_ipv6) = enable_ipv6 {
-                    rpc_client.set_disable_ipv6(!*enable_ipv6).await?;
+                if let Some(ipv6) = ipv6 {
+                    rpc_client.set_disable_ipv6(!*ipv6).await?;
                 }
 
                 if let Some(enable_ct) = circumvention_transports {
