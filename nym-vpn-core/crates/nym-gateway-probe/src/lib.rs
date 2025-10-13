@@ -8,8 +8,7 @@ use std::{
 };
 
 use crate::{netstack::NetstackResult, types::Entry};
-use anyhow::Context;
-use anyhow::{anyhow, bail};
+use anyhow::{Context, anyhow, bail};
 use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
 use clap::Args;
@@ -20,8 +19,7 @@ use nym_authenticator_requests::{
     v4, v5,
 };
 use nym_bandwidth_controller::error::BandwidthControllerError;
-use nym_client_core::client::base_client::storage::OnDiskPersistent;
-use nym_client_core::config::ForgetMe;
+use nym_client_core::{client::base_client::storage::OnDiskPersistent, config::ForgetMe};
 use nym_config::defaults::{
     NymNetworkDetails, WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4,
     mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
@@ -42,11 +40,13 @@ use nym_ip_packet_requests::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
 };
-use nym_sdk::bandwidth::BandwidthImporter;
-use nym_sdk::mixnet::{
-    CredentialStorage, DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage, KeyStore,
-    MixnetClient, MixnetClientBuilder, MixnetClientStorage, NodeIdentity, ReconstructedMessage,
-    StoragePaths,
+use nym_sdk::{
+    bandwidth::BandwidthImporter,
+    mixnet::{
+        CredentialStorage, DisconnectedMixnetClient, Ephemeral, EphemeralCredentialStorage,
+        KeyStore, MixnetClient, MixnetClientBuilder, MixnetClientStorage, NodeIdentity,
+        ReconstructedMessage, StoragePaths,
+    },
 };
 use nym_validator_client::nyxd::error::NyxdError;
 use nym_wireguard_types::PeerPublicKey;
