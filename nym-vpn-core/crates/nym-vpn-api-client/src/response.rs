@@ -64,6 +64,28 @@ pub struct NymVpnAccountSummaryWithDeviceResponse {
     pub active_device: Option<NymVpnDevice>,
 }
 
+impl NymVpnAccountSummaryWithDeviceResponse {
+    pub fn account_active(&self) -> bool {
+        self.account_summary.account.status == NymVpnAccountStatusResponse::Active
+    }
+
+    pub fn subscription_active(&self) -> bool {
+        self.account_summary.subscription.is_active
+    }
+
+    pub fn bandwidth_limit(&self) -> u64 {
+        self.account_summary.fair_usage.limitGB
+    }
+
+    pub fn used_bandwidth(&self) -> u64 {
+        self.account_summary.fair_usage.usedGB
+    }
+
+    pub fn remaining_devices(&self) -> u64 {
+        self.account_summary.devices.remaining
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummarySubscription {

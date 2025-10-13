@@ -103,48 +103,26 @@ impl SyncingState {
             .get_account_summary_with_device(vpn_api_account, device)
             .await
         {
-            Ok(account_summary_with_device) => {
-                tracing::debug!("{account_summary_with_device:#?}");
+            Ok(summary) => {
+                tracing::debug!("{summary:#?}");
 
                 // Checking that the account is active
-                if account_summary_with_device.account_summary.account.status
-                    != NymVpnAccountStatusResponse::Active
-                {
+                if !summary.account_active() {
                     return Err(SyncError::InactiveAccount(
-                        account_summary_with_device
-                            .account_summary
-                            .account
-                            .status
-                            .to_string(),
+                        summary.account_summary.account.status.to_string(),
                     ));
                 }
 
                 // that there is an active subscription
-                if !account_summary_with_device
-                    .account_summary
-                    .subscription
-                    .is_active
-                {
+                if !summary.subscription_active() {
                     return Err(SyncError::InactiveSubscription);
                 }
 
-                let fair_usage_left = account_summary_with_device
-                    .account_summary
-                    .fair_usage
-                    .limitGB
-                    != account_summary_with_device
-                        .account_summary
-                        .fair_usage
-                        .usedGB;
+                let fair_usage_left = summary.bandwidth_limit() != summary.used_bandwidth();
 
                 // that the device is registered or there is a spot left for it with fair usage
-                if account_summary_with_device.active_device.is_none() {
-                    if account_summary_with_device
-                        .account_summary
-                        .devices
-                        .remaining
-                        == 0
-                    {
+                if summary.active_device.is_none() {
+                    if summary.remaining_devices() == 0 {
                         return Err(SyncError::MaxDeviceReached); // Early detection of max device reached
                     }
 
