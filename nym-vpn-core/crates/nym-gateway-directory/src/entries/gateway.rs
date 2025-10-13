@@ -997,7 +997,8 @@ mod tests {
                         "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
                     )
                     .unwrap(),
-                    moniker: format!("Gateway {instance}"),
+                    name: format!("Gateway {instance}"),
+                    description: None,
                     location: Some(Location {
                         two_letter_iso_country_code: country.to_string(),
                         region: region.to_string(),
