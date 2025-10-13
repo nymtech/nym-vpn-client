@@ -21,8 +21,13 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_common::trace_err_chain;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
+
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -36,10 +41,6 @@ use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
 use tokio::{
     sync::{mpsc, oneshot, watch},
     task::JoinHandle,
@@ -72,6 +73,7 @@ use crate::{
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
+use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use route_handler::RouteHandler;
 #[cfg(target_os = "linux")]
@@ -916,11 +918,12 @@ impl account::Error {
                 }) => Some(ErrorStateReason::Internal(format!(
                     "Internal account controller error: {context} {details}"
                 ))),
-                AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
-                    Some(ErrorStateReason::Internal(format!(
-                        "Failed to initialize account storage: {context}",
-                    )))
-                }
+                AcError::ErrorState(AccountControllerErrorStateReason::Storage {
+                    context,
+                    details,
+                }) => Some(ErrorStateReason::Internal(format!(
+                    "Failed to initialize account storage: {context} {details}",
+                ))),
                 AcError::ErrorState(AccountControllerErrorStateReason::ApiFailure {
                     context,
                     details,

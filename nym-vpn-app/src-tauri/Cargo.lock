@@ -3503,7 +3503,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Fgoji-release-leerdameer#18b0943846a579bb789c54af28df29c46dbb9e95"
+source = "git+https://github.com/nymtech/nym?branch=feature%2Fvpn-upgrade-mode-compat#ff32e2aca77fe887b94206e987d329cb26a78f84"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3544,7 +3544,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Fgoji-release-leerdameer#18b0943846a579bb789c54af28df29c46dbb9e95"
+source = "git+https://github.com/nymtech/nym?branch=feature%2Fvpn-upgrade-mode-compat#ff32e2aca77fe887b94206e987d329cb26a78f84"
 dependencies = [
  "pem",
  "tracing",
@@ -3566,7 +3566,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Fgoji-release-leerdameer#18b0943846a579bb789c54af28df29c46dbb9e95"
+source = "git+https://github.com/nymtech/nym?branch=feature%2Fvpn-upgrade-mode-compat#ff32e2aca77fe887b94206e987d329cb26a78f84"
 dependencies = [
  "thiserror 2.0.17",
 ]

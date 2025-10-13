@@ -13,9 +13,11 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AccountStateReceiver, NyxdClient,
+    AccountCommandSender, AccountControllerConfig, AccountControllerEventSender,
+    AccountStateReceiver, NyxdClient,
     commands::AccountCommand,
     error::Error,
+    event_sender::AccountControllerEventReceiver,
     shared_state::SharedAccountState,
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncingState,
@@ -44,12 +46,6 @@ where
     state_channel: (
         watch::Sender<AccountControllerState>,
         watch::Receiver<AccountControllerState>,
-    ),
-
-    // Channel to transmit event to the outside world
-    event_channel: (
-        UnboundedSender<AccountControllerEvent>,
-        UnboundedReceiver<AccountControllerEvent>,
     ),
 
     // Channel to received and execute storage operation
@@ -84,7 +80,7 @@ where
         let (storage_op_sender, storage_op_receiver) = tokio::sync::mpsc::unbounded_channel();
 
         // Channels to communicate with the account controller
-        let event_channel = mpsc::unbounded_channel();
+        let event_channel = AccountControllerEventSender::new();
         let command_channel = mpsc::unbounded_channel();
 
         // Setup the account storage, which is used to store the account and device keys
@@ -110,6 +106,7 @@ where
             vpn_api_account,
             device_keys,
             storage_op_sender,
+            event_channel,
         );
 
         let is_offline = shared_state
@@ -133,11 +130,15 @@ where
             shared_state,
             command_channel,
             state_channel,
-            event_channel,
             storage_op_receiver,
             current_state_handler,
             cancel_token,
         })
+    }
+
+    /// Get the channel for receiving broadcasted controller events.
+    pub fn subscribe_to_events(&self) -> AccountControllerEventReceiver {
+        self.shared_state.event_sender.subscribe()
     }
 
     /// Get the command channel used to send commands to the controller.
@@ -203,10 +204,9 @@ where
 
                     let state = AccountControllerState::from(new_state);
                     tracing::info!("New AccountController state: {}", state);
-                    let _ = self
-                        .event_channel
-                        .0
-                        .send(AccountControllerEvent::NewState(state.clone()));
+                    self.shared_state
+                        .event_sender
+                        .broadcast(AccountControllerEvent::NewState(state.clone()));
                     let _ = self.state_channel.0.send_replace(state);
                 }
                 NextAccountControllerState::SameState(same_state) => {

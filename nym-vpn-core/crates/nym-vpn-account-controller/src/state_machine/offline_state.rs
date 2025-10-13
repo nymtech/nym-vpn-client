@@ -1,19 +1,21 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::AccountCommandError;
-use tokio::sync::mpsc;
-use tokio_util::sync::CancellationToken;
-
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, CommonCommand, ReturnSender, common_handler, handler},
+    commands::{
+        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler, handler,
+    },
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, PrivateAccountControllerState,
         SyncingState,
     },
 };
+use nym_offline_monitor::ConnectivityMonitor;
+use nym_vpn_lib_types::AccountCommandError;
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
+use tracing::warn;
 
 /// OfflineState
 ///
@@ -91,6 +93,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_connectivity(return_sender),
                         }
 
+                    },
+                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                            return_sender.send(Ok(false))
+                        }
+                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
+                            warn!(
+                                "received unexpected command to disable upgrade mode while in 'OfflineState' state"
+                            );
+                            return_sender.send(Ok(()))
+                        }
                     },
 
                 }

@@ -11,6 +11,7 @@ use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibilit
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
+pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
@@ -22,7 +23,7 @@ pub struct NymVpnRegisterAccountResponse {
     pub last_updated_utc: String,
     pub account_addr: String,
     pub status: NymVpnRegisterAccountStatusResponse,
-    pub account_token: String,
+    pub account_token: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -62,6 +63,28 @@ pub struct NymVpnAccountSummaryWithDeviceResponse {
     #[serde(flatten)]
     pub account_summary: NymVpnAccountSummaryResponse,
     pub active_device: Option<NymVpnDevice>,
+}
+
+impl NymVpnAccountSummaryWithDeviceResponse {
+    pub fn account_active(&self) -> bool {
+        self.account_summary.account.status == NymVpnAccountStatusResponse::Active
+    }
+
+    pub fn subscription_active(&self) -> bool {
+        self.account_summary.subscription.is_active
+    }
+
+    pub fn bandwidth_limit(&self) -> u64 {
+        self.account_summary.fair_usage.limitGB
+    }
+
+    pub fn used_bandwidth(&self) -> u64 {
+        self.account_summary.fair_usage.usedGB
+    }
+
+    pub fn remaining_devices(&self) -> u64 {
+        self.account_summary.devices.remaining
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -184,6 +207,12 @@ pub struct NymVpnZkNymPost {
     pub status: NymVpnZkNymStatus,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UpgradeModeResponseData {
+    pub upgrade_mode_attestation: UpgradeModeAttestation,
+    pub upgrade_mode_jwt: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
@@ -195,6 +224,7 @@ pub struct NymVpnZkNym {
     pub issued_bandwidth_in_gb: f64,
     pub blinded_shares: Option<TicketbookWalletSharesResponse>,
     pub status: NymVpnZkNymStatus,
+    pub upgrade_mode: Option<UpgradeModeResponseData>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
@@ -205,6 +235,7 @@ pub enum NymVpnZkNymStatus {
     Revoking,
     Revoked,
     Error,
+    UpgradeMode,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -732,3 +763,15 @@ pub struct NymWellknownDiscoveryItem {
 }
 
 pub type RegisteredNetworksResponse = HashSet<String>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nym_vpn_zk_nym_upgrade_mode_response_parsing() {
+        let raw_response = r#"{"id":"h39mm7z9z1xzprl","status":"upgrade_mode","ticketbook_type":"v1-mixnet-entry","last_updated_utc":"2025-10-16 14:10:25.398Z","created_on_utc":"2025-10-16 14:10:25.068Z","valid_until_utc":"2025-11-13 23:00:00.000Z","valid_from_utc":"2025-10-16 14:10:25.060Z","issued_bandwidth_in_gb":25,"upgrade_mode":{"upgrade_mode_attestation":{"attester_public_key":"3pkFcBXCEmbmXBT2G8CkFMuKisJcH54mbBGvncHaDibt","signature":"5rWUr2ypaDTtrMKegMP3tQkkZGFAuhNTnEVCVe5Azv6QqvLzoGdQiMkFmeyhDd1XSfoXpL9fFM58rsdA1kf4GYMM","starting_time":1629720000,"type":"upgrade_mode"},"upgrade_mode_jwt":"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsImp3ayI6IkFkUkhLd01MS0pTc0hCMlZqcnRXRk51ZXJFc1ZkQ2ZhaG1xcHBQWURkU0FyIn0.eyJpYXQiOjE3NjA2MjExNDQsImV4cCI6MTc2MDYyNDc0NCwibmJmIjoxNzYwNjIxMTQ0LCJpc3MiOiJueW0tY3JlZGVudGlhbC1wcm94eSIsIm5vbmNlIjoiZURtU0hkUUdPY01hQzk4b1JfVGl1cDhxNVF2YjlRSnYiLCJ0eXBlIjoidXBncmFkZV9tb2RlIiwic3RhcnRpbmdfdGltZSI6MTYyOTcyMDAwMCwiYXR0ZXN0ZXJfcHVibGljX2tleSI6IjNwa0ZjQlhDRW1ibVhCVDJHOENrRk11S2lzSmNINTRtYkJHdm5jSGFEaWJ0Iiwic2lnbmF0dXJlIjoiNXJXVXIyeXBhRFR0ck1LZWdNUDN0UWtrWkdGQXVoTlRuRVZDVmU1QXp2NlFxdkx6b0dkUWlNa0ZtZXloRGQxWFNmb1hwTDlmRk01OHJzZEExa2Y0R1lNTSJ9.mLosk5w345ANfhbqPOz6swKrzkc0m3QpGRj7nreIDcfgoKvfisdEUYaMNbjIjjfy8Uko-VoN--KN4Wl_bygVDg"}}"#;
+        let res = serde_json::from_str::<NymVpnZkNym>(raw_response);
+        assert!(res.is_ok());
+    }
+}

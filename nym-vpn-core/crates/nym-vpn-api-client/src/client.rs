@@ -489,7 +489,7 @@ impl VpnApiClient {
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
                     if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
-                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                        tracing::error!("Failed to get remote time: {err}. Not retrying anymore")
                     }) {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
@@ -943,14 +943,14 @@ impl VpnApiClient {
         expiration_date: String,
         ticketbook_type: String,
     ) -> Result<NymVpnZkNymPost> {
-        tracing::debug!("Requesting zk-nym for type: {}", ticketbook_type);
+        tracing::debug!("Requesting zk-nym for type: {ticketbook_type}");
         let body = RequestZkNymRequestBody {
             withdrawal_request,
             ecash_pubkey,
             expiration_date,
             ticketbook_type,
         };
-        tracing::debug!("Request body: {:#?}", body);
+        tracing::debug!("Request body: {body:#?}");
 
         self.post_authorized(
             &[

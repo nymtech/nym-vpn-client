@@ -3,7 +3,7 @@
 
 use crate::{
     AvailableTicketbooks,
-    commands::{AccountCommand, CommonCommand, ReturnSender},
+    commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
@@ -196,6 +196,26 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ObtainTicketbooks(tx, amount))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn query_upgrade_mode_enabled(&self) -> Result<bool, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::UpgradeMode(
+                UpgradeModeCommand::GetUpgradeModeEnabled(tx),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn send_disable_upgrade_mode(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::UpgradeMode(
+                UpgradeModeCommand::DisableUpgradeMode(tx),
+            ))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

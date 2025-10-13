@@ -9,10 +9,11 @@ pub use pending_credential_requests::{
 
 use pending_credential_requests::PendingCredentialRequestsStorage;
 
-use std::path::{Path, PathBuf};
-
 use nym_common::trace_err_chain;
-use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
+use nym_credential_storage::{
+    models::EmergencyCredentialContent,
+    persistent_storage::PersistentStorage as PersistentCredentialStorage,
+};
 use nym_credentials::{
     AggregatedCoinIndicesSignatures, AggregatedExpirationDateSignatures, EpochVerificationKey,
     IssuedTicketBook,
@@ -21,7 +22,9 @@ use nym_credentials_interface::{
     AnnotatedCoinIndexSignature, AnnotatedExpirationDateSignature, TicketType, VerificationKeyAuth,
 };
 use nym_sdk::mixnet::{CredentialStorage, StoragePaths};
-use time::Date;
+use nym_upgrade_mode_check::UPGRADE_MODE_CREDENTIAL_TYPE;
+use std::path::{Path, PathBuf};
+use time::{Date, OffsetDateTime};
 
 use crate::{AvailableTicketbooks, error::Error};
 
@@ -126,6 +129,42 @@ impl VpnCredentialStorage {
             .insert_issued_ticketbook(ticketbook)
             .await
             .map_err(Error::from)
+    }
+
+    pub(crate) async fn insert_upgrade_mode_jwt(
+        &self,
+        token: String,
+        expiration: OffsetDateTime,
+    ) -> Result<(), Error> {
+        let credential = EmergencyCredentialContent {
+            typ: UPGRADE_MODE_CREDENTIAL_TYPE.to_string(),
+            content: token.into_bytes(),
+            expiration: Some(expiration),
+        };
+        self.credential_storage
+            .insert_emergency_credential(&credential)
+            .await
+            .map_err(Error::from)
+    }
+
+    pub(crate) async fn try_retrieve_upgrade_mode_jwt(
+        &self,
+    ) -> Result<Option<(String, Option<OffsetDateTime>)>, Error> {
+        let Some(credential) = self
+            .credential_storage
+            .get_emergency_credential(UPGRADE_MODE_CREDENTIAL_TYPE)
+            .await?
+        else {
+            return Ok(None);
+        };
+        Ok(Some((credential.data.typ, credential.data.expiration)))
+    }
+
+    pub(crate) async fn remove_upgrade_mode_jwts(&self) -> Result<(), Error> {
+        self.credential_storage
+            .remove_emergency_credentials_of_type(UPGRADE_MODE_CREDENTIAL_TYPE)
+            .await?;
+        Ok(())
     }
 
     pub(crate) async fn insert_master_verification_key(
