@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support, backendFlags } = useMainState();
+  const { desktopNotifications, ipv6Support } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
