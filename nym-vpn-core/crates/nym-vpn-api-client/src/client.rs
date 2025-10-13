@@ -159,14 +159,7 @@ impl VpnApiClient {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
-        // TODO: from_network is buggy! it uses nym_api_urls instead of nym_vpn_api_urls!
-        // nym_http_api_client::ClientBuilder::from_network(network)
         let mut builder = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
-            // .map_err(|e| {
-            //     VpnApiClientError::CreateVpnApiClient(HttpClientError::GenericRequestFailure(
-            //         format!("Failed to create HTTP client from network: {e}"),
-            //     ))
-            // })?
             .with_user_agent(user_agent.clone())
             .with_timeout(NYM_VPN_API_TIMEOUT)
             .with_fronting(FrontPolicy::OnRetry);
