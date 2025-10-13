@@ -4,7 +4,7 @@
 use super::{Error, Result, Tombstone};
 
 use super::{
-    mixnet::connected_tunnel::TunnelHandle as MixnetTunnelHandle,
+    mixnet::TunnelHandle as MixnetTunnelHandle,
     wireguard::connected_tunnel::TunnelHandle as WireguardTunnelHandle,
 };
 

@@ -780,7 +780,7 @@ impl TunnelMonitor {
             ipv6_gateway: None,
         };
 
-        let tunnel_handle = mixnet::connected_tunnel::start_mixnet_tunnel(
+        let tunnel_handle = mixnet::start_mixnet_tunnel(
             registration_result.mixnet_client,
             assigned_addresses,
             tun_device,
