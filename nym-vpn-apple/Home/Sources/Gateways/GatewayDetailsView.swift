@@ -89,7 +89,7 @@ private extension GatewayDetailsView {
 
     func serverTitle() -> some View {
         HStack {
-            Text(gateway.moniker ?? gateway.id)
+            Text(gateway.name ?? gateway.id)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Headline.Medium.regular)
             Spacer()

@@ -90,9 +90,9 @@ import GRPCManager
     }
 
     public func moniker(with gatewayId: String?) -> String? {
-        entry.first(where: { $0.id == gatewayId })?.moniker
-        ?? exit.first(where: { $0.id == gatewayId })?.moniker
-        ?? vpn.first(where: { $0.id == gatewayId })?.moniker
+        entry.first(where: { $0.id == gatewayId })?.name
+        ?? exit.first(where: { $0.id == gatewayId })?.name
+        ?? vpn.first(where: { $0.id == gatewayId })?.name
     }
 
     /// Returns country from isoCode if it exists in the gateways
