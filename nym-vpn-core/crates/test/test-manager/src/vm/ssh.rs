@@ -1,3 +1,7 @@
+// Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 /// A very thin wrapper on top of `ssh2`.
 use anyhow::{Context, Result};
 use ssh2::Session;

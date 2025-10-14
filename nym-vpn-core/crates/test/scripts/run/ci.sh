@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+# Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+# SPDX-License-Identifier: GPL-3.0-only
 
 # This script is invoked by the GitHub workflow file below to launch the desktop end to end test framwork.
 # <https://github.com/mullvad/mullvadvpn-app/blob/main/.github/workflows/desktop-e2e.yml>

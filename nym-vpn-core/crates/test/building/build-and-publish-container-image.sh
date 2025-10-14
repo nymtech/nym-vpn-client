@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+# Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+# SPDX-License-Identifier: GPL-3.0-only
 
 # This script will build, sign and publish the Mullvad VPN app build image(s)
 # for either linux or android, depending on the first argument.

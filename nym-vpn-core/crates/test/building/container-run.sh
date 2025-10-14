@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+# Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+# SPDX-License-Identifier: GPL-3.0-only
 
 # Gives you a shell or runs a given command in the Android or Linux build container,
 # as designated by the *-container-image.txt files. Uses podman unless overridden using the
