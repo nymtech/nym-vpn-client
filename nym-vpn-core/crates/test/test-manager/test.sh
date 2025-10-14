@@ -1,7 +1,5 @@
 #!/bin/bash
-set -e
-
-# cargo run -- --run-tests --test "test_disconnected_state"
+set -ex
 
 RED='\e[31m'
 GREEN='\e[32m'
@@ -12,6 +10,8 @@ NC='\e[0m'
 export RUST_LOG=debug
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEST_FRAMEWORK_ROOT="$(realpath "$SCRIPT_DIR/..")"
+CARGO_WORKSPACE_ROOT="$(realpath "${TEST_FRAMEWORK_ROOT}/../..")"
+REPO_ROOT="$(realpath "${CARGO_WORKSPACE_ROOT}/..")"
 OUTPUT_DIR="${TEST_FRAMEWORK_ROOT}/target/x86_64-unknown-linux-gnu/release"
 PACKAGE_DIR="${HOME}/.cache/mullvad-test/packages"
 QCOW_IMAGE="$HOME/iso_images/debian12_cli.qcow2"
@@ -84,11 +84,11 @@ function build_deps() {
 }
 
 function build_nym_deps() {
-    pushd ${HOME}/git/nym-vpn-client/nym-vpn-core
-    echo "======== ${YELLOW} Building Nym deps${NC} ========"
+    pushd ${CARGO_WORKSPACE_ROOT}
+    echo -e "======== ${YELLOW} Building Nym deps${NC} ========"
     cargo build --package nym-vpnc --release
     cargo build --package nym-vpnd --release
-    echo "======== ${GREEN} Finished building Nym deps ${NC} ========"
+    echo -e "======== ${GREEN} Finished building Nym deps ${NC} ========"
 
     cp ./target/release/nym-vpnc ${PACKAGE_DIR}
     cp ./target/release/nym-vpnd ${PACKAGE_DIR}
@@ -96,19 +96,18 @@ function build_nym_deps() {
     popd
 }
 
-export APP_PACKAGE="MullvadVPN-2025.7_amd64.deb"
+export APP_PACKAGE="MullvadVPN-${APP_RELEASE_VERSION}_amd64.deb"
 function run_tests() {
     build_deps
     build_nym_deps
 
-    pushd ..
+    pushd "${TEST_FRAMEWORK_ROOT}"
     cargo run \
         -p test-manager \
         -- run-tests \
         --vm ${vm_config} \
         --vnc 5901 \
         --mullvad-host "mullvad.net" \
-        --account ${MULLVAD_ACCOUNT} \
         --nym-mnemonic "${MAINNET_MNEMONIC}" \
         --app-package ${APP_PACKAGE} \
         --package-dir "${PACKAGE_DIR}" \

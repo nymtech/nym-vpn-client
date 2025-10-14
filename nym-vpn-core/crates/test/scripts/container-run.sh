@@ -12,26 +12,31 @@ fi
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
 echo "SCRIPT_DIR=${SCRIPT_DIR}"
-REPO_DIR="$SCRIPT_DIR/../.."
+TEST_FRAMEWORK_ROOT="$(realpath "$SCRIPT_DIR/..")"
+echo "TEST_FRAMEWORK_ROOT=${TEST_FRAMEWORK_ROOT}"
+REPO_DIR="$(realpath $TEST_FRAMEWORK_ROOT/../../..)"
 echo "REPO_DIR=${REPO_DIR}"
-cd "$SCRIPT_DIR"
+
+pushd "$SCRIPT_DIR"
 
 # shellcheck disable=SC1091
-source "$REPO_DIR/scripts/utils/log"
+source "${REPO_DIR}/scripts/utils/log"
 
 if [[ "$(uname -s)" != "Linux" ]]; then
     log_error "$0 only works on Linux"
     exit 1
 fi
 
-container_image=$(cat "$REPO_DIR/building/linux-container-image.txt")
+container_image=$(cat "${REPO_DIR}/building/linux-container-image.txt")
 "$CONTAINER_RUNNER" build -t mullvadvpn-app-tests --build-arg IMAGE="${container_image}" .
+
+popd
 
 exec "$CONTAINER_RUNNER" run --rm -it \
     -v "${CARGO_REGISTRY_VOLUME_NAME}":/root/.cargo/registry:Z \
     -v "${REPO_DIR}":/build:z \
-    -w "/build/test" \
-    -e CARGO_TARGET_DIR=/build/test/target \
+    -w "/build/nym-vpn-core/crates/test" \
+    -e CARGO_TARGET_DIR=/build/nym-vpn-core/crates/test/target \
     -v "${PACKAGE_DIR}":/packages:Z \
     -e PACKAGE_DIR=/packages \
     mullvadvpn-app-tests \

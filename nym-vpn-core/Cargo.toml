@@ -39,6 +39,10 @@ members = [
     "crates/nym-vpn-rpc-uniffi",
     "crates/nym-vpnd-types-uniffi",
     "crates/test/test-manager",
+    "crates/test/test-rpc",
+    "crates/test/test-runner",
+    # TODO dz remove
+    "crates/test/connection-checker",
 ]
 
 default-members = [
@@ -258,6 +262,7 @@ nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "domai
 # TODO dz added to make test/ crates work, revisit after it compiles and remove unused ones
 env_logger = "0.11.7"
 colored = "2.0.0"
+surge-ping = "0.8"
 
 socket2 = "0.5.7"
 tarpc = { version = "0.30", features = ["tokio1", "serde-transport", "serde1"] }

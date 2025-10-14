@@ -1,6 +1,6 @@
 use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
 use crate::{
-    app, app_nymvpn, forward, get_mullvad_pipe_status, get_nymvpn_pipe_status, logging,
+    app_nymvpn, forward, get_mullvad_pipe_status, get_nymvpn_pipe_status, logging,
     logging::LOGGER, net, package, package_nym, sys, util, util::OnDrop,
 };
 use futures::{FutureExt, select, select_biased};
@@ -395,7 +395,7 @@ impl Service for NymTestServer {
     }
 
     async fn make_device_json_old(self, _: context::Context) -> Result<(), test_rpc::Error> {
-        app::make_device_json_old().await
+        app_nymvpn::make_device_json_old().await
     }
 
     async fn spawn(self, _: context::Context, opts: SpawnOpts) -> Result<u32, test_rpc::Error> {

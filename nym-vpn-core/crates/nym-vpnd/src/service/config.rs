@@ -14,9 +14,9 @@ use std::{
 use std::os::unix::fs::PermissionsExt;
 
 #[cfg(not(windows))]
-const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
+pub const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
 #[cfg(not(windows))]
-const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
+pub const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 #[cfg(not(windows))]
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 pub const DEFAULT_CONFIG_FILE_TOML: &str = "nym-vpnd.toml";

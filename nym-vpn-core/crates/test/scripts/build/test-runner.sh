@@ -3,12 +3,12 @@
 set -eu
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TEST_FRAMEWORK_ROOT="$SCRIPT_DIR/../.."
-REPO_DIR="$TEST_FRAMEWORK_ROOT/.."
+TEST_FRAMEWORK_ROOT="$(realpath $SCRIPT_DIR/../..)"
+REPO_DIR="$(realpath $TEST_FRAMEWORK_ROOT/../../..)"
 echo "TEST_FRAMEWORK_ROOT=${TEST_FRAMEWORK_ROOT}"
 echo "REPO_DIR=${REPO_DIR}"
 
-pushd "$SCRIPT_DIR"
+pushd "$TEST_FRAMEWORK_ROOT"
 
 # shellcheck disable=SC1091
 source "$REPO_DIR/scripts/utils/log"
@@ -33,8 +33,9 @@ case ${1-:""} in
 esac
 
 cargo build \
-    --bin test-runner \
-    --bin connection-checker \
+    --package test-runner \
+    # TODO dz to be removed
+    --package connection-checker \
     --release --target "${TARGET}"
 
 # Only build runner image for Windows

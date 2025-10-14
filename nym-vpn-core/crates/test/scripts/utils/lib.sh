@@ -4,7 +4,7 @@ set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEST_FRAMEWORK_ROOT="$SCRIPT_DIR/../.."
-REPO_ROOT="$TEST_FRAMEWORK_ROOT/.."
+REPO_ROOT="$TEST_FRAMEWORK_ROOT/../../.."
 
 export BUILD_RELEASE_REPOSITORY="https://releases.mullvad.net/desktop/releases"
 export BUILD_DEV_REPOSITORY="https://releases.mullvad.net/desktop/builds"
