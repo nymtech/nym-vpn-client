@@ -6,8 +6,8 @@ extension GatewayNode {
         self.init(
             id: newGateway.identityKey,
             location: GatewayNodeLocation(with: newGateway.location),
-            performance: GatewayNodePerformance(with: newGateway.wgPerformance),
-            mixnetScore: GatewayNodeScore.convert(from: newGateway.mixnetScore) ?? .noScore,
+            performance: GatewayNodePerformance(with: newGateway.performance),
+            mixnetScore: GatewayNodeScore.convert(from: newGateway.performance?.mixnetScore) ?? .noScore,
             name: newGateway.name,
             description: newGateway.description,
             buildVersion: newGateway.buildVersion,

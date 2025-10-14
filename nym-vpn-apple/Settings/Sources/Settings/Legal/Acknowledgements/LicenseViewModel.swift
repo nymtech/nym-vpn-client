@@ -34,26 +34,33 @@ import ExternalLinkManager
 }
 
 private extension LicenseViewModel {
-    private func fetchLicenseIfNecessary() {
+    func fetchLicenseIfNecessary() {
         guard acknowledgement.text == nil,
               let repository = acknowledgement.repository,
               GitHubAPI.isGitHubRepository(repository)
-        else {
-            return
-        }
+        else { return }
 
-        GitHubAPI.getLicense(for: repository) { [weak self] result in
+        Task.detached(priority: .utility) { [weak self] in
             guard let self else { return }
+            let result: Result<String, Error> = await withCheckedContinuation { cont in
+                GitHubAPI.getLicense(for: repository) { res in
+                    cont.resume(returning: res)
+                }
+            }
             switch result {
             case .success(let text):
-                acknowledgement = Acknow(
-                    title: acknowledgement.title,
-                    text: text,
-                    license: acknowledgement.license,
-                    repository: acknowledgement.repository
-                )
+                await MainActor.run {
+                    self.acknowledgement = Acknow(
+                        title: self.acknowledgement.title,
+                        text: text,
+                        license: self.acknowledgement.license,
+                        repository: self.acknowledgement.repository
+                    )
+                }
             case .failure:
-                externalLinkManager.openExternalURL(repository)
+                await MainActor.run {
+                    self.externalLinkManager.openExternalURL(repository)
+                }
             }
         }
     }

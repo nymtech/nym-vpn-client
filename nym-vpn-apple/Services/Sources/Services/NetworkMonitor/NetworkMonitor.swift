@@ -34,15 +34,17 @@ private extension NetworkMonitor {
 
     func setupNetworkMonitor() {
         monitor.pathUpdateHandler = { [weak self] path in
-            // compute outside main actor (pure values)
             let isConnected = path.status == .satisfied || path.status == .requiresConnection
             let interfaceType = NWInterface.InterfaceType.allCases.first { path.usesInterfaceType($0) }
 
             Task { @MainActor [weak self] in
                 guard let self else { return }
+
                 guard self.connectionManager.currentTunnelStatus != .connected,
                       isConnected != self.isAvailable || interfaceType != self.connectionType
-                else { return }
+                else {
+                    return
+                }
 
                 self.isAvailable = isConnected
                 self.connectionType = interfaceType
