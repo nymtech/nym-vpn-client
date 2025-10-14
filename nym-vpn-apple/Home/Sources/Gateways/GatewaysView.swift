@@ -210,7 +210,7 @@ private extension GatewaysView {
                     hopType: viewModel.type,
                     country: usCountry,
                     region: region,
-                    servers: viewModel.gatewayManager.vpn.filter { $0.location?.region == region},
+                    servers: viewModel.gatewayManager.vpn.filter { $0.location?.region == region },
                     infoButtonTapCompletion: { _ in },
                     path: $viewModel.path,
                     entryGateway: $viewModel.connectionManager.entryGateway,
@@ -218,7 +218,6 @@ private extension GatewaysView {
                     scrollToModel: .constant(.empty)
                 )
             }
-
         }
     }
 }

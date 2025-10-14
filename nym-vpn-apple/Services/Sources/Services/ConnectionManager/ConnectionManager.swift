@@ -221,8 +221,7 @@ private extension ConnectionManager {
     }
 
     func setupConnectionChangeObserver() {
-        $connectionType
-            .sink { [weak self] _ in
+        $connectionType.sink { [weak self] _ in
             self?.updateCountries()
         }
         .store(in: &cancellables)

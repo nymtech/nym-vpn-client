@@ -106,6 +106,8 @@
 		D9DE89432CFE54CD006C4071 /* launchLogo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D9DE893C2CFE54CD006C4071 /* launchLogo@2x.png */; };
 		D9E552B82CE9E909008C74F6 /* ErrorHandler in Frameworks */ = {isa = PBXBuildFile; productRef = D9E552B72CE9E909008C74F6 /* ErrorHandler */; };
 		D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9E6D8C82BF5FF5F009612CE /* TunnelStatus */; };
+		D9E9081A2E9F101F00C881AE /* libswift_Concurrency.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D9E908192E9F101F00C881AE /* libswift_Concurrency.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
+		D9E9081B2E9F134900C881AE /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D52BA1CBE000489055 /* Network.framework */; };
 		D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19C2C3806BB0056EB8C /* AutoUpdater */; };
 		D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19F2C3807A00056EB8C /* Sparkle */; };
 		D9EACBD62BC016D60094CDDF /* NymVPNUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */; };
@@ -237,6 +239,7 @@
 		D9DE893B2CFE54CD006C4071 /* launchLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = launchLogo.png; sourceTree = "<group>"; };
 		D9DE893C2CFE54CD006C4071 /* launchLogo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "launchLogo@2x.png"; sourceTree = "<group>"; };
 		D9DE893D2CFE54CD006C4071 /* launchLogo@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "launchLogo@3x.png"; sourceTree = "<group>"; };
+		D9E908192E9F101F00C881AE /* libswift_Concurrency.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswift_Concurrency.tbd; path = usr/lib/swift/libswift_Concurrency.tbd; sourceTree = SDKROOT; };
 		D9E9F1A12C3D51650056EB8C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D9EACBD32BC016D60094CDDF /* NymVPNUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NymVPNUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNUITests.swift; sourceTree = "<group>"; };
@@ -273,9 +276,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9E9081A2E9F101F00C881AE /* libswift_Concurrency.tbd in Frameworks */,
 				D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */,
 				D93214412B84D29200FFDC5E /* Logging in Frameworks */,
 				D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */,
+				D9E9081B2E9F134900C881AE /* Network.framework in Frameworks */,
 				D98E52312D4005ED00AE92C3 /* ErrorReason in Frameworks */,
 				D9D381332E7B1683006DAFBB /* FeatureFlagsManager in Frameworks */,
 				D96740232B56A67A001F6891 /* Tunnels in Frameworks */,
@@ -439,6 +444,7 @@
 		D99A14882B35A73F00F2728B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D9E908192E9F101F00C881AE /* libswift_Concurrency.tbd */,
 				D9643C6D2CEBC53A00F6B9A7 /* UserNotifications.framework */,
 				D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */,
 				D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */,
@@ -913,7 +919,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 420;
+				CURRENT_PROJECT_VERSION = 423;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -951,7 +957,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 420;
+				CURRENT_PROJECT_VERSION = 423;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -1115,7 +1121,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 420;
+				CURRENT_PROJECT_VERSION = 423;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
@@ -1131,6 +1137,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
+					"$(SDKROOT)/usr/lib/swift",
 				);
 				MARKETING_VERSION = 2.11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
@@ -1156,7 +1163,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 420;
+				CURRENT_PROJECT_VERSION = 423;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
@@ -1172,6 +1179,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
+					"$(SDKROOT)/usr/lib/swift",
 				);
 				MARKETING_VERSION = 2.11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
@@ -1193,11 +1201,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPNDaemon/Resources/NymVPNDaemon.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 122;
+				CURRENT_PROJECT_VERSION = 125;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1229,12 +1238,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPNDaemon/Resources/NymVPNDaemon.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 122;
+				CURRENT_PROJECT_VERSION = 125;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
