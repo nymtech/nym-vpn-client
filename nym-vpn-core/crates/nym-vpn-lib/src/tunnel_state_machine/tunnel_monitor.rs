@@ -612,7 +612,7 @@ impl TunnelMonitor {
                 // todo: we should have a back channel to know when the mixnet is down instead of relying on the mixnet cancel token
                 // which can be cancelled by state machine and by mixnet client or surrounding facilities in the event of error
                 _ = mixnet_cancel_token.cancelled() => {
-                    tracing::info!("Mixnet is down. Exiting (is parent cancelled? {})", self.shutdown_token.is_cancelled());
+                    tracing::info!("Mixnet is down. Exiting");
                     break;
                 }
                 _ = self.shutdown_token.cancelled() => {

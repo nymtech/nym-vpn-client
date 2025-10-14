@@ -73,7 +73,7 @@ impl MixnetListener {
         }
     }
 
-    // we exit the loop if :
+    // We exit the loop if :
     // - Processor tells us to
     // - Mixnect client crashed
     // - We received the disconnect ack
@@ -128,10 +128,8 @@ impl MixnetListener {
             }
         }
 
-        if !self.mixnet_client.cancellation_token().is_cancelled() {
-            tracing::info!("Disconnecting mixnet client");
-            self.mixnet_client.disconnect().await;
-        }
+        tracing::info!("Disconnecting mixnet client");
+        self.mixnet_client.disconnect().await;
 
         tracing::debug!("Mixnet listener: Exiting");
         self.tun_device_sink

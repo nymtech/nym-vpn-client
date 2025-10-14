@@ -39,7 +39,7 @@ default-members = [
     "crates/uniffi-bindgen",
 ]
 
-# For local development
+# For local test/VPN-4214-signal-shutdownment
 # [patch."https://github.com/nymtech/nym"]
 # nym-authenticator-client = { path = "../../nym/nym-authenticator-client" }
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
@@ -235,37 +235,37 @@ nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-credentials = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", rev = "cfa7635ae1bdb35ab872e10708127be493e291c8" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "test/VPN-4214-signal-shutdown" }
