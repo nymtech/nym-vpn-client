@@ -43,7 +43,7 @@ import HelperManager
         try await Task {
             do {
 #if os(iOS)
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 try loginRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
                 try await grpcManager.storeAccount(with: credential)
@@ -66,7 +66,7 @@ import HelperManager
     public func createMnemonic() async throws {
 #if os(iOS)
         try await Task {
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             try createAccountRaw(path: dataFolderURL.path())
             Task { @MainActor in
                 checkCredentialImport()
@@ -78,7 +78,7 @@ import HelperManager
     public func mnemonic() async throws -> String {
 #if os(iOS)
         try await Task {
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             return try getStoredMnemonicRaw(path: dataFolderURL.path())
         }.value
 #elseif os(macOS)
@@ -90,7 +90,7 @@ import HelperManager
 #if os(iOS)
         try await Task {
             do {
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 let result = try registerAccountRaw(path: dataFolderURL.path())
                 Task { @MainActor in
                     appSettings.accountToken = result.accountToken
@@ -105,7 +105,7 @@ import HelperManager
         try await Task {
             do {
 #if os(iOS)
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 try forgetAccountRaw(path: dataFolderURL.path())
 #endif
 
@@ -126,7 +126,7 @@ import HelperManager
     /// Group folder, created automatically if does not exists
     /// `/private/var/mobile/Containers/Shared/AppGroup/xxx-xxx-xxx-xxx-xxx/Data/`
     /// - Returns: URL to group data folder
-    public func dataFolderURL() throws -> URL {
+    public nonisolated static func dataFolderURL() throws -> URL {
         guard let dataFolderURL = FileManager.default
             .containerURL(
                 forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue
@@ -141,12 +141,12 @@ import HelperManager
         return dataFolderURL
     }
 
-    public func cacheFolderURL() throws -> URL {
-        try dataFolderURL().appendingPathComponent("Cache")
+    public nonisolated static func cacheFolderURL() throws -> URL {
+        try Self.dataFolderURL().appendingPathComponent("Cache")
     }
 
-    public func configFolderURL() throws -> URL {
-        try dataFolderURL().appendingPathComponent("Config")
+    public nonisolated static func configFolderURL() throws -> URL {
+        try Self.dataFolderURL().appendingPathComponent("Config")
     }
 }
 
@@ -189,7 +189,7 @@ private extension CredentialsManager {
             do {
                 let isImported: Bool
 #if os(iOS)
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 isImported = try isAccountMnemonicStoredRaw(path: dataFolderURL.path())
 #elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
@@ -216,7 +216,7 @@ private extension CredentialsManager {
     func updateDeviceIdentifier() {
         Task {
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             deviceIdentifier = try? getDeviceIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             deviceIdentifier = try? await grpcManager.deviceIdentifier()
@@ -228,7 +228,7 @@ private extension CredentialsManager {
         Task {
             let newAccIdentifier: String?
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             newAccIdentifier = try? getAccountIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             newAccIdentifier = try? await grpcManager.accountIdentifier()

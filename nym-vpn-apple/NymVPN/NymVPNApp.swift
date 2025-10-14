@@ -55,7 +55,6 @@ struct NymVPNApp: App {
     }
 
     var body: some Scene {
-        // swiftlint:disable:next closure_body_length
         WindowGroup {
             NavigationStack {
                 // DISABLED until we figure out where the crash is coming from

@@ -2,10 +2,15 @@ import CountriesManagerTypes
 
 extension GRPCManager {
     public func gateways(for type: NodeType) async throws -> [GatewayNode] {
-        guard let result = try await rpcClient?.listGateways(gwType: type.convertToGatewayType()) else { return [] }
+        try await Task.detached { [weak self] in
+            guard let result = try await self?.rpcClient?.listGateways(gwType: type.convertToGatewayType())
+            else {
+                return []
+            }
 
-        return result.compactMap {
-            GatewayNode(with: $0)
-        }
+            return result.compactMap {
+                GatewayNode(with: $0)
+            }
+        }.value
     }
 }

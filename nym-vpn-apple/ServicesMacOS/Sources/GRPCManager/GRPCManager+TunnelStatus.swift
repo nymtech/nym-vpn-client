@@ -26,7 +26,7 @@ extension GRPCManager {
         versionPingTask = nil
     }
 
-    @MainActor func pingDaemonInitialStatus() async {
+    func pingDaemonInitialStatus() async {
         var retryCount = 0
         while !isServing {
             do {
@@ -63,7 +63,7 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    @MainActor func updateTunnelStatus(with state: TunnelState) {
+    func updateTunnelStatus(with state: TunnelState) {
         switch state {
         case let .connected(details):
             if let connectedAt = details.connectedAt {

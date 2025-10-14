@@ -68,8 +68,52 @@ public enum VPNErrorReason: LocalizedError {
         case let .RequestZkNym(details: details):
             let messageString: String
             switch details {
-            case .noAccountStored:
-                self = .noAccountStored
+            case let .GetZkNymsAvailableForDownloadEndpointFailure(response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case let .CreateEcashKeyPair(response):
+                messageString = response
+            case let .ConstructWithdrawalRequest(response):
+                messageString = response
+            case let .RequestZkNymEndpointFailure(ticketType: _, response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case let .InvalidTicketTypeInResponse(response):
+                messageString = response
+            case .TicketTypeMismatch:
+                messageString = "Ticket type mismatch"
+            case let .PollZkNymEndpointFailure(response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case .PollingTimeout:
+                self = .vpnApiTimeout
                 return
             case .noDeviceStored:
                 self = .noDeviceIdentity
