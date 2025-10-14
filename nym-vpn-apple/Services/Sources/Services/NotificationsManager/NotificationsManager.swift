@@ -77,7 +77,6 @@ private extension NotificationsManager {
             .removeDuplicates()
             .sink { [weak self] status in
                 guard status == .connected else { return }
-                // Hop back to MainActor before calling a @MainActor method
                 Task { @MainActor [weak self] in
                     await self?.askForPermissionIfNeeded()
                 }
@@ -105,7 +104,6 @@ private extension NotificationsManager {
 #endif
 
         userNotificationCenter.requestAuthorization(options: options) { [weak self] granted, _ in
-            // Mutate @MainActor state on the main actor
             Task { @MainActor [weak self] in
                 self?.permissionGranted = granted
             }

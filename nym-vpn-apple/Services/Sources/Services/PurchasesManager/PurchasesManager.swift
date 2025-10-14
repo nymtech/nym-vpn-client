@@ -7,22 +7,25 @@ import AppSettings
     private var productsLoaded = false
     private var updates: Task<Void, Never>?
 
-    @Published public var products = [Product]()
+    @Published public var products: [Product] = []
 
-    public init() {
-        setup()
-    }
-
-    deinit {
-        updates?.cancel()
-    }
+    public init() { setup() }
+    deinit { updates?.cancel() }
 
     public func loadProducts() async throws {
-        guard !self.productsLoaded else { return }
-        Task { @MainActor in
-            products = try await Product.products(for: productIds)
-            guard !products.isEmpty else { return }
+        guard !productsLoaded else { return }
+
+        do {
+            let fetched: [Product] = try await Task.detached(priority: .utility) { [productIds] in
+                try await Product.products(for: productIds)
+            }.value
+
+            guard !fetched.isEmpty else { return }
+            products = fetched
             productsLoaded = true
+        } catch {
+            print(error)
+            throw error
         }
     }
 
@@ -35,11 +38,10 @@ import AppSettings
             await transaction.finish()
             return true
         case .success(.unverified), .pending, .userCancelled:
-            break
+            return false
         @unknown default:
-            break
+            return false
         }
-        return false
     }
 
     public func restorePurchases() async throws {
@@ -50,10 +52,7 @@ import AppSettings
 private extension PurchasesManager {
     func setup() {
         updates = observeTransactionUpdates()
-
-        Task {
-            try? await loadProducts()
-        }
+        Task { try? await loadProducts() }
     }
 
     func observeTransactionUpdates() -> Task<Void, Never> {
