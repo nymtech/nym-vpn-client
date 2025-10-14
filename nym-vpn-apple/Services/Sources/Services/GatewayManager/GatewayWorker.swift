@@ -49,7 +49,7 @@ actor GatewayWorker {
     }
 #endif
 
-    func countries(from nodes: [GatewayNode]) -> [NymCountry] {
+    func countries(from nodes: [GatewayNode]) -> [Country] {
         var regionsByCode: [String: Set<String>] = [:]
         nodes.compactMap(\.location).forEach { location in
             let code = location.twoLetterIsoCountryCode.uppercased()
@@ -57,14 +57,14 @@ actor GatewayWorker {
             guard !region.isEmpty else { return }
             regionsByCode[code, default: []].insert(region)
         }
-        var result: [NymCountry] = []
+        var result: [Country] = []
         result.reserveCapacity(regionsByCode.count)
 
         for (code, regionsSet) in regionsByCode {
             let regions = regionsSet.sorted {
                 $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
             }
-            result.append(NymCountry(name: code, code: code, regions: regions)) // name will be localized on main
+            result.append(Country(name: code, code: code, regions: regions)) // name will be localized on main
         }
 
         result.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }

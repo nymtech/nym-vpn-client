@@ -9,7 +9,6 @@ public struct GatewayNodePerformance: Codable, Hashable {
     public init(
         lastUpdated: Date?,
         score: GatewayNodeScore,
-        mixnetScore: GatewayNodeScore,
         load: GatewayNodeScore,
         uptime: Double
     ) {

@@ -101,7 +101,7 @@ import GRPCManager
         ?? vpn.first(where: { $0.id == gatewayId })?.moniker
     }
 
-    public func country(with code: String, gatewayType: NodeType) -> NymCountry? {
+    public func country(with code: String, gatewayType: NodeType) -> Country? {
         let gateway: GatewayNode?
         switch gatewayType {
         case .entry:
@@ -118,7 +118,7 @@ import GRPCManager
         }
     }
 
-    public func localizedCountry(with countryCode: String?) -> NymCountry? {
+    public func localizedCountry(with countryCode: String?) -> Country? {
         guard let countryCode,
               !countryCode.isEmpty,
               let countryName = Locale.current.localizedString(forRegionCode: countryCode)
@@ -128,7 +128,7 @@ import GRPCManager
         return Country(name: countryName, code: countryCode, regions: [])
     }
 
-    public func country(with gatewayId: String?, nodeType: NodeType) -> NymCountry? {
+    public func country(with gatewayId: String?, nodeType: NodeType) -> Country? {
         guard let gatewayId else { return nil }
         switch nodeType {
         case .entry:
@@ -266,8 +266,8 @@ extension GatewayManager {
         }
     }
 
-    private func localizeAndSortCountries(_ countries: [NymCountry]) -> [NymCountry] {
-        var localized = countries.compactMap { country -> NymCountry? in
+    private func localizeAndSortCountries(_ countries: [Country]) -> [Country] {
+        var localized = countries.compactMap { country -> Country? in
             guard var localizedCountry = localizedCountry(with: country.code) else { return nil }
             localizedCountry.regions = country.regions
             return localizedCountry

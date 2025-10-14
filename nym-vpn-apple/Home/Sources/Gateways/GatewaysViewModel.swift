@@ -111,7 +111,7 @@ private extension GatewaysViewModel {
             guard let self, searchText.count >= minimumSearchSymbols
             else {
                 await MainActor.run {
-                    self?.foundCountries = [NymCountry]()
+                    self?.foundCountries = [Country]()
                     self?.foundGateways = [GatewayNode]()
                 }
                 return
@@ -132,7 +132,7 @@ private extension GatewaysViewModel {
                 .filter { seen.insert($0).inserted }
 
             let newGateways = gateways.filter {
-                $0.name?.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased()) ?? false
+                $0.moniker?.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased()) ?? false
                 || $0.id.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
             }
             await MainActor.run {

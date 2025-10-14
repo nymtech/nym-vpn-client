@@ -8,9 +8,9 @@ actor GatewaySelectionResolver {
         entry: [GatewayNode],
         exit: [GatewayNode],
         vpn: [GatewayNode],
-        entryCountries: [NymCountry],
-        exitCountries: [NymCountry],
-        vpnCountries: [NymCountry]
+        entryCountries: [Country],
+        exitCountries: [Country],
+        vpnCountries: [Country]
     ) -> EntryGateway {
         let nodeType: NodeType = connectionType == .wireguard ? .vpn : .entry
 
@@ -98,9 +98,9 @@ actor GatewaySelectionResolver {
         entry: [GatewayNode],
         exit: [GatewayNode],
         vpn: [GatewayNode],
-        entryCountries: [NymCountry],
-        exitCountries: [NymCountry],
-        vpnCountries: [NymCountry]
+        entryCountries: [Country],
+        exitCountries: [Country],
+        vpnCountries: [Country]
     ) -> ExitRouter {
         let nodeType: NodeType = connectionType == .wireguard ? .vpn : .exit
 
@@ -176,10 +176,10 @@ actor GatewaySelectionResolver {
     private func existingCountry(
         with countryCode: String,
         nodeType: NodeType,
-        entryCountries: [NymCountry],
-        exitCountries: [NymCountry],
-        vpnCountries: [NymCountry]
-    ) -> NymCountry {
+        entryCountries: [Country],
+        exitCountries: [Country],
+        vpnCountries: [Country]
+    ) -> Country {
         switch nodeType {
         case .entry:
             if let country = entryCountries.first(
@@ -210,11 +210,11 @@ actor GatewaySelectionResolver {
 
     private func fallbackCountry(
         for nodeType: NodeType,
-        entryCountries: [NymCountry],
-        exitCountries: [NymCountry],
-        vpnCountries: [NymCountry]
-    ) -> NymCountry {
-        let ch = NymCountry(name: "Switzerland", code: "CH", regions: [])
+        entryCountries: [Country],
+        exitCountries: [Country],
+        vpnCountries: [Country]
+    ) -> Country {
+        let ch = Country(name: "Switzerland", code: "CH", regions: [])
         switch nodeType {
         case .entry:
             if entryCountries.contains(where: { $0.code == "CH" }) {
@@ -257,10 +257,10 @@ actor GatewaySelectionResolver {
         entry: [GatewayNode],
         exit: [GatewayNode],
         vpn: [GatewayNode],
-        entryCountries: [NymCountry],
-        exitCountries: [NymCountry],
-        vpnCountries: [NymCountry]
-    ) -> NymCountry? {
+        entryCountries: [Country],
+        exitCountries: [Country],
+        vpnCountries: [Country]
+    ) -> Country? {
         let node: GatewayNode?
         switch nodeType {
         case .entry:
