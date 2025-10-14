@@ -1,3 +1,7 @@
+// Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 /// Drop guard that executes the provided callback function when dropped.
 pub struct OnDrop<F = Box<dyn FnOnce() + Send>>
 where

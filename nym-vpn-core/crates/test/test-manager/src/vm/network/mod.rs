@@ -1,3 +1,7 @@
+// Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 // #[cfg(target_os = "linux")]
 pub mod linux;
 use std::net::Ipv4Addr;

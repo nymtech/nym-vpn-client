@@ -1,3 +1,7 @@
+// Copyright 2016-2025 Mullvad VPN AB. All Rights Reserved.
+// Copyright 2025 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
 use crate::{
     app_nymvpn, forward, get_mullvad_pipe_status, get_nymvpn_pipe_status, logging,
