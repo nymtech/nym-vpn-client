@@ -182,9 +182,9 @@ impl Discovery {
     pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
 
-        let api_url = self.fronted_api_url();
-        let client =
-            build_fronted_http_client(&api_url, None).map_err(Error::CreateVpnApiClient)?;
+        let fronted_api_url = self.fronted_api_url();
+        let client = build_fronted_http_client(&fronted_api_url, None, None)
+            .map_err(Error::CreateVpnApiClient)?;
 
         let network_details = client
             .get_network_details()

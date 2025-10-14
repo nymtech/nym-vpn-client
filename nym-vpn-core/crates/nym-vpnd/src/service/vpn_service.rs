@@ -412,7 +412,7 @@ impl NymVpnService {
         );
 
         let validator_client =
-            build_fronted_http_client(&fronted_api_url, Some(parameters.user_agent.clone()))
+            build_fronted_http_client(&fronted_api_url, Some(parameters.user_agent.clone()), None)
                 .map_err(|err| {
                     tracing::error!("Failed to create HTTP client: {err:?}");
                     AccountControllerError::Initialization {

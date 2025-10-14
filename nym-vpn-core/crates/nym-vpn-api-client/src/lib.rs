@@ -18,3 +18,5 @@ mod routes;
 pub use client::{ResolverOverrides, VpnApiClient};
 pub use resolve_host::{str_to_socket_addr, url_to_socket_addr};
 pub use network_compatibility::NetworkCompatibility;
+pub use fronted_http_client::{build_fronted_http_client};
+pub use response::ApiUrl;

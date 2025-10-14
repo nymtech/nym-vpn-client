@@ -1,3 +1,4 @@
+use std::time::Duration;
 use crate::{
     error::{Result, VpnApiClientError},
     response::ApiUrl,
@@ -10,6 +11,7 @@ use nym_http_api_client::{Client, FrontPolicy, UserAgent};
 pub fn build_fronted_http_client(
     api_url: &ApiUrl,
     user_agent: Option<UserAgent>,
+    timeout: Option<Duration>,
 ) -> Result<Client> {
     let base_url: url::Url = api_url
         .url
@@ -29,6 +31,10 @@ pub fn build_fronted_http_client(
         builder = builder.with_user_agent(user_agent);
     }
     
+    if let Some(timeout) = timeout {
+        builder = builder.with_timeout(timeout);
+    }
+
     if let Some(fronts) = api_url.fronts.as_ref()
         && !fronts.is_empty()
     {
