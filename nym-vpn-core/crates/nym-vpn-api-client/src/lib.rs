@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod error;
-pub mod helpers;
+pub mod resolve_host;
 pub mod request;
 pub mod response;
 pub mod types;
+pub mod fronted_http_client;
 
 pub(crate) mod jwt;
 
@@ -13,6 +14,7 @@ mod client;
 mod network_compatibility;
 mod routes;
 
+
 pub use client::{ResolverOverrides, VpnApiClient};
-pub use helpers::{str_to_socket_addr, url_to_socket_addr};
+pub use resolve_host::{str_to_socket_addr, url_to_socket_addr};
 pub use network_compatibility::NetworkCompatibility;

@@ -67,9 +67,9 @@ pub async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketA
         .collect())
 }
 
-pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
+pub fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
     let url = url::Url::parse(unresolved_url).map_err(|_e| VpnApiClientError::InvalidUrl {
         url: unresolved_url.to_string(),
     })?;
-    url_to_socket_addr(&url).await
+    tokio::runtime::Handle::current().block_on(url_to_socket_addr(&url))
 }

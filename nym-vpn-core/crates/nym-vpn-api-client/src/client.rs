@@ -65,11 +65,14 @@ impl VpnApiClient {
             .map(|builder| {
                 let mut builder = builder
                     .with_user_agent(user_agent.clone())
-                    .with_timeout(NYM_VPN_API_TIMEOUT)
-                    .with_fronting(FrontPolicy::OnRetry);
+                    .with_timeout(NYM_VPN_API_TIMEOUT);
 
                 // Add resolver overrides
-                if let Some(resolver_overrides) = resolver_overrides.as_ref() {
+                if let Some(resolver_overrides) = resolver_overrides.as_ref()
+                    && !resolver_overrides.is_empty()
+                {
+                    builder = builder.with_fronting(FrontPolicy::OnRetry);
+
                     for (domain, addresses) in resolver_overrides.iter() {
                         tracing::info!(
                             "Enabling Resolver override for {domain}: {}",

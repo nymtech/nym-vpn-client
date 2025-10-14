@@ -192,9 +192,7 @@ impl Network {
             .filter_map(|api_url| api_url.fronts.as_ref())
             .flat_map(|fronts| fronts.iter())
             .for_each(|front| {
-                if let Ok(addrs) =
-                    tokio::runtime::Handle::current().block_on(str_to_socket_addr(front))
-                {
+                if let Ok(addrs) = str_to_socket_addr(front) {  // Errors are ignored here!
                     for addr in addrs {
                         unique.insert(addr);
                     }

@@ -11,19 +11,19 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
-    VpnApiClient,
+    fronted_http_client::build_fronted_http_client,
     response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
+    VpnApiClient,
 };
 
+use crate::{
+    system_configuration::SystemConfiguration, AccountManagement, ApiUrl, Error, FeatureFlags, Result,
+    SystemMessages,
+};
 use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::NymApiClientExt;
 
-use crate::{
-    AccountManagement, ApiUrl, Error, FeatureFlags, Result, SystemMessages,
-    system_configuration::SystemConfiguration,
-};
-
-use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
+use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -181,10 +181,10 @@ impl Discovery {
 
     pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
-        let client = nym_http_api_client::Client::builder(self.nym_api_url.clone())
-            .map_err(Box::new)?
-            .build()
-            .map_err(Box::new)?;
+
+        let nym_api_url = self.first_nym_api_url();
+        let client = build_fronted_http_client(&nym_api_url).map_err(Error::CreateVpnApiClient)?;
+
         let network_details = client
             .get_network_details()
             .await
@@ -217,6 +217,17 @@ impl Discovery {
             "evil" => Self::default_evil(),
             _ => None?,
         })
+    }
+
+    fn first_nym_api_url(&self) -> ApiUrl {
+        if let Some(api_url) = self.nym_vpn_api_urls.first().cloned() {
+            api_url
+        } else {
+            ApiUrl {
+                url: self.nym_vpn_api_url.to_string(),
+                fronts: None,
+            }
+        }
     }
 }
 
@@ -345,11 +356,11 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 mod tests {
     use std::collections::HashMap;
 
-    use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
     use crate::{
-        SystemMessage, account_management::AccountManagementPaths, feature_flags::FlagValue,
-        system_messages::Properties,
+        account_management::AccountManagementPaths, feature_flags::FlagValue, system_messages::Properties,
+        SystemMessage,
     };
 
     use super::*;
