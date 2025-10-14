@@ -6,10 +6,7 @@ use std::sync::Arc;
 
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
-use nym_vpn_network_config::Network;
-use tokio::{sync::mpsc, task::JoinHandle};
-use tokio_util::sync::CancellationToken;
-
+use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -19,6 +16,9 @@ use nym_vpn_lib::{
     },
 };
 use nym_vpn_lib_types::TunnelType;
+use nym_vpn_network_config::Network;
+use tokio::{sync::mpsc, task::JoinHandle};
+use tokio_util::sync::CancellationToken;
 
 use crate::gateway_cache;
 
@@ -125,10 +125,10 @@ pub(super) async fn start_state_machine(
 
     let shutdown_token = CancellationToken::new();
 
-    let validator_client = nym_http_api_client::Client::builder(network_env.api_url())
-        .map_err(VpnError::from)?
-        .build()
-        .map_err(VpnError::from)?;
+    let api_url = network_env.fronted_api_url();
+    let validator_client = build_fronted_http_client(&api_url, None)
+        .map_err(|e| VpnError::HttpClient(e.to_string()))?;
+
     let topology_provider = VpnTopologyProvider::new(
         network_env.api_url(),
         validator_client,

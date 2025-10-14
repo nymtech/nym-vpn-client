@@ -23,6 +23,7 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
+use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
@@ -381,7 +382,13 @@ impl NymVpnService {
 
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
-        let api_url = parameters.network_env.api_url();
+        let fronted_api_url = parameters.network_env.fronted_api_url();
+        let api_url = url::Url::parse(&fronted_api_url.url).map_err(|err| {
+            tracing::error!("Failed to parse URL: {err:?}");
+            AccountControllerError::Initialization {
+                reason: err.to_string(),
+            }
+        })?;
 
         let gateway_config = gateway_directory::Config {
             nyxd_url,
@@ -404,11 +411,15 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let validator_client = nym_http_api_client::Client::builder(api_url)
-            .map_err(Box::new)?
-            .with_user_agent(parameters.user_agent.clone())
-            .build()
-            .map_err(Box::new)?;
+        let validator_client =
+            build_fronted_http_client(&fronted_api_url, Some(parameters.user_agent.clone()))
+                .map_err(|err| {
+                    tracing::error!("Failed to create HTTP client: {err:?}");
+                    AccountControllerError::Initialization {
+                        reason: err.to_string(),
+                    }
+                })?;
+
         let topology_provider = VpnTopologyProvider::new(
             parameters.network_env.api_url(),
             validator_client,

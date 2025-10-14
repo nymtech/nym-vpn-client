@@ -11,19 +11,19 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
+    VpnApiClient,
     fronted_http_client::build_fronted_http_client,
     response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
-    VpnApiClient,
 };
 
 use crate::{
-    system_configuration::SystemConfiguration, AccountManagement, ApiUrl, Error, FeatureFlags, Result,
-    SystemMessages,
+    AccountManagement, ApiUrl, Error, FeatureFlags, Result, SystemMessages,
+    system_configuration::SystemConfiguration,
 };
 use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::NymApiClientExt;
 
-use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
+use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -182,8 +182,9 @@ impl Discovery {
     pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
 
-        let nym_api_url = self.first_nym_api_url();
-        let client = build_fronted_http_client(&nym_api_url).map_err(Error::CreateVpnApiClient)?;
+        let api_url = self.fronted_api_url();
+        let client =
+            build_fronted_http_client(&api_url, None).map_err(Error::CreateVpnApiClient)?;
 
         let network_details = client
             .get_network_details()
@@ -219,15 +220,27 @@ impl Discovery {
         })
     }
 
-    fn first_nym_api_url(&self) -> ApiUrl {
-        if let Some(api_url) = self.nym_vpn_api_urls.first().cloned() {
-            api_url
-        } else {
-            ApiUrl {
+    /// This takes Domain Fronting into consideration
+    fn fronted_api_url(&self) -> ApiUrl {
+        self.nym_api_urls
+            .first()
+            .cloned()
+            .unwrap_or_else(|| ApiUrl {
+                url: self.nym_api_url.to_string(),
+                fronts: None,
+            })
+    }
+
+    /// This takes Domain Fronting into consideration
+    #[allow(unused)]
+    fn fronted_vpn_api_url(&self) -> ApiUrl {
+        self.nym_vpn_api_urls
+            .first()
+            .cloned()
+            .unwrap_or_else(|| ApiUrl {
                 url: self.nym_vpn_api_url.to_string(),
                 fronts: None,
-            }
-        }
+            })
     }
 }
 
@@ -356,11 +369,11 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 mod tests {
     use std::collections::HashMap;
 
-    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+    use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
     use crate::{
-        account_management::AccountManagementPaths, feature_flags::FlagValue, system_messages::Properties,
-        SystemMessage,
+        SystemMessage, account_management::AccountManagementPaths, feature_flags::FlagValue,
+        system_messages::Properties,
     };
 
     use super::*;

@@ -3,23 +3,32 @@ use crate::{
     response::ApiUrl,
     str_to_socket_addr,
 };
-use nym_http_api_client::{Client, FrontPolicy};
+use nym_http_api_client::{Client, FrontPolicy, UserAgent};
 
 /// Builds a fronted HTTP client based on the provided `ApiUrl`.
 /// We return error `VpnApiClientError::CreateVpnApiClient` which is a bit misleading.
-pub fn build_fronted_http_client(api_url: &ApiUrl) -> Result<Client> {
+pub fn build_fronted_http_client(
+    api_url: &ApiUrl,
+    user_agent: Option<UserAgent>,
+) -> Result<Client> {
     let base_url: url::Url = api_url
         .url
         .parse()
-        .map_err(|_e| VpnApiClientError::InvalidUrl { url: api_url.url.clone() })?;
+        .map_err(|_e| VpnApiClientError::InvalidUrl {
+            url: api_url.url.clone(),
+        })?;
 
-    let domain = base_url
-        .domain()
-        .ok_or(VpnApiClientError::InvalidUrl { url: api_url.url.clone() })?;
+    let domain = base_url.domain().ok_or(VpnApiClientError::InvalidUrl {
+        url: api_url.url.clone(),
+    })?;
 
     let mut builder = Client::builder(base_url.clone())
         .map_err(|e| VpnApiClientError::CreateVpnApiClient(Box::new(e)))?;
 
+    if let Some(user_agent) = user_agent {
+        builder = builder.with_user_agent(user_agent);
+    }
+    
     if let Some(fronts) = api_url.fronts.as_ref()
         && !fronts.is_empty()
     {
