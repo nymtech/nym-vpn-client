@@ -16,6 +16,7 @@ import TunnelStatus
     public static let shared = GRPCManager()
 
     let logger = Logger(label: "GRPC Manager")
+    // TODO: create actor
     var rpcClient: RpcClient?
     var versionPingTask: Task<Void, Never>?
 
@@ -95,7 +96,7 @@ private extension GRPCManager {
         }
     }
 
-    @MainActor func didReceive(event: TunnelEvent) {
+    func didReceive(event: TunnelEvent) {
         switch event {
         case let .newState(tunnelState):
             Task { @MainActor in

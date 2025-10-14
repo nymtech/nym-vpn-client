@@ -17,22 +17,14 @@ import GRPCManager
 #if os(macOS)
     let grpcManager: GRPCManager
 #endif
+    let worker: GatewayWorker
     let logger = Logger(label: "GatewayManager")
 
     var isLoading = false
-    var timer: Timer?
     var gatewayStore = GatewayNodeStore()
     var cancellables = Set<AnyCancellable>()
 
-#if os(iOS)
-    public static let shared = GatewayManager(appSettings: .shared, configurationManager: .shared)
-#elseif os(macOS)
-    public static let shared = GatewayManager(
-        appSettings: .shared,
-        configurationManager: .shared,
-        grpcManager: .shared
-    )
-#endif
+    private var autoUpdateTask: Task<Void, Never>?
 
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
@@ -49,6 +41,7 @@ import GRPCManager
     }()
 
 #if os(iOS)
+    public static let shared = GatewayManager(appSettings: .shared, configurationManager: .shared)
     public init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -58,10 +51,19 @@ import GRPCManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
+        self.worker = GatewayWorker(
+            appSettings: appSettings,
+            configurationManager: configurationManager
+        )
         loadGatewayStore()
         loadPrebundledServersIfNecessary()
     }
 #elseif os(macOS)
+    public static let shared = GatewayManager(
+        appSettings: .shared,
+        configurationManager: .shared,
+        grpcManager: .shared
+    )
     public init(
         appSettings: AppSettings,
         configurationManager: ConfigurationManager,
@@ -76,13 +78,17 @@ import GRPCManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
+        self.worker = GatewayWorker(
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            grpcManager: grpcManager
+        )
         loadGatewayStore()
         loadPrebundledServersIfNecessary()
         setupDaemonObserver()
     }
 #endif
 
-    /// Run from NymVpnApp
     public func setup() {
         updateGateways()
         setupAutoUpdates()
@@ -95,11 +101,6 @@ import GRPCManager
         ?? vpn.first(where: { $0.id == gatewayId })?.moniker
     }
 
-    /// Returns country from isoCode if it exists in the gateways
-    /// - Parameters:
-    ///   - code: countryCode
-    ///   - gatewayType: gateway type
-    /// - Returns: Countrry if any of the gateways are located in it or nil.
     public func country(with code: String, gatewayType: NodeType) -> Country? {
         let gateway: GatewayNode?
         switch gatewayType {
@@ -117,9 +118,6 @@ import GRPCManager
         }
     }
 
-    /// Localized country
-    /// - Parameter countryCode: String
-    /// - Returns: Country
     public func localizedCountry(with countryCode: String?) -> Country? {
         guard let countryCode,
               !countryCode.isEmpty,
@@ -130,11 +128,6 @@ import GRPCManager
         return Country(name: countryName, code: countryCode, regions: [])
     }
 
-    /// Country from gateway id for node type
-    /// - Parameters:
-    ///   - gatewayId: String
-    ///   - nodeType: NodeType
-    /// - Returns: Country?
     public func country(with gatewayId: String?, nodeType: NodeType) -> Country? {
         guard let gatewayId else { return nil }
         switch nodeType {
@@ -159,7 +152,8 @@ import GRPCManager
         case .city:
             return nil
         case let .gateway(identifier):
-            return country(with: identifier, nodeType: .entry)?.code ?? country(with: identifier, nodeType: .vpn)?.code
+            return country(with: identifier, nodeType: .entry)?.code
+            ?? country(with: identifier, nodeType: .vpn)?.code
         case .random:
             return nil
         }
@@ -172,7 +166,8 @@ import GRPCManager
         case let .country(code):
             return code
         case let .gateway(identifier):
-            return country(with: identifier, nodeType: .exit)?.code ?? country(with: identifier, nodeType: .vpn)?.code
+            return country(with: identifier, nodeType: .exit)?.code
+            ?? country(with: identifier, nodeType: .vpn)?.code
         case let .region(countryCode: code, region: _):
             return localizedCountry(with: code)?.code
         case .random:
@@ -219,31 +214,86 @@ import GRPCManager
     }
 }
 
+// MARK: Updating countries
 extension GatewayManager {
+    func fetchGateways() async {
+        do {
+            let result = try await Task.detached { [worker] in
+                try await worker.fetchGateways()
+            }.value
+
+            guard !result.entry.isEmpty, !result.exit.isEmpty, !result.vpn.isEmpty
+            else {
+                logger.info("Empty gateways from API")
+                isLoading = false
+                return
+            }
+
+            entry = result.entry
+            exit = result.exit
+            vpn = result.vpn
+
+            gatewayStore.entry = result.entry
+            gatewayStore.exit  = result.exit
+            gatewayStore.vpn = result.vpn
+            gatewayStore.lastFetchDate = Date()
+
+            storeGatewayStore()
+            updateCountriesFromGateways()
+            isLoading = false
+        } catch {
+            logger.error("Failed to fetch gateways: \(String(describing: error))")
+            updateError(with: error)
+            isLoading = false
+        }
+    }
+
     func updateCountriesFromGateways() {
-        entryCountries = countries(from: entry)
-        exitCountries = countries(from: exit)
-        vpnCountries = countries(from: vpn)
+        Task {
+            let entryRaw = await worker.countries(from: entry)
+            let exitRaw = await worker.countries(from: exit)
+            let vpnRaw = await worker.countries(from: vpn)
+
+            let localizedEntry = localizeAndSortCountries(entryRaw)
+            let localizedExit = localizeAndSortCountries(exitRaw)
+            let localizedVpn = localizeAndSortCountries(vpnRaw)
+
+            await MainActor.run {
+                entryCountries = localizedEntry
+                exitCountries = localizedExit
+                vpnCountries = localizedVpn
+            }
+        }
+    }
+
+    private func localizeAndSortCountries(_ countries: [Country]) -> [Country] {
+        var localized = countries.compactMap { country -> Country? in
+            guard var localizedCountry = localizedCountry(with: country.code) else { return nil }
+            localizedCountry.regions = country.regions
+            return localizedCountry
+        }
+        localized.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return localized
     }
 }
 
+// MARK: - Private helpers (MainActor)
 private extension GatewayManager {
     func setupAutoUpdates() {
-        timer = Timer.scheduledTimer(
-            timeInterval: 300,
-            target: self,
-            selector: #selector(updateGateways),
-            userInfo: nil,
-            repeats: true
-        )
+        autoUpdateTask?.cancel()
+        autoUpdateTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                updateGateways()
+                try? await Task.sleep(for: .seconds(300))
+            }
+        }
     }
 
-    @objc func updateGateways() {
+    func updateGateways() {
         guard !isLoading, needsReload()
         else {
-            if entry.isEmpty
-                || exit.isEmpty
-                || vpn.isEmpty {
+            if entry.isEmpty || exit.isEmpty || vpn.isEmpty {
                 loadGatewaysFromStore()
             }
             return
@@ -251,32 +301,29 @@ private extension GatewayManager {
         isLoading = true
 
         Task { [weak self] in
-            await self?.fetchGateways()
+            guard let self else { return }
+            await self.fetchGateways()
         }
     }
+
     func needsReload() -> Bool {
         guard let lastFetchDate = gatewayStore.lastFetchDate else { return true }
-        return isLongerThan10Minutes(date: lastFetchDate)
-    }
-
-    func isLongerThan10Minutes(date: Date) -> Bool {
-        Date().timeIntervalSince(date) > 600 ? true : false
+        return Date().timeIntervalSince(lastFetchDate) > 600
     }
 
     func loadGatewaysFromStore() {
-        Task { @MainActor in
-            exit = gatewayStore.exit
-            entry = gatewayStore.entry
-            vpn = gatewayStore.vpn
-        }
+        exit = gatewayStore.exit
+        entry = gatewayStore.entry
+        vpn  = gatewayStore.vpn
     }
 
     func configureEnvironmentChange() {
         configurationManager.environmentDidChange = { [weak self] in
-            self?.gatewayStore.lastFetchDate = nil
+            guard let self else { return }
+            self.gatewayStore.lastFetchDate = nil
             Task {
                 try? await Task.sleep(for: .seconds(3))
-                await self?.fetchGateways()
+                await self.fetchGateways()
             }
         }
     }
@@ -284,34 +331,6 @@ private extension GatewayManager {
 
 extension GatewayManager {
     func updateError(with error: Error) {
-        Task { @MainActor in
-            lastError = error
-        }
-    }
-}
-
-private extension GatewayManager {
-    func countries(from nodes: [GatewayNode]) -> [Country] {
-        var regionsByCode: [String: Set<String>] = [:]
-        nodes.compactMap(\.location).forEach { location in
-            let code = location.twoLetterIsoCountryCode.uppercased()
-            let region = location.region.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !region.isEmpty else { return }
-            regionsByCode[code, default: []].insert(region)
-        }
-
-        var result: [Country] = []
-        result.reserveCapacity(regionsByCode.count)
-
-        regionsByCode.forEach { code, regionsSet in
-            guard var country = localizedCountry(with: code) else { return }
-            country.regions = regionsSet.sorted {
-                $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
-            }
-            result.append(country)
-        }
-
-        result.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        return result
+        lastError = error
     }
 }

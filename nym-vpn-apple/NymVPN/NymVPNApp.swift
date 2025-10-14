@@ -4,13 +4,16 @@ import AppSettings
 import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
+import ExternalLinkManager
 import FeatureFlagsManager
 import GatewayManager
 import Home
+import ImpactGenerator
 import Extensions
 import KeyboardManager
 import MessagesManager
 import Migrations
+import NetworkMonitor
 import NymLogger
 import NotificationsManager
 import PurchasesManager
@@ -55,7 +58,6 @@ struct NymVPNApp: App {
     }
 
     var body: some Scene {
-        // swiftlint:disable:next closure_body_length
         WindowGroup {
             NavigationStack {
                 // DISABLED until we figure out where the crash is coming from
