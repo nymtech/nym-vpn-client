@@ -1,3 +1,6 @@
 [bindings.kotlin]
 cdylib_name = "nym_vpn_lib"
 package_name = "nym_vpn_lib"
+
+[bindings.swift]
+generate_codable_conformance = true
