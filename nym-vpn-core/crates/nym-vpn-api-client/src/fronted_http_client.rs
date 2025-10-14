@@ -38,11 +38,12 @@ pub fn build_fronted_http_client(
     if let Some(fronts) = api_url.fronts.as_ref()
         && !fronts.is_empty()
     {
-        builder = builder.with_fronting(FrontPolicy::OnRetry);
         for front in fronts.iter() {
             let addresses = str_to_socket_addr(front)?;
             builder = builder.resolve_to_addrs(domain, &addresses);
         }
+
+        builder = builder.with_fronting(FrontPolicy::OnRetry);
     }
 
     let client = builder

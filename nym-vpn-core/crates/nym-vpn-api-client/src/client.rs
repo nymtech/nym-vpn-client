@@ -6,9 +6,9 @@ use std::{collections::HashMap, net::SocketAddr, time::Duration};
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{
-    ApiClient, FrontPolicy, HttpClientError, NO_PARAMS, Params, PathSegments, UserAgent,
+    ApiClient, FrontPolicy, HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS,
 };
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use time::OffsetDateTime;
 use url::Url;
 
@@ -71,8 +71,6 @@ impl VpnApiClient {
                 if let Some(resolver_overrides) = resolver_overrides.as_ref()
                     && !resolver_overrides.is_empty()
                 {
-                    builder = builder.with_fronting(FrontPolicy::OnRetry);
-
                     for (domain, addresses) in resolver_overrides.iter() {
                         tracing::info!(
                             "Enabling Resolver override for {domain}: {}",
@@ -84,6 +82,8 @@ impl VpnApiClient {
                         );
                         builder = builder.resolve_to_addrs(domain, addresses);
                     }
+
+                    builder = builder.with_fronting(FrontPolicy::OnRetry);
                 }
 
                 builder
@@ -164,11 +164,12 @@ impl VpnApiClient {
 
         let mut builder = nym_http_api_client::ClientBuilder::new_with_urls(nym_vpn_api_urls)
             .with_user_agent(user_agent.clone())
-            .with_timeout(NYM_VPN_API_TIMEOUT)
-            .with_fronting(FrontPolicy::OnRetry);
+            .with_timeout(NYM_VPN_API_TIMEOUT);
 
         // Add resolver overrides
-        if let Some(resolver_overrides) = resolver_overrides {
+        if let Some(resolver_overrides) = resolver_overrides
+            && !resolver_overrides.is_empty()
+        {
             for (domain, addresses) in resolver_overrides.iter() {
                 tracing::info!(
                     "Enabling Resolver override for {domain}: {}",
@@ -178,8 +179,11 @@ impl VpnApiClient {
                         .collect::<Vec<_>>()
                         .join(", ")
                 );
+
                 builder = builder.resolve_to_addrs(domain, addresses);
             }
+
+            builder = builder.with_fronting(FrontPolicy::OnRetry);
         }
 
         let inner = builder
