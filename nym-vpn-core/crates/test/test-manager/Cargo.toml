@@ -19,7 +19,7 @@ nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 anyhow = { workspace = true }
 futures = { workspace = true }
 regex = "1"
-chrono = "0.4.43"
+chrono = { workspace = true }
 tarpc = { workspace = true }
 tokio = { workspace = true, features = ["process"] }
 tokio-serial = { workspace = true }

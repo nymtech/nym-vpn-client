@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+
+# Copyright 2025 Mullvad VPN AB https://github.com/mullvad/mullvadvpn-app
+# Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+# SPDX-License-Identifier: GPL-3.0
+
+# This function returns the target triple of the machine running this script
+
+case "$(uname -s)" in
+  Linux*)
+    arch="$(uname -m)"
+    HOST="${arch}-unknown-linux-gnu"
+    ;;
+  Darwin*)
+    arch="$(uname -m)"
+    if [[ ("${arch}" == "arm64") ]]; then
+        arch="aarch64"
+    fi
+    HOST="${arch}-apple-darwin"
+    ;;
+  MINGW*|MSYS_NT*)
+    arch="$(powershell -Command "(Get-CimInstance Win32_OperatingSystem).OSArchitecture")"
+    if [[ $arch == "ARM 64"* ]]; then
+        HOST="aarch64-pc-windows-msvc"
+    else
+        HOST="x86_64-pc-windows-msvc"
+    fi
+    ;;
+esac

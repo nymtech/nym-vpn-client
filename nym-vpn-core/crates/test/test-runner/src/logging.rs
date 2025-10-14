@@ -67,13 +67,6 @@ pub fn init_logger() -> Result<(), SetLoggerError> {
     log::set_logger(&*LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
 }
 
-pub async fn get_mullvad_app_logs() -> LogOutput {
-    LogOutput {
-        settings_json: read_settings_file().await,
-        log_files: read_log_files().await,
-    }
-}
-
 pub async fn get_nym_app_logs() -> LogOutput {
     LogOutput {
         settings_json: read_settings_file_nym().await,
@@ -81,34 +74,6 @@ pub async fn get_nym_app_logs() -> LogOutput {
     }
 }
 
-async fn read_settings_file() -> Result<String, Error> {
-    let mut settings_path = mullvad_paths::get_default_settings_dir()
-        .map_err(|error| Error::Logs(format!("{error}")))?;
-    settings_path.push("settings.json");
-    read_truncated(&settings_path, None)
-        .await
-        .map_err(|error| Error::Logs(format!("{}: {}", settings_path.display(), error)))
-}
-
-async fn read_log_files() -> Result<Vec<Result<LogFile, Error>>, Error> {
-    let log_dir =
-        mullvad_paths::get_default_log_dir().map_err(|error| Error::Logs(format!("{error}")))?;
-    let paths = list_logs(log_dir)
-        .await
-        .map_err(|error| Error::Logs(format!("{error}")))?;
-    let mut log_files = Vec::new();
-    for path in paths {
-        let log_file = read_truncated(&path, Some(TRUNCATE_LOG_FILE_LINES))
-            .await
-            .map_err(|error| Error::Logs(format!("{}: {}", path.display(), error)))
-            .map(|content| LogFile {
-                content,
-                name: path,
-            });
-        log_files.push(log_file);
-    }
-    Ok(log_files)
-}
 
 async fn read_settings_file_nym() -> Result<String, Error> {
     let mut settings_path =
@@ -145,6 +110,8 @@ async fn read_log_files_nym() -> Result<Vec<Result<LogFile, Error>>, Error> {
     Ok(log_files)
 }
 
+
+// use nym_vpnd::service::DEFAULT_LOG_DIR;
 #[cfg(unix)]
 fn get_default_settings_path_nym() -> Result<PathBuf, Error> {
     Ok(PathBuf::from("/etc/nym").join("config.toml"))

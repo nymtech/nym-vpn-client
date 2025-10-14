@@ -77,10 +77,6 @@ enum Commands {
         #[arg(long, group = "display_args")]
         vnc: Option<u16>,
 
-        /// Account number to use for testing
-        #[arg(long, short)]
-        account: String,
-
         /// mnemonic in the form of 24 words to use in testing
         #[arg(long)]
         nym_mnemonic: String,
@@ -293,7 +289,6 @@ async fn main() -> Result<()> {
             keep_changes,
             mullvad_host,
             vnc,
-            account,
             nym_mnemonic,
             app_package,
             app_package_to_upgrade_from,
@@ -368,17 +363,6 @@ async fn main() -> Result<()> {
             // they are temporarily hardcoded
             TEST_CONFIG_NYM.init(tests::config_nym::TestConfigNym::new(
                 nym_mnemonic,
-                artifacts_dir.clone(),
-                // TODO dz what should go here?!
-                "nym-vpnd".to_string(),
-                None,
-                None,
-                bridge_name.clone(),
-                bridge_ip.clone(),
-                test_rpc::meta::Os::from(vm_config.os_type),
-            ));
-            TEST_CONFIG_NYM.init(tests::config_nym::TestConfigNym::new(
-                account,
                 artifacts_dir,
                 manifest
                     .app_package_path
@@ -430,9 +414,10 @@ async fn main() -> Result<()> {
                 .await
                 .context("Tests failed");
 
+            // TODO dz consider making this a CLI flag
             let sleep_amount = core::time::Duration::from_secs(60 * 60 * 4);
             log::info!(
-                "Everything ready, try issuing commands via nym-vpnc. Server will listen for the next {}s...",
+                "Tests done, you may inspect the VM via VNC during the next {}s...",
                 sleep_amount.as_secs()
             );
             tokio::time::sleep(sleep_amount).await;

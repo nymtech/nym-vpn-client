@@ -30,7 +30,6 @@ use tokio::{
 };
 use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 
-mod app;
 mod app_nymvpn;
 mod forward;
 mod logging;
@@ -143,21 +142,21 @@ impl Service for TestServer {
 
     /// Get the installed app version
     async fn mullvad_version(self, _: context::Context) -> Result<String, test_rpc::Error> {
-        app::version().await
+        app_nymvpn::version().await
     }
 
     async fn find_mullvad_app_traces(
         self,
         _: context::Context,
     ) -> Result<Vec<AppTrace>, test_rpc::Error> {
-        app::find_traces()
+        app_nymvpn::find_traces()
     }
 
     async fn get_mullvad_app_cache_dir(
         self,
         _: context::Context,
     ) -> Result<PathBuf, test_rpc::Error> {
-        app::find_cache_traces()
+        app_nymvpn::find_cache_traces()
     }
 
     async fn send_tcp(
@@ -306,7 +305,7 @@ impl Service for TestServer {
     }
 
     async fn get_mullvad_app_logs(self, _: context::Context) -> test_rpc::logging::LogOutput {
-        logging::get_mullvad_app_logs().await
+        logging::get_nym_app_logs().await
     }
 
     async fn restart_mullvad_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
@@ -413,7 +412,7 @@ impl Service for TestServer {
     }
 
     async fn make_device_json_old(self, _: context::Context) -> Result<(), test_rpc::Error> {
-        app::make_device_json_old().await
+        app_nymvpn::make_device_json_old().await
     }
 
     async fn spawn(self, _: context::Context, opts: SpawnOpts) -> Result<u32, test_rpc::Error> {

@@ -30,16 +30,14 @@
 
 use crate::mullvad_daemon::RpcClientProvider;
 use crate::tests::config_nym::TEST_CONFIG_NYM;
-use crate::tests::{
-    TestContext, helpers_nym,
-};
+use crate::tests::{TestContext, helpers_nym};
 use anyhow::{Context, bail};
-use nym_vpn_proto::rpc_client::{RpcClient as NymProxyClient};
+use nym_vpn_lib_types::{AccountControllerState, TunnelState};
+use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
 use tokio::time::Instant;
-use nym_vpn_lib_types::{AccountControllerState, TunnelState};
 
 #[test_function_nym]
 pub async fn test_happy_nym(
@@ -108,10 +106,15 @@ pub async fn basic_functionality(
     log::debug!("Account identity: {account_identity:?}");
 
     log::debug!("Registering a mnemonic...");
-    nym_proxy_client
+    if let Some(err) = nym_proxy_client
         .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
-        .await?;
+        .await?
+        .error
+    {
+        log::error!("{}", err);
+    }
 
+    let timeout = tokio::time::sleep(Duration::from_secs(60 * 2)).await;
     loop {
         let is_stored = nym_proxy_client.is_account_stored().await?;
         log::debug!("nym-vpnd has a registered account: {is_stored}");
