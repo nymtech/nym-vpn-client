@@ -1,0 +1,91 @@
+name: build-nym-vpn-apple
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/build-nym-vpn-apple.yml"
+      - "nym-vpn-apple/**"
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      RUST_VERSION:
+        value: ${{ jobs.build-ios.outputs.RUST_VERSION }}
+
+env:
+  IPHONEOS_DEPLOYMENT_TARGET: 16.0
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+
+jobs:
+  build-apple:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: AppleSilicon
+    timeout-minutes: 30
+    outputs:
+      UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          components: rustfmt, clippy
+          targets: x86_64-apple-darwin aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
+
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
+          cache: false
+
+      - name: Get workspace version
+        id: workspace-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Build core
+        working-directory: nym-vpn-apple/scripts
+        env:
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          sh BuildCore.sh
+
+      # - name: Get rust version used for build
+      #   id: rust-version
+      #   run: |
+      #     echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
+
+      # - name: Move things around to prepare for upload
+      #   env:
+      #     SRC_DIR: nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib
+      #   run: |
+      #     mkdir ${{ env.UPLOAD_DIR_IOS }}
+      #     cp -vpr ${{ env.SRC_DIR }} ${{ env.UPLOAD_DIR_IOS }}
+
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ env.UPLOAD_DIR_IOS }}
+      #     path: ${{ env.UPLOAD_DIR_IOS }}
+      #     if-no-files-found: error
+      #     retention-days: 1

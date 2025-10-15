@@ -12,7 +12,7 @@ echo "[BuildCore] APPLE_ROOT=${APPLE_ROOT}"
 echo "[BuildCore] CLIENT_ROOT=${CLIENT_ROOT}"
 
 # 0) Build WireGuard (before everything else)
-WIREGUARD_SCRIPT="${CLIENT_ROOT}/wireguard/build-wireguard-go.sh"
+WIREGUARD_SCRIPT="${CLIENT_ROOT}/wireguard/build-wireguard-go.sh --ios"
 if [[ ! -f "${WIREGUARD_SCRIPT}" ]]; then
   echo "[BuildCore][ERROR] WireGuard build script not found at ${WIREGUARD_SCRIPT}"
   exit 1
