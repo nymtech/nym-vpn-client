@@ -5568,6 +5568,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-ipc",
+ "nym-network-defaults",
  "nym-offline-monitor",
  "nym-platform-metadata",
  "nym-registration-client",

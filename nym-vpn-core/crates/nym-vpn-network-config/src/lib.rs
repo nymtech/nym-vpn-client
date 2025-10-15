@@ -136,39 +136,28 @@ impl Network {
         self.nym_api_url.clone()
     }
 
-    pub fn nym_api_urls(&self) -> Option<Vec<ApiUrl>> {
-        self.nym_network.network.nym_api_urls.as_ref().map(|urls| {
-            urls.iter()
-                .map(|api| ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.front_hosts.clone(),
-                })
-                .collect()
-        })
+    pub fn nym_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
+        self.nym_network.network.nym_api_urls.clone()
     }
 
     // Picks the first URL with fronting configured
-    pub fn fronted_api_url(&self) -> ApiUrl {
+    pub fn fronted_api_url(&self) -> nym_network_defaults::ApiUrl {
         if let Some(urls) = self.nym_network.network.nym_api_urls.as_ref() {
-            if let Some(api) = urls
+            if let Some(api_url) = urls
                 .iter()
                 .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
             {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.front_hosts.clone(),
-                };
+                return api_url.clone();
             }
-            if let Some(api) = urls.first() {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.front_hosts.clone(),
-                };
+
+            if let Some(api_url) = urls.first() {
+                return api_url.clone();
             }
         }
-        ApiUrl {
+
+        nym_network_defaults::ApiUrl {
             url: self.nym_api_url.to_string(),
-            fronts: None,
+            front_hosts: None,
         }
     }
 
@@ -176,43 +165,28 @@ impl Network {
         self.nym_vpn_network.nym_vpn_api_url.clone()
     }
 
-    pub fn nym_vpn_api_urls(&self) -> Option<Vec<ApiUrl>> {
-        self.nym_network
-            .network
-            .nym_vpn_api_urls
-            .as_ref()
-            .map(|urls| {
-                urls.iter()
-                    .map(|api| ApiUrl {
-                        url: api.url.clone(),
-                        fronts: api.front_hosts.clone(),
-                    })
-                    .collect()
-            })
+    pub fn nym_vpn_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
+        self.nym_network.network.nym_vpn_api_urls.clone()
     }
 
     // Picks the first URL with fronting configured
-    pub fn fronted_vpn_api_url(&self) -> ApiUrl {
+    pub fn fronted_vpn_api_url(&self) -> nym_network_defaults::ApiUrl {
         if let Some(urls) = self.nym_network.network.nym_vpn_api_urls.as_ref() {
-            if let Some(api) = urls
+            if let Some(api_url) = urls
                 .iter()
                 .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
             {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.front_hosts.clone(),
-                };
+                return api_url.clone();
             }
-            if let Some(api) = urls.first() {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.front_hosts.clone(),
-                };
+
+            if let Some(api_url) = urls.first() {
+                return api_url.clone();
             }
         }
-        ApiUrl {
+
+        nym_network_defaults::ApiUrl {
             url: self.nym_vpn_network.nym_vpn_api_url.to_string(),
-            fronts: None,
+            front_hosts: None,
         }
     }
 
@@ -267,7 +241,7 @@ impl Network {
         let mut unique: HashSet<SocketAddr> = HashSet::with_capacity(16);
 
         for api_url in self.nym_vpn_network.nym_vpn_api_urls.iter() {
-            if let Some(fronts) = api_url.fronts.as_ref() {
+            if let Some(fronts) = api_url.front_hosts.as_ref() {
                 for front in fronts {
                     match str_to_socket_addr(front).await {
                         Ok(addrs) => {
@@ -332,17 +306,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .as_ref()
         .is_none_or(|nym_api_urls| nym_api_urls.is_empty())
     {
-        nym_network.network.nym_api_urls = Some(
-            discovery
-                .nym_api_urls
-                .iter()
-                .cloned()
-                .map(|api_url| nym_network_defaults::ApiUrl {
-                    url: api_url.url,
-                    front_hosts: api_url.fronts,
-                })
-                .collect(),
-        );
+        nym_network.network.nym_api_urls = Some(discovery.nym_api_urls.clone());
     }
 
     // Patch up the network details with domain fronting
@@ -353,17 +317,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .as_ref()
         .is_none_or(|nym_vpn_api_urls| nym_vpn_api_urls.is_empty())
     {
-        nym_network.network.nym_vpn_api_urls = Some(
-            discovery
-                .nym_vpn_api_urls
-                .iter()
-                .cloned()
-                .map(|api_url| nym_network_defaults::ApiUrl {
-                    url: api_url.url,
-                    front_hosts: api_url.fronts,
-                })
-                .collect(),
-        );
+        nym_network.network.nym_vpn_api_urls = Some(discovery.nym_vpn_api_urls.clone());
     }
 
     let endpoint = nym_network

@@ -6,12 +6,13 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
+use nym_network_defaults::ApiUrl;
 use nym_sdk::UserAgent;
 use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    ApiUrl, ResolverOverrides, build_fronted_http_client, str_to_socket_addr,
+    ResolverOverrides, build_fronted_http_client, str_to_socket_addr,
     types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
 };
@@ -92,25 +93,20 @@ impl Config {
     // Picks the first URL with fronting configured
     pub fn fronted_api_url(&self) -> ApiUrl {
         if let Some(urls) = self.nym_api_urls.as_ref() {
-            if let Some(api) = urls
+            if let Some(api_url) = urls
                 .iter()
-                .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
+                .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
             {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.fronts.clone(),
-                };
+                return api_url.clone();
             }
-            if let Some(api) = urls.first() {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.fronts.clone(),
-                };
+
+            if let Some(api_url) = urls.first() {
+                return api_url.clone();
             }
         }
         ApiUrl {
             url: self.nym_api_url.to_string(),
-            fronts: None,
+            front_hosts: None,
         }
     }
 
@@ -125,25 +121,21 @@ impl Config {
     // Picks the first URL with fronting configured
     pub fn fronted_vpn_api_url(&self) -> ApiUrl {
         if let Some(urls) = self.nym_vpn_api_urls.as_ref() {
-            if let Some(api) = urls
+            if let Some(api_url) = urls
                 .iter()
-                .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
+                .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
             {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.fronts.clone(),
-                };
+                return api_url.clone();
             }
-            if let Some(api) = urls.first() {
-                return ApiUrl {
-                    url: api.url.clone(),
-                    fronts: api.fronts.clone(),
-                };
+
+            if let Some(api_url) = urls.first() {
+                return api_url.clone();
             }
         }
+
         ApiUrl {
             url: self.nym_vpn_api_url.to_string(),
-            fronts: None,
+            front_hosts: None,
         }
     }
 
@@ -197,7 +189,7 @@ impl ResolvedConfig {
         let nym_api_resolver_overrides = if let Some(api_urls) = config.nym_api_urls() {
             let mut overrides = ResolverOverrides::default();
             for api_url in api_urls.iter() {
-                if let Some(fronts) = api_url.fronts.as_ref() {
+                if let Some(fronts) = api_url.front_hosts.as_ref() {
                     for front in fronts.iter() {
                         let addrs = str_to_socket_addr(front).await?;
                         overrides
@@ -215,7 +207,7 @@ impl ResolvedConfig {
         let nym_vpn_api_resolver_overrides = if let Some(vpn_api_urls) = config.nym_vpn_api_urls() {
             let mut overrides = ResolverOverrides::default();
             for api_url in vpn_api_urls.iter() {
-                if let Some(fronts) = api_url.fronts.as_ref() {
+                if let Some(fronts) = api_url.front_hosts.as_ref() {
                     for front in fronts.iter() {
                         let addrs = str_to_socket_addr(front).await?;
                         overrides
@@ -612,14 +604,7 @@ mod test {
         let default_api_urls: Option<Vec<ApiUrl>> = mainnet_network_defaults
             .nym_api_urls
             .as_ref()
-            .map(|urls| {
-                urls.iter()
-                    .map(|u| ApiUrl {
-                        url: u.url.clone(),
-                        fronts: u.front_hosts.clone(),
-                    })
-                    .collect::<Vec<_>>()
-            })
+            .map(|urls| urls.iter().cloned().collect::<Vec<_>>())
             .filter(|urls| !urls.is_empty());
         let default_nym_vpn_api_url = mainnet_network_defaults
             .nym_vpn_api_url()
@@ -627,14 +612,7 @@ mod test {
         let default_nym_vpn_api_urls: Option<Vec<ApiUrl>> = mainnet_network_defaults
             .nym_vpn_api_urls
             .as_ref()
-            .map(|urls| {
-                urls.iter()
-                    .map(|u| ApiUrl {
-                        url: u.url.clone(),
-                        fronts: u.front_hosts.clone(),
-                    })
-                    .collect::<Vec<_>>()
-            })
+            .map(|urls| urls.iter().cloned().collect::<Vec<_>>())
             .filter(|urls| !urls.is_empty());
         Config {
             nyxd_url: default_nyxd_url,
@@ -671,13 +649,13 @@ mod test {
     async fn fronted_api_url() {
         let config = new_mainnet();
         let fronted = config.fronted_api_url();
-        assert_eq!(fronted.fronts.unwrap().len(), 2);
+        assert_eq!(fronted.front_hosts.unwrap().len(), 2);
     }
 
     #[tokio::test]
     async fn fronted_vpn_api_url() {
         let config = new_mainnet();
         let fronted = config.fronted_vpn_api_url();
-        assert_eq!(fronted.fronts.unwrap().len(), 2);
+        assert_eq!(fronted.front_hosts.unwrap().len(), 2);
     }
 }

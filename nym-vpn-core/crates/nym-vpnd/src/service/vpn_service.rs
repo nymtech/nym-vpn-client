@@ -384,12 +384,17 @@ impl NymVpnService {
         let nyxd_url = parameters.network_env.nyxd_url();
         let fronted_api_url = parameters.network_env.fronted_api_url();
 
+        let nym_api_url = parameters.network_env.nym_api_url();
+        let nym_api_urls = parameters.network_env.nym_api_urls();
+        let nym_vpn_api_url = parameters.network_env.nym_vpn_api_url();
+        let nym_vpn_api_urls = parameters.network_env.nym_vpn_api_urls();
+
         let gateway_config = gateway_directory::Config::new(
             nyxd_url,
-            parameters.network_env.nym_api_url().clone(),
-            parameters.network_env.nym_api_urls(),
-            parameters.network_env.nym_vpn_api_url(),
-            parameters.network_env.nym_vpn_api_urls(),
+            nym_api_url,
+            nym_api_urls,
+            nym_vpn_api_url,
+            nym_vpn_api_urls,
             None,
         );
         let nym_config = NymConfig {

@@ -61,6 +61,7 @@ nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true }
 nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
+nym-network-defaults = { workspace = true }
 nym-platform-metadata = { workspace = true }
 nym-gateway-directory = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }

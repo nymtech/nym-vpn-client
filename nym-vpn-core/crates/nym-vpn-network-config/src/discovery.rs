@@ -17,10 +17,11 @@ use nym_vpn_api_client::{
 };
 
 use crate::{
-    AccountManagement, ApiUrl, Error, FeatureFlags, Result, SystemMessages,
+    AccountManagement, Error, FeatureFlags, Result, SystemMessages,
     system_configuration::SystemConfiguration,
 };
 use nym_api_requests::NymNetworkDetailsResponse;
+use nym_network_defaults::ApiUrl;
 use nym_validator_client::nym_api::NymApiClientExt;
 
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
@@ -222,27 +223,45 @@ impl Discovery {
         })
     }
 
-    /// This takes Domain Fronting into consideration
-    fn fronted_api_url(&self) -> ApiUrl {
-        self.nym_api_urls
-            .first()
-            .cloned()
-            .unwrap_or_else(|| ApiUrl {
-                url: self.nym_api_url.to_string(),
-                fronts: None,
-            })
+    // Picks the first URL with fronting configured
+    pub fn fronted_api_url(&self) -> ApiUrl {
+        if let Some(api_url) = self
+            .nym_api_urls
+            .iter()
+            .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
+        {
+            return api_url.clone();
+        }
+
+        if let Some(api_url) = self.nym_api_urls.first() {
+            return api_url.clone();
+        }
+
+        ApiUrl {
+            url: self.nym_api_url.to_string(),
+            front_hosts: None,
+        }
     }
 
     /// This takes Domain Fronting into consideration
     #[allow(unused)]
-    fn fronted_vpn_api_url(&self) -> ApiUrl {
-        self.nym_vpn_api_urls
-            .first()
-            .cloned()
-            .unwrap_or_else(|| ApiUrl {
-                url: self.nym_vpn_api_url.to_string(),
-                fronts: None,
-            })
+    pub fn fronted_vpn_api_url(&self) -> ApiUrl {
+        if let Some(api_url) = self
+            .nym_vpn_api_urls
+            .iter()
+            .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
+        {
+            return api_url.clone();
+        }
+
+        if let Some(api_url) = self.nym_vpn_api_urls.first() {
+            return api_url.clone();
+        }
+
+        ApiUrl {
+            url: self.nym_vpn_api_url.to_string(),
+            front_hosts: None,
+        }
     }
 }
 
@@ -298,7 +317,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .into_iter()
             .map(|api_url| ApiUrl {
                 url: api_url.url,
-                fronts: api_url.fronts,
+                front_hosts: api_url.fronts,
             })
             .collect::<Vec<_>>();
 
@@ -313,7 +332,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .into_iter()
             .map(|api_url| ApiUrl {
                 url: api_url.url,
-                fronts: api_url.fronts,
+                front_hosts: api_url.fronts,
             })
             .collect::<Vec<_>>();
 

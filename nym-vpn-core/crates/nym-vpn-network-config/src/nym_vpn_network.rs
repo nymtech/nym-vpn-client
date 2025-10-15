@@ -3,11 +3,11 @@
 
 use std::env;
 
-use nym_network_defaults::{NymNetworkDetails, var_names};
+use nym_network_defaults::{ApiUrl, NymNetworkDetails, var_names};
 use url::Url;
 
 use crate::{
-    AccountManagement, ApiUrl, ParsedAccountLinks, Result, SystemMessages,
+    AccountManagement, ParsedAccountLinks, Result, SystemMessages,
     account_management::AccountLinksConversionError, discovery::Discovery,
 };
 
@@ -33,10 +33,6 @@ impl NymVpnNetwork {
                 .nym_vpn_api_urls
                 .unwrap_or_default()
                 .into_iter()
-                .map(|api_url| ApiUrl {
-                    url: api_url.url,
-                    fronts: api_url.front_hosts,
-                })
                 .collect(),
             account_management: None,
             system_messages: SystemMessages::default(),
@@ -62,22 +58,17 @@ impl NymVpnNetwork {
     }
 
     // Picks the first URL with fronting configured
-    pub fn fronted_vpn_api_url(&self) -> Option<nym_vpn_api_client::ApiUrl> {
-        if let Some(api) = self
+    pub fn fronted_vpn_api_url(&self) -> Option<ApiUrl> {
+        if let Some(api_url) = self
             .nym_vpn_api_urls
             .iter()
-            .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
+            .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
         {
-            return Some(nym_vpn_api_client::ApiUrl {
-                url: api.url.clone(),
-                fronts: api.fronts.clone(),
-            });
+            return Some(api_url.clone());
         }
-        if let Some(api) = self.nym_vpn_api_urls.first() {
-            return Some(nym_vpn_api_client::ApiUrl {
-                url: api.url.clone(),
-                fronts: api.fronts.clone(),
-            });
+
+        if let Some(api_url) = self.nym_vpn_api_urls.first() {
+            return Some(api_url.clone());
         }
 
         None
@@ -131,12 +122,7 @@ impl TryFrom<&NymNetworkDetails> for NymVpnNetwork {
             .clone()
             .ok_or(NymVpnNetworkFromDetailsError::NymVpnApiUrlsMissing)?
             .iter()
-            .map(|api_url| {
-                Ok(ApiUrl {
-                    url: api_url.url.clone(),
-                    fronts: api_url.front_hosts.clone(),
-                })
-            })
+            .map(|api_url| Ok(api_url.clone()))
             .collect::<Result<Vec<_>, _>>()?;
         Ok(Self {
             nym_vpn_api_url,
