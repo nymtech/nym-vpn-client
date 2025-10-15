@@ -72,15 +72,19 @@ pub async fn url_to_socket_addr_blocking(unresolved_url: &url::Url) -> Result<Ve
 }
 
 pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
-    let url = url::Url::parse(unresolved_url).map_err(|_e| VpnApiClientError::InvalidUrl {
-        url: unresolved_url.to_string(),
-    })?;
+    let url = match url::Url::parse(unresolved_url) {
+        Ok(url) => url,
+        Err(_) => {
+            let prefixed = format!("http://{unresolved_url}");
+            url::Url::parse(&prefixed).map_err(|_e| VpnApiClientError::InvalidUrl {
+                url: unresolved_url.to_string(),
+            })?
+        }
+    };
+
     url_to_socket_addr(&url).await
 }
 
 pub fn str_to_socket_addr_blocking(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
-    let url = url::Url::parse(unresolved_url).map_err(|_e| VpnApiClientError::InvalidUrl {
-        url: unresolved_url.to_string(),
-    })?;
-    tokio::runtime::Handle::current().block_on(url_to_socket_addr(&url))
+    tokio::runtime::Handle::current().block_on(str_to_socket_addr(&unresolved_url))
 }
