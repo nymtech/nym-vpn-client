@@ -48,7 +48,6 @@ pub struct VpnApiClient {
     user_agent: UserAgent,
     // Store network details to preserve domain fronting when overriding resolver
     network_details: Option<nym_network_defaults::NymNetworkDetails>,
-    using_nym_api_urls: bool,
 }
 
 impl VpnApiClient {
@@ -126,43 +125,29 @@ impl VpnApiClient {
             api_url,
             user_agent,
             network_details: None,
-            using_nym_api_urls: true,
         })
     }
 
     #[cfg(feature = "network-defaults")]
     pub async fn from_network(
         network: &nym_network_defaults::NymNetworkDetails,
-        use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use false if unsure)
         user_agent: UserAgent,
     ) -> Result<Self> {
-        Self::from_network_with_resolver_overrides(network, use_nym_api_urls, user_agent, None)
-            .await
+        Self::from_network_with_resolver_overrides(network, user_agent, None).await
     }
 
     pub async fn from_network_with_resolver_overrides(
         network: &nym_network_defaults::NymNetworkDetails,
-        use_nym_api_urls: bool, // Else use nym_vpn_api_urls (use false if unsure)
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
-        let vpn_urls = if use_nym_api_urls {
-            #[allow(deprecated)]
-            network.nym_api_urls.as_ref().ok_or_else(|| {
-                let err: HttpClientError = HttpClientError::GenericRequestFailure(
-                    "No Nym API URLs configured in network details".to_string(),
-                );
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?
-        } else {
-            #[allow(deprecated)]
-            network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
-                let err: HttpClientError = HttpClientError::GenericRequestFailure(
-                    "No Nym VPN API URLs configured in network details".to_string(),
-                );
-                VpnApiClientError::CreateVpnApiClient(Box::new(err))
-            })?
-        };
+        #[allow(deprecated)]
+        let vpn_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
+            let err: HttpClientError = HttpClientError::GenericRequestFailure(
+                "No Nym VPN API URLs configured in network details".to_string(),
+            );
+            VpnApiClientError::CreateVpnApiClient(Box::new(err))
+        })?;
 
         #[allow(deprecated)]
         let selected = vpn_urls
@@ -193,7 +178,6 @@ impl VpnApiClient {
         let new_client = if let Some(ref network) = self.network_details {
             Self::from_network_with_resolver_overrides(
                 network,
-                self.using_nym_api_urls,
                 self.user_agent.clone(),
                 resolver_overrides,
             )

@@ -323,7 +323,6 @@ impl NymVpnService {
 
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             parameters.network_env.nym_network_details(),
-            false,
             parameters.user_agent.clone(),
         )
         .await

@@ -312,7 +312,6 @@ impl GatewayClient {
         let vpn_api_client =
             nym_vpn_api_client::VpnApiClient::from_network_with_resolver_overrides(
                 network_details,
-                true, // Using nym_vpn_api_urls from network_details
                 user_agent.clone(),
                 resolver_overrides,
             )
