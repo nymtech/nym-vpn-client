@@ -119,7 +119,7 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                     return
                 }
-            case .PollingTimeout(id: _):
+            case .PollingTimeout:
                 self = .vpnApiTimeout
                 return
             case .MissingBlindedShares:

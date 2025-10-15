@@ -149,10 +149,11 @@ private extension TunnelsManager {
                     let session = note.object as? NETunnelProviderSession,
                     let provider = session.manager as? NETunnelProviderManager,
                     let tunnel = self.tunnels.first(where: { $0.tunnel == provider })
-                else { return }
+                else {
+                    return
+                }
 
                 tunnel.updateStatus()
-
 #if os(iOS)
                 Task { [weak self] in
                     await self?.updateLastTunnelErrorIfNeeded()

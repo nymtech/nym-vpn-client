@@ -192,14 +192,20 @@ func ping(req NetstackRequestGo) (NetstackResponse, error) {
 
 	response.CanHandshake = true
 
-	version, duration, err := queryMetadata(req.MetadataEndpoint, req.MetadataTimeoutSec, tnet)
-	if err != nil {
-		log.Printf("Failed to query metadata URLs: %v\n", err)
-		response.CanQueryMetadata = false
+	// Skip metadata query if endpoint is empty (e.g., for IPv6 where the IPv4 metadata endpoint is not reachable)
+	if req.MetadataEndpoint != "" {
+		version, duration, err := queryMetadata(req.MetadataEndpoint, req.MetadataTimeoutSec, tnet)
+		if err != nil {
+			log.Printf("Failed to query metadata URLs: %v\n", err)
+			response.CanQueryMetadata = false
+		} else {
+			log.Printf("Queried metadata endpoint with version: %v\n", version)
+			log.Printf("Query duration: %v\n", duration)
+			response.CanQueryMetadata = true
+		}
 	} else {
-		log.Printf("Queried metadata endpoint with version: %v\n", version)
-		log.Printf("Query duration: %v\n", duration)
-		response.CanQueryMetadata = true
+		log.Printf("Skipping metadata query (no endpoint provided)")
+		response.CanQueryMetadata = false
 	}
 
 	for _, host := range req.PingHosts {
