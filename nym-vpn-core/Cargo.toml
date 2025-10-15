@@ -8,7 +8,6 @@ members = [
     "crates/nym-dns",
     "crates/nym-firewall",
     "crates/nym-gateway-directory",
-    "crates/nym-gateway-probe",
     "crates/nym-ipc",
     "crates/nym-macos",
     "crates/nym-offline-monitor",

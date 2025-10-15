@@ -44,6 +44,13 @@ pub async fn build_fronted_http_client(
         }
 
         builder = builder.with_fronting(FrontPolicy::OnRetry);
+        tracing::debug!(
+            "Building client to {} with {} fronts",
+            base_url,
+            fronts.len()
+        );
+    } else {
+        tracing::debug!("Building client to {} with no fronts", base_url);
     }
 
     let client = builder

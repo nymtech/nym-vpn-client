@@ -679,12 +679,6 @@ impl TunnelMonitor {
         registration_result: MixnetRegistrationResult,
     ) -> Result<StartTunnelResult> {
         let assigned_addresses = registration_result.assigned_addresses;
-        let connected_tunnel = mixnet::connected_tunnel::ConnectedTunnel::new(
-            registration_result.mixnet_client,
-            assigned_addresses,
-            self.shutdown_token.clone(),
-        );
-
         let mtu = if let Some(mtu) = self
             .tunnel_parameters
             .tunnel_settings
@@ -798,17 +792,19 @@ impl TunnelMonitor {
             ipv6_gateway: None,
         };
 
-        let tunnel_handle = AnyTunnelHandle::from(
-            connected_tunnel
-                .run(tun_device)
-                .await
-                .map_err(|e| Error::Tunnel(Box::new(e)))?,
-        );
+        let tunnel_handle = mixnet::connected_tunnel::start_mixnet_tunnel(
+            registration_result.mixnet_client,
+            assigned_addresses,
+            tun_device,
+            self.shutdown_token.clone(),
+        )
+        .await
+        .map_err(|e| Error::Tunnel(Box::new(e)))?;
 
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_conn_data,
-            tunnel_handle,
+            tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
         })
     }
 
