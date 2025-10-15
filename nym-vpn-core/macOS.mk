@@ -27,9 +27,16 @@ DAEMON_INFO_PLIST ?= $(CURDIR)/../nym-vpn-apple/Daemon/Info.plist
 # Output dir for the final universal binary
 UPLOAD_DIR_MAC ?= $(CURDIR)/upload/mac
 
+RUST_TRIPLET := aarch64-apple-darwin
+LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TRIPLET)
+WIREGUARD_DIR := $(CURDIR)/../wireguard
+
 # Target artifact dirs
 TARGET_AARCH64_DIR := $(CURDIR)/target/aarch64-apple-darwin/$(BUILD_PROFILE)
 TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
+
+# todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
+LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
 # RUSTFLAGS for embedding Info.plist into the binary
 RUSTFLAGS_DAEMON := -C link-arg=-all_load \
@@ -43,7 +50,12 @@ RUSTFLAGS_DAEMON := -C link-arg=-all_load \
 
 all: build-all
 
-build-all: rpc-swift-package vpnd-universal
+build-all: libwg rpc-swift-package vpnd-universal
+
+libwg: $(LIBWG_BUILD_DIR)/libwg.a
+
+$(LIBWG_BUILD_DIR)/libwg.a: $(LIBWG_SOURCES)
+	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
 rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
