@@ -13,7 +13,8 @@ use nym_ip_packet_requests::{
     v8::request::IpPacketRequest,
 };
 use nym_sdk::mixnet::{
-    EventReceiver, InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient, TransmissionLane
+    EventReceiver, InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
+    MixnetMessageSinkTranslator, Recipient, TransmissionLane,
 };
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};
