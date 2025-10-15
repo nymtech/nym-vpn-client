@@ -75,6 +75,7 @@ impl RegisteredNetworks {
                 git_commit: String::new(),
             },
         )
+        .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_envs()
         .await

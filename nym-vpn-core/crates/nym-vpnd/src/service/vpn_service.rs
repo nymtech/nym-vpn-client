@@ -326,6 +326,7 @@ impl NymVpnService {
             false,
             parameters.user_agent.clone(),
         )
+        .await
         .map_err(|err| {
             trace_err_chain!(err, "Failed to create NymVPN API client");
             AccountControllerError::Initialization {

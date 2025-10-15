@@ -112,7 +112,10 @@ impl Network {
         let network_name = discovery::fetch_nym_network_details(nym_api_url)
             .map(|resp| resp.map(|d| d.network.network_name));
 
-        let nym_vpn_api_url = self.nym_vpn_network.nym_vpn_api_url.clone();
+        let Some(nym_vpn_api_url) = self.nym_vpn_network.fronted_vpn_api_url() else {
+            return Err(Error::InconsistentNetwork);
+        };
+
         let vpn_network_name = discovery::fetch_nym_vpn_network_details(nym_vpn_api_url)
             .map(|resp| resp.map(|d| d.network_name));
 
@@ -144,21 +147,29 @@ impl Network {
         })
     }
 
-    /// This takes Domain Fronting into consideration
+    // Picks the first URL with fronting configured
     pub fn fronted_api_url(&self) -> ApiUrl {
-        self.nym_network
-            .network
-            .nym_api_urls
-            .as_ref()
-            .and_then(|urls| urls.first())
-            .map(|api| ApiUrl {
-                url: api.url.clone(),
-                fronts: api.front_hosts.clone(),
-            })
-            .unwrap_or_else(|| ApiUrl {
-                url: self.nym_api_url.to_string(),
-                fronts: None,
-            })
+        if let Some(urls) = self.nym_network.network.nym_api_urls.as_ref() {
+            if let Some(api) = urls
+                .iter()
+                .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
+            {
+                return ApiUrl {
+                    url: api.url.clone(),
+                    fronts: api.front_hosts.clone(),
+                };
+            }
+            if let Some(api) = urls.first() {
+                return ApiUrl {
+                    url: api.url.clone(),
+                    fronts: api.front_hosts.clone(),
+                };
+            }
+        }
+        ApiUrl {
+            url: self.nym_api_url.to_string(),
+            fronts: None,
+        }
     }
 
     pub fn nym_vpn_api_url(&self) -> url::Url {
@@ -180,21 +191,29 @@ impl Network {
             })
     }
 
-    /// This takes Domain Fronting into consideration
+    // Picks the first URL with fronting configured
     pub fn fronted_vpn_api_url(&self) -> ApiUrl {
-        self.nym_network
-            .network
-            .nym_vpn_api_urls
-            .as_ref()
-            .and_then(|urls| urls.first())
-            .map(|api| ApiUrl {
-                url: api.url.clone(),
-                fronts: api.front_hosts.clone(),
-            })
-            .unwrap_or_else(|| ApiUrl {
-                url: self.nym_vpn_network.nym_vpn_api_url.to_string(),
-                fronts: None,
-            })
+        if let Some(urls) = self.nym_network.network.nym_vpn_api_urls.as_ref() {
+            if let Some(api) = urls
+                .iter()
+                .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
+            {
+                return ApiUrl {
+                    url: api.url.clone(),
+                    fronts: api.front_hosts.clone(),
+                };
+            }
+            if let Some(api) = urls.first() {
+                return ApiUrl {
+                    url: api.url.clone(),
+                    fronts: api.front_hosts.clone(),
+                };
+            }
+        }
+        ApiUrl {
+            url: self.nym_vpn_network.nym_vpn_api_url.to_string(),
+            fronts: None,
+        }
     }
 
     pub fn get_simple_feature_flag<T>(&self, flag: &str) -> Option<T>

@@ -34,8 +34,8 @@ static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discov
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
 static EVIL_DISCOVERY_JSON: &[u8] = include_bytes!("../default/evil_discovery.json");
 
-static DEFAULT_VPN_API_URL: LazyLock<Url> =
-    LazyLock::new(|| Discovery::default_mainnet().nym_vpn_api_url);
+static DEFAULT_VPN_API_URL: LazyLock<ApiUrl> =
+    LazyLock::new(|| Discovery::default_mainnet().fronted_vpn_api_url());
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
@@ -57,7 +57,7 @@ pub struct Discovery {
 
 impl Discovery {
     /// Default VPN API URL
-    pub fn default_vpn_api_url() -> Url {
+    pub fn default_vpn_api_url() -> ApiUrl {
         DEFAULT_VPN_API_URL.clone()
     }
 
@@ -105,6 +105,7 @@ impl Discovery {
         // allow panic because a broken bootstrap url means everything will fail anyways.
         let default_url = DEFAULT_VPN_API_URL.clone();
         let client = VpnApiClient::new(default_url, empty_user_agent())
+            .await
             .map_err(Error::CreateVpnApiClient)?;
 
         tracing::debug!("Fetching nym network discovery");
@@ -356,10 +357,11 @@ pub(crate) async fn fetch_nym_network_details(
 }
 
 pub(crate) async fn fetch_nym_vpn_network_details(
-    nym_vpn_api_url: Url,
+    nym_vpn_api_url: ApiUrl,
 ) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
     VpnApiClient::new(nym_vpn_api_url, empty_user_agent())
+        .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_current_env()
         .await

@@ -6,8 +6,6 @@ use crate::{
 use nym_http_api_client::{Client, FrontPolicy, UserAgent};
 use std::time::Duration;
 
-/// Builds a fronted HTTP client based on the provided `ApiUrl`.
-/// We return error `VpnApiClientError::CreateVpnApiClient` which is a bit misleading.
 pub async fn build_fronted_http_client(
     api_url: &ApiUrl,
     user_agent: Option<UserAgent>,
@@ -25,7 +23,8 @@ pub async fn build_fronted_http_client(
     })?;
 
     let mut builder = Client::builder(base_url.clone())
-        .map_err(|e| VpnApiClientError::CreateVpnApiClient(Box::new(e)))?;
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
     if let Some(user_agent) = user_agent {
         builder = builder.with_user_agent(user_agent);
@@ -38,24 +37,25 @@ pub async fn build_fronted_http_client(
     if let Some(fronts) = api_url.fronts.as_ref()
         && !fronts.is_empty()
     {
+        builder = builder.with_fronting(FrontPolicy::OnRetry);
         for front in fronts.iter() {
             let addresses = str_to_socket_addr(front).await?;
             builder = builder.resolve_to_addrs(domain, &addresses);
         }
 
-        builder = builder.with_fronting(FrontPolicy::OnRetry);
         tracing::debug!(
-            "Building client to {} with {} fronts",
+            "Building HTTP client to {} with {} fronts",
             base_url,
             fronts.len()
         );
     } else {
-        tracing::debug!("Building client to {} with no fronts", base_url);
+        tracing::debug!("Building HTTP client to {} with no fronts", base_url);
     }
 
     let client = builder
         .build()
-        .map_err(|e| VpnApiClientError::CreateVpnApiClient(Box::new(e)))?;
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
     Ok(client)
 }

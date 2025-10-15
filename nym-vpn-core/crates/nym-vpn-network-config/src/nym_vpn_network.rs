@@ -60,6 +60,28 @@ impl NymVpnNetwork {
             .try_into_parsed_links(locale, account_id)
             .map_err(NymVpnNetworkAccountLinksConversionError::Conversion)?)
     }
+
+    // Picks the first URL with fronting configured
+    pub fn fronted_vpn_api_url(&self) -> Option<nym_vpn_api_client::ApiUrl> {
+        if let Some(api) = self
+            .nym_vpn_api_urls
+            .iter()
+            .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
+        {
+            return Some(nym_vpn_api_client::ApiUrl {
+                url: api.url.clone(),
+                fronts: api.fronts.clone(),
+            });
+        }
+        if let Some(api) = self.nym_vpn_api_urls.first() {
+            return Some(nym_vpn_api_client::ApiUrl {
+                url: api.url.clone(),
+                fronts: api.fronts.clone(),
+            });
+        }
+
+        None
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
