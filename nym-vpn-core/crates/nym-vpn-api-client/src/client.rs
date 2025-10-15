@@ -6,9 +6,9 @@ use std::{collections::HashMap, net::SocketAddr, time::Duration};
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{
-    ApiClient, FrontPolicy, HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS,
+    ApiClient, FrontPolicy, HttpClientError, NO_PARAMS, Params, PathSegments, UserAgent,
 };
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::OffsetDateTime;
 use url::Url;
 
