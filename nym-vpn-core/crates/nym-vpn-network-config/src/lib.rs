@@ -20,7 +20,7 @@ pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
-use nym_vpn_api_client::str_to_socket_addr_blocking;
+use nym_vpn_api_client::str_to_socket_addr;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use refresh::start_background_file_refresh;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
@@ -244,24 +244,24 @@ impl Network {
         self.feature_flags.as_ref().and_then(|ff| ff.quic_enabled())
     }
 
-    pub fn fronted_ip_addresses(&self) -> Vec<SocketAddr> {
+    pub async fn fronted_ip_addresses(&self) -> Vec<SocketAddr> {
         let mut unique: HashSet<SocketAddr> = HashSet::with_capacity(16);
-        self.nym_vpn_network
-            .nym_vpn_api_urls
-            .iter()
-            .filter_map(|api_url| api_url.fronts.as_ref())
-            .flat_map(|fronts| fronts.iter())
-            .for_each(|front| {
-                if let Ok(addrs) = str_to_socket_addr_blocking(front) {
-                    // Errors are ignored here!
-                    for addr in addrs {
-                        unique.insert(addr);
+
+        for api_url in self.nym_vpn_network.nym_vpn_api_urls.iter() {
+            if let Some(fronts) = api_url.fronts.as_ref() {
+                for front in fronts {
+                        // Errors are ignored here!
+                    if let Ok(addrs) = str_to_socket_addr(front).await {
+                        for addr in addrs {
+                            unique.insert(addr);
+                        }
                     }
                 }
-            });
+            }
+        }
+
         unique.into_iter().collect()
-    }
-}
+    }}
 
 pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {
     RegisteredNetworks::ensure_exists(config_path).await

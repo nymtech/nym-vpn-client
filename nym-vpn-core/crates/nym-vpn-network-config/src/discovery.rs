@@ -11,19 +11,19 @@ use nym_sdk::UserAgent;
 use url::Url;
 
 use nym_vpn_api_client::{
-    VpnApiClient,
     fronted_http_client::build_fronted_http_client,
     response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
+    VpnApiClient,
 };
 
 use crate::{
-    AccountManagement, ApiUrl, Error, FeatureFlags, Result, SystemMessages,
-    system_configuration::SystemConfiguration,
+    system_configuration::SystemConfiguration, AccountManagement, ApiUrl, Error, FeatureFlags, Result,
+    SystemMessages,
 };
 use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::NymApiClientExt;
 
-use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
+use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -184,6 +184,7 @@ impl Discovery {
 
         let fronted_api_url = self.fronted_api_url();
         let client = build_fronted_http_client(&fronted_api_url, None, None)
+            .await
             .map_err(Error::CreateVpnApiClient)?;
 
         let network_details = client
@@ -369,11 +370,11 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 mod tests {
     use std::collections::HashMap;
 
-    use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
     use crate::{
-        SystemMessage, account_management::AccountManagementPaths, feature_flags::FlagValue,
-        system_messages::Properties,
+        account_management::AccountManagementPaths, feature_flags::FlagValue, system_messages::Properties,
+        SystemMessage,
     };
 
     use super::*;

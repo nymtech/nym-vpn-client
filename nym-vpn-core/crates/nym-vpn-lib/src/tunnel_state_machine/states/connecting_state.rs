@@ -8,8 +8,8 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    FutureExt,
     future::{BoxFuture, Fuse},
+    FutureExt,
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -30,14 +30,14 @@ use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
-    Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
-    Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
-    tunnel::{SelectedGateways, Tombstone},
-    tunnel_monitor::{
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    },
+    }, Error, ErrorStateReason,
+    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
 };
 
 /// Initial delay between retry attempts.
@@ -531,7 +531,7 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::NewNetworkEnv { network } => {
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
-                            self.firewall_policy_params.api_endpoints = network.fronted_ip_addresses();
+                            self.firewall_policy_params.api_endpoints = network.fronted_ip_addresses().await;
                             shared_state.nym_config.network_env = *network;
                             if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
                                 trace_err_chain!(e, "failed to set firewall policy");

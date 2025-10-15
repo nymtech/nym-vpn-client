@@ -22,7 +22,7 @@ impl UniffiGatewayCacheHandle {
     ) -> Result<Self, VpnError> {
         let shutdown_token = CancellationToken::new();
         let directory_config = make_gateway_config().await;
-        let gateway_client = GatewayClient::new(directory_config.clone(), user_agent.into())
+        let gateway_client = GatewayClient::new(directory_config.clone(), user_agent.into()).await
             .map_err(VpnError::internal)?;
         let (gateway_cache_handle, join_handle) = GatewayCache::spawn(
             gateway_client,

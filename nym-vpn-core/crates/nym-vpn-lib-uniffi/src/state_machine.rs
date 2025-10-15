@@ -126,7 +126,7 @@ pub(super) async fn start_state_machine(
     let shutdown_token = CancellationToken::new();
 
     let api_url = network_env.fronted_api_url();
-    let validator_client = build_fronted_http_client(&api_url, None, None)
+    let validator_client = build_fronted_http_client(&api_url, None, None).await
         .map_err(|e| VpnError::HttpClient(e.to_string()))?;
 
     let topology_provider = VpnTopologyProvider::new(

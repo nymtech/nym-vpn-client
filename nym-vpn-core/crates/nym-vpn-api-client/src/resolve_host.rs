@@ -67,10 +67,6 @@ pub async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketA
         .collect())
 }
 
-pub async fn url_to_socket_addr_blocking(unresolved_url: &url::Url) -> Result<Vec<SocketAddr>> {
-    tokio::runtime::Handle::current().block_on(url_to_socket_addr(unresolved_url))
-}
-
 pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
     let url = match url::Url::parse(unresolved_url) {
         Ok(url) => url,
@@ -83,8 +79,4 @@ pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>>
     };
 
     url_to_socket_addr(&url).await
-}
-
-pub fn str_to_socket_addr_blocking(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
-    tokio::runtime::Handle::current().block_on(str_to_socket_addr(unresolved_url))
 }

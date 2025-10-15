@@ -1,14 +1,14 @@
 use crate::{
     error::{Result, VpnApiClientError},
     response::ApiUrl,
-    str_to_socket_addr_blocking,
+    str_to_socket_addr,
 };
 use nym_http_api_client::{Client, FrontPolicy, UserAgent};
 use std::time::Duration;
 
 /// Builds a fronted HTTP client based on the provided `ApiUrl`.
 /// We return error `VpnApiClientError::CreateVpnApiClient` which is a bit misleading.
-pub fn build_fronted_http_client(
+pub async fn build_fronted_http_client(
     api_url: &ApiUrl,
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
@@ -39,7 +39,7 @@ pub fn build_fronted_http_client(
         && !fronts.is_empty()
     {
         for front in fronts.iter() {
-            let addresses = str_to_socket_addr_blocking(front)?;
+            let addresses = str_to_socket_addr(front).await?;
             builder = builder.resolve_to_addrs(domain, &addresses);
         }
 

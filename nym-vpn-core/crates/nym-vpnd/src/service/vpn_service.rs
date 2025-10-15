@@ -4,8 +4,8 @@
 use std::{path::PathBuf, pin::Pin};
 
 use bip39::Mnemonic;
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
@@ -16,8 +16,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
 use nym_statistics::{
-    StatisticsController, StatisticsControllerConfig,
-    events::{StatisticsEvent, StatisticsSender},
+    events::{StatisticsEvent, StatisticsSender}, StatisticsController,
+    StatisticsControllerConfig,
 };
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
@@ -25,9 +25,9 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
-    UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    UserAgent,
+    VpnTopologyProvider,
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
@@ -400,7 +400,9 @@ impl NymVpnService {
         };
 
         let gateway_directory_client =
-            GatewayClient::new(gateway_config, parameters.user_agent.clone()).unwrap();
+            GatewayClient::new(gateway_config, parameters.user_agent.clone())
+                .await
+                .unwrap();
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
             gateway_directory_client,
             connectivity_handle.clone(),
@@ -409,6 +411,7 @@ impl NymVpnService {
 
         let validator_client =
             build_fronted_http_client(&fronted_api_url, Some(parameters.user_agent.clone()), None)
+                .await
                 .map_err(|err| {
                     tracing::error!("Failed to create HTTP client: {err:?}");
                     AccountControllerError::Initialization {
