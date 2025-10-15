@@ -3,24 +3,10 @@
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use nym_vpn_api_client::url_to_socket_addr;
-
-use crate::{Config, error::Result, gateway_client::ResolvedConfig};
+use crate::{error::Result, gateway_client::ResolvedConfig, Config};
 
 pub async fn resolve_config(config: &Config) -> Result<ResolvedConfig> {
-    let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url()).await?;
-    let api_socket_addrs = url_to_socket_addr(config.api_url()).await?;
-    let nym_vpn_api_socket_addrs = if let Some(vpn_api_url) = config.nym_vpn_api_url() {
-        Some(url_to_socket_addr(vpn_api_url).await?)
-    } else {
-        None
-    };
-
-    Ok(ResolvedConfig {
-        nyxd_socket_addrs,
-        api_socket_addrs,
-        nym_vpn_api_socket_addrs,
-    })
+    ResolvedConfig::from_config(config).await
 }
 
 pub fn split_ips(ips: Vec<IpAddr>) -> (Vec<Ipv4Addr>, Vec<Ipv6Addr>) {

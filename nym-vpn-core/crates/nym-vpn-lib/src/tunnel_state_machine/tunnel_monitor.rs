@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt};
 
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
@@ -10,7 +10,7 @@ use nym_registration_client::{
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::{Network, start_background_file_refresh};
+use nym_vpn_network_config::{start_background_file_refresh, Network};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -27,7 +27,7 @@ use std::{
 use std::{os::fd::RawFd, sync::Arc};
 
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nix::sys::socket::{sockopt::Mark, SetSockOpt};
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -50,8 +50,8 @@ use super::tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
 use super::{
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
-    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
+    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone}, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
+    TunnelSettings,
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
@@ -70,17 +70,17 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(not(target_os = "linux"))]
 use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
-    VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
-        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
-        tunnel::{
+        account, ipv6_availability, tunnel::{
             mixnet, transports,
             wireguard::{
                 self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
             },
-        },
+        }, TunnelConstants,
+        WireguardMultihopMode,
     },
+    VpnTopologyProvider,
 };
 
 /// Default MTU for mixnet tun device.
@@ -327,31 +327,17 @@ impl TunnelMonitor {
             .clone()
             .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
 
-        let resolver_overrides = if let Some(socket_addrs) = self
-            .tunnel_parameters
-            .resolved_gateway_config
-            .nym_vpn_api_socket_addrs
-            .as_deref()
-        {
-            Some(nym_vpn_api_client::ResolverOverrides::from([(
-                gateway_config
-                    .api_url
-                    .domain()
-                    .unwrap_or_default()
-                    .to_string(),
-                socket_addrs.to_vec(),
-            )]))
-        } else {
-            None
-        };
-
         // TODO: user_agent must not be a part of tunnel_settings
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
             gateway_config.clone(),
             user_agent.clone(),
-            resolver_overrides.as_ref(),
-        )
-        .unwrap();
+            Some(
+                &self
+                    .tunnel_parameters
+                    .resolved_gateway_config
+                    .nym_vpn_api_resolver_overrides,
+            ),
+        ).map_err(Error::GatewayDirectoryClient)?;
 
         self.gateway_cache_handle
             .replace_gateway_client(gateway_directory_client)

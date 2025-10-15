@@ -1,7 +1,7 @@
 use crate::{
     error::{Result, VpnApiClientError},
     response::ApiUrl,
-    str_to_socket_addr,
+    str_to_socket_addr_blocking,
 };
 use nym_http_api_client::{Client, FrontPolicy, UserAgent};
 use std::time::Duration;
@@ -39,7 +39,7 @@ pub fn build_fronted_http_client(
         && !fronts.is_empty()
     {
         for front in fronts.iter() {
-            let addresses = str_to_socket_addr(front)?;
+            let addresses = str_to_socket_addr_blocking(front)?;
             builder = builder.resolve_to_addrs(domain, &addresses);
         }
 

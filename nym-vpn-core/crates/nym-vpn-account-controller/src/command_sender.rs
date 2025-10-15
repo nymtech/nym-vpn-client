@@ -1,16 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::SocketAddr;
-
 use crate::{
-    AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender},
+    AvailableTicketbooks,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
+    ResolverOverrides,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::types::StorableAccount;
@@ -144,15 +143,16 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn set_static_api_addresses(
+    pub async fn set_resolver_overrides(
         &self,
-        static_api_addresses: Option<Vec<SocketAddr>>,
+        resolver_overrides: Option<ResolverOverrides>,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::Common(
-                CommonCommand::SetStaticApiAddresses(tx, static_api_addresses),
-            ))
+            .send(AccountCommand::Common(CommonCommand::SetResolverOverrides(
+                tx,
+                resolver_overrides,
+            )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

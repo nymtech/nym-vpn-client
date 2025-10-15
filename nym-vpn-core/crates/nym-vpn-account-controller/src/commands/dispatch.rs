@@ -1,16 +1,14 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::SocketAddr;
-
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::account::StorableAccount;
 
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
+    ResolverOverrides,
 };
 use tokio::sync::oneshot;
 
@@ -77,9 +75,6 @@ impl AccountCommand {
                 CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
-                CommonCommand::SetStaticApiAddresses(return_sender, _) => {
-                    return_sender.send(Err(error))
-                }
                 CommonCommand::SetResolverOverrides(return_sender, _) => {
                     return_sender.send(Err(error))
                 }
@@ -111,12 +106,6 @@ pub enum CommonCommand {
 
     /// Returns a list of tickets available in storage
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
-
-    /// Override the VPN API client resolver to allow him to go through the firewall
-    SetStaticApiAddresses(
-        ReturnSender<(), AccountCommandError>,
-        Option<Vec<SocketAddr>>,
-    ),
 
     /// Override the VPN API client resolver to allow him to go through the firewall (witg Domain Fronting)
     SetResolverOverrides(

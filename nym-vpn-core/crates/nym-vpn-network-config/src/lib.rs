@@ -20,7 +20,7 @@ pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
-use nym_vpn_api_client::str_to_socket_addr;
+use nym_vpn_api_client::str_to_socket_addr_blocking;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use refresh::start_background_file_refresh;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
@@ -59,7 +59,7 @@ pub struct Network {
     pub nym_network: NymNetwork,
     // extract at least one nyxd URL and one api URL, which must exist
     pub nyxd_url: Url,
-    api_url: Url, // Use the getter instead!
+    nym_api_url: Url, // Use the getter instead!
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
@@ -82,7 +82,7 @@ impl Network {
         Some(Network {
             nym_network,
             nyxd_url,
-            api_url,
+            nym_api_url: api_url,
             nym_vpn_network: NymVpnNetwork::new(network_details),
             feature_flags: None,
             system_configuration: None,
@@ -129,8 +129,19 @@ impl Network {
         self.nyxd_url.clone()
     }
 
-    pub fn api_url(&self) -> Url {
-        self.api_url.clone()
+    pub fn nym_api_url(&self) -> Url {
+        self.nym_api_url.clone()
+    }
+
+    pub fn nym_api_urls(&self) -> Option<Vec<ApiUrl>> {
+        self.nym_network.network.nym_api_urls.as_ref().map(|urls| {
+            urls.iter()
+                .map(|api| ApiUrl {
+                    url: api.url.clone(),
+                    fronts: api.front_hosts.clone(),
+                })
+                .collect()
+        })
     }
 
     /// This takes Domain Fronting into consideration
@@ -145,13 +156,28 @@ impl Network {
                 fronts: api.front_hosts.clone(),
             })
             .unwrap_or_else(|| ApiUrl {
-                url: self.api_url.to_string(),
+                url: self.nym_api_url.to_string(),
                 fronts: None,
             })
     }
 
-    pub fn vpn_api_url(&self) -> url::Url {
+    pub fn nym_vpn_api_url(&self) -> url::Url {
         self.nym_vpn_network.nym_vpn_api_url.clone()
+    }
+
+    pub fn nym_vpn_api_urls(&self) -> Option<Vec<ApiUrl>> {
+        self.nym_network
+            .network
+            .nym_vpn_api_urls
+            .as_ref()
+            .map(|urls| {
+                urls.iter()
+                    .map(|api| ApiUrl {
+                        url: api.url.clone(),
+                        fronts: api.front_hosts.clone(),
+                    })
+                    .collect()
+            })
     }
 
     /// This takes Domain Fronting into consideration
@@ -226,7 +252,7 @@ impl Network {
             .filter_map(|api_url| api_url.fronts.as_ref())
             .flat_map(|fronts| fronts.iter())
             .for_each(|front| {
-                if let Ok(addrs) = str_to_socket_addr(front) {
+                if let Ok(addrs) = str_to_socket_addr_blocking(front) {
                     // Errors are ignored here!
                     for addr in addrs {
                         unique.insert(addr);
@@ -330,7 +356,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
     Ok(Network {
         nym_network,
         nyxd_url,
-        api_url,
+        nym_api_url: api_url,
         nym_vpn_network,
         feature_flags,
         system_configuration,
@@ -352,7 +378,7 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
     Ok(Network {
         nym_network,
         nyxd_url,
-        api_url,
+        nym_api_url: api_url,
         nym_vpn_network,
         feature_flags: None,
         system_configuration: None,

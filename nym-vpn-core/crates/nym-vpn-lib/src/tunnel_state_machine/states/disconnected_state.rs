@@ -32,7 +32,7 @@ impl DisconnectedState {
 
         if let Err(e) = shared_state
             .account_command_tx
-            .set_static_api_addresses(None)
+            .set_resolver_overrides(None)
             .await
         {
             trace_err_chain!(e, "Failed to unset static API addresses");

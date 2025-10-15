@@ -7,7 +7,7 @@ use nym_vpn_lib_types::UserAgent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{GATEWAY_CACHE, error::VpnError};
+use crate::{error::VpnError, GATEWAY_CACHE};
 
 pub struct UniffiGatewayCacheHandle {
     directory_config: nym_gateway_directory::Config,
@@ -61,13 +61,13 @@ async fn make_gateway_config() -> nym_gateway_directory::Config {
         .await
         .unwrap();
     let nyxd_url = network_env.nyxd_url();
-    let api_url = network_env.api_url();
-    let nym_vpn_api_url = Some(network_env.vpn_api_url());
+    let api_url = network_env.nym_api_url();
+    let nym_vpn_api_url = Some(network_env.nym_vpn_api_url());
 
     nym_gateway_directory::Config {
         nyxd_url,
         api_url,
-        nym_vpn_api_url,
+        vpn_api_url: nym_vpn_api_url,
         min_gateway_performance: None,
     }
 }

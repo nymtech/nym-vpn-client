@@ -4,8 +4,8 @@
 use std::{path::PathBuf, pin::Pin};
 
 use bip39::Mnemonic;
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
@@ -16,8 +16,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
 use nym_statistics::{
-    StatisticsController, StatisticsControllerConfig,
-    events::{StatisticsEvent, StatisticsSender},
+    events::{StatisticsEvent, StatisticsSender}, StatisticsController,
+    StatisticsControllerConfig,
 };
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
@@ -25,9 +25,9 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
-    UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    UserAgent,
+    VpnTopologyProvider,
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
@@ -383,19 +383,15 @@ impl NymVpnService {
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
         let fronted_api_url = parameters.network_env.fronted_api_url();
-        let api_url = url::Url::parse(&fronted_api_url.url).map_err(|err| {
-            tracing::error!("Failed to parse URL: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
 
-        let gateway_config = gateway_directory::Config {
+        let gateway_config = gateway_directory::Config::new(
             nyxd_url,
-            api_url: api_url.clone(),
-            nym_vpn_api_url: Some(parameters.network_env.vpn_api_url()),
-            min_gateway_performance: None,
-        };
+            parameters.network_env.nym_api_url().clone(),
+            parameters.network_env.nym_api_urls(),
+            parameters.network_env.nym_vpn_api_url(),
+            parameters.network_env.nym_vpn_api_urls(),
+            None,
+        );
         let nym_config = NymConfig {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
@@ -421,7 +417,7 @@ impl NymVpnService {
                 })?;
 
         let topology_provider = VpnTopologyProvider::new(
-            parameters.network_env.api_url(),
+            parameters.network_env.nym_api_url(),
             validator_client,
             false,
             services_shutdown_token.child_token(),

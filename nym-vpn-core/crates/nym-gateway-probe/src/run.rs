@@ -123,7 +123,7 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     let gateway_config = nym_gateway_directory::Config {
         nyxd_url,
         api_url,
-        nym_vpn_api_url: network.nym_vpn_api_url(),
+        vpn_api_url: network.nym_vpn_api_url(),
         min_gateway_performance: Some(min_gateway_performance),
     };
 

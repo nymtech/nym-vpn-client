@@ -8,21 +8,21 @@ use std::{
 };
 
 use crate::{netstack::NetstackResult, types::Entry};
-use anyhow::{Context, anyhow, bail};
-use base64::{Engine as _, engine::general_purpose};
+use anyhow::{anyhow, bail, Context};
+use base64::{engine::general_purpose, Engine as _};
 use bytes::BytesMut;
 use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{AuthClientMixnetListener, AuthenticatorClient};
 use nym_authenticator_requests::{
-    AuthenticatorVersion, client_message::ClientMessage, response::AuthenticatorResponse, v2, v3,
-    v4, v5,
+    client_message::ClientMessage, response::AuthenticatorResponse, v2, v3, v4,
+    v5, AuthenticatorVersion,
 };
 use nym_bandwidth_controller::error::BandwidthControllerError;
 use nym_client_core::{client::base_client::storage::OnDiskPersistent, config::ForgetMe};
 use nym_config::defaults::{
-    NymNetworkDetails, WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4,
-    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
+    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6}, NymNetworkDetails, WG_METADATA_PORT,
+    WG_TUN_DEVICE_IP_ADDRESS_V4,
 };
 use nym_connection_monitor::self_ping_and_wait;
 use nym_credentials_interface::{CredentialSpendingData, TicketType};
@@ -34,11 +34,11 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::{
-    IpPair,
     codec::MultiIpPacketCodec,
     v8::response::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
+    IpPair,
 };
 use nym_sdk::{
     bandwidth::BandwidthImporter,
@@ -870,7 +870,7 @@ async fn lookup_gateways(gateway_config: GatewayDirectoryConfig) -> anyhow::Resu
     info!(
         "nym-vpn-api: {}",
         gateway_config
-            .nym_vpn_api_url()
+            .vpn_api_url()
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );

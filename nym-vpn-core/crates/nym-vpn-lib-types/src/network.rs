@@ -344,7 +344,7 @@ impl From<nym_vpn_network_config::ScoreThresholds> for ScoreThresholds {
 #[cfg(feature = "nym-type-conversions")]
 impl From<nym_vpn_network_config::Network> for Network {
     fn from(value: nym_vpn_network_config::Network) -> Self {
-        let api_url = value.api_url().to_string();
+        let api_url = value.nym_api_url().to_string();
         Self {
             nym_network: NymNetworkDetails::from(value.nym_network),
             nyxd_url: value.nyxd_url.to_string(),

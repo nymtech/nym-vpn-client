@@ -7,12 +7,12 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, CommonCommand, ReturnSender, common_handler, handler},
+    commands::{common_handler, handler, AccountCommand, CommonCommand, ReturnSender},
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
         PrivateAccountControllerState, SyncingState,
     },
+    SharedAccountState,
 };
 
 /// LoggedOut state
@@ -84,7 +84,6 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
 
                     AccountCommand::Common(common_command) => {
                         match common_command {
-                            CommonCommand::SetStaticApiAddresses(return_sender, static_api_addresses) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state, static_api_addresses)),
                             CommonCommand::SetResolverOverrides(return_sender, resolver_overrides) => return_sender.send(common_handler::handle_set_resolver_overrides(shared_state, resolver_overrides)),
 
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
