@@ -3,10 +3,11 @@
 
 use bytes::Bytes;
 use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
+use nym_client_core::client::base_client::Event as MixnetClientEvent;
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::mixnet::MixnetClient;
+use nym_sdk::mixnet::{EventReceiver, MixnetClient};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
@@ -34,6 +35,9 @@ pub(super) struct MixnetListener {
 
     // Cancellation token
     shutdown_token: CancellationToken,
+
+    // Mixnet client event receiver
+    event_rx: EventReceiver,
 }
 
 impl MixnetListener {
@@ -44,6 +48,7 @@ impl MixnetListener {
         our_ips: IpPair,
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
         shutdown_token: CancellationToken,
+        event_rx: EventReceiver,
     ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
         let ipr_listener = IprListener::new();
         let mixnet_listener = Self {
@@ -54,6 +59,7 @@ impl MixnetListener {
             our_ips,
             connection_event_tx,
             shutdown_token,
+            event_rx,
         };
         tokio::spawn(mixnet_listener.run())
     }
@@ -90,6 +96,11 @@ impl MixnetListener {
                 _ = mixnet_cancel_token.cancelled() => {
                     tracing::debug!("Mixnet listener: Mixnet client stopped");
                     break;
+                }
+                Some(event) = self.event_rx.next() => {
+                    match event {
+                        MixnetClientEvent::FailedSendingSphinx => break,
+                    }
                 }
                 reconstructed_message = self.mixnet_client.next() => match reconstructed_message {
                     Some(reconstructed_message) => {
