@@ -1,0 +1,240 @@
+name: build-nym-vpn-apple
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/build-nym-vpn-apple.yml"
+      - "nym-vpn-apple/**"
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Build type"
+        type: choice
+        options: [pr, qa, ship]
+        default: pr
+  workflow_call:
+    outputs:
+      RUST_VERSION:
+        value: ${{ jobs.build-apple.outputs.RUST_VERSION }}
+
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+  # If this runs on PR, we default to 'pr', otherwise use manual input
+  RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apple:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: AppleSilicon
+    timeout-minutes: 60
+    outputs:
+      UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          components: rustfmt, clippy
+          targets: x86_64-apple-darwin aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
+
+      - name: Install cargo-swift
+        run: |
+          cargo install \
+            --git https://github.com/antoniusnaumann/cargo-swift \
+            --rev 53b948e8f37dd018300ae3fee2d0fd5ece59e2cd \
+            cargo-swift
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
+          cache: false
+
+      - name: Get workspace version
+        id: workspace-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Build core
+        working-directory: nym-vpn-apple/scripts
+        env:
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          sh BuildCore.sh
+
+      - name: Build iOS (PR, unsigned Debug)
+        if: env.RELEASE_TYPE == 'pr'
+        working-directory: nym-vpn-apple
+        env:
+          IPHONEOS_DEPLOYMENT_TARGET: 16.0
+        run: |
+          set -euxo pipefail
+          DERIVED_DATA="$PWD/.DerivedData-iOS"
+          xcodebuild \
+            -workspace NymVPN.xcworkspace \
+            -scheme NymVPN \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM= \
+            build
+          find "$DERIVED_DATA/Build/Products" -maxdepth 3 -name '*.app' -print || true
+
+      - name: Archive iOS (QA/Ship, signed Release, automatic)
+        if: env.RELEASE_TYPE != 'pr'
+        id: ios-archive
+        working-directory: nym-vpn-apple
+        env:
+          IPHONEOS_DEPLOYMENT_TARGET: 16.0
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euxo pipefail
+          ARCHIVE_PATH="$PWD/build/NymVPN-iOS.xcarchive"
+
+          xcodebuild \
+            -workspace NymVPN.xcworkspace \
+            -scheme NymVPN \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
+            -archivePath "$ARCHIVE_PATH" \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=YES \
+            -allowProvisioningUpdates \
+            clean archive
+
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Export IPA (QA – app-store)
+        if: env.RELEASE_TYPE == 'qa'
+        working-directory: nym-vpn-apple
+        run: |
+          set -euxo pipefail
+          EXPORT_DIR="$PWD/build/export-qa"
+          mkdir -p "$EXPORT_DIR"
+          cat > exportOptions.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>export</string>
+            <key>stripSwiftSymbols</key><true/>
+            <key>compileBitcode</key><false/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "${{ steps.ios-archive.outputs.archive_path }}" \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath "$EXPORT_DIR"
+          ls -la "$EXPORT_DIR"
+
+      - name: Export IPA (Ship – App Store)
+        if: env.RELEASE_TYPE == 'ship'
+        working-directory: nym-vpn-apple
+        run: |
+          set -euxo pipefail
+          EXPORT_DIR="$PWD/build/export-ship"
+          mkdir -p "$EXPORT_DIR"
+          cat > exportOptions.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>stripSwiftSymbols</key><true/>
+            <key>compileBitcode</key><false/>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>export</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "${{ steps.ios-archive.outputs.archive_path }}" \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath "$EXPORT_DIR"
+          ls -la "$EXPORT_DIR"
+
+      - name: Build macOS (PR, unsigned Debug)
+        if: env.RELEASE_TYPE == 'pr'
+        working-directory: nym-vpn-apple
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 13.0
+        run: |
+          set -euxo pipefail
+          DERIVED_DATA="$PWD/.DerivedData-macOS"
+          xcodebuild \
+            -workspace NymVPN.xcworkspace \
+            -scheme NymVPNDaemon \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM= \
+            build
+          find "$DERIVED_DATA/Build/Products" -maxdepth 3 -name '*.app' -print || true
+
+      - name: Archive macOS (QA/Ship, signed Release, automatic)
+        if: env.RELEASE_TYPE != 'pr'
+        id: mac-archive
+        working-directory: nym-vpn-apple
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 13.0
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euxo pipefail
+          ARCHIVE_PATH="$PWD/build/NymVPNDaemon-macOS.xcarchive"
+
+          xcodebuild \
+            -workspace NymVPN.xcworkspace \
+            -scheme NymVPNDaemon \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$ARCHIVE_PATH" \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=YES \
+            -allowProvisioningUpdates \
+            clean archive
+
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      # # ---------- Artifacts (helpful for QA/Ship) ----------
+      # - name: Upload artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: apple-builds-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
+      #     path: |
+      #       nym-vpn-apple/build/**/*.xcarchive
+      #       nym-vpn-apple/build/**/export-qa/*.ipa
+      #       nym-vpn-apple/build/**/export-ship/*.ipa
+      #       nym-vpn-apple/.DerivedData*/Build/Products/**/*.app
+      #     if-no-files-found: ignore
+      #     retention-days: 5
