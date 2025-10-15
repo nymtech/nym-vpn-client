@@ -10,10 +10,7 @@ cd "$SCRIPT_DIR"
 
 # usually /opt/testing
 RUNNER_DIR="$1"
-APP_PACKAGE="$2"
-PREVIOUS_APP="$3"
-UI_RUNNER="$4"
-UNPRIVILEGED_USER="$5"
+UNPRIVILEGED_USER="$2"
 
 # Copy over test runner to correct place
 
@@ -22,7 +19,7 @@ echo "Copying test-runner to $RUNNER_DIR"
 mkdir -p "$RUNNER_DIR"
 
 # Copy required files
-for file in test-runner connection-checker "$APP_PACKAGE"; do
+for file in test-runner connection-checker; do
     echo "Moving $SCRIPT_DIR/$file to $RUNNER_DIR"
     cp -f "$SCRIPT_DIR/$file" "$RUNNER_DIR"
 done
@@ -34,88 +31,18 @@ for file in nym-vpnc nym-vpnd; do
     cp -f "$SCRIPT_DIR/$file" "$RUNNER_DIR"
 done
 
-# Copy optional files if they exist and are not empty
-if [[ -n "$PREVIOUS_APP" && -f "$SCRIPT_DIR/$PREVIOUS_APP" ]]; then
-    echo "Moving $SCRIPT_DIR/$PREVIOUS_APP to $RUNNER_DIR"
-    cp -f "$SCRIPT_DIR/$PREVIOUS_APP" "$RUNNER_DIR"
-fi
-
-if [[ -n "$UI_RUNNER" && -f "$SCRIPT_DIR/$UI_RUNNER" ]]; then
-    echo "Moving $SCRIPT_DIR/$UI_RUNNER to $RUNNER_DIR"
-    cp -f "$SCRIPT_DIR/$UI_RUNNER" "$RUNNER_DIR"
-fi
-
 
 # Unprivileged users need execute rights for some executables
-chmod 775 "${RUNNER_DIR}/${APP_PACKAGE}"
 chmod 775 "${RUNNER_DIR}/test-runner"
 chmod 775 "${RUNNER_DIR}/connection-checker"
 chmod 775 "${RUNNER_DIR}/nym-vpnd"
 chmod 775 "${RUNNER_DIR}/nym-vpnc"
 
-if [[ -n "$UI_RUNNER" && -f "${RUNNER_DIR}/$UI_RUNNER" ]]; then
-    chmod 775 "${RUNNER_DIR}/$UI_RUNNER"
-fi
 
 chown -R root "$RUNNER_DIR/"
 
 # Create service
 
-function setup_macos {
-    RUNNER_PLIST_PATH="/Library/LaunchDaemons/net.mullvad.testunner.plist"
-
-    echo "Creating test runner service as $RUNNER_PLIST_PATH"
-
-    cat > $RUNNER_PLIST_PATH << EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>net.mullvad.testrunner</string>
-
-    <key>ProgramArguments</key>
-    <array>
-        <string>$RUNNER_DIR/test-runner</string>
-        <string>/dev/tty.virtio</string>
-        <string>serve</string>
-    </array>
-
-    <key>UserName</key>
-    <string>root</string>
-
-    <key>RunAtLoad</key>
-    <true/>
-
-    <key>KeepAlive</key>
-    <true/>
-
-    <key>StandardOutPath</key>
-    <string>/tmp/runner.out</string>
-
-    <key>StandardErrorPath</key>
-    <string>/tmp/runner.err</string>
-
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin</string>
-    </dict>
-</dict>
-</plist>
-EOF
-
-    create_test_user_macos
-
-    echo "Starting test runner service"
-
-    launchctl load -w $RUNNER_PLIST_PATH
-}
-
-function create_test_user_macos {
-    echo "Adding test user account"
-    sysadminctl -addUser "$UNPRIVILEGED_USER" -fullName "$UNPRIVILEGED_USER" -password "$UNPRIVILEGED_USER"
-}
 
 function setup_systemd_nym {
     VPND_SERVICE_PATH="/etc/systemd/system/nymvpnd.service"
@@ -155,7 +82,7 @@ function setup_systemd {
     # adding restart on failure because sometimes the runner panicks trying to bind to a socket
     cat > $RUNNER_SERVICE_PATH << EOF
 [Unit]
-Description=Mullvad Test Runner
+Description=Nym VPN Test Runner
 
 [Service]
 ExecStart=$RUNNER_DIR/test-runner /dev/ttyS0 serve
@@ -192,8 +119,8 @@ function create_test_user_linux {
 }
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
-    setup_macos
-    exit 0
+    echo "MacOS currently not supported"
+    exit 1
 fi
 
 setup_systemd

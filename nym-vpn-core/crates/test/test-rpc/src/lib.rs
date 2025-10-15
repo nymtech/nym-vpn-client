@@ -9,20 +9,16 @@ use std::{
     path::PathBuf,
 };
 
-pub mod client;
 pub mod client_nym;
 pub mod logging;
 pub mod meta;
-pub mod mullvad_daemon;
 pub mod net;
+pub mod nym_daemon;
 pub mod package;
 pub mod transport;
 
-
-pub use client::ServiceClient;
 pub use client_nym::NymServiceClient;
 pub use service::{Service, ServiceRequest, ServiceResponse};
-
 
 /// Unprivileged user. This is used for things like spawning processes.
 /// This is also used as the password for the same user, as is common practice.
@@ -171,18 +167,18 @@ mod service {
         /// Block if there is no output until some output is provided by the runner.
         async fn try_poll_output() -> Result<Vec<logging::Output>, Error>;
 
-        async fn get_mullvad_app_logs() -> logging::LogOutput;
+        async fn get_nymvpn_app_logs() -> logging::LogOutput;
 
         /// Return status of the system service.
-        async fn mullvad_daemon_get_status() -> mullvad_daemon::ServiceStatus;
+        async fn nymvpn_daemon_get_status() -> nym_daemon::ServiceStatus;
 
         /// Return version number of installed daemon.
-        async fn mullvad_version() -> Result<String, Error>;
+        async fn nymvpn_version() -> Result<String, Error>;
 
-        /// Returns all Mullvad app files, directories, and other data found on the system.
-        async fn find_mullvad_app_traces() -> Result<Vec<AppTrace>, Error>;
+        /// Returns all Nym VPN app files, directories, and other data found on the system.
+        async fn find_nymvpn_app_traces() -> Result<Vec<AppTrace>, Error>;
 
-        async fn get_mullvad_app_cache_dir() -> Result<PathBuf, Error>;
+        async fn get_nym_app_cache_dir() -> Result<PathBuf, Error>;
 
         /// Send TCP packet
         async fn send_tcp(
@@ -206,7 +202,7 @@ mod service {
         ) -> Result<(), Error>;
 
         /// Fetch the current location.
-        async fn geoip_lookup(mullvad_host: String) -> Result<AmIMullvad, Error>;
+        async fn geoip_lookup() -> Result<AmIMullvad, Error>;
 
         /// Returns the IP of the given interface.
         async fn get_interface_ip(interface: String) -> Result<IpAddr, Error>;
@@ -233,26 +229,24 @@ mod service {
         /// Stop forwarding TCP that was previously started with `start_tcp_forward`.
         async fn stop_tcp_forward(id: net::SockHandleId) -> Result<(), Error>;
 
-        /// Restart the Mullvad VPN application.
-        async fn restart_mullvad_daemon() -> Result<(), Error>;
+        /// Restart the Nym VPN application.
+        async fn restart_nymvpn_daemon() -> Result<(), Error>;
 
-        /// Stop the Mullvad VPN application.
-        async fn stop_mullvad_daemon() -> Result<(), Error>;
+        /// Stop the Nym VPN application.
+        async fn stop_nymvpn_daemon() -> Result<(), Error>;
 
-        /// Start the Mullvad VPN application.
-        async fn start_mullvad_daemon() -> Result<(), Error>;
+        /// Start the Nym VPN application.
+        async fn start_nymvpn_daemon() -> Result<(), Error>;
 
-        /// Disable the Mullvad VPN system service.
-        async fn disable_mullvad_daemon() -> Result<(), Error>;
+        /// Disable the Nym VPN system service.
+        async fn disable_nymvpn_daemon() -> Result<(), Error>;
 
-        /// Enable the Mullvad VPN system service.
-        async fn enable_mullvad_daemon() -> Result<(), Error>;
+        /// Enable the Nym VPN system service.
+        async fn enable_nymvpn_daemon() -> Result<(), Error>;
 
         /// Sets the log level of the daemon service, the verbosity level represents the number of
         /// `-v`s passed on the command line. This will restart the daemon system service.
-        async fn set_daemon_log_level(
-            verbosity_level: mullvad_daemon::Verbosity,
-        ) -> Result<(), Error>;
+        async fn set_daemon_log_level(verbosity_level: nym_daemon::Verbosity) -> Result<(), Error>;
 
         /// Set environment variables for the daemon service. This will restart the daemon system
         /// service.

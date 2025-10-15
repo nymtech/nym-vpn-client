@@ -5,8 +5,8 @@
 mod config;
 mod container;
 mod logging;
-mod mullvad_daemon;
 mod network_monitor;
+mod nym_daemon;
 mod package;
 mod run_tests;
 mod summary;
@@ -24,8 +24,6 @@ use package::TargetInfo;
 use tests::{config_nym::TEST_CONFIG_NYM, get_filtered_tests};
 use vm::provision;
 
-
-/// Test manager for Mullvad VPN app
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -71,12 +69,6 @@ enum Commands {
         #[arg(long)]
         keep_changes: bool,
 
-        /// API and conncheck environment to use. The domain name will be prefixed with "api." and
-        /// "ipv4.am.i.".
-        #[arg(long, value_parser = PossibleValuesParser::new(&["mullvad.net", "stagemole.eu", "devmole.eu"])
-        )]
-        mullvad_host: Option<String>,
-
         /// Run VNC server on a specified port
         #[arg(long, group = "display_args")]
         vnc: Option<u16>,
@@ -84,17 +76,6 @@ enum Commands {
         /// mnemonic in the form of 24 words to use in testing
         #[arg(long)]
         nym_mnemonic: String,
-
-        /// App package to test. Can be a path to the package, just the package file name, git hash
-        /// or tag. If the direct path is not given, the package is assumed to be in the directory
-        /// specified by the `--package-dir` argument.
-        ///
-        /// # Note
-        ///
-        /// The gRPC interface must be compatible with the version specified for
-        /// `mullvad-management-interface` in Cargo.toml.
-        #[arg(long)]
-        app_package: String,
 
         /// Given this argument, the `test_upgrade_app` test will run, which installs the previous
         /// version then upgrades to the version specified in by `--app-package`. If left empty,
@@ -115,12 +96,6 @@ enum Commands {
         /// Folder to search for packages. Defaults to current directory.
         #[arg(long, value_name = "DIR")]
         package_dir: Option<PathBuf>,
-
-        /// OpenVPN CA certificate to use with the app under test. The expected argument is a path
-        /// (absolut or relative) to the desired CA certificate. The default certificate is
-        /// `assets/openvpn.ca.crt`.
-        #[arg(long)]
-        openvpn_certificate: Option<PathBuf>,
 
         /// Names of tests to not run. Any tests given here will be skipped.
         #[arg(long)]
@@ -291,14 +266,11 @@ async fn main() -> Result<()> {
             vm,
             display,
             keep_changes,
-            mullvad_host,
             vnc,
             nym_mnemonic,
-            app_package,
             app_package_to_upgrade_from,
             gui_package,
             package_dir,
-            openvpn_certificate,
             skip,
             test_filters,
             verbose,
@@ -320,28 +292,8 @@ async fn main() -> Result<()> {
             };
             log::info!("🖥️ Display mode: {:?}", &config.runtime_opts.display);
 
-            if let Some(mullvad_host) = mullvad_host {
-                match config.mullvad_host {
-                    Some(old_host) => {
-                        log::info!("Overriding Mullvad host from {old_host} to {mullvad_host}",)
-                    }
-                    None => log::info!("Setting Mullvad host to {mullvad_host}",),
-                };
-                config.mullvad_host = Some(mullvad_host);
-            }
-
             let vm_config = vm::get_vm_config(&config, &vm).context("Cannot get VM config")?;
             let runner_target = TargetInfo::try_from(vm_config)?;
-
-            let manifest = package::get_app_manifest(
-                runner_target,
-                app_package,
-                app_package_to_upgrade_from,
-                gui_package,
-                package_dir,
-            )
-            .context("Could not find the specified app packages")?;
-
 
             let mut instance = vm::run(&config, &vm).await.context("Failed to start VM")?;
             let runner_dir = runner_dir.unwrap_or_else(|| {
@@ -349,7 +301,7 @@ async fn main() -> Result<()> {
                 vm_config.get_default_runner_dir()
             });
             log::debug!("Runner dir: {}", &runner_dir.display());
-            let artifacts_dir = provision::provision(vm_config, &*instance, &manifest, runner_dir)
+            let artifacts_dir = provision::provision(vm_config, &*instance, runner_dir)
                 .await
                 .context("Failed to run provisioning for VM")?;
 
@@ -363,23 +315,9 @@ async fn main() -> Result<()> {
             )?;
             log::debug!("bridge_name: {}, bridge_ip: {}", bridge_name, bridge_ip);
 
-            // TODO dz these values should be loaded as CLI arguments / env vars
-            // they are temporarily hardcoded
             TEST_CONFIG_NYM.init(tests::config_nym::TestConfigNym::new(
                 nym_mnemonic,
                 artifacts_dir,
-                manifest
-                    .app_package_path
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy()
-                    .into_owned(),
-                manifest
-                    .app_package_to_upgrade_from_path
-                    .map(|path| path.file_name().unwrap().to_string_lossy().into_owned()),
-                manifest
-                    .gui_package_path
-                    .map(|path| path.file_name().unwrap().to_string_lossy().into_owned()),
                 bridge_name,
                 bridge_ip,
                 test_rpc::meta::Os::from(vm_config.os_type),

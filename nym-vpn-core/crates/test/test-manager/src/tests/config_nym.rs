@@ -21,9 +21,6 @@ pub struct TestConfigNym {
     pub mnemonic: String,
 
     pub artifacts_dir: String,
-    pub app_package_filename: String,
-    pub app_package_to_upgrade_from_filename: Option<String>,
-    pub ui_e2e_tests_filename: Option<String>,
 
     pub host_bridge_name: String,
     pub host_bridge_ip: Ipv4Addr,
@@ -36,9 +33,6 @@ impl TestConfigNym {
     pub const fn new(
         mnemonic: String,
         artifacts_dir: String,
-        app_package_filename: String,
-        app_package_to_upgrade_from_filename: Option<String>,
-        ui_e2e_tests_filename: Option<String>,
         host_bridge_name: String,
         host_bridge_ip: Ipv4Addr,
         os: Os,
@@ -46,23 +40,10 @@ impl TestConfigNym {
         Self {
             mnemonic,
             artifacts_dir,
-            app_package_filename,
-            app_package_to_upgrade_from_filename,
-            ui_e2e_tests_filename,
             host_bridge_name,
             host_bridge_ip,
             os,
         }
-    }
-}
-
-/// The OpenVPN CA certificate to use with the installed Mullvad App.
-#[derive(Clone, Debug)]
-pub struct OpenVPNCertificate(Vec<u8>);
-
-impl OpenVPNCertificate {
-    pub fn from_file(path: impl AsRef<Path>) -> std::io::Result<Self> {
-        Ok(Self(std::fs::read(path)?))
     }
 }
 

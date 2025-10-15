@@ -32,7 +32,7 @@
 // TODO dz test annotated with `test_function_nym` should come here
 // test function will have access to RPC context & Nym client
 
-use crate::mullvad_daemon::RpcClientProvider;
+use crate::nym_daemon::RpcClientProvider;
 use crate::tests::config_nym::TEST_CONFIG_NYM;
 use crate::tests::{TestContext, helpers_nym};
 use anyhow::{Context, bail};
@@ -101,6 +101,8 @@ pub async fn basic_functionality(
 ) -> Result<(), anyhow::Error> {
     log::info!(" 🏗 Basic functionality test");
     // prepare_daemon_nym(&rpc, rpc_provider).await?;
+
+    anyhow::bail!("Something went wrong");
 
     let is_stored = nym_proxy_client.is_account_stored().await?;
     let account_state = nym_proxy_client.get_account_state().await?;

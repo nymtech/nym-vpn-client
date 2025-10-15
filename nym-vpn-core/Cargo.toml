@@ -41,7 +41,6 @@ members = [
     "crates/test/test-manager",
     "crates/test/test-rpc",
     "crates/test/test-runner",
-    # TODO dz remove
     "crates/test/connection-checker",
 ]
 

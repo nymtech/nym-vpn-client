@@ -21,7 +21,6 @@ use test_rpc::UNPRIVILEGED_USER;
 pub async fn provision(
     config: &VmConfig,
     instance: &dyn super::VmInstance,
-    app_manifest: &package::Manifest,
     runner_dir: PathBuf,
 ) -> Result<String> {
     match config.provisioner {
@@ -33,7 +32,6 @@ pub async fn provision(
                 instance,
                 config.os_type,
                 &runner_dir,
-                app_manifest,
                 user,
                 password,
             )
@@ -55,7 +53,6 @@ async fn provision_ssh(
     instance: &dyn super::VmInstance,
     os_type: OsType,
     local_runner_dir: &Path,
-    local_app_manifest: &package::Manifest,
     user: &str,
     password: &str,
 ) -> Result<String> {
@@ -71,7 +68,6 @@ async fn provision_ssh(
     );
 
     let local_runner_dir = local_runner_dir.to_owned();
-    let local_app_manifest = local_app_manifest.to_owned();
 
     let remote_dir = tokio::task::spawn_blocking(move || {
         const SSH_TIMEOUT: Duration = Duration::from_secs(120);
@@ -83,7 +79,6 @@ async fn provision_ssh(
                 guest_ip,
                 os_type,
                 &local_runner_dir,
-                local_app_manifest.clone(),
             );
             if started.elapsed() < SSH_TIMEOUT {
                 if let Err(err) = last_result {
@@ -110,7 +105,6 @@ fn blocking_ssh(
     guest_ip: IpAddr,
     os_type: OsType,
     local_runner_dir: &Path,
-    local_app_manifest: package::Manifest,
 ) -> Result<String> {
     let remote_dir = match os_type {
         // FIXME: There is a problem with the `ssh2` crate (both with scp and sftp) that
@@ -150,12 +144,6 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
-    // Transfer app packages
-    let source = &local_app_manifest.app_package_path;
-    log::debug!("Source: {}", source.display());
-    ssh_send_file_with_opts(&session, source, temp_dir, FileOpts { executable: true })
-        .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
-
     // TODO dz hacky way to transfer vpnd
     let source =
         PathBuf::from("/home/dinko/git/nym-vpn-client/nym-vpn-core/target/release/nym-vpnd");
@@ -170,21 +158,6 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
-    if let Some(source) = &local_app_manifest.app_package_to_upgrade_from_path {
-        log::debug!("Source: {}", source.display());
-        ssh_send_file_with_opts(&session, source, temp_dir, FileOpts { executable: true })
-            .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
-    } else {
-        log::warn!("No previous app package to upgrade from to send to remote")
-    }
-    if let Some(source) = &local_app_manifest.gui_package_path {
-        log::debug!("Source: {}", source.display());
-        ssh_send_file_with_opts(&session, source, temp_dir, FileOpts { executable: true })
-            .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
-    } else {
-        log::warn!("No UI e2e test to send to remote")
-    }
-
     // Transfer setup script
     if matches!(os_type, OsType::Linux | OsType::Macos) {
         // TODO: Move this name to a constant somewhere?
@@ -197,24 +170,9 @@ fn blocking_ssh(
         )
         .context("failed to send bootstrap script to remote")?;
 
-        // Run setup script
-        let app_package_path = local_app_manifest
-            .app_package_path
-            .file_name()
-            .unwrap()
-            .to_string_lossy();
-        let app_package_to_upgrade_from_path = local_app_manifest
-            .app_package_to_upgrade_from_path
-            .map(|path| path.file_name().unwrap().to_string_lossy().into_owned())
-            .unwrap_or_default();
-        let gui_package_path = local_app_manifest
-            .gui_package_path
-            .map(|path| path.file_name().unwrap().to_string_lossy().into_owned())
-            .unwrap_or_default();
-
         // Run the setup script in the test runner
         let cmd = format!(
-            r#"sudo {} {remote_dir} "{app_package_path}" "{app_package_to_upgrade_from_path}" "{gui_package_path}" "{UNPRIVILEGED_USER}""#,
+            r#"sudo {} {remote_dir} "{UNPRIVILEGED_USER}""#,
             bootstrap_script_dest.display(),
         );
         log::debug!("Running setup script on remote, cmd: {cmd}");

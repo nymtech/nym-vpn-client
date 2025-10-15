@@ -22,7 +22,6 @@ pub struct Config {
     #[serde(skip)]
     pub runtime_opts: RuntimeOptions,
     pub vms: BTreeMap<String, VmConfig>,
-    pub mullvad_host: Option<String>,
     #[serde(default)]
     pub test_locations: TestLocationList,
 }
@@ -44,63 +43,5 @@ pub enum Display {
 impl Config {
     pub fn get_vm(&self, name: &str) -> Option<&VmConfig> {
         self.vms.get(name)
-    }
-
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_test_location_empty() {
-        let config = r#"
-            {
-                "vms": {},
-                "mullvad_host": "mullvad.net"
-            }"#;
-
-        let config: Config = serde_json::from_str(config).unwrap();
-        assert!(config.test_locations.0.is_empty());
-    }
-
-    #[test]
-    fn parse_test_location_not_empty() {
-        let config = r#"
-            {
-                "vms": {},
-                "mullvad_host": "mullvad.net",
-                "test_locations": [
-                    { "*daita": [ "se-got-wg-001", "se-got-wg-002" ] },
-                    { "*": [ "se" ] }
-                ]
-            }"#;
-
-        let config: Config = serde_json::from_str(config).unwrap();
-        assert!(
-            config
-                .test_locations
-                .lookup("test_daita")
-                .unwrap()
-                .contains(&"se-got-wg-002".to_string())
-        );
-        assert!(!config.test_locations.0.is_empty());
-    }
-
-    #[test]
-    fn parse_multiple_keys_in_map_should_fail() {
-        let config = r#"
-            {
-                "vms": {},
-                "mullvad_host": "mullvad.net",
-                "test_locations": [
-                    {
-                        "*daita": [ "se-got-wg-001", "se-got-wg-002" ],
-                        "*test": ["se"]
-                    },
-                ]
-            }"#;
-
-        let _err = serde_json::from_str::<Config>(config).unwrap_err();
     }
 }

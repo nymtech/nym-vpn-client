@@ -4,8 +4,8 @@
 
 use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
 use crate::{
-    app_nymvpn, forward, get_mullvad_pipe_status, get_nymvpn_pipe_status, logging,
-    logging::LOGGER, net, package, package_nym, sys, util, util::OnDrop,
+    app_nymvpn, forward, get_mullvad_pipe_status, get_nymvpn_pipe_status, logging, logging::LOGGER,
+    net, package, package_nym, sys, util, util::OnDrop,
 };
 use futures::{FutureExt, select, select_biased};
 use std::{
@@ -29,7 +29,6 @@ use tokio::{
     time::sleep,
 };
 
-const NYM_VPND_BINARY_NAME: &str = "nym-vpnd";
 const NYM_SYSTEMD_SERVICE_NAME: &str = "nymvpnd.service";
 
 #[derive(Clone, Default)]
@@ -126,30 +125,27 @@ impl Service for NymTestServer {
     }
 
     /// TODO dz refers to Nym daemon in this case
-    async fn mullvad_daemon_get_status(
+    async fn nymvpn_daemon_get_status(
         self,
         _: context::Context,
-    ) -> test_rpc::mullvad_daemon::ServiceStatus {
+    ) -> test_rpc::nym_daemon::ServiceStatus {
         get_nymvpn_pipe_status()
     }
 
     /// Get the installed app version
-    async fn mullvad_version(self, _: context::Context) -> Result<String, test_rpc::Error> {
+    async fn nymvpn_version(self, _: context::Context) -> Result<String, test_rpc::Error> {
         app_nymvpn::version().await
     }
 
     /// refers to Nym daemon in this case
-    async fn find_mullvad_app_traces(
+    async fn find_nymvpn_app_traces(
         self,
         _: context::Context,
     ) -> Result<Vec<AppTrace>, test_rpc::Error> {
         app_nymvpn::find_traces()
     }
 
-    async fn get_mullvad_app_cache_dir(
-        self,
-        _: context::Context,
-    ) -> Result<PathBuf, test_rpc::Error> {
+    async fn get_nym_app_cache_dir(self, _: context::Context) -> Result<PathBuf, test_rpc::Error> {
         app_nymvpn::find_cache_traces()
     }
 
@@ -188,7 +184,6 @@ impl Service for NymTestServer {
     async fn geoip_lookup(
         self,
         ctx: context::Context,
-        mullvad_host: String,
     ) -> Result<test_rpc::AmIMullvad, test_rpc::Error> {
         unimplemented!()
     }
@@ -290,26 +285,26 @@ impl Service for NymTestServer {
         }
     }
 
-    async fn get_mullvad_app_logs(self, _: context::Context) -> test_rpc::logging::LogOutput {
+    async fn get_nymvpn_app_logs(self, _: context::Context) -> test_rpc::logging::LogOutput {
         logging::get_nym_app_logs().await
     }
 
-    async fn restart_mullvad_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
+    async fn restart_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
         sys::restart_app(NYM_SYSTEMD_SERVICE_NAME).await
     }
 
     /// Stop the Mullvad VPN application.
-    async fn stop_mullvad_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
+    async fn stop_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
         sys::stop_app(NYM_SYSTEMD_SERVICE_NAME).await
     }
 
     /// Start the Mullvad VPN application.
-    async fn start_mullvad_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
+    async fn start_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
         sys::start_app(NYM_SYSTEMD_SERVICE_NAME).await
     }
 
     /// Disable the Mullvad VPN system service.
-    async fn disable_mullvad_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
+    async fn disable_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
         #[cfg(not(target_os = "windows"))]
         {
             log::warn!("disable_mullvad_daemon is only implemented on Windows");
@@ -321,7 +316,7 @@ impl Service for NymTestServer {
         }
     }
 
-    async fn enable_mullvad_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
+    async fn enable_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
         #[cfg(not(target_os = "windows"))]
         {
             log::warn!("enable_mullvad_daemon is only implemented on Windows");
@@ -336,7 +331,7 @@ impl Service for NymTestServer {
     async fn set_daemon_log_level(
         self,
         _: context::Context,
-        verbosity_level: test_rpc::mullvad_daemon::Verbosity,
+        verbosity_level: test_rpc::nym_daemon::Verbosity,
     ) -> Result<(), test_rpc::Error> {
         sys::set_daemon_log_level(
             verbosity_level,

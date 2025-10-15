@@ -2,13 +2,13 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::tests::helpers_nym::{login_with_retries};
+use crate::tests::helpers_nym::login_with_retries;
 
 use super::{Error, TestContext};
 use anyhow::Context;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
-use test_rpc::{NymServiceClient, ServiceClient};
+use test_rpc::NymServiceClient;
 
 // TODO dz implement for Nym
 // /// Log out and remove the current device
@@ -20,15 +20,15 @@ use test_rpc::{NymServiceClient, ServiceClient};
 //     mut mullvad_client: MullvadProxyClient,
 // ) -> Result<(), Error> {
 //     log::info!("Removing device");
-// 
+//
 //     mullvad_client
 //         .logout_account()
 //         .await
 //         .expect("logout failed");
-// 
+//
 //     Ok(())
 // }
-// 
+//
 // async fn get_current_wireguard_key(
 //     mullvad_client: &mut MullvadProxyClient,
 // ) -> anyhow::Result<PublicKey> {
@@ -57,4 +57,3 @@ pub async fn clear_devices(nym_client: &mut NymProxyClient) -> anyhow::Result<()
 
     Ok(())
 }
-
