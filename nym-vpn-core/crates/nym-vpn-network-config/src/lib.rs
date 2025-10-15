@@ -250,10 +250,14 @@ impl Network {
         for api_url in self.nym_vpn_network.nym_vpn_api_urls.iter() {
             if let Some(fronts) = api_url.fronts.as_ref() {
                 for front in fronts {
-                    // Errors are ignored here!
-                    if let Ok(addrs) = str_to_socket_addr(front).await {
-                        for addr in addrs {
-                            unique.insert(addr);
+                    match str_to_socket_addr(front).await {
+                        Ok(addrs) => {
+                            for addr in addrs {
+                                unique.insert(addr);
+                            }
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to resolve address of front: {front}: {e}");
                         }
                     }
                 }
