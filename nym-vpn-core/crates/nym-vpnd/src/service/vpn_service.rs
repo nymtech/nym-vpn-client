@@ -4,8 +4,8 @@
 use std::{path::PathBuf, pin::Pin};
 
 use bip39::Mnemonic;
-use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
@@ -16,8 +16,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
 use nym_statistics::{
-    events::{StatisticsEvent, StatisticsSender}, StatisticsController,
-    StatisticsControllerConfig,
+    StatisticsController, StatisticsControllerConfig,
+    events::{StatisticsEvent, StatisticsSender},
 };
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
@@ -25,9 +25,9 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
-    UserAgent,
-    VpnTopologyProvider,
+    UserAgent, VpnTopologyProvider,
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,

@@ -8,21 +8,21 @@ use std::{
 };
 
 use crate::{netstack::NetstackResult, types::Entry};
-use anyhow::{anyhow, bail, Context};
-use base64::{engine::general_purpose, Engine as _};
+use anyhow::{Context, anyhow, bail};
+use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
 use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{AuthClientMixnetListener, AuthenticatorClient};
 use nym_authenticator_requests::{
-    client_message::ClientMessage, response::AuthenticatorResponse, v2, v3, v4,
-    v5, AuthenticatorVersion,
+    AuthenticatorVersion, client_message::ClientMessage, response::AuthenticatorResponse, v2, v3,
+    v4, v5,
 };
 use nym_bandwidth_controller::error::BandwidthControllerError;
 use nym_client_core::{client::base_client::storage::OnDiskPersistent, config::ForgetMe};
 use nym_config::defaults::{
-    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6}, NymNetworkDetails, WG_METADATA_PORT,
-    WG_TUN_DEVICE_IP_ADDRESS_V4,
+    NymNetworkDetails, WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4,
+    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
 };
 use nym_connection_monitor::self_ping_and_wait;
 use nym_credentials_interface::{CredentialSpendingData, TicketType};
@@ -34,11 +34,11 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::{
+    IpPair,
     codec::MultiIpPacketCodec,
     v8::response::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
-    IpPair,
 };
 use nym_sdk::{
     bandwidth::BandwidthImporter,

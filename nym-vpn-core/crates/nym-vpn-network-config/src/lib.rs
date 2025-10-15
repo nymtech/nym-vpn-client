@@ -250,7 +250,7 @@ impl Network {
         for api_url in self.nym_vpn_network.nym_vpn_api_urls.iter() {
             if let Some(fronts) = api_url.fronts.as_ref() {
                 for front in fronts {
-                        // Errors are ignored here!
+                    // Errors are ignored here!
                     if let Ok(addrs) = str_to_socket_addr(front).await {
                         for addr in addrs {
                             unique.insert(addr);
@@ -261,7 +261,8 @@ impl Network {
         }
 
         unique.into_iter().collect()
-    }}
+    }
+}
 
 pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {
     RegisteredNetworks::ensure_exists(config_path).await
