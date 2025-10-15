@@ -710,7 +710,7 @@ pub enum Error {
 
     #[error("wireguard key database")]
     WireguardKeyDb(#[source] nym_vpn_store::keys::wireguard::KeysDbError),
-    
+
     #[error("failed to create gateway directory client")]
     GatewayDirectoryClient(#[source] nym_gateway_directory::Error),
 }

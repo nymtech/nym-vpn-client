@@ -8,12 +8,12 @@ use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::fronted_http_client::build_fronted_http_client;
 use nym_vpn_lib::{
+    VpnTopologyProvider,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
         WireguardTunnelOptions,
     },
-    VpnTopologyProvider,
 };
 use nym_vpn_lib_types::TunnelType;
 use nym_vpn_network_config::Network;
@@ -22,7 +22,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::gateway_cache;
 
-use super::{error::VpnError, VPNConfig, STATE_MACHINE_HANDLE};
+use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
 pub(super) async fn init_state_machine(
     config: Box<VPNConfig>,

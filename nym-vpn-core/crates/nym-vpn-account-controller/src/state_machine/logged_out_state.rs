@@ -7,12 +7,12 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    commands::{common_handler, handler, AccountCommand, CommonCommand, ReturnSender},
+    SharedAccountState,
+    commands::{AccountCommand, CommonCommand, ReturnSender, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
         PrivateAccountControllerState, SyncingState,
     },
-    SharedAccountState,
 };
 
 /// LoggedOut state

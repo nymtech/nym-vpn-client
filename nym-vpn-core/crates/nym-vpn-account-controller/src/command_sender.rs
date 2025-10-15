@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    commands::{AccountCommand, CommonCommand, ReturnSender},
     AvailableTicketbooks,
+    commands::{AccountCommand, CommonCommand, ReturnSender},
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
-    ResolverOverrides,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::types::StorableAccount;

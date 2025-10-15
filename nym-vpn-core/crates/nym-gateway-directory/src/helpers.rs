@@ -3,7 +3,7 @@
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use crate::{error::Result, gateway_client::ResolvedConfig, Config};
+use crate::{Config, error::Result, gateway_client::ResolvedConfig};
 
 pub async fn resolve_config(config: &Config) -> Result<ResolvedConfig> {
     ResolvedConfig::from_config(config).await

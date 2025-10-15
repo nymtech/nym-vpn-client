@@ -7,7 +7,7 @@ use nym_vpn_lib_types::UserAgent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{error::VpnError, GATEWAY_CACHE};
+use crate::{GATEWAY_CACHE, error::VpnError};
 
 pub struct UniffiGatewayCacheHandle {
     directory_config: nym_gateway_directory::Config,
