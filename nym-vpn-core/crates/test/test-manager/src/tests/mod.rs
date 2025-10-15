@@ -2,24 +2,24 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod envs;
 mod account_nym;
 pub mod config_nym;
+mod envs;
 mod helpers_nym;
 pub mod nym_test;
 mod test_metadata;
 
 use itertools::Itertools;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-pub use test_metadata::{TestMetadata, VpnClientKind};
+pub use test_metadata::TestMetadata;
 
 use anyhow::Context;
 use futures::future::BoxFuture;
 use std::{ops::Not, time::Duration};
 
-use crate::{mullvad_daemon::RpcClientProvider};
-use test_rpc::{NymServiceClient, meta::Os};
+use crate::nym_daemon::RpcClientProvider;
 use crate::tests::config_nym::TEST_CONFIG_NYM;
+use test_rpc::{NymServiceClient, meta::Os};
 
 const WAIT_FOR_TUNNEL_STATE_TIMEOUT: Duration = Duration::from_secs(40);
 
@@ -27,7 +27,6 @@ const WAIT_FOR_TUNNEL_STATE_TIMEOUT: Duration = Duration::from_secs(40);
 pub struct TestContext {
     pub rpc_provider: RpcClientProvider,
 }
-
 
 pub type TestWrapperFunctionNym = fn(
     TestContext,
@@ -154,7 +153,6 @@ pub fn get_filtered_tests(
 
 //     Ok(mullvad_client)
 // }
-
 
 //    /// Reset the daemons environment.
 //    ///

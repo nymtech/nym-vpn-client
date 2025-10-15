@@ -44,9 +44,9 @@ function get_package_dir {
         # Resolve the package dir to an absolute path since cargo must be invoked from the test directory
         package_dir=$(realpath "$PACKAGE_DIR")
     elif [[ ("$(uname -s)" == "Darwin") ]]; then
-        package_dir="$HOME/Library/Caches/mullvad-test/packages"
+        package_dir="$HOME/Library/Caches/nym-test/packages"
     elif [[ ("$(uname -s)" == "Linux") ]]; then
-        package_dir="$HOME/.cache/mullvad-test/packages"
+        package_dir="$HOME/.cache/nym-test/packages"
     else
         echo "Unsupported OS" 1>&2
         exit 1

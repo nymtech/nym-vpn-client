@@ -7,7 +7,9 @@ use std::{io, time::Duration};
 
 use futures::{FutureExt, SinkExt, StreamExt, channel::mpsc, future::BoxFuture, pin_mut};
 use hyper_util::rt::TokioIo;
-use nym_vpn_proto::rpc_client::{RpcClient as NymProxyClient, ServiceClient as ManagementServiceClientNym};
+use nym_vpn_proto::rpc_client::{
+    RpcClient as NymProxyClient, ServiceClient as ManagementServiceClientNym,
+};
 use test_rpc::transport::{ConnectionHandle, GrpcForwarder};
 use tokio::io::{AsyncReadExt, AsyncWriteExt, DuplexStream};
 use tokio_util::codec::{Decoder, LengthDelimitedCodec};
@@ -71,9 +73,9 @@ impl RpcClientProvider {
 
 pub fn new_rpc_client(
     connection_handle: ConnectionHandle,
-    mullvad_daemon_transport: GrpcForwarder,
+    nym_daemon_transport: GrpcForwarder,
 ) -> RpcClientProvider {
-    let mut framed_transport = LengthDelimitedCodec::new().framed(mullvad_daemon_transport);
+    let mut framed_transport = LengthDelimitedCodec::new().framed(nym_daemon_transport);
     let (management_channel_provider_tx, mut management_channel_provider_rx) = mpsc::unbounded();
 
     tokio::spawn(async move {

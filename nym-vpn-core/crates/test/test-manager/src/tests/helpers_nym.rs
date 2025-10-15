@@ -6,26 +6,23 @@ use super::{
     Error, TestContext, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM, helpers_nym,
 };
 use crate::{
-    mullvad_daemon::RpcClientProvider,
     network_monitor::{
         self, MonitorOptions, MonitorUnexpectedlyStopped, PacketMonitor, start_packet_monitor,
     },
+    nym_daemon::RpcClientProvider,
 };
 use anyhow::{Context, anyhow, bail};
 use futures::StreamExt;
-use nym_vpn_lib_types::{TunnelState, TunnelEvent};
-use nym_vpn_proto::rpc_client::{RpcClient as NymProxyClient, Error as NymClientError};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
 use pnet_packet::ip::IpNextHeaderProtocols;
 use std::{
     collections::HashMap,
     net::{IpAddr, SocketAddr},
     path::Path,
-    time::{Duration},
+    time::Duration,
 };
-use test_rpc::{
-    NymServiceClient, ServiceClient,
-    mullvad_daemon::ServiceStatus, package::Package,
-};
+use test_rpc::{NymServiceClient, nym_daemon::ServiceStatus, package::Package};
 use tokio::time::sleep;
 
 pub const THROTTLE_RETRY_DELAY: Duration = Duration::from_secs(120);
@@ -77,27 +74,15 @@ pub async fn install_app(
     .map_err(|_timeout| Error::DaemonNotRunning)??;
 
     // Set the log level to trace
-    rpc.set_daemon_log_level(test_rpc::mullvad_daemon::Verbosity::Trace)
+    rpc.set_daemon_log_level(test_rpc::nym_daemon::Verbosity::Trace)
         .await?;
 
     // Override env vars
     // TODO dz path should probably be passed from the caller
     rpc.set_daemon_environment(get_app_env().await?).await?;
 
-    // TODO dz double check we don't need an equivalent for nym
-    // helpers::ensure_updated_relay_list(&mut mullvad_client)
-    //     .await
-    //     .context("Failed to update relay list")?;
-
     Ok(rpc_provider.new_client_nym().await)
 }
-
-// we don't use openVPN
-/// Replace the OpenVPN CA certificate which is currently used by the installed Mullvad App.
-/// This needs to be invoked after reach (re)installation to use the custom OpenVPN certificate.
-// async fn replace_openvpn_certificate(rpc: &ServiceClient) -> Result<(), Error> {
-//     unimplemented!()
-// }
 
 pub fn get_package_desc(name: &str) -> Package {
     Package {
@@ -110,7 +95,7 @@ pub fn get_package_desc(name: &str) -> Package {
 /// # macOS
 /// The tunnel must be reconfigured after the virtual machine is up,
 /// or macOS refuses to assign an IP. The reasons for this are poorly understood.
-pub async fn reboot(rpc: &mut ServiceClient) -> Result<(), Error> {
+pub async fn reboot(rpc: &mut NymServiceClient) -> Result<(), Error> {
     rpc.reboot().await?;
 
     #[cfg(target_os = "macos")]
@@ -143,17 +128,8 @@ impl ProbeResult {
 }
 
 // TODO dz we might want Nym equivalent
-/// Return whether the guest exit IP is a Mullvad relay
-// pub async fn using_mullvad_exit(rpc: &ServiceClient) -> bool {
-//     log::info!("Test whether exit IP is a mullvad relay");
-//     geoip_lookup_with_retries(rpc)
-//         .await
-//         .unwrap()
-//         .mullvad_exit_ip
-// }
-
 // /// Get VPN tunnel interface name
-// pub async fn get_tunnel_interface(client: &mut MullvadProxyClient) -> anyhow::Result<String> {
+// pub async fn get_tunnel_interface(client: &mut NymProxyClient) -> anyhow::Result<String> {
 //     match client.get_tunnel_state().await? {
 //         TunnelState::Connecting { endpoint, .. } | TunnelState::Connected { endpoint, .. } => {
 //             let Some(tunnel_interface) = endpoint.tunnel_interface else {
@@ -167,7 +143,7 @@ impl ProbeResult {
 
 /// Sends a number of probes and returns the number of observed packets (UDP, TCP, or ICMP)
 pub async fn send_guest_probes(
-    rpc: ServiceClient,
+    rpc: NymServiceClient,
     interface: String,
     destination: SocketAddr,
 ) -> ProbeResult {
@@ -216,7 +192,7 @@ pub async fn send_guest_probes(
 
 /// Send one probe per transport protocol to `destination` without running a packet monitor
 pub async fn send_guest_probes_without_monitor(
-    rpc: ServiceClient,
+    rpc: NymServiceClient,
     interface: Option<String>,
     destination: SocketAddr,
 ) {
@@ -250,7 +226,7 @@ pub async fn send_guest_probes_without_monitor(
 }
 
 pub async fn ping_with_timeout(
-    rpc: &ServiceClient,
+    rpc: &NymServiceClient,
     dest: IpAddr,
     interface: Option<String>,
 ) -> Result<(), Error> {
@@ -262,7 +238,7 @@ pub async fn ping_with_timeout(
 }
 
 pub async fn ping_sized_with_timeout(
-    rpc: &ServiceClient,
+    rpc: &NymServiceClient,
     dest: IpAddr,
     interface: Option<String>,
     size: usize,
@@ -357,7 +333,10 @@ pub async fn login_with_retries(nym_client: &mut NymProxyClient) -> Result<(), N
     // TODO dz loop is to avoid throttling (inherited from mullvad)
     // is this necessary?
     loop {
-        match nym_client.store_account_friendly(&TEST_CONFIG_NYM.mnemonic).await {
+        match nym_client
+            .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
+            .await
+        {
             Err(NymClientError::Rpc(status))
                 if status.message().to_uppercase().contains("THROTTLED") =>
             {
@@ -422,14 +401,14 @@ pub async fn ensure_logged_in(nym_client: &mut NymProxyClient) -> anyhow::Result
 ///       [`Error::UnexpectedErrorState`] is returned
 // TODO dz might need this
 // pub async fn connect_and_wait(
-//     mullvad_client: &mut MullvadProxyClient,
+//     nym_client: &mut NymProxyClient,
 // ) -> Result<TunnelState, Error> {
 //     log::info!("Connecting");
 //
 //     let initial_time = Instant::now();
 //
-//     mullvad_client.connect_tunnel().await?;
-//     let new_state = wait_for_tunnel_state(mullvad_client.clone(), |state| {
+//     nym_client.connect_tunnel().await?;
+//     let new_state = wait_for_tunnel_state(nym_client.clone(), |state| {
 //         matches!(
 //             state,
 //             tunnel_state::Connected { .. } | tunnel_state::Error(..)
@@ -524,13 +503,13 @@ where
     }
 }
 
-/// Set environment variables specified by `env` and restart the Mullvad daemon.
-/// Returns a new [rpc client][`MullvadProxyClient`], since the old client *probably*
+/// Set environment variables specified by `env` and restart the Nym daemon.
+/// Returns a new [rpc client][`NymProxyClient`], since the old client *probably*
 /// can't communicate with the new daemon.
 ///
 /// # Note
 /// This is just a thin wrapper around [`ServiceClient::set_daemon_environment`] which also
-/// invalidates the old [`MullvadProxyClient`].
+/// invalidates the old [`NymProxyClient`].
 pub async fn restart_daemon_with<K, V, Env>(
     rpc: &NymServiceClient,
     test_context: &TestContext,
@@ -586,8 +565,6 @@ impl<T> Drop for AbortOnDrop<T> {
     }
 }
 
-
-
 // TODO dz
 /// Wait for the relay list to be updated, to make sure we have the overridden one.
 /// Time out after a while.
@@ -609,7 +586,6 @@ impl<T> Drop for AbortOnDrop<T> {
 //
 //     Ok(())
 // }
-
 
 /// environment variables required for the nym VPN daemon to function & connect properly
 pub async fn get_app_env() -> anyhow::Result<HashMap<String, String>> {
@@ -688,10 +664,9 @@ pub async fn get_app_env() -> anyhow::Result<HashMap<String, String>> {
     ]))
 }
 
-
 // TODO dz get all entry gateways?
 // pub async fn get_all_pickable_relays(
-//     mullvad_client: &mut MullvadProxyClient,
+//     mullvad_client: &mut NymProxyClient,
 // ) -> anyhow::Result<Vec<Relay>> {
 //     let settings = mullvad_client.get_settings().await?;
 //     let relay_list = mullvad_client.get_relay_locations().await?;
@@ -702,7 +677,6 @@ pub async fn get_app_env() -> anyhow::Result<HashMap<String, String>> {
 //     );
 //     Ok(relays)
 // }
-
 
 /// Ping monitoring made easy!
 ///
@@ -727,7 +701,7 @@ impl Pinger {
     /// Create a [`Pinger`] with a default configuration.
     ///
     /// See [`PingerBuilder`] for details.
-    pub async fn start(rpc: &test_rpc::ServiceClient) -> Pinger {
+    pub async fn start(rpc: &test_rpc::NymServiceClient) -> Pinger {
         let defaults = PingerBuilder::default();
         Self::start_with(defaults, rpc).await
     }
@@ -736,7 +710,7 @@ impl Pinger {
     ///
     /// See [`PingerBuilder`] for details on how to configure a [`Pinger`]
     /// before starting it.
-    pub async fn start_with(builder: PingerBuilder, rpc: &test_rpc::ServiceClient) -> Pinger {
+    pub async fn start_with(builder: PingerBuilder, rpc: &test_rpc::NymServiceClient) -> Pinger {
         // Get the associated IP address of the test runner on the default, non-tunnel interface.
         let guest_ip = obtain_guest_ip(rpc).await;
         log::debug!("Guest IP: {guest_ip}");
@@ -793,7 +767,7 @@ impl Pinger {
 }
 
 /// Returns the [`IpAddr`] of the default non-tunnel interface.
-async fn obtain_guest_ip(rpc: &ServiceClient) -> IpAddr {
+async fn obtain_guest_ip(rpc: &NymServiceClient) -> IpAddr {
     let guest_iface = rpc
         .get_default_interface()
         .await
@@ -840,7 +814,7 @@ impl PingerBuilder {
 /// leak traffic outside the tunnel by sending TCP, UDP, and ICMP packets to [LEAK_DESTINATION].
 pub struct ConnCheckerNym {
     rpc: NymServiceClient,
-    mullvad_client: NymProxyClient,
+    nym_client: NymProxyClient,
     leak_destination: SocketAddr,
 
     /// Path to the process binary.

@@ -2,9 +2,10 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::tests::TestWrapperFunctionNym;
 use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
-    mullvad_daemon::{self, RpcClientProvider},
+    nym_daemon::{self, RpcClientProvider},
     summary::SummaryLogger,
     tests::{self, TestContext, TestMetadata, nym_test},
     vm,
@@ -13,8 +14,7 @@ use anyhow::{Context, Result};
 use futures::FutureExt;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::{future::Future, panic, time::Duration};
-use test_rpc::{ServiceClient, client_nym::NymServiceClient, logging::Output};
-use crate::tests::TestWrapperFunctionNym;
+use test_rpc::{client_nym::NymServiceClient, logging::Output};
 
 /// The baud rate of the serial connection between the test manager and the test runner.
 /// There is a known issue with setting a baud rate at all or macOS, and the workaround
@@ -40,8 +40,7 @@ impl TestHandler<'_> {
         test: TestWrapperFunctionNym,
         test_name: &'static str,
         nym_client: Option<NymProxyClient>,
-    ) -> Result<(), anyhow::Error>
-    {
+    ) -> Result<(), anyhow::Error> {
         log::info!("Running {test_name}");
 
         if self.print_failed_tests_only {
@@ -130,7 +129,7 @@ pub async fn run(
         }
     };
     // runner transport - for tarpc test RPC calls to test-rpc
-    // daemon transport - for gRPC calls to Mullvad / Nym daemon
+    // daemon transport - for gRPC calls to Nym daemon
     let (runner_transport, daemon_transport, mut connection_handle, completion_handle) =
         test_rpc::transport::create_client_transports(serial_stream)?;
 
@@ -140,11 +139,9 @@ pub async fn run(
 
     log::info!("Running client");
 
-    // TODO dz here we disable mullvad and enable Nym daemon communication instead
-    // let test_runner_client = ServiceClient::new(connection_handle.clone(), runner_transport);
     let nym_service_client = NymServiceClient::new(connection_handle.clone(), runner_transport);
     log::debug!("Created service client");
-    let rpc_provider = mullvad_daemon::new_rpc_client(connection_handle, daemon_transport);
+    let rpc_provider = nym_daemon::new_rpc_client(connection_handle, daemon_transport);
     log::debug!("Created RPC client to nym-vpn daemon");
 
     // TODO dz uncomment, make work with Nym
@@ -183,7 +180,7 @@ pub async fn run(
         let mut nym_client = rpc_provider.new_client_nym().await;
 
         // TODO dz unused for now, can be enabled for location-specific tests
-        // tests::set_test_location(&mut mullvad_client, &test)
+        // tests::set_test_location(&mut nym_client, &test)
         //     .await
         //     .context("Failed to create custom list from test locations")?;
 
@@ -231,8 +228,7 @@ pub async fn run_test_function(
     test: TestWrapperFunctionNym,
     test_name: &'static str,
     test_context: super::tests::TestContext,
-) -> TestOutput
-{
+) -> TestOutput {
     let _flushed = runner_rpc.try_poll_output().await;
 
     // Assert that the test is unwind safe, this is the same assertion that cargo tests do. This
@@ -240,12 +236,11 @@ pub async fn run_test_function(
     // lead to logic bugs. The problem of forcing the test to be unwind safe is that it causes a
     // large amount of unergonomic design.
     let result: TestResult =
-            panic::AssertUnwindSafe(test(test_context, runner_rpc.clone(), proxy_rpc))
-                .catch_unwind()
-                .await
-                .map_err(Panic::new)
-                .into()
-    ;
+        panic::AssertUnwindSafe(test(test_context, runner_rpc.clone(), proxy_rpc))
+            .catch_unwind()
+            .await
+            .map_err(Panic::new)
+            .into();
 
     let mut output = vec![];
     if result.failure() {
@@ -260,7 +255,7 @@ pub async fn run_test_function(
         }
     }
 
-    let log_output = runner_rpc.get_mullvad_app_logs().await.ok();
+    let log_output = runner_rpc.get_nym_app_logs().await.ok();
 
     TestOutput {
         log_output,
@@ -270,7 +265,7 @@ pub async fn run_test_function(
     }
 }
 
-async fn print_os_version(client: &ServiceClient) {
+async fn print_os_version(client: &NymServiceClient) {
     match client.get_os_version().await {
         Ok(version) => {
             log::debug!("Guest OS version: {version}");

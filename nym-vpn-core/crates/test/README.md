@@ -1,4 +1,4 @@
-# Mullvad VPN end to end test framework
+# Nym VPN end to end test framework
 
 ## Project structure
 

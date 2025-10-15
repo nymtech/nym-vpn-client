@@ -1,6 +1,6 @@
 [package]
 name = "connection-checker"
-description = "Simple cli for testing Mullvad VPN connections"
+description = "Simple cli for testing Nym VPN connections"
 authors.workspace = true
 repository.workspace = true
 license.workspace = true

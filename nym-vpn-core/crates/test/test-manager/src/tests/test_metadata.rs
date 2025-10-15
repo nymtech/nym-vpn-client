@@ -2,7 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{TestWrapperFunctionNym};
+use super::TestWrapperFunctionNym;
 use std::pin::Pin;
 use test_rpc::meta::Os;
 
@@ -16,13 +16,6 @@ pub struct TestMetadata {
     /// A list of location that will be used for by the test
     pub location: Option<Vec<String>>,
 }
-
-#[derive(Clone, Debug)]
-pub enum VpnClientKind {
-    Mullvad(()),
-    NymVpn(TestWrapperFunctionNym),
-}
-
 
 // Register our test metadata struct with inventory to allow submitting tests of this type.
 inventory::collect!(TestMetadata);

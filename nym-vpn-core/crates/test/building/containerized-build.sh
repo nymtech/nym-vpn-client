@@ -3,7 +3,7 @@
 # Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 # SPDX-License-Identifier: GPL-3.0-only
 
-# Builds the Android or Linux app in the current build container.
+# Builds the Linux app in the current build container.
 # See the `container-run.sh` script for possible configuration.
 
 set -eu
@@ -20,12 +20,8 @@ case $platform in
         build_command=("./build.sh")
         shift 1
     ;;
-    android)
-        build_command=("./android/build.sh")
-        shift 1
-    ;;
     *)
-        log_error "Invalid platform. Specify 'linux' or 'android' as first argument"
+        log_error "Invalid platform. Specify 'linux' as first argument"
         exit 1
 esac
 

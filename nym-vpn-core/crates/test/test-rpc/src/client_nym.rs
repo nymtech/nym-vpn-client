@@ -8,7 +8,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use crate::mullvad_daemon::ServiceStatus;
+use crate::nym_daemon::ServiceStatus;
 
 use super::*;
 
@@ -117,9 +117,9 @@ impl NymServiceClient {
             .await?
     }
 
-    pub async fn get_mullvad_app_logs(&self) -> Result<logging::LogOutput, Error> {
+    pub async fn get_nym_app_logs(&self) -> Result<logging::LogOutput, Error> {
         self.client
-            .get_mullvad_app_logs(tarpc::context::current())
+            .get_nymvpn_app_logs(tarpc::context::current())
             .await
             .map_err(Error::Tarpc)
     }
@@ -129,7 +129,7 @@ impl NymServiceClient {
     pub async fn nymvpn_daemon_wait_for_state(
         &self,
         accept_state_fn: impl Fn(ServiceStatus) -> bool,
-    ) -> Result<mullvad_daemon::ServiceStatus, Error> {
+    ) -> Result<nym_daemon::ServiceStatus, Error> {
         const MAX_ATTEMPTS: usize = 10;
         const POLL_INTERVAL: Duration = Duration::from_secs(3);
 
@@ -145,9 +145,9 @@ impl NymServiceClient {
 
     /// Return status of the system service. The state is inferred from the presence of
     /// a named pipe or UDS, not the actual system service state.
-    pub async fn nymvpn_daemon_get_status(&self) -> Result<mullvad_daemon::ServiceStatus, Error> {
+    pub async fn nymvpn_daemon_get_status(&self) -> Result<nym_daemon::ServiceStatus, Error> {
         self.client
-            .mullvad_daemon_get_status(tarpc::context::current())
+            .nymvpn_daemon_get_status(tarpc::context::current())
             .await
             .map_err(Error::Tarpc)
     }
@@ -157,22 +157,22 @@ impl NymServiceClient {
     /// TODO: Replace with nicer version type.
     pub async fn nymvpn_daemon_version(&self) -> Result<String, Error> {
         self.client
-            .mullvad_version(tarpc::context::current())
+            .nymvpn_version(tarpc::context::current())
             .await
             .map_err(Error::Tarpc)?
     }
 
-    /// Returns all Mullvad app files, directories, and other data found on the system.
+    /// Returns all nym app files, directories, and other data found on the system.
     pub async fn find_nymvpnd_app_traces(&self) -> Result<Vec<AppTrace>, Error> {
         self.client
-            .find_mullvad_app_traces(tarpc::context::current())
+            .find_nymvpn_app_traces(tarpc::context::current())
             .await?
     }
 
-    /// Returns path of Mullvad app cache directorie on the test runner.
+    /// Returns path of Nym app cache directorie on the test runner.
     pub async fn find_nymvpnd_cache_dir(&self) -> Result<PathBuf, Error> {
         self.client
-            .get_mullvad_app_cache_dir(tarpc::context::current())
+            .get_nym_app_cache_dir(tarpc::context::current())
             .await?
     }
 
@@ -213,10 +213,8 @@ impl NymServiceClient {
     }
 
     /// Fetch the current location.
-    pub async fn geoip_lookup(&self, mullvad_host: String) -> Result<AmIMullvad, Error> {
-        self.client
-            .geoip_lookup(tarpc::context::current(), mullvad_host)
-            .await?
+    pub async fn geoip_lookup(&self) -> Result<AmIMullvad, Error> {
+        self.client.geoip_lookup(tarpc::context::current()).await?
     }
 
     /// Returns the IP of the given interface.
@@ -274,7 +272,7 @@ impl NymServiceClient {
     pub async fn restart_nymvpn_daemon(&self) -> Result<(), Error> {
         let _ = self
             .client
-            .restart_mullvad_daemon(tarpc::context::current())
+            .restart_nymvpn_daemon(tarpc::context::current())
             .await?;
         Ok(())
     }
@@ -292,7 +290,7 @@ impl NymServiceClient {
         ctx.deadline = SystemTime::now()
             .checked_add(DAEMON_RESTART_TIMEOUT)
             .unwrap();
-        let _ = self.client.stop_mullvad_daemon(ctx).await?;
+        let _ = self.client.stop_nymvpn_daemon(ctx).await?;
         Ok(())
     }
 
@@ -304,7 +302,7 @@ impl NymServiceClient {
     pub async fn start_nymvpn_daemon(&self) -> Result<(), Error> {
         let _ = self
             .client
-            .start_mullvad_daemon(tarpc::context::current())
+            .start_nymvpn_daemon(tarpc::context::current())
             .await?;
         Ok(())
     }
@@ -318,7 +316,7 @@ impl NymServiceClient {
             .checked_add(DAEMON_RESTART_TIMEOUT)
             .unwrap();
         self.client
-            .enable_mullvad_daemon(ctx)
+            .enable_nymvpn_daemon(ctx)
             .await
             .map_err(Error::Tarpc)??;
         Ok(())
@@ -338,7 +336,7 @@ impl NymServiceClient {
             .checked_add(DAEMON_RESTART_TIMEOUT)
             .unwrap();
         self.client
-            .disable_mullvad_daemon(ctx)
+            .disable_nymvpn_daemon(ctx)
             .await
             .map_err(Error::Tarpc)??;
         Ok(())
@@ -346,7 +344,7 @@ impl NymServiceClient {
 
     pub async fn set_daemon_log_level(
         &self,
-        verbosity_level: mullvad_daemon::Verbosity,
+        verbosity_level: nym_daemon::Verbosity,
     ) -> Result<(), Error> {
         let mut ctx = tarpc::context::current();
         ctx.deadline = SystemTime::now().checked_add(LOG_LEVEL_TIMEOUT).unwrap();

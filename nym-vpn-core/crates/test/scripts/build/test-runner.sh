@@ -37,7 +37,6 @@ esac
 
 cargo build \
     --package test-runner \
-    # TODO dz to be removed
     --package connection-checker \
     --release --target "${TARGET}"
 

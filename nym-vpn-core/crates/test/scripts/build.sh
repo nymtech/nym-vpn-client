@@ -23,10 +23,6 @@ build_linux() {
     "$SCRIPT_DIR/build/test-runner.sh" linux
     cp "$TEST_FRAMEWORK_ROOT/target/x86_64-unknown-linux-gnu/release/test-runner" "$TEST_FRAMEWORK_ROOT/dist/"
     cp "$TEST_FRAMEWORK_ROOT/target/x86_64-unknown-linux-gnu/release/connection-checker" "$TEST_FRAMEWORK_ROOT/dist/"
-
-    # Build mullvad-version
-    cargo build --manifest-path="$REPO_ROOT/Cargo.toml" --release --bin mullvad-version
-    cp "$REPO_ROOT/target/release/mullvad-version" "$TEST_FRAMEWORK_ROOT/dist/"
 }
 
 build_linux
