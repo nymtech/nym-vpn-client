@@ -3925,7 +3925,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.17.0-beta"
+version = "1.18.0-beta"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -3971,7 +3971,7 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "1.17.0-beta"
+version = "1.18.0-beta"
 dependencies = [
  "bincode",
  "bytes",
