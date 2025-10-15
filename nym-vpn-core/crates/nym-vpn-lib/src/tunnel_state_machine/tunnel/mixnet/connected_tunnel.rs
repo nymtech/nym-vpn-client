@@ -14,65 +14,44 @@ use crate::{
     tunnel_state_machine::tunnel::{Result, Tombstone},
 };
 
-/// Type representing a connected mixnet tunnel.
-pub struct ConnectedTunnel {
+pub async fn start_mixnet_tunnel(
     mixnet_client: MixnetClient,
     assigned_addresses: AssignedAddresses,
+    tun_device: AsyncDevice,
     cancel_token: CancellationToken,
-}
+) -> Result<TunnelHandle> {
+    let connection_monitor = ConnectionMonitorTask::setup();
+    let processor_config = MixnetProcessorConfig::new(
+        assigned_addresses.exit_mix_address.into(),
+        assigned_addresses.interface_addresses,
+    );
 
-impl ConnectedTunnel {
-    pub fn new(
-        mixnet_client: MixnetClient,
-        assigned_addresses: AssignedAddresses,
-        cancel_token: CancellationToken,
-    ) -> Self {
-        Self {
-            mixnet_client,
-            assigned_addresses,
-            cancel_token,
-        }
-    }
+    let mixnet_client_sender = mixnet_client.split_sender();
+    let mixnet_cancellation_token = mixnet_client.cancellation_token().clone();
 
-    pub fn assigned_addresses(&self) -> &AssignedAddresses {
-        &self.assigned_addresses
-    }
+    let processor_handle = crate::mixnet::start_processor(
+        processor_config,
+        tun_device,
+        mixnet_client,
+        &connection_monitor,
+        cancel_token.clone(),
+    )
+    .await;
 
-    pub async fn run(self, tun_device: AsyncDevice) -> Result<TunnelHandle> {
-        let connection_monitor = ConnectionMonitorTask::setup();
+    connection_monitor.start(
+        mixnet_client_sender,
+        assigned_addresses.mixnet_client_address,
+        // todo: not fully possible to disable IPv6 because IpPair is passed.
+        assigned_addresses.interface_addresses,
+        assigned_addresses.exit_mix_address,
+        cancel_token.clone(),
+    );
 
-        let processor_config = MixnetProcessorConfig::new(
-            self.assigned_addresses.exit_mix_address.into(),
-            self.assigned_addresses.interface_addresses,
-        );
-
-        let mixnet_client_sender = self.mixnet_client.split_sender();
-        let mixnet_cancellation_token = self.mixnet_client.cancellation_token().clone();
-
-        let processor_handle = crate::mixnet::start_processor(
-            processor_config,
-            tun_device,
-            self.mixnet_client,
-            &connection_monitor,
-            self.cancel_token.clone(),
-        )
-        .await;
-
-        connection_monitor.start(
-            mixnet_client_sender,
-            self.assigned_addresses.mixnet_client_address,
-            // todo: not fully possible to disable IPv6 because IpPair is passed.
-            self.assigned_addresses.interface_addresses,
-            self.assigned_addresses.exit_mix_address,
-            self.cancel_token.clone(),
-        );
-
-        Ok(TunnelHandle {
-            processor_handle,
-            cancel_token: self.cancel_token,
-            mixnet_cancellation_token,
-        })
-    }
+    Ok(TunnelHandle {
+        processor_handle,
+        cancel_token,
+        mixnet_cancellation_token,
+    })
 }
 
 pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
