@@ -1,13 +1,12 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{GATEWAY_CACHE, error::VpnError};
 use nym_gateway_directory::{GatewayCache, GatewayCacheHandle, GatewayClient};
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_lib_types::UserAgent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
-
-use crate::{GATEWAY_CACHE, error::VpnError};
 
 pub struct UniffiGatewayCacheHandle {
     directory_config: nym_gateway_directory::Config,
@@ -60,16 +59,15 @@ async fn make_gateway_config() -> nym_gateway_directory::Config {
     let network_env = crate::environment::current_environment_details()
         .await
         .unwrap();
-    let nyxd_url = network_env.nyxd_url();
-    let api_url = network_env.nym_api_url();
-    let nym_vpn_api_url = Some(network_env.nym_vpn_api_url());
 
-    nym_gateway_directory::Config {
-        nyxd_url,
-        api_url,
-        vpn_api_url: nym_vpn_api_url,
-        min_gateway_performance: None,
-    }
+    nym_gateway_directory::Config::new(
+        network_env.nyxd_url(),
+        network_env.nym_api_url().clone(),
+        network_env.nym_api_urls(),
+        network_env.nym_vpn_api_url(),
+        network_env.nym_vpn_api_urls(),
+        None,
+    )
 }
 
 pub async fn init_gateway_cache(

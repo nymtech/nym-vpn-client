@@ -86,5 +86,5 @@ pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>>
 }
 
 pub fn str_to_socket_addr_blocking(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
-    tokio::runtime::Handle::current().block_on(str_to_socket_addr(&unresolved_url))
+    tokio::runtime::Handle::current().block_on(str_to_socket_addr(unresolved_url))
 }

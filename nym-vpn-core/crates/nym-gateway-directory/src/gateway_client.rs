@@ -128,7 +128,7 @@ impl Config {
     }
 
     pub fn min_gateway_performance(&self) -> Option<GatewayMinPerformance> {
-        self.min_gateway_performance.clone()
+        self.min_gateway_performance
     }
 }
 
@@ -277,7 +277,7 @@ impl GatewayClient {
         config: Config,
         network_details: &nym_network_defaults::NymNetworkDetails,
         user_agent: UserAgent,
-        resolver_overrides: Option<&nym_vpn_api_client::ResolverOverrides>,
+        resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
         // Use the new unified HTTP client with domain fronting for the main API client
         let api_client = nym_http_api_client::ClientBuilder::from_network(network_details)
@@ -534,7 +534,7 @@ fn append_performance(
         {
             gateway.mixnet_performance = Some(basic_gw.performance);
         } else {
-            tracing::warn!(
+            warn!(
                 "Failed to append mixnet_performance, node {} not found among the skimmed nodes",
                 gateway.identity()
             );
@@ -549,7 +549,7 @@ fn filter_on_mixnet_min_performance(
     if let Some(min_performance) = min_gateway_performance
         && let Some(mixnet_min_performance) = min_performance.mixnet_min_performance
     {
-        tracing::debug!(
+        debug!(
             "Filtering gateways based on mixnet_min_performance: {:?}",
             min_performance
         );
@@ -587,12 +587,12 @@ mod test {
             .expect("rust sdk mainnet default incorrectly configured")
             .api_url()
             .expect("rust sdk mainnet default api_url not parseable");
-        let default_api_urls: Option<Vec<nym_vpn_api_client::ApiUrl>> = mainnet_network_defaults
+        let default_api_urls: Option<Vec<ApiUrl>> = mainnet_network_defaults
             .nym_api_urls
             .as_ref()
             .map(|urls| {
                 urls.iter()
-                    .map(|u| nym_vpn_api_client::ApiUrl {
+                    .map(|u| ApiUrl {
                         url: u.url.clone(),
                         fronts: u.front_hosts.clone(),
                     })
@@ -602,19 +602,18 @@ mod test {
         let default_nym_vpn_api_url = mainnet_network_defaults
             .nym_vpn_api_url()
             .expect("rust sdk mainnet default nym-vpn-api url not parseable");
-        let default_nym_vpn_api_urls: Option<Vec<nym_vpn_api_client::ApiUrl>> =
-            mainnet_network_defaults
-                .nym_vpn_api_urls
-                .as_ref()
-                .map(|urls| {
-                    urls.iter()
-                        .map(|u| nym_vpn_api_client::ApiUrl {
-                            url: u.url.clone(),
-                            fronts: u.front_hosts.clone(),
-                        })
-                        .collect::<Vec<_>>()
-                })
-                .filter(|urls| !urls.is_empty());
+        let default_nym_vpn_api_urls: Option<Vec<ApiUrl>> = mainnet_network_defaults
+            .nym_vpn_api_urls
+            .as_ref()
+            .map(|urls| {
+                urls.iter()
+                    .map(|u| ApiUrl {
+                        url: u.url.clone(),
+                        fronts: u.front_hosts.clone(),
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .filter(|urls| !urls.is_empty());
         Config {
             nyxd_url: default_nyxd_url,
             nym_api_url: default_api_url,

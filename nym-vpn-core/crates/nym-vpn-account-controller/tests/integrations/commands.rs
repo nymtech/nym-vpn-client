@@ -4,6 +4,7 @@
 use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock_account_id};
 
 use nym_vpn_account_controller::AvailableTicketbooks;
+use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
 };
@@ -64,7 +65,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .set_resolver_overrides(Some(ResolverOverrides::default()))
             .await,
         Ok(())
     );
@@ -150,7 +151,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .set_resolver_overrides(Some(ResolverOverrides::default()))
             .await,
         Ok(())
     );
@@ -302,7 +303,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .set_resolver_overrides(Some(ResolverOverrides::default()))
             .await,
         Ok(())
     );
@@ -417,7 +418,7 @@ async fn error_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .set_static_api_addresses(Some(vec!["76.76.21.21:42".parse().unwrap()]))
+            .set_resolver_overrides(Some(ResolverOverrides::default()))
             .await,
         Ok(())
     );

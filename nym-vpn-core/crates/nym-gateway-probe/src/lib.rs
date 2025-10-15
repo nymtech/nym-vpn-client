@@ -867,13 +867,7 @@ async fn wg_probe(
 
 async fn lookup_gateways(gateway_config: GatewayDirectoryConfig) -> anyhow::Result<GatewayList> {
     info!("nym-api: {}", gateway_config.api_url());
-    info!(
-        "nym-vpn-api: {}",
-        gateway_config
-            .vpn_api_url()
-            .map(|url| url.to_string())
-            .unwrap_or("unavailable".to_string())
-    );
+    info!("nym-vpn-api: {}", gateway_config.vpn_api_url().to_string());
 
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
     let gateway_client = GatewayDirectoryClient::new(gateway_config, user_agent)?;
