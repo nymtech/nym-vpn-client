@@ -10,7 +10,9 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::{boolean_option::BooleanOption, table_style::TableStyle};
+use crate::{
+    boolean_option::BooleanOption, display_helpers::display_on_off, table_style::TableStyle,
+};
 
 #[derive(Debug, Clone, clap::Args)]
 pub struct Args {
@@ -147,7 +149,7 @@ impl Args {
                 println!("Exit point: {:?}", config.exit_point);
                 println!(
                     "Residential exit: {}",
-                    if config.residential_exit { "on" } else { "off" }
+                    display_on_off(config.residential_exit)
                 );
                 Ok(())
             }

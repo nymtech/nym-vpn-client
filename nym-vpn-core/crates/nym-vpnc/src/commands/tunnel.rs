@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::boolean_option::BooleanOption;
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -42,15 +42,12 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("IPv6: {}", if config.disable_ipv6 { "off" } else { "on" });
-                println!(
-                    "Two-hop: {}",
-                    if config.enable_two_hop { "on" } else { "off" }
-                );
-                println!("Netstack: {}", if config.netstack { "on" } else { "off" });
+                println!("IPv6: {}", display_on_off(!config.disable_ipv6));
+                println!("Two-hop: {}", display_on_off(config.enable_two_hop));
+                println!("Netstack: {}", display_on_off(config.netstack));
                 println!(
                     "Circumvention transports: {}",
-                    if config.enable_bridges { "on" } else { "off" }
+                    display_on_off(config.enable_bridges)
                 );
 
                 Ok(())

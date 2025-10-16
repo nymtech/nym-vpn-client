@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::boolean_option::BooleanOption;
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -27,7 +27,7 @@ impl Command {
                 let enabled = rpc_client.is_collect_network_stats_enabled().await?;
                 println!(
                     "Anonymous network statistics collection: {}",
-                    if enabled { "on" } else { "off" }
+                    display_on_off(enabled)
                 );
                 Ok(())
             }
@@ -37,10 +37,7 @@ impl Command {
                 } else {
                     rpc_client.disable_collect_network_stats().await?;
                 }
-                println!(
-                    "Anonymous network statistics collection: {}",
-                    if *enable { "on" } else { "off" }
-                );
+                println!("Anonymous network statistics collection: {enable}");
                 println!("You have to restart the daemon for the changes to take effect.");
                 Ok(())
             }

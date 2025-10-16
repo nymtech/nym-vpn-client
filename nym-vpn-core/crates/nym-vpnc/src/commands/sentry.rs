@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::boolean_option::BooleanOption;
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -26,7 +26,7 @@ impl Command {
             Command::Get => {
                 let enabled = rpc_client.is_sentry_enabled().await?;
 
-                println!("Sentry integration: {}", if enabled { "on" } else { "off" });
+                println!("Sentry integration: {}", display_on_off(enabled));
                 Ok(())
             }
             Command::Set { enable } => {
@@ -35,7 +35,7 @@ impl Command {
                 } else {
                     rpc_client.disable_sentry().await?;
                 }
-                println!("Sentry integration: {}", if *enable { "on" } else { "off" });
+                println!("Sentry integration: {enable}");
                 println!("You have to restart the daemon for the changes to take effect");
                 Ok(())
             }

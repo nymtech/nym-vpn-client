@@ -3,6 +3,7 @@
 
 mod boolean_option;
 mod commands;
+mod display_helpers;
 mod table_style;
 
 use std::str::FromStr;
