@@ -136,8 +136,7 @@ function run_tests() {
         --vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901 \
         --nym-mnemonic "${MAINNET_MNEMONIC}" \
-        --package-dir "${PACKAGE_DIR}" \
-        --runner-dir "$OUTPUT_DIR"\
+        --runner-dir "${PACKAGE_DIR}"\
         --verbose \
         "basic_functionality"
     popd
