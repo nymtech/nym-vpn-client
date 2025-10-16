@@ -20,20 +20,20 @@ pub enum Command {
 #[group(required = true, multiple = true)]
 pub struct SetParams {
     /// Enable or disable IPv6
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     ipv6: Option<BooleanOption>,
 
     /// Enable or disable two-hop mode
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     two_hop: Option<BooleanOption>,
 
     /// Enable or disable netstack in two-hop mode
     /// Normally this is only used for testing purposes and should always be off
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     netstack: Option<BooleanOption>,
 
     /// Enable Circumvention Transport (CT) wrapping for the connection to the entry gateway in two hop wireguard mode.
-    #[arg(long, alias = "ct", value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, alias = "ct", value_parser = clap::value_parser!(BooleanOption))]
     circumvention_transports: Option<BooleanOption>,
 }
 

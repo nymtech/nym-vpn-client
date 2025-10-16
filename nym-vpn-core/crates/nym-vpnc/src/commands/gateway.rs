@@ -96,7 +96,7 @@ pub struct SetArgs {
     pub exit_random: bool,
 
     /// Only select residential exit nodes.
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     pub residential_exit: Option<BooleanOption>,
 }
 
