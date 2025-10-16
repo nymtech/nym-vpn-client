@@ -3766,6 +3766,7 @@ dependencies = [
  "sha2 0.10.9",
  "strum_macros",
  "thiserror 2.0.17",
+ "tracing",
  "x25519-dalek",
 ]
 
@@ -4091,6 +4092,7 @@ dependencies = [
  "nym-compact-ecash",
  "nym-ecash-time",
  "nym-network-defaults",
+ "nym-upgrade-mode-check",
  "rand 0.8.5",
  "serde",
  "strum",
@@ -5141,6 +5143,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-upgrade-mode-check"
+version = "0.1.0"
+dependencies = [
+ "jwt-simple",
+ "nym-crypto",
+ "nym-http-api-client",
+ "reqwest 0.12.23",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "time",
+ "tracing",
+]
+
+[[package]]
 name = "nym-validator-client"
 version = "0.1.0"
 dependencies = [
@@ -5632,9 +5649,7 @@ name = "nym-wireguard-types"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
- "log",
- "nym-config",
- "nym-network-defaults",
+ "nym-crypto",
  "serde",
  "thiserror 2.0.17",
  "x25519-dalek",
@@ -6582,6 +6597,26 @@ dependencies = [
  "getrandom 0.2.16",
  "libredox",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "ref-cast"
+version = "1.0.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f354300ae66f76f1c85c5f84693f0ce81d747e2c3f21a45fef496d89c960bf7d"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7186006dcb21920990093f30e3dea63b7d6e977bf1256be20c3563a5db070da"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
 ]
 
 [[package]]
