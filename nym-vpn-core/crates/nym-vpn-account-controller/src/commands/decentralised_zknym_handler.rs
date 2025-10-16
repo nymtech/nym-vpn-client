@@ -8,7 +8,6 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_validator_client::nyxd::{Coin, CosmWasmClient, contract_traits::EcashQueryClient};
 use nym_vpn_lib_types::AccountCommandError;
 use tracing::{debug, info, warn};
-use zeroize::Zeroizing;
 
 const TICKET_TYPES: &[TicketType] = &[
     TicketType::V1MixnetEntry,
@@ -30,8 +29,9 @@ pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
     let ecash_seed = account.ecash_keypair_seed().map_err(|err| {
         AccountCommandError::Internal(format!("ecash seed derivation failure: {err}"))
     })?;
-    let mnemonic = Zeroizing::new(account.get_mnemonic());
-    let client = shared_state.nyxd_client.inner_client(&mnemonic)?;
+    let client = shared_state
+        .nyxd_client
+        .inner_client(&account.get_mnemonic())?;
 
     // determine required deposits amount and funds and ensure we have enough
     // (plus a bit more for tx fees)
@@ -89,6 +89,8 @@ pub(crate) async fn handle_account_balance<C: ConnectivityMonitor>(
     let Some(account) = shared_state.vpn_api_account.as_ref() else {
         return Err(AccountCommandError::NoAccountStored);
     };
-    let mnemonic = Zeroizing::new(account.get_mnemonic());
-    shared_state.nyxd_client.account_balance(&mnemonic).await
+    shared_state
+        .nyxd_client
+        .account_balance(&account.get_mnemonic())
+        .await
 }
