@@ -3,9 +3,8 @@
 # Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 # SPDX-License-Identifier: GPL-3.0-only
 
-set -ex
+set -e
 
-RED='\e[31m'
 GREEN='\e[32m'
 YELLOW='\e[33m'
 BLUE='\e[34m'
@@ -17,12 +16,54 @@ TEST_FRAMEWORK_ROOT="$(realpath "$SCRIPT_DIR/..")"
 CARGO_WORKSPACE_ROOT="$(realpath "${TEST_FRAMEWORK_ROOT}/../..")"
 OUTPUT_DIR="${TEST_FRAMEWORK_ROOT}/target/x86_64-unknown-linux-gnu/release"
 PACKAGE_DIR="${HOME}/.cache/nym-test/packages"
-QCOW_IMAGE="$HOME/iso_images/debian12_cli.qcow2"
 
-# vm_config="first-config"
-vm_config="debian12-config"
+# Default values (can be overridden by env vars or CLI params)
+NYM_TEST_QCOW_IMAGE="${NYM_TEST_QCOW_IMAGE:-}"
+NYM_TEST_VM_CONFIG="${NYM_TEST_VM_CONFIG:-}"
+
+
 echo "TEST_FRAMEWORK_ROOT=${TEST_FRAMEWORK_ROOT}"
 
+function usage() {
+    echo "Usage: $0 [options] <command>"
+    echo ""
+    echo "Available commands:"
+    echo "  configure   - Configure a new VM"
+    echo "  list        - List existing configurations"
+    echo "  run-tests   - Build dependencies and run tests"
+    echo "  run-vm      - Run a VM without tests for you to connect to"
+    echo ""
+}
+
+function check_required_vars() {
+    local missing=0
+    local qcow_image_var_name="NYM_TEST_QCOW_IMAGE"
+    local vm_config_var_name="NYM_TEST_VM_CONFIG"
+
+    if [ -z "$NYM_TEST_QCOW_IMAGE" ]; then
+        echo "Error: ${qcow_image_var_name} is not set"
+        echo "  Set it via environment variable: export ${qcow_image_var_name}=/path/to/image.qcow2"
+        missing=1
+    fi
+
+    if [ -z "$NYM_TEST_VM_CONFIG" ]; then
+        echo "Error: ${vm_config_var_name} is not set"
+        echo "  Set it via environment variable: export ${vm_config_var_name}=config-name"
+        missing=1
+    fi
+
+    if [ $missing -eq 1 ]; then
+        echo ""
+        usage
+        exit 1
+    fi
+
+
+    echo -e "${GREEN}Using VM configuration:${NC}"
+    echo -e "\tQCOW Image: ${BLUE}${NYM_TEST_QCOW_IMAGE}${NC}"
+    echo -e "\tVM Config:  ${BLUE}${NYM_TEST_VM_CONFIG}${NC}"
+    echo ""
+}
 
 function help() {
     cargo run -- config vm set --help
@@ -34,24 +75,24 @@ function list() {
 
 function configure() {
     cargo run -- config vm set \
-        ${vm_config} \
+        ${NYM_TEST_VM_CONFIG} \
         "qemu" \
-        "${QCOW_IMAGE}" \
+        "${NYM_TEST_QCOW_IMAGE}" \
         "linux" \
         --package-type "deb" \
         --architecture "x64" \
         --provisioner "ssh" \
         --ssh-user "test" \
         --ssh-password "test" \
-        --vcpus 4 \
-        --memory 4096
+        --vcpus 2 \
+        --memory 1024
 
     list
 }
 
 function run_vm() {
     cargo run \
-        -- run-vm ${vm_config} \
+        -- run-vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901
         # --keep-changes
 }
@@ -92,7 +133,7 @@ function run_tests() {
     cargo run \
         -p test-manager \
         -- run-tests \
-        --vm ${vm_config} \
+        --vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901 \
         --nym-mnemonic "${MAINNET_MNEMONIC}" \
         --package-dir "${PACKAGE_DIR}" \
@@ -102,7 +143,32 @@ function run_tests() {
     popd
 }
 
+# Parse command-line arguments
+if [ $# -eq 0 ]; then
+    echo "Error: No command provided"
+    echo ""
+    usage
+    exit 1
+fi
 
-# configure
-# run_vm
-run_tests
+check_required_vars
+
+COMMAND="$1"
+
+case "$COMMAND" in
+    configure)
+        configure
+        ;;
+    run-tests)
+        run_tests
+        ;;
+    run-vm)
+        run_vm
+        ;;
+    *)
+        echo "Error: Unknown command '$COMMAND'"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac
