@@ -6,7 +6,7 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::mixnet::{EventReceiver, MixnetClient, MixnetClientEvent, MixTrafficEvent};
+use nym_sdk::mixnet::{EventReceiver, MixTrafficEvent, MixnetClient, MixnetClientEvent};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
