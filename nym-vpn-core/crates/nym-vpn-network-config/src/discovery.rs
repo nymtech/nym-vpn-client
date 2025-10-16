@@ -13,7 +13,7 @@ use url::Url;
 use nym_vpn_api_client::{
     VpnApiClient,
     fronted_http_client::build_fronted_http_client,
-    response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
+    response::{ApiUrl, NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
 };
 
 use crate::{
@@ -21,7 +21,6 @@ use crate::{
     system_configuration::SystemConfiguration,
 };
 use nym_api_requests::NymNetworkDetailsResponse;
-use nym_network_defaults::ApiUrl;
 use nym_validator_client::nym_api::NymApiClientExt;
 
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
@@ -35,7 +34,7 @@ static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discov
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
 static EVIL_DISCOVERY_JSON: &[u8] = include_bytes!("../default/evil_discovery.json");
 
-static DEFAULT_VPN_API_URL: LazyLock<ApiUrl> =
+static DEFAULT_VPN_API_URL: LazyLock<nym_network_defaults::ApiUrl> =
     LazyLock::new(|| Discovery::default_mainnet().fronted_vpn_api_url());
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -58,7 +57,7 @@ pub struct Discovery {
 
 impl Discovery {
     /// Default VPN API URL
-    pub fn default_vpn_api_url() -> ApiUrl {
+    pub fn default_vpn_api_url() -> nym_network_defaults::ApiUrl {
         DEFAULT_VPN_API_URL.clone()
     }
 
@@ -224,20 +223,26 @@ impl Discovery {
     }
 
     // Picks the first URL with fronting configured
-    pub fn fronted_api_url(&self) -> ApiUrl {
+    pub fn fronted_api_url(&self) -> nym_network_defaults::ApiUrl {
         if let Some(api_url) = self
             .nym_api_urls
             .iter()
-            .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
+            .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
         {
-            return api_url.clone();
+            return nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            };
         }
 
         if let Some(api_url) = self.nym_api_urls.first() {
-            return api_url.clone();
+            return nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            };
         }
 
-        ApiUrl {
+        nym_network_defaults::ApiUrl {
             url: self.nym_api_url.to_string(),
             front_hosts: None,
         }
@@ -245,20 +250,26 @@ impl Discovery {
 
     /// This takes Domain Fronting into consideration
     #[allow(unused)]
-    pub fn fronted_vpn_api_url(&self) -> ApiUrl {
+    pub fn fronted_vpn_api_url(&self) -> nym_network_defaults::ApiUrl {
         if let Some(api_url) = self
             .nym_vpn_api_urls
             .iter()
-            .find(|u| u.front_hosts.as_ref().is_some_and(|f| !f.is_empty()))
+            .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
         {
-            return api_url.clone();
+            return nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            };
         }
 
         if let Some(api_url) = self.nym_vpn_api_urls.first() {
-            return api_url.clone();
+            return nym_network_defaults::ApiUrl {
+                url: api_url.url.clone(),
+                front_hosts: api_url.fronts.clone(),
+            };
         }
 
-        ApiUrl {
+        nym_network_defaults::ApiUrl {
             url: self.nym_vpn_api_url.to_string(),
             front_hosts: None,
         }
@@ -312,14 +323,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             }
         })?;
 
-        let nym_api_urls = discovery
-            .nym_api_urls
-            .into_iter()
-            .map(|api_url| ApiUrl {
-                url: api_url.url,
-                front_hosts: api_url.fronts,
-            })
-            .collect::<Vec<_>>();
+        let nym_api_urls = discovery.nym_api_urls.clone();
 
         let nym_vpn_api_url = discovery.nym_vpn_api_url.parse().map_err(|source| {
             DiscoveryFromNymWellknownDiscoveryError::ParseNymVpnApiUrl {
@@ -327,14 +331,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
                 source,
             }
         })?;
-        let nym_vpn_api_urls = discovery
-            .nym_vpn_api_urls
-            .into_iter()
-            .map(|api_url| ApiUrl {
-                url: api_url.url,
-                front_hosts: api_url.fronts,
-            })
-            .collect::<Vec<_>>();
+        let nym_vpn_api_urls = discovery.nym_vpn_api_urls.clone();
 
         Ok(Self {
             network_name: discovery.network_name,
@@ -376,7 +373,7 @@ pub(crate) async fn fetch_nym_network_details(
 }
 
 pub(crate) async fn fetch_nym_vpn_network_details(
-    nym_vpn_api_url: ApiUrl,
+    nym_vpn_api_url: nym_network_defaults::ApiUrl,
 ) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
     VpnApiClient::new(nym_vpn_api_url, empty_user_agent())

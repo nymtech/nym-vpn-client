@@ -306,7 +306,16 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .as_ref()
         .is_none_or(|nym_api_urls| nym_api_urls.is_empty())
     {
-        nym_network.network.nym_api_urls = Some(discovery.nym_api_urls.clone());
+        nym_network.network.nym_api_urls = Some(
+            discovery
+                .nym_api_urls
+                .iter()
+                .map(|u| nym_network_defaults::ApiUrl {
+                    url: u.url.clone(),
+                    front_hosts: u.fronts.clone(),
+                })
+                .collect(),
+        );
     }
 
     // Patch up the network details with domain fronting
@@ -317,7 +326,16 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .as_ref()
         .is_none_or(|nym_vpn_api_urls| nym_vpn_api_urls.is_empty())
     {
-        nym_network.network.nym_vpn_api_urls = Some(discovery.nym_vpn_api_urls.clone());
+        nym_network.network.nym_vpn_api_urls = Some(
+            discovery
+                .nym_vpn_api_urls
+                .iter()
+                .map(|u| nym_network_defaults::ApiUrl {
+                    url: u.url.clone(),
+                    front_hosts: u.fronts.clone(),
+                })
+                .collect(),
+        );
     }
 
     let endpoint = nym_network
@@ -326,7 +344,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .first()
         .ok_or(Error::NoEndpointsFound)?;
     let nyxd_url = endpoint.nyxd_url();
-    let api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
+    let nym_api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
 
     // Using discovery, setup nym vpn network details
     let nym_vpn_network = NymVpnNetwork::from(discovery);
@@ -334,7 +352,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
     Ok(Network {
         nym_network,
         nyxd_url,
-        nym_api_url: api_url,
+        nym_api_url,
         nym_vpn_network,
         feature_flags,
         system_configuration,
@@ -349,14 +367,14 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
         .first()
         .ok_or(Error::NoEndpointsFound)?;
     let nyxd_url = endpoint.nyxd_url();
-    let api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
+    let nym_api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
     let nym_vpn_network =
         NymVpnNetwork::try_from(network_details).map_err(Error::ConvertNetworkDetailsToNetwork)?;
 
     Ok(Network {
         nym_network,
         nyxd_url,
-        nym_api_url: api_url,
+        nym_api_url,
         nym_vpn_network,
         feature_flags: None,
         system_configuration: None,

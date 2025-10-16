@@ -213,8 +213,11 @@ impl TestBench {
 
         // Setup mock server. Route behavior has to be done by the actual tests
         let vpn_api_server = MockServer::start().await;
-        let nym_vpn_api_client =
-            VpnApiClient::new(vpn_api_server.uri().parse()?, mock_user_agent())?;
+        let api_url = nym_network_defaults::ApiUrl {
+            url: vpn_api_server.uri(),
+            front_hosts: None,
+        };
+        let nym_vpn_api_client = VpnApiClient::new(api_url, mock_user_agent()).await?;
 
         let nyxd_server = MockServer::start().await;
         let mut network_env = Network::mainnet_default().unwrap();

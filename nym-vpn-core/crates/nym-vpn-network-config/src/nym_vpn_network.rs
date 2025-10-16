@@ -86,9 +86,18 @@ pub enum NymVpnNetworkAccountLinksConversionError {
 
 impl From<Discovery> for NymVpnNetwork {
     fn from(discovery: Discovery) -> Self {
+        let nym_vpn_api_urls = discovery
+            .nym_vpn_api_urls
+            .iter()
+            .map(|u| nym_network_defaults::ApiUrl {
+                url: u.url.clone(),
+                front_hosts: u.fronts.clone(),
+            })
+            .collect();
+
         Self {
             nym_vpn_api_url: discovery.nym_vpn_api_url,
-            nym_vpn_api_urls: discovery.nym_vpn_api_urls,
+            nym_vpn_api_urls,
             account_management: discovery.account_management,
             system_messages: discovery.system_messages,
         }
