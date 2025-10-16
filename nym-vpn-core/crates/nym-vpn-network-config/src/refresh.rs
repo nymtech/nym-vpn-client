@@ -8,8 +8,8 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
-    network_from_discovery,
+    discovery::Discovery, envs::RegisteredNetworks, network_from_discovery, Error, Network, NymNetwork,
+    Result,
 };
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
