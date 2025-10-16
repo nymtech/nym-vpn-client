@@ -6,7 +6,7 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::mixnet::{EventReceiver, MixnetClient, MixnetClientEvent};
+use nym_sdk::mixnet::{EventReceiver, MixnetClient, MixnetClientEvent, MixTrafficEvent};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
@@ -98,7 +98,7 @@ impl MixnetListener {
                 }
                 Some(event) = self.event_rx.next() => {
                     match event {
-                        MixnetClientEvent::FailedSendingSphinx => break,
+                        MixnetClientEvent::Traffic(MixTrafficEvent::FailedSendingSphinx) => break,
                     }
                 }
                 reconstructed_message = self.mixnet_client.next() => match reconstructed_message {
