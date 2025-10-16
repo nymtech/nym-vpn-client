@@ -10,6 +10,7 @@ data class DetailsUiState(
 	val identity: NodeIdentity = "",
 	val name: String = "",
 	val location: String = "",
+	val description: String? = null,
 	val countryCode: String? = null,
 	val mixnetScore: Score? = null,
 	val score: Score? = null,
@@ -29,6 +30,7 @@ data class DetailsUiState(
 			return DetailsUiState(
 				identity = gateway.identity,
 				name = gateway.name,
+				description = gateway.description,
 				location = listOfNotNull(gateway.city, gateway.region, country).joinToString(", "),
 				countryCode = gateway.twoLetterCountryISO,
 				mixnetScore = gateway.mixnetScore,

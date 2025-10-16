@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -118,6 +119,15 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 			}
+			detailsUiState.description?.let {
+				Text(
+					modifier = Modifier.padding(top = 16.dp),
+					text = it,
+					style = Typography.bodyMedium,
+					color = MaterialTheme.colorScheme.outline,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
+				)
+			}
 			DetailsSectionPrivacy(detailsUiState.asnKind)
 			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
 			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
@@ -153,12 +163,13 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 }
 
 @Composable
-@Preview
+@PreviewLightDark
 internal fun PreviewPrivacyScreen() {
 	NymVPNTheme(Theme.default()) {
 		val detailsUiState = DetailsUiState(
 			identity = "wqewqewqewqewqfade2123123",
 			name = "Jacksonville-Cloak04",
+			description = "Enabling safety and privacy in the age of AI and quantum computing. Follow service status announcements at https://t.me/oceanusp17o",
 			location = "Jacksonville, Texas, United States",
 			countryCode = "DE",
 			mixnetScore = Score.HIGH,

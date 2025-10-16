@@ -3,6 +3,7 @@ package net.nymtech.vpn.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.BridgeInformation
 import nym_vpn_lib_types.Gateway
 import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
@@ -13,6 +14,7 @@ import nym_vpn_lib_types.Score
 data class NymGateway(
 	val identity: NodeIdentity,
 	val twoLetterCountryISO: String?,
+	val description: String?,
 	val mixnetScore: Score?,
 	val wgScore: Score?,
 	val wgLoad: Score?,
@@ -27,12 +29,14 @@ data class NymGateway(
 	val buildVersion: String?,
 	var exitIpv4s: List<Ipv4Addr>,
 	var exitIpv6s: List<Ipv6Addr>,
+	var bridgeInformation: BridgeInformation?
 ) {
 	companion object {
 		fun from(gateway: Gateway): NymGateway {
 			return NymGateway(
 				identity = gateway.identityKey,
 				name = gateway.name,
+				description = gateway.description,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
 				mixnetScore = gateway.performance?.mixnetScore,
 				wgScore = gateway.performance?.score,
@@ -47,6 +51,7 @@ data class NymGateway(
 				buildVersion = gateway.buildVersion,
 				exitIpv4s = gateway.exitIpv4s,
 				exitIpv6s = gateway.exitIpv6s,
+				bridgeInformation = gateway.bridgeParams
 			)
 		}
 

@@ -7,16 +7,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.environment.EnvironmentManager
+import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
+import nym_vpn_lib_types.BridgeParameters
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
+	private val environmentManager: EnvironmentManager
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(DetailsUiState())
@@ -24,6 +28,7 @@ class DetailsViewModel @Inject constructor(
 
 	fun filterGateways(id: String, gateways: List<NymGateway>) = viewModelScope.launch {
 		gateways.firstOrNull { gateway -> gateway.identity == id }?.let {
+			val isQuicFeatureEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
 			_uiState.value = DetailsUiState.from(it)
 		}
 	}
@@ -37,5 +42,11 @@ class DetailsViewModel @Inject constructor(
 		}.onFailure {
 			Timber.e(it)
 		}
+	}
+
+	private fun NymGateway.isQuicSupported(): Boolean = run {
+		return bridgeInformation?.transports?.find {
+			it is BridgeParameters.QuicPlain
+		} != null
 	}
 }
