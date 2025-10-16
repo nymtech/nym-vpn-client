@@ -189,7 +189,10 @@ impl ResolvedConfig {
         let nym_api_resolver_overrides = if let Some(api_urls) = config.nym_api_urls() {
             let mut overrides = ResolverOverrides::default();
             for api_url in api_urls.iter() {
-                if let Some(fronts) = api_url.front_hosts.as_ref() {
+                if let Some(ref fronts) = api_url.front_hosts
+                    && !fronts.is_empty()
+                {
+                    // Resolve front domains for domain fronting
                     for front in fronts.iter() {
                         let addrs = str_to_socket_addr(front).await?;
                         overrides
@@ -197,6 +200,13 @@ impl ResolvedConfig {
                             .or_default()
                             .extend(addrs);
                     }
+                } else {
+                    // Also resolve direct URLs (without fronts) for firewall access
+                    let addrs = str_to_socket_addr(&api_url.url).await?;
+                    overrides
+                        .entry(api_url.url.clone())
+                        .or_default()
+                        .extend(addrs);
                 }
             }
             overrides
@@ -207,7 +217,10 @@ impl ResolvedConfig {
         let nym_vpn_api_resolver_overrides = if let Some(vpn_api_urls) = config.nym_vpn_api_urls() {
             let mut overrides = ResolverOverrides::default();
             for api_url in vpn_api_urls.iter() {
-                if let Some(fronts) = api_url.front_hosts.as_ref() {
+                if let Some(ref fronts) = api_url.front_hosts
+                    && !fronts.is_empty()
+                {
+                    // Resolve front domains for domain fronting
                     for front in fronts.iter() {
                         let addrs = str_to_socket_addr(front).await?;
                         overrides
@@ -215,6 +228,13 @@ impl ResolvedConfig {
                             .or_default()
                             .extend(addrs);
                     }
+                } else {
+                    // Also resolve direct URLs (without fronts) for firewall access
+                    let addrs = str_to_socket_addr(&api_url.url).await?;
+                    overrides
+                        .entry(api_url.url.clone())
+                        .or_default()
+                        .extend(addrs);
                 }
             }
             overrides
@@ -604,7 +624,7 @@ mod test {
         let default_api_urls: Option<Vec<ApiUrl>> = mainnet_network_defaults
             .nym_api_urls
             .as_ref()
-            .map(|urls| urls.iter().cloned().collect::<Vec<_>>())
+            .map(|urls| urls.to_vec())
             .filter(|urls| !urls.is_empty());
         let default_nym_vpn_api_url = mainnet_network_defaults
             .nym_vpn_api_url()
@@ -612,7 +632,7 @@ mod test {
         let default_nym_vpn_api_urls: Option<Vec<ApiUrl>> = mainnet_network_defaults
             .nym_vpn_api_urls
             .as_ref()
-            .map(|urls| urls.iter().cloned().collect::<Vec<_>>())
+            .map(|urls| urls.to_vec())
             .filter(|urls| !urls.is_empty());
         Config {
             nyxd_url: default_nyxd_url,

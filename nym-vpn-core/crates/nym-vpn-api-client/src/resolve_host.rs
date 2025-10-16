@@ -71,7 +71,7 @@ pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>>
     let url = match url::Url::parse(unresolved_url) {
         Ok(url) => url,
         Err(_) => {
-            let prefixed = format!("http://{unresolved_url}");
+            let prefixed = format!("https://{unresolved_url}");
             url::Url::parse(&prefixed).map_err(|_e| VpnApiClientError::InvalidUrl {
                 url: unresolved_url.to_string(),
             })?

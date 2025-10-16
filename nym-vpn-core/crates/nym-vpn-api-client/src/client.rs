@@ -160,7 +160,7 @@ impl VpnApiClient {
             .map(api_url_to_url)
             .collect::<Result<Vec<_>, _>>()?;
 
-        // We wouldn't need to do this Url exposed the fronts they are using
+        // We wouldn't need to do this if `Url::fronts()` existed.
         #[allow(deprecated)]
         if api_urls.len() != urls_and_domains.len() {
             return Err(VpnApiClientError::CreateVpnApiClient(Box::new(
@@ -186,7 +186,7 @@ impl VpnApiClient {
         if has_front {
             builder = builder.with_fronting(FrontPolicy::OnRetry);
 
-            // Have to use ApiUrl fronts as there is no Url::fronts() method :(
+            // Have to use ApiUrl fronts as there is no `Url::fronts()` method :(
             for i in 0..api_urls.len() {
                 let domain = &urls_and_domains[i].1;
                 let api_url = &api_urls[i];

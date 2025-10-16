@@ -62,7 +62,7 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientErr
         match url::Url::parse(s) {
             Ok(url) => Ok(url),
             Err(_) => {
-                let with_scheme = format!("http://{s}");
+                let with_scheme = format!("https://{s}");
                 url::Url::parse(&with_scheme)
                     .map_err(|_e| VpnApiClientError::InvalidUrl { url: s.to_string() })
             }
