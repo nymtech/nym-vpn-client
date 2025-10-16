@@ -656,6 +656,7 @@ impl TunnelMonitor {
             registration_result.mixnet_client,
             assigned_addresses,
             self.shutdown_token.clone(),
+            registration_result.event_rx,
         );
 
         let mtu = if let Some(mtu) = self

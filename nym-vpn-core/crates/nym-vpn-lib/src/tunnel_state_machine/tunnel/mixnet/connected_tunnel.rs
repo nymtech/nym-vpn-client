@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_registration_common::AssignedAddresses;
-use nym_sdk::mixnet::MixnetClient;
+use nym_sdk::mixnet::{EventReceiver, MixnetClient};
 use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
@@ -19,6 +19,7 @@ pub struct ConnectedTunnel {
     mixnet_client: MixnetClient,
     assigned_addresses: AssignedAddresses,
     cancel_token: CancellationToken,
+    event_rx: EventReceiver,
 }
 
 impl ConnectedTunnel {
@@ -26,11 +27,13 @@ impl ConnectedTunnel {
         mixnet_client: MixnetClient,
         assigned_addresses: AssignedAddresses,
         cancel_token: CancellationToken,
+        event_rx: EventReceiver,
     ) -> Self {
         Self {
             mixnet_client,
             assigned_addresses,
             cancel_token,
+            event_rx,
         }
     }
 
@@ -55,6 +58,7 @@ impl ConnectedTunnel {
             self.mixnet_client,
             &connection_monitor,
             self.cancel_token.clone(),
+            self.event_rx,
         )
         .await;
 
