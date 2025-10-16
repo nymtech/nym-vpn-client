@@ -1,12 +1,13 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::common::{TestBench, account_summary::*, endpoints, mock_account_id, mock_mnemonic};
+use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock_account_id};
 
 use nym_vpn_account_controller::AvailableTicketbooks;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
 };
+use nym_vpn_store::account::StoredAccountMode;
 
 #[tokio::test]
 async fn logged_out_state_command() -> anyhow::Result<()> {
@@ -18,7 +19,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     assert_eq!(
         test_bench
@@ -31,7 +32,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
     assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
     assert_eq!(
-        test_bench.command_sender.get_stored_mnemonic().await,
+        test_bench.command_sender.get_stored_account().await,
         Ok(None)
     );
     assert_eq!(
@@ -83,7 +84,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await
             .is_ok()
     );
@@ -104,7 +105,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     // Straight up go offline
     test_bench.go_offline()?;
@@ -157,7 +158,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     // Offline, no account stored
     assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
     assert_eq!(
-        test_bench.command_sender.get_stored_mnemonic().await,
+        test_bench.command_sender.get_stored_account().await,
         Ok(None)
     );
     assert_eq!(
@@ -169,7 +170,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     assert!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await
             .is_ok()
     );
@@ -182,8 +183,8 @@ async fn offline_state_command() -> anyhow::Result<()> {
         Ok(Some(mock_account_id()))
     );
     assert_eq!(
-        test_bench.command_sender.get_stored_mnemonic().await,
-        Ok(Some(mock_mnemonic()))
+        test_bench.command_sender.get_stored_account().await,
+        Ok(Some(mock_account(StoredAccountMode::Api)))
     );
     assert!(
         test_bench
@@ -231,7 +232,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
         endpoints::get_devices_200(),
         endpoints::get_active_devices_200(),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
     test_bench
@@ -257,8 +258,8 @@ async fn ready_state_command() -> anyhow::Result<()> {
         Ok(Some(mock_account_id()))
     );
     assert_eq!(
-        test_bench.command_sender.get_stored_mnemonic().await,
-        Ok(Some(mock_mnemonic()))
+        test_bench.command_sender.get_stored_account().await,
+        Ok(Some(mock_account(StoredAccountMode::Api)))
     );
     assert!(
         test_bench
@@ -314,7 +315,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await,
         Err(AccountCommandError::ExistingAccount)
     );
@@ -340,7 +341,7 @@ async fn error_state_command() -> anyhow::Result<()> {
         endpoints::get_devices_200(),
         endpoints::get_active_devices_200(),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
     test_bench
@@ -370,8 +371,8 @@ async fn error_state_command() -> anyhow::Result<()> {
         Ok(Some(mock_account_id()))
     );
     assert_eq!(
-        test_bench.command_sender.get_stored_mnemonic().await,
-        Ok(Some(mock_mnemonic()))
+        test_bench.command_sender.get_stored_account().await,
+        Ok(Some(mock_account(StoredAccountMode::Api)))
     );
     assert!(
         test_bench
@@ -429,7 +430,7 @@ async fn error_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench
             .command_sender
-            .store_account(mock_mnemonic())
+            .store_account(mock_account(StoredAccountMode::Api))
             .await,
         Err(AccountCommandError::ExistingAccount)
     );

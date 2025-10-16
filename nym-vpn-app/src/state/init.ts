@@ -20,8 +20,8 @@ import {
   NetworkCompat,
   StateDispatch,
   TAccountState,
+  TTunnelState,
   ThemeMode,
-  TunnelStateIpc,
   UiTheme,
 } from '../types';
 import { updateAccountState, updateTunnel } from './update';
@@ -32,7 +32,7 @@ const defaultDomFront = window._APP.defaultDomainFronting;
 
 // initialize connection state
 const getInitialTunnelState = async () => {
-  return await invoke<TunnelStateIpc>('get_tunnel_state');
+  return await invoke<TTunnelState>('get_tunnel_state');
 };
 
 const getTheme = async () => {

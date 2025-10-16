@@ -1,8 +1,7 @@
-import GRPC
-import SwiftProtobuf
-
 extension GRPCManager {
     public func deleteLog() async throws {
-        _ = try await client.deleteLogFile(Google_Protobuf_Empty())
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.deleteLogFile()
+        }.value
     }
 }

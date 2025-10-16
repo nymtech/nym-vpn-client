@@ -17,7 +17,7 @@ use tracing_subscriber::{
     EnvFilter, Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
 };
 
-use nym_vpnd_types::log_path::LogPath;
+use nym_vpn_lib_types::LogPath;
 
 use crate::service;
 

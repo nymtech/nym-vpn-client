@@ -1,20 +1,19 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::SocketAddr;
-
+use crate::{
+    AvailableTicketbooks,
+    commands::{AccountCommand, CommonCommand, ReturnSender},
+};
+use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
-use nym_vpn_store::mnemonic::Mnemonic;
+use nym_vpn_store::types::StorableAccount;
+use std::net::SocketAddr;
 use tokio::sync::mpsc::UnboundedSender;
-
-use crate::{
-    AvailableTicketbooks,
-    commands::{AccountCommand, CommonCommand, ReturnSender},
-};
 
 #[derive(Clone)]
 pub struct AccountCommandSender {
@@ -28,30 +27,30 @@ impl AccountCommandSender {
         Self { command_tx }
     }
 
-    pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+    pub async fn store_account(&self, account: StorableAccount) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::StoreAccount(tx, mnemonic))
+            .send(AccountCommand::StoreAccount(tx, account))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
 
     pub async fn register_account(
         &self,
-        mnemonic: Mnemonic,
+        account: StorableAccount,
         platform: Platform,
     ) -> Result<RegisterAccountResponse, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::RegisterAccount(tx, mnemonic, platform))
+            .send(AccountCommand::RegisterAccount(tx, account, platform))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn get_stored_mnemonic(&self) -> Result<Option<Mnemonic>, AccountCommandError> {
+    pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::Common(CommonCommand::GetStoredMnemonic(tx)))
+            .send(AccountCommand::Common(CommonCommand::GetStoredAccount(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -169,6 +168,25 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::VpnApiFirewallDown(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn decentralised_balance(&self) -> Result<Vec<Coin>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::AccountBalance(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn decentralised_obtain_ticketbooks(
+        &self,
+        amount: u64,
+    ) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ObtainTicketbooks(tx, amount))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

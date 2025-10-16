@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-ios
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-ios.yml"
+  workflow_dispatch:
   workflow_call:
     outputs:
       RUST_VERSION:
@@ -19,8 +20,10 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build-ios:
+    if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-ios
     runs-on: custom-macos-15
+    timeout-minutes: 30
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}

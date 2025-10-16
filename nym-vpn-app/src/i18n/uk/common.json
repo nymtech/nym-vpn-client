@@ -24,5 +24,6 @@
     "light": "Світла тема"
   },
   "appearance": "Зовнішній вигляд",
-  "language": "Мова"
+  "language": "Мова",
+  "server-details": "Деталі сервера"
 }

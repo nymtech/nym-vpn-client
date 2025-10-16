@@ -75,13 +75,12 @@ use nym_platform_metadata::SysInfo;
 use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
-use crate::gateway_cache::UniffiGatewayCacheHandle;
-
 use self::error::VpnError;
+use crate::gateway_cache::UniffiGatewayCacheHandle;
 use account::AccountControllerHandle;
-use nym_vpn_lib_types_uniffi::{
-    AccountControllerState, AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType,
-    NetworkCompatibility, NetworkEnvironment, RegisterAccountResponse, SystemMessage, TunnelEvent,
+use nym_vpn_lib_types::{
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
+    NetworkCompatibility, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
     UserAgent,
 };
 use offline_monitor::OfflineMonitorHandle;
@@ -92,13 +91,13 @@ use tunnel_provider::android::{AndroidConnectivityMonitor, AndroidTunProvider};
 #[cfg(target_os = "ios")]
 use tunnel_provider::ios::OSTunProvider;
 
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpAddr);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Addr);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Addr);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::IpNetwork);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv4Network);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::Ipv6Network);
-uniffi::use_remote_type!(nym_vpn_lib_types_uniffi::PathBuf);
+uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Addr);
+uniffi::use_remote_type!(nym_vpn_lib_types::IpNetwork);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Network);
+uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Network);
+uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
 
 // todo: refactor this, stop using statics
 lazy_static! {
@@ -141,7 +140,7 @@ pub fn initFallbackMainnetEnvironment() -> Result<(), VpnError> {
 /// Returns the currently set network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
+pub fn currentEnvironment() -> Result<Network, VpnError> {
     RUNTIME.block_on(environment::current_environment())
 }
 
@@ -180,11 +179,11 @@ async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
         config.statistics_enabled,
     )
     .await?;
-    account::init_account_controller(
+    Box::pin(account::init_account_controller(
         PathBuf::from(config.data_dir),
         config.credential_mode,
         network,
-    )
+    ))
     .await?;
 
     let connectivity_handle = offline_monitor::get_connectivity_handle().await?;
@@ -249,7 +248,7 @@ pub fn getNetworkCompatibilityVersions() -> Result<Option<NetworkCompatibility>,
 /// Returns the account links for the current network environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getAccountLinks(locale: &str) -> Result<AccountLinks, VpnError> {
+pub fn getAccountLinks(locale: &str) -> Result<ParsedAccountLinks, VpnError> {
     RUNTIME.block_on(environment::get_account_links(locale))
 }
 
@@ -260,7 +259,7 @@ pub fn getAccountLinks(locale: &str) -> Result<AccountLinks, VpnError> {
 pub fn getAccountLinksRaw(
     account_store_path: &str,
     locale: &str,
-) -> Result<AccountLinks, VpnError> {
+) -> Result<ParsedAccountLinks, VpnError> {
     RUNTIME.block_on(environment::get_account_links_raw(
         account_store_path,
         locale,
@@ -410,11 +409,11 @@ async fn get_account_id() -> Result<String, VpnError> {
 /// Get the list of gateways available of the given type.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getGateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError> {
+pub fn getGateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
     RUNTIME.block_on(get_gateways(gw_type))
 }
 
-async fn get_gateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError> {
+async fn get_gateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
     gateway_cache::get_gateway_cache_handle()
         .await?
         .lookup_gateways(gw_type.into())
@@ -423,7 +422,7 @@ async fn get_gateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError
             gateways
                 .into_inner()
                 .into_iter()
-                .map(GatewayInfo::from)
+                .map(Gateway::from)
                 .collect()
         })
         .map_err(|err| VpnError::NetworkConnectionError {
@@ -436,10 +435,10 @@ async fn get_gateways(gw_type: GatewayType) -> Result<Vec<GatewayInfo>, VpnError
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
-    RUNTIME.block_on(start_vpn_inner(config))
+    RUNTIME.block_on(start_vpn_inner(Box::new(config)))
 }
 
-async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+async fn start_vpn_inner(config: Box<VPNConfig>) -> Result<(), VpnError> {
     log_build_info();
 
     // Get the network environment details. This relies on the network environment being set in
@@ -512,6 +511,8 @@ pub struct VPNConfig {
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
+    pub enable_bridges: bool,
+    pub residential_exit: bool,
     #[cfg(target_os = "android")]
     pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]

@@ -4,7 +4,7 @@ import Combine
 /// Wrapper around the application’s Darwin notification center from CFNotificationCenter.h
 ///
 /// - Note: On macOS, consider using DistributedNotificationCenter instead
-public final class DarwinNotificationCenter {
+@MainActor public final class DarwinNotificationCenter {
     private init() {}
 
     /// The application’s Darwin notification center.
@@ -31,7 +31,7 @@ public final class DarwinNotificationCenter {
     /// observation.store(in: &disposeBag)
     /// ```
     ///
-    /// To stop observing the notifiation, deallocate the `DarwinNotificationObservation`, or call its `cancel()` method.
+    /// To stop observing the notification, deallocate the `DarwinNotificationObservation`, or call its `cancel()` method.
     public func addObserver(name: String, callback: @escaping () -> Void) -> DarwinNotificationObservation {
         let observation = DarwinNotificationObservation(callback: callback)
 
@@ -58,7 +58,9 @@ private func notificationCallback(
     userInfo _: CFDictionary?
 ) {
     guard let pointer = observation else { return }
-    let closure = Unmanaged<DarwinNotificationObservation.Closure>.fromOpaque(pointer).takeUnretainedValue()
+    let closure = Unmanaged<DarwinNotificationObservation.Closure>
+        .fromOpaque(pointer)
+        .takeUnretainedValue()
     closure.invoke()
 }
 
@@ -67,13 +69,15 @@ private func notificationCallback(
 extension DarwinNotificationCenter {
 
     /// Returns an asynchronous sequence of notifications for a given notification name.
-    func notifications(named name: String) -> AsyncStream<Void> {
+    @MainActor public func notifications(named name: String) -> AsyncStream<Void> {
         AsyncStream { continuation in
             let observation = addObserver(name: name) {
                 continuation.yield()
             }
             continuation.onTermination = { _ in
-                observation.cancel()
+                Task { @MainActor in
+                    observation.cancel()
+                }
             }
         }
     }
@@ -85,37 +89,25 @@ extension DarwinNotificationCenter {
 extension DarwinNotificationCenter {
     /// Returns a publisher that emits events when broadcasting notifications.
     ///
-    /// - Parameters:
-    ///   - name: The name of the notification to publish.
+    /// - Parameter name: The name of the notification to publish.
     /// - Returns: A publisher that emits events when broadcasting notifications.
-    public func publisher(for name: String) -> DarwinNotificationCenter.Publisher {
-        Publisher(center: self, name: name)
-    }
-}
-
-extension DarwinNotificationCenter {
-    /// A publisher that emits when broadcasting notifications.
-    public struct Publisher: Combine.Publisher {
-        public typealias Output = Void
-        public typealias Failure = Never
-        public let center: DarwinNotificationCenter
-        public let name: String
-        public init(center: DarwinNotificationCenter, name: String) {
-            self.center = center
-            self.name = name
+    @MainActor public func publisher(for name: String) -> AnyPublisher<Void, Never> {
+        let subject = PassthroughSubject<Void, Never>()
+        let observation = addObserver(name: name) {
+            subject.send(())
         }
 
-        public func receive<S>(subscriber: S) where S: Subscriber, S.Failure == Never, S.Input == Output {
-            let observation = center.addObserver(name: name) {
-                _ = subscriber.receive()
-            }
-
-            subscriber.receive(subscription: observation)
-        }
+        return subject
+            .handleEvents(
+                receiveCancel: {
+                    Task { @MainActor in
+                        observation.cancel()
+                    }
+                }
+            )
+            .eraseToAnyPublisher()
     }
-}
-
-extension DarwinNotificationObservation: Subscription {
-    public func request(_ demand: Subscribers.Demand) {}
 }
 #endif
+
+extension DarwinNotificationObservation: @unchecked Sendable {}

@@ -5,15 +5,17 @@ import CountriesManagerTypes
 
 extension GatewayManager {
     func loadGatewayStore() {
-        guard let gatewayStoreString = appSettings.gatewayStore,
-              let loadedGatewayStore = GatewayNodeStore(rawValue: gatewayStoreString)
-        else {
-            return
+        autoreleasepool {
+            guard let gatewayStoreString = appSettings.gatewayStore,
+                  let loadedGatewayStore = GatewayNodeStore(rawValue: gatewayStoreString)
+            else {
+                return
+            }
+            gatewayStore = loadedGatewayStore
+            entry = loadedGatewayStore.entry
+            exit = loadedGatewayStore.exit
+            vpn = loadedGatewayStore.vpn
         }
-        gatewayStore = loadedGatewayStore
-        entry = loadedGatewayStore.entry
-        exit = loadedGatewayStore.exit
-        vpn = loadedGatewayStore.vpn
     }
 
     func loadPrebundledServersIfNecessary() {
@@ -26,26 +28,28 @@ extension GatewayManager {
             return
         }
 
-        do {
-            let prebundledEntryServers = try loadPrebundledServers(from: entryServersURL)
-            let prebundledExitServers = try loadPrebundledServers(from: exitServersURL)
-            let prebundledVPNServers = try loadPrebundledServers(from: vpnServersURL)
+        autoreleasepool {
+            do {
+                let prebundledEntryServers = try loadPrebundledServers(from: entryServersURL)
+                let prebundledExitServers = try loadPrebundledServers(from: exitServersURL)
+                let prebundledVPNServers = try loadPrebundledServers(from: vpnServersURL)
 
-            gatewayStore.entry = prebundledEntryServers
-            gatewayStore.exit = prebundledExitServers
-            gatewayStore.vpn = prebundledVPNServers
+                gatewayStore.entry = prebundledEntryServers
+                gatewayStore.exit = prebundledExitServers
+                gatewayStore.vpn = prebundledVPNServers
 
-            entry = prebundledEntryServers
-            exit = prebundledExitServers
-            vpn = prebundledVPNServers
+                entry = prebundledEntryServers
+                exit = prebundledExitServers
+                vpn = prebundledVPNServers
 
-            logger.info("Loading prebundled servers")
-            logger.info("entry: \(gatewayStore.entry.count)")
-            logger.info("exit: \(gatewayStore.exit.count)")
-            logger.info("vpn: \(gatewayStore.vpn.count)")
-        } catch let error {
-            updateError(with: error)
-            return
+                logger.info("Loading prebundled servers")
+                logger.info("entry: \(gatewayStore.entry.count)")
+                logger.info("exit: \(gatewayStore.exit.count)")
+                logger.info("vpn: \(gatewayStore.vpn.count)")
+            } catch let error {
+                updateError(with: error)
+                return
+            }
         }
     }
 
@@ -57,13 +61,20 @@ extension GatewayManager {
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let decodedString = try container.decode(String.self)
-                if let d1 = self.iso8601Flexible.date(from: decodedString) {
-                    return d1
+
+                // flexible parser with fractional seconds
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date1 = formatter.date(from: decodedString) {
+                    return date1
                 }
-                let f2 = ISO8601DateFormatter()
-                if let d2 = f2.date(from: decodedString) {
-                    return d2
+
+                // fallback plain ISO8601
+                let formatter2 = ISO8601DateFormatter()
+                if let date2 = formatter2.date(from: decodedString) {
+                    return date2
                 }
+
                 throw DecodingError.dataCorruptedError(
                     in: container,
                     debugDescription: "Bad ISO8601 date: \(decodedString)"
@@ -73,37 +84,51 @@ extension GatewayManager {
             let nodes = try decoder.decode(Node.self, from: data)
 
             return nodes.map { node in
-                // perfV2 might be absent
                 let perfV2 = node.performanceV2
-                let performance = GatewayPerformance(
+                let performance = GatewayNodePerformance(
                     lastUpdated: perfV2?.lastUpdatedUTC,
                     score: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
-                    load: perfV2.map { mapScore(from: $0.load) }  ?? .noScore,
+                    mixnetScore: perfV2.map { mapScore(from: $0.mixnetScore) } ?? .noScore,
+                    load: perfV2.map { mapScore(from: $0.load) } ?? .noScore,
                     uptime: perfV2?.uptimePercentageLast24Hours ?? 0
                 )
 
-                let asn = GatewayASN(
+                let asn = GatewayNodeASN(
                     asn: node.location.asn?.asn ?? "",
                     asnName: node.location.asn?.name ?? "",
                     type: node.location.asn.map { mapASNType(from: $0.kind) } ?? .other
                 )
 
+                var gatewayNodeLocation: GatewayNodeLocation?
+                if let twoLetterIsoCountryCode = node.location.twoLetterISOCountryCode,
+                   let latitude = node.location.latitude,
+                   let longitude = node.location.longitude,
+                   let city = node.location.city,
+                   let region = node.location.region {
+                    gatewayNodeLocation = GatewayNodeLocation(
+                        twoLetterIsoCountryCode: twoLetterIsoCountryCode,
+                        latitude: latitude,
+                        longitude: longitude,
+                        city: city,
+                        region: region,
+                        asn: asn
+                    )
+                }
+
                 return GatewayNode(
                     id: node.identityKey,
-                    countryCode: node.location.twoLetterISOCountryCode ?? "",
-                    city: node.location.city ?? "",
-                    region: node.location.region ?? "",
-                    asn: asn,
+                    location: gatewayNodeLocation,
                     performance: performance,
                     mixnetScore: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
-                    moniker: node.name,
+                    name: node.name,
+                    description: node.description,
                     buildVersion: node.buildInformation?.buildVersion,
                     ipv4s: node.ipAddresses?.ipv4s ?? [],
                     ipv6s: node.ipAddresses?.ipv6s ?? []
                 )
             }
         } catch {
-            print(error)
+            print("🔥🔥🔥 \(error)")
             return []
         }
     }
@@ -135,7 +160,7 @@ private func mapScore(from load: Load?) -> GatewayNodeScore {
     }
 }
 
-private func mapASNType(from kind: Kind) -> GatewayASNType {
+private func mapASNType(from kind: Kind) -> GatewayNodeASNType {
     switch kind {
     case .residential:
         .residential
@@ -148,6 +173,7 @@ private func mapASNType(from kind: Kind) -> GatewayASNType {
 private struct NodeElement: Codable, Sendable {
     let identityKey: String
     let name: String
+    let description: String?
     let ipPacketRouter: Authenticator?
     let authenticator: Authenticator?
     let location: Location
@@ -158,11 +184,13 @@ private struct NodeElement: Codable, Sendable {
     let entry: Entry?
     let performance: String?
     let performanceV2: PerformanceV2?
+    let mixnetScore: Load?
     let buildInformation: BuildInformation?
 
     enum CodingKeys: String, CodingKey {
         case identityKey = "identity_key"
         case name
+        case description
         case ipPacketRouter = "ip_packet_router"
         case authenticator, location
         case lastProbe = "last_probe"
@@ -171,6 +199,7 @@ private struct NodeElement: Codable, Sendable {
         case role, entry, performance
         case performanceV2 = "performance_v2"
         case buildInformation = "build_information"
+        case mixnetScore = "mixnet_score"
     }
 }
 
@@ -355,12 +384,13 @@ private enum Kind: String, Codable, Sendable { case other, residential }
 // MARK: - PerformanceV2
 private struct PerformanceV2: Codable, Sendable {
     let lastUpdatedUTC: Date
-    let score, load: Load
+    let score, mixnetScore, load: Load?
     let uptimePercentageLast24Hours: Double
 
     enum CodingKeys: String, CodingKey {
         case lastUpdatedUTC = "last_updated_utc"
         case score, load
+        case mixnetScore = "mixnet_score"
         case uptimePercentageLast24Hours = "uptime_percentage_last_24_hours"
     }
 }
@@ -400,4 +430,5 @@ private enum Role: String, Codable, Sendable {
          exitGateway = "ExitGateway",
          inactive = "Inactive"
 }
+
 private typealias Node = [NodeElement]

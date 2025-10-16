@@ -41,8 +41,7 @@ all: $(ARM64_V8_BUILD_DIR)/libwg.so build uniffi $(LICENSES_FILE)
 build: $(ARM64_V8_BUILD_DIR)/libwg.so
 	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	cd $(ARM64_V8_BUILD_DIR) ; \
-	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so ; \
-	mv libnym_vpn_lib_types_uniffi.so libnym_vpn_lib_types.so
+	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
 
 uniffi: build
 	cargo run --bin uniffi-bindgen generate \
@@ -55,6 +54,7 @@ $(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
 libwg: $(ARM64_V8_BUILD_DIR)/libwg.so
 
 clean:
+	rm -rf $(ARM64_V8_BUILD_DIR) || true
 	rm -rf $(JNI_LIBS_DIR) || true
 
 $(LICENSES_FILE): $(CURDIR)/Cargo.lock

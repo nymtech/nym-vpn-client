@@ -6,21 +6,21 @@ use std::net::SocketAddr;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::AccountCommandError;
-use nym_vpn_store::mnemonic::Mnemonic;
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
     commands::{ReturnSender, dispatch::CommonCommand},
     storage::AccountStorageOp,
 };
+use nym_vpn_store::account::StorableAccount;
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,
     shared_state: &mut SharedAccountState<C>,
 ) {
     match command {
-        CommonCommand::GetStoredMnemonic(result_tx) => {
-            result_tx.send(handle_get_stored_mnemonic(shared_state).await);
+        CommonCommand::GetStoredAccount(result_tx) => {
+            result_tx.send(handle_get_stored_account(shared_state).await);
         }
         CommonCommand::GetAccountIdentity(result_tx) => {
             result_tx.send(handle_get_account_identity(shared_state));
@@ -50,13 +50,13 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
 }
 
 // This goes into storage each time, to trigger platform's unlocking mechanism if secure storage is used
-pub(crate) async fn handle_get_stored_mnemonic<C: ConnectivityMonitor>(
+pub(crate) async fn handle_get_stored_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Option<Mnemonic>, AccountCommandError> {
+) -> Result<Option<StorableAccount>, AccountCommandError> {
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
-        .send(AccountStorageOp::GetStoredMnemonic(tx))
+        .send(AccountStorageOp::GetStoredAccount(tx))
         .map_err(AccountCommandError::internal)?;
     rx.await
         .map_err(AccountCommandError::internal)? // Channel error
@@ -69,7 +69,7 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
     Ok(shared_state
         .vpn_api_account
         .as_ref()
-        .map(|account| account.id().into()))
+        .map(|account| account.id()))
 }
 
 async fn handle_get_usage<C: ConnectivityMonitor>(
@@ -141,7 +141,7 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
     Ok(devices.items)
 }
 
-async fn handle_get_available_tickets<C: ConnectivityMonitor>(
+pub(crate) async fn handle_get_available_tickets<C: ConnectivityMonitor>(
     shared_state: &SharedAccountState<C>,
 ) -> Result<AvailableTicketbooks, AccountCommandError> {
     tracing::debug!("Getting available tickets from local credential storage");

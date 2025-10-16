@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -9,12 +9,13 @@ import {
   useDialog,
   useMainDispatch,
   useMainState,
-  useNodesState,
+  useNodeList,
+  useNodeListState,
 } from '../../contexts';
 import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
-import { uiNodeToRaw } from '../../contexts/nodes/util';
+import { uiNodeToRaw } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import LocationDetailsDialog from './LocationDetailsDialog';
@@ -25,9 +26,9 @@ function Node({ node }: { node: NodeHop }) {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
-  const { nodes, loading, gateways, error } = useNodesState();
+  const { nodes, loading, gateways, error } = useNodeList();
+  const { setFocused, reset: resetSaved, addToExpanded } = useNodeListState();
   const { tE } = useI18nError();
-  const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
@@ -78,11 +79,18 @@ function Node({ node }: { node: NodeHop }) {
       payload: { hop: node, node: selected },
     });
     navigate(routes.root);
+    resetSaved(node);
   };
 
-  const handleNodeDetails = (selected: UiGateway | UiCountry) => {
-    nodeDetailsRef.current = selected;
-    navigate(routes.nodeDetails, { state: { gateway: selected, hop: node } });
+  const handleNodeDetails = (gateway: UiGateway) => {
+    navigate(routes.nodeDetails, {
+      state: { gateway, hop: node, resetScroll: true },
+    });
+    setFocused(node, { type: 'gateway', key: gateway.id });
+    // if the picked gateway's country node is not expanded, ie; while filtering
+    // expand it, so it can be restored and scrolled to when navigating back
+    // to the node list
+    addToExpanded(node, gateway.country.code);
   };
 
   if (error) {

@@ -5,9 +5,8 @@ use nym_sdk::mixnet::Recipient;
 
 use crate::{Error, error::Result};
 
-// optional, until we remove the wireguard feature flag
 #[derive(Debug, Copy, Clone)]
-pub struct AuthAddress(pub Option<Recipient>);
+pub struct AuthAddress(Recipient);
 
 impl AuthAddress {
     pub(crate) fn try_from_base58_string(address: &str) -> Result<Self> {
@@ -17,6 +16,24 @@ impl AuthAddress {
                 source,
             }
         })?;
-        Ok(AuthAddress(Some(recipient)))
+        Ok(AuthAddress(recipient))
+    }
+}
+
+impl std::fmt::Display for AuthAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<Recipient> for AuthAddress {
+    fn from(recipient: Recipient) -> Self {
+        Self(recipient)
+    }
+}
+
+impl From<AuthAddress> for Recipient {
+    fn from(auth_address: AuthAddress) -> Self {
+        auth_address.0
     }
 }

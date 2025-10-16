@@ -1,13 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{path::PathBuf, pin::Pin};
+
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use nym_statistics::{
-    StatisticsController, StatisticsControllerConfig,
-    events::{StatisticsEvent, StatisticsSender},
-};
-use std::{path::PathBuf, pin::Pin};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
@@ -18,32 +15,28 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
+use nym_statistics::{
+    StatisticsController, StatisticsControllerConfig,
+    events::{StatisticsEvent, StatisticsSender},
+};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    AvailableTicketbooks,
-};
-use nym_vpn_api_client::{
-    NetworkCompatibility,
-    response::{NymVpnDevice, NymVpnUsage},
-    types::ScoreThresholds,
+    AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
-    gateway_directory::{
-        self, EntryPoint, ExitPoint, GatewayCache, GatewayCacheHandle, GatewayClient,
-    },
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, TunnelEvent, TunnelState, VpnServiceConfig,
+    AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
+    DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
+    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
-use nym_vpnd_types::{
-    ListGatewaysOptions, StoreAccountRequest,
-    gateway::Gateway,
-    log_path::LogPath,
-    service::{ConnectArgs, TargetState, VpnServiceInfo},
-};
+use nym_vpn_network_config::Network;
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
     config::{NetworkEnvironments, VpnServiceConfigManager},
@@ -70,13 +63,19 @@ pub enum VpnServiceCommand {
     SetEnableTwoHop(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
+    SetEnableBridges(oneshot::Sender<()>, bool),
+    SetResidentialExit(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
-    GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
+    GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
+    ),
+    ListFilteredGateways(
+        oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
+        GatewayFilters,
     ),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
@@ -86,6 +85,11 @@ pub enum VpnServiceCommand {
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
+    ),
+    DecentralisedBalance(oneshot::Sender<AccountBalanceResponse>, ()),
+    DecentralisedObtainTicketbooks(
+        oneshot::Sender<Result<(), AccountCommandError>>,
+        DecentralisedObtainTicketbooksRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
@@ -231,13 +235,13 @@ impl NymVpnService {
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async move {
-            let Ok(service) = NymVpnService::new(
+            let Ok(service) = Box::pin(NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
                 log_file_remover_handle,
                 parameters,
                 shutdown_token,
-            )
+            ))
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to initialize VPN service");
@@ -327,8 +331,11 @@ impl NymVpnService {
             }
         })?;
 
+        let nyxd_client = NyxdClient::new(&parameters.network_env);
+
         let account_controller = AccountController::new(
             nym_vpn_api_client,
+            nyxd_client,
             account_controller_config,
             storage,
             connectivity_handle.clone(),
@@ -375,32 +382,11 @@ impl NymVpnService {
         let nyxd_url = parameters.network_env.nyxd_url();
         let api_url = parameters.network_env.api_url();
 
-        let mix_score_thresholds = parameters
-            .network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-        let wg_score_thresholds = parameters
-            .network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.wg_thresholds.high,
-                medium: sc.wg_thresholds.medium,
-                low: sc.wg_thresholds.low,
-            });
-
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url: api_url.clone(),
             nym_vpn_api_url: Some(parameters.network_env.vpn_api_url()),
             min_gateway_performance: None,
-            mix_score_thresholds,
-            wg_score_thresholds,
         };
         let nym_config = NymConfig {
             config_path: Some(config_dir),
@@ -661,6 +647,14 @@ impl NymVpnService {
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
                 self.handle_set_allow_lan(allow_lan, tx).await;
             }
+            VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
+                self.handle_set_enable_bridges(enable_bridges).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
+                self.handle_set_residential_exit(residential_exit).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -680,6 +674,9 @@ impl NymVpnService {
             VpnServiceCommand::ListGateways(tx, options) => {
                 self.handle_list_gateways(options, tx).await;
             }
+            VpnServiceCommand::ListFilteredGateways(tx, filters) => {
+                self.handle_list_filtered_gateways(filters, tx).await;
+            }
             VpnServiceCommand::Connect(tx, connect_args) => {
                 self.handle_connect(connect_args).await.ok();
                 let _ = tx.send(());
@@ -698,6 +695,12 @@ impl NymVpnService {
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
+            }
+            VpnServiceCommand::DecentralisedBalance(tx, ()) => {
+                let _ = tx.send(self.handle_decentralised_balance().await);
+            }
+            VpnServiceCommand::DecentralisedObtainTicketbooks(tx, request) => {
+                let _ = tx.send(self.handle_decentralised_obtain_ticketbooks(request).await);
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
@@ -770,8 +773,8 @@ impl NymVpnService {
             triple: bin_info.cargo_triple.to_string(),
             platform: self.user_agent.platform.clone(),
             git_commit: bin_info.commit_sha.to_string(),
-            nym_network: self.network_env.nym_network.clone(),
-            nym_vpn_network: self.network_env.nym_vpn_network.clone(),
+            nym_network: NymNetworkDetails::from(self.network_env.nym_network.clone()),
+            nym_vpn_network: NymVpnNetwork::from(self.network_env.nym_vpn_network.clone()),
         }
     }
 
@@ -811,6 +814,18 @@ impl NymVpnService {
             .send(TunnelCommand::SetAllowLan(allow_lan, complete_tx));
     }
 
+    async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
+        self.config_manager.set_enable_bridges(enable_bridges).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_residential_exit(&mut self, residential_exit: bool) {
+        self.config_manager
+            .set_residential_exit(residential_exit)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config =
             GlobalConfig::read_from_default_config_dir()
@@ -837,8 +852,15 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_get_system_messages(&self) -> SystemMessages {
-        self.network_env.nym_vpn_network.system_messages.clone()
+    async fn handle_get_system_messages(&self) -> Vec<SystemMessage> {
+        self.network_env
+            .nym_vpn_network
+            .system_messages
+            .messages
+            .iter()
+            .cloned()
+            .map(SystemMessage::from)
+            .collect()
     }
 
     async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
@@ -846,10 +868,14 @@ impl NymVpnService {
             .system_configuration
             .as_ref()
             .and_then(|sc| sc.min_supported_app_versions.clone())
+            .map(NetworkCompatibility::from)
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
-        self.network_env.feature_flags.clone()
+        self.network_env
+            .feature_flags
+            .clone()
+            .map(FeatureFlags::from)
     }
 
     async fn handle_list_gateways(
@@ -862,7 +888,7 @@ impl NymVpnService {
         tokio::spawn(async move {
             // todo: pass options.user_agent with request
             let result = gateway_client
-                .lookup_gateways(options.gw_type)
+                .lookup_gateways(nym_gateway_directory::GatewayType::from(options.gw_type))
                 .await
                 .map_err(|source| ListGatewaysError::GetGateways {
                     gw_type: options.gw_type,
@@ -871,7 +897,31 @@ impl NymVpnService {
                 .map(|gateways| {
                     gateways
                         .into_iter()
-                        .map(nym_vpnd_types::gateway::Gateway::from)
+                        .map(nym_vpn_lib_types::Gateway::from)
+                        .collect::<Vec<_>>()
+                });
+
+            completion_tx.send(result).ok();
+        });
+    }
+
+    async fn handle_list_filtered_gateways(
+        &self,
+        filters: GatewayFilters,
+        completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
+    ) {
+        let gateway_client = self.gateway_cache_handle.clone();
+        let gw_type = filters.gw_type;
+
+        tokio::spawn(async move {
+            let result = gateway_client
+                .lookup_filtered_gateways(nym_gateway_directory::GatewayFilters::from(filters))
+                .await
+                .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
+                .map(|gateways| {
+                    gateways
+                        .into_iter()
+                        .map(nym_vpn_lib_types::Gateway::from)
                         .collect::<Vec<_>>()
                 });
 
@@ -894,7 +944,7 @@ impl NymVpnService {
             exit_point,
             disable_ipv6: options.disable_ipv6,
             enable_two_hop: options.enable_two_hop,
-            enable_bridges: false,
+            enable_bridges: options.enable_bridges,
             netstack: options.netstack,
             dns: options.dns,
             allow_lan: true, // always true to support legacy behavior
@@ -903,6 +953,7 @@ impl NymVpnService {
             min_gateway_vpn_performance: None,
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
+            residential_exit: false,
         };
 
         self.config_manager.set_config(config).await;
@@ -932,9 +983,47 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
-            .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-        self.account_command_tx.store_account(mnemonic).await
+        match store_request {
+            StoreAccountRequest::Vpn { mnemonic } => {
+                let mnemonic = Mnemonic::parse::<String>(mnemonic)
+                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+                self.account_command_tx
+                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+                    .await
+            }
+            StoreAccountRequest::Decentralised { mnemonic } => {
+                let mnemonic = Mnemonic::parse::<String>(mnemonic)
+                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+                self.account_command_tx
+                    .store_account(StorableAccount::new(
+                        mnemonic,
+                        StoredAccountMode::Decentralised,
+                    ))
+                    .await
+            }
+        }
+    }
+
+    async fn handle_decentralised_balance(&mut self) -> AccountBalanceResponse {
+        AccountBalanceResponse {
+            result: self
+                .account_command_tx
+                .decentralised_balance()
+                .await
+                .map(|v| v.into_iter().map(nym_vpn_lib_types::Coin::from).collect()),
+        }
+    }
+
+    async fn handle_decentralised_obtain_ticketbooks(
+        &mut self,
+        request: DecentralisedObtainTicketbooksRequest,
+    ) -> Result<(), AccountCommandError> {
+        let amount = request.amount;
+        tracing::info!("received request to attempt to obtain {amount} ticketbooks of each type");
+
+        self.account_command_tx
+            .decentralised_obtain_ticketbooks(amount)
+            .await
     }
 
     async fn handle_is_account_stored(&self) -> bool {
@@ -983,6 +1072,7 @@ impl NymVpnService {
             .clone()
             .ok_or(AccountLinksError::AccountManagementNotConfigured)?
             .try_into_parsed_links(&locale, account_id.as_deref())
+            .map(ParsedAccountLinks::from)
             .map_err(|err| {
                 tracing::error!("Failed to parse account links: {:?}", err);
                 AccountLinksError::FailedToParseAccountLinks
@@ -1001,7 +1091,10 @@ impl NymVpnService {
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
-        self.account_command_tx.get_usage().await
+        self.account_command_tx
+            .get_usage()
+            .await
+            .map(|s| s.into_iter().map(NymVpnUsage::from).collect())
     }
 
     async fn handle_reset_device_identity(
@@ -1027,11 +1120,23 @@ impl NymVpnService {
     }
 
     async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-        self.account_command_tx.get_devices().await
+        Ok(self
+            .account_command_tx
+            .get_devices()
+            .await?
+            .into_iter()
+            .map(NymVpnDevice::from)
+            .collect())
     }
 
     async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-        self.account_command_tx.get_active_devices().await
+        Ok(self
+            .account_command_tx
+            .get_active_devices()
+            .await?
+            .into_iter()
+            .map(NymVpnDevice::from)
+            .collect())
     }
 
     async fn handle_get_available_tickets(

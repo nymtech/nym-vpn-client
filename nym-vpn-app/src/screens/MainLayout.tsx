@@ -1,3 +1,5 @@
+import * as H from 'history';
+import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
 import { useMainState } from '../contexts';
@@ -11,13 +13,29 @@ type MainLayoutProps = {
   noDaemonDot?: boolean;
 };
 
+type RouteState = {
+  resetScroll?: boolean;
+};
+
 function MainLayout({
   noTopBar,
   noNotifications,
   noDaemonDot,
 }: MainLayoutProps) {
   const { daemonStatus } = useMainState();
-  const location = useLocation();
+  const location = useLocation() as H.Location<RouteState | undefined>;
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!location.state?.resetScroll || !rootRef) {
+      return;
+    }
+    rootRef.current?.scrollIntoView({
+      behavior: 'instant',
+      block: 'start',
+      inline: 'start',
+    });
+  }, [location]);
 
   return (
     <div
@@ -40,7 +58,7 @@ function MainLayout({
             'p-0!',
         ])}
       >
-        <div className="grow">
+        <div ref={rootRef} className="grow">
           <EventNotification>
             <Outlet />
           </EventNotification>

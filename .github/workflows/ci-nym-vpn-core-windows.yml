@@ -2,8 +2,10 @@ name: ci-nym-vpn-core-windows
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
-      - "nym-vpn-core/**"
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
       - "nym-vpn-windows/**"
       - ".github/workflows/ci-nym-vpn-core-windows.yml"
   workflow_dispatch:
@@ -17,6 +19,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: custom-windows-11
     needs: build-wireguard-go-windows
 
@@ -56,9 +59,30 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache Cargo build
+        uses: actions/cache@v4
+        with:
+          path: nym-vpn-core/target/
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-
+
       - name: Install GNU make
         run: |
-          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Install cargo-get

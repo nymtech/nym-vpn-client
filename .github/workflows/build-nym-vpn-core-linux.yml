@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-linux
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
+  workflow_dispatch:
   workflow_call:
     secrets:
       VPND_SENTRY_DSN:
@@ -21,6 +22,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build-linux:
+    if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
     runs-on: ubuntu-22.04
     outputs:
@@ -39,12 +41,6 @@ jobs:
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
-
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache-dependency-path: nym-vpn-core/crates/nym-gateway-probe/netstack_ping/go.sum
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -78,7 +74,6 @@ jobs:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build --release
-          cargo build -p nym-gateway-probe --release
           ls -la nym-vpn-core/target/release/ || true
 
       - name: Get rust version used for build
@@ -91,7 +86,6 @@ jobs:
           SRC_BINARY: nym-vpn-core/target/release/
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_LINUX }}
 

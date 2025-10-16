@@ -49,7 +49,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
     ) -> NextAccountControllerState<C> {
         tokio::select! {
             Some(command) = command_rx.recv() => {
-                // Intentionnally no command grouping for clarity
+                // Intentionally no command grouping for clarity
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
@@ -65,7 +65,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
-
+                    AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_account(return_sender),
                     // We don't even have an identity at this point, so we might as well not do anything
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
 
@@ -86,7 +87,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             CommonCommand::SetStaticApiAddresses(return_sender, socket_addrs) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state,socket_addrs)),
 
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
-                            CommonCommand::GetStoredMnemonic(return_sender) => return_sender.send(Ok(None)),
+                            CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Ok(None)),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Ok(None)),
 
                             CommonCommand::GetUsage(return_sender) => return_no_account(return_sender),

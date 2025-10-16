@@ -35,6 +35,22 @@
     "app": "App-Logs",
     "daemon": "Daemon Logs"
   },
+  "anti-censorship": {
+    "title": "Anti-Zensur",
+    "intro": "Aktiviere diese Funktionen, wenn du Verbindungsprobleme oder NymVPN blockierst.",
+    "quic": {
+      "label": "Erweiterte Verbindung (QUIC)",
+      "warning": "Änderungen werden nach der erneuten Verbindung angewendet",
+      "content": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken durch das Einwickeln des WireGuard-Datenverkehrs in QUIC (HTTP/3) um als reguläres Surfen im Internet zu erscheinen.\n\nHinweis: Nur QUIC-kompatible Gateways für Eintragsserver Optionen einschränken.",
+      "link": "Wie QUIC die Verbindungen verbessert"
+    },
+    "stealth-api": {
+      "label": "Stealth-API-Verbindung",
+      "warning": "Änderungen werden nach der erneuten Verbindung angewendet",
+      "content": "Verschleiert API-Anfragen hinter populären, erlaubten Domains, VPN-Blockierungen zu umgehen. Wird automatisch von NymVPN verwendet, wenn Standardverbindungsversuche fehlschlagen.",
+      "link": "Wie der Stealth-API-Verbindungsmodus funktioniert"
+    }
+  },
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "Anonyme Netzwerkstatistiken",
       "sublabel": "Änderungen werden nach einem Neustart des Daemon angewendet.",
-      "desc1": "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird.",
-      "desc2": "Es werden nur Daten über die Netzwerkleistung geteilt - niemals Ihre Surfaktivität oder Ihre persönlichen Daten.",
+      "desc": "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird.\n\nEs werden nur Daten über die Leistung des Netzwerks geteilt - niemals Ihre Surfaktivität oder Ihre persönlichen Daten.",
       "link": "Erfahren Sie genau, was geteilt wird"
     }
   },

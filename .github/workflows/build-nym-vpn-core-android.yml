@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-android
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-android.yml"
+  workflow_dispatch:
   workflow_call:
     outputs:
       RUST_VERSION:
@@ -18,6 +19,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build-android:
+    if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-android
     runs-on: arc-linux-latest
     outputs:

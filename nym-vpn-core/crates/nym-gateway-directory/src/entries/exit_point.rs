@@ -6,8 +6,11 @@ use std::fmt::{Display, Formatter};
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 
-use super::gateway::{Gateway, GatewayList};
-use crate::{Error, IpPacketRouterAddress, error::Result};
+use crate::{
+    Error, IpPacketRouterAddress, ScoreValue,
+    entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, Gateway, GatewayFilter, GatewayList},
+    error::Result,
+};
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
@@ -49,8 +52,8 @@ impl ExitPoint {
     pub fn lookup_gateway(
         &self,
         gateways: &GatewayList,
-        min_wg_performance: Option<u8>,
-        min_mixnet_performance: Option<u8>,
+        min_score: Option<ScoreValue>,
+        residential_exit: bool,
     ) -> Result<Gateway> {
         match &self {
             ExitPoint::Address { address } => {
@@ -83,36 +86,65 @@ impl ExitPoint {
                 two_letter_iso_country_code,
             } => {
                 tracing::debug!("Selecting gateway by country: {two_letter_iso_country_code}");
-                gateways
-                    .random_gateway_located_at_country(
-                        two_letter_iso_country_code,
-                        min_wg_performance,
-                        min_mixnet_performance,
-                    )
-                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+
+                let filters = Self::build_filters(
+                    vec![GatewayFilter::Country(two_letter_iso_country_code.clone())],
+                    min_score,
+                    residential_exit,
+                );
+
+                gateways.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingExitGatewayForLocation {
                         requested_location: two_letter_iso_country_code.clone(),
                         available_countries: gateways.all_iso_codes(),
-                    })
+                    }
+                })
             }
             ExitPoint::Region { region } => {
                 tracing::debug!("Selecting gateway by region/state: {region}");
-                gateways
-                    .random_gateway_located_at_region(
-                        region,
-                        min_wg_performance,
-                        min_mixnet_performance,
-                    )
-                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+
+                let filters = Self::build_filters(
+                    vec![
+                        // Currently only supported in the US
+                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                        GatewayFilter::Region(region.to_string()),
+                    ],
+                    min_score,
+                    residential_exit,
+                );
+
+                gateways.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingExitGatewayForLocation {
                         requested_location: region.clone(),
                         available_countries: gateways.all_iso_codes(),
-                    })
+                    }
+                })
             }
             ExitPoint::Random => {
                 tracing::debug!("Selecting a random exit gateway");
+
+                let filters = Self::build_filters(vec![], min_score, residential_exit);
+
                 gateways
-                    .random_gateway(min_wg_performance, min_mixnet_performance)
+                    .choose_random(&filters)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
+    }
+
+    #[inline]
+    fn build_filters(
+        mut base_filters: Vec<GatewayFilter>,
+        min_score: Option<ScoreValue>,
+        residential_exit: bool,
+    ) -> Vec<GatewayFilter> {
+        if let Some(min_score) = min_score {
+            base_filters.push(GatewayFilter::MinScore(min_score));
+        }
+        if residential_exit {
+            base_filters.push(GatewayFilter::Residential);
+            base_filters.push(GatewayFilter::Exit);
+        }
+        base_filters
     }
 }

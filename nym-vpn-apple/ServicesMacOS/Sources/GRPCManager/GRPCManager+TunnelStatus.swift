@@ -1,33 +1,10 @@
-import GRPC
 import Foundation
-import SwiftProtobuf
+import NymVPNRpc
 import Constants
 import ErrorReason
 import TunnelStatus
 
 extension GRPCManager {
-    func setupListenToTunnelStateChangesObserver() {
-        var iterator = client.listenToTunnelState(Google_Protobuf_Empty()).makeAsyncIterator()
-
-        Task {
-            do {
-                while let tunnelState = try await iterator.next() {
-                    await MainActor.run {
-                        self.updateTunnelStatus(with: tunnelState)
-                    }
-                }
-                await MainActor.run {
-                    resetTunnelStateChangeObserver()
-                }
-            } catch {
-                await MainActor.run {
-                    logger.error("Listening to tunnel state failed: \(error)")
-                    resetTunnelStateChangeObserver()
-                }
-            }
-        }
-    }
-
     func resetTunnelStateChangeObserver() {
         setup()
         tunnelStatus = .unknown
@@ -49,12 +26,12 @@ extension GRPCManager {
         versionPingTask = nil
     }
 
-    @MainActor func pingDaemonInitialStatus() async {
+    func pingDaemonInitialStatus() async {
         var retryCount = 0
         while !isServing {
             do {
                 try await version()
-                let tunnelState = try await client.getTunnelState(Google_Protobuf_Empty())
+                guard let tunnelState = try await rpcClient?.getTunnelState() else { return }
                 await MainActor.run {
                     updateTunnelStatus(with: tunnelState)
                 }
@@ -86,48 +63,45 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    @MainActor func updateTunnelStatus(with state: NymVpnService_TunnelState) {
-        switch state.state {
+    func updateTunnelStatus(with state: TunnelState) {
+        switch state {
         case let .connected(details):
-            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
+            connectedDate = Date(timeIntervalSince1970: Double(details.connectedAt))
             tunnelStatus = .connected
             connectionInfoData = ConnectionInfoData(
-                entryGatewayId: details.connectionData.entryGateway.id,
-                exitGatewayId: details.connectionData.exitGateway.id
+                entryGatewayId: details.entryGateway.id,
+                exitGatewayId: details.exitGateway.id
             )
-        case let .connecting(details):
-            connectionRetryAttempt = Int(details.retryAttempt)
+        case let .connecting(retryAttempt: retryAttempt, state: state, tunnelType: _, connectionData: connectionData):
+            connectionRetryAttempt = Int(retryAttempt)
             tunnelStatus = .connecting
-            tunnelConnectingState = TunnelConnectingState(with: details.state)
+            tunnelConnectingState = TunnelConnectingState(with: state)
             connectionInfoData = ConnectionInfoData(
-                entryGatewayId: details.connectionData.entryGateway.id,
-                exitGatewayId: details.connectionData.exitGateway.id
+                entryGatewayId: connectionData?.entryGateway.id,
+                exitGatewayId: connectionData?.exitGateway.id
             )
         case .disconnected:
             tunnelStatus = .disconnected
             connectionInfoData = nil
-        case let .disconnecting(details):
-            switch details.afterDisconnect {
-            case .nothing, .UNRECOGNIZED, .error:
+        case let .disconnecting(afterDisconnect):
+            switch afterDisconnect {
+            case .nothing, .error:
                 tunnelStatus = .disconnecting
             case .reconnect:
                 tunnelStatus = .connecting
             case .offline:
                 tunnelStatus = .offline
             }
-            if details.afterDisconnect == .reconnect {
-                tunnelStatus = .connecting
-            } else {
-                tunnelStatus = .disconnecting
-            }
             connectionInfoData = nil
         case let .error(details):
             tunnelStatus = .error
             errorReason = resolveError(with: details)
-        case let .offline(details):
-            tunnelStatus = details.reconnect ? .offlineReconnect : .offline
-        case .none:
-            tunnelStatus = .unknown
+        case let .offline(reconnect: reconnect):
+            if reconnect {
+                tunnelStatus = .offlineReconnect
+            } else {
+                tunnelStatus = .offline
+            }
         }
 
         guard !isServing else { return }
@@ -136,8 +110,8 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    func resolveError(with tunnelStateError: NymVpnService_TunnelState.Error) -> Error? {
-        switch tunnelStateError.reason {
+    func resolveError(with tunnelStateError: ErrorStateReason) -> Error? {
+        switch tunnelStateError {
         case .setFirewallPolicy:
             ErrorReason.setFirewallPolicy
         case .setRouting:
@@ -154,10 +128,8 @@ extension GRPCManager {
             ErrorReason.bandwidthExceeded
         case .setDns:
             ErrorReason.setDns
-        case .internal:
-            ErrorReason(with: tunnelStateError.reason)
-        case .UNRECOGNIZED:
-            ErrorReason.unknown
+        case let .internal(code):
+            ErrorReason.internalError(code)
         case .deviceTimeOutOfSync:
             ErrorReason.deviceTimeOutOfSync
         case .ipv6Unavailable:
@@ -176,13 +148,21 @@ extension GRPCManager {
             ErrorReason.credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             ErrorReason.credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            ErrorReason.performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            ErrorReason.performantExitGatewayUnavailable
+        case .invalidEntryGatewayIdentity:
+            ErrorReason.invalidEntryGatewayCountry
+        case .invalidExitGatewayIdentity:
+            ErrorReason.invalidExitGatewayIdentity
         }
     }
 }
 
 #if os(macOS)
 extension ErrorReason {
-    init(with tunnelStateError: NymVpnService_TunnelState.ErrorStateReason) {
+    init(with tunnelStateError: ErrorStateReason) {
         switch tunnelStateError {
         case .setFirewallPolicy:
             self = .setFirewallPolicy
@@ -202,6 +182,10 @@ extension ErrorReason {
             self = .ipv6Unavailable
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .bandwidthExceeded:
             self = .bandwidthExceeded
         case .inactiveSubscription:
@@ -216,19 +200,21 @@ extension ErrorReason {
             self = .deviceLoggedOut
         case .internal:
             self = .internalUnknown
-        case .UNRECOGNIZED:
-            self = .internalUnknown
         case .credentialWastedOnEntryGateway:
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 }
 #endif
 
 private extension TunnelConnectingState {
-    init(with state: NymVpnService_EstablishConnectionState) {
+    init(with state: EstablishConnectionState) {
         switch state {
         case .resolvingApiAddresses:
             self = .resolvingApiAddresses
@@ -242,8 +228,6 @@ private extension TunnelConnectingState {
             self = .connectingMixnetClient
         case .connectingTunnel:
             self = .connectingTunnel
-        case .UNRECOGNIZED(_):
-            self = .unrecognized
         }
     }
 }

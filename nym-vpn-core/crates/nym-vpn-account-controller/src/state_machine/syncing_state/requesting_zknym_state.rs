@@ -5,7 +5,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::FAIR_USAGE_DEPLETED_CODE_ID,
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 
 use nym_vpn_lib_types::{
@@ -95,7 +95,7 @@ impl RequestingZkNymsState {
     }
     async fn fetch_zk_nyms(
         vpn_api_client: VpnApiClient,
-        vpn_api_account: VpnApiAccount,
+        vpn_api_account: VpnAccount,
         device: Device,
         storage: VpnCredentialStorage,
         credential_mode: bool,
@@ -236,6 +236,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                        AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         self.zk_nym_fetching_handle.abort();
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);

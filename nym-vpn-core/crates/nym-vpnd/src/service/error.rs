@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_http_api_client::HttpClientError;
-use nym_vpn_lib::{
-    MixnetError, gateway_directory::GatewayType,
-    tunnel_state_machine::Error as TunnelStateMachineError,
-};
+use nym_vpn_lib::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+use nym_vpn_lib_types::GatewayType;
 use tracing::error;
 
 use super::config::ConfigSetupError;
@@ -69,8 +67,14 @@ pub enum GlobalConfigError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewaysError {
-    #[error("failed to get gateways ({gw_type})")]
+    #[error("failed to get gateways ({gw_type:?})")]
     GetGateways {
+        gw_type: GatewayType,
+        source: nym_vpn_lib::gateway_directory::Error,
+    },
+
+    #[error("failed to get filtered gateways ({gw_type:?})")]
+    GetFilteredGateways {
         gw_type: GatewayType,
         source: nym_vpn_lib::gateway_directory::Error,
     },

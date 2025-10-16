@@ -3,10 +3,24 @@
 
 use std::{fmt, net::IpAddr};
 
-use nym_gateway_directory::{EntryPoint, ExitPoint};
-use serde::Serialize;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
@@ -21,13 +35,14 @@ pub struct VpnServiceConfig {
     pub min_mixnode_performance: Option<u8>,
     pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
+    pub residential_exit: bool,
 }
 
 impl fmt::Display for VpnServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "entry point: {}, exit point: {}, dns: {}",
+            "entry point: {:?}, exit point: {:?}, dns: {}",
             self.entry_point,
             self.exit_point,
             self.dns
@@ -57,6 +72,7 @@ impl fmt::Display for VpnServiceConfig {
                 .map(|p| p.to_string())
                 .unwrap_or_else(|| "<None>".to_string())
         )?;
+        writeln!(f, "residential_exit: {}", self.residential_exit)?;
         Ok(())
     }
 }
@@ -77,6 +93,67 @@ impl Default for VpnServiceConfig {
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
+            residential_exit: false,
         }
     }
+}
+
+#[cfg(feature = "uniffi-bindings")]
+pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
+#[cfg(feature = "uniffi-bindings")]
+uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
+    remote,
+    try_lift: |val| Ok(Box::new(val)),
+    lower: |val| *val
+});
+
+/// The target tunnel state.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum TargetState {
+    /// Unsecure the device.
+    Unsecured,
+
+    /// Secure the device.
+    Secured,
+}
+
+impl std::fmt::Display for TargetState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            TargetState::Unsecured => "Unsecured",
+            TargetState::Secured => "Secured",
+        };
+        write!(f, "{s}")
+    }
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct VpnServiceInfo {
+    pub version: String,
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    pub build_timestamp: Option<OffsetDateTime>,
+    pub triple: String,
+    pub platform: String,
+    pub git_commit: String,
+    pub nym_network: NymNetworkDetails,
+    pub nym_vpn_network: NymVpnNetwork,
 }

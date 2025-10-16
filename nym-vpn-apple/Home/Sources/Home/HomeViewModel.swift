@@ -4,7 +4,6 @@ import AppSettings
 import ConnectionManager
 import Constants
 import ConfigurationManager
-import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
 import GatewayManager
@@ -16,35 +15,40 @@ import TunnelMixnet
 import TunnelStatus
 import Tunnels
 import UIComponents
-#if os(iOS)
 import ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
 import GRPCManager
 import HelperInstall
 import HelperManager
 #endif
 
-public class HomeViewModel: HomeFlowState {
+@MainActor public class HomeViewModel: HomeFlowState {
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
 
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager
-    let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
     let gatewayManager: GatewayManager
     let networkMonitor: NetworkMonitor
-#if os(iOS)
     let impactGenerator: ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
     let grpcManager: GRPCManager
     let helperManager: HelperManager
 #endif
     let messagesManager: MessagesManager
-    let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
-    let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
+    let anonymousButtonViewModel = NetworkButtonViewModel(
+        type: .mixnet5hop,
+        appSettings: .shared,
+        connectionManager: .shared
+    )
+    let fastButtonViewModel = NetworkButtonViewModel(
+        type: .wireguard,
+        appSettings: .shared,
+        connectionManager: .shared
+    )
 
     @ObservedObject var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
@@ -104,20 +108,18 @@ public class HomeViewModel: HomeFlowState {
 
 #if os(iOS)
     public init(
-        appSettings: AppSettings = .shared,
-        connectionManager: ConnectionManager = .shared,
-        countriesManager: CountriesManager = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        networkMonitor: NetworkMonitor = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        gatewayManager: GatewayManager = .shared,
-        impactGenerator: ImpactGenerator = .shared,
-        messagesManager: MessagesManager = .shared
+        appSettings: AppSettings,
+        connectionManager: ConnectionManager,
+        configurationManager: ConfigurationManager,
+        credentialsManager: CredentialsManager,
+        networkMonitor: NetworkMonitor,
+        externalLinkManager: ExternalLinkManager,
+        gatewayManager: GatewayManager,
+        impactGenerator: ImpactGenerator,
+        messagesManager: MessagesManager
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
-        self.countriesManager = countriesManager
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
@@ -131,27 +133,28 @@ public class HomeViewModel: HomeFlowState {
     }
 #elseif os(macOS)
     public init(
-        appSettings: AppSettings = .shared,
-        connectionManager: ConnectionManager = .shared,
-        countriesManager: CountriesManager = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        networkMonitor: NetworkMonitor = .shared,
-        grpcManager: GRPCManager = .shared,
-        helperManager: HelperManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        gatewayManager: GatewayManager = .shared,
-        messagesManager: MessagesManager = .shared
+        appSettings: AppSettings,
+        connectionManager: ConnectionManager,
+        configurationManager: ConfigurationManager,
+        credentialsManager: CredentialsManager,
+        networkMonitor: NetworkMonitor,
+        grpcManager: GRPCManager,
+        helperManager: HelperManager,
+        externalLinkManager: ExternalLinkManager,
+        gatewayManager: GatewayManager,
+        impactGenerator: ImpactGenerator,
+        messagesManager: MessagesManager
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
-        self.countriesManager = countriesManager
+
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.networkMonitor = networkMonitor
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
+        self.impactGenerator = impactGenerator
         self.gatewayManager = gatewayManager
         self.messagesManager = messagesManager
         super.init()
@@ -159,24 +162,23 @@ public class HomeViewModel: HomeFlowState {
         setup()
     }
 #endif
-
-    deinit {
-        cancellables.forEach { $0.cancel() }
-    }
 }
 
 // MARK: - Navigation -
 
 public extension HomeViewModel {
     @MainActor func navigateToSettings() {
+        impactGenerator.softImpact()
         path.append(HomeLink.settings)
     }
 
     @MainActor func navigateToEntryGateways() {
+        impactGenerator.softImpact()
         path.append(HomeLink.entryGateways)
     }
 
     @MainActor func navigateToExitGateways() {
+        impactGenerator.softImpact()
         path.append(HomeLink.exitGateways)
     }
 
@@ -215,7 +217,6 @@ private extension HomeViewModel {
     func setup() {
         setupTunnelManagerObservers()
         setupUpdateRequiredObserver()
-        setupCountriesManagerObservers()
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
 
@@ -250,13 +251,6 @@ private extension HomeViewModel {
             }
             .store(in: &cancellables)
 #endif
-    }
-
-    func setupCountriesManagerObservers() {
-        countriesManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
     }
 
     func setupGatewayManagerObserver() {
@@ -295,10 +289,6 @@ private extension HomeViewModel {
             }
         }
         .store(in: &cancellables)
-    }
-
-    func fetchCountries() {
-        countriesManager.fetchCountries()
     }
 }
 

@@ -1,27 +1,112 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod cli;
+mod boolean_option;
+mod commands;
+mod table_style;
+
+use std::str::FromStr;
 
 use anyhow::{Context, Result, bail};
-use clap::Parser;
-use cli::Internal;
-use nym_gateway_directory::GatewayType;
-use nym_http_api_client::UserAgent;
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
-use nym_vpn_proto::rpc_client::RpcClient;
-use nym_vpnd_types::{
-    ListGatewaysOptions, StoreAccountRequest,
-    service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
-};
+use clap::{ArgAction, Parser};
 use sysinfo::System;
 use tokio_stream::StreamExt;
 
-use crate::cli::{CliEntry, CliExit, Command};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState, UserAgent, VpnServiceInfo};
+use nym_vpn_proto::rpc_client::RpcClient;
+
+use crate::table_style::TableStyle;
+
+#[derive(Parser, Debug)]
+#[clap(version, about)]
+pub struct ProgramArgs {
+    /// Table style output.
+    #[arg(global = true, long, value_enum, default_value_t)]
+    pub table_style: TableStyle,
+
+    /// Override the default user agent string.
+    #[arg(long, value_parser = parse_user_agent)]
+    pub user_agent: Option<UserAgent>,
+
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+fn parse_user_agent(s: &str) -> Result<UserAgent, String> {
+    UserAgent::from_str(s)
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub enum Command {
+    /// Connect the tunnel
+    ConnectV2 {
+        /// Blocks until the connection is established or failed
+        #[arg(short, long)]
+        wait: bool,
+    },
+
+    /// Reconnect the tunnel to any matching gateway
+    Reconnect,
+
+    /// Disconnect the tunnel
+    Disconnect {
+        /// Blocks until disconnected.
+        #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
+        wait: bool,
+    },
+
+    /// Get the current connection status
+    Status {
+        /// Monitor tunnel state continuously until ctrl+c.
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        listen: bool,
+    },
+
+    /// Get info about the current client. Things like version and network details.
+    Info,
+
+    /// Get the current VPN service configuration.
+    #[clap(hide = true)]
+    GetConfig,
+
+    /// Manage entry and exit gateway nodes, list available gateways
+    Gateway(commands::gateway::Args),
+
+    /// View and manage local network policy
+    Lan {
+        #[command(subcommand)]
+        subcommand: commands::lan::Command,
+    },
+
+    /// View and manage tunnel configuration
+    Tunnel {
+        #[command(subcommand)]
+        subcommand: commands::tunnel::Command,
+    },
+
+    /// View and manage account information
+    Account {
+        #[command(subcommand)]
+        subcommand: commands::account::Command,
+    },
+
+    /// View and manage device information
+    Device(commands::device::Args),
+
+    /// View and manage Nym network configuration
+    Network {
+        #[command(subcommand)]
+        subcommand: commands::network::Command,
+    },
+
+    #[command(flatten)]
+    Legacy(commands::legacy::Command),
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = cli::LegacyCliArgs::parse();
+    let args = ProgramArgs::parse();
+
     let mut rpc_client = RpcClient::new()
         .await
         .context("Failed to create RPC client")?;
@@ -34,46 +119,20 @@ async fn main() -> Result<()> {
     };
 
     match args.command {
-        Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await?,
-        Command::ConnectV2 { wait } => connect_v2(rpc_client, wait).await?,
-        Command::Reconnect => reconnect(rpc_client).await?,
-        Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
-        Command::Status { listen } => status(rpc_client, listen).await?,
-        Command::Info => info(rpc_client).await?,
-        Command::GetConfig => get_config(rpc_client).await?,
-        Command::SetEntry { entry } => set_entry_point(rpc_client, entry).await?,
-        Command::SetExit { exit } => set_exit_point(rpc_client, exit).await?,
-        Command::SetIpv6 { enabled } => set_disable_ipv6(rpc_client, !*enabled).await?,
-        Command::SetTwoHop { enabled } => set_enable_two_hop(rpc_client, *enabled).await?,
-        Command::SetNetstack { enabled } => set_netstack(rpc_client, *enabled).await?,
-        Command::SetAllowLan { allow } => set_allow_lan(rpc_client, *allow).await?,
-        Command::SetNetwork(args) => set_network(rpc_client, args).await?,
-        Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await?,
-        Command::IsAccountStored => is_account_stored(rpc_client).await?,
-        Command::ForgetAccount => forget_account(rpc_client).await?,
-        Command::GetAccountId => get_account_id(rpc_client).await?,
-        Command::GetAccountLinks(args) => get_account_links(rpc_client, args).await?,
-        Command::GetAccountState => get_account_state(rpc_client).await?,
-        Command::ListEntryGateways => {
-            list_gateways(rpc_client, GatewayType::MixnetEntry, user_agent).await?
-        }
-        Command::ListExitGateways => {
-            list_gateways(rpc_client, GatewayType::MixnetExit, user_agent).await?
-        }
-        Command::ListVpnGateways => list_gateways(rpc_client, GatewayType::Wg, user_agent).await?,
-        Command::GetDeviceId => get_device_id(rpc_client).await?,
-        Command::Internal(internal) => match internal {
-            Internal::GetSystemMessages => get_system_messages(rpc_client).await?,
-            Internal::GetFeatureFlags => get_feature_flags(rpc_client).await?,
-            Internal::SyncAccountState => refresh_account_state(rpc_client).await?,
-            Internal::GetAccountUsage => get_account_usage(rpc_client).await?,
-            Internal::ResetDeviceIdentity(args) => reset_device_identity(rpc_client, args).await?,
-            Internal::GetDevices => get_devices(rpc_client).await?,
-            Internal::GetActiveDevices => get_active_devices(rpc_client).await?,
-            Internal::GetAvailableTickets => get_available_tickets(rpc_client).await?,
-        },
+        Command::ConnectV2 { wait } => connect_v2(rpc_client, wait).await,
+        Command::Reconnect => reconnect(rpc_client).await,
+        Command::Disconnect { wait } => disconnect(rpc_client, wait).await,
+        Command::Status { listen } => status(rpc_client, listen).await,
+        Command::Info => info(rpc_client).await,
+        Command::GetConfig => get_config(rpc_client).await,
+        Command::Gateway(args) => args.execute(rpc_client, user_agent).await,
+        Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
+        Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
+        Command::Network { subcommand } => subcommand.execute(rpc_client).await,
+        Command::Account { subcommand } => subcommand.execute(rpc_client).await,
+        Command::Device(args) => args.execute(rpc_client).await,
+        Command::Legacy(subcommand) => subcommand.execute(rpc_client, user_agent).await,
     }
-    Ok(())
 }
 
 fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
@@ -92,41 +151,6 @@ fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
         version,
         platform,
         git_commit,
-    }
-}
-
-async fn connect(
-    mut rpc_client: RpcClient,
-    connect_args: cli::ConnectArgs,
-    user_agent: UserAgent,
-) -> Result<()> {
-    println!(
-        "This call is deprecated and going to be removed soon. Please switch to using: nym-vpnc connect-v2"
-    );
-
-    let options = ConnectArgs {
-        entry: connect_args.entry_point()?,
-        exit: connect_args.exit_point()?,
-        options: ConnectOptions {
-            dns: connect_args.dns,
-            disable_ipv6: connect_args.disable_ipv6,
-            enable_two_hop: connect_args.enable_two_hop,
-            enable_bridges: connect_args.circumvention_transports,
-            netstack: connect_args.netstack,
-            disable_poisson_rate: connect_args.disable_poisson_rate,
-            disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
-            enable_credentials_mode: connect_args.enable_credentials_mode,
-            user_agent: Some(user_agent),
-        },
-    };
-
-    rpc_client.connect_tunnel(options).await?;
-
-    if connect_args.wait {
-        println!("Waiting until connected or failed");
-        wait_until_connected(rpc_client).await
-    } else {
-        Ok(())
     }
 }
 
@@ -166,7 +190,7 @@ async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
                 }
             }
             TunnelState::Error(reason) => {
-                bail!("Tunnel entered error state {:?}", reason);
+                bail!("Tunnel entered error state {reason:?}");
             }
             _ => {}
         }
@@ -200,7 +224,7 @@ async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {
                 break;
             }
             TunnelState::Error(reason) => {
-                bail!("Tunnel entered error state: {:?}", reason)
+                bail!("Tunnel entered error state: {reason:?}")
             }
             _ => {}
         }
@@ -247,174 +271,6 @@ async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
     Ok(())
 }
 
-async fn set_entry_point(mut rpc_client: RpcClient, entry: CliEntry) -> Result<()> {
-    rpc_client.set_entry_point(entry.entry_point()?).await?;
-    Ok(())
-}
-
-async fn set_exit_point(mut rpc_client: RpcClient, exit: CliExit) -> Result<()> {
-    rpc_client.set_exit_point(exit.exit_point()?).await?;
-    Ok(())
-}
-
-async fn set_disable_ipv6(mut rpc_client: RpcClient, disable_ipv6: bool) -> Result<()> {
-    rpc_client.set_disable_ipv6(disable_ipv6).await?;
-    Ok(())
-}
-
-async fn set_enable_two_hop(mut rpc_client: RpcClient, enable_two_hop: bool) -> Result<()> {
-    rpc_client.set_enable_two_hop(enable_two_hop).await?;
-    Ok(())
-}
-
-async fn set_netstack(mut rpc_client: RpcClient, netstack: bool) -> Result<()> {
-    rpc_client.set_netstack(netstack).await?;
-    Ok(())
-}
-
-async fn set_allow_lan(mut rpc_client: RpcClient, allow_lan: bool) -> Result<()> {
-    rpc_client.set_allow_lan(allow_lan).await?;
-    Ok(())
-}
-
-async fn set_network(mut rpc_client: RpcClient, args: cli::SetNetworkArgs) -> Result<()> {
-    rpc_client.set_network(args.network).await?;
-    Ok(())
-}
-
-async fn get_system_messages(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_system_messages().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn get_feature_flags(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_feature_flags().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn store_account(mut rpc_client: RpcClient, store_args: cli::StoreAccountArgs) -> Result<()> {
-    let request = StoreAccountRequest {
-        mnemonic: store_args.mnemonic.clone(),
-    };
-    let response = rpc_client.store_account(request).await?;
-
-    if let Some(err) = response.error {
-        println!("Error: {err}");
-    } else {
-        println!("Account recovery phrase stored");
-    }
-
-    Ok(())
-}
-
-async fn refresh_account_state(mut rpc_client: RpcClient) -> Result<()> {
-    rpc_client.refresh_account_state().await?;
-    Ok(())
-}
-
-async fn is_account_stored(mut rpc_client: RpcClient) -> Result<()> {
-    let is_stored = rpc_client.is_account_stored().await?;
-    if is_stored {
-        println!("Account is stored");
-    } else {
-        println!("No account is stored");
-    }
-    Ok(())
-}
-
-async fn get_account_usage(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_account_usage().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn forget_account(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.forget_account().await?;
-    if let Some(err) = response.error {
-        println!("Error: {err}");
-    } else {
-        println!("Account forgotten successfully");
-    }
-    Ok(())
-}
-
-async fn get_account_id(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_account_identity().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn get_account_links(
-    mut rpc_client: RpcClient,
-    args: cli::GetAccountLinksArgs,
-) -> Result<()> {
-    let links = rpc_client.get_account_links(args.locale).await?;
-    println!("{links}");
-
-    Ok(())
-}
-
-async fn get_account_state(mut rpc_client: RpcClient) -> Result<()> {
-    let account_state = rpc_client.get_account_state().await?;
-    println!("{account_state}");
-    Ok(())
-}
-
-async fn reset_device_identity(
-    mut rpc_client: RpcClient,
-    args: cli::ResetDeviceIdentityArgs,
-) -> Result<()> {
-    let seed = args.seed.map(|seed| seed.into_bytes());
-    rpc_client.reset_device_identity(seed).await?;
-    Ok(())
-}
-
-async fn get_device_id(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_device_identity().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn get_devices(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_devices().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn get_active_devices(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_active_devices().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn get_available_tickets(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_available_tickets().await?;
-    println!("{response:#?}");
-    Ok(())
-}
-
-async fn list_gateways(
-    mut rpc_client: RpcClient,
-    gw_type: GatewayType,
-    user_agent: UserAgent,
-) -> Result<()> {
-    let gateways = rpc_client
-        .list_gateways(ListGatewaysOptions {
-            gw_type,
-            user_agent: Some(user_agent),
-        })
-        .await?;
-
-    println!("Gateways available for: {gw_type}");
-    println!("Total gateways: {}", gateways.len());
-    for gateway in gateways {
-        println!("  {gateway:?}");
-    }
-    Ok(())
-}
-
 fn print_service_info(service_info: VpnServiceInfo) {
     println!("nym-vpnd:");
     println!("  version: {}", service_info.version);
@@ -430,43 +286,25 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!("  git_commit: {}", service_info.git_commit);
     println!();
     println!("nym_network:");
-    println!(
-        "  network_name: {}",
-        service_info.nym_network.network.network_name
-    );
+    println!("  network_name: {}", service_info.nym_network.network_name);
     println!("  chain_details:");
     println!(
         "    bech32_account_prefix: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .bech32_account_prefix
+        service_info.nym_network.chain_details.bech32_account_prefix
     );
     println!("    mix_denom:");
     println!(
         "      base: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .mix_denom
-            .base
+        service_info.nym_network.chain_details.mix_denom.base
     );
     println!(
         "      display: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .mix_denom
-            .display
+        service_info.nym_network.chain_details.mix_denom.display
     );
     println!(
         "      display_exponent: {}",
         service_info
             .nym_network
-            .network
             .chain_details
             .mix_denom
             .display_exponent
@@ -474,34 +312,23 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!("    stake_denom:");
     println!(
         "      base: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .stake_denom
-            .base
+        service_info.nym_network.chain_details.stake_denom.base
     );
     println!(
         "      display: {}",
-        service_info
-            .nym_network
-            .network
-            .chain_details
-            .stake_denom
-            .display
+        service_info.nym_network.chain_details.stake_denom.display
     );
     println!(
         "      display_exponent: {}",
         service_info
             .nym_network
-            .network
             .chain_details
             .stake_denom
             .display_exponent
     );
 
     println!("  validators:");
-    for validator in &service_info.nym_network.network.endpoints {
+    for validator in &service_info.nym_network.endpoints {
         println!("    nyxd_url: {}", validator.nyxd_url);
         println!("    api_url: {}", or_not_set(&validator.api_url));
         println!(
@@ -513,60 +340,29 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!("  nym_contracts:");
     println!(
         "    mixnet_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .mixnet_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.mixnet_contract_address)
     );
     println!(
         "    vesting_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .vesting_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.vesting_contract_address)
     );
     println!(
         "    ecash_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .ecash_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.ecash_contract_address)
     );
     println!(
         "    group_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .group_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.group_contract_address)
     );
     println!(
         "    multisig_contract_address: {}",
-        or_not_set(
-            &service_info
-                .nym_network
-                .network
-                .contracts
-                .multisig_contract_address
-        )
+        or_not_set(&service_info.nym_network.contracts.multisig_contract_address)
     );
     println!(
         "    coconut_dkg_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
-                .network
                 .contracts
                 .coconut_dkg_contract_address
         )

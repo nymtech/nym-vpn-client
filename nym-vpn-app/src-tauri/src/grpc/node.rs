@@ -10,7 +10,7 @@ use crate::country::Country;
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
 #[serde(untagged)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[allow(clippy::large_enum_variant)]
 pub enum NodeConnect {
     Country(Country),

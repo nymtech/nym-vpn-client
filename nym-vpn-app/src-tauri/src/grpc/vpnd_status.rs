@@ -6,7 +6,8 @@ use tracing::error;
 use ts_rs::TS;
 
 #[derive(Serialize, Default, Clone, Debug, PartialEq, TS)]
-#[ts(export, export_to = "DaemonInfo.ts")]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
 pub struct VpndInfo {
     pub version: String,
     pub network: String,
@@ -14,7 +15,7 @@ pub struct VpndInfo {
 }
 
 #[derive(Serialize, Default, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub enum VpndStatus {
     /// Connected to the daemon

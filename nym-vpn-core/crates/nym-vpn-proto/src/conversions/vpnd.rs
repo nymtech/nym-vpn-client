@@ -2,33 +2,25 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
 };
 
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use url::Url;
 
-use nym_config::defaults::NymNetworkDetails;
-use nym_gateway_directory::GatewayType;
-use nym_sdk::UserAgent;
-use nym_vpn_network_config::{
-    ApiUrl, NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
-};
-use nym_vpnd_types::{
-    AccountCommandResponse, ListGatewaysOptions, StoreAccountRequest,
-    gateway::{Performance, Score},
-    log_path::LogPath,
-    service::{ConnectArgs, ConnectOptions, VpnServiceInfo},
+use nym_vpn_lib_types::{
+    AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, ConnectArgs,
+    ConnectOptions, GatewayType, ListGatewaysOptions, LogPath, NymNetworkDetails, NymVpnNetwork,
+    Performance, QuicClientOptions, StoreAccountRequest, SystemMessage, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
 
-impl TryFrom<proto::RichLocation> for nym_vpnd_types::gateway::Location {
+impl TryFrom<proto::Location> for nym_vpn_lib_types::Location {
     type Error = ConversionError;
 
-    fn try_from(location: proto::RichLocation) -> Result<Self, Self::Error> {
+    fn try_from(location: proto::Location) -> Result<Self, Self::Error> {
         Ok(Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
@@ -40,29 +32,7 @@ impl TryFrom<proto::RichLocation> for nym_vpnd_types::gateway::Location {
     }
 }
 
-impl From<proto::Score> for Score {
-    fn from(score: proto::Score) -> Self {
-        match score {
-            proto::Score::Offline => nym_vpnd_types::gateway::Score::Offline,
-            proto::Score::Low => nym_vpnd_types::gateway::Score::Low,
-            proto::Score::Medium => nym_vpnd_types::gateway::Score::Medium,
-            proto::Score::High => nym_vpnd_types::gateway::Score::High,
-        }
-    }
-}
-
-impl From<Score> for proto::Score {
-    fn from(score: Score) -> Self {
-        match score {
-            Score::High => proto::Score::High,
-            Score::Medium => proto::Score::Medium,
-            Score::Low => proto::Score::Low,
-            Score::Offline => proto::Score::Offline,
-        }
-    }
-}
-
-impl TryFrom<proto::Performance> for nym_vpnd_types::gateway::Performance {
+impl TryFrom<proto::Performance> for nym_vpn_lib_types::Performance {
     type Error = ConversionError;
 
     fn try_from(value: proto::Performance) -> Result<Self, Self::Error> {
@@ -70,6 +40,9 @@ impl TryFrom<proto::Performance> for nym_vpnd_types::gateway::Performance {
             last_updated_utc: value.last_updated_utc,
             score: proto::Score::try_from(value.score)
                 .map_err(|err| ConversionError::Decode("Performance.score", err))?
+                .into(),
+            mixnet_score: proto::Score::try_from(value.score)
+                .map_err(|err| ConversionError::Decode("Performance.mixnet_score", err))?
                 .into(),
             load: proto::Score::try_from(value.load)
                 .map_err(|err| ConversionError::Decode("Performance.load", err))?
@@ -79,18 +52,19 @@ impl TryFrom<proto::Performance> for nym_vpnd_types::gateway::Performance {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Performance> for proto::Performance {
-    fn from(value: nym_vpnd_types::gateway::Performance) -> Self {
+impl From<nym_vpn_lib_types::Performance> for proto::Performance {
+    fn from(value: nym_vpn_lib_types::Performance) -> Self {
         Self {
             last_updated_utc: value.last_updated_utc,
             score: proto::Score::from(value.score).into(),
+            mixnet_score: proto::Score::from(value.mixnet_score).into(),
             load: proto::Score::from(value.load).into(),
             uptime_percentage_last_24_hours: value.uptime_percentage_last_24_hours,
         }
     }
 }
 
-impl From<proto::AsEntry> for nym_vpnd_types::gateway::Entry {
+impl From<proto::AsEntry> for nym_vpn_lib_types::Entry {
     fn from(entry: proto::AsEntry) -> Self {
         Self {
             can_connect: entry.can_connect,
@@ -99,8 +73,8 @@ impl From<proto::AsEntry> for nym_vpnd_types::gateway::Entry {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Entry> for proto::AsEntry {
-    fn from(entry: nym_vpnd_types::gateway::Entry) -> Self {
+impl From<nym_vpn_lib_types::Entry> for proto::AsEntry {
+    fn from(entry: nym_vpn_lib_types::Entry) -> Self {
         proto::AsEntry {
             can_connect: entry.can_connect,
             can_route: entry.can_route,
@@ -108,7 +82,7 @@ impl From<nym_vpnd_types::gateway::Entry> for proto::AsEntry {
     }
 }
 
-impl From<proto::AsExit> for nym_vpnd_types::gateway::Exit {
+impl From<proto::AsExit> for nym_vpn_lib_types::Exit {
     fn from(exit: proto::AsExit) -> Self {
         Self {
             can_connect: exit.can_connect,
@@ -120,8 +94,8 @@ impl From<proto::AsExit> for nym_vpnd_types::gateway::Exit {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Exit> for proto::AsExit {
-    fn from(exit: nym_vpnd_types::gateway::Exit) -> Self {
+impl From<nym_vpn_lib_types::Exit> for proto::AsExit {
+    fn from(exit: nym_vpn_lib_types::Exit) -> Self {
         proto::AsExit {
             can_connect: exit.can_connect,
             can_route_ip_v4: exit.can_route_ip_v4,
@@ -132,8 +106,8 @@ impl From<nym_vpnd_types::gateway::Exit> for proto::AsExit {
     }
 }
 
-impl From<nym_vpnd_types::gateway::ProbeOutcome> for proto::ProbeOutcome {
-    fn from(outcome: nym_vpnd_types::gateway::ProbeOutcome) -> Self {
+impl From<nym_vpn_lib_types::ProbeOutcome> for proto::ProbeOutcome {
+    fn from(outcome: nym_vpn_lib_types::ProbeOutcome) -> Self {
         let as_entry = Some(proto::AsEntry::from(outcome.as_entry));
         let as_exit = outcome.as_exit.map(proto::AsExit::from);
         let wg = None;
@@ -145,20 +119,20 @@ impl From<nym_vpnd_types::gateway::ProbeOutcome> for proto::ProbeOutcome {
     }
 }
 
-impl TryFrom<proto::ProbeOutcome> for nym_vpnd_types::gateway::ProbeOutcome {
+impl TryFrom<proto::ProbeOutcome> for nym_vpn_lib_types::ProbeOutcome {
     type Error = ConversionError;
 
     fn try_from(outcome: proto::ProbeOutcome) -> Result<Self, Self::Error> {
         let as_entry = outcome
             .as_entry
-            .map(nym_vpnd_types::gateway::Entry::from)
+            .map(nym_vpn_lib_types::Entry::from)
             .ok_or(ConversionError::generic("missing as entry"))?;
-        let as_exit = outcome.as_exit.map(nym_vpnd_types::gateway::Exit::from);
+        let as_exit = outcome.as_exit.map(nym_vpn_lib_types::Exit::from);
         Ok(Self { as_entry, as_exit })
     }
 }
 
-impl TryFrom<proto::Probe> for nym_vpnd_types::gateway::Probe {
+impl TryFrom<proto::Probe> for nym_vpn_lib_types::Probe {
     type Error = ConversionError;
 
     fn try_from(probe: proto::Probe) -> Result<Self, Self::Error> {
@@ -169,7 +143,7 @@ impl TryFrom<proto::Probe> for nym_vpnd_types::gateway::Probe {
         let outcome = probe
             .outcome
             .ok_or(ConversionError::generic("missing probe outcome"))
-            .and_then(nym_vpnd_types::gateway::ProbeOutcome::try_from)?;
+            .and_then(nym_vpn_lib_types::ProbeOutcome::try_from)?;
         Ok(Self {
             last_updated_utc,
             outcome,
@@ -177,8 +151,8 @@ impl TryFrom<proto::Probe> for nym_vpnd_types::gateway::Probe {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Probe> for proto::Probe {
-    fn from(probe: nym_vpnd_types::gateway::Probe) -> Self {
+impl From<nym_vpn_lib_types::Probe> for proto::Probe {
+    fn from(probe: nym_vpn_lib_types::Probe) -> Self {
         let last_updated = OffsetDateTime::parse(&probe.last_updated_utc, &Rfc3339).ok();
         let last_updated_utc = last_updated.map(|timestamp| prost_types::Timestamp {
             seconds: timestamp.unix_timestamp(),
@@ -192,7 +166,7 @@ impl From<nym_vpnd_types::gateway::Probe> for proto::Probe {
     }
 }
 
-impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
+impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
     type Error = ConversionError;
 
     fn try_from(gateway: proto::GatewayResponse) -> Result<Self, Self::Error> {
@@ -200,26 +174,16 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             .id
             .map(|id| id.id)
             .ok_or_else(|| ConversionError::generic("missing gateway id"))?;
-        let moniker = gateway.moniker;
         let location = gateway
             .location
-            .map(nym_vpnd_types::gateway::Location::try_from)
+            .map(nym_vpn_lib_types::Location::try_from)
             .transpose()?;
         let last_probe = gateway
             .last_probe
-            .map(nym_vpnd_types::gateway::Probe::try_from)
+            .map(nym_vpn_lib_types::Probe::try_from)
             .transpose()?;
-        let mixnet_score = gateway
-            .mixnet_score
-            .map(proto::Score::try_from)
-            .transpose()
-            .map_err(|err| ConversionError::Decode("GatewayResponse.mixnet_score", err))?
-            .map(Score::from);
-        let wg_performance = gateway
-            .wg_performance
-            .map(Performance::try_from)
-            .transpose()?;
-
+        let mixnet_performance = gateway.mixnet_performance.map(|x| x as u8);
+        let performance = gateway.performance.map(Performance::try_from).transpose()?;
         let exit_ipv4s = gateway
             .exit_ipv4s
             .iter()
@@ -233,48 +197,141 @@ impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| ConversionError::ParseAddr("GatewayResponse.exit_ipv6s", e))?;
         let build_version = gateway.build_version;
+        let bridge_params = gateway
+            .bridge_params
+            .map(BridgeInformation::try_from)
+            .transpose()?;
         Ok(Self {
+            name: gateway.name,
+            description: gateway.description,
             identity_key,
-            moniker,
             location,
             last_probe,
-            wg_performance,
-            mixnet_score,
+            performance,
+            mixnet_performance,
             exit_ipv4s,
             exit_ipv6s,
             build_version,
+            bridge_params,
         })
     }
 }
 
-impl From<nym_vpnd_types::gateway::Gateway> for proto::GatewayResponse {
-    fn from(gateway: nym_vpnd_types::gateway::Gateway) -> Self {
+impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
+    fn from(gateway: nym_vpn_lib_types::Gateway) -> Self {
         let id = Some(proto::GatewayId {
             id: gateway.identity_key.to_string(),
         });
-        let location = gateway.location.map(proto::RichLocation::from);
-        let last_probe = gateway.last_probe.map(proto::Probe::from);
-        let moniker = gateway.moniker;
         let exit_ipv4s = gateway.exit_ipv4s.iter().map(|ip| ip.to_string()).collect();
         let exit_ipv6s = gateway.exit_ipv6s.iter().map(|ip| ip.to_string()).collect();
-        let build_version = gateway.build_version;
+
         proto::GatewayResponse {
             id,
-            location,
-            last_probe,
-            mixnet_score: gateway
-                .mixnet_score
-                .map(|score| proto::Score::from(score) as i32),
-            wg_performance: gateway.wg_performance.map(Into::into),
-            moniker,
+            location: gateway.location.map(proto::Location::from),
+            last_probe: gateway.last_probe.map(proto::Probe::from),
+            mixnet_performance: gateway.mixnet_performance.map(u32::from),
+            performance: gateway.performance.map(proto::Performance::from),
+            name: gateway.name,
+            description: gateway.description,
             exit_ipv4s,
             exit_ipv6s,
-            build_version,
+            build_version: gateway.build_version,
+            bridge_params: gateway.bridge_params.map(proto::BridgeInformation::from),
         }
     }
 }
 
-impl From<proto::Country> for nym_vpnd_types::gateway::Country {
+impl From<BridgeInformation> for proto::BridgeInformation {
+    fn from(value: BridgeInformation) -> Self {
+        let transports = value
+            .transports
+            .into_iter()
+            .map(proto::BridgeParameters::from)
+            .collect::<Vec<_>>();
+
+        Self {
+            version: value.version,
+            transports,
+        }
+    }
+}
+
+impl TryFrom<proto::BridgeInformation> for BridgeInformation {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::BridgeInformation) -> Result<Self, Self::Error> {
+        let transports = value
+            .transports
+            .into_iter()
+            .map(BridgeParameters::try_from)
+            .collect::<Result<Vec<BridgeParameters>, ConversionError>>()?;
+
+        Ok(Self {
+            version: value.version,
+            transports,
+        })
+    }
+}
+
+impl From<QuicClientOptions> for proto::QuicClientOptions {
+    fn from(value: QuicClientOptions) -> Self {
+        Self {
+            addresses: value
+                .addresses
+                .into_iter()
+                .map(proto::SocketAddr::from)
+                .collect(),
+            host: value.host,
+            id_pubkey: value.id_pubkey,
+        }
+    }
+}
+
+impl TryFrom<proto::QuicClientOptions> for QuicClientOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::QuicClientOptions) -> Result<Self, Self::Error> {
+        let addresses = value
+            .addresses
+            .into_iter()
+            .map(SocketAddr::try_from)
+            .collect::<Result<Vec<SocketAddr>, ConversionError>>()?;
+        Ok(Self {
+            host: value.host,
+            id_pubkey: value.id_pubkey,
+            addresses,
+        })
+    }
+}
+
+impl From<BridgeParameters> for proto::BridgeParameters {
+    fn from(value: BridgeParameters) -> Self {
+        match value {
+            BridgeParameters::QuicPlain(options) => proto::BridgeParameters {
+                state: Some(proto::bridge_parameters::State::QuicPlain(
+                    proto::QuicClientOptions::from(options),
+                )),
+            },
+        }
+    }
+}
+
+impl TryFrom<proto::BridgeParameters> for BridgeParameters {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::BridgeParameters) -> Result<Self, Self::Error> {
+        let state = value
+            .state
+            .ok_or(ConversionError::NoValueSet("BridgeParameters.state"))?;
+        Ok(match state {
+            proto::bridge_parameters::State::QuicPlain(options) => {
+                BridgeParameters::QuicPlain(QuicClientOptions::try_from(options)?)
+            }
+        })
+    }
+}
+
+impl From<proto::Country> for nym_vpn_lib_types::Country {
     fn from(location: proto::Country) -> Self {
         Self {
             iso_code: location.two_letter_iso_country_code,
@@ -282,7 +339,7 @@ impl From<proto::Country> for nym_vpnd_types::gateway::Country {
     }
 }
 
-impl TryFrom<proto::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
+impl TryFrom<proto::InfoResponse> for nym_vpn_lib_types::VpnServiceInfo {
     type Error = ConversionError;
 
     fn try_from(info: proto::InfoResponse) -> Result<Self, Self::Error> {
@@ -292,40 +349,25 @@ impl TryFrom<proto::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
             .transpose()
             .map_err(|e| ConversionError::ConvertTime("build_timestamp", e))?;
 
-        // todo: why is it not passed as `NymNetwork` instead?
         let nym_network = info
             .nym_network
             .ok_or(ConversionError::NoValueSet("nym_network"))
-            .and_then(NymNetworkDetails::try_from)
-            .map(NymNetwork::new)?;
+            .and_then(NymNetworkDetails::try_from)?;
 
-        // todo: why is it not passed as `NymVpnNetwork` instead?
         let nym_vpn_network = info
             .nym_vpn_network
             .ok_or(ConversionError::NoValueSet("nym_vpn_network"))
-            .and_then(|s| {
-                // todo: rework this later
-                let nym_vpn_api_url = s
-                    .nym_vpn_api_url
-                    .ok_or(ConversionError::NoValueSet(
-                        "NymVpnNetworkDetails.nym_vpn_api_url",
-                    ))
-                    .and_then(|s| {
-                        Url::from_str(&s.url).map_err(|e| {
-                            ConversionError::Generic(format!("failed to parse Url: {e}"))
-                        })
-                    })?;
+            .map(|s| {
+                let nym_vpn_api_url = s.nym_vpn_api_url;
                 let nym_vpn_api_urls = s
                     .nym_vpn_api_urls
                     .into_iter()
                     .map(ApiUrl::from)
                     .collect::<Vec<_>>();
-                Ok(NymVpnNetwork {
+                NymVpnNetwork {
                     nym_vpn_api_url,
                     nym_vpn_api_urls,
-                    account_management: Default::default(),
-                    system_messages: Default::default(),
-                })
+                }
             })?;
 
         Ok(Self {
@@ -361,7 +403,7 @@ impl From<VpnServiceInfo> for proto::InfoResponse {
     }
 }
 
-impl From<proto::GetLogPathResponse> for nym_vpnd_types::log_path::LogPath {
+impl From<proto::GetLogPathResponse> for nym_vpn_lib_types::LogPath {
     fn from(value: proto::GetLogPathResponse) -> Self {
         Self {
             dir: PathBuf::from(value.dir),
@@ -386,18 +428,6 @@ impl TryFrom<LogPath> for proto::GetLogPathResponse {
     }
 }
 
-impl From<proto::GetSystemMessagesResponse> for SystemMessages {
-    fn from(value: proto::GetSystemMessagesResponse) -> Self {
-        Self {
-            messages: value
-                .messages
-                .into_iter()
-                .map(SystemMessage::from)
-                .collect(),
-        }
-    }
-}
-
 impl From<proto::SystemMessage> for SystemMessage {
     fn from(value: proto::SystemMessage) -> Self {
         Self {
@@ -406,7 +436,7 @@ impl From<proto::SystemMessage> for SystemMessage {
             display_until: None,
             name: value.name,
             message: value.message,
-            properties: Some(Properties::from(value.properties)),
+            properties: Some(value.properties),
         }
     }
 }
@@ -418,12 +448,12 @@ impl TryFrom<proto::ConnectRequest> for ConnectArgs {
         let entry = value
             .entry
             .clone() // todo: prevent clone()
-            .map(nym_gateway_directory::EntryPoint::try_from)
+            .map(nym_vpn_lib_types::EntryPoint::try_from)
             .transpose()?;
         let exit = value
             .exit
             .clone() // todo: prevent clone()
-            .map(nym_gateway_directory::ExitPoint::try_from)
+            .map(nym_vpn_lib_types::ExitPoint::try_from)
             .transpose()?;
         let options = ConnectOptions::try_from(value)?;
         Ok(ConnectArgs {
@@ -512,23 +542,71 @@ impl TryFrom<ListGatewaysOptions> for proto::ListGatewaysRequest {
     }
 }
 
-impl From<proto::StoreAccountRequest> for nym_vpnd_types::StoreAccountRequest {
-    fn from(value: proto::StoreAccountRequest) -> Self {
-        Self {
-            mnemonic: value.mnemonic,
-        }
+impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::StoreAccountRequest) -> Result<Self, Self::Error> {
+        let request = value
+            .request
+            .ok_or(ConversionError::NoValueSet("StoreAccountRequest.request"))?;
+
+        Ok(match request {
+            proto::store_account_request::Request::VpnAccountStore(account) => {
+                StoreAccountRequest::Vpn {
+                    mnemonic: account.mnemonic,
+                }
+            }
+            proto::store_account_request::Request::DecentralisedAccountStore(account) => {
+                nym_vpn_lib_types::StoreAccountRequest::Decentralised {
+                    mnemonic: account.mnemonic,
+                }
+            }
+        })
     }
 }
 
 impl From<StoreAccountRequest> for proto::StoreAccountRequest {
     fn from(value: StoreAccountRequest) -> Self {
-        Self {
-            mnemonic: value.mnemonic,
+        let request = match value {
+            StoreAccountRequest::Vpn { mnemonic } => {
+                proto::store_account_request::Request::VpnAccountStore(
+                    proto::VpnAccountStoreRequest { mnemonic },
+                )
+            }
+            nym_vpn_lib_types::StoreAccountRequest::Decentralised { mnemonic } => {
+                proto::store_account_request::Request::DecentralisedAccountStore(
+                    proto::DecentralisedAccountStoreRequest { mnemonic },
+                )
+            }
+        };
+
+        proto::StoreAccountRequest {
+            request: Some(request),
         }
     }
 }
 
-impl TryFrom<proto::AccountCommandResponse> for nym_vpnd_types::AccountCommandResponse {
+impl From<proto::DecentralisedObtainTicketbooksRequest>
+    for nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest
+{
+    fn from(value: proto::DecentralisedObtainTicketbooksRequest) -> Self {
+        Self {
+            amount: value.amount,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest>
+    for proto::DecentralisedObtainTicketbooksRequest
+{
+    fn from(value: nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest) -> Self {
+        Self {
+            amount: value.amount,
+        }
+    }
+}
+
+impl TryFrom<proto::AccountCommandResponse> for nym_vpn_lib_types::AccountCommandResponse {
     type Error = ConversionError;
     fn try_from(value: proto::AccountCommandResponse) -> Result<Self, Self::Error> {
         let error = value
@@ -559,26 +637,79 @@ impl TryFrom<AccountCommandResponse> for proto::AccountCommandResponse {
     }
 }
 
-impl From<nym_vpnd_types::gateway::AsnKind> for proto::AsnKind {
-    fn from(value: nym_vpnd_types::gateway::AsnKind) -> Self {
+impl TryFrom<proto::AccountBalanceResponse> for nym_vpn_lib_types::AccountBalanceResponse {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::AccountBalanceResponse) -> Result<Self, Self::Error> {
+        let value = value.account_balance.ok_or(ConversionError::NoValueSet(
+            "AccountBalanceResponse.account_balance",
+        ))?;
+
         match value {
-            nym_vpnd_types::gateway::AsnKind::Residential => proto::AsnKind::Residential,
-            nym_vpnd_types::gateway::AsnKind::Other => proto::AsnKind::Other,
+            proto::account_balance_response::AccountBalance::Error(err) => {
+                Ok(nym_vpn_lib_types::AccountBalanceResponse {
+                    result: Err(err.try_into()?),
+                })
+            }
+            proto::account_balance_response::AccountBalance::Balance(balance) => {
+                let coins = balance
+                    .coins
+                    .into_iter()
+                    .map(|c| {
+                        let amount = u128::from_str(&c.amount)
+                            .map_err(|e| ConversionError::ParseInteger("Coin.amount", e))?;
+                        Ok(nym_vpn_lib_types::Coin::new(amount, c.denom))
+                    })
+                    .collect::<Result<Vec<_>, ConversionError>>()?;
+                Ok(nym_vpn_lib_types::AccountBalanceResponse { result: Ok(coins) })
+            }
         }
     }
 }
 
-impl From<proto::AsnKind> for nym_vpnd_types::gateway::AsnKind {
+impl From<nym_vpn_lib_types::AccountBalanceResponse> for proto::AccountBalanceResponse {
+    fn from(value: nym_vpn_lib_types::AccountBalanceResponse) -> Self {
+        let account_balance = match value.result {
+            Err(err) => proto::account_balance_response::AccountBalance::Error(err.into()),
+            Ok(coins) => {
+                proto::account_balance_response::AccountBalance::Balance(proto::BalanceList {
+                    coins: coins
+                        .into_iter()
+                        .map(|c| proto::Coin {
+                            denom: c.denom,
+                            amount: c.amount.to_string(),
+                        })
+                        .collect(),
+                })
+            }
+        };
+
+        proto::AccountBalanceResponse {
+            account_balance: Some(account_balance),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::AsnKind> for proto::AsnKind {
+    fn from(value: nym_vpn_lib_types::AsnKind) -> Self {
+        match value {
+            nym_vpn_lib_types::AsnKind::Residential => proto::AsnKind::Residential,
+            nym_vpn_lib_types::AsnKind::Other => proto::AsnKind::Other,
+        }
+    }
+}
+
+impl From<proto::AsnKind> for nym_vpn_lib_types::AsnKind {
     fn from(value: proto::AsnKind) -> Self {
         match value {
-            proto::AsnKind::Residential => nym_vpnd_types::gateway::AsnKind::Residential,
-            proto::AsnKind::Other => nym_vpnd_types::gateway::AsnKind::Other,
+            proto::AsnKind::Residential => nym_vpn_lib_types::AsnKind::Residential,
+            proto::AsnKind::Other => nym_vpn_lib_types::AsnKind::Other,
         }
     }
 }
 
-impl From<nym_vpnd_types::gateway::Asn> for proto::Asn {
-    fn from(value: nym_vpnd_types::gateway::Asn) -> Self {
+impl From<nym_vpn_lib_types::Asn> for proto::Asn {
+    fn from(value: nym_vpn_lib_types::Asn) -> Self {
         proto::Asn {
             asn: value.asn,
             name: value.name,
@@ -587,11 +718,11 @@ impl From<nym_vpnd_types::gateway::Asn> for proto::Asn {
     }
 }
 
-impl TryFrom<proto::Asn> for nym_vpnd_types::gateway::Asn {
+impl TryFrom<proto::Asn> for nym_vpn_lib_types::Asn {
     type Error = ConversionError;
 
     fn try_from(value: proto::Asn) -> Result<Self, Self::Error> {
-        Ok(nym_vpnd_types::gateway::Asn {
+        Ok(nym_vpn_lib_types::Asn {
             asn: value.asn,
             name: value.name,
             kind: proto::AsnKind::try_from(value.kind)
@@ -601,9 +732,9 @@ impl TryFrom<proto::Asn> for nym_vpnd_types::gateway::Asn {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Location> for proto::RichLocation {
-    fn from(location: nym_vpnd_types::gateway::Location) -> Self {
-        proto::RichLocation {
+impl From<nym_vpn_lib_types::Location> for proto::Location {
+    fn from(location: nym_vpn_lib_types::Location) -> Self {
+        Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,
@@ -614,46 +745,10 @@ impl From<nym_vpnd_types::gateway::Location> for proto::RichLocation {
     }
 }
 
-impl From<nym_vpnd_types::gateway::Country> for proto::Country {
-    fn from(country: nym_vpnd_types::gateway::Country) -> Self {
+impl From<nym_vpn_lib_types::Country> for proto::Country {
+    fn from(country: nym_vpn_lib_types::Country) -> Self {
         proto::Country {
             two_letter_iso_country_code: country.iso_code().to_string(),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::proto;
-    use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
-    use nym_vpn_lib_types::service::VpnServiceConfig;
-    use std::str::FromStr;
-
-    #[test]
-    fn test_vpn_service_config_conversion() {
-        let internal = VpnServiceConfig {
-            entry_point: EntryPoint::Country {
-                two_letter_iso_country_code: "US".to_string(),
-            },
-            exit_point: ExitPoint::Gateway {
-                identity: NodeIdentity::from_str("7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj")
-                    .unwrap(),
-            },
-            dns: Some(std::net::IpAddr::from_str("192.168.50.1").unwrap()),
-            allow_lan: false,
-            disable_ipv6: false,
-            enable_two_hop: false,
-            enable_bridges: false,
-            netstack: false,
-            disable_poisson_rate: false,
-            disable_background_cover_traffic: false,
-            min_mixnode_performance: Some(55u8),
-            min_gateway_mixnet_performance: Some(64u8),
-            min_gateway_vpn_performance: Some(1u8),
-        };
-
-        let external: proto::VpnServiceConfig = internal.clone().into();
-        let internal_converted: VpnServiceConfig = external.try_into().unwrap();
-        assert_eq!(internal, internal_converted);
     }
 }

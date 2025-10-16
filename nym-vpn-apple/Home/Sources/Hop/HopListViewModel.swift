@@ -2,11 +2,11 @@ import SwiftUI
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
+import GatewayManager
 import UIComponents
 
-public class HopListViewModel: ObservableObject {
+@MainActor public class HopListViewModel: ObservableObject {
     let type: HopType
 
     public let noResultsText = "search.noResults".localizedString
@@ -14,12 +14,12 @@ public class HopListViewModel: ObservableObject {
     var appSettings: AppSettings
     var configurationManager: ConfigurationManager
     var connectionManager: ConnectionManager
-    var countriesManager: CountriesManager
+    let gatewayManager: GatewayManager
     @Binding var path: NavigationPath
 
     @Published var isGeolocationModalDisplayed = false
-    @Published var quickestCountry: Country?
-    @Published var countries: [Country]?
+    @Published var quickestCountry: NymCountry?
+    @Published var countries: [NymCountry]?
     @Published var searchText: String = "" {
         didSet {
             updateCountries()
@@ -29,27 +29,26 @@ public class HopListViewModel: ObservableObject {
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        countriesManager: CountriesManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        gatewayManager: GatewayManager
     ) {
         _path = path
         self.type = type
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.connectionManager = connectionManager
-        self.countriesManager = countriesManager
-
+        self.gatewayManager = gatewayManager
         setup()
     }
 
-    func connectionSelect(with country: Country) {
+    func connectionSelect(with country: NymCountry) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .country(country)
+            connectionManager.entryGateway = .country(country.code)
         case .exit:
-            connectionManager.exitRouter = .country(country)
+            connectionManager.exitRouter = .country(country.code)
         }
         navigateHome()
     }
@@ -57,17 +56,17 @@ public class HopListViewModel: ObservableObject {
     func connectionSelect(with gateway: GatewayNode) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .gateway(gateway)
+            connectionManager.entryGateway = .gateway(gateway.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(gateway)
+            connectionManager.exitRouter = .gateway(gateway.id)
         }
         navigateHome()
     }
 
-    func quickestConnectionSelect(with country: Country) {
+    func quickestConnectionSelect(with country: NymCountry) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .lowLatencyCountry(country)
+            connectionManager.entryGateway = .lowLatencyCountry(country.code)
         case .exit:
             break
         }
@@ -107,7 +106,7 @@ private extension HopListViewModel {
     func updateCountries() {
         Task { [weak self] in
             guard let self else { return }
-            let newCountries: [Country]?
+            let newCountries: [NymCountry]?
             switch connectionManager.connectionType {
             case .mixnet5hop:
                 newCountries = countriesMixnet()
@@ -120,25 +119,25 @@ private extension HopListViewModel {
         }
     }
 
-    func countriesMixnet() -> [Country] {
+    func countriesMixnet() -> [NymCountry] {
         switch type {
         case .entry:
-            return !searchText.isEmpty ? countriesManager.entryCountries.filter {
+            return !searchText.isEmpty ? gatewayManager.entryCountries.filter {
                 $0.name.lowercased().contains(searchText.lowercased()) ||
                 $0.code.lowercased().contains(searchText.lowercased())
-            } : countriesManager.entryCountries
+            } : gatewayManager.entryCountries
         case .exit:
-            return !searchText.isEmpty ? countriesManager.exitCountries.filter {
+            return !searchText.isEmpty ? gatewayManager.exitCountries.filter {
                 $0.name.lowercased().contains(searchText.lowercased()) ||
                 $0.code.lowercased().contains(searchText.lowercased())
-            } : countriesManager.exitCountries
+            } : gatewayManager.exitCountries
         }
     }
 
-    func countriesWireGuard() -> [Country] {
-        !searchText.isEmpty ? countriesManager.vpnCountries.filter {
+    func countriesWireGuard() -> [NymCountry] {
+        !searchText.isEmpty ? gatewayManager.vpnCountries.filter {
             $0.name.lowercased().contains(searchText.lowercased()) ||
             $0.code.lowercased().contains(searchText.lowercased())
-        } : countriesManager.vpnCountries
+        } : gatewayManager.vpnCountries
     }
 }

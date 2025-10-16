@@ -5,7 +5,7 @@ import UIComponents
 
 import AcknowList
 
-struct LegalViewModel {
+@MainActor struct LegalViewModel {
     private let externalLinkManager: ExternalLinkManager
     private let termsOfUseLink = Constants.termsOfUseURL.rawValue
     private let privacyPolicyLink = Constants.privacyPolicyURL.rawValue
@@ -23,7 +23,7 @@ struct LegalViewModel {
         ]
     }
 
-    init(path: Binding<NavigationPath>, externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared) {
+    init(path: Binding<NavigationPath>, externalLinkManager: ExternalLinkManager) {
         self._path = path
         self.externalLinkManager = externalLinkManager
     }

@@ -1,16 +1,17 @@
 import NetworkExtension
 
-extension NETunnelProviderManager {
+@MainActor extension NETunnelProviderManager {
     private static var cachedConfigKey: UInt8 = 0
 
-    func setTunnelConfiguration(_ mixnetConfiguration: MixnetConfig) {
-        protocolConfiguration = NETunnelProviderProtocol(mixnetConfiguration: mixnetConfiguration)
+    @MainActor public func setTunnelConfiguration(_ mixnetConfiguration: MixnetConfig) {
+        guard let proto = NETunnelProviderProtocol(mixnetConfiguration: mixnetConfiguration) else { return }
+        protocolConfiguration = proto
         localizedDescription = mixnetConfiguration.name
         objc_setAssociatedObject(
             self,
             &NETunnelProviderManager.cachedConfigKey,
             mixnetConfiguration,
-            objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC
+            .OBJC_ASSOCIATION_RETAIN_NONATOMIC
         )
     }
 }

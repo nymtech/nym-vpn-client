@@ -3,18 +3,18 @@ import Foundation
 public final class CountryStore: Codable {
     public typealias RawValue = String
 
-    public var entryCountries: [Country]
-    public var exitCountries: [Country]
-    public var vpnCountries: [Country]
-    public var lowLatencyCountry: Country?
+    public var entryCountries: [NymCountry]
+    public var exitCountries: [NymCountry]
+    public var vpnCountries: [NymCountry]
+    public var lowLatencyCountry: NymCountry?
     public var lastFetchDate: Date?
 
     public init(
         lastFetchDate: Date? = nil,
-        entryCountries: [Country] = [],
-        exitCountries: [Country] = [],
-        vpnCountries: [Country] = [],
-        lowLatencyCountry: Country? = nil
+        entryCountries: [NymCountry] = [],
+        exitCountries: [NymCountry] = [],
+        vpnCountries: [NymCountry] = [],
+        lowLatencyCountry: NymCountry? = nil
     ) {
         self.lastFetchDate = lastFetchDate
         self.entryCountries = entryCountries
@@ -42,10 +42,10 @@ public final class CountryStore: Codable {
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        entryCountries = try container.decode([Country].self, forKey: .entryCountries)
-        exitCountries = try container.decode([Country].self, forKey: .exitCountries)
-        vpnCountries = try container.decode([Country].self, forKey: .vpnCountries)
-        lowLatencyCountry = try? container.decode(Country.self, forKey: .lowLatencyCountry)
+        entryCountries = try container.decode([NymCountry].self, forKey: .entryCountries)
+        exitCountries = try container.decode([NymCountry].self, forKey: .exitCountries)
+        vpnCountries = try container.decode([NymCountry].self, forKey: .vpnCountries)
+        lowLatencyCountry = try? container.decode(NymCountry.self, forKey: .lowLatencyCountry)
 
         if let timeInterval = try? container.decode(Double.self, forKey: .lastFetchDate) {
             lastFetchDate = Date(timeIntervalSince1970: timeInterval)

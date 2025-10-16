@@ -4,11 +4,11 @@
 use std::time::Duration;
 
 use nym_common::trace_err_chain;
-use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::{TaskClient, connections::TransmissionLane};
+use nym_sdk::mixnet::{
+    InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane,
+};
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use tracing::{debug, trace};
 
 use crate::{Error, error::Result, nym_ip_packet_requests_current::request::IpPacketRequest};
@@ -38,19 +38,18 @@ impl MixnetConnectionBeacon {
         Ok(request_id)
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
+    pub async fn run(self, shutdown: CancellationToken) -> Result<()> {
         debug!("Mixnet connection beacon is running");
         let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
         loop {
             tokio::select! {
-                _ = shutdown.recv() => {
+                _ = shutdown.cancelled() => {
                     trace!("MixnetConnectionBeacon: Received shutdown");
                     break;
                 }
                 _ = ping_interval.tick() => {
                     tokio::select! {
-                        _ = shutdown.recv() => {
+                        _ = shutdown.cancelled() => {
                             trace!("MixnetConnectionBeacon: Received shutdown");
                             break;
                         },
@@ -89,17 +88,16 @@ pub fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
     )
 }
 
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
 pub fn start_mixnet_connection_beacon(
     mixnet_client_sender: MixnetClientSender,
     our_address: Recipient,
-    shutdown_listener: TaskClient,
+    cancel_token: CancellationToken,
 ) -> JoinHandle<Result<()>> {
     debug!("Creating mixnet connection beacon");
     let beacon = MixnetConnectionBeacon::new(mixnet_client_sender, our_address);
     tokio::spawn(async move {
         beacon
-            .run(shutdown_listener)
+            .run(cancel_token)
             .await
             .inspect_err(|err| trace_err_chain!(err, "Mixnet connection beacon error"))
     })

@@ -10,7 +10,7 @@ import GRPCManager
 #endif
 import Theme
 
-public final class SantasViewModel: ObservableObject {
+@MainActor public final class SantasViewModel: ObservableObject {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
 #if os(macOS)
@@ -50,8 +50,8 @@ public final class SantasViewModel: ObservableObject {
 #if os(iOS)
     init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager
     ) {
         _path = path
         self.appSettings = appSettings
@@ -60,9 +60,9 @@ public final class SantasViewModel: ObservableObject {
 #elseif os(macOS)
     init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        grpcManager: GRPCManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        grpcManager: GRPCManager
     ) {
         _path = path
         self.appSettings = appSettings

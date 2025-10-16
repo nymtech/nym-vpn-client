@@ -12,7 +12,7 @@ import GRPCManager
 import HelperManager
 #endif
 
-public final class CredentialsManager: ObservableObject {
+@MainActor public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
@@ -43,7 +43,7 @@ public final class CredentialsManager: ObservableObject {
         try await Task {
             do {
 #if os(iOS)
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 try loginRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
                 try await grpcManager.storeAccount(with: credential)
@@ -66,7 +66,7 @@ public final class CredentialsManager: ObservableObject {
     public func createMnemonic() async throws {
 #if os(iOS)
         try await Task {
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             try createAccountRaw(path: dataFolderURL.path())
             Task { @MainActor in
                 checkCredentialImport()
@@ -78,7 +78,7 @@ public final class CredentialsManager: ObservableObject {
     public func mnemonic() async throws -> String {
 #if os(iOS)
         try await Task {
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             return try getStoredMnemonicRaw(path: dataFolderURL.path())
         }.value
 #elseif os(macOS)
@@ -90,7 +90,7 @@ public final class CredentialsManager: ObservableObject {
 #if os(iOS)
         try await Task {
             do {
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 let result = try registerAccountRaw(path: dataFolderURL.path())
                 Task { @MainActor in
                     appSettings.accountToken = result.accountToken
@@ -105,7 +105,7 @@ public final class CredentialsManager: ObservableObject {
         try await Task {
             do {
 #if os(iOS)
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 try forgetAccountRaw(path: dataFolderURL.path())
 #endif
 
@@ -126,7 +126,7 @@ public final class CredentialsManager: ObservableObject {
     /// Group folder, created automatically if does not exists
     /// `/private/var/mobile/Containers/Shared/AppGroup/xxx-xxx-xxx-xxx-xxx/Data/`
     /// - Returns: URL to group data folder
-    public func dataFolderURL() throws -> URL {
+    public nonisolated static func dataFolderURL() throws -> URL {
         guard let dataFolderURL = FileManager.default
             .containerURL(
                 forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue
@@ -141,19 +141,22 @@ public final class CredentialsManager: ObservableObject {
         return dataFolderURL
     }
 
-    public func cacheFolderURL() throws -> URL {
-        try dataFolderURL().appendingPathComponent("Cache")
+    public nonisolated static func cacheFolderURL() throws -> URL {
+        try Self.dataFolderURL().appendingPathComponent("Cache")
     }
 
-    public func configFolderURL() throws -> URL {
-        try dataFolderURL().appendingPathComponent("Config")
+    public nonisolated static func configFolderURL() throws -> URL {
+        try Self.dataFolderURL().appendingPathComponent("Config")
     }
 }
 
 private extension CredentialsManager {
     func setup() {
-        setupGRPCManagerObservers()
+#if os(iOS)
         checkCredentialImport()
+#elseif os(macOS)
+        setupGRPCManagerObservers()
+#endif
     }
 
     func setupGRPCManagerObservers() {
@@ -171,8 +174,8 @@ private extension CredentialsManager {
         }
         .store(in: &cancellables)
 
-        helperManager.$daemonState.sink { [weak self] state in
-            guard let self, state == .running, !self.appSettings.isCredentialImported else { return }
+        grpcManager.$isServing.sink { [weak self] isServing in
+            guard let self, isServing else { return }
             checkCredentialImport()
         }
         .store(in: &cancellables)
@@ -186,7 +189,7 @@ private extension CredentialsManager {
             do {
                 let isImported: Bool
 #if os(iOS)
-                let dataFolderURL = try dataFolderURL()
+                let dataFolderURL = try Self.dataFolderURL()
                 isImported = try isAccountMnemonicStoredRaw(path: dataFolderURL.path())
 #elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
@@ -213,7 +216,7 @@ private extension CredentialsManager {
     func updateDeviceIdentifier() {
         Task {
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             deviceIdentifier = try? getDeviceIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             deviceIdentifier = try? await grpcManager.deviceIdentifier()
@@ -225,7 +228,7 @@ private extension CredentialsManager {
         Task {
             let newAccIdentifier: String?
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
+            let dataFolderURL = try Self.dataFolderURL()
             newAccIdentifier = try? getAccountIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             newAccIdentifier = try? await grpcManager.accountIdentifier()

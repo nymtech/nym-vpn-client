@@ -3,15 +3,14 @@
 
 use super::error::{Error, Result};
 use nym_common::trace_err_chain;
-use nym_vpn_lib::{
-    MixnetClientConfig, NodeIdentity,
-    gateway_directory::{self, EntryPoint, ExitPoint},
-    tunnel_state_machine::{
-        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
-        WireguardMultihopMode, WireguardTunnelOptions,
-    },
+use nym_registration_client::MixnetClientConfig;
+use nym_vpn_lib::tunnel_state_machine::{
+    DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
+    WireguardMultihopMode, WireguardTunnelOptions,
 };
-use nym_vpn_lib_types::{TunnelEvent, TunnelType, service::VpnServiceConfig};
+use nym_vpn_lib_types::{
+    EntryPoint, ExitPoint, NodeIdentity, Recipient, TunnelEvent, TunnelType, VpnServiceConfig,
+};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,
@@ -92,7 +91,6 @@ pub struct VpnServiceConfigManager {
     tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
 }
 
-#[allow(dead_code)]
 impl VpnServiceConfigManager {
     pub async fn new(
         network_config_dir: &Path,
@@ -109,7 +107,7 @@ impl VpnServiceConfigManager {
                         "Failed to read service config file {}; using default",
                         json_config_path.display()
                     );
-                    (VpnServiceConfig::default(), 0)
+                    (VpnServiceConfig::default(), None)
                 }
             };
 
@@ -120,7 +118,7 @@ impl VpnServiceConfigManager {
         };
 
         // If we didn't read the latest version then write the config straight back to file
-        if version != LATEST_CONFIG_VERSION {
+        if version != Some(VpnServiceConfigVersion::latest()) {
             config_manager.write_to_file().await;
         }
 
@@ -163,6 +161,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_dns(&mut self, dns: Option<IpAddr>) {
         if self.config.dns != dns {
             self.config.dns = dns;
@@ -198,6 +197,21 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
+        if self.config.enable_bridges != enable_bridges {
+            self.config.enable_bridges = enable_bridges;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_residential_exit(&mut self, residential_only: bool) {
+        if self.config.residential_exit != residential_only {
+            self.config.residential_exit = residential_only;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    #[allow(unused)]
     pub async fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
         if self.config.disable_poisson_rate != disable_poisson_rate {
             self.config.disable_poisson_rate = disable_poisson_rate;
@@ -205,6 +219,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_disable_background_cover_traffic(&mut self, disable: bool) {
         if self.config.disable_background_cover_traffic != disable {
             self.config.disable_background_cover_traffic = disable;
@@ -212,6 +227,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
         if self.config.min_mixnode_performance != min_mixnode_performance {
             self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
@@ -219,6 +235,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_min_gateway_mixnet_performance(
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
@@ -230,6 +247,7 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_min_gateway_vpn_performance(
         &mut self,
         min_gateway_vpn_performance: Option<u8>,
@@ -262,7 +280,7 @@ impl VpnServiceConfigManager {
     async fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
-    ) -> Result<(VpnServiceConfig, u8)> {
+    ) -> Result<(VpnServiceConfig, Option<VpnServiceConfigVersion>)> {
         let (config, version) = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .await
@@ -276,7 +294,7 @@ impl VpnServiceConfigManager {
 
             let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
 
-            (config, version)
+            (config, Some(version))
         } else if toml_config_path.exists() {
             let legacy_config = read_toml_config_file::<LegacyVpnServiceConfig>(toml_config_path)
                 .await
@@ -286,11 +304,11 @@ impl VpnServiceConfigManager {
 
             let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
 
-            (config, 0)
+            (config, None)
         } else {
             tracing::info!("Using default service config");
 
-            (VpnServiceConfig::default(), 0)
+            (VpnServiceConfig::default(), None)
         };
 
         Ok((config, version))
@@ -329,7 +347,7 @@ impl VpnServiceConfigManager {
     }
 
     pub fn generate_tunnel_settings(&self) -> TunnelSettings {
-        tracing::debug!("Using config: {:?}", self.config);
+        tracing::info!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
             mixnet_min_performance: self.config.min_gateway_mixnet_performance,
@@ -358,6 +376,7 @@ impl VpnServiceConfigManager {
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
+            residential_exit: self.config.residential_exit,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
@@ -383,7 +402,29 @@ impl VpnServiceConfigManager {
 //
 
 type VpnServiceConfigExtLatest = VpnServiceConfigExtV2;
-const LATEST_CONFIG_VERSION: u8 = 2;
+
+/// Represents the version of the vpn service config file.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+enum VpnServiceConfigVersion {
+    V1,
+    V2,
+}
+
+impl VpnServiceConfigVersion {
+    /// Returns the latest version of the config file.
+    pub fn latest() -> Self {
+        VpnServiceConfigVersion::V2
+    }
+}
+
+impl std::fmt::Display for VpnServiceConfigVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            VpnServiceConfigVersion::V1 => "v1",
+            VpnServiceConfigVersion::V2 => "v2",
+        })
+    }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "version")]
@@ -394,10 +435,10 @@ enum VpnServiceConfigExt {
 }
 
 impl VpnServiceConfigExt {
-    fn version(&self) -> u8 {
+    fn version(&self) -> VpnServiceConfigVersion {
         match self {
-            VpnServiceConfigExt::V1(_) => 1,
-            VpnServiceConfigExt::V2(_) => 2,
+            VpnServiceConfigExt::V1(_) => VpnServiceConfigVersion::V1,
+            VpnServiceConfigExt::V2(_) => VpnServiceConfigVersion::V2,
         }
     }
 }
@@ -471,6 +512,7 @@ struct VpnServiceConfigExtV2 {
     min_mixnode_performance: Option<u8>,
     min_gateway_mixnet_performance: Option<u8>,
     min_gateway_vpn_performance: Option<u8>,
+    residential_exit: bool,
 }
 
 impl From<VpnServiceConfigExtV2> for VpnServiceConfigExt {
@@ -505,6 +547,7 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
             min_mixnode_performance: value.min_mixnode_performance,
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
+            residential_exit: value.residential_exit,
         };
         Ok(config)
     }
@@ -532,6 +575,7 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             min_mixnode_performance: value.min_mixnode_performance,
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
+            residential_exit: value.residential_exit,
         };
         Ok(ext_config)
     }
@@ -556,7 +600,7 @@ impl TryFrom<EntryPointExtV2> for EntryPoint {
     fn try_from(value: EntryPointExtV2) -> Result<Self, Self::Error> {
         match value {
             EntryPointExtV2::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
-                .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
+                .map_err(|e| ConfigSetupError::EntryPoint(e.to_string())),
             EntryPointExtV2::Country {
                 two_letter_iso_country_code,
             } => Ok(EntryPoint::Country {
@@ -609,30 +653,15 @@ impl TryFrom<ExitPointExtV2> for ExitPoint {
     fn try_from(value: ExitPointExtV2) -> Result<Self, Self::Error> {
         match value {
             ExitPointExtV2::Address { address } => {
-                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
-                    ConfigSetupError::ExitPoint {
-                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
-                            address: address.clone(),
-                            source: e,
-                        }),
-                    }
-                })?;
+                let recipient = Recipient::try_from_base58_string(&address)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Address {
                     address: Box::new(recipient),
                 })
             }
             ExitPointExtV2::Gateway { identity } => {
-                let node_identity =
-                    gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
-                        ConfigSetupError::ExitPoint {
-                            error: Box::new(
-                                gateway_directory::Error::NodeIdentityFormattingError {
-                                    identity: identity.clone(),
-                                    source: e,
-                                },
-                            ),
-                        }
-                    })?;
+                let node_identity = nym_vpn_lib_types::NodeIdentity::from_str(&identity)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Gateway {
                     identity: node_identity,
                 })
@@ -690,7 +719,7 @@ impl TryFrom<EntryPointExtV1> for EntryPoint {
     fn try_from(value: EntryPointExtV1) -> Result<Self, Self::Error> {
         match value {
             EntryPointExtV1::Gateway { ref identity } => EntryPoint::from_base58_string(identity)
-                .map_err(|e| ConfigSetupError::EntryPoint { error: Box::new(e) }),
+                .map_err(|e| ConfigSetupError::EntryPoint(e.to_string())),
             EntryPointExtV1::Location { location } => Ok(EntryPoint::Country {
                 two_letter_iso_country_code: location,
             }),
@@ -718,30 +747,15 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
     fn try_from(value: ExitPointExtV1) -> Result<Self, Self::Error> {
         match value {
             ExitPointExtV1::Address { address } => {
-                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
-                    ConfigSetupError::ExitPoint {
-                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
-                            address: address.clone(),
-                            source: e,
-                        }),
-                    }
-                })?;
+                let recipient = Recipient::try_from_base58_string(&address)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Address {
                     address: Box::new(recipient),
                 })
             }
             ExitPointExtV1::Gateway { identity } => {
-                let node_identity =
-                    gateway_directory::NodeIdentity::from_str(&identity).map_err(|e| {
-                        ConfigSetupError::ExitPoint {
-                            error: Box::new(
-                                gateway_directory::Error::NodeIdentityFormattingError {
-                                    identity: identity.clone(),
-                                    source: e,
-                                },
-                            ),
-                        }
-                    })?;
+                let node_identity = NodeIdentity::from_str(&identity)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Gateway {
                     identity: node_identity,
                 })
@@ -758,9 +772,9 @@ impl TryFrom<ExitPointExtV1> for ExitPoint {
 // Legacy TOML version of config file.
 //
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 enum LegacyEntryPoint {
-    Gateway { identity: NodeIdentity },
+    Gateway { identity: Vec<u8> },
     Location { location: String },
     Random,
 }
@@ -770,7 +784,10 @@ impl TryFrom<LegacyEntryPoint> for EntryPoint {
 
     fn try_from(value: LegacyEntryPoint) -> Result<Self, Self::Error> {
         match value {
-            LegacyEntryPoint::Gateway { identity } => Ok(EntryPoint::Gateway { identity }),
+            LegacyEntryPoint::Gateway { identity } => Ok(EntryPoint::Gateway {
+                identity: NodeIdentity::from_bytes(&identity)
+                    .map_err(|e| ConfigSetupError::EntryPoint(e.to_string()))?,
+            }),
             LegacyEntryPoint::Location { location } => Ok(EntryPoint::Country {
                 two_letter_iso_country_code: location,
             }),
@@ -779,10 +796,10 @@ impl TryFrom<LegacyEntryPoint> for EntryPoint {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 enum LegacyExitPoint {
     Address { address: String },
-    Gateway { identity: NodeIdentity },
+    Gateway { identity: Vec<u8> },
     Location { location: String },
     Random,
 }
@@ -793,19 +810,16 @@ impl TryFrom<LegacyExitPoint> for ExitPoint {
     fn try_from(value: LegacyExitPoint) -> Result<Self, Self::Error> {
         match value {
             LegacyExitPoint::Address { address } => {
-                let recipient = gateway_directory::Recipient::from_str(&address).map_err(|e| {
-                    ConfigSetupError::ExitPoint {
-                        error: Box::new(gateway_directory::Error::RecipientFormattingError {
-                            address: address.clone(),
-                            source: e,
-                        }),
-                    }
-                })?;
+                let recipient = Recipient::try_from_base58_string(&address)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?;
                 Ok(ExitPoint::Address {
                     address: Box::new(recipient),
                 })
             }
-            LegacyExitPoint::Gateway { identity } => Ok(ExitPoint::Gateway { identity }),
+            LegacyExitPoint::Gateway { identity } => Ok(ExitPoint::Gateway {
+                identity: NodeIdentity::from_bytes(&identity)
+                    .map_err(|e| ConfigSetupError::ExitPoint(e.to_string()))?,
+            }),
             LegacyExitPoint::Location { location } => Ok(ExitPoint::Country {
                 two_letter_iso_country_code: location,
             }),
@@ -896,17 +910,11 @@ pub enum ConfigSetupError {
         error: nym_windows::security::Error,
     },
 
-    #[error("failed to convert entry point")]
-    EntryPoint {
-        #[source]
-        error: Box<gateway_directory::Error>,
-    },
+    #[error("failed to convert entry point: {0}")]
+    EntryPoint(String),
 
-    #[error("failed to convert exit point")]
-    ExitPoint {
-        #[source]
-        error: Box<gateway_directory::Error>,
-    },
+    #[error("failed to convert exit point: {0}")]
+    ExitPoint(String),
 
     #[error("failed to convert IP address")]
     IpAddress {
@@ -1133,13 +1141,11 @@ mod tests {
     async fn run_migrate_toml_test(
         toml_content: &str,
         json_latest_content: &str,
-        entry_point: gateway_directory::EntryPoint,
-        exit_point: gateway_directory::ExitPoint,
+        entry_point: nym_vpn_lib_types::EntryPoint,
+        exit_point: nym_vpn_lib_types::ExitPoint,
     ) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
-
-        println!("Using config dir: {config_path:?}");
 
         let network_config_path = config_path.join("tulips");
         let _ = fs::create_dir_all(&network_config_path).await;
@@ -1180,8 +1186,6 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
-        println!("Using config dir: {config_path:?}");
-
         let network_config_path = config_path.join("tulips");
         let _ = fs::create_dir_all(&network_config_path).await;
         let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
@@ -1207,8 +1211,6 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
 
-        println!("Using config dir: {config_path:?}");
-
         let network_config_path = config_path.join("tulips");
 
         // Write the config to disk
@@ -1231,8 +1233,6 @@ mod tests {
     async fn run_fallback_test(broken_json_content: &str) {
         let temp_dir = tempdir().unwrap();
         let config_path = temp_dir.path();
-
-        println!("Using config dir: {config_path:?}");
 
         let network_config_path = config_path.join("tulips");
         let _ = fs::create_dir_all(&network_config_path).await;
@@ -1281,14 +1281,15 @@ location = "BE"
   "disable_background_cover_traffic": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Country {
+        let entry_point = nym_vpn_lib_types::EntryPoint::Country {
             two_letter_iso_country_code: "FR".to_string(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Country {
+        let exit_point = nym_vpn_lib_types::ExitPoint::Country {
             two_letter_iso_country_code: "BE".to_string(),
         };
 
@@ -1327,18 +1328,19 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "disable_background_cover_traffic": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Gateway {
-            identity: gateway_directory::NodeIdentity::from_str(
+        let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
                 "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
             )
             .unwrap(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Gateway {
-            identity: gateway_directory::NodeIdentity::from_str(
+        let exit_point = nym_vpn_lib_types::ExitPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
                 "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
             )
             .unwrap(),
@@ -1379,19 +1381,20 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "disable_background_cover_traffic": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Gateway {
-            identity: gateway_directory::NodeIdentity::from_str(
+        let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
                 "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
             )
             .unwrap(),
         };
 
-        let exit_point = gateway_directory::ExitPoint::Address {
+        let exit_point = nym_vpn_lib_types::ExitPoint::Address {
             address: Box::new(
-                gateway_directory::Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
+                nym_vpn_lib_types::Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
             )
         };
 
@@ -1419,12 +1422,13 @@ exit_point = "Random"
   "disable_background_cover_traffic": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
 }"#;
 
-        let entry_point = gateway_directory::EntryPoint::Random;
+        let entry_point = nym_vpn_lib_types::EntryPoint::Random;
 
-        let exit_point = gateway_directory::ExitPoint::Random;
+        let exit_point = nym_vpn_lib_types::ExitPoint::Random;
 
         run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
     }
@@ -1467,7 +1471,8 @@ exit_point = "Random"
   "disable_background_cover_traffic": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
 }"#;
 
         run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -1508,12 +1513,14 @@ exit_point = "Random"
   "dns": null,
   "disable_ipv6": false,
   "enable_two_hop": false,
+  "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
   "disable_background_cover_traffic": false,
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
-  "min_gateway_vpn_performance": null
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
 }"#;
 
         run_fallback_test(broken_json_content).await;
@@ -1528,11 +1535,11 @@ exit_point = "Random"
     #[tokio::test]
     async fn test_service_config_serialize_full() {
         let config = VpnServiceConfig {
-            entry_point: gateway_directory::EntryPoint::Country {
+            entry_point: nym_vpn_lib_types::EntryPoint::Country {
                 two_letter_iso_country_code: "US".to_string(),
             },
-            exit_point: gateway_directory::ExitPoint::Gateway {
-                identity: gateway_directory::NodeIdentity::from_str(
+            exit_point: nym_vpn_lib_types::ExitPoint::Gateway {
+                identity: nym_vpn_lib_types::NodeIdentity::from_str(
                     "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
                 )
                 .unwrap(),
@@ -1548,6 +1555,7 @@ exit_point = "Random"
             min_mixnode_performance: Some(55u8),
             min_gateway_mixnet_performance: Some(64u8),
             min_gateway_vpn_performance: Some(1u8),
+            residential_exit: true,
         };
         run_serialize_test(config).await;
     }

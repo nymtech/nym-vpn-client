@@ -1,12 +1,12 @@
 import SwiftUI
+import AppSettings
 import Constants
 import ConnectionManager
-import CountriesManager
 import CountriesManagerTypes
+import Device
 import ExternalLinkManager
-#if os(iOS)
+import GatewayManager
 import ImpactGenerator
-#endif
 import Theme
 import UIComponents
 
@@ -15,8 +15,9 @@ public struct GatewayDetailsView: View {
     private let gateway: GatewayNode
     private let hopType: HopType
     @Binding private var path: NavigationPath
+    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var countriesManager: CountriesManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var messageOverlayText: String?
     @State private var displayMessageOverlay = false
 
@@ -68,7 +69,7 @@ public struct GatewayDetailsView: View {
         path: Binding<NavigationPath>,
         gateway: GatewayNode,
         hopType: HopType,
-        externalLinkManager: ExternalLinkManager = .shared
+        externalLinkManager: ExternalLinkManager
     ) {
         _path = path
         self.gateway = gateway
@@ -88,7 +89,7 @@ private extension GatewayDetailsView {
 
     func serverTitle() -> some View {
         HStack {
-            Text(gateway.moniker ?? gateway.id)
+            Text(gateway.name ?? gateway.id)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Headline.Medium.regular)
             Spacer()
@@ -97,7 +98,7 @@ private extension GatewayDetailsView {
 
     func location() -> some View {
         HStack(spacing: 0) {
-            FlagImage(countryCode: gateway.countryCode, width: 16, height: 16)
+            FlagImage(countryCode: gateway.location?.twoLetterIsoCountryCode, width: 16, height: 16)
             Spacer()
                 .frame(width: 8)
             Text(locationTitle())
@@ -109,7 +110,10 @@ private extension GatewayDetailsView {
 
     func missingInfoText() -> some View {
         HStack(spacing: 0) {
-            rowSubtite(with: "gatewayInfo.missingInfo".localizedString)
+            Text(missingInfoAttributedString() ?? "")
+                .tint(NymColor.gray1)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
                 .underline()
             exportImage()
                 .padding(.horizontal, 8)
@@ -123,24 +127,35 @@ private extension GatewayDetailsView {
         }
     }
 
+    func missingInfoAttributedString() -> AttributedString? {
+        try? AttributedString(markdown: "[\("gatewayInfo.missingInfo".localizedString)](\(Constants.serverLocationURL.rawValue))")
+    }
+
     func explorer() -> some View {
         HStack(spacing: 0) {
-            rowTitle(with: "\("gatewayInfo.moreDetailsIn".localizedString) ")
-            HStack(spacing: 0) {
-                rowSubtite(with: "gatewayInfo.networkExplorer".localizedString)
-                    .underline()
-                exportImage()
-                    .padding(.horizontal, 8)
-                Spacer()
-            }
-            .accessibilityAction {
-                openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
-            }
-            .onTapGesture {
-                openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
-            }
+            Text(explorerAttributedString() ?? "")
+                .tint(NymColor.gray1)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
+            exportImage()
+                .padding(.horizontal, 8)
             Spacer()
+        }.accessibilityAction {
+            openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
         }
+        .onTapGesture {
+            openExternalLink(with: "\(Constants.explorerURL.rawValue)\(gateway.id)")
+        }
+    }
+
+    func explorerAttributedString() -> AttributedString? {
+        let markdown = "\("gatewayInfo.moreDetailsIn".localizedString) [\("gatewayInfo.networkExplorer".localizedString)](\(Constants.explorerURL.rawValue)\(gateway.id))"
+
+        guard var explorerMarkdownString = try? AttributedString(markdown: markdown) else { return nil }
+        for run in explorerMarkdownString.runs where run.link != nil {
+            explorerMarkdownString[run.range].underlineStyle = .single
+        }
+        return explorerMarkdownString
     }
 
     func selectServerSection() -> some View {
@@ -150,10 +165,10 @@ private extension GatewayDetailsView {
                 .frame(height: 1)
             GenericButton(title: "gatewayInfo.selectServer".localizedString)
                 .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
-#if os(macOS)
-            Spacer()
-                .frame(height: 24)
-#endif
+            if Device.isMacOS || appSettings.isSmallScreen {
+                Spacer()
+                    .frame(height: 24)
+            }
         }
         .background(NymColor.elevation)
         .frame(maxWidth: .infinity, alignment: .center)
@@ -180,7 +195,7 @@ private extension GatewayDetailsView {
 
     func rowSubtite(with subtitle: String) -> some View {
         Text(subtitle)
-            .foregroundStyle(NymColor.white)
+            .foregroundStyle(NymColor.primary)
             .textStyle(.Body.Medium.regular)
     }
 
@@ -220,7 +235,7 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.streamingAndContent".localizedString)
             Spacer()
-            switch gateway.asn?.type {
+            switch gateway.location?.asn?.type {
             case .residential:
                 GenericImage(systemImageName: "checkmark")
                     .frame(width: 10, height: 10)
@@ -269,11 +284,11 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.overallPerformance".localizedString)
             Spacer()
-            GenericImage(imageName: gateway.performance.score.imageName)
+            GenericImage(imageName: gateway.performance?.score.imageName)
                 .frame(width: 16, height: 16)
                 .padding(8)
-            Text(gateway.performance.score.localizedKey.localizedString)
-                .foregroundStyle(scoreOverallPerformanceImageColor(with: gateway.performance.score))
+            Text(gateway.performance?.score.localizedKey.localizedString ?? GatewayNodeScore.noScore.localizedKey.localizedString)
+                .foregroundStyle(scoreOverallPerformanceImageColor(with: gateway.performance?.score ?? GatewayNodeScore.noScore))
                 .textStyle(.Body.Medium.regular)
         }
     }
@@ -282,8 +297,8 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.serverLoad".localizedString)
             Spacer()
-            Text(gateway.performance.load.localizedKey.localizedString)
-                .foregroundStyle(scoreLoadImageColor(with: gateway.performance.load))
+            Text(gateway.performance?.load.localizedKey.localizedString ?? GatewayNodeScore.noScore.localizedKey.localizedString)
+                .foregroundStyle(scoreLoadImageColor(with: gateway.performance?.load ?? GatewayNodeScore.noScore))
                 .textStyle(.Body.Medium.regular)
         }
     }
@@ -326,7 +341,7 @@ private extension GatewayDetailsView {
                 .frame(height: 8)
             HStack(spacing: 0) {
                 Text(gateway.id)
-                    .foregroundStyle(NymColor.white)
+                    .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Medium.regular)
                 Spacer()
                     .frame(width: 16)
@@ -423,7 +438,7 @@ private extension GatewayDetailsView {
 
     @ViewBuilder
     func asnRow() -> some View {
-        if let asn = gateway.asn {
+        if let asn = gateway.location?.asn {
             HStack(spacing: 0) {
                 rowTitle(with: "gatewayInfo.asn".localizedString)
                 Spacer()
@@ -434,7 +449,7 @@ private extension GatewayDetailsView {
 
     @ViewBuilder
     func asnNameRow() -> some View {
-        if let asn = gateway.asn {
+        if let asn = gateway.location?.asn {
             HStack(spacing: 0) {
                 rowTitle(with: "gatewayInfo.asnName".localizedString)
                 Spacer()
@@ -478,9 +493,9 @@ private extension GatewayDetailsView {
 #endif
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(gateway)
+            connectionManager.entryGateway = .gateway(gateway.id)
         case .exit:
-            connectionManager.exitRouter = .gateway(gateway)
+            connectionManager.exitRouter = .gateway(gateway.id)
         }
         path = .init()
     }
@@ -488,9 +503,16 @@ private extension GatewayDetailsView {
 
 // MARK: - Helpers -
 private extension GatewayDetailsView {
+    // TODO: check if working
     func locationTitle() -> String {
-        let country = countriesManager.country(with: gateway.countryCode)?.name ?? ""
-        return "\(gateway.city), \(gateway.region), \(country)"
+        let parts = [
+            gateway.location?.city,
+            gateway.location?.region,
+            gatewayManager.localizedCountry(with: gateway.location?.twoLetterIsoCountryCode)?.name
+        ]
+        .compactMap { $0 }
+        .filter { !$0.isEmpty }
+        return parts.joined(separator: ", ")
     }
 
     func scoreOverallPerformanceImageColor(with score: GatewayNodeScore) -> Color {
@@ -528,12 +550,16 @@ private extension GatewayDetailsView {
         formatter.numberStyle = .percent
         formatter.maximumFractionDigits = 0
         formatter.locale = .current
-        let number = formatter.string(from: NSNumber(value: gateway.performance.uptime))
-        return number ?? "noScore".localizedString
+        guard let uptime = gateway.performance?.uptime,
+              let number = formatter.string(from: NSNumber(value: uptime))
+        else {
+            return "noScore".localizedString
+        }
+        return number
     }
 
     func formattedLastUpdate() -> String {
-        guard let date = gateway.performance.lastUpdated
+        guard let date = gateway.performance?.lastUpdated
         else {
             return "noScore".localizedString
         }

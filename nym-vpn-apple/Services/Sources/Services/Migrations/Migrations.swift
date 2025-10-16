@@ -6,32 +6,26 @@ import AppSettings
 import ConfigurationManager
 import ConnectionTypes
 import CountriesManagerTypes
-import CountriesManager
 
-public final class Migrations {
+@MainActor public final class Migrations {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
-    private let countriesManager: CountriesManager
 
     public static let shared = Migrations(
         appSettings: .shared,
-        configurationManager: .shared,
-        countriesManager: .shared
+        configurationManager: .shared
     )
 
     private init(
         appSettings: AppSettings,
-        configurationManager: ConfigurationManager,
-        countriesManager: CountriesManager
+        configurationManager: ConfigurationManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
-        self.countriesManager = countriesManager
     }
 
     public func setup() {
         migrateToMainnet()
-        migrateCountryNames()
     }
 }
 
@@ -44,20 +38,6 @@ private extension Migrations {
         }
         Task { @MainActor in
             appSettings.currentEnv = "mainnet"
-        }
-    }
-
-    func migrateCountryNames() {
-        // Introduced in v1.6.0
-        if !appSettings.entryCountryCode.isEmpty,
-            let entryCountry = countriesManager.country(with: appSettings.entryCountryCode) {
-            appSettings.entryGateway = EntryGateway.country(entryCountry).toJson()
-            appSettings.entryCountryCode = ""
-        }
-        if !appSettings.exitCountryCode.isEmpty,
-            let exitCountry = countriesManager.country(with: appSettings.exitCountryCode) {
-            appSettings.entryGateway = EntryGateway.country(exitCountry).toJson()
-            appSettings.exitCountryCode = ""
         }
     }
 }

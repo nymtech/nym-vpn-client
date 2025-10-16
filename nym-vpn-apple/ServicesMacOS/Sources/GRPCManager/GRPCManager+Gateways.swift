@@ -2,13 +2,15 @@ import CountriesManagerTypes
 
 extension GRPCManager {
     public func gateways(for type: NodeType) async throws -> [GatewayNode] {
-        var request = NymVpnService_ListGatewaysRequest()
-        request.kind = type.convertToGatewayType()
-        request.userAgent = userAgent
+        try await Task.detached { [weak self] in
+            guard let result = try await self?.rpcClient?.listGateways(gwType: type.convertToGatewayType())
+            else {
+                return []
+            }
 
-        let result = try await client.listGateways(request)
-        return result.gateways.compactMap {
-            GatewayNode(with: $0)
-        }
+            return result.compactMap {
+                GatewayNode(with: $0)
+            }
+        }.value
     }
 }

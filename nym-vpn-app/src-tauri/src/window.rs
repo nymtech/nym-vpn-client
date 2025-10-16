@@ -29,8 +29,8 @@ pub struct AppWindow(pub WebviewWindow);
 
 #[derive(Serialize, Deserialize, Debug, Default, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export)]
-enum UiTheme {
+#[ts(export, export_to = "tauri.ts")]
+enum ThemeMode {
     #[default]
     System,
     Light,
@@ -40,8 +40,8 @@ enum UiTheme {
 /// concrete UI mode
 #[derive(Serialize, Deserialize, Debug, Default, TS)]
 #[serde(rename_all = "lowercase")]
-#[ts(export)]
-enum UiMode {
+#[ts(export, export_to = "tauri.ts")]
+enum UiTheme {
     #[default]
     Light,
     Dark,
@@ -49,7 +49,7 @@ enum UiMode {
 
 #[derive(Serialize, Deserialize, Debug, Default, TS)]
 #[serde(rename_all = "camelCase")]
-#[ts(export, export_to = "JsEnv.ts", rename = "JsEnv")]
+#[ts(export, export_to = "tauri.ts", rename = "JsEnv")]
 pub struct WindowInitEnv {
     pub dev_mode: bool,
     pub updater_enabled: bool,
@@ -96,8 +96,8 @@ impl AppWindow {
     pub fn set_bg_color(&self, db: &Db) -> Result<()> {
         let ui_mode = self.get_current_theme(db).unwrap_or_default();
         let color = match ui_mode {
-            UiMode::Light => Color::from(BG_COLOR_LIGHT),
-            UiMode::Dark => Color::from(BG_COLOR_DARK),
+            UiTheme::Light => Color::from(BG_COLOR_LIGHT),
+            UiTheme::Dark => Color::from(BG_COLOR_DARK),
         };
         debug!("set webview background color to {:?}", color);
         self.0
@@ -122,7 +122,7 @@ impl AppWindow {
             })
             .ok_or_else(|| {
                 error!("failed to get window {label}");
-                anyhow!("failed to get window {}", label)
+                anyhow!("failed to get window {label}")
             })?;
         Ok(window)
     }
@@ -197,14 +197,14 @@ impl AppWindow {
     /// or fallback to the system theme
     /// defaults to `Light`
     #[instrument(skip_all)]
-    fn get_current_theme(&self, db: &Db) -> Result<UiMode> {
+    fn get_current_theme(&self, db: &Db) -> Result<UiTheme> {
         let ui_theme = db
-            .get_typed::<UiTheme>(Key::UiTheme.as_ref())?
-            .unwrap_or(UiTheme::System);
+            .get_typed::<ThemeMode>(Key::UiTheme.as_ref())?
+            .unwrap_or(ThemeMode::System);
         Ok(match ui_theme {
-            UiTheme::Light => UiMode::Light,
-            UiTheme::Dark => UiMode::Dark,
-            UiTheme::System => self
+            ThemeMode::Light => UiTheme::Light,
+            ThemeMode::Dark => UiTheme::Dark,
+            ThemeMode::System => self
                 .0
                 .theme()
                 .inspect(|theme| {
@@ -222,39 +222,39 @@ impl AppWindow {
 #[instrument(skip(os, win))]
 pub fn handle_event(#[allow(unused_variables)] os: &OsInfo, win: &Window, event: &WindowEvent) {
     // keep the app running in the background on window close request
-    if let WindowEvent::CloseRequested { api, .. } = event {
-        if win.label() == MAIN_WINDOW_LABEL {
-            win.hide()
-                .inspect_err(|e| error!("failed to hide main window: {e}"))
-                .ok();
-            api.prevent_close();
-        }
+    if let WindowEvent::CloseRequested { api, .. } = event
+        && win.label() == MAIN_WINDOW_LABEL
+    {
+        win.hide()
+            .inspect_err(|e| error!("failed to hide main window: {e}"))
+            .ok();
+        api.prevent_close();
     }
-    if let WindowEvent::Focused(true) = event {
-        if win.label() == MAIN_WINDOW_LABEL {
-            #[cfg(target_os = "linux")]
-            {
-                // credits @stenya
-                // https://github.com/safing/portmaster/commit/95838b510c75fa9dde6e99a4492e1c7e34f7cf18
+    if let WindowEvent::Focused(true) = event
+        && win.label() == MAIN_WINDOW_LABEL
+    {
+        #[cfg(target_os = "linux")]
+        {
+            // credits @stenya
+            // https://github.com/safing/portmaster/commit/95838b510c75fa9dde6e99a4492e1c7e34f7cf18
 
-                // Workaround for KDE/Wayland environments on Linux:
-                // On KDE with Wayland, after hiding and showing the window,
-                // the title-bar buttons (close, minimize, maximize) may stop working.
-                // Toggling the resizable property appears to resolve this issue.
-                // see https://github.com/safing/portmaster/issues/1909
-                // https://github.com/tauri-apps/tauri/issues/6162#issuecomment-1423304398
-                if os.display_server == DisplayServer::Wayland {
-                    trace!("toggle resizable");
-                    win.set_resizable(false).ok();
-                    win.set_resizable(true).ok();
-                }
+            // Workaround for KDE/Wayland environments on Linux:
+            // On KDE with Wayland, after hiding and showing the window,
+            // the title-bar buttons (close, minimize, maximize) may stop working.
+            // Toggling the resizable property appears to resolve this issue.
+            // see https://github.com/safing/portmaster/issues/1909
+            // https://github.com/tauri-apps/tauri/issues/6162#issuecomment-1423304398
+            if os.display_server == DisplayServer::Wayland {
+                trace!("toggle resizable");
+                win.set_resizable(false).ok();
+                win.set_resizable(true).ok();
             }
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(tag = "type")]
 pub enum WindowSize {
     Physical { width: u32, height: u32 },
@@ -262,7 +262,7 @@ pub enum WindowSize {
 }
 
 #[derive(Serialize, Deserialize, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(tag = "type")]
 pub enum WindowPosition {
     Physical { x: i32, y: i32 },
@@ -320,11 +320,11 @@ pub fn focus_main_window(app: &AppHandle) {
     }
 }
 
-impl From<Theme> for UiMode {
+impl From<Theme> for UiTheme {
     fn from(theme: Theme) -> Self {
         match theme {
-            Theme::Dark => UiMode::Dark,
-            _ => UiMode::Light,
+            Theme::Dark => UiTheme::Dark,
+            _ => UiTheme::Light,
         }
     }
 }

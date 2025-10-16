@@ -160,7 +160,7 @@ If you use VSCode and automatic formatting, configure rust-analyzer to use night
 
 ### Linux and macOS
 
-Build wireguard-go for desktop:
+Build wireguard-go for desktop (**in the repository root**):
 
 ```sh
 make build-wireguard
@@ -171,6 +171,7 @@ make build-wireguard
 Run the following command to build `winfw`, `libwg` and download `wintun`:
 
 ```sh
+cd nym-vpn-core/
 make -f Windows.mk RELEASE=1
 ```
 

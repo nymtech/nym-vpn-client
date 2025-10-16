@@ -14,7 +14,8 @@ use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-        TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
+        TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
+        WireguardTunnelOptions,
     },
 };
 use nym_vpn_lib_types::TunnelType;
@@ -24,7 +25,7 @@ use crate::gateway_cache;
 use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
 pub(super) async fn init_state_machine(
-    config: VPNConfig,
+    config: Box<VPNConfig>,
     network_env: Network,
     account_controller_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
@@ -55,7 +56,7 @@ pub(super) async fn init_state_machine(
 }
 
 pub(super) async fn start_state_machine(
-    config: VPNConfig,
+    config: Box<VPNConfig>,
     network_env: Network,
     account_controller_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
@@ -67,8 +68,8 @@ pub(super) async fn start_state_machine(
         TunnelType::Mixnet
     };
 
-    let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
-    let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
+    let entry_point = config.entry_gateway;
+    let exit_point = config.exit_router;
 
     // Bootstrap the state machines gateway client with the static gateway client, so that we can
     // use the existing cached directory data.
@@ -89,9 +90,13 @@ pub(super) async fn start_state_machine(
         // ios: not used because vpn configuration is configured separately
         // todo: consider guarding with target_os
         allow_lan: true,
+        residential_exit: config.residential_exit,
         tunnel_type,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
-        wireguard_tunnel_options: WireguardTunnelOptions::default(),
+        wireguard_tunnel_options: WireguardTunnelOptions {
+            multihop_mode: WireguardMultihopMode::Netstack,
+            enable_bridges: config.enable_bridges,
+        },
         gateway_performance_options: GatewayPerformanceOptions::default(),
         mixnet_client_config: None,
         entry_point: Box::new(entry_point),
@@ -108,8 +113,7 @@ pub(super) async fn start_state_machine(
     let event_broadcaster_handler = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
-                let platform_event = nym_vpn_lib_types_uniffi::TunnelEvent::from(event);
-                (*state_listener).on_event(platform_event);
+                (*state_listener).on_event(event);
             }
         }
     });

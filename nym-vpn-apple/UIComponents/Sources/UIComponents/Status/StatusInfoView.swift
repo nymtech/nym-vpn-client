@@ -1,31 +1,29 @@
 import SwiftUI
-import AppSettings
 import Theme
 
 public struct StatusInfoView: View {
-    @EnvironmentObject private var appSettings: AppSettings
-    @Binding private var timeConnectedString: String?
+    @Environment(\.scenePhase) private var scenePhase
+    @Binding private var connectedDate: Date?
     @Binding private var infoState: StatusInfoState
 
     public init(
-        timeConnectedString: Binding<String?>,
+        connectedDate: Binding<Date?>,
         infoState: Binding<StatusInfoState>
     ) {
-        _timeConnectedString = timeConnectedString
+        _connectedDate = connectedDate
         _infoState = infoState
     }
 
     public var body: some View {
-        infoLabel()
-            .onTapGesture {
-                switch infoState {
-                case let .error(message):
-                    copyToPasteboard(text: message)
-                default:
-                    break
+        VStack(spacing: 8) {
+            infoLabel()
+                .onTapGesture {
+                    if case let .error(message) = infoState {
+                        copyToPasteboard(text: message)
+                    }
                 }
-            }
-        timeConnectedLabel()
+            timeConnectedLabel()
+        }
     }
 }
 
@@ -35,38 +33,48 @@ private extension StatusInfoView {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
             .textStyle(.Body.Medium.regular)
-            .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30 ? true : false)
+            .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30)
             .multilineTextAlignment(.center)
-            .transition(.opacity)
-            .animation(.easeInOut, value: infoState.localizedTitle)
-        Spacer()
-            .frame(height: 8)
     }
 
     @ViewBuilder
     func timeConnectedLabel() -> some View {
-        if infoState != .noInternet || infoState != .noInternetReconnect, let timeConnectedString {
-            TimelineView(.animation(minimumInterval: 1.0, paused: false)) { _ in
-                Text(timeConnectedString)
+        // Show timer only when we have internet AND have a start date
+        let shouldShowTimer = !(infoState == .noInternet || infoState == .noInternetReconnect)
+
+        if scenePhase == .active, shouldShowTimer, let start = connectedDate {
+            TimelineView(.periodic(from: start, by: 1.0)) { context in
+                let timeElapsed = fastHMS(from: start, to: context.date)
+                Text(verbatim: timeElapsed)
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Medium.regular)
                     .monospacedDigit()
-                    .transition(.opacity)
-                    .animation(.easeInOut, value: timeConnectedString)
             }
+            .id(connectedDate)
         } else {
-            Text(" ")
-                .frame(maxWidth: .infinity)
+            Text(" ").frame(maxWidth: .infinity)
         }
     }
 }
 
 private extension StatusInfoView {
+    static let digits: [String] = (0...59).map { $0 < 10 ? "0\($0)" : "\($0)" }
+
+    func fastHMS(from start: Date, to now: Date) -> String {
+        let total = max(0, Int(now.timeIntervalSince(start)))
+        let hours = total / 3600
+        let minutes = (total / 60) % 60
+        let seconds = total % 60
+
+        let hh = hours < 10 ? "0\(hours)" : "\(hours)"
+        return "\(hh):\(Self.digits[minutes]):\(Self.digits[seconds])"
+    }
+
     func copyToPasteboard(text: String) {
 #if os(iOS)
         UIPasteboard.general.string = text
 #elseif os(macOS)
-        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
 #endif
     }

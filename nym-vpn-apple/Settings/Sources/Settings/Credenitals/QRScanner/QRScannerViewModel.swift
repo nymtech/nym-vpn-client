@@ -7,7 +7,7 @@ import Theme
 
 import AVFoundation
 
-public final class QRScannerViewModel: ObservableObject {
+@MainActor public final class QRScannerViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let keyboardManager: KeyboardManager
 

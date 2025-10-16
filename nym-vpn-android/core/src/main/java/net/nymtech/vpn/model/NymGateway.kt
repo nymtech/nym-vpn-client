@@ -3,7 +3,7 @@ package net.nymtech.vpn.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nym_vpn_lib_types.AsnKind
-import nym_vpn_lib_types.GatewayInfo
+import nym_vpn_lib_types.Gateway
 import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
 import nym_vpn_lib_types.NodeIdentity
@@ -29,16 +29,16 @@ data class NymGateway(
 	var exitIpv6s: List<Ipv6Addr>,
 ) {
 	companion object {
-		fun from(gateway: GatewayInfo): NymGateway {
+		fun from(gateway: Gateway): NymGateway {
 			return NymGateway(
-				identity = gateway.id,
-				name = gateway.moniker,
+				identity = gateway.identityKey,
+				name = gateway.name,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
-				mixnetScore = gateway.mixnetScore,
-				wgScore = gateway.wgPerformance?.score,
-				wgLoad = gateway.wgPerformance?.load,
-				lastUpdated = gateway.wgPerformance?.lastUpdatedUtc,
-				wgUptime = gateway.wgPerformance?.uptimePercentageLast24Hours,
+				mixnetScore = gateway.performance?.mixnetScore,
+				wgScore = gateway.performance?.score,
+				wgLoad = gateway.performance?.load,
+				lastUpdated = gateway.performance?.lastUpdatedUtc,
+				wgUptime = gateway.performance?.uptimePercentageLast24Hours,
 				city = gateway.location?.city,
 				region = gateway.location?.region,
 				asn = gateway.location?.asn?.asn,

@@ -17,11 +17,6 @@ use crate::error::MetadataClientError;
 
 pub mod error;
 
-pub struct TunUpEvent {
-    pub entry: TunUpSender,
-    pub exit: TunUpSender,
-}
-
 #[derive(Clone)]
 pub enum TunUpSendData {
     #[cfg(not(target_os = "windows"))]

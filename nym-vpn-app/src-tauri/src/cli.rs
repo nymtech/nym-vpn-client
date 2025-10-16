@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use strum::IntoEnumIterator;
 use tauri::PackageInfo;
 use tracing::{error, info};
+use ts_rs::TS;
 
 #[cfg(all(not(debug_assertions), windows))]
 const CONSOLE_FLAGS: [&str; 8] = [
@@ -37,7 +38,7 @@ pub fn attach_console() {
 }
 
 #[derive(
-    Parser, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, ValueEnum, strum::Display,
+    Parser, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, ValueEnum, strum::Display, TS,
 )]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -49,8 +50,10 @@ pub enum LogLevel {
     Error,
 }
 
-#[derive(Parser, Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Parser, Serialize, Deserialize, Debug, Clone, Default, TS)]
 #[command(author, version, about, long_about = None)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
 pub struct Cli {
     /// Print build information
     #[arg(short, long)]
@@ -58,6 +61,7 @@ pub struct Cli {
 
     /// Unix socket path of gRPC endpoint
     #[arg(short, long)]
+    #[ts(skip)]
     pub grpc_socket_endpoint: Option<PathBuf>,
 
     /// IP address of the DNS server to use when connected to the VPN
@@ -70,11 +74,13 @@ pub struct Cli {
 
     /// Set the log level
     #[arg(short = 'L', long)]
+    #[ts(inline)]
     pub log_level: Option<LogLevel>,
 
     /// Open a console to see the logs
     #[arg(short, long)]
     #[cfg(windows)]
+    #[ts(skip)]
     pub console: bool,
 
     /// Disable the splash-screen
@@ -91,6 +97,7 @@ pub struct Cli {
     pub clean_local_files: bool,
 
     #[command(subcommand)]
+    #[ts(skip)]
     pub command: Option<Commands>,
 }
 

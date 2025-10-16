@@ -1,18 +1,16 @@
 import SwiftUI
-#if os(iOS)
 import ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
 import GRPCManager
 #endif
 import NymLogger
 import Theme
 
-public final class LogsViewModel: ObservableObject {
+@MainActor public final class LogsViewModel: ObservableObject {
     private let logFileManager: LogFileManager
 
-#if os(iOS)
     let impactGenerator: ImpactGenerator
-#elseif os(macOS)
+#if os(macOS)
     let grpcManager: GRPCManager
 #endif
 
@@ -45,7 +43,7 @@ public final class LogsViewModel: ObservableObject {
     init(
         path: Binding<NavigationPath>,
         logFileManager: LogFileManager,
-        impactGenerator: ImpactGenerator = ImpactGenerator.shared
+        impactGenerator: ImpactGenerator
     ) {
         _path = path
         self.logFileManager = logFileManager
@@ -53,9 +51,15 @@ public final class LogsViewModel: ObservableObject {
         readLogs()
     }
 #elseif os(macOS)
-    init(path: Binding<NavigationPath>, logFileManager: LogFileManager, grpcManager: GRPCManager = .shared) {
+    init(
+        path: Binding<NavigationPath>,
+        logFileManager: LogFileManager,
+        impactGenerator: ImpactGenerator,
+        grpcManager: GRPCManager
+    ) {
         _path = path
         self.logFileManager = logFileManager
+            self.impactGenerator = impactGenerator
         self.grpcManager = grpcManager
         readLogs()
     }
@@ -90,56 +94,50 @@ public final class LogsViewModel: ObservableObject {
 }
 
 private extension LogsViewModel {
-    /// Reads the last `maxLines` lines from the log file by reading backwards in chunks.
-    func readLastLinesFromFile(maxLines: Int) -> [String]? {
-        guard let logFileURL = LogFileManager.logFileURL(logFileType: currentLogFileType),
-              let fileHandle = try? FileHandle(forReadingFrom: logFileURL)
-        else {
-            return nil
-        }
+    /// Reads the last `maxLines` lines from the file at `url` by seeking backwards in chunks.
+    nonisolated static func readLastLinesFromFile(at url: URL, maxLines: Int) -> [String]? {
+        guard let fileHandle = try? FileHandle(forReadingFrom: url) else { return nil }
         defer { try? fileHandle.close() }
 
         let chunkSize = 4096
         let fileSize = (try? fileHandle.seekToEnd()) ?? 0
         var offset = fileSize
-        var accumulatedData = Data()
-        var newlineCount = 0
+        var buffer = Data()
+        var lineCount = 0
 
-        // Read backwards until we have found enough newlines or reached the beginning
-        while offset > 0 && newlineCount < maxLines {
-            let readSizeUInt = min(UInt64(chunkSize), offset)
-            let readSize = Int(readSizeUInt)
-            offset -= readSizeUInt
+        // Read backwards until enough newlines or start of file
+        while offset > 0, lineCount < maxLines {
+            let readSize = Int(min(UInt64(chunkSize), offset))
+            offset -= UInt64(readSize)
             try? fileHandle.seek(toOffset: offset)
-            guard let chunkData = try? fileHandle.read(upToCount: readSize) else {
-                break
-            }
-            accumulatedData.insert(contentsOf: chunkData, at: 0)
-            // Count newlines in the accumulated data (ASCII newline is 10).
-            newlineCount = accumulatedData.reduce(0) { count, byte in
-                count + (byte == 10 ? 1 : 0)
-            }
+            guard let chunk = try? fileHandle.read(upToCount: readSize) else { break }
+
+            // Prepend the chunk
+            buffer.insert(contentsOf: chunk, at: 0)
+
+            // Count only the new chunk’s newlines to avoid O(n^2)
+            lineCount += chunk.reduce(into: 0) { $0 += ($1 == 10 /* '\n' */ ? 1 : 0) }
         }
 
-        guard let fullText = String(data: accumulatedData, encoding: .utf8), !fullText.isEmpty
-        else {
-            return nil
-        }
-
-        let allLines = fullText.components(separatedBy: "\n")
-        return Array(allLines.suffix(maxLines))
+        guard let text = String(data: buffer, encoding: .utf8), !text.isEmpty else { return nil }
+        let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        return Array(lines.suffix(maxLines))
     }
 
     func readLogs() {
-        Task {
-            guard let lastLines = readLastLinesFromFile(maxLines: lineLimit) else {
-                await MainActor.run {
-                    logLines = []
+        let url = LogFileManager.logFileURL(logFileType: currentLogFileType)
+        let max = lineLimit
+
+        Task.detached(priority: .utility) { [weak self] in
+            guard let url else {
+                await MainActor.run { [weak self] in
+                    self?.logLines = []
                 }
                 return
             }
-            await MainActor.run {
-                logLines = lastLines
+            let lastLines = Self.readLastLinesFromFile(at: url, maxLines: max) ?? []
+            await MainActor.run { [weak self] in
+                self?.logLines = lastLines
             }
         }
     }

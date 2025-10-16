@@ -68,7 +68,7 @@ impl ConnectedState {
             enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
             wg_entry_endpoint,
-            ws_entry_endpoints: selected_gateways.entry.endpoints(),
+            ws_entry_endpoints: selected_gateways.entry_gateway().endpoints(),
             dns_config: shared_state.tunnel_settings.resolved_dns_config(),
             tunnel_interface: tunnel_interface.clone(),
         };
@@ -271,6 +271,10 @@ impl TunnelStateHandler for ConnectedState {
                     TunnelMonitorEvent::Down { error_state_reason, reply_tx } => {
                         _ = reply_tx.send(());
                         self.handle_tunnel_down(error_state_reason, shared_state).await
+                    }
+                    TunnelMonitorEvent::NewNetworkEnv { network } => {
+                        shared_state.nym_config.network_env = *network;
+                        NextTunnelState::SameState(self)
                     }
                     _ => {
                         NextTunnelState::SameState(self)

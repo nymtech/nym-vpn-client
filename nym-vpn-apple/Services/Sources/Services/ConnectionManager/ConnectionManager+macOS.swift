@@ -4,62 +4,30 @@ import TunnelMixnet
 import NotificationMessages
 
 extension ConnectionManager {
-    func generateConfig() -> MixnetConfig {
-        let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
-
-        switch connectionType {
-        case .mixnet5hop:
-            return MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                isErrorReportingEnabled: isErrorReportingEnabled,
-                isStatisticsEnabled: appSettings.isStatisticsEnabled,
-                isTwoHopEnabled: false
-            )
-        case .wireguard:
-            return MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                isErrorReportingEnabled: isErrorReportingEnabled,
-                isStatisticsEnabled: appSettings.isStatisticsEnabled,
-                isTwoHopEnabled: true
-            )
-        }
-    }
-
-    @MainActor func connect(with config: MixnetConfig) async throws {
-        appSettings.lastConnectionIntent = config.toJson()
-        try await grpcManager.connect(
-            entryGateway: config.entryGateway,
-            exitRouter: config.exitRouter,
-            isTwoHopEnabled: config.isTwoHopEnabled,
-            disableIPv6: !appSettings.isIPv6TrafficEnabled
-        )
+    @MainActor func connect() async throws {
+        try await grpcManager.connect()
         appSettings.statisticsConnectionCount += 1
-    }
-
-    /// Sends connect command to deamon if entry/exit gateways changed while connected,
-    /// to initiate reconnect
-    @MainActor func reconnectIfNeeded() async {
-        let newConfig = generateConfig()
-        guard currentTunnelStatus == .connected, newConfig.toJson() != appSettings.lastConnectionIntent else { return }
-        do {
-            try await connect(with: newConfig)
-        } catch {
-            lastError = error
-        }
     }
 }
 
 extension ConnectionManager {
     @MainActor public func connectDisconnect() async throws {
-        let config = generateConfig()
-
         switch grpcManager.tunnelStatus {
         case .connected, .connecting, .offlineReconnect, .error:
             try await grpcManager.disconnect()
         case .disconnected, .disconnecting, .reasserting, .restarting, .offline, .unknown:
-            try await connect(with: config)
+            try await connect()
+        }
+    }
+
+    @MainActor func fetchConnectionConfig() async {
+        connectionConfig = await grpcManager.config()
+    }
+
+    func updateConnectionConfig() {
+        Task {
+            guard let connectionConfig else { return }
+            try? await grpcManager.updateConfig(newConfig: connectionConfig)
         }
     }
 }
@@ -95,10 +63,28 @@ extension ConnectionManager {
             }
             .store(in: &cancellables)
 
+        grpcManager.$isServing
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isServing in
+                guard isServing else { return }
+                Task { @MainActor in
+                    await self?.fetchConnectionConfig()
+                }
+            }
+            .store(in: &cancellables)
+
         grpcManager.$connectionInfoData
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .assign(to: \.connectionInfoData, on: self)
+            .store(in: &cancellables)
+
+        appSettings.$isQuicEnabledPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newValue in
+                self?.connectionConfig?.enableBridges = newValue
+                self?.updateConnectionConfig()
+            }
             .store(in: &cancellables)
     }
 }

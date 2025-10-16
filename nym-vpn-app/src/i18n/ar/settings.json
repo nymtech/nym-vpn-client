@@ -35,6 +35,22 @@
     "app": "سجلات التطبيق",
     "daemon": "سجلات دايمون"
   },
+  "anti-censorship": {
+    "title": "مكافحة الرقابة",
+    "intro": "تمكين هذه الميزات إذا كنت تواجه مشاكل في الاتصال أو حجب NymVPN في موقعك.",
+    "quic": {
+      "label": "تحسين الاتصال (QUIC)",
+      "warning": "سيتم تطبيق التغييرات بعد إعادة الاتصال",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "كيف يحسن QUIC الاتصالات"
+    },
+    "stealth-api": {
+      "label": "توصيل API الثري",
+      "warning": "سيتم تطبيق التغييرات بعد إعادة الاتصال",
+      "content": "إخفاء طلبات API خلف شعبية, النطاقات المسموح بها لتجاوز حظر VPN. يتم استخدامها تلقائياً من قبل NymVPN عند فشل محاولات الاتصال القياسية.",
+      "link": "كيف يعمل واجهة برمجة تطبيقات ستثنى"
+    }
+  },
   "faq": "الأسئلة الشائعة",
   "display-theme": "نمط العرض",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "إحصائيات الشبكة المجهولة",
       "sublabel": "سيتم تطبيق التغييرات بعد إعادة تشغيل daemon.",
-      "desc1": "ساعدنا على بناء شبكة أسرع من خلال مشاركة بيانات الأداء المجهولة من منطقتك. نحن نستخدم هذا لتحسين السرعة، وتقليل قطع الاتصالات، وتوجيه تغطية الخوادم حيث هي في أمس الحاجة إليها.",
-      "desc2": "يتم مشاركة بيانات أداء الشبكة فقط - لا نشاط التصفح الخاص بك أو البيانات الشخصية أبدا.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
       "link": "تعلم بالضبط ما هو مشترك"
     }
   },

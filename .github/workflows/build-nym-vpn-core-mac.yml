@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-mac
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-mac.yml"
+  workflow_dispatch:
   workflow_call:
     secrets:
       VPND_SENTRY_DSN:
@@ -18,8 +19,10 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
   build-mac:
+    if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-mac
-    runs-on: custom-macos-15
+    runs-on: macos-15
+    timeout-minutes: 45
     outputs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
     steps:
@@ -65,6 +68,16 @@ jobs:
         with:
           crate: cargo-get
 
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
       - name: Update nym-vpn-apple to use latest core
         run: |
           ./scripts/update-nym-vpn-apple-to-latest-core.sh
@@ -85,11 +98,6 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: workspace.package.version --entry nym-vpn-core
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
 
       - name: Append timestamp if it's a dev version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
@@ -138,6 +146,12 @@ jobs:
           mkdir -p ${{ env.UPLOAD_DIR_MAC }}
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
+
+      - name: Build nym-vpn-rpc
+        working-directory: nym-vpn-core
+        run: |
+          make -f macOS.mk
+          cp -v -R crates/nym-vpn-rpc-uniffi/NymVPNRpc ${{ env.UPLOAD_DIR_MAC }}
 
       - name: Compile protobuf for swift (vpn)
         working-directory: nym-vpn-core/crates/nym-vpn-proto/proto

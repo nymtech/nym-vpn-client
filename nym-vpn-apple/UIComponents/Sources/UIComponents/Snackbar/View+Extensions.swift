@@ -19,7 +19,7 @@ struct SnackbarModifier: ViewModifier {
     func body(content: Content) -> some View {
         ZStack {
             content
-            SnackbarView(isDisplayed: $isDisplayed, message: message)
+            SnackbarView(isDisplayed: $isDisplayed, message: message, appSettings: .shared)
         }
     }
 }

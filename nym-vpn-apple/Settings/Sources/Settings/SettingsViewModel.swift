@@ -13,7 +13,7 @@ import HelperManager
 #endif
 import UIComponents
 
-public class SettingsViewModel: SettingsFlowState {
+@MainActor public class SettingsViewModel: SettingsFlowState {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
     private let connectionManager: ConnectionManager
@@ -58,12 +58,12 @@ public class SettingsViewModel: SettingsFlowState {
 #if os(iOS)
     public init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        featureFlagsManager: FeatureFlagsManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        credentialsManager: CredentialsManager,
+        externalLinkManager: ExternalLinkManager,
+        featureFlagsManager: FeatureFlagsManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -77,13 +77,13 @@ public class SettingsViewModel: SettingsFlowState {
 #elseif os(macOS)
     public init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        credentialsManager: CredentialsManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared,
-        helperManager: HelperManager = .shared,
-        featureFlagsManager: FeatureFlagsManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        credentialsManager: CredentialsManager,
+        externalLinkManager: ExternalLinkManager,
+        helperManager: HelperManager,
+        featureFlagsManager: FeatureFlagsManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -101,11 +101,11 @@ public class SettingsViewModel: SettingsFlowState {
         AppVersionProvider.appVersion()
     }
 
-    @MainActor func navigateHome() {
+    func navigateHome() {
         path = .init()
     }
 
-    @MainActor func navigateToAddCredentialsOrCredential() {
+    func navigateToAddCredentialsOrCredential() {
 #if os(macOS)
         guard !helperManager.isInstallNeeded()
         else {
@@ -126,42 +126,42 @@ public class SettingsViewModel: SettingsFlowState {
 #endif
     }
 
-    @MainActor func navigateToSantasMenu() {
+    func navigateToSantasMenu() {
         guard configurationManager.isSantaClaus else { return }
         path.append(SettingLink.santasMenu)
     }
 }
 
 private extension SettingsViewModel {
-    @MainActor func navigateToPrivacyAndData() {
+    func navigateToPrivacyAndData() {
         path.append(SettingLink.privacyAndData)
     }
 
-    @MainActor func navigateToAppearance() {
+    func navigateToAppearance() {
         path.append(SettingLink.appearance)
     }
 
-    @MainActor func navigateToLogs() {
+    func navigateToLogs() {
         path.append(SettingLink.logs)
     }
 
-    @MainActor func navigateToSupportAndFeedback() {
+    func navigateToSupportAndFeedback() {
         path.append(SettingLink.support)
     }
 
-    @MainActor func navigateToLegal() {
+    func navigateToLegal() {
         path.append(SettingLink.legal)
     }
 
-    @MainActor func navigateToAccount() {
+    func navigateToAccount() {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
 
-    @MainActor func navigateToCensorship() {
+    func navigateToCensorship() {
         path.append(SettingLink.censorship)
     }
 #if os(macOS)
-    @MainActor func navigateToInstallHelper() {
+    func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in
             self?.navigateToAddCredentialsOrCredential()
         }
@@ -197,22 +197,26 @@ private extension SettingsViewModel {
     }
 
     func configureSections() {
-        var newSections = [SettingsSection]()
-        if appSettings.isCredentialImported {
-            newSections.append(accountSection())
+        Task {
+            var newSections = [SettingsSection]()
+            if appSettings.isCredentialImported {
+                newSections.append(accountSection())
+            }
+            newSections.append(
+                contentsOf: [
+                    feedbackSection(),
+                    killswitchSection(),
+                    appearanceSection(),
+                    legalSection()
+                ]
+            )
+            if appSettings.isCredentialImported {
+                newSections.append(logoutSection())
+            }
+            await MainActor.run {
+                sections = newSections
+            }
         }
-        newSections.append(
-            contentsOf: [
-                feedbackSection(),
-                killswitchSection(),
-                appearanceSection(),
-                legalSection()
-            ]
-        )
-        if appSettings.isCredentialImported {
-            newSections.append(logoutSection())
-        }
-        sections = newSections
     }
 }
 

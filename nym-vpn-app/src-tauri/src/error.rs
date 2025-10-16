@@ -10,7 +10,7 @@ use thiserror::Error;
 use ts_rs::TS;
 
 #[derive(Error, Debug, Serialize, TS, Clone)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts", rename = "TBackendError")]
 /// Generic error type made to be passed to the frontend and
 /// displayed in the UI as localized error message
 pub struct BackendError {
@@ -108,7 +108,7 @@ impl From<VpndError> for BackendError {
 /// or the app backend side, to be passed to the UI layer
 #[derive(Debug, Serialize, TS, Clone)]
 #[serde(rename_all = "kebab-case")]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub enum ErrorKey {
     /// Any error that is not explicitly handled, and not related
     /// to the application layer

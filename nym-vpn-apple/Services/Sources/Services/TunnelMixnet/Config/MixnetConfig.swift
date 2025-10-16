@@ -3,7 +3,6 @@ import Network
 import AppSettings
 import Constants
 import ConnectionTypes
-import CountriesManager
 import CredentialsManager
 #if os(iOS)
 import AppVersionProvider
@@ -19,6 +18,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
+    public let isQuicEnabled: Bool
     public let isErrorReportingEnabled: Bool
     public let isStatisticsEnabled: Bool
 
@@ -31,6 +31,7 @@ public struct MixnetConfig: Codable, Equatable {
         configPath: String,
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
+        isQuicEnabled: Bool,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet"
     ) {
@@ -40,24 +41,9 @@ public struct MixnetConfig: Codable, Equatable {
         self.configPath = configPath
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
+        self.isQuicEnabled = isQuicEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
         self.name = name
-    }
-#endif
-
-#if os(macOS)
-    public init(
-        entryGateway: EntryGateway,
-        exitRouter: ExitRouter,
-        isErrorReportingEnabled: Bool,
-        isStatisticsEnabled: Bool,
-        isTwoHopEnabled: Bool = false
-    ) {
-        self.entryGateway = entryGateway
-        self.exitRouter = exitRouter
-        self.isErrorReportingEnabled = isErrorReportingEnabled
-        self.isStatisticsEnabled = isStatisticsEnabled
-        self.isTwoHopEnabled = isTwoHopEnabled
     }
 #endif
 }
@@ -70,6 +56,8 @@ extension MixnetConfig {
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
+            enableBridges: isQuicEnabled,
+            residentialExit: false,
             tunProvider: tunProvider,
             configPath: configPath,
             credentialDataPath: credentialsDataPath,

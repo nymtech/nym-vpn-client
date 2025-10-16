@@ -8,7 +8,7 @@ use tracing::{error, instrument, warn};
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, strum::Display, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum GatewayType {
     MxEntry,
@@ -17,7 +17,7 @@ pub enum GatewayType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TS, Default)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum Score {
     #[default]
@@ -28,7 +28,7 @@ pub enum Score {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TS, Default)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum AsnType {
     #[default]
@@ -37,7 +37,7 @@ pub enum AsnType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Asn {
     pub asn: String,
@@ -47,7 +47,7 @@ pub struct Asn {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Location {
     pub latitude: f64,
@@ -57,7 +57,7 @@ pub struct Location {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Performance {
     pub score: Score,
@@ -68,7 +68,7 @@ pub struct Performance {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Gateway {
     pub id: String,
@@ -99,16 +99,17 @@ impl Gateway {
         };
 
         let mx_score = gateway
-            .mixnet_score
+            .performance
+            .as_ref()
             .map(|s| {
-                p::Score::try_from(s)
+                p::Score::try_from(s.mixnet_score)
                     .inspect_err(|e| error!("failed to parse proto gw mixnet score: {}", e))
             })
             .transpose()?
             .unwrap_or(p::Score::Offline);
 
         let wg_score = gateway
-            .wg_performance
+            .performance
             .as_ref()
             .map(|s| {
                 p::Score::try_from(s.score)
@@ -124,13 +125,13 @@ impl Gateway {
         Ok(Self {
             id: id.id,
             kind: gw_type,
-            name: gateway.moniker,
+            name: gateway.name,
             country: Country::try_from(&location)?,
             location: location.into(),
             asn,
             mx_score: Score::from(mx_score),
             wg_score: Score::from(wg_score),
-            wg_performance: gateway.wg_performance.map(|p| p.into()),
+            wg_performance: gateway.performance.map(|p| p.into()),
             exit_ipv4,
             exit_ipv6,
             build_version: gateway.build_version,
@@ -169,8 +170,8 @@ impl From<GatewayType> for p::GatewayType {
     }
 }
 
-impl From<p::RichLocation> for Location {
-    fn from(proto: p::RichLocation) -> Self {
+impl From<p::Location> for Location {
+    fn from(proto: p::Location) -> Self {
         Location {
             latitude: proto.latitude,
             longitude: proto.longitude,

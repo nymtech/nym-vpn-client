@@ -6,6 +6,18 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
+message IpAddr {
+  oneof ip_addr {
+    fixed32 v4 = 1;
+    bytes v6 = 2;
+  }
+}
+
+message SocketAddr {
+  IpAddr addr = 1;
+  uint32 port = 2;
+}
+
 // Represents the identity of a gateway
 message GatewayId {
   string id = 1;
@@ -18,8 +30,8 @@ message Address {
 }
 
 enum AsnKind {
-    RESIDENTIAL = 0;
-    OTHER = 1;
+  RESIDENTIAL = 0;
+  OTHER = 1;
 }
 
 message Asn {
@@ -36,7 +48,7 @@ message Region {
   string region = 1;
 }
 
-message RichLocation {
+message Location {
   string two_letter_iso_country_code = 1;
   double latitude = 2;
   double longitude = 3;
@@ -86,8 +98,6 @@ message ConnectedStateDetails {
 message Dns {
   optional string ip = 1;
 }
-
-message Url { string url = 1; }
 
 message ApiUrl {
   string url = 1;
@@ -155,20 +165,20 @@ message NymNetworkDetails {
 }
 
 message NymVpnNetworkDetails {
-  Url nym_vpn_api_url = 1;
+  string nym_vpn_api_url = 1;
   repeated ApiUrl nym_vpn_api_urls = 2;
 }
 
 message AccountManagement {
-  Url sign_up = 1;
-  Url sign_in = 2;
-  Url account = 3;
+  string sign_up = 1;
+  string sign_in = 2;
+  optional string account = 3;
 }
 
 message ValidatorDetails {
-  Url nyxd_url = 1;
-  Url websocket_url = 2;
-  Url api_url = 3;
+  string nyxd_url = 1;
+  string websocket_url = 2;
+  string api_url = 3;
 }
 
 message InfoResponse {
@@ -193,6 +203,13 @@ message NetworkCompatibility {
   string macos = 3;
   string tauri = 4;
   string android = 5;
+}
+
+// no point in importing entire cosmos-sdk protobuf definition for just this one type
+message Coin {
+  string denom = 1;
+  // u128 value represented as a string
+  string amount = 2;
 }
 
 message GetConfigResponse {
@@ -242,6 +259,7 @@ message VpnServiceConfig {
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
+  bool residential_exit = 15;
   bool netstack = 13;
   bool disable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
@@ -284,20 +302,39 @@ message Probe {
 
 message GatewayResponse {
   GatewayId id = 1;
-  RichLocation location = 2;
+  Location location = 2;
   Probe last_probe = 3;
-  optional Performance wg_performance = 4;
-  optional Score mixnet_score = 5;
-  string moniker = 6;
+  optional uint32 mixnet_performance = 10;
+  optional BridgeInformation bridge_params = 11;
+  string name = 6;
+  optional string description = 12;
+  optional Performance performance = 4;
   repeated string exit_ipv4s = 7;
   repeated string exit_ipv6s = 8;
   optional string build_version = 9;
+}
 
+message BridgeInformation {
+  string version = 1;
+  repeated BridgeParameters transports = 2;
+}
+
+message BridgeParameters {
+    oneof state {
+        QuicClientOptions quic_plain = 1;
+    }
+}
+
+message QuicClientOptions {
+    repeated SocketAddr addresses = 1;
+    optional string host = 2;
+    string id_pubkey = 3;
 }
 
 message Performance {
   string last_updated_utc = 1;
   Score score = 2;
+  Score mixnet_score = 5;
   Score load = 3;
   float uptime_percentage_last_24_hours = 4;
 }
@@ -334,12 +371,12 @@ enum TunnelType {
 }
 
 enum EstablishConnectionState {
-    RESOLVING_API_ADDRESSES = 0;
-    AWAITING_ACCOUNT_READINESS = 1;
-    REFRESHING_GATEWAYS = 2;
-    SELECTING_GATEWAYS = 3;
-    CONNECTING_MIXNET_CLIENT = 4;
-    CONNECTING_TUNNEL = 5;
+  RESOLVING_API_ADDRESSES = 0;
+  AWAITING_ACCOUNT_READINESS = 1;
+  REFRESHING_GATEWAYS = 2;
+  SELECTING_GATEWAYS = 3;
+  CONNECTING_MIXNET_CLIENT = 4;
+  CONNECTING_TUNNEL = 5;
 }
 
 message EstablishConnectionData {
@@ -541,6 +578,13 @@ message AccountCommandError {
     bool existing_account = 7;
     bool offline = 8;
     string invalid_mnemonic = 10;
+    string nyxd_connection_failure = 11;
+    string nyxd_query_failure = 12;
+    bool account_doesnt_exist_on_chain = 13;
+    bool insufficient_funds = 14;
+    bool account_decentralised = 15;
+    bool account_not_decentralised = 16;
+    string zk_nym_acquisition_failure = 17;
   }
 }
 
@@ -550,9 +594,13 @@ message DeleteLogFileError {
 
 message VpnApiError {
   oneof error_detail {
-    bool timeout = 1;
-    uint32 status_code = 2;
+    string timeout = 1;
+    StatusError status_code = 2;
     VpnApiErrorResponse response = 3;
+  }
+  message StatusError {
+    uint32 code = 1;
+    string message = 2;
   }
 }
 
@@ -584,6 +632,7 @@ message AccountControllerState {
     optional string context = 3;
   }
   message Offline {}
+  message Decentralised {}
 
   oneof state {
     LoggedOut logged_out = 1;
@@ -591,19 +640,68 @@ message AccountControllerState {
     ReadyToConnect ready_to_connect = 3;
     Error error = 4;
     Offline offline = 5;
+    Decentralised decentralised = 6;
   }
+}
+
+message MinPerformance {
+  optional uint32 min_wg_performance = 1;
+  optional uint32 min_mixnet_performance = 2;
+}
+
+message GatewayFilter {
+  oneof filter {
+    Score min_score = 1;
+    string country = 2;
+    string region = 3;
+    google.protobuf.Empty residential = 4;
+    google.protobuf.Empty exit = 5;
+    google.protobuf.Empty vpn = 6;
+  }
+}
+
+message GatewayFilters {
+  GatewayType kind = 1;
+  repeated GatewayFilter filters = 2;
 }
 
 // --- Requests and responses ---
 
 message StoreAccountRequest {
+  oneof request {
+    VpnAccountStoreRequest vpn_account_store = 1;
+    DecentralisedAccountStoreRequest decentralised_account_store = 2;
+  }
+}
+
+// VPN variant with mnemonic
+message VpnAccountStoreRequest {
   string mnemonic = 1;
 }
 
-message AccountCommandResponse {
- optional AccountCommandError error = 1;
+message DecentralisedAccountStoreRequest {
+  string mnemonic = 1;
 }
 
+
+message DecentralisedObtainTicketbooksRequest {
+  uint64 amount = 1;
+}
+
+message AccountCommandResponse {
+  optional AccountCommandError error = 1;
+}
+
+message BalanceList {
+  repeated Coin coins = 1;
+}
+
+message AccountBalanceResponse {
+  oneof account_balance {
+    AccountCommandError error = 1;
+    BalanceList balance = 2;
+  }
+}
 
 message GetAccountIdentityResponse {
   optional string account_identity = 1;
@@ -698,15 +796,17 @@ service NymVpnService {
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
   // Get the VPN service configuration
-  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
+  rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
 
   // Set the VPN service configuration
-  rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
-  rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
-  rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEntryPoint (EntryNode) returns (google.protobuf.Empty) {}
+  rpc SetExitPoint (ExitNode) returns (google.protobuf.Empty) {}
+  rpc SetDisableIpv6 (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableTwoHop (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableBridges (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
@@ -741,8 +841,17 @@ service NymVpnService {
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
+  // Get a filtered list of gateways for the selected mode and filters
+  rpc ListFilteredGateways (GatewayFilters) returns (ListGatewaysResponse) {}
+
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
+
+  /// Retrieve current, on-chain, account balance
+  rpc AccountBalance (google.protobuf.Empty) returns (AccountBalanceResponse) {}
+
+  // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
+  rpc DecentralisedObtainTicketbooks (DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

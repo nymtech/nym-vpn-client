@@ -31,6 +31,10 @@ MSVS_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Community
 MSVC_PATH := $(MSVS_DIR)/VC/Tools/MSVC
 MSVC_MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
 
+MSVS_ENTERPRISE_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Enterprise
+MSVC_ENTERPRISE_PATH := $(MSVS_ENTERPRISE_DIR)/VC/Tools/MSVC
+MSVC_ENTERPRISE_MSBUILD_PATH := $(MSVS_ENTERPRISE_DIR)/MSBuild/Current/Bin
+
 BUILDTOOLS_DIR := ${ProgramFiles(x86)}/Microsoft Visual Studio/2022/BuildTools
 BUILDTOOLS_MSVC_PATH := $(BUILDTOOLS_DIR)/VC/Tools/MSVC
 BUILDTOOLS_MSBUILD_PATH := $(BUILDTOOLS_DIR)/MSBuild/Current/Bin
@@ -158,12 +162,17 @@ create_version_header:
 define setup_env_path
 	$$env:Path += ";$(GO_PATH)" ; #\\
 	if (Test-Path "$(MSVS_DIR)") { #\\
-		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
+		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName -Last 1 ; #\\
 		$$env:Path += ";$(MSVC_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
-		Write-Output "Add Visual Studio to Path"; #\\
+		Write-Output "Add Community Visual Studio to Path"; #\\
+	} elseif (Test-Path "$(MSVS_ENTERPRISE_DIR)") { #\\
+		$$msvc_path = Get-ChildItem -Path "$(MSVC_ENTERPRISE_PATH)" -Directory | Select-Object -ExpandProperty FullName -Last 1 ; #\\
+		$$env:Path += ";$(MSVC_ENTERPRISE_MSBUILD_PATH)" ; #\\
+		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
+		Write-Output "Add Enterprise Visual Studio to Path"; #\\
 	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
-		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
+		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName -Last 1 ; #\\
 		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
 		Write-Output "Add MS Build Tools to Path"; #\\

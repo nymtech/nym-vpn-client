@@ -24,5 +24,6 @@
     "light": "Chế độ sáng"
   },
   "appearance": "Giao diện",
-  "language": "Ngôn ngữ"
+  "language": "Ngôn ngữ",
+  "server-details": "Server details"
 }

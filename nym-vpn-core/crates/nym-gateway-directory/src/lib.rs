@@ -17,11 +17,10 @@ pub use crate::{
         entry_point::EntryPoint,
         exit_point::ExitPoint,
         gateway::{
-            Asn, AsnKind, Entry, Exit, Gateway, GatewayList, GatewayType, Location, NymNode,
-            Performance, Probe, ProbeOutcome, ScoreValue,
+            Asn, AsnKind, Entry, Exit, Gateway, GatewayFilter, GatewayFilters, GatewayList,
+            GatewayType, Location, NymNode, Performance, Probe, ProbeOutcome, ScoreValue,
         },
         ipr_addresses::IpPacketRouterAddress,
-        score::Score,
     },
     error::Error,
     gateway_cache::{GatewayCache, GatewayCacheHandle},

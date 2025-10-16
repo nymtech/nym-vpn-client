@@ -20,6 +20,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
+    case invalidEntryGatewayIdentity
+    case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
     case apiTimeout
@@ -36,6 +38,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case deviceLoggedOut
     case credentialWastedOnEntryGateway
     case credentialWastedOnExitGateway
+    case performantEntryGatewayUnavailable
+    case performantExitGatewayUnavailable
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -53,6 +57,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:
@@ -81,6 +89,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
         }
     }
 #endif
@@ -116,6 +128,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:
@@ -144,14 +160,19 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .inactiveAccount
         case .deviceLoggedOut:
             self = .deviceLoggedOut
-#if os(macOS)
-        case .existingAccount:
-            self = .existingAccount
-#endif
+
         case .credentialWastedOnEntryGateway:
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExiGatewayUnavailable:
+            self = .performantExitGatewayUnavailable
+#if os(macOS)
+        case .existingAccount:
+            self = .existingAccount
+#endif
         }
     }
 
@@ -194,6 +215,10 @@ private extension ErrorReason {
             "errorReason.invalidEntryGatewayCountry".localizedString
         case .invalidExitGatewayCountry:
             "errorReason.invalidExitGatewayCountry".localizedString
+        case .invalidEntryGatewayIdentity:
+            "erroReason.invalidEntryGatewayIdentity".localizedString
+        case .invalidExitGatewayIdentity:
+            "errorReason.invalidExitGatewayIdentity".localizedString
         case .unknown:
             "errorReason.unknown".localizedString
         case .offline:
@@ -229,11 +254,15 @@ private extension ErrorReason {
         case .inactiveAccount:
             "errorReason.inactiveAccount".localizedString
         case .deviceLoggedOut:
-            "".localizedString
+            "errorReason.deviceLoggedOut".localizedString
         case .credentialWastedOnEntryGateway:
             "errorReason.credentialWastedOnEntryGateway".localizedString
         case .credentialWastedOnExitGateway:
             "errorReason.credentialWastedOnExitGateway".localizedString
+        case .performantEntryGatewayUnavailable:
+            "errorReason.performantEntryGatewayUnavailable".localizedString
+        case .performantExitGatewayUnavailable:
+            "errorReason.performantExitGatewayUnavailable".localizedString
 #if os(macOS)
         case .existingAccount:
             "errorReason.existingAccount".localizedString
@@ -263,6 +292,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
+    case invalidEntryGatewayIdentity
+    case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
     case apiTimeout
@@ -279,6 +310,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case deviceLoggedOut
     case credentialWastedOnEntryGateway
     case credentialWastedOnExitGateway
+    case performantEntryGatewayUnavailable
+    case performantExiGatewayUnavailable
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -298,6 +331,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
+        case .invalidEntryGatewayIdentity:
+            self = .invalidEntryGatewayIdentity
+        case .invalidExitGatewayIdentity:
+            self = .invalidExitGatewayIdentity
         case .maxDevicesReached:
             self = .maxDevicesReached
         case .bandwidthExceeded:
@@ -336,6 +373,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .credentialWastedOnEntryGateway
         case .credentialWastedOnExitGateway:
             self = .credentialWastedOnExitGateway
+        case .performantEntryGatewayUnavailable:
+            self = .performantEntryGatewayUnavailable
+        case .performantExitGatewayUnavailable:
+            self = .performantExiGatewayUnavailable
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount

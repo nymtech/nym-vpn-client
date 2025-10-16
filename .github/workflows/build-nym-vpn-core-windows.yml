@@ -1,9 +1,10 @@
 name: build-nym-vpn-core-windows
 on:
-  workflow_dispatch:
   pull_request:
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-windows.yml"
+  workflow_dispatch:
   workflow_call:
     secrets:
       VPND_SENTRY_DSN:
@@ -29,6 +30,7 @@ jobs:
     uses: ./.github/workflows/build-winfw-windows.yml
 
   build-windows:
+    if: github.actor != 'dependabot[bot]'
     needs: [build-wireguard-go-windows, build-winfw-windows]
     runs-on: custom-windows-11
     outputs:
@@ -43,7 +45,7 @@ jobs:
 
       - name: Install GNU make
         run: |
-          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Install rust toolchain

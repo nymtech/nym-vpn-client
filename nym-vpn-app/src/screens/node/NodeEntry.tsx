@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import * as _ from 'lodash-es';
-import { NodesProvider, useGateways, useMainState } from '../../contexts';
+import { NodeListProvider, useGateways, useMainState } from '../../contexts';
 import { NodeHop, VpnMode } from '../../types';
 import Node from './Node';
 
@@ -41,9 +41,9 @@ function NodeEntry({ node }: NodeEntryProps) {
   }, [node, vpnMode, daemonStatus]);
 
   return (
-    <NodesProvider nodeType={node}>
+    <NodeListProvider nodeType={node}>
       <Node node={node} />
-    </NodesProvider>
+    </NodeListProvider>
   );
 }
 

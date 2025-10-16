@@ -9,7 +9,7 @@ use ts_rs::TS;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 #[derive(Debug, Clone, Serialize, TS, strum::AsRefStr)]
 #[serde(rename_all = "kebab-case")]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub enum GpuType {
     #[strum(serialize = "NVIDIA")]
     Nvidia,
@@ -22,7 +22,7 @@ pub enum GpuType {
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 #[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr, Eq, PartialEq)]
 #[serde(rename_all = "kebab-case")]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub enum DisplayServer {
     X11,
     Wayland,
@@ -48,7 +48,7 @@ fn get_display_server() -> DisplayServer {
 
 #[derive(Debug, Clone, Default, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 pub struct OsInfo {
     /// long version
     pub version: String,

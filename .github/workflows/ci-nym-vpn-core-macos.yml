@@ -1,10 +1,11 @@
 name: ci-nym-vpn-core-macos
 
 on:
-  # push:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
-      - "nym-vpn-core/**"
+      - "nym-vpn-core/crates/**"
+      - "nym-vpn-core/Cargo.toml"
       - ".github/workflows/ci-nym-vpn-core-macos.yml"
   workflow_dispatch:
 
@@ -17,18 +18,12 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     needs: build-wireguard-go-mac
+    timeout-minutes: 60
 
     steps:
-      - name: "Cleanup working directory"
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -37,18 +32,49 @@ jobs:
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
-      
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
           cache: false
 
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache Cargo build
+        uses: actions/cache@v4
+        with:
+          path: nym-vpn-core/target/
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
         uses: actions/download-artifact@v5
@@ -60,19 +86,14 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo fmt --check --all
-      
+
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
           cargo clippy --workspace --locked -- -Dwarnings
 
-      - name: Build
+      - name: Build and test
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --locked
-
-      - name: Run tests
-        working-directory: nym-vpn-core
-        run: |
-          cargo test --verbose --workspace --locked
-
+          cargo build --workspace --locked
+          cargo test --workspace --locked

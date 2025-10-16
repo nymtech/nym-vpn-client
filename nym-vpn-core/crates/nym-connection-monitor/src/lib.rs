@@ -4,9 +4,7 @@
 use futures::channel::mpsc;
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::{MixnetClientSender, Recipient};
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::TaskManager;
+use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 // Import these here for for all modules to use, to keep the version consistent
@@ -59,20 +57,19 @@ impl ConnectionMonitorTask {
         self.icmp_beacon_identifier
     }
 
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
     pub fn start(
         self,
         mixnet_client_sender: MixnetClientSender,
         our_nym_address: Recipient,
         our_ips: IpPair,
         exit_router_address: Recipient,
-        task_manager: &TaskManager,
+        cancel_token: CancellationToken,
     ) {
         info!("Setting up mixnet connection beacon");
         mixnet_beacon::start_mixnet_connection_beacon(
             mixnet_client_sender.clone(),
             our_nym_address,
-            task_manager.subscribe_named("mixnet_beacon"),
+            cancel_token.child_token(),
         );
 
         info!("Setting up ICMP connection beacon");
@@ -81,13 +78,10 @@ impl ConnectionMonitorTask {
             our_ips,
             exit_router_address,
             self.icmp_beacon_identifier,
-            task_manager.subscribe_named("icmp_beacon"),
+            cancel_token.child_token(),
         );
 
         info!("Setting up connection monitor");
-        monitor::start_connection_monitor(
-            self.connection_event_rx,
-            task_manager.subscribe_named("connection_monitor"),
-        );
+        monitor::start_connection_monitor(self.connection_event_rx, cancel_token.child_token());
     }
 }

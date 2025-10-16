@@ -95,12 +95,11 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = {
             let mut bridge_endpoints = Vec::new();
-            if shared_state.tunnel_settings.bridges_enabled() {
-                if let Some(gateways) = &selected_gateways {
-                    if let Some(params) = &gateways.entry.bridge_params {
-                        bridge_endpoints = params.get_addrs()
-                    }
-                }
+            if shared_state.tunnel_settings.bridges_enabled()
+                && let Some(gateways) = &selected_gateways
+                && let Some(params) = &gateways.entry_gateway().bridge_params
+            {
+                bridge_endpoints = params.get_addrs();
             }
 
             let firewall_policy_params = ConnectingPolicyParameters {
@@ -110,7 +109,7 @@ impl ConnectingState {
                 bridge_endpoints,
                 ws_entry_endpoints: selected_gateways
                     .as_ref()
-                    .map(|v| v.entry.endpoints())
+                    .map(|v| v.entry_gateway().endpoints())
                     .unwrap_or_default(),
                 api_endpoints: Vec::new(),
                 dns_servers: shared_state.tunnel_settings.default_dns_ips(),
@@ -145,8 +144,8 @@ impl ConnectingState {
             selected_gateways
                 .as_ref()
                 .map(|gateways| EstablishConnectionData {
-                    entry_gateway: GatewayId::from(*gateways.entry.clone()),
-                    exit_gateway: GatewayId::from(*gateways.exit.clone()),
+                    entry_gateway: GatewayId::from(gateways.entry_gateway().clone()),
+                    exit_gateway: GatewayId::from(gateways.exit_gateway().clone()),
                     tunnel: None,
                 });
 
@@ -332,7 +331,7 @@ impl ConnectingState {
             shared_state.gateway_cache_handle.clone(),
             shared_state.topology_provider.clone(),
             tunnel_monitor_event_sender,
-            shared_state.mixnet_event_sender.clone(),
+            shared_state.wg_keys_db.clone(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             shared_state.route_handler.clone(),
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -368,7 +367,13 @@ impl ConnectingState {
     ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
-            self.firewall_policy_params.ws_entry_endpoints = gateways.entry.endpoints();
+            if _shared_state.tunnel_settings.bridges_enabled()
+                && let Some(params) = &gateways.entry_gateway().bridge_params
+            {
+                self.firewall_policy_params.bridge_endpoints = params.get_addrs()
+            }
+
+            self.firewall_policy_params.ws_entry_endpoints = gateways.entry_gateway().endpoints();
             Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
@@ -517,6 +522,10 @@ impl TunnelStateHandler for ConnectingState {
 
                             self.reconnect(shared_state).await
                         }
+                    }
+                    TunnelMonitorEvent::NewNetworkEnv { network } => {
+                        shared_state.nym_config.network_env = *network;
+                        NextTunnelState::SameState(self)
                     }
                 }
            }
@@ -675,7 +684,7 @@ impl ConnectingPolicyParameters {
             .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
             .for_each(|addr| {
                 let allow_bridge_endpoint = AllowedEndpoint::new(
-                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Udp),
                     #[cfg(any(target_os = "linux", target_os = "macos"))]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]

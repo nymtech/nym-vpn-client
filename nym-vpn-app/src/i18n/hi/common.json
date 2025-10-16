@@ -13,7 +13,7 @@
   "logs": "लॉग्स",
   "feedback": "प्रतिक्रिया",
   "legal": "कानूनी",
-  "data-privacy": "Privacy & data",
+  "data-privacy": "गोपनीयता और डेटा",
   "support": "समर्थन",
   "fastest": "सबसे तेज़",
   "sentry": "सेंट्री",
@@ -24,5 +24,6 @@
     "light": "लाइट मोड"
   },
   "appearance": "रूपरंग",
-  "language": "भाषा"
+  "language": "भाषा",
+  "server-details": "Server details"
 }

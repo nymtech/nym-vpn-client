@@ -34,7 +34,7 @@ pub enum VpnError {
     #[error("vpn-api error: {details}")]
     VpnApi {
         #[from]
-        details: nym_vpn_lib_types_uniffi::VpnApiError,
+        details: nym_vpn_lib_types::VpnApiError,
     },
 
     #[error("unexpected response from nym-vpn-api: {details}")]
@@ -55,7 +55,7 @@ pub enum VpnError {
     #[error("failed to request zk nym")]
     RequestZkNym {
         #[from]
-        details: nym_vpn_lib_types_uniffi::RequestZkNymError,
+        details: nym_vpn_lib_types::RequestZkNymError,
     },
 
     #[error("an account is already stored")]
@@ -66,6 +66,27 @@ pub enum VpnError {
 
     #[error("http client error: {0}")]
     HttpClient(String),
+
+    #[error("account doesn't exist on chain")]
+    AccountDoesntExistOnChain,
+
+    #[error("account is not set in decentralised mode")]
+    AccountNotDecentralised,
+
+    #[error("account is set in decentralised mode")]
+    AccountDecentralised,
+
+    #[error("account does not have sufficient funds")]
+    InsufficientFunds,
+
+    #[error("failed to obtain zk-nym: {details}")]
+    ZkNymAcquisitionFailure { details: String },
+
+    #[error("failed to connect to nyxd instance: {details}")]
+    NyxdConnectionFailure { details: String },
+
+    #[error("failed to resolve query to a nyxd instance: {details}")]
+    NyxdQueryFailure { details: String },
 }
 
 impl From<HttpClientError> for VpnError {
@@ -87,7 +108,7 @@ impl From<AccountCommandError> for VpnError {
         match value {
             AccountCommandError::Internal(err) => Self::InternalError { details: err },
             AccountCommandError::Storage(err) => Self::Storage { details: err },
-            AccountCommandError::VpnApi(e) => Self::VpnApi { details: e.into() },
+            AccountCommandError::VpnApi(e) => Self::VpnApi { details: e },
             AccountCommandError::UnexpectedVpnApiResponse(e) => Self::InternalError { details: e },
             AccountCommandError::NoAccountStored => Self::NoAccountStored,
             AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,
@@ -96,6 +117,17 @@ impl From<AccountCommandError> for VpnError {
             },
             AccountCommandError::ExistingAccount => Self::ExistingAccount,
             AccountCommandError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
+            AccountCommandError::NyxdConnectionFailure(details) => {
+                Self::NyxdConnectionFailure { details }
+            }
+            AccountCommandError::NyxdQueryFailure(details) => Self::NyxdQueryFailure { details },
+            AccountCommandError::AccountDoesntExistOnChain => Self::AccountDoesntExistOnChain,
+            AccountCommandError::AccountNotDecentralised => Self::AccountNotDecentralised,
+            AccountCommandError::AccountDecentralised => Self::AccountDecentralised,
+            AccountCommandError::InsufficientFunds => Self::InsufficientFunds,
+            AccountCommandError::ZkNymAcquisitionFailure(details) => {
+                Self::ZkNymAcquisitionFailure { details }
+            }
         }
     }
 }
@@ -116,8 +148,8 @@ impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
     }
 }
 
-impl From<nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError> for VpnError {
-    fn from(value: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError) -> Self {
+impl From<nym_vpn_store::account::on_disk::OnDiskMnemonicStorageError> for VpnError {
+    fn from(value: nym_vpn_store::account::on_disk::OnDiskMnemonicStorageError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }

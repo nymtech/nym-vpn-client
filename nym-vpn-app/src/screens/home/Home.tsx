@@ -5,7 +5,11 @@ import { type } from '@tauri-apps/plugin-os';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import { useMainDispatch, useMainState } from '../../contexts';
+import {
+  useMainDispatch,
+  useMainState,
+  useNodeListState,
+} from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
@@ -36,6 +40,7 @@ function Home() {
     welcomeChecked,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const { reset: resetNodeList } = useNodeListState();
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
@@ -158,6 +163,16 @@ function Home() {
     }
   };
 
+  const goToNodeList = (hop: 'entry' | 'exit') => {
+    if (hop === 'entry') {
+      resetNodeList('entry');
+      navigate(routes.entryNodeLocation);
+    } else {
+      resetNodeList('exit');
+      navigate(routes.exitNodeLocation);
+    }
+  };
+
   return (
     <>
       {welcomeChecked && updaterEnabled && <UpdateDialog />}
@@ -202,7 +217,7 @@ function Home() {
                 <HopSelect
                   node={entryNode}
                   gatewayId={entryGwId}
-                  onClick={() => navigate(routes.entryNodeLocation)}
+                  onClick={() => goToNodeList('entry')}
                   nodeHop="entry"
                   disabled={hopSelectDisabled}
                   locked={daemonStatus === 'down'}
@@ -210,7 +225,7 @@ function Home() {
                 <HopSelect
                   node={exitNode}
                   gatewayId={exitGwId}
-                  onClick={() => navigate(routes.exitNodeLocation)}
+                  onClick={() => goToNodeList('exit')}
                   nodeHop="exit"
                   disabled={hopSelectDisabled}
                   locked={daemonStatus === 'down'}

@@ -18,6 +18,9 @@ pub enum ConversionError {
     #[error("failed to parse address {0}")]
     ParseAddr(&'static str, #[source] std::net::AddrParseError),
 
+    #[error("failed to parse integer {0}")]
+    ParseInteger(&'static str, #[source] std::num::ParseIntError),
+
     #[error("failed to encode string as utf8: {}", _0.display())]
     Utf8Encoding(std::ffi::OsString),
 

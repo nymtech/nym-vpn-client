@@ -37,7 +37,7 @@
   },
   "anti-censorship": {
     "title": "Anti-censorship",
-    "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",
     "quic": {
       "label": "Enhanced connection (QUIC)",
       "warning": "Changes will apply after reconnect",

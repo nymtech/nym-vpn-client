@@ -32,9 +32,11 @@ use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
+use nym_registration_client::MixnetClientConfig;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
+use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -45,14 +47,12 @@ use tokio_util::sync::CancellationToken;
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
-use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayCacheHandle,
-};
+use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, EstablishConnectionState, MixnetEvent, TunnelEvent, TunnelState,
-    TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
+    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint, TunnelEvent,
+    TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -64,7 +64,7 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
+    GatewayDirectoryError, VpnTopologyProvider,
     bandwidth_controller::Error as BandwidthControllerError,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -130,6 +130,9 @@ pub struct TunnelSettings {
 
     /// Allow LAN connections outside of tunnel.
     pub allow_lan: bool,
+
+    /// Select residential exit gateways only.
+    pub residential_exit: bool,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
@@ -418,7 +421,6 @@ impl From<TunnelInterface> for nym_firewall::TunnelInterface {
 }
 
 pub struct SharedState {
-    mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     route_handler: RouteHandler,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -442,6 +444,7 @@ pub struct SharedState {
     statistics_event_sender: StatisticsSender,
     gateway_cache_handle: GatewayCacheHandle,
     topology_provider: VpnTopologyProvider,
+    wg_keys_db: WireguardKeysDb,
 }
 
 impl SharedState {
@@ -470,7 +473,6 @@ pub struct TunnelStateMachine {
     shared_state: SharedState,
     command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
     event_sender: mpsc::UnboundedSender<TunnelEvent>,
-    mixnet_event_receiver: mpsc::UnboundedReceiver<MixnetEvent>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -516,7 +518,9 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
-        let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
+        let wg_keys_db = WireguardKeysDb::init(nym_config.data_path.clone())
+            .await
+            .map_err(Error::WireguardKeyDb)?;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
@@ -528,7 +532,6 @@ impl TunnelStateMachine {
         .map_err(Error::CreateFirewall)?;
 
         let mut shared_state = SharedState {
-            mixnet_event_sender,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -549,6 +552,7 @@ impl TunnelStateMachine {
             statistics_event_sender,
             gateway_cache_handle,
             topology_provider,
+            wg_keys_db,
         };
 
         let (current_state_handler, _) = if shared_state
@@ -567,7 +571,6 @@ impl TunnelStateMachine {
             shared_state,
             command_receiver,
             event_sender,
-            mixnet_event_receiver,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -581,16 +584,6 @@ impl TunnelStateMachine {
     }
 
     async fn run(mut self) {
-        let mut mixnet_event_receiver = self.mixnet_event_receiver;
-        let cloned_event_sender = self.event_sender.clone();
-        tokio::spawn(async move {
-            while let Some(event) = mixnet_event_receiver.recv().await {
-                if let Err(e) = cloned_event_sender.send(TunnelEvent::MixnetState(event)) {
-                    tracing::error!("Failed to send tunnel event: {}", e);
-                }
-            }
-        });
-
         loop {
             let next_state = self
                 .current_state_handler
@@ -714,6 +707,9 @@ pub enum Error {
 
     #[error("ipv6 is disabled in the system")]
     Ipv6Unavailable,
+
+    #[error("wireguard key database")]
+    WireguardKeyDb(#[source] nym_vpn_store::keys::wireguard::KeysDbError),
 }
 
 impl Error {
@@ -751,6 +747,7 @@ impl Error {
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
             Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
+            Self::WireguardKeyDb(e) => ErrorStateReason::Internal(e.to_string()),
         })
     }
 }
@@ -802,25 +799,20 @@ impl tunnel::Error {
                     None
                 }
             }
+            Self::RegistrationClient(e) => match *e {
+                nym_registration_client::RegistrationClientError::EntryGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
+                nym_registration_client::RegistrationClientError::ExitGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
+                _ => None,
+            }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(
                 "Failed to dup tunnel fd".to_owned(),
             )),
-            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => Some(
-                ErrorStateReason::Internal("Failed to create mixnet storage".to_owned()),
-            ),
-            Self::AuthenticationNotPossible(_)
-            | Self::AuthenticatorAddressNotFound
-            | Self::ConnectToIpPacketRouter(_)
-            | Self::LookupGatewayIp { .. }
+            Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
-            | Self::SetupStoragePaths(_)
-            | Self::StartMixnetClientTimeout
-            | Self::CreateGatewayClient(_)
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled
-            | Self::Transport(_)
-            | Self::MixnetClientDisposed => None,
+            | Self::Transport(_) => None,
             #[cfg(target_os = "ios")]
             Self::ResolveDns64(_) => None,
             #[cfg(windows)]
@@ -887,5 +879,11 @@ impl From<tunnel::Error> for Error {
 impl From<tunnel::transports::TransportError> for Error {
     fn from(value: tunnel::transports::TransportError) -> Self {
         Self::Tunnel(Box::new(tunnel::Error::Transport(value)))
+    }
+}
+
+impl From<nym_registration_client::RegistrationClientError> for Error {
+    fn from(value: nym_registration_client::RegistrationClientError) -> Self {
+        Self::Tunnel(Box::new(tunnel::Error::RegistrationClient(Box::new(value))))
     }
 }

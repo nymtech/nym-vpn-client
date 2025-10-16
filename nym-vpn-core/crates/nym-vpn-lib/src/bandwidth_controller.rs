@@ -3,30 +3,22 @@
 
 use std::{net::IpAddr, time::Duration};
 
-#[allow(deprecated)]
-// We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-use nym_task::TaskClient;
+use nym_authenticator_client::AuthenticatorClient;
+use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
+use nym_registration_common::GatewayData;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{Gateway, GatewayCacheHandle};
-use nym_sdk::mixnet::CredentialStorage as Storage;
-use nym_validator_client::{
-    QueryHttpRpcNyxdClient,
-    nyxd::{Config as NyxdClientConfig, NyxdClient},
-};
-use nym_vpn_network_config::Network;
-use nym_wg_gateway_client::{
-    ErrorMessage, GatewayData, WgGatewayClient, deprecated::WgGatewayLightClient,
-};
+use nym_gateway_directory::Gateway;
+
 use nym_wg_metadata_client::{MetadataClient, TunUpReceiver};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
 
-use crate::tunnel_state_machine::tunnel::{SelectedGateways, wireguard::connector::ConnectionData};
+use crate::tunnel_state_machine::tunnel::SelectedGateways;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
 const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
@@ -52,27 +44,12 @@ pub enum Error {
 
 #[derive(Debug, thiserror::Error)]
 pub enum SpecificGatewayError {
-    #[error("failed to lookup gateway ip for {gateway_id}")]
-    LookupGatewayIp {
-        gateway_id: String,
-        #[source]
-        source: Box<nym_gateway_directory::Error>,
-    },
-
-    #[error("failed to register wireguard with the gateway for {gateway_id}")]
-    RegisterWireguard {
-        gateway_id: String,
-        authenticator_address: Box<nym_gateway_directory::Recipient>,
-        #[source]
-        source: Box<nym_wg_gateway_client::Error>,
-    },
-
     #[error("failed to request wireguard credential with the gateway: {gateway_id}")]
     RequestCredential {
         gateway_id: String,
         ticketbook_type: TicketType,
         #[source]
-        source: Box<nym_wg_gateway_client::Error>,
+        source: Box<nym_bandwidth_controller::error::BandwidthControllerError>,
     },
 
     #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
@@ -80,7 +57,7 @@ pub enum SpecificGatewayError {
         gateway_id: String,
         ticketbook_type: TicketType,
         #[source]
-        source: Box<nym_wg_gateway_client::Error>,
+        source: Box<nym_authenticator_client::Error>,
     },
 
     #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
@@ -97,14 +74,10 @@ pub enum SpecificGatewayError {
 
 impl SpecificGatewayError {
     pub fn is_no_retry(&self) -> bool {
-        let more_specific_inner = match self {
-            SpecificGatewayError::RegisterWireguard { source, .. } => source,
-            SpecificGatewayError::RequestCredential { source, .. } => source,
-            _ => return false,
-        };
         matches!(
-            **more_specific_inner,
-            nym_wg_gateway_client::Error::NoRetry { .. }
+            self,
+            SpecificGatewayError::DeprecatedTopUpWireguard { .. }
+                | SpecificGatewayError::TopUpWireguard { .. }
         )
     }
 }
@@ -116,14 +89,6 @@ pub enum CredentialNyxdClientError {
 
     #[error("Failed to connect using nyxd client")]
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
-}
-
-pub(crate) fn get_nyxd_client(network: &Network) -> Result<QueryHttpRpcNyxdClient, Error> {
-    let config = NyxdClientConfig::try_from_nym_network_details(&network.nym_network.network)
-        .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
-
-    Ok(NyxdClient::connect(config, network.nyxd_url().as_str())
-        .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)?)
 }
 
 pub(crate) struct DepletionRate {
@@ -204,14 +169,14 @@ impl DepletionRate {
 }
 
 pub(crate) enum TemporaryBandwidthClient {
-    Deprecated(Box<WgGatewayLightClient>),
+    Deprecated(Box<AuthenticatorClient>),
     Latest(Box<MetadataClient>),
 }
 
 impl TemporaryBandwidthClient {
     pub(crate) fn new(
         gateway: &Gateway,
-        wg_gateway_client: WgGatewayLightClient,
+        authenticator_client: AuthenticatorClient,
         metadata_client: MetadataClient,
         gateway_metadata_update_version: Option<semver::Version>,
     ) -> Self {
@@ -230,19 +195,17 @@ impl TemporaryBandwidthClient {
                 "Using deprecated mixnet client for {}'s bandwidth controller",
                 gateway.identity()
             );
-            TemporaryBandwidthClient::Deprecated(Box::new(wg_gateway_client))
+            TemporaryBandwidthClient::Deprecated(Box::new(authenticator_client))
         }
     }
 
     pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, String> {
         match self {
-            TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
-                wg_gateway_light_client
-                    .query_bandwidth()
-                    .await
-                    .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
-                    .ok_or("No such peer on the gateway".to_string())
-            }
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
+                .query_bandwidth()
+                .await
+                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
+                .ok_or("No such peer on the gateway".to_string()),
             TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
                 .query_bandwidth()
                 .await
@@ -252,8 +215,8 @@ impl TemporaryBandwidthClient {
 
     pub(crate) fn gateway_id(&self) -> nym_gateway_directory::NodeIdentity {
         match self {
-            TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
-                wg_gateway_light_client.auth_recipient().gateway()
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+                authenticator_client.auth_recipient.gateway()
             }
             TemporaryBandwidthClient::Latest(metadata_client) => metadata_client.gateway_id(),
         }
@@ -265,16 +228,14 @@ impl TemporaryBandwidthClient {
         ticketbook_type: TicketType,
     ) -> Result<i64, SpecificGatewayError> {
         match self {
-            TemporaryBandwidthClient::Deprecated(wg_gateway_light_client) => {
-                wg_gateway_light_client
-                    .top_up(credential)
-                    .await
-                    .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
-                        gateway_id: self.gateway_id().to_string(),
-                        ticketbook_type,
-                        source: Box::new(source),
-                    })
-            }
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
+                .top_up(credential)
+                .await
+                .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
+                    gateway_id: self.gateway_id().to_string(),
+                    ticketbook_type,
+                    source: Box::new(source),
+                }),
             TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
                 .topup_bandwidth(credential)
                 .await
@@ -287,9 +248,8 @@ impl TemporaryBandwidthClient {
     }
 }
 
-#[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-pub(crate) struct BandwidthController<St> {
-    inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
+pub(crate) struct BandwidthController {
+    ticket_provider: Box<dyn BandwidthTicketProvider>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
     timeout_check_interval: IntervalStream,
@@ -297,24 +257,22 @@ pub(crate) struct BandwidthController<St> {
     exit_depletion_rate: DepletionRate,
     entry_previous_error_query: bool,
     exit_previous_error_query: bool,
-    task_client: TaskClient,
     shutdown_token: CancellationToken,
+    successful_checks: u64,
 }
 
-impl<St: Storage> BandwidthController<St> {
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
+impl BandwidthController {
     pub fn new(
-        inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
+        ticket_provider: Box<dyn BandwidthTicketProvider>,
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
-        task_client: TaskClient,
         shutdown_token: CancellationToken,
     ) -> Self {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
 
         BandwidthController {
-            inner,
+            ticket_provider,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             timeout_check_interval,
@@ -322,8 +280,8 @@ impl<St: Storage> BandwidthController<St> {
             exit_depletion_rate: Default::default(),
             entry_previous_error_query: false,
             exit_previous_error_query: false,
-            task_client,
             shutdown_token,
+            successful_checks: 0,
         }
     }
 
@@ -331,7 +289,7 @@ impl<St: Storage> BandwidthController<St> {
         bind_ip: IpAddr,
         signal_channel: TunUpReceiver,
         gateway: &Gateway,
-        wg_gateway_client: &WgGatewayClient,
+        authenticator_client: AuthenticatorClient,
         gateway_metadata_update_version: Option<semver::Version>,
     ) -> TemporaryBandwidthClient {
         // this shouldn't fail, verified by unit test as well
@@ -347,144 +305,85 @@ impl<St: Storage> BandwidthController<St> {
         );
         TemporaryBandwidthClient::new(
             gateway,
-            wg_gateway_client.light_client(),
+            authenticator_client,
             metadata_client,
             gateway_metadata_update_version,
         )
     }
 
+    pub(crate) fn is_using_latest_client(&self) -> bool {
+        matches!(
+            self.wg_entry_gateway_client,
+            TemporaryBandwidthClient::Latest(_)
+        ) && matches!(
+            self.wg_exit_gateway_client,
+            TemporaryBandwidthClient::Latest(_)
+        )
+    }
+
     #[allow(clippy::too_many_arguments)]
-    #[allow(deprecated)] // We should not migrate this to use an SDK task management of any sort, VPN should handle this how they want, this is a leaky abstraction
-    pub(crate) async fn register_and_create(
-        controller: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
-        gateway_cache_handle: &GatewayCacheHandle,
+    pub(crate) async fn create(
+        ticket_provider: Box<dyn BandwidthTicketProvider>,
         selected_gateways: &SelectedGateways,
-        wg_entry_gateway_client: &mut WgGatewayClient,
-        wg_exit_gateway_client: &mut WgGatewayClient,
+        entry_auth_client: AuthenticatorClient,
+        exit_auth_client: AuthenticatorClient,
+        entry_gateway_data: GatewayData,
+        exit_gateway_data: GatewayData,
         entry_signal_channel: TunUpReceiver,
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
-        shutdown: TaskClient,
         cancel_token: CancellationToken,
-    ) -> Result<(BandwidthController<St>, ConnectionData), Error>
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
-        let entry_fut = Self::register(
-            &controller,
-            TicketType::V1WireguardEntry,
-            gateway_cache_handle,
-            wg_entry_gateway_client,
-        );
-        let exit_fut = Self::register(
-            &controller,
-            TicketType::V1WireguardExit,
-            gateway_cache_handle,
-            wg_exit_gateway_client,
-        );
-
-        let (entry, exit) =
-            Box::pin(cancel_token.run_until_cancelled(async { tokio::join!(entry_fut, exit_fut) }))
-                .await
-                .ok_or(Error::Cancelled)?;
-
-        let entry = entry.map_err(Error::EntryGateway)?;
-        let exit = exit.map_err(Error::ExitGateway)?;
-
+    ) -> Result<BandwidthController, Error> {
         let wg_entry_client = Self::construct_bandwidth_client(
-            entry.private_ipv4.into(),
+            entry_gateway_data.private_ipv4.into(),
             entry_signal_channel,
-            &selected_gateways.entry,
-            wg_entry_gateway_client,
+            selected_gateways.entry_gateway(),
+            entry_auth_client,
             gateway_metadata_update_version.clone(),
         );
         let wg_exit_client = Self::construct_bandwidth_client(
-            exit.private_ipv4.into(),
+            exit_gateway_data.private_ipv4.into(),
             exit_signal_channel,
-            &selected_gateways.exit,
-            wg_exit_gateway_client,
+            selected_gateways.exit_gateway(),
+            exit_auth_client,
             gateway_metadata_update_version,
         );
 
         let bw = Self::new(
-            controller,
+            ticket_provider,
             wg_entry_client,
             wg_exit_client,
-            shutdown,
             cancel_token.clone(),
         );
 
-        Ok((
-            bw,
-            ConnectionData {
-                entry,
-                exit,
-                entry_bridge_addr: None,
-            },
-        ))
-    }
-
-    async fn register(
-        controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
-        ticketbook_type: TicketType,
-        gateway_cache_handle: &GatewayCacheHandle,
-        wg_gateway_client: &mut WgGatewayClient,
-    ) -> Result<GatewayData, SpecificGatewayError>
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
-        // First we need to regster with the gateway to setup keys and IP assignment
-        let wg_version = wg_gateway_client.auth_version();
-        let authenticator_address = wg_gateway_client.auth_recipient();
-        let gateway_id = wg_gateway_client.auth_recipient().gateway();
-        tracing::info!("Registering with wireguard gateway {gateway_id} ({wg_version})");
-        let gateway_host = gateway_cache_handle
-            .lookup_gateway_ip(gateway_id.to_base58_string())
-            .await
-            .map_err(|source| SpecificGatewayError::LookupGatewayIp {
-                gateway_id: gateway_id.to_base58_string(),
-                source: Box::new(source),
-            })?;
-        let wg_gateway_data = wg_gateway_client
-            .register_wireguard(gateway_host, controller, ticketbook_type)
-            .await
-            .map_err(|source| SpecificGatewayError::RegisterWireguard {
-                gateway_id: gateway_id.to_base58_string(),
-                authenticator_address: Box::new(authenticator_address),
-                source: Box::new(source),
-            })?;
-        tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
-
-        Ok(wg_gateway_data)
+        Ok(bw)
     }
 
     pub(crate) async fn top_up_bandwidth(
-        controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
+        ticket_provider: &dyn BandwidthTicketProvider,
         ticketbook_type: TicketType,
-        wg_client: &mut TemporaryBandwidthClient,
-    ) -> Result<i64, SpecificGatewayError>
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
-        let credential =
-            WgGatewayClient::request_bandwidth(wg_client.gateway_id(), controller, ticketbook_type)
-                .await
-                .map_err(|source| SpecificGatewayError::RequestCredential {
-                    gateway_id: wg_client.gateway_id().to_string(),
-                    ticketbook_type,
-                    source: Box::new(source),
-                })?
-                .data;
-        let remaining_bandwidth = wg_client
+        bw_client: &mut TemporaryBandwidthClient,
+    ) -> Result<i64, SpecificGatewayError> {
+        let credential = ticket_provider
+            .get_ecash_ticket(
+                ticketbook_type,
+                bw_client.gateway_id(),
+                DEFAULT_TICKETS_TO_SPEND,
+            )
+            .await
+            .map_err(|source| SpecificGatewayError::RequestCredential {
+                gateway_id: bw_client.gateway_id().to_string(),
+                ticketbook_type,
+                source: Box::new(source),
+            })?
+            .data;
+        let remaining_bandwidth = bw_client
             .topup_bandwidth(credential, ticketbook_type)
             .await?;
         Ok(remaining_bandwidth)
     }
 
-    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration>
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
+    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
         let (wg_metadata_client, current_depletion_rate) = if entry {
             (
                 &mut self.wg_entry_gateway_client,
@@ -501,12 +400,11 @@ impl<St: Storage> BandwidthController<St> {
             _ = self.shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
-            _ = self.task_client.recv() => {
-                tracing::trace!("BandwidthController: Received shutdown");
-            }
             ret = wg_metadata_client.query_bandwidth() => {
                 match ret {
                     Ok(remaining_bandwidth) => {
+                        self.successful_checks += 1;
+
                         if entry {
                             self.entry_previous_error_query = false;
                         } else {
@@ -527,17 +425,13 @@ impl<St: Storage> BandwidthController<St> {
                                     TicketType::V1WireguardExit
                                 };
                                 tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
-                                if let Err(e) = Self::top_up_bandwidth(&self.inner, ticketbook_type, wg_metadata_client)
+                                if let Err(e) = Self::top_up_bandwidth(&*self.ticket_provider, ticketbook_type, wg_metadata_client)
                                     .await
                                 {
                                     tracing::warn!("Error topping up with more bandwidth {:?}", e);
                                     // TODO: try to return this error in the JoinHandle instead
-                                    self.task_client
-                                        .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
-                                            gateway_id: Box::new(
-                                                wg_metadata_client.gateway_id(),
-                                            )
-                                        }));
+                                    // For now let's keep the old behavior of stopping
+                                    self.shutdown_token.cancel();
                                 }
                             }
                         }
@@ -545,12 +439,11 @@ impl<St: Storage> BandwidthController<St> {
                     Err(e) => {
                         tracing::warn!("{e}");
                         if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query) {
-                            self.task_client
-                            .send_we_stopped(Box::new(ErrorMessage::ErrorsFromGateway {
-                                gateway_id: Box::new(
-                                    wg_metadata_client.gateway_id(),
-                                ),
-                            }));
+                            tracing::error!("gateway {} is erroring out", wg_metadata_client.gateway_id());
+                            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
+                            if self.successful_checks != 0 {
+                                self.shutdown_token.cancel();
+                            }
                         } else {
                             if entry {
                                 self.entry_previous_error_query = true;
@@ -567,20 +460,14 @@ impl<St: Storage> BandwidthController<St> {
         None
     }
 
-    pub(crate) async fn run(mut self)
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
+    pub(crate) async fn run(mut self) {
         // Skip the first, immediate tick
         self.timeout_check_interval.next().await;
-        while !self.task_client.is_shutdown() {
+        while !self.shutdown_token.is_cancelled() {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::trace!("BandwidthController: Received shutdown");
                     break;
-                }
-                _ = self.task_client.recv() => {
-                    tracing::trace!("BandwidthController: Received shutdown");
                 }
                 _ = self.timeout_check_interval.next() => {
                     let current_period = self.timeout_check_interval.as_ref().period();

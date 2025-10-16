@@ -10,7 +10,7 @@ use nym_vpn_proto::proto::account_controller_state::{
 };
 
 #[derive(strum::AsRefStr, Default, Serialize, Clone, Debug, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts", rename = "TAccountState")]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountState {
     #[default]
@@ -18,6 +18,7 @@ pub enum AccountState {
     LoggedOut,
     Syncing,
     Offline,
+    Decentralised,
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
@@ -31,6 +32,7 @@ impl AccountState {
             State::LoggedOut(_) => AccountState::LoggedOut,
             State::Syncing(_) => AccountState::Syncing,
             State::ReadyToConnect(_) => AccountState::Ready,
+            State::Decentralised(_) => AccountState::Decentralised,
             State::Offline(_) => AccountState::Offline,
             State::Error(error) => match error.reason() {
                 ErrorStateReason::BandwidthExceeded => AccountState::BandwidthExceeded,

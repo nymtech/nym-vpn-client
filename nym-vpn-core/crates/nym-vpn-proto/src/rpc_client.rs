@@ -3,20 +3,11 @@
 
 use std::path::PathBuf;
 
-use nym_gateway_directory::{EntryPoint, ExitPoint};
-use nym_vpn_api_client::{
-    NetworkCompatibility,
-    response::{NymVpnDevice, NymVpnUsage},
-};
 use nym_vpn_lib_types::{
-    AccountControllerState, AvailableTickets, TunnelEvent, TunnelState, VpnServiceConfig,
-};
-use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
-use nym_vpnd_types::{
-    AccountCommandResponse, ListGatewaysOptions, StoreAccountRequest,
-    gateway::Gateway,
-    log_path::LogPath,
-    service::{ConnectArgs, VpnServiceInfo},
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
+    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
+    LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -121,6 +112,24 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
+        self.0
+            .set_enable_bridges(enable_bridges)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_residential_exit(&mut self, residential_exit: bool) -> Result<()> {
+        self.0
+            .set_residential_exit(residential_exit)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
@@ -130,7 +139,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_system_messages(&mut self) -> Result<SystemMessages> {
+    pub async fn get_system_messages(&mut self) -> Result<Vec<SystemMessage>> {
         let response = self
             .0
             .get_system_messages(())
@@ -138,7 +147,13 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        Ok(SystemMessages::from(response))
+        let messages = response
+            .messages
+            .into_iter()
+            .map(SystemMessage::from)
+            .collect::<Vec<_>>();
+
+        Ok(messages)
     }
 
     pub async fn get_network_compatibility(&mut self) -> Result<Option<NetworkCompatibility>> {
@@ -244,6 +259,25 @@ impl RpcClient {
             .collect::<Result<Vec<_>>>()
     }
 
+    pub async fn list_filtered_gateways(
+        &mut self,
+        filters: GatewayFilters,
+    ) -> Result<Vec<Gateway>> {
+        let request = proto::GatewayFilters::from(filters);
+
+        let gateways = self
+            .0
+            .list_filtered_gateways(request)
+            .await
+            .map(|v| v.into_inner().gateways)
+            .map_err(Error::Rpc)?;
+
+        gateways
+            .into_iter()
+            .map(|gateway| Gateway::try_from(gateway).map_err(Error::InvalidResponse))
+            .collect::<Result<Vec<_>>>()
+    }
+
     pub async fn store_account(
         &mut self,
         store_request: StoreAccountRequest,
@@ -295,7 +329,33 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
 
-        ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
+        Ok(ParsedAccountLinks::from(response))
+    }
+
+    pub async fn account_balance(&mut self) -> Result<AccountBalanceResponse> {
+        let response = self
+            .0
+            .account_balance(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn decentralised_obtain_ticketbooks(
+        &mut self,
+        amount: u64,
+    ) -> Result<AccountCommandResponse> {
+        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+        let response = self
+            .0
+            .decentralised_obtain_ticketbooks(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {

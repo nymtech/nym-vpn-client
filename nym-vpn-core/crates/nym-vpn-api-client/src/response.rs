@@ -7,8 +7,7 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use crate::error::VpnApiClientError;
-use crate::network_compatibility::NetworkCompatibility;
+use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
@@ -314,6 +313,7 @@ pub enum ScoreValue {
 pub struct DVpnGatewayPerformance {
     pub last_updated_utc: String,
     pub score: ScoreValue,
+    pub mixnet_score: ScoreValue,
     pub load: ScoreValue,
     pub uptime_percentage_last_24_hours: f32,
 }
@@ -322,6 +322,7 @@ pub struct DVpnGatewayPerformance {
 pub struct NymDirectoryGateway {
     pub identity_key: String,
     pub name: String,
+    pub description: Option<String>,
     pub ip_packet_router: Option<IpPacketRouter>,
     pub authenticator: Option<Authenticator>,
     pub location: Location,

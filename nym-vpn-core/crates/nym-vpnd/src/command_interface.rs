@@ -4,7 +4,6 @@
 use std::path::PathBuf;
 
 use futures::{StreamExt, stream::BoxStream};
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use tokio::{
     sync::{
         broadcast,
@@ -16,14 +15,14 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 
-use nym_vpn_lib_types::TunnelEvent;
+use nym_vpn_lib_types::{
+    ConnectArgs, EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState,
+    TunnelEvent,
+};
+
 use nym_vpn_proto::proto::{
     self,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
-};
-use nym_vpnd_types::{
-    ListGatewaysOptions,
-    service::{ConnectArgs, TargetState},
 };
 
 use crate::service::{SetNetworkError, VpnServiceCommand};
@@ -144,6 +143,20 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_bridges(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_bridges = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let netstack = request.into_inner();
 
@@ -162,6 +175,22 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::SetAllowLan, allow_lan)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set allow lan: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_residential_exit(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let residential_exit = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetResidentialExit, residential_exit)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set residential exit only: {e}"))
+            })?;
 
         Ok(tonic::Response::new(()))
     }
@@ -190,7 +219,10 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::GetSystemMessages, ())
             .await?;
 
-        let messages = messages.into_current_iter().map(|m| m.into()).collect();
+        let messages = messages
+            .into_iter()
+            .map(proto::SystemMessage::from)
+            .collect::<Vec<_>>();
         let response = proto::GetSystemMessagesResponse { messages };
 
         Ok(tonic::Response::new(response))
@@ -317,11 +349,36 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn list_filtered_gateways(
+        &self,
+        request: tonic::Request<proto::GatewayFilters>,
+    ) -> Result<tonic::Response<proto::ListGatewaysResponse>> {
+        let filters = GatewayFilters::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+
+        let gateways = self
+            .send_and_wait(VpnServiceCommand::ListFilteredGateways, filters)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to list filtered gateways: {err}"))
+            })?;
+
+        let response = proto::ListGatewaysResponse {
+            gateways: gateways
+                .into_iter()
+                .map(proto::GatewayResponse::from)
+                .collect(),
+        };
+        Ok(tonic::Response::new(response))
+    }
+
     async fn store_account(
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,
     ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let store_request = nym_vpnd_types::StoreAccountRequest::from(request.into_inner());
+        let store_request = nym_vpn_lib_types::StoreAccountRequest::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+
         let result = self
             .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
             .await?;
@@ -373,6 +430,39 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
             account_identity,
         }))
+    }
+
+    async fn account_balance(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountBalanceResponse>> {
+        let response = self
+            .send_and_wait(VpnServiceCommand::DecentralisedBalance, ())
+            .await?;
+
+        let response = proto::AccountBalanceResponse::from(response);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn decentralised_obtain_ticketbooks(
+        &self,
+        request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let ticketbook_request =
+            nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest::from(request.into_inner());
+        let result = self
+            .send_and_wait(
+                VpnServiceCommand::DecentralisedObtainTicketbooks,
+                ticketbook_request,
+            )
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        };
+
+        Ok(tonic::Response::new(response))
     }
 
     async fn get_account_links(

@@ -27,7 +27,7 @@ import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import nym_vpn_lib.AndroidConnectivityMonitor
-import nym_vpn_lib_types.AccountLinks
+import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib.NymVpnLibConfig
@@ -46,7 +46,7 @@ import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
-import nym_vpn_lib_types.NetworkEnvironment
+import nym_vpn_lib_types.Network
 import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
@@ -194,7 +194,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	}
 
 	@Throws(VpnException::class)
-	override suspend fun getAccountLinks(): AccountLinks {
+	override suspend fun getAccountLinks(): ParsedAccountLinks {
 		return withContext(ioDispatcher) {
 			initialized.await()
 			nym_vpn_lib.getAccountLinks(getCurrentLocaleLanguageCode())
@@ -266,7 +266,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	override suspend fun getCurrentEnvironment(): NetworkEnvironment {
+	override suspend fun getCurrentEnvironment(): Network {
 		return nym_vpn_lib.currentEnvironment()
 	}
 
@@ -315,6 +315,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 						tunnel.entryPoint,
 						tunnel.exitPoint,
 						tunnel.mode.isTwoHop(),
+						false,
+						false,
 						vpnService.await(),
 						storagePath,
 						storagePath,

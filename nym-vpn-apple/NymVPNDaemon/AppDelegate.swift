@@ -3,7 +3,7 @@ import Cocoa
 import AppSettings
 import Logging
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+@MainActor class AppDelegate: NSObject, NSApplicationDelegate {
     private let appSettings = AppSettings.shared
 
     var shouldTerminate = false

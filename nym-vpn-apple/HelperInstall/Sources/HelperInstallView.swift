@@ -124,7 +124,8 @@ extension HelperInstallView {
             ActionDialogView(
                 viewModel: ActionDialogViewModel(
                     isDisplayed: $viewModel.isSuccessModalDisplayed,
-                    configuration: viewModel.updateAvailableOverlayConfiguration
+                    configuration: viewModel.updateAvailableOverlayConfiguration,
+                    impactGenerator: .shared
                 )
             )
             .transition(.opacity)
@@ -138,7 +139,8 @@ extension HelperInstallView {
             ActionDialogView(
                 viewModel: ActionDialogViewModel(
                     isDisplayed: $viewModel.isMigrationModalDisplayed,
-                    configuration: viewModel.migrationOverlayConfiguration
+                    configuration: viewModel.migrationOverlayConfiguration,
+                    impactGenerator: .shared
                 )
             )
             .transition(.opacity)

@@ -8,8 +8,6 @@ members = [
     "crates/nym-dns",
     "crates/nym-firewall",
     "crates/nym-gateway-directory",
-    "crates/nym-gateway-probe",
-    "crates/nym-harbour-master-client",
     "crates/nym-ipc",
     "crates/nym-macos",
     "crates/nym-offline-monitor",
@@ -25,16 +23,13 @@ members = [
     "crates/nym-vpn-proto",
     "crates/nym-vpn-store",
     "crates/nym-vpnc",
-    "crates/nym-vpnd-types",
     "crates/nym-vpnd",
     "crates/nym-wg-go",
     "crates/nym-wg-metadata-client",
     "crates/nym-windows",
     "crates/uniffi-bindgen",
     "crates/nym-vpn-lib-uniffi",
-    "crates/nym-vpn-lib-types-uniffi",
     "crates/nym-vpn-rpc-uniffi",
-    "crates/nym-vpnd-types-uniffi",
 ]
 
 default-members = [
@@ -45,6 +40,7 @@ default-members = [
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
+# nym-authenticator-client = { path = "../../nym/nym-authenticator-client" }
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
 # nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
 # nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
@@ -61,21 +57,26 @@ default-members = [
 # nym-ecash-time = { path = "../../nym/common/ecash-time" }
 # nym-http-api-client = { path = "../../nym/common/http-api-client" }
 # nym-http-api-client-macro = { path = "../../nym/common/http-api-client-macro" }
+# nym-ip-packet-client = { path = "../../nym/nym-ip-packet-client" }
 # nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
 # nym-network-defaults = { path = "../../nym/common/network-defaults" }
 # nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
 # nym-pemstore = { path = "../../nym/common/pemstore" }
+# nym-registration-client = { path = "../../nym/nym-registration-client" }
+# nym-registration-common = { path = "../../nym/common/registration" }
 # nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
 # nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
 # nym-statistics-common = { path = "../../nym/common/statistics" }
-# nym-task = { path = "../../nym/common/task" }
 # nym-topology = { path = "../../nym/common/topology" }
 # nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
+# nym-wireguard-private-metadata-client = { path = "../../nym/common/wireguard-private-metadata/client" }
+# nym-wireguard-private-metadata-shared = { path = "../../nym/common/wireguard-private-metadata/shared" }
 # nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
+# sqlx-pool-guard = { path = "../../nym/sqlx-pool-guard" }
 # nym-credential-utils = { path = "../../nym/common/credential-utils" }
 
 [workspace.package]
-version = "1.17.0-beta"
+version = "1.18.0-beta"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
@@ -94,14 +95,14 @@ large_futures = "warn"
 android_logger = "0.15.1"
 anyhow = "1.0.99"
 async-stream = "0.3.6"
-async-trait = "0.1.89"
+async-trait = "0.1.88"
 backon = "1.5"
 base64 = "0.22"
 base64-url = "3.0.0"
 bincode = "1.3.3"
 bip39 = "2.2"
 bitflags = "2"
-block2 = "0.6.1"
+block2 = "0.6.2"
 bs58 = "0.5.1"
 bytes = "1.10"
 chrono = "0.4.41"
@@ -134,23 +135,28 @@ netlink-packet-route = "0.25.1"
 netlink-sys = "0.8.7"
 nftnl = "0.7.0"
 nix = "0.30.1"
-objc2 = "0.6.2"
-objc2-foundation = "0.3.1"
+objc2 = "0.6.3"
+objc2-foundation = "0.3.2"
 once_cell = "1.21"
 pfctl = "0.7.0"
 pnet_packet = "0.35.0"
-prost = "0.13.5"
-prost-types = "0.13.5"
+prost = "0.14.1"
+prost-types = "0.14.1"
 pretty_assertions = "1.4.1"
-quinn = "0.11"
-quinn-proto = "0.11"
+quinn = { version = "0.11", default-features = false, features = [
+    "ring",
+    "rustls",
+    "runtime-tokio",
+] }
+quinn-proto = { version = "0.11", default-features = false, features = [
+    "rustls",
+] }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
-rcgen = "0.14"
 resolv-conf = "0.7"
 rs-release = "0.1.11"
 rtnetlink = "0.18"
-rustls = { version="0.23.5",  default-features = false}
+rustls = { version = "0.23.5", default-features = false }
 rustls-pki-types = "1.7"
 semver = "1.0"
 sentry = { version = "0.42.0", default-features = false }
@@ -167,16 +173,19 @@ sysinfo = "0.37"
 system-configuration = "0.6"
 tap = "1.0.1"
 tempfile = "3.21"
+tabled = "0.20"
 thiserror = "2.0"
 time = "0.3.42"
 tokio = "1.47"
-tokio-rustls = { version="0.26",  default-features = false}
+tokio-rustls = { version = "0.26", default-features = false }
 tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.16", features = ["codec"] }
 toml = "0.9.5"
-tonic = "0.13.1"
-tonic-build = "0.13.1"
+tonic = "0.14.2"
+tonic-prost = "0.14.2"
+tonic-prost-build = "0.14.2"
 typed-builder = "0.21"
+ts-rs = "11.0.1"
 tower = "0.5.2"
 tracing = "0.1"
 tracing-appender = "0.2.3"
@@ -185,17 +194,17 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-test = "0.2.5"
 triggered = "0.1.3"
 tun = { version = "0.6.1", features = ["async"] }
-uniffi = { version = "0.29.4", features = ["cli"] }
+uniffi = { version = "0.30", features = ["cli"] }
 url = "2.5"
 vergen-gitcl = { version = "1.0.8", default-features = false }
 webpki-roots = "0.26"
 which = "8.0"
 widestring = "1.2"
-windows = "0.61"
+windows = "0.62.2"
 windows-service = "0.8.0"
 winreg = "0.55"
 wiremock = "0.6.4"
-wmi = "0.17.2"
+wmi = "0.17.3"
 x25519-dalek = "2.0"
 x509-parser = "0.17.0"
 zeroize = "1.8.1"
@@ -220,13 +229,10 @@ nym-vpn-lib-types = { path = "crates/nym-vpn-lib-types" }
 nym-vpn-network-config = { path = "crates/nym-vpn-network-config" }
 nym-vpn-proto = { path = "crates/nym-vpn-proto" }
 nym-vpn-store = { path = "crates/nym-vpn-store" }
-nym-vpnd-types = { path = "crates/nym-vpnd-types" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
-nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
-nym-vpnd-types-uniffi = { path = "crates/nym-vpnd-types-uniffi" }
 
 nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
@@ -239,6 +245,7 @@ nym-config = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "develop", default-features = false }
 nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credentials = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-crypto = { git = "https://github.com/nymtech/nym", branch = "develop" }
@@ -250,15 +257,14 @@ nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "dev
 nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-sdk = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-wg-gateway-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }

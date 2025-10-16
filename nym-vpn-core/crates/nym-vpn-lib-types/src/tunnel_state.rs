@@ -1,11 +1,25 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
+
 use super::connection_data::{
     ConnectionData, EstablishConnectionData, EstablishConnectionState, TunnelConnectionData,
 };
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelType {
     Mixnet,
     Wireguard,
@@ -22,6 +36,15 @@ impl TunnelType {
 
 /// Public enum describing the tunnel state
 #[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum TunnelState {
     /// Tunnel is disconnected and network connectivity is available.
     Disconnected,
@@ -163,6 +186,15 @@ impl std::fmt::Display for TunnelState {
 
 /// Public enum describing action to perform after disconnect
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum ActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
@@ -177,7 +209,16 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum ErrorStateReason {
     /// Failure to set firewall policy.
     SetFirewallPolicy,
@@ -246,6 +287,39 @@ pub enum ErrorStateReason {
 
     /// Program errors that must not happen.
     Internal(String),
+}
+
+impl std::fmt::Display for ErrorStateReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::SetFirewallPolicy => f.write_str("SetFirewallPolicy"),
+            Self::SetRouting => f.write_str("SetRouting"),
+            Self::SetDns => f.write_str("SetDns"),
+            Self::TunDevice => f.write_str("TunDevice"),
+            Self::TunnelProvider => f.write_str("TunnelProvider"),
+            Self::Ipv6Unavailable => f.write_str("Ipv6Unavailable"),
+            Self::SameEntryAndExitGateway => f.write_str("SameEntryAndExitGateway"),
+            Self::PerformantEntryGatewayUnavailable => {
+                f.write_str("PerformantEntryGatewayUnavailable")
+            }
+            Self::PerformantExitGatewayUnavailable => {
+                f.write_str("PerformantExitGatewayUnavailable")
+            }
+            Self::InvalidEntryGatewayIdentity => f.write_str("InvalidEntryGatewayIdentity"),
+            Self::InvalidExitGatewayIdentity => f.write_str("InvalidExitGatewayIdentity"),
+            Self::InvalidEntryGatewayCountry => f.write_str("InvalidEntryGatewayCountry"),
+            Self::InvalidExitGatewayCountry => f.write_str("InvalidExitGatewayCountry"),
+            Self::CredentialWastedOnEntryGateway => f.write_str("CredentialWastedOnEntryGateway"),
+            Self::CredentialWastedOnExitGateway => f.write_str("CredentialWastedOnExitGateway"),
+            Self::BandwidthExceeded => f.write_str("BandwidthExceeded"),
+            Self::InactiveAccount => f.write_str("InactiveAccount"),
+            Self::InactiveSubscription => f.write_str("InactiveSubscription"),
+            Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
+            Self::DeviceTimeOutOfSync => f.write_str("DeviceTimeOutOfSync"),
+            Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),
+            Self::Internal(str) => write!(f, "Internal({str})"),
+        }
+    }
 }
 
 impl ErrorStateReason {

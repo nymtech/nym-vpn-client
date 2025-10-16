@@ -15,6 +15,48 @@
     "exit": "Ubicación de salida seleccionada no disponible, cambiada a {{location}}"
   },
   "node-details": {
-    "id-label": "Clave de identidad:"
+    "id-label": "Clave de identidad:",
+    "data": {
+      "advanced-privacy": "Privacidad avanzada",
+      "with-mixnet": "Con mixnet (5-salto)",
+      "ip-type": "Transmisión y contenido",
+      "ip-residential": "IP residencial",
+      "ip-datacenter": "IP del Datacenter",
+      "anti-censorship": "Anticensura",
+      "quic-protocol": "Protocolo QUIC",
+      "standard-protocol": "Standard protocol",
+      "overall-performance": "Rendimiento global",
+      "server-load": "Carga del servidor",
+      "speed": "Velocidad",
+      "uptime": "Actualización",
+      "exit-ipv4": "Salir de IPv4",
+      "exit-ipv6": "Salir de IPv6",
+      "asn": "ASN",
+      "asn-name": "Nombre ASN",
+      "build-version": "Versión de construcción de Nym",
+      "identity-key": "Clave de identidad:"
+    },
+    "perf-score": {
+      "high": "Bueno",
+      "medium": "Mid",
+      "low": "Baja",
+      "offline": "Desconectado"
+    },
+    "server-load-score": {
+      "high": "Alta",
+      "medium": "Medio",
+      "low": "Baja",
+      "offline": "Desconectado"
+    },
+    "notes": {
+      "anti-censorship": "Activar \"Protocolo QUIC\" en la configuración de la censura para usar esta característica",
+      "performance_with_time": "Puntuación de rendimiento calculada a partir de la carga y actualización del servidor. Tiempo de actualización como media última 24 horas. Última actualización {{relativeTime}}.",
+      "performance": "Puntuación de rendimiento calculada a partir de la carga y actualización del servidor. Tiempo de actualización como media de las últimas 24 horas."
+    },
+    "links": {
+      "missing-info": "¿Por qué falta información o es incorrecta",
+      "explorer": "Más detalles en el Nym <networkExplorerLink />"
+    },
+    "select-button": "Seleccionar servidor"
   }
 }

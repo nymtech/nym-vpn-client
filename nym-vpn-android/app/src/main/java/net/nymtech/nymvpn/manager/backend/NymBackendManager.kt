@@ -38,7 +38,7 @@ import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.exceptions.BackendException
-import nym_vpn_lib_types.AccountLinks
+import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.BandwidthEvent
 import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.ConnectionEvent
@@ -199,7 +199,7 @@ class NymBackendManager @Inject constructor(
 		return backend.await().getAccountIdentity()
 	}
 
-	override suspend fun getAccountLinks(): AccountLinks? {
+	override suspend fun getAccountLinks(): ParsedAccountLinks? {
 		return try {
 			backend.await().getAccountLinks()
 		} catch (_: Exception) {

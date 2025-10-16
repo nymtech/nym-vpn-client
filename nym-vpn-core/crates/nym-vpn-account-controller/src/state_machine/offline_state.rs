@@ -52,15 +52,16 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await)
                     },
-                    AccountCommand::StoreAccount(return_sender, mnemonic) => {
-                        return_sender.send(handler::handle_store_account(shared_state, mnemonic).await)
+                    AccountCommand::StoreAccount(return_sender, account) => {
+                        return_sender.send(handler::handle_store_account(shared_state, account).await)
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
 
                     // Before that command gets sent to the AC, the tunnel must be in Disconnected state, so we shouldn't ever end up here
                     // If we nevertheless do, we can't forget the account, because maybe the tunnel is in Offline {reconnect : true} state, and we shouldn't remove the account if it's the case
                     AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
-
+                                        AccountCommand::AccountBalance(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_connectivity(return_sender),
                     // Same comment as above
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender),
 
@@ -78,7 +79,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
 
                     AccountCommand::Common(common_command) => {
                         match common_command {
-                            CommonCommand::GetStoredMnemonic(return_sender) => return_sender.send(common_handler::handle_get_stored_mnemonic(shared_state).await),
+                            CommonCommand::GetStoredAccount(return_sender) => return_sender.send(common_handler::handle_get_stored_account(shared_state).await),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(common_handler::handle_get_device_identity(shared_state)),
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_account_identity(shared_state)),
                             CommonCommand::SetStaticApiAddresses(return_sender,socket_addrs) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state,socket_addrs)),

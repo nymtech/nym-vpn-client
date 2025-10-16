@@ -3,8 +3,8 @@
 
 use crate::keys::wireguard::WireguardKeys;
 
-mod ephemeral;
-mod on_disk;
+pub(crate) mod ephemeral;
+pub(crate) mod on_disk;
 
 fn random_keys() -> WireguardKeys {
     let mut rng = rand::rngs::OsRng;

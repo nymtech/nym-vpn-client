@@ -24,6 +24,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "NymVPNLib", path: "../NymVPNLib"),
+        .package(path: "../NymVPNRpc"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
@@ -38,6 +39,7 @@ let package = Package(
         .target(
             name: "ConnectionTypes",
             dependencies: [
+                .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
                 "CountriesManagerTypes",
                 "Theme"
             ],

@@ -6,7 +6,6 @@ import AutoUpdates
 import ConnectionManager
 import ConfigurationManager
 import Constants
-import CountriesManager
 import FeatureFlagsManager
 import GatewayManager
 import GRPCManager
@@ -39,13 +38,24 @@ struct NymVPNDaemonApp: App {
 
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
-    @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
-    @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var homeViewModel = HomeViewModel(
+        appSettings: .shared,
+        connectionManager: .shared,
+        configurationManager: .shared,
+        credentialsManager: .shared,
+        networkMonitor: .shared,
+        grpcManager: .shared,
+        helperManager: .shared,
+        externalLinkManager: .shared,
+        gatewayManager: .shared,
+        impactGenerator: .shared,
+        messagesManager: .shared
+    )
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @StateObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var splashScreenDidDisplay = false
@@ -62,9 +72,10 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         Window(windowId, id: windowId) {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+//                if !splashScreenDidDisplay {
+//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+//                } else
+                if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -93,7 +104,6 @@ struct NymVPNDaemonApp: App {
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
-            .environmentObject(countriesManager)
             .environmentObject(featureFlagsManager)
             .environmentObject(gatewayManager)
             .environmentObject(grpcManager)
@@ -141,7 +151,6 @@ private extension NymVPNDaemonApp {
             // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup(for: .main)
             FeatureFlagsManager.shared.setup()
-            CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
@@ -249,22 +258,22 @@ private extension NymVPNDaemonApp {
 
     @ViewBuilder
     func connectionDetails() -> some View {
-        let entryName = connectionManager.entryGateway.name
-        let entry = countriesManager.country(with: entryName)?.name ?? entryName
+        if let entryName = gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway),
+           let exitName = gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) {
+            let entry = gatewayManager.localizedCountry(with: entryName)?.name ?? entryName
+            let exit = gatewayManager.localizedCountry(with: exitName)?.name ?? exitName
 
-        let exitName = connectionManager.exitRouter.name
-        let exit = countriesManager.country(with: exitName)?.name ?? exitName
+            let statusButtonConfig = StatusButtonConfig(
+                tunnelStatus: connectionManager.currentTunnelStatus,
+                hasInternet: true
+            )
 
-        let statusButtonConfig = StatusButtonConfig(
-            tunnelStatus: connectionManager.currentTunnelStatus,
-            hasInternet: true
-        )
-
-        if connectionManager.currentTunnelStatus == .connected {
-            Text("\(statusButtonConfig.rawValue.localizedString)")
-            Text("\("home.entryHop".localizedString): \(entry)")
-            Text("\("home.exitHop".localizedString): \(exit)")
-            Divider()
+            if connectionManager.currentTunnelStatus == .connected {
+                Text("\(statusButtonConfig.rawValue.localizedString)")
+                Text("\("home.entryHop".localizedString): \(entry)")
+                Text("\("home.exitHop".localizedString): \(exit)")
+                Divider()
+            }
         }
     }
 }

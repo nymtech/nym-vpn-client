@@ -1,18 +1,21 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use crate::{conversions::ConversionError, proto};
 
-impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnServiceConfig {
+impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConversionError;
 
     fn try_from(value: proto::VpnServiceConfig) -> Result<Self, Self::Error> {
         let entry_point = value
             .entry_point
-            .map(nym_gateway_directory::EntryPoint::try_from)
+            .map(nym_vpn_lib_types::EntryPoint::try_from)
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.entry_point"))?;
 
         let exit_point = value
             .exit_point
-            .map(nym_gateway_directory::ExitPoint::try_from)
+            .map(nym_vpn_lib_types::ExitPoint::try_from)
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.exit_point"))?;
 
@@ -24,7 +27,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnService
             None => None,
         };
 
-        let config = nym_vpn_lib_types::service::VpnServiceConfig {
+        let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
             dns,
@@ -38,13 +41,14 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::service::VpnService
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u8),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
+            residential_exit: value.residential_exit,
         };
         Ok(config)
     }
 }
 
-impl From<nym_vpn_lib_types::service::VpnServiceConfig> for proto::VpnServiceConfig {
-    fn from(value: nym_vpn_lib_types::service::VpnServiceConfig) -> Self {
+impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
+    fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         proto::VpnServiceConfig {
             entry_point: Some(proto::EntryNode::from(value.entry_point)),
             exit_point: Some(proto::ExitNode::from(value.exit_point)),
@@ -61,6 +65,7 @@ impl From<nym_vpn_lib_types::service::VpnServiceConfig> for proto::VpnServiceCon
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
+            residential_exit: value.residential_exit,
         }
     }
 }

@@ -35,6 +35,22 @@
     "app": "Nhật ký ứng dụng",
     "daemon": "Nhật ký daemon"
   },
+  "anti-censorship": {
+    "title": "Anti-censorship",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
+    "quic": {
+      "label": "Enhanced connection (QUIC)",
+      "warning": "Changes will apply after reconnect",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "How QUIC improves connections"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Changes will apply after reconnect",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
+      "link": "How the Stealth API connect mode works"
+    }
+  },
   "faq": "Câu hỏi thường gặp",
   "display-theme": "Chế độ hiển thị",
   "logout-confirmation": {
@@ -69,8 +85,7 @@
     "network-stats": {
       "label": "Thống kê mạng ẩn danh",
       "sublabel": "Thay đổi sẽ có hiệu lực sau khi khởi động lại daemon.",
-      "desc1": "Hãy giúp chúng tôi xây dựng một mạng lưới nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất một cách ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu hóa tốc độ, giảm tình trạng ngắt kết nối và mở rộng độ phủ máy chủ tại những khu vực cần thiết nhất.",
-      "desc2": "Chỉ có dữ liệu hiệu suất mạng được chia sẻ - không bao giờ chia sẻ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
       "link": "Tìm hiểu chính xác những gì được chia sẻ"
     }
   },

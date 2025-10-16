@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use tokio_util::sync::CancellationToken;
+
 use super::{Error, Result, Tombstone};
 
 use super::{
@@ -35,6 +37,15 @@ impl AnyTunnelHandle {
             Self::Wireguard(handle) => {
                 handle.cancel();
             }
+        }
+    }
+
+    // Returns the mixnet cancellation token, to monitor mixnet client unexpected stop.
+    // Returns None if we already stopped it (in new Wireguard mode) and we don't need to monitor it.
+    pub fn mixnet_client_token(&self) -> Option<CancellationToken> {
+        match self {
+            AnyTunnelHandle::Mixnet(tunnel_handle) => Some(tunnel_handle.mixnet_cancel_token()),
+            AnyTunnelHandle::Wireguard(tunnel_handle) => tunnel_handle.mixnet_cancel_token(),
         }
     }
 

@@ -6,7 +6,7 @@ use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
     response::{NymErrorResponse, NymVpnAccountStatusResponse},
-    types::{Device, VpnApiAccount},
+    types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -17,7 +17,7 @@ use crate::{
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState,
+        OfflineState, PrivateAccountControllerState, decentralised_state::DecentralisedState,
     },
 };
 use requesting_zknym_state::RequestingZkNymsState;
@@ -44,6 +44,7 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 /// - SyncingState : We try again if there was an error while making an API request
 /// - ErrorState : An actual error happened, or one of the above questions has a negative answers, preventing us to proceed.
 /// - OfflineState : the connectivity monitor is telling we're not connected
+/// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
     attempts: u32,
@@ -60,6 +61,9 @@ impl SyncingState {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
             return LoggedOutState::enter();
         };
+        if vpn_api_account.mode().is_decentralised() {
+            return DecentralisedState::enter();
+        }
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
                 SyncError::Internal("Logged in, but no device keys".into()).into(),
@@ -83,7 +87,7 @@ impl SyncingState {
 
     async fn syncing_account(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnApiAccount,
+        vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
@@ -166,7 +170,9 @@ impl SyncingState {
                     Err(SyncError::UnregisteredAccount)
                 } else {
                     Err(SyncError::ApiResponseError {
-                        code_reference_id: error_response.code_reference_id,
+                        details: error_response
+                            .code_reference_id
+                            .unwrap_or(error_response.message),
                     })
                 }
             }
@@ -175,7 +181,7 @@ impl SyncingState {
 
     async fn register_device(
         vpn_api_client: &VpnApiClient,
-        vpn_api_account: &VpnApiAccount,
+        vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
         vpn_api_client
@@ -240,6 +246,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                        AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {
@@ -296,7 +304,7 @@ enum SyncError {
     UnregisteredAccount,
     InactiveSubscription,
     ApiRequestError(String),
-    ApiResponseError { code_reference_id: Option<String> },
+    ApiResponseError { details: String },
     DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,
@@ -315,7 +323,9 @@ impl From<VpnApiClientError> for SyncError {
     fn from(value: VpnApiClientError) -> Self {
         match NymErrorResponse::try_from(value) {
             Ok(error_response) => SyncError::ApiResponseError {
-                code_reference_id: error_response.code_reference_id,
+                details: error_response
+                    .code_reference_id
+                    .unwrap_or(error_response.message),
             },
             Err(e) => SyncError::ApiRequestError(e.to_string()),
         }
@@ -339,9 +349,9 @@ impl From<SyncError> for AccountControllerErrorStateReason {
                 context: SYNCING_STATE_CONTEXT.into(),
                 details: e,
             },
-            ApiResponseError { code_reference_id } => Self::ApiFailure {
+            ApiResponseError { details } => Self::ApiFailure {
                 context: SYNCING_STATE_CONTEXT.into(),
-                details: code_reference_id.unwrap_or("No code reference id".into()),
+                details,
             },
             DeviceTimeDesynced => Self::DeviceTimeDesynced,
             MaxDeviceReached => Self::MaxDeviceReached,

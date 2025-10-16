@@ -7,13 +7,13 @@ public struct GenericImage: View {
 
     @State private var isHovered = false
 
-    public init(imageName: String, allowsHover: Bool = false) {
+    public init(imageName: String?, allowsHover: Bool = false) {
         self.imageName = imageName
         self.systemImageName = nil
         self.allowsHover = allowsHover
     }
 
-    public init(systemImageName: String, allowsHover: Bool = false) {
+    public init(systemImageName: String?, allowsHover: Bool = false) {
         self.imageName = nil
         self.systemImageName = systemImageName
         self.allowsHover = allowsHover

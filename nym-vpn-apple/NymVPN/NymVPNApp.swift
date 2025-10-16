@@ -3,7 +3,6 @@ import Logging
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
-import CountriesManager
 import CredentialsManager
 import FeatureFlagsManager
 import GatewayManager
@@ -31,13 +30,22 @@ struct NymVPNApp: App {
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var credentialsManager = CredentialsManager.shared
-    @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
 
-    @StateObject private var homeViewModel = HomeViewModel()
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @ObservedObject private var homeViewModel = HomeViewModel(
+        appSettings: .shared,
+        connectionManager: .shared,
+        configurationManager: .shared,
+        credentialsManager: .shared,
+        networkMonitor: .shared,
+        externalLinkManager: .shared,
+        gatewayManager: .shared,
+        impactGenerator: .shared,
+        messagesManager: .shared
+    )
+    @ObservedObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
 
     @State private var splashScreenDidDisplay = false
     @State private var isSecureScreenVisible = false
@@ -47,12 +55,13 @@ struct NymVPNApp: App {
     }
 
     var body: some Scene {
-        // swiftlint:disable:next closure_body_length
         WindowGroup {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+                // DISABLED until we figure out where the crash is coming from
+//                if !splashScreenDidDisplay {
+//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+//                } else
+            if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -75,7 +84,6 @@ struct NymVPNApp: App {
             }
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
-            .environmentObject(countriesManager)
             .environmentObject(credentialsManager)
             .environmentObject(featureFlagsManager)
             .environmentObject(gatewayManager)
@@ -97,7 +105,6 @@ private extension NymVPNApp {
             // Things dependant on environment being set.
             try await ConfigurationManager.shared.setup(for: .main)
             FeatureFlagsManager.shared.setup()
-            CountriesManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()
             NotificationsManager.shared.setup()

@@ -11,15 +11,10 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib_types_uniffi::{
-    AccountCommandError, AccountControllerState, AccountLinks, EntryPoint, ExitPoint, FeatureFlags,
-    GatewayType, NetworkCompatibility, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig,
-};
-use nym_vpnd_types_uniffi::{
-    gateway::Gateway,
-    log_path::LogPath,
-    nym_vpn_api::{NymVpnDevice, NymVpnUsage},
-    service::VpnServiceInfo,
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Clone, uniffi::Object)]
@@ -37,33 +32,19 @@ impl RpcClient {
     }
 
     pub async fn get_info(&self) -> Result<VpnServiceInfo> {
-        Ok(self
-            .inner
-            .clone()
-            .get_info()
-            .await
-            .map(VpnServiceInfo::from)?)
+        Ok(self.inner.clone().get_info().await?)
     }
 
     pub async fn get_config(&self) -> Result<VpnServiceConfig> {
-        Ok(self
-            .inner
-            .clone()
-            .get_config()
-            .await
-            .map(VpnServiceConfig::from)?)
+        Ok(self.inner.clone().get_config().await?)
     }
 
     pub async fn set_entry_point(&self, entry_point: EntryPoint) -> Result<()> {
-        let entry_point = nym_gateway_directory::EntryPoint::from(entry_point);
-
         self.inner.clone().set_entry_point(entry_point).await?;
         Ok(())
     }
 
     pub async fn set_exit_point(&self, exit_point: ExitPoint) -> Result<()> {
-        let exit_point = nym_gateway_directory::ExitPoint::from(exit_point);
-
         self.inner.clone().set_exit_point(exit_point).await?;
         Ok(())
     }
@@ -91,6 +72,14 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_enable_bridges(enable_bridges)
+            .await?;
+        Ok(())
+    }
+
     pub async fn set_network(&self, network: String) -> Result<()> {
         self.inner.clone().set_network(network).await?;
         Ok(())
@@ -98,29 +87,16 @@ impl RpcClient {
 
     pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {
         let system_messages = self.inner.clone().get_system_messages().await?;
-        Ok(system_messages
-            .into_iter()
-            .map(SystemMessage::from)
-            .collect())
+        Ok(system_messages.into_iter().collect())
     }
 
     pub async fn get_network_compatibility(&self) -> Result<Option<NetworkCompatibility>> {
-        let network_compatibility = self
-            .inner
-            .clone()
-            .get_network_compatibility()
-            .await?
-            .map(NetworkCompatibility::from);
+        let network_compatibility = self.inner.clone().get_network_compatibility().await?;
         Ok(network_compatibility)
     }
 
     pub async fn get_feature_flags(&self) -> Result<FeatureFlags> {
-        Ok(self
-            .inner
-            .clone()
-            .get_feature_flags()
-            .await
-            .map(FeatureFlags::from)?)
+        Ok(self.inner.clone().get_feature_flags().await?)
     }
 
     pub async fn connect_tunnel(&self) -> Result<()> {
@@ -134,12 +110,7 @@ impl RpcClient {
     }
 
     pub async fn get_tunnel_state(&self) -> Result<TunnelState> {
-        Ok(self
-            .inner
-            .clone()
-            .get_tunnel_state()
-            .await
-            .map(TunnelState::from)?)
+        Ok(self.inner.clone().get_tunnel_state().await?)
     }
 
     pub async fn listen_to_events(
@@ -158,7 +129,7 @@ impl RpcClient {
                     .flatten()
                 {
                     Some(Ok(evt)) => {
-                        observer.on_tunnel_event(TunnelEvent::from(evt));
+                        observer.on_tunnel_event(evt);
                     }
                     Some(Err(err)) => {
                         tracing::error!("Error receiving next event: {err}");
@@ -174,8 +145,8 @@ impl RpcClient {
     }
 
     pub async fn list_gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>> {
-        let options = nym_vpnd_types::ListGatewaysOptions {
-            gw_type: nym_gateway_directory::GatewayType::from(gw_type),
+        let options = nym_vpn_lib_types::ListGatewaysOptions {
+            gw_type,
             user_agent: None,
         };
         let gateways = self
@@ -184,7 +155,6 @@ impl RpcClient {
             .list_gateways(options)
             .await?
             .into_iter()
-            .map(Gateway::from)
             .collect();
         Ok(gateways)
     }
@@ -193,13 +163,11 @@ impl RpcClient {
         let response = self
             .inner
             .clone()
-            .store_account(nym_vpnd_types::StoreAccountRequest { mnemonic })
+            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic })
             .await?;
 
         if let Some(err) = response.error {
-            Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(
-                AccountCommandError::from(err),
-            ))))
+            Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(err))))
         } else {
             Ok(())
         }
@@ -212,7 +180,7 @@ impl RpcClient {
     pub async fn forget_account(&self) -> Result<()> {
         let response = self.inner.clone().forget_account().await?;
         if let Some(err) = response.error {
-            Err(RpcError::from(Arc::new(AccountCommandError::from(err))))
+            Err(RpcError::from(Arc::new(err)))
         } else {
             Ok(())
         }
@@ -222,22 +190,12 @@ impl RpcClient {
         Ok(self.inner.clone().get_account_identity().await?)
     }
 
-    pub async fn get_account_links(&self, locale: String) -> Result<AccountLinks> {
-        Ok(self
-            .inner
-            .clone()
-            .get_account_links(locale)
-            .await
-            .map(AccountLinks::from)?)
+    pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {
+        Ok(self.inner.clone().get_account_links(locale).await?)
     }
 
     pub async fn get_account_state(&self) -> Result<AccountControllerState> {
-        Ok(self
-            .inner
-            .clone()
-            .get_account_state()
-            .await
-            .map(AccountControllerState::from)?)
+        Ok(self.inner.clone().get_account_state().await?)
     }
 
     pub async fn refresh_account_state(&self) -> Result<()> {
@@ -252,7 +210,6 @@ impl RpcClient {
             .get_account_usage()
             .await?
             .into_iter()
-            .map(NymVpnUsage::from)
             .collect::<Vec<_>>();
         Ok(usage)
     }
@@ -273,7 +230,6 @@ impl RpcClient {
             .get_devices()
             .await?
             .into_iter()
-            .map(NymVpnDevice::from)
             .collect())
     }
 
@@ -284,12 +240,11 @@ impl RpcClient {
             .get_active_devices()
             .await?
             .into_iter()
-            .map(NymVpnDevice::from)
             .collect())
     }
 
     pub async fn get_log_path(&self) -> Result<LogPath> {
-        let log_path = self.inner.clone().get_log_path().await.map(LogPath::from)?;
+        let log_path = self.inner.clone().get_log_path().await?;
         Ok(log_path)
     }
 
@@ -341,7 +296,7 @@ impl std::fmt::Display for InnerRpcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             InnerRpcError::RpcError(err) => write!(f, "{err}"),
-            InnerRpcError::AccountCommand(err) => write!(f, "{}", err.message()),
+            InnerRpcError::AccountCommand(err) => write!(f, "{err}"),
         }
     }
 }
@@ -365,9 +320,9 @@ impl RpcError {
     }
 
     /// Returns the account error if the underlying error is an account error.
-    pub fn account_error(&self) -> Option<Arc<AccountCommandError>> {
+    pub fn account_error(&self) -> Option<AccountCommandError> {
         match &self.inner {
-            InnerRpcError::AccountCommand(err) => Some(err.clone()),
+            InnerRpcError::AccountCommand(err) => Some(err.as_ref().clone()),
             _ => None,
         }
     }

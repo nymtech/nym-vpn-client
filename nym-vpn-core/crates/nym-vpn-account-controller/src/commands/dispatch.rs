@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
-use nym_vpn_store::mnemonic::Mnemonic;
+use nym_vpn_store::account::StorableAccount;
 
-use std::net::SocketAddr;
-
+use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
+use std::net::SocketAddr;
 use tokio::sync::oneshot;
 
 use crate::AvailableTicketbooks;
@@ -19,20 +19,26 @@ pub enum AccountCommand {
     /// Generate a mnemonic and store it
     CreateAccount(ReturnSender<(), AccountCommandError>),
 
-    /// Store the given mnemonic
-    StoreAccount(ReturnSender<(), AccountCommandError>, Mnemonic),
+    /// Store the given account
+    StoreAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
-    /// Register the given mnemnonic (meant to take the sotred mnemonic). DOES NOT STORE IT. This is only used my mobile for IAP at the moment
+    /// Register the given account (meant to take the stored mnemonic). DOES NOT STORE IT. This is only used my mobile for IAP at the moment
     RegisterAccount(
         ReturnSender<RegisterAccountResponse, AccountCommandError>,
-        Mnemonic,
+        StorableAccount,
         Platform,
     ),
 
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
-    /// Reset the device identity, optionally take a seed for reproducability
+    /// Retrieve current, on-chain, balance of the account. Only applicable for decentralised accounts
+    AccountBalance(ReturnSender<Vec<Coin>, AccountCommandError>),
+
+    /// Attempt to obtain specified amount of ticketbooks (per type) for the decentralised account
+    ObtainTicketbooks(ReturnSender<(), AccountCommandError>, u64),
+
+    /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
 
     /// Forces the AC to sync with the VPN API
@@ -48,11 +54,40 @@ pub enum AccountCommand {
     Common(CommonCommand),
 }
 
+impl AccountCommand {
+    pub fn return_error(self, error: AccountCommandError) {
+        match self {
+            AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
+            AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::RefreshAccountState(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::Common(common_command) => match common_command {
+                CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::SetStaticApiAddresses(return_sender, _) => {
+                    return_sender.send(Err(error))
+                }
+            },
+        }
+    }
+}
+
 /// These commands have no impact on the state. Handling can be grouped in some cases
 #[derive(Debug, strum::Display)]
 pub enum CommonCommand {
-    /// Returns Some(mnemonic) if an account is stored, None otherwise
-    GetStoredMnemonic(ReturnSender<Option<Mnemonic>, AccountCommandError>),
+    /// Returns Some(account) if an account is stored, None otherwise
+    GetStoredAccount(ReturnSender<Option<StorableAccount>, AccountCommandError>),
 
     /// Returns Some(address) if an account is stored, None otherwise
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),

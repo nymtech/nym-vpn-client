@@ -14,12 +14,12 @@ let package = Package(
         .library(name: "AppSettings", targets: ["AppSettings"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
-        .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "FeatureFlagsManager", targets: ["FeatureFlagsManager"]),
         .library(name: "GatewayManager", targets: ["GatewayManager"]),
+        .library(name: "ImpactGenerator", targets: ["ImpactGenerator"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
@@ -75,20 +75,6 @@ let package = Package(
             path: "Sources/Services/ConnectionManager"
         ),
         .target(
-            name: "CountriesManager",
-            dependencies: [
-                "AppSettings",
-                .product(name: "AppVersionProvider", package: "ServicesMutual"),
-                "ConfigurationManager",
-                .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "NymLogger", package: "ServicesMutual"),
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
-            ],
-            path: "Sources/Services/CountriesManager"
-        ),
-        .target(
             name: "CredentialsManager",
             dependencies: [
                 "AppSettings",
@@ -119,6 +105,7 @@ let package = Package(
         .target(
             name: "FeatureFlagsManager",
             dependencies: [
+                "ConfigurationManager",
                 .product(name: "FeatureFlagModels", package: "ServicesMutual"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
@@ -133,11 +120,17 @@ let package = Package(
                 "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources/Services/GatewayManager"
+        ),
+        .target(
+            name: "ImpactGenerator",
+            dependencies: [],
+            path: "Sources/Services/ImpactGenerator"
         ),
         .target(
             name: "Keychain",
@@ -152,7 +145,6 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "ConfigurationManager",
-                "CountriesManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
@@ -229,7 +221,6 @@ let package = Package(
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
-                "CountriesManager",
                 "CredentialsManager",
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),

@@ -128,7 +128,7 @@ jobs:
           crate: cargo-license
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -145,7 +145,7 @@ jobs:
 
       - name: Install yq
         run: |
-          winget list MikeFarah.yq || winget install --disable-interactivity --id MikeFarah.yq
+          winget list MikeFarah.yq || winget install --disable-interactivity --accept-source-agreements --id MikeFarah.yq
 
       - name: Get nym-vpn-core release tag
         if: inputs.core_release_tag

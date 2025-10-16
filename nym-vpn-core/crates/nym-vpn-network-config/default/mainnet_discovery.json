@@ -7,22 +7,32 @@
     },
     {
       "url": "https://nym-frontdoor.vercel.app/api/",
-      "fronts": ["vercel.app", "vercel.com"]
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
     },
     {
       "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
-      "fronts": ["yelp.global.ssl.fastly.net"]
+      "fronts": [
+        "yelp.global.ssl.fastly.net"
+      ]
     }
   ],
   "nym_vpn_api_url": "https://nymvpn.com/api/",
   "nym_vpn_api_urls": [
     {
       "url": "https://nymvpn.com/api/",
-      "fronts": ["vercel.app", "vercel.com"]
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
     },
     {
       "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api",
-      "fronts": ["yelp.global.ssl.fastly.net"]
+      "fronts": [
+        "yelp.global.ssl.fastly.net"
+      ]
     }
   ],
   "account_management": {
@@ -54,7 +64,8 @@
       "ios": "2.7.1",
       "macos": "2.4.0",
       "tauri": "1.9.0"
-    }
+    },
+    "statistics_api": "https://nym-statistics-api.nymtech.cc"
   },
   "network_compatibility": {
     "core": "1.9.0",
@@ -64,6 +75,15 @@
     "android": "1.5.0"
   },
   "feature_flags": {
+    "domain_fronting": {
+      "enabled": "true"
+    },
+    "quic": {
+      "enabled": "true"
+    },
+    "versions": {
+      "gatewayMetadataUpdate": "1.19.0"
+    },
     "zkNyms": {
       "credentialMode": "true"
     }

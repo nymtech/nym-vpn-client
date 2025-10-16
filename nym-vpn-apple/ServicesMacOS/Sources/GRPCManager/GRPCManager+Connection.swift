@@ -1,69 +1,45 @@
-import GRPC
-import SwiftProtobuf
+import NymVPNRpc
 import Constants
 import ConnectionTypes
 
 extension GRPCManager {
-    public func connect(
-        entryGateway: EntryGateway,
-        exitRouter: ExitRouter,
-        isTwoHopEnabled: Bool,
-        disableIPv6: Bool
-    ) async throws {
-        var request = NymVpnService_ConnectRequest()
-        request.userAgent = userAgent
+    public func config() async -> ConnectionConfig? {
+        await Task.detached { [weak self] in
+            guard let cfg = try? await self?.rpcClient?.getConfig() else { return nil }
+            return ConnectionConfig(from: cfg)
+        }.value
+    }
 
-        request.entry = entryNode(from: entryGateway)
-        request.exit = exitNode(from: exitRouter)
+    public func updateConfig(newConfig: ConnectionConfig) async throws {
+        try await Task.detached { [weak self] in
+            guard let oldConfig = await self?.config() else { return }
+            if oldConfig.entry != newConfig.entry {
+                try await self?.rpcClient?.setEntryPoint(entryPoint: newConfig.entryPoint)
+            }
+            if oldConfig.exit != newConfig.exit {
+                try await self?.rpcClient?.setExitPoint(exitPoint: newConfig.exitPoint)
+            }
+            if oldConfig.disableIpv6 != newConfig.disableIpv6 {
+                try await self?.rpcClient?.setDisableIpv6(disableIpv6: newConfig.disableIpv6)
+            }
+            if oldConfig.enableTwoHop != newConfig.enableTwoHop {
+                try await self?.rpcClient?.setEnableTwoHop(enableTwoHop: newConfig.enableTwoHop)
+            }
+            if oldConfig.enableBridges != newConfig.enableBridges {
+                try await self?.rpcClient?.setEnableBridges(enableBridges: newConfig.enableBridges)
+            }
+        }.value
+    }
 
-        request.enableTwoHop = isTwoHopEnabled
-        request.disableBackgroundCoverTraffic = false
-        request.disableIpv6 = disableIPv6
-
-        _ = try await client.connectTunnel(request)
+    public func connect() async throws {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.connectTunnel()
+        }.value
     }
 
     public func disconnect() async throws {
-        _ = try await client.disconnectTunnel(Google_Protobuf_Empty())
-    }
-}
-
-private extension GRPCManager {
-    // TODO: add lowLatencyCountry support
-    func entryNode(from entryGateway: EntryGateway) -> NymVpnService_EntryNode {
-        var entryNode = NymVpnService_EntryNode()
-        switch entryGateway {
-        case let .country(country):
-            var location = NymVpnService_Country()
-            location.twoLetterIsoCountryCode = country.code
-            entryNode.country = location
-        case let .lowLatencyCountry(country):
-            print("Add .lowLatencyCountry support")
-            var location = NymVpnService_Country()
-            location.twoLetterIsoCountryCode = country.code
-            entryNode.country = location
-        case let .gateway(node):
-            var gateway = NymVpnService_GatewayId()
-            gateway.id = node.id
-            entryNode.gateway = gateway
-        case .random:
-            entryNode.random = Google_Protobuf_Empty()
-        }
-        return entryNode
-    }
-
-    func exitNode(from exitRouter: ExitRouter) -> NymVpnService_ExitNode {
-        var exitNode = NymVpnService_ExitNode()
-        switch exitRouter {
-        case let .country(country):
-            var location = NymVpnService_Country()
-            location.twoLetterIsoCountryCode = country.code
-            exitNode.country = location
-        case let .gateway(node):
-            var gateway = NymVpnService_GatewayId()
-            gateway.id = node.id
-            exitNode.gateway = gateway
-        }
-        return exitNode
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.disconnectTunnel()
+        }.value
     }
 }

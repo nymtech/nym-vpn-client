@@ -6,7 +6,7 @@ import { kvSet } from '../../../kvStore';
 import { DomainFrontingUrl, QuicUrl } from '../../../constants';
 
 function AntiCensorship() {
-  const { quic, domainFronting, backendFlags } = useMainState();
+  const { quic, backendFlags } = useMainState();
 
   const dispatch = useMainDispatch() as StateDispatch;
 
@@ -16,19 +16,17 @@ function AntiCensorship() {
     const isChecked = !quic;
     await kvSet('quic-enabled', isChecked);
     dispatch({ type: 'set-quic', enabled: isChecked });
-    try {
-      // TODO invoke command
-    } catch {}
+    // TODO invoke command
   };
 
-  const onDomainFrontingChange = async () => {
-    const isChecked = !domainFronting;
-    await kvSet('domain-fronting-enabled', isChecked);
-    dispatch({ type: 'set-domain-fronting', enabled: isChecked });
-    try {
-      // TODO invoke command
-    } catch {}
-  };
+  // const onDomainFrontingChange = async () => {
+  //   const isChecked = !domainFronting;
+  //   await kvSet('domain-fronting-enabled', isChecked);
+  //   dispatch({ type: 'set-domain-fronting', enabled: isChecked });
+  //   try {
+  //     // TODO invoke command
+  //   } catch {}
+  // };
 
   if (!backendFlags?.quic && !backendFlags?.domainFronting) {
     return (
@@ -77,7 +75,9 @@ function AntiCensorship() {
               subheaderColor="king-nacho"
               // TODO keep it always ON for now
               checked={true}
-              onClick={onDomainFrontingChange}
+              onClick={() => {
+                /* TODO */
+              }}
               disabled
             />
           }

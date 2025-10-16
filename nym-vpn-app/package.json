@@ -23,13 +23,14 @@
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
+    "tsgen": "cd src-tauri && cargo test && prettier --write ../src/types/tauri.ts",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
     "gen:licenses:js": "npx --yes license-checker-rseidelsohn@4.3.0 --production --json > public/licenses-js.json",
     "gen:licenses:rust": "cargo license -j --avoid-dev-deps --avoid-build-deps --manifest-path src-tauri/Cargo.toml > public/licenses-rust.json"
   },
   "dependencies": {
-    "@base-ui-components/react": "^1.0.0-alpha.8",
+    "@base-ui-components/react": "^1.0.0-beta.3",
     "@headlessui/react": "^2.1.2",
     "@lottiefiles/dotlottie-react": "^0.17.0",
     "@radix-ui/react-accordion": "^1.2.3",

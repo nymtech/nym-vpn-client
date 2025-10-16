@@ -4,7 +4,7 @@ use serde::Serialize;
 use ts_rs::TS;
 
 #[derive(Serialize, Clone, Debug, strum::Display, PartialEq, TS)]
-#[ts(export)]
+#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "key", content = "message")]
 pub enum TunnelError {
@@ -15,6 +15,8 @@ pub enum TunnelError {
     SameEntryAndExitGw(Option<String>),
     PerformantEntryGwUnavailable(Option<String>),
     PerformantExitGwUnavailable(Option<String>),
+    InvalidEntryGwId(Option<String>),
+    InvalidExitGwId(Option<String>),
     InvalidEntryGwCountry(Option<String>),
     InvalidExitGwCountry(Option<String>),
     MaxDevicesReached(Option<String>),
@@ -44,6 +46,12 @@ impl From<ProtoTunnelError> for TunnelError {
             }
             ErrorStateReason::PerformantExitGatewayUnavailable => {
                 TunnelError::PerformantExitGwUnavailable(error.message)
+            }
+            ErrorStateReason::InvalidEntryGatewayIdentity => {
+                TunnelError::InvalidEntryGwId(error.message)
+            }
+            ErrorStateReason::InvalidExitGatewayIdentity => {
+                TunnelError::InvalidExitGwId(error.message)
             }
             ErrorStateReason::InvalidEntryGatewayCountry => {
                 TunnelError::InvalidEntryGwCountry(error.message)

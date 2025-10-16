@@ -15,6 +15,48 @@
     "exit": "موقع الخروج المحدد غير متاح، تم التبديل إلى {{location}}"
   },
   "node-details": {
-    "id-label": "مفتاح الهوية:"
+    "id-label": "مفتاح الهوية:",
+    "data": {
+      "advanced-privacy": "الخصوصية المتقدمة",
+      "with-mixnet": "مع مزج (5-hop)",
+      "ip-type": "البث والمحتوى",
+      "ip-residential": "عنوان IP للسكن",
+      "ip-datacenter": "عنوان IP لمركز البيانات",
+      "anti-censorship": "مكافحة الرقابة",
+      "quic-protocol": "بروتوكول QUIC",
+      "standard-protocol": "Standard protocol",
+      "overall-performance": "الأداء العام",
+      "server-load": "تحميل الخادم",
+      "speed": "السرعة",
+      "uptime": "وقت التحديث",
+      "exit-ipv4": "الخروج IPv4",
+      "exit-ipv6": "الخروج IPv6",
+      "asn": "آشن",
+      "asn-name": "اسم ASN",
+      "build-version": "إصدار بناء Nym",
+      "identity-key": "مفتاح الهوية:"
+    },
+    "perf-score": {
+      "high": "جيد",
+      "medium": "Mid",
+      "low": "منخفض",
+      "offline": "غير متصل"
+    },
+    "server-load-score": {
+      "high": "مرتفع",
+      "medium": "متوسط",
+      "low": "منخفض",
+      "offline": "غير متصل"
+    },
+    "notes": {
+      "anti-censorship": "تمكين \"بروتوكول QUIC\" في إعدادات مكافحة الرقابة لاستخدام هذه الميزة",
+      "performance_with_time": "نتيجة الأداء محسوبة من تحميل الخادم وأكثر. التحديث كمتوسط 24 ساعة. آخر تحديث {{relativeTime}}.",
+      "performance": "نتيجة الأداء محسوبة من تحميل الخادم ووقت إضافي. التحديث كمتوسط 24 ساعة."
+    },
+    "links": {
+      "missing-info": "لماذا هناك معلومات مفقودة أو غير صحيحة",
+      "explorer": "المزيد من التفاصيل في Nym <networkExplorerLink />"
+    },
+    "select-button": "حدد الخادم"
   }
 }

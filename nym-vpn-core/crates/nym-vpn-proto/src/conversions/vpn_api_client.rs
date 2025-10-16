@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::response::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
+use nym_vpn_lib_types::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 
 use crate::{conversions::ConversionError, proto};
 

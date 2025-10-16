@@ -49,7 +49,8 @@ private extension AcknowledgmentsView {
                 AcknowledgementsRow(
                     viewModel: AcknowledgementsRowViewModel(
                         acknowledgement: acknowledgement,
-                        navigationPath: viewModel.$navigationPath
+                        navigationPath: viewModel.$navigationPath,
+                        externalLinkManager: .shared
                     )
                 )
             }

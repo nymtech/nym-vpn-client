@@ -13,7 +13,7 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AccountStateReceiver,
+    AccountCommandSender, AccountControllerConfig, AccountStateReceiver, NyxdClient,
     commands::AccountCommand,
     error::Error,
     shared_state::SharedAccountState,
@@ -69,6 +69,7 @@ where
 {
     pub async fn new(
         nym_vpn_api_client: VpnApiClient,
+        nyxd_client: NyxdClient,
         config: AccountControllerConfig,
         storage: S,
         connectivity_handle: C,
@@ -93,7 +94,7 @@ where
         let credential_storage =
             VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
 
-        let vpn_api_account = account_storage.load_account().await?;
+        let vpn_api_account = account_storage.load_vpn_account().await?;
         let device_keys = account_storage.load_device_keys().await?;
 
         // Shared_state
@@ -102,17 +103,19 @@ where
             config,
             credential_storage,
             nym_vpn_api_client,
+            nyxd_client,
             vpn_api_account,
             device_keys,
             storage_op_sender,
         );
 
-        let (current_state_handler, initial_state) = if shared_state
+        let is_offline = shared_state
             .connectivity_handle
             .connectivity()
             .await
-            .is_offline()
-        {
+            .is_offline();
+
+        let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
         } else {
             SyncingState::enter(&shared_state, 0)
@@ -150,7 +153,7 @@ where
             .vpn_api_account
             .as_ref()
             .map(|account| account.id())
-            .unwrap_or_else(|| "(unset)");
+            .unwrap_or_else(|| "(unset)".to_string());
 
         let device_id = self
             .shared_state
@@ -159,8 +162,8 @@ where
             .map(|d| d.identity_key().to_base58_string())
             .unwrap_or_else(|| "(unset)".to_string());
 
-        tracing::info!("Account id: {}", account_id);
-        tracing::info!("Device id: {}", device_id);
+        tracing::info!("Account id: {account_id}");
+        tracing::info!("Device id: {device_id}");
     }
 
     pub async fn run(mut self) {

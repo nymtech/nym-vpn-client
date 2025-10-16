@@ -9,7 +9,7 @@ import {
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
-  TunnelStateIpc,
+  TTunnelState,
   UiTheme,
   UpdateMetadata,
   VpndStatus,
@@ -36,15 +36,16 @@ const daemon: VpndStatus = {
   ok: {
     version: '0.0.0',
     network: 'mainnet',
+    gitCommit: 'ffffff',
   },
 };
-const tunnelState: TunnelStateIpc = 'disconnected';
-// const tunnelState: TunnelStateIpc = { connected: wgTunnel };
-// const tunnelState: TunnelStateIpc = { connecting: null };
-// const tunnelState: TunnelStateIpc = { disconnecting: null };
-// const tunnelState: TunnelStateIpc = { offline: { reconnect: false } };
-// const tunnelState: TunnelStateIpc = { offline: { reconnect: true } };
-// const tunnelState: TunnelStateIpc = { error: { key: 'internal', data: 'Oupsy something went wrong' } };
+const tunnelState: TTunnelState = 'disconnected';
+// const tunnelState: TTunnelState = { connected: wgTunnel };
+// const tunnelState: TTunnelState = { connecting: null };
+// const tunnelState: TTunnelState = { disconnecting: null };
+// const tunnelState: TTunnelState = { offline: { reconnect: false } };
+// const tunnelState: TTunnelState = { offline: { reconnect: true } };
+// const tunnelState: TTunnelState = { error: { key: 'internal', data: 'Oupsy something went wrong' } };
 const isLoggedIn = true;
 let zknymMode = false;
 let autostart = true;
@@ -174,6 +175,12 @@ export function mockTauriIPC() {
       return new Promise<Cli>((resolve) =>
         resolve({
           nosplash: false,
+          buildInfo: false,
+          cleanLocalFiles: false,
+          devMode: true,
+          dns: null,
+          logFile: false,
+          logLevel: 'trace',
         }),
       );
     }

@@ -1,12 +1,13 @@
-import GRPC
-import SwiftProtobuf
-
 extension GRPCManager {
-    public func deviceIdentifier() async throws -> String {
-        try await client.getDeviceIdentity(Google_Protobuf_Empty()).deviceIdentity
+    public func deviceIdentifier() async throws -> String? {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.getDeviceIdentity()
+        }.value
     }
 
-    public func accountIdentifier() async throws -> String {
-        try await client.getAccountIdentity(Google_Protobuf_Empty()).accountIdentity
+    public func accountIdentifier() async throws -> String? {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.getAccountIdentity()
+        }.value
     }
 }

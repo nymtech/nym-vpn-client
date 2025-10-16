@@ -9,7 +9,9 @@ mod platform;
 #[cfg(test)]
 mod test_fixtures;
 
-pub use account::{Error as AccountError, VpnApiAccount, VpnApiTime, VpnApiTimeSynced};
+pub use account::{
+    Error as AccountError, VpnAccount, VpnAccountMode, VpnApiTime, VpnApiTimeSynced,
+};
 pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType, ScoreThresholds};
 pub use platform::Platform;

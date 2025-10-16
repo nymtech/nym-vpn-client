@@ -1,8 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
-
 use nym_vpn_lib_types::{AccountCommandError, AvailableTickets, VpnApiError, VpnApiErrorResponse};
 
 use crate::{conversions::ConversionError, proto};
@@ -27,17 +25,33 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
             proto::account_command_error::ErrorDetail::ExistingAccount(_) => Self::ExistingAccount,
             proto::account_command_error::ErrorDetail::Offline(_) => Self::Offline,
+            proto::account_command_error::ErrorDetail::InsufficientFunds(_) => {
+                Self::InsufficientFunds
+            }
             proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
+            }
+            proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err) => {
+                Self::NyxdConnectionFailure(err)
+            }
+            proto::account_command_error::ErrorDetail::NyxdQueryFailure(err) => {
+                Self::NyxdQueryFailure(err)
+            }
+            proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(_) => {
+                Self::AccountDoesntExistOnChain
+            }
+            proto::account_command_error::ErrorDetail::AccountDecentralised(_) => {
+                Self::AccountDecentralised
+            }
+            proto::account_command_error::ErrorDetail::AccountNotDecentralised(_) => {
+                Self::AccountNotDecentralised
+            }
+            proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err) => {
+                Self::ZkNymAcquisitionFailure(err)
             }
         })
     }
 }
-
-// We don't pass the source error across grpc, so on the recipient it will be empty. That's OK.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("(empty)")]
-struct EmptyError;
 
 impl TryFrom<proto::VpnApiError> for VpnApiError {
     type Error = ConversionError;
@@ -47,10 +61,12 @@ impl TryFrom<proto::VpnApiError> for VpnApiError {
             .error_detail
             .ok_or(ConversionError::NoValueSet("VpnApiError.error_detail"))?;
         Ok(match error_detail {
-            proto::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout(Arc::new(EmptyError)),
-            proto::vpn_api_error::ErrorDetail::StatusCode(code) => Self::StatusCode {
-                code: code.try_into().map_err(ConversionError::generic)?,
-                source: Arc::new(EmptyError),
+            proto::vpn_api_error::ErrorDetail::Timeout(msg) => Self::Timeout(msg),
+            proto::vpn_api_error::ErrorDetail::StatusCode(e) => Self::StatusCode {
+                code: e.code.try_into().map_err(|e| {
+                    ConversionError::Generic(format!("failed to convert status code: {e}"))
+                })?,
+                msg: e.message,
             },
             proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response) => {
                 Self::Response(vpn_api_error_response.into())
@@ -106,10 +122,45 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             AccountCommandError::Offline => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::Offline(true)),
             },
+            AccountCommandError::InsufficientFunds => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::InsufficientFunds(true),
+                ),
+            },
             AccountCommandError::InvalidMnemonic(err) => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(
                     err,
                 )),
+            },
+            AccountCommandError::NyxdConnectionFailure(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err),
+                ),
+            },
+            AccountCommandError::NyxdQueryFailure(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::NyxdQueryFailure(
+                    err,
+                )),
+            },
+            AccountCommandError::AccountDoesntExistOnChain => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountDoesntExistOnChain(true),
+                ),
+            },
+            AccountCommandError::AccountNotDecentralised => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountNotDecentralised(true),
+                ),
+            },
+            AccountCommandError::AccountDecentralised => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::AccountDecentralised(true),
+                ),
+            },
+            AccountCommandError::ZkNymAcquisitionFailure(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err),
+                ),
             },
         }
     }
@@ -156,9 +207,12 @@ impl From<proto::AvailableTickets> for AvailableTickets {
 impl From<VpnApiError> for proto::VpnApiError {
     fn from(value: VpnApiError) -> Self {
         let error_detail = match value {
-            VpnApiError::Timeout(..) => proto::vpn_api_error::ErrorDetail::Timeout(true),
-            VpnApiError::StatusCode { code, .. } => {
-                proto::vpn_api_error::ErrorDetail::StatusCode(code.into())
+            VpnApiError::Timeout(msg) => proto::vpn_api_error::ErrorDetail::Timeout(msg),
+            VpnApiError::StatusCode { code, msg: message } => {
+                proto::vpn_api_error::ErrorDetail::StatusCode(proto::vpn_api_error::StatusError {
+                    code: u32::from(code),
+                    message,
+                })
             }
             VpnApiError::Response(vpn_api_error_response) => {
                 proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response.into())
