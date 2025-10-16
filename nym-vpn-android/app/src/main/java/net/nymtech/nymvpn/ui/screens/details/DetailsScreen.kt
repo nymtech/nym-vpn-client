@@ -78,11 +78,14 @@ fun DetailsScreen(appUiState: AppUiState, id: String, type: GatewayType, gateway
 			viewModel.onSelected(uiState.identity, location)
 			navController.navigateAndForget(Route.Main())
 		},
+		onEnableQuicProtocolClicked = {
+			navController.navigate(Route.Censorship)
+		},
 	)
 }
 
 @Composable
-fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit) {
+fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit, onEnableQuicProtocolClicked: () -> Unit) {
 	Column(
 		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.Start,
@@ -128,7 +131,7 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
 				)
 			}
-			DetailsSectionPrivacy(detailsUiState.asnKind, detailsUiState.isQuicFeatureFlagEnabled, detailsUiState.isQuickSupportedByGateway)
+			DetailsSectionPrivacy(detailsUiState.asnKind, detailsUiState.isQuicFeatureFlagEnabled, detailsUiState.isQuickSupportedByGateway, onEnableQuicProtocolClicked)
 			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
 			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
 			DetailsSectionIdentity(detailsUiState.identity, detailsUiState.buildVersion)
@@ -183,7 +186,9 @@ internal fun PreviewPrivacyScreen() {
 			buildVersion = "1.2.4",
 			exitIpv4 = "12.34.152.125",
 			exitIpv6 = "12:ff:14::155",
+			isQuicFeatureFlagEnabled = true,
+			isQuickSupportedByGateway = true
 		)
-		DetailsScreen(detailsUiState = detailsUiState, onSelectServerClick = {})
+		DetailsScreen(detailsUiState = detailsUiState, onSelectServerClick = {}, onEnableQuicProtocolClicked = {})
 	}
 }

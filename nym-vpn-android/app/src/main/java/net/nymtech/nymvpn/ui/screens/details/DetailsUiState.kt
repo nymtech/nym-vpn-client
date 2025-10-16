@@ -1,8 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.details
 
+import net.nymtech.vpn.model.BridgeParameter
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AsnKind
-import nym_vpn_lib_types.BridgeParameters
 import nym_vpn_lib_types.NodeIdentity
 import nym_vpn_lib_types.Score
 import java.util.Locale
@@ -53,7 +53,7 @@ data class DetailsUiState(
 
 		private fun NymGateway.isQuicSupported(): Boolean = run {
 			return bridgeInformation?.transports?.find {
-				it is BridgeParameters.QuicPlain
+				it is BridgeParameter.QuicPlain
 			} != null
 		}
 	}
