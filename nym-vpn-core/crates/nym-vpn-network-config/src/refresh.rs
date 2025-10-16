@@ -8,8 +8,8 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
-    network_from_discovery,
+    discovery::Discovery, envs::RegisteredNetworks, network_from_discovery, Error, Network, NymNetwork,
+    Result,
 };
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
@@ -63,77 +63,73 @@ impl FileRefresher {
         let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
 
-        self.cancel_token
-            .run_until_cancelled(async {
-                // no initial tick outside the loop, since we're only running in Connected state,
-                // we want to try to refresh asap and make the most of this iteration
-                loop {
-                    interval.tick().await;
-                    if !checked_consistency {
-                        match network.check_consistency().await {
-                            // This is probably because of network unavailability, so consistency can't be checked yet
-                            Err(e) => tracing::warn!("Could not check consistency: {e:?}"),
-                            Ok(false) => {
-                                tracing::error!("Inconsistent network");
-                                self.discovery_refresher_tx
-                                    .send(Err(Error::InconsistentNetwork))
-                                    .await
-                                    .ok();
-                            }
-                            Ok(true) => {
-                                checked_consistency = true;
-                            }
-                        }
-                    }
-
-                    if let Err(err) = self.refresh_envs_file().await {
-                        trace_err_chain!(err, "Failed to refresh envs file");
-                    }
-
-                    match self
-                        .refresh_discovery_file(&network.nym_network.network.network_name)
-                        .await
-                    {
-                        Err(err) => {
-                            trace_err_chain!(err, "Failed to refresh discovery file");
+        Box::pin(self.cancel_token.run_until_cancelled(async {
+            // no initial tick outside the loop, since we're only running in Connected state,
+            // we want to try to refresh asap and make the most of this iteration
+            loop {
+                interval.tick().await;
+                if !checked_consistency {
+                    match network.check_consistency().await {
+                        // This is probably because of network unavailability, so consistency can't be checked yet
+                        Err(e) => tracing::warn!("Could not check consistency: {e:?}"),
+                        Ok(false) => {
+                            tracing::error!("Inconsistent network");
                             self.discovery_refresher_tx
-                                .send(Err(Error::RefreshDiscoveryFile))
+                                .send(Err(Error::InconsistentNetwork))
                                 .await
                                 .ok();
                         }
-                        Ok(Some(discovery)) => {
-                            if let Err(err) = self
-                                .refresh_nym_network_file(
-                                    &network.nym_network.network.network_name,
-                                    &discovery,
-                                )
-                                .await
-                            {
-                                trace_err_chain!(err, "Failed to refresh nym network file");
-                            }
-
-                            match network_from_discovery(&self.config_path, discovery).await {
-                                Err(err) => {
-                                    trace_err_chain!(
-                                        err,
-                                        "Failed to parse refreshed discovery file"
-                                    );
-                                    self.discovery_refresher_tx
-                                        .send(Err(Error::ParseDiscoveryFile))
-                                        .await
-                                        .ok();
-                                }
-                                Ok(new_network) => {
-                                    network = new_network.clone();
-                                    self.discovery_refresher_tx.send(Ok(new_network)).await.ok();
-                                }
-                            }
+                        Ok(true) => {
+                            checked_consistency = true;
                         }
-                        _ => {}
                     }
                 }
-            })
-            .await;
+
+                if let Err(err) = self.refresh_envs_file().await {
+                    trace_err_chain!(err, "Failed to refresh envs file");
+                }
+
+                match self
+                    .refresh_discovery_file(&network.nym_network.network.network_name)
+                    .await
+                {
+                    Err(err) => {
+                        trace_err_chain!(err, "Failed to refresh discovery file");
+                        self.discovery_refresher_tx
+                            .send(Err(Error::RefreshDiscoveryFile))
+                            .await
+                            .ok();
+                    }
+                    Ok(Some(discovery)) => {
+                        if let Err(err) = self
+                            .refresh_nym_network_file(
+                                &network.nym_network.network.network_name,
+                                &discovery,
+                            )
+                            .await
+                        {
+                            trace_err_chain!(err, "Failed to refresh nym network file");
+                        }
+
+                        match network_from_discovery(&self.config_path, discovery).await {
+                            Err(err) => {
+                                trace_err_chain!(err, "Failed to parse refreshed discovery file");
+                                self.discovery_refresher_tx
+                                    .send(Err(Error::ParseDiscoveryFile))
+                                    .await
+                                    .ok();
+                            }
+                            Ok(new_network) => {
+                                network = new_network.clone();
+                                self.discovery_refresher_tx.send(Ok(new_network)).await.ok();
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }))
+        .await;
     }
 }
 
