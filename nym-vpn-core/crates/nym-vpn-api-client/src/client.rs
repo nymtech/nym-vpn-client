@@ -28,7 +28,7 @@ use crate::{
         NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
         NymWellknownDiscoveryItem, StatusOk,
     },
-    routes,
+    routes, str_to_socket_addr,
     types::{
         Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
         VpnApiTimeSynced,
@@ -61,7 +61,7 @@ impl VpnApiClient {
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
-        let url = api_url_to_url(&api_url)?;
+        let (url, domain) = api_url_to_url(&api_url)?;
         let has_front = url.has_front();
 
         let mut builder = nym_http_api_client::Client::builder(url)
@@ -74,6 +74,24 @@ impl VpnApiClient {
 
         if has_front {
             builder = builder.with_fronting(FrontPolicy::OnRetry);
+
+            // Have to use ApiUrl fronts as there is no Url::fronts() method :(
+            if let Some(fronts) = api_url.front_hosts.as_ref()
+                && !fronts.is_empty()
+            {
+                for front in fronts.iter() {
+                    let addresses = str_to_socket_addr(front).await?;
+                    builder = builder.resolve_to_addrs(&domain, &addresses);
+                    tracing::info!(
+                        "Enabling Resolver override for {domain}: {}",
+                        addresses
+                            .iter()
+                            .map(|addr| addr.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
+                }
+            }
         }
 
         // Add resolver overrides
@@ -137,10 +155,25 @@ impl VpnApiClient {
 
         let api_url = api_urls.first().unwrap().clone();
 
-        let urls: Vec<Url> = api_urls
+        let urls_and_domains: Vec<(Url, String)> = api_urls
             .iter()
             .map(api_url_to_url)
             .collect::<Result<Vec<_>, _>>()?;
+
+        // We wouldn't need to do this Url exposed the fronts they are using
+        #[allow(deprecated)]
+        if api_urls.len() != urls_and_domains.len() {
+            return Err(VpnApiClientError::CreateVpnApiClient(Box::new(
+                HttpClientError::GenericRequestFailure(
+                    "Some of the Nym VPN API URLs in network details are invalid".to_string(),
+                ),
+            )));
+        }
+
+        let urls = urls_and_domains
+            .iter()
+            .map(|url| url.0.clone())
+            .collect::<Vec<_>>();
 
         let has_front = urls.iter().any(|url| url.has_front());
 
@@ -152,6 +185,27 @@ impl VpnApiClient {
 
         if has_front {
             builder = builder.with_fronting(FrontPolicy::OnRetry);
+
+            // Have to use ApiUrl fronts as there is no Url::fronts() method :(
+            for i in 0..api_urls.len() {
+                let domain = &urls_and_domains[i].1;
+                let api_url = &api_urls[i];
+                if let Some(ref fronts) = api_url.front_hosts {
+                    for front in fronts.iter() {
+                        let addresses = str_to_socket_addr(front).await?;
+                        builder = builder.resolve_to_addrs(domain, &addresses);
+
+                        tracing::info!(
+                            "Enabling Resolver override for {domain}: {}",
+                            addresses
+                                .iter()
+                                .map(|addr| addr.to_string())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        );
+                    }
+                }
+            }
         }
 
         // Add resolver overrides
