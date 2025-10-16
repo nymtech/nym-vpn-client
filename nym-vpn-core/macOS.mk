@@ -27,9 +27,16 @@ DAEMON_INFO_PLIST ?= $(CURDIR)/../nym-vpn-apple/Daemon/Info.plist
 # Output dir for the final universal binary
 UPLOAD_DIR_MAC ?= $(CURDIR)/upload/mac
 
+RUST_TRIPLET := aarch64-apple-darwin
+LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TRIPLET)
+WIREGUARD_DIR := $(CURDIR)/../wireguard
+
 # Target artifact dirs
 TARGET_AARCH64_DIR := $(CURDIR)/target/aarch64-apple-darwin/$(BUILD_PROFILE)
 TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
+
+# todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
+LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
 # RUSTFLAGS for embedding Info.plist into the binary
 RUSTFLAGS_DAEMON := -C link-arg=-all_load \
@@ -43,12 +50,17 @@ RUSTFLAGS_DAEMON := -C link-arg=-all_load \
 
 all: build-all
 
-build-all: rpc-swift-package vpnd-universal
+build-all: libwg rpc-swift-package vpnd-universal
+
+libwg: $(LIBWG_BUILD_DIR)/libwg.a
+
+$(LIBWG_BUILD_DIR)/libwg.a: $(LIBWG_SOURCES)
+	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
 rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
 	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG) ; \
-	sed -i '' -e '/\.macOS(\.v13)/d' "NymVPNRpc/Package.swift"
+	sed -i '' -e '/\.iOS(\.v13)/d' "NymVPNRpc/Package.swift"
 
 # Build daemon for Apple Silicon
 vpnd-aarch64:
@@ -74,15 +86,9 @@ vpnd-universal: vpnd-aarch64 vpnd-x86_64
 		"$(TARGET_X86_64_DIR)/nym-vpnd"
 	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/nym-vpnd"
 
-# Optional: clean only daemon artifacts + universal output
-vpnd-clean:
-	@echo "Cleaning daemon artifacts…"
-	$(CARGO) clean --target aarch64-apple-darwin
-	$(CARGO) clean --target x86_64-apple-darwin
-	rm -f "$(UPLOAD_DIR_MAC)/nym-vpnd"
-
 clean:
 	cargo clean --target x86_64-apple-darwin
 	cargo clean --target aarch64-apple-darwin
 	rm -rf $(RPC_CRATE_DIR)/NymVPNRpc
 	rm -rf $(RPC_CRATE_DIR)/generated
+	rm -rf $(UPLOAD_DIR_MAC)/nym-vpnd

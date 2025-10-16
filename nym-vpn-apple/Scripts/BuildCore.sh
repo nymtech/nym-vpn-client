@@ -11,20 +11,6 @@ echo "[BuildCore] CORE_ROOT=${CORE_ROOT}"
 echo "[BuildCore] APPLE_ROOT=${APPLE_ROOT}"
 echo "[BuildCore] CLIENT_ROOT=${CLIENT_ROOT}"
 
-# 0) Build WireGuard (before everything else)
-WIREGUARD_SCRIPT="${CLIENT_ROOT}/wireguard/build-wireguard-go.sh"
-if [[ ! -f "${WIREGUARD_SCRIPT}" ]]; then
-  echo "[BuildCore][ERROR] WireGuard build script not found at ${WIREGUARD_SCRIPT}"
-  exit 1
-fi
-if [[ ! -x "${WIREGUARD_SCRIPT}" ]]; then
-  echo "[BuildCore] Making WireGuard build script executable…"
-  chmod +x "${WIREGUARD_SCRIPT}"
-fi
-echo "[BuildCore] Building WireGuard (macOS/iOS)…"
-"${WIREGUARD_SCRIPT}"
-echo "[BuildCore] WireGuard build completed."
-
 # 1) Build iOS
 cd "${CORE_ROOT}"
 make -f iOS.mk
