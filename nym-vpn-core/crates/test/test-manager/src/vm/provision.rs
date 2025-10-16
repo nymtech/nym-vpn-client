@@ -28,15 +28,9 @@ pub async fn provision(
             log::debug!("SSH provisioning");
 
             let (user, password) = config.get_ssh_options().context("missing SSH config")?;
-            provision_ssh(
-                instance,
-                config.os_type,
-                &runner_dir,
-                user,
-                password,
-            )
-            .await
-            .context("Failed to provision runner over SSH")
+            provision_ssh(instance, config.os_type, &runner_dir, user, password)
+                .await
+                .context("Failed to provision runner over SSH")
         }
         Provisioner::Noop => {
             let dir = config
@@ -144,16 +138,14 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
-    // TODO dz hacky way to transfer vpnd
-    let source =
-        PathBuf::from("/home/dinko/git/nym-vpn-client/nym-vpn-core/target/release/nym-vpnd");
+    // Transfer nym-vpnd
+    let source = local_runner_dir.join("nym-vpnd");
     log::debug!("Source: {}", source.display());
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
-    // TODO dz hacky way to transfer vpnc
-    let source =
-        PathBuf::from("/home/dinko/git/nym-vpn-client/nym-vpn-core/target/release/nym-vpnc");
+    // Transfer nym-vpnc (for troubleshooting purposes, not used by tests)
+    let source = local_runner_dir.join("nym-vpnc");
     log::debug!("Source: {}", source.display());
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
