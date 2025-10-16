@@ -1,7 +1,4 @@
-use crate::{
-    error::{Result, VpnApiClientError},
-    str_to_socket_addr,
-};
+use crate::error::{Result, VpnApiClientError};
 use nym_http_api_client::{Client, FrontPolicy, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
 use std::time::Duration;
@@ -11,24 +8,10 @@ pub async fn build_fronted_http_client(
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
 ) -> Result<Client> {
-    let url = Url::new(api_url.url.clone(), api_url.front_hosts.clone()).map_err(|_e| {
-        VpnApiClientError::InvalidUrl {
-            url: api_url.url.to_string(),
-        }
-    })?;
+    let url = api_url_to_url(api_url)?;
+    let has_front = url.has_front();
 
-    let base_url: url::Url = api_url
-        .url
-        .parse()
-        .map_err(|_e| VpnApiClientError::InvalidUrl {
-            url: api_url.url.clone(),
-        })?;
-
-    let domain = base_url.domain().ok_or(VpnApiClientError::InvalidUrl {
-        url: api_url.url.clone(),
-    })?;
-
-    let mut builder = nym_http_api_client::Client::builder(url.clone())
+    let mut builder = nym_http_api_client::Client::builder(url)
         .map_err(Box::new)
         .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
@@ -40,26 +23,8 @@ pub async fn build_fronted_http_client(
         builder = builder.with_timeout(timeout);
     }
 
-    if url.has_front() {
-        // Have to use ApiUrl fronts as there is no Url::fronts() method :(
-        if let Some(fronts) = api_url.front_hosts.as_ref()
-            && !fronts.is_empty()
-        {
-            builder = builder.with_fronting(FrontPolicy::OnRetry);
-
-            for front in fronts.iter() {
-                let addresses = str_to_socket_addr(front).await?;
-                builder = builder.resolve_to_addrs(domain, &addresses);
-            }
-
-            tracing::debug!(
-                "Building HTTP client to {} with {} fronts",
-                base_url,
-                fronts.len()
-            );
-        }
-    } else {
-        tracing::debug!("Building HTTP client to {} with no fronts", base_url);
+    if has_front {
+        builder = builder.with_fronting(FrontPolicy::OnRetry);
     }
 
     let client = builder
@@ -68,4 +33,32 @@ pub async fn build_fronted_http_client(
         .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
     Ok(client)
+}
+
+pub fn api_url_to_url(api_url: &ApiUrl) -> Result<Url, VpnApiClientError> {
+    let parse_url = |s: &str| -> Result<url::Url, VpnApiClientError> {
+        match url::Url::parse(s) {
+            Ok(url) => Ok(url),
+            Err(_) => {
+                let with_scheme = format!("http://{s}");
+                url::Url::parse(&with_scheme)
+                    .map_err(|_e| VpnApiClientError::InvalidUrl { url: s.to_string() })
+            }
+        }
+    };
+
+    let url: url::Url = parse_url(&api_url.url)?;
+    let fronts: Option<Vec<url::Url>> = api_url
+        .front_hosts
+        .as_ref()
+        .map(|hosts| {
+            hosts
+                .iter()
+                .map(|host| parse_url(host))
+                .collect::<Result<Vec<_>, _>>()
+        })
+        .transpose()?;
+    Url::new(url, fronts).map_err(|_e| VpnApiClientError::InvalidUrl {
+        url: api_url.url.to_string(),
+    })
 }
