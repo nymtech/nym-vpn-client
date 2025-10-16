@@ -102,8 +102,6 @@ pub async fn basic_functionality(
     log::info!(" 🏗 Basic functionality test");
     // prepare_daemon_nym(&rpc, rpc_provider).await?;
 
-    anyhow::bail!("Something went wrong");
-
     let is_stored = nym_proxy_client.is_account_stored().await?;
     let account_state = nym_proxy_client.get_account_state().await?;
     let account_identity = nym_proxy_client.get_account_identity().await?;
