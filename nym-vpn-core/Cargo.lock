@@ -5457,6 +5457,7 @@ dependencies = [
  "tracing-oslog",
  "tracing-subscriber",
  "uniffi",
+ "url",
  "vergen-gitcl",
 ]
 

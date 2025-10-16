@@ -358,16 +358,12 @@ impl TryFrom<proto::InfoResponse> for nym_vpn_lib_types::VpnServiceInfo {
             .nym_vpn_network
             .ok_or(ConversionError::NoValueSet("nym_vpn_network"))
             .map(|s| {
-                let nym_vpn_api_url = s.nym_vpn_api_url;
                 let nym_vpn_api_urls = s
                     .nym_vpn_api_urls
                     .into_iter()
                     .map(ApiUrl::from)
                     .collect::<Vec<_>>();
-                NymVpnNetwork {
-                    nym_vpn_api_url,
-                    nym_vpn_api_urls,
-                }
+                NymVpnNetwork { nym_vpn_api_urls }
             })?;
 
         Ok(Self {

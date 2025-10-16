@@ -324,6 +324,7 @@ impl NymVpnService {
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             parameters.network_env.nym_network_details(),
             parameters.user_agent.clone(),
+            None,
         )
         .await
         .map_err(|err| {
@@ -382,21 +383,29 @@ impl NymVpnService {
 
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
-        let fronted_api_url = parameters.network_env.fronted_api_url();
 
-        let nym_api_url = parameters.network_env.nym_api_url();
-        let nym_api_urls = parameters.network_env.nym_api_urls();
-        let nym_vpn_api_url = parameters.network_env.nym_vpn_api_url();
-        let nym_vpn_api_urls = parameters.network_env.nym_vpn_api_urls();
+        let Some(nym_api_urls) = parameters.network_env.nym_api_urls() else {
+            return Err(Error::AccountController(
+                AccountControllerError::Initialization {
+                    reason: "Nym API URLs are empty".to_string(),
+                },
+            ));
+        };
 
-        let gateway_config = gateway_directory::Config::new(
-            nyxd_url,
-            nym_api_url,
-            nym_api_urls,
-            nym_vpn_api_url,
-            nym_vpn_api_urls,
-            None,
-        );
+        let Some(nym_vpn_api_urls) = parameters.network_env.nym_vpn_api_urls() else {
+            return Err(Error::AccountController(
+                AccountControllerError::Initialization {
+                    reason: "Nym VPN API URLs are empty".to_string(),
+                },
+            ));
+        };
+
+        let gateway_config =
+            gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
+                .map_err(|e| AccountControllerError::Initialization {
+                    reason: e.to_string(),
+                })?;
+
         let nym_config = NymConfig {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
@@ -420,7 +429,7 @@ impl NymVpnService {
         );
 
         let validator_client =
-            build_fronted_http_client(&fronted_api_url, Some(parameters.user_agent.clone()), None)
+            build_fronted_http_client(&nym_api_urls, Some(parameters.user_agent.clone()), None)
                 .await
                 .map_err(|err| {
                     tracing::error!("Failed to create HTTP client: {err:?}");
@@ -429,8 +438,14 @@ impl NymVpnService {
                     }
                 })?;
 
+        let urls = parameters.network_env.nym_api_urls_as_urls().ok_or(
+            AccountControllerError::Initialization {
+                reason: "Nym API URLs are empty".to_string(),
+            },
+        )?;
+
         let topology_provider = VpnTopologyProvider::new(
-            parameters.network_env.nym_api_url(),
+            urls,
             validator_client,
             false,
             services_shutdown_token.child_token(),

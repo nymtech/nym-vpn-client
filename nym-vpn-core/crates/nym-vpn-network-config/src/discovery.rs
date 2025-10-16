@@ -34,31 +34,33 @@ static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discov
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
 static EVIL_DISCOVERY_JSON: &[u8] = include_bytes!("../default/evil_discovery.json");
 
-static DEFAULT_VPN_API_URL: LazyLock<nym_network_defaults::ApiUrl> =
-    LazyLock::new(|| Discovery::default_mainnet().fronted_vpn_api_url());
+static DEFAULT_VPN_API_URLS: LazyLock<Vec<nym_network_defaults::ApiUrl>> =
+    LazyLock::new(|| Discovery::default_mainnet().nym_vpn_api_urls().to_vec());
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
     // Base network setup
-    pub(super) network_name: String,
-    pub(super) nym_api_url: Url,
-    pub(super) nym_api_urls: Vec<ApiUrl>,
-    pub(super) nym_vpn_api_url: Url,
-    pub(super) nym_vpn_api_urls: Vec<ApiUrl>,
+    pub network_name: String,
+
+    // Use the getters!
+    nym_api_url: Url,
+    nym_api_urls: Vec<ApiUrl>,
+    nym_vpn_api_url: Url,
+    nym_vpn_api_urls: Vec<ApiUrl>,
 
     // Additional context
-    pub(super) account_management: Option<AccountManagement>,
-    pub(super) feature_flags: Option<FeatureFlags>,
-    pub(super) system_configuration: Option<SystemConfiguration>,
+    pub account_management: Option<AccountManagement>,
+    pub feature_flags: Option<FeatureFlags>,
+    pub system_configuration: Option<SystemConfiguration>,
 
     #[serde(default)]
-    pub(super) system_messages: SystemMessages,
+    pub system_messages: SystemMessages,
 }
 
 impl Discovery {
     /// Default VPN API URL
-    pub fn default_vpn_api_url() -> nym_network_defaults::ApiUrl {
-        DEFAULT_VPN_API_URL.clone()
+    pub fn default_vpn_api_urls() -> &'static [nym_network_defaults::ApiUrl] {
+        &DEFAULT_VPN_API_URLS
     }
 
     /// Default mainnet discovery
@@ -103,8 +105,7 @@ impl Discovery {
 
     pub async fn fetch(network_name: &str) -> Result<Self> {
         // allow panic because a broken bootstrap url means everything will fail anyways.
-        let default_url = DEFAULT_VPN_API_URL.clone();
-        let client = VpnApiClient::new(default_url, empty_user_agent())
+        let client = VpnApiClient::new(Self::default_vpn_api_urls(), empty_user_agent(), None)
             .await
             .map_err(Error::CreateVpnApiClient)?;
 
@@ -183,8 +184,8 @@ impl Discovery {
     pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
 
-        let fronted_api_url = self.fronted_api_url();
-        let client = build_fronted_http_client(&fronted_api_url, None, None)
+        let api_urls = self.nym_api_urls();
+        let client = build_fronted_http_client(&api_urls, None, None)
             .await
             .map_err(Error::CreateVpnApiClient)?;
 
@@ -222,56 +223,37 @@ impl Discovery {
         })
     }
 
-    // Picks the first URL with fronting configured
-    pub fn fronted_api_url(&self) -> nym_network_defaults::ApiUrl {
-        if let Some(api_url) = self
-            .nym_api_urls
-            .iter()
-            .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
-        {
-            return nym_network_defaults::ApiUrl {
-                url: api_url.url.clone(),
-                front_hosts: api_url.fronts.clone(),
-            };
-        }
-
-        if let Some(api_url) = self.nym_api_urls.first() {
-            return nym_network_defaults::ApiUrl {
-                url: api_url.url.clone(),
-                front_hosts: api_url.fronts.clone(),
-            };
-        }
-
-        nym_network_defaults::ApiUrl {
-            url: self.nym_api_url.to_string(),
-            front_hosts: None,
+    pub fn nym_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
+        if self.nym_api_urls.is_empty() {
+            vec![nym_network_defaults::ApiUrl {
+                url: self.nym_api_url.to_string(),
+                front_hosts: None,
+            }]
+        } else {
+            self.nym_api_urls
+                .iter()
+                .map(|api_url| nym_network_defaults::ApiUrl {
+                    url: api_url.url.clone(),
+                    front_hosts: api_url.fronts.clone(),
+                })
+                .collect()
         }
     }
 
-    /// This takes Domain Fronting into consideration
-    #[allow(unused)]
-    pub fn fronted_vpn_api_url(&self) -> nym_network_defaults::ApiUrl {
-        if let Some(api_url) = self
-            .nym_vpn_api_urls
-            .iter()
-            .find(|u| u.fronts.as_ref().is_some_and(|f| !f.is_empty()))
-        {
-            return nym_network_defaults::ApiUrl {
-                url: api_url.url.clone(),
-                front_hosts: api_url.fronts.clone(),
-            };
-        }
-
-        if let Some(api_url) = self.nym_vpn_api_urls.first() {
-            return nym_network_defaults::ApiUrl {
-                url: api_url.url.clone(),
-                front_hosts: api_url.fronts.clone(),
-            };
-        }
-
-        nym_network_defaults::ApiUrl {
-            url: self.nym_vpn_api_url.to_string(),
-            front_hosts: None,
+    pub fn nym_vpn_api_urls(&self) -> Vec<nym_network_defaults::ApiUrl> {
+        if self.nym_vpn_api_urls.is_empty() {
+            vec![nym_network_defaults::ApiUrl {
+                url: self.nym_vpn_api_url.to_string(),
+                front_hosts: None,
+            }]
+        } else {
+            self.nym_vpn_api_urls
+                .iter()
+                .map(|api_url| nym_network_defaults::ApiUrl {
+                    url: api_url.url.clone(),
+                    front_hosts: api_url.fronts.clone(),
+                })
+                .collect()
         }
     }
 }
@@ -373,10 +355,10 @@ pub(crate) async fn fetch_nym_network_details(
 }
 
 pub(crate) async fn fetch_nym_vpn_network_details(
-    nym_vpn_api_url: nym_network_defaults::ApiUrl,
+    nym_vpn_api_urls: &[nym_network_defaults::ApiUrl],
 ) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
-    VpnApiClient::new(nym_vpn_api_url, empty_user_agent())
+    VpnApiClient::new(nym_vpn_api_urls, empty_user_agent(), None)
         .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_current_env()

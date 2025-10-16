@@ -90,6 +90,9 @@ pub enum Error {
 
     #[error("invalid score value: {0}. Valid values are: offline, low, medium, high")]
     InvalidScoreValue(String),
+
+    #[error("invalid configuration: {0}")]
+    InvalidConfiguration(String),
 }
 
 impl Error {
