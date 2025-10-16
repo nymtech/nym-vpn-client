@@ -46,7 +46,10 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     Ok(ips)
 }
 
-pub async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketAddr>> {
+pub async fn url_to_socket_addr(
+    unresolved_url: &url::Url,
+    limit: Option<usize>,
+) -> Result<Vec<SocketAddr>> {
     let port = unresolved_url
         .port_or_known_default()
         .ok_or(VpnApiClientError::UrlError {
@@ -60,14 +63,22 @@ pub async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketA
             reason: "missing hostname".to_string(),
         })?;
 
-    Ok(try_resolve_hostname(hostname)
+    let addresses: Vec<SocketAddr> = try_resolve_hostname(hostname)
         .await?
         .into_iter()
         .map(|ip| SocketAddr::new(ip, port))
-        .collect())
+        .collect();
+
+    match limit {
+        Some(l) if addresses.len() > l => Ok(addresses.into_iter().take(l).collect()),
+        _ => Ok(addresses),
+    }
 }
 
-pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>> {
+pub async fn str_to_socket_addr(
+    unresolved_url: &str,
+    limit: Option<usize>,
+) -> Result<Vec<SocketAddr>> {
     let url = match url::Url::parse(unresolved_url) {
         Ok(url) => url,
         Err(_) => {
@@ -78,5 +89,5 @@ pub async fn str_to_socket_addr(unresolved_url: &str) -> Result<Vec<SocketAddr>>
         }
     };
 
-    url_to_socket_addr(&url).await
+    url_to_socket_addr(&url, limit).await
 }

@@ -143,7 +143,7 @@ impl VpnApiClient {
                 let api_url = &api_urls[i];
                 if let Some(ref fronts) = api_url.front_hosts {
                     for front in fronts.iter() {
-                        let addresses = str_to_socket_addr(front).await?;
+                        let addresses = str_to_socket_addr(front, Some(1)).await?;
                         builder = builder.resolve_to_addrs(domain, &addresses);
 
                         tracing::info!(

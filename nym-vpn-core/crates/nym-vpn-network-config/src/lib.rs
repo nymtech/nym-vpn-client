@@ -196,13 +196,13 @@ impl Network {
         self.feature_flags.as_ref().and_then(|ff| ff.quic_enabled())
     }
 
-    pub async fn fronted_ip_addresses(&self) -> Vec<SocketAddr> {
+    pub async fn vpn_api_addresses(&self) -> Vec<SocketAddr> {
         let mut unique: HashSet<SocketAddr> = HashSet::with_capacity(16);
 
         for api_url in self.nym_vpn_network.nym_vpn_api_urls.iter() {
             if let Some(fronts) = api_url.front_hosts.as_ref() {
                 for front in fronts {
-                    match str_to_socket_addr(front).await {
+                    match str_to_socket_addr(front, Some(1)).await {
                         Ok(addrs) => {
                             for addr in addrs {
                                 unique.insert(addr);

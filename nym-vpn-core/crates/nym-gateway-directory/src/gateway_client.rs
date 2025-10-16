@@ -116,11 +116,11 @@ pub struct ResolvedConfig {
 
 impl ResolvedConfig {
     pub async fn from_config(config: &Config) -> Result<Self> {
-        let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url()).await?;
+        let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url(), Some(1)).await?;
 
         let mut nym_api_resolver_overrides = ResolverOverrides::default();
         for api_url in config.nym_api_urls.iter() {
-            let addrs = str_to_socket_addr(&api_url.url).await?;
+            let addrs = str_to_socket_addr(&api_url.url, Some(1)).await?;
             nym_api_resolver_overrides
                 .entry(api_url.url.clone())
                 .or_default()
@@ -130,7 +130,7 @@ impl ResolvedConfig {
                 && !fronts.is_empty()
             {
                 for front in fronts.iter() {
-                    let addrs = str_to_socket_addr(front).await?;
+                    let addrs = str_to_socket_addr(front, Some(1)).await?;
                     nym_api_resolver_overrides
                         .entry(api_url.url.clone())
                         .or_default()
@@ -144,14 +144,14 @@ impl ResolvedConfig {
             if let Some(ref fronts) = api_url.front_hosts
                 && !fronts.is_empty()
             {
-                let addrs = str_to_socket_addr(&api_url.url).await?;
+                let addrs = str_to_socket_addr(&api_url.url, Some(1)).await?;
                 nym_vpn_api_resolver_overrides
                     .entry(api_url.url.clone())
                     .or_default()
                     .extend(addrs);
 
                 for front in fronts.iter() {
-                    let addrs = str_to_socket_addr(front).await?;
+                    let addrs = str_to_socket_addr(front, Some(1)).await?;
                     nym_vpn_api_resolver_overrides
                         .entry(api_url.url.clone())
                         .or_default()
