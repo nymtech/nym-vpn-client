@@ -128,7 +128,7 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
 				)
 			}
-			DetailsSectionPrivacy(detailsUiState.asnKind)
+			DetailsSectionPrivacy(detailsUiState.asnKind, detailsUiState.isQuicFeatureFlagEnabled, detailsUiState.isQuickSupportedByGateway)
 			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
 			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
 			DetailsSectionIdentity(detailsUiState.identity, detailsUiState.buildVersion)

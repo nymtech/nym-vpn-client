@@ -25,7 +25,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
 @Composable
-fun DetailsSectionPrivacy(asnKind: AsnKind?) {
+fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicFeatureFlagEnabled: Boolean, isQuicSupportedByGateway: Boolean) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
 		add(
 			stringResource(R.string.details_advanced_privacy) to {
@@ -60,6 +60,38 @@ fun DetailsSectionPrivacy(asnKind: AsnKind?) {
 							R.string.details_datacenter_ip
 						},
 					)
+					Row(verticalAlignment = Alignment.CenterVertically) {
+						Icon(
+							painter = rememberVectorPainter(icon),
+							contentDescription = null,
+							tint = iconTint,
+							modifier = Modifier.size(12.dp),
+						)
+						Spacer(modifier = Modifier.width(6.dp))
+						Text(
+							text = text,
+							style = Typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onBackground,
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						)
+					}
+				},
+			)
+		}
+
+		if (isQuicFeatureFlagEnabled) {
+			add(
+				stringResource(R.string.details_anti_censorship) to {
+					val icon = if (isQuicSupportedByGateway) Icons.Outlined.Check else Icons.Filled.Circle
+					val iconTint = if (isQuicSupportedByGateway) Color.Green else CustomColors.warning
+					val text = stringResource(
+						if (isQuicSupportedByGateway) {
+							R.string.details_quic_protocol
+						} else {
+							R.string.details_standard_protocol
+						},
+					)
+
 					Row(verticalAlignment = Alignment.CenterVertically) {
 						Icon(
 							painter = rememberVectorPainter(icon),

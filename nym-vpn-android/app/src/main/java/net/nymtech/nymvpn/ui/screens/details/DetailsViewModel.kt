@@ -13,7 +13,6 @@ import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
-import nym_vpn_lib_types.BridgeParameters
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -28,8 +27,10 @@ class DetailsViewModel @Inject constructor(
 
 	fun filterGateways(id: String, gateways: List<NymGateway>) = viewModelScope.launch {
 		gateways.firstOrNull { gateway -> gateway.identity == id }?.let {
-			val isQuicFeatureEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
-			_uiState.value = DetailsUiState.from(it)
+			val isQuicFeatureFlagEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
+			_uiState.value = DetailsUiState.from(it).copy(
+				isQuicFeatureFlagEnabled =  isQuicFeatureFlagEnabled
+			)
 		}
 	}
 
@@ -42,11 +43,5 @@ class DetailsViewModel @Inject constructor(
 		}.onFailure {
 			Timber.e(it)
 		}
-	}
-
-	private fun NymGateway.isQuicSupported(): Boolean = run {
-		return bridgeInformation?.transports?.find {
-			it is BridgeParameters.QuicPlain
-		} != null
 	}
 }

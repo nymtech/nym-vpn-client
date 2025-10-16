@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.details
 
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.BridgeParameters
 import nym_vpn_lib_types.NodeIdentity
 import nym_vpn_lib_types.Score
 import java.util.Locale
@@ -23,6 +24,8 @@ data class DetailsUiState(
 	val buildVersion: String? = null,
 	val exitIpv4: String? = null,
 	val exitIpv6: String? = null,
+	val isQuicFeatureFlagEnabled: Boolean = false,
+	val isQuickSupportedByGateway: Boolean = false
 ) {
 	companion object {
 		fun from(gateway: NymGateway): DetailsUiState {
@@ -44,7 +47,14 @@ data class DetailsUiState(
 				buildVersion = gateway.buildVersion,
 				exitIpv4 = gateway.exitIpv4s.firstOrNull(),
 				exitIpv6 = gateway.exitIpv6s.firstOrNull(),
+				isQuickSupportedByGateway = gateway.isQuicSupported()
 			)
+		}
+
+		private fun NymGateway.isQuicSupported(): Boolean = run {
+			return bridgeInformation?.transports?.find {
+				it is BridgeParameters.QuicPlain
+			} != null
 		}
 	}
 }
