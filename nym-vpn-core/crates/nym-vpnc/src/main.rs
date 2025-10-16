@@ -72,28 +72,28 @@ pub enum Command {
     /// Manage entry and exit gateway nodes, list available gateways
     Gateway(commands::gateway::Args),
 
-    /// View and manage local network policy
+    /// Local network policy
     Lan {
         #[command(subcommand)]
         subcommand: commands::lan::Command,
     },
 
-    /// View and manage tunnel configuration
+    /// Tunnel configuration (enable or disable ipv6, two-hop mode)
     Tunnel {
         #[command(subcommand)]
         subcommand: commands::tunnel::Command,
     },
 
-    /// View and manage account information
+    /// Account information
     Account {
         #[command(subcommand)]
         subcommand: commands::account::Command,
     },
 
-    /// View and manage device information
+    /// Device information
     Device(commands::device::Args),
 
-    /// View and manage Nym network configuration
+    /// Nym network configuration
     Network {
         #[command(subcommand)]
         subcommand: commands::network::Command,
