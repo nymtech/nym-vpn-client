@@ -43,50 +43,6 @@ use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
 use tokio::time::Instant;
 
-#[test_function_nym]
-pub async fn test_happy_nym(
-    _: TestContext,
-    rpc: NymServiceClient,
-    mut nym_proxy_client: NymProxyClient,
-) -> Result<(), anyhow::Error> {
-    log::info!("🏗️ 🏗️ 🏗️ Starting a sample Nym test");
-    // prepare_daemon_nym(&rpc, rpc_provider).await?;
-
-    let daemon_version = rpc
-        .nymvpn_daemon_version()
-        .await
-        .inspect_err(|err| log::error!("Failed to get daemon version {err}"))?;
-
-    log::debug!("Nym daemon version: {daemon_version}");
-
-    rpc.start_nymvpn_daemon()
-        .await
-        .inspect_err(|err| log::error!("Failed to start / restart nymvpn daemon {err}"))?;
-
-    let status = rpc.nymvpn_daemon_get_status().await?;
-    log::debug!("nym-vpnd status: {status:?}");
-
-    log::debug!("Trying to stop nym-vpnd");
-    rpc.stop_nymvpn_daemon().await?;
-    let status = rpc.nymvpn_daemon_get_status().await?;
-    log::debug!("nym-vpnd status: {status:?}");
-
-    log::debug!("Trying to start nym-vpnd again...");
-    rpc.start_nymvpn_daemon().await?;
-    loop {
-        let status = rpc.nymvpn_daemon_get_status().await?;
-        log::debug!("nym-vpnd status: {status:?}");
-        if status.is_running() {
-            break;
-        }
-        tokio::time::sleep(Duration::from_secs(5)).await;
-    }
-
-    log::info!("🚀 🚀 🚀 Successfully completed a sample Nym test");
-
-    Ok(())
-}
-
 // async fn ip() -> Result<(), Box<dyn std::error::Error>> {
 //     let resp = reqwest::get("https://ipinfo.io").await?.text().await?;
 //     println!("{}", resp);
@@ -100,7 +56,7 @@ pub async fn basic_functionality(
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     log::info!(" 🏗 Basic functionality test");
-    // prepare_daemon_nym(&rpc, rpc_provider).await?;
+    prepare_daemon_nym(&mut nym_proxy_client, false).await?;
 
     let is_stored = nym_proxy_client.is_account_stored().await?;
     let account_state = nym_proxy_client.get_account_state().await?;
@@ -248,29 +204,31 @@ async fn wait_for_account_state(
 
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.
 pub async fn prepare_daemon_nym(
-    rpc: &NymServiceClient,
-    rpc_provider: &RpcClientProvider,
-) -> anyhow::Result<NymProxyClient> {
+    nym_proxy_client: &mut NymProxyClient,
+    ensure_logged_in: bool,
+) -> anyhow::Result<()> {
     // Check if daemon should be restarted
     // let mut nym_client = ensure_daemon_version_nym(rpc, rpc_provider)
     //     .await
     //     .context("Failed to restart daemon")?;
 
-    let mut nym_client = rpc_provider.new_client_nym().await;
-    // log::debug!("Resetting daemon settings before test...");
-    // helpers_nym::disconnect_and_wait(&mut nym_client)
-    //     .await
-    //     .context("Failed to disconnect daemon after test")?;
-    log::debug!("Resetting device identity...");
-    nym_client
+    log::debug!("🔄 Resetting daemon settings before test...");
+    helpers_nym::disconnect_and_wait(nym_proxy_client)
+        .await
+        .context("Failed to disconnect daemon after test")?;
+    log::debug!("🔄 Resetting device identity...");
+    nym_proxy_client
         .reset_device_identity(None)
         .await
         .context("Failed to reset settings")?;
-    log::debug!("Ensuring account is logged in to nym-vpnd...");
-    helpers_nym::ensure_logged_in(&mut nym_client).await?;
+    log::debug!("🔄 Ensuring account is logged in to nym-vpnd...");
 
-    log::debug!("Preparing daemon success ! ! !");
-    Ok(nym_client)
+    log::debug!("🔄 Daemon successfully reset 🔄");
+    if ensure_logged_in {
+        helpers_nym::ensure_logged_in(nym_proxy_client).await?;
+    }
+
+    Ok(())
 }
 
 /// Reset the daemons environment.
