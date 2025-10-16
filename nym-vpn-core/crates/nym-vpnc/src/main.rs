@@ -78,7 +78,7 @@ pub enum Command {
         subcommand: commands::lan::Command,
     },
 
-    /// Tunnel configuration (enable or disable ipv6, two-hop mode)
+    /// Tunnel configuration (enable or disable ipv6, two-hop mode, circumvention transports)
     Tunnel {
         #[command(subcommand)]
         subcommand: commands::tunnel::Command,

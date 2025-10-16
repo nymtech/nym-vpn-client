@@ -48,6 +48,10 @@ impl Command {
                     if config.enable_two_hop { "on" } else { "off" }
                 );
                 println!("Netstack: {}", if config.netstack { "on" } else { "off" });
+                println!(
+                    "Circumvention transports: {}",
+                    if config.enable_bridges { "on" } else { "off" }
+                );
 
                 Ok(())
             }
