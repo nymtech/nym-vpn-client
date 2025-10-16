@@ -99,6 +99,18 @@ pub enum Command {
         subcommand: commands::network::Command,
     },
 
+    /// Sentry integration
+    Sentry {
+        #[command(subcommand)]
+        subcommand: commands::sentry::Command,
+    },
+
+    /// Anonymous network statistics collection
+    NetworkStats {
+        #[command(subcommand)]
+        subcommand: commands::network_stats::Command,
+    },
+
     #[command(flatten)]
     Legacy(commands::legacy::Command),
 }
@@ -131,6 +143,8 @@ async fn main() -> Result<()> {
         Command::Network { subcommand } => subcommand.execute(rpc_client).await,
         Command::Account { subcommand } => subcommand.execute(rpc_client).await,
         Command::Device(args) => args.execute(rpc_client).await,
+        Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
+        Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
         Command::Legacy(subcommand) => subcommand.execute(rpc_client, user_agent).await,
     }
 }
