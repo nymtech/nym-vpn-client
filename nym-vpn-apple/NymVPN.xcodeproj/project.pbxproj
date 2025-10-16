@@ -209,6 +209,8 @@
 		D955FA002B73CF6F005BA27D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunneProvider+Messaging.swift"; sourceTree = "<group>"; };
 		D9643C6D2CEBC53A00F6B9A7 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/System/Library/Frameworks/UserNotifications.framework; sourceTree = DEVELOPER_DIR; };
+		D977F1F02EA2D11F00E8A6C0 /* background_dmg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = background_dmg.png; sourceTree = "<group>"; };
+		D977F1F12EA2D13200E8A6C0 /* macDmgIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = macDmgIcon.icns; sourceTree = "<group>"; };
 		D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D98B32F12C58F682005A15A3 /* Package.resolved */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Package.resolved; path = NymVPN.xcworkspace/xcshareddata/swiftpm/Package.resolved; sourceTree = SOURCE_ROOT; };
 		D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
@@ -386,6 +388,8 @@
 		D967402C2B56CA1A001F6891 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D977F1F12EA2D13200E8A6C0 /* macDmgIcon.icns */,
+				D977F1F02EA2D11F00E8A6C0 /* background_dmg.png */,
 				D9DE89442CFE54F7006C4071 /* LaunchLogo */,
 				D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */,
 				D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */,
@@ -808,7 +812,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\nset -euo pipefail\n\n# Ensure Homebrew bin on Apple Silicon\nif [[ \"$(uname -m)\" == \"arm64\" ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Go to repository root (ensures relative paths are correct)\nREPO_ROOT=$(git rev-parse --show-toplevel)\ncd \"$REPO_ROOT\"\n\nif command -v swiftlint >/dev/null 2>&1; then\n    echo \"Running SwiftLint (no-cache) autocorrect for modified Swift files…\"\n\n    # Collect modified Swift files (excluding deletions)\n    git status --porcelain | \\\n        grep -v '^ \\?D' | \\\n        cut -c 4- | \\\n        sed 's/.* -> //' | \\\n        tr -d '\"' | \\\n        while read -r file; do\n            if [[ \"$file\" == *.swift && -f \"$file\" ]]; then\n                echo \"Linting & correcting: $file\"\n                \n                # Run linting first (fresh, no cache if available)\n                if swiftlint lint --help | grep -q -- \"--no-cache\"; then\n                    swiftlint lint --no-cache \"$file\" || true\n                else\n                    swiftlint lint \"$file\" || true\n                fi\n            fi\n        done\n\nelse\n    echo \"warning: SwiftLint not installed. Install via Homebrew:\"\n    echo \"  brew install swiftlint\"\nfi\n";
+			shellScript = "#!/bin/bash\nset -euo pipefail\n\n# Ensure Homebrew bin on Apple Silicon\nif [[ \"$(uname -m)\" == \"arm64\" ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Go to repository root (ensures relative paths are correct)\nREPO_ROOT=$(git rev-parse --show-toplevel)\ncd \"$REPO_ROOT\"\n\n# Exit early if SwiftLint is not installed\nif ! command -v swiftlint >/dev/null 2>&1; then\n    echo \"warning: SwiftLint not installed. Install via Homebrew:\"\n    echo \"  brew install swiftlint\"\n    exit 0\nfi\n\n# Collect modified Swift files (excluding deletions)\nMODIFIED_SWIFT_FILES=$(git status --porcelain | \\\n    grep -v '^ \\?D' | \\\n    cut -c 4- | \\\n    sed 's/.* -> //' | \\\n    tr -d '\"' | \\\n    grep '\\.swift$' || true)\n\n# If no modified Swift files, skip linting\nif [[ -z \"$MODIFIED_SWIFT_FILES\" ]]; then\n    echo \"No modified Swift files detected. Skipping SwiftLint.\"\n    exit 0\nfi\n\necho \"Running SwiftLint (no-cache) autocorrect for modified Swift files…\"\n\n# Iterate through modified Swift files and lint them\necho \"$MODIFIED_SWIFT_FILES\" | while read -r file; do\n    if [[ -f \"$file\" ]]; then\n        echo \"Linting & correcting: $file\"\n\n        if swiftlint lint --help | grep -q -- \"--no-cache\"; then\n            swiftlint lint --no-cache \"$file\" || true\n        else\n            swiftlint lint \"$file\" || true\n        fi\n    fi\ndone\n";
 		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -827,7 +831,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\nset -euo pipefail\n\n# Ensure Homebrew bin on Apple Silicon\nif [[ \"$(uname -m)\" == \"arm64\" ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Go to repository root (ensures relative paths are correct)\nREPO_ROOT=$(git rev-parse --show-toplevel)\ncd \"$REPO_ROOT\"\n\nif command -v swiftlint >/dev/null 2>&1; then\n    echo \"Running SwiftLint (no-cache) autocorrect for modified Swift files…\"\n\n    # Collect modified Swift files (excluding deletions)\n    git status --porcelain | \\\n        grep -v '^ \\?D' | \\\n        cut -c 4- | \\\n        sed 's/.* -> //' | \\\n        tr -d '\"' | \\\n        while read -r file; do\n            if [[ \"$file\" == *.swift && -f \"$file\" ]]; then\n                echo \"Linting & correcting: $file\"\n                \n                # Run linting first (fresh, no cache if available)\n                if swiftlint lint --help | grep -q -- \"--no-cache\"; then\n                    swiftlint lint --no-cache \"$file\" || true\n                else\n                    swiftlint lint \"$file\" || true\n                fi\n            fi\n        done\n\nelse\n    echo \"warning: SwiftLint not installed. Install via Homebrew:\"\n    echo \"  brew install swiftlint\"\nfi\n";
+			shellScript = "#!/bin/bash\nset -euo pipefail\n\n# Ensure Homebrew bin on Apple Silicon\nif [[ \"$(uname -m)\" == \"arm64\" ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Go to repository root (ensures relative paths are correct)\nREPO_ROOT=$(git rev-parse --show-toplevel)\ncd \"$REPO_ROOT\"\n\n# Exit early if SwiftLint is not installed\nif ! command -v swiftlint >/dev/null 2>&1; then\n    echo \"warning: SwiftLint not installed. Install via Homebrew:\"\n    echo \"  brew install swiftlint\"\n    exit 0\nfi\n\n# Collect modified Swift files (excluding deletions)\nMODIFIED_SWIFT_FILES=$(git status --porcelain | \\\n    grep -v '^ \\?D' | \\\n    cut -c 4- | \\\n    sed 's/.* -> //' | \\\n    tr -d '\"' | \\\n    grep '\\.swift$' || true)\n\n# If no modified Swift files, skip linting\nif [[ -z \"$MODIFIED_SWIFT_FILES\" ]]; then\n    echo \"No modified Swift files detected. Skipping SwiftLint.\"\n    exit 0\nfi\n\necho \"Running SwiftLint (no-cache) autocorrect for modified Swift files…\"\n\n# Iterate through modified Swift files and lint them\necho \"$MODIFIED_SWIFT_FILES\" | while read -r file; do\n    if [[ -f \"$file\" ]]; then\n        echo \"Linting & correcting: $file\"\n\n        if swiftlint lint --help | grep -q -- \"--no-cache\"; then\n            swiftlint lint --no-cache \"$file\" || true\n        else\n            swiftlint lint \"$file\" || true\n        fi\n    fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1217,12 +1221,14 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPNDaemon/Resources/NymVPNDaemon.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 122;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
-				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = VW5DZLFHM5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -1240,6 +1246,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "NymVPN macOS + Daemon";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

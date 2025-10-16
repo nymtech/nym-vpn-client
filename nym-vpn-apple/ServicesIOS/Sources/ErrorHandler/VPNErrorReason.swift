@@ -4,6 +4,7 @@ import NymVPNLib
 import Theme
 
 public enum VPNErrorReason: LocalizedError {
+    case initialization(details: String)
     case internalError(details: String)
     case storage(details: String)
     case networkConnectionError(details: String)
@@ -41,6 +42,8 @@ public enum VPNErrorReason: LocalizedError {
     // swiftlint:disable:next function_body_length
     public init(with vpnError: VpnError) {
         switch vpnError {
+        case let .Initialization(details: details):
+            self = .initialization(details: details)
         case let .InternalError(details: details):
             self = .internalError(details: details)
         case let .Storage(details: details):
@@ -218,6 +221,8 @@ public enum VPNErrorReason: LocalizedError {
         }
 
         switch errorReason {
+        case .initialization:
+            self = .initialization(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .internalError:
             self = .internalError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .storage:
@@ -356,6 +361,8 @@ extension VPNErrorReason {
             details
         case let .nyxdQueryFailure(details: details):
             details
+        case let .initialization(details: details):
+            details
         }
     }
 }
@@ -368,6 +375,7 @@ extension VPNErrorReason: Equatable {
 
 /// The VPNErrorReasonCode mirrors the error codes as raw integers and can be constructed from a VPNErrorReason.
 enum VPNErrorReasonCode: Int, RawRepresentable {
+    case initialization
     case internalError
     case storage
     case networkConnectionError
@@ -398,6 +406,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
+        case .initialization:
+            self = .initialization
         case .internalError:
             self = .internalError
         case .storage:
