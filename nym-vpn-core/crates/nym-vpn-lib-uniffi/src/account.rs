@@ -208,9 +208,11 @@ pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnErr
         .ok_or(VpnError::NoAccountStored)?;
     let platform = if cfg!(target_os = "ios") {
         Platform::Apple
+    } else if cfg!(target_os = "android") {
+        Platform::Android
     } else {
         return Err(VpnError::InternalError {
-            details: "only iOS supported for now".to_string(),
+            details: "only iOS and Android supported for now".to_string(),
         });
     };
     get_command_sender()
