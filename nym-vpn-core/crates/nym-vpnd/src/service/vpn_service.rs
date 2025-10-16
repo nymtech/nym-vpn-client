@@ -407,7 +407,12 @@ impl NymVpnService {
         let gateway_directory_client =
             GatewayClient::new(gateway_config, parameters.user_agent.clone())
                 .await
-                .unwrap();
+                .map_err(|err| {
+                    tracing::error!("Failed to create gateway directory client: {err:?}");
+                    AccountControllerError::Initialization {
+                        reason: err.to_string(),
+                    }
+                })?;
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
             gateway_directory_client,
             connectivity_handle.clone(),
