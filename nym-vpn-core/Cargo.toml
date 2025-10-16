@@ -196,7 +196,7 @@ tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.30", features = ["cli"] }
 url = "2.5"
 vergen-gitcl = { version = "1.0.8", default-features = false }
-webpki-roots = "0.26"
+webpki-roots = "1.0"
 which = "8.0"
 widestring = "1.2"
 windows = "0.62.2"
