@@ -10,6 +10,7 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.queryProductDetails
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,7 @@ class NymBillingManager @Inject constructor(
 			_state.update { billingResult }
 			if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
 				applicationScope.launch(ioDispatcher) {
-					_purchases.emit(purchases)
+					_purchases.run { emit(purchases) }
 				}
 			}
 		}
@@ -100,16 +101,33 @@ class NymBillingManager @Inject constructor(
 		}
 	}
 
-	override fun launchPurchaseFlow(activity: android.app.Activity, productDetails: ProductDetails) {
-		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
-			.setProductDetails(productDetails)
-			.build()
+	override suspend fun launchPurchaseFlow(activity: android.app.Activity, productId: String) {
+		val query = QueryProductDetailsParams.newBuilder()
+			.setProductList(
+				listOf(
+					QueryProductDetailsParams.Product.newBuilder()
+						.setProductId(productId)
+						.setProductType(BillingClient.ProductType.SUBS)
+						.build(),
+				),
+			).build()
+		val result = billingClient.queryProductDetails(query)
+		if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK && !result.productDetailsList.isNullOrEmpty()) {
+			val pd = result.productDetailsList!!.first()
 
-		val billingFlowParams = BillingFlowParams.newBuilder()
-			.setProductDetailsParamsList(listOf(productDetailsParams))
-			.build()
+			val offer = pd.subscriptionOfferDetails?.firstOrNull()
+				?: return
+			val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+				.setProductDetails(pd)
+				.setOfferToken(offer.offerToken)
+				.build()
 
-		billingClient.launchBillingFlow(activity, billingFlowParams)
+			val billingFlowParams = BillingFlowParams.newBuilder()
+				.setProductDetailsParamsList(listOf(productDetailsParams))
+				.build()
+
+			billingClient.launchBillingFlow(activity, billingFlowParams)
+		}
 	}
 
 	override fun endConnection() {

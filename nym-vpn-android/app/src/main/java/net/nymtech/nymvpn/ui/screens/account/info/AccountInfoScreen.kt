@@ -19,9 +19,8 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AccountInfoScreen(appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel()) {
-
 	AccountInfoScreen(
-		accountId = ""
+		accountId = "",
 	)
 }
 
@@ -35,7 +34,6 @@ fun AccountInfoScreen(accountId: String) {
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-
 	}
 }
 

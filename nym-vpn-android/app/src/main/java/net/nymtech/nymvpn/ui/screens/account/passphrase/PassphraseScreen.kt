@@ -19,10 +19,9 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun PassphraseScreen(appUiState: AppUiState, viewModel: PassphraseViewModel = hiltViewModel()) {
-
 	PassphraseScreen(
 		passphrase = "",
-		onShowClick = {}
+		onShowClick = {},
 	)
 }
 
@@ -36,7 +35,6 @@ fun PassphraseScreen(passphrase: String, onShowClick: () -> Unit) {
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-
 	}
 }
 

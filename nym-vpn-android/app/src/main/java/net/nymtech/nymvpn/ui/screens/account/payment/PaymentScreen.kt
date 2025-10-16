@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.account.payment
 
+import android.app.Activity
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -47,6 +49,14 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 fun PaymentScreen(productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
 	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
+	val context = LocalContext.current
+	val activity = context as? Activity
+
+	LaunchedEffect(activity, productId) {
+		activity?.let {
+			viewModel.startPurchaseFlow(it, productId)
+		}
+	}
 
 	PaymentScreen {
 		navController.navigateAndForget(Route.Main())
@@ -129,7 +139,7 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 				)
 			}
 
-			val data = when(step) {
+			val data = when (step) {
 				0 -> {
 					Pair(R.string.account_payment_processing, R.string.account_payment_verifying)
 				}

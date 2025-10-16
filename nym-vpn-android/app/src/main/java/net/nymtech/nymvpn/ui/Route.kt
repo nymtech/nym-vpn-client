@@ -77,10 +77,10 @@ sealed class Route {
 	data class Payment(val productId: String) : Route()
 
 	@Serializable
-	data object Passphrase: Route()
+	data object Passphrase : Route()
 
 	@Serializable
-	data object Account: Route()
+	data object Account : Route()
 
 	@Serializable
 	data class ServerDetails(

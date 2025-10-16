@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.account.plan.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -26,17 +24,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.model.ProductData
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubscriptionBottomSheet(
-	products: List<ProductData>,
-	onDismiss: () -> Unit,
-	onSelect: (ProductData) -> Unit
-) {
+fun SubscriptionBottomSheet(products: List<ProductData>, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
@@ -48,11 +41,7 @@ fun SubscriptionBottomSheet(
 }
 
 @Composable
-fun SubscriptionBottomSheetContent(
-	products: List<ProductData>,
-	onDismiss: () -> Unit,
-	onSelect: (ProductData) -> Unit
-) {
+fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () -> Unit, onSelect: (ProductData) -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -91,7 +80,7 @@ fun SubscriptionBottomSheetContent(
 						text = product.price,
 						style = MaterialTheme.typography.bodyMedium,
 						color = MaterialTheme.colorScheme.onSurfaceVariant,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				}
 			}
@@ -116,18 +105,18 @@ fun SubscriptionBottomSheetContent(
 
 @Preview
 @Composable
-fun SubscriptionBottomSheetContentPreview() {
+private fun SubscriptionBottomSheetContentPreview() {
 	val previewProducts = listOf(
 		ProductData(id = "", name = "Basic Plan", price = "$4.99 / month"),
-		ProductData(id = "",name = "Pro Plan", price = "$9.99 / month"),
-		ProductData(id = "",name = "Premium Plan", price = "$14.99 / month"),
+		ProductData(id = "", name = "Pro Plan", price = "$9.99 / month"),
+		ProductData(id = "", name = "Premium Plan", price = "$14.99 / month"),
 	)
 
 	NymVPNTheme(Theme.default()) {
 		SubscriptionBottomSheetContent(
 			products = previewProducts,
 			onDismiss = {},
-			onSelect = {}
+			onSelect = {},
 		)
 	}
 }
