@@ -353,7 +353,7 @@ pub async fn login_with_retries(nym_client: &mut NymProxyClient) -> Result<(), N
         }
     }
 
-    nym_client.reset_device_identity(None).await?;
+    // nym_client.reset_device_identity(None).await?;
 
     Ok(())
 }
@@ -364,6 +364,7 @@ pub async fn login_with_retries(nym_client: &mut NymProxyClient) -> Result<(), N
 /// on your behalf. If this function returns without any errors, we are logged in to a valid
 /// account.
 pub async fn ensure_logged_in(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
+    log::info!("Ensuring we're logged in by logging out and back in...");
     // TODO dz nym doesn't expose get_device and update_device
     // if !matches!(
     //     nym_client.update_device().await,
@@ -373,13 +374,7 @@ pub async fn ensure_logged_in(nym_client: &mut NymProxyClient) -> anyhow::Result
     //     return Ok(());
     // }
 
-    let active_devices = nym_client.get_active_devices().await?;
-    if nym_client.is_account_stored().await? && !active_devices.is_empty() {
-        return Ok(());
-    }
-    log::info!("Current device not logged in. Clearing devices and logging in.");
-
-    // We are apparently not logged in already.. Try to log in.
+    // re-log in...
     nym_client
         .forget_account()
         .await
@@ -388,6 +383,12 @@ pub async fn ensure_logged_in(nym_client: &mut NymProxyClient) -> anyhow::Result
     login_with_retries(nym_client)
         .await
         .context("Failed to log in")?;
+
+    let active_devices = nym_client.get_active_devices().await?;
+    if nym_client.is_account_stored().await? && !active_devices.is_empty() {
+        return Ok(());
+    }
+
     Ok(())
 }
 
