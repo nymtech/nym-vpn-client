@@ -1,22 +1,9 @@
 # This file contains the fastlane.tools configuration
 # You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
 
 platform :mac do
   desc "Bump version"
   lane :bump_version do
-    # Get the app version from ARGV, assuming it's the third argument (ARGV[2])
     app_version = ARGV[2]
 
     puts "App version to set: #{app_version}"
@@ -29,40 +16,65 @@ platform :mac do
     project = Xcodeproj::Project.open(project_path)
 
     allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon"]
-    
+
     project.targets.each do |projectTarget|
       if allowTargets.include?(projectTarget.name)
         projectTarget.build_configurations.each do |configuration|
-          # Set the MARKETING_VERSION to the provided app_version
           configuration.build_settings["MARKETING_VERSION"] = app_version
-
-          # Increment CURRENT_PROJECT_VERSION
           newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
           configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
         end
       end
     end
 
-    project.save()
+    project.save
   end
-  
+
   desc "Bump build"
   lane :bump_build do
     project_path = '../NymVPN.xcodeproj'
     project = Xcodeproj::Project.open(project_path)
 
     allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon"]
-    
+
     project.targets.each do |projectTarget|
       if allowTargets.include?(projectTarget.name)
         projectTarget.build_configurations.each do |configuration|
-          # Increment CURRENT_PROJECT_VERSION
           newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
           configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
         end
       end
     end
 
-    project.save()
+    project.save
+  end
+end
+
+platform :ios do
+  def asc_api_key!
+    app_store_connect_api_key(
+      key_id: ENV['ASC_KEY_ID'],
+      issuer_id: ENV['ASC_ISSUER_ID'],
+      key_content: ENV['ASC_KEY_BASE64'], # base64 of the .p8 in one line
+      is_key_content_base64: true
+    )
+  end
+
+  desc "Upload an already-exported IPA to TestFlight via App Store Connect API key"
+  lane :upload_testflight do |options|
+    ipa_path  = options[:ipa_path]
+    changelog = options[:changelog] || "Automated CI upload"
+
+    UI.user_error!("ipa_path is required") if ipa_path.to_s.empty?
+
+    UI.message("🚀 Uploading to TestFlight...")
+
+    pilot(
+      api_key: asc_api_key!,
+      ipa: ipa_path,
+      changelog: changelog,
+      skip_submission: false,
+      skip_waiting_for_build_processing: true
+    )
   end
 end

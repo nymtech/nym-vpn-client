@@ -39,7 +39,7 @@ jobs:
   build-apple:
     if: github.actor != 'dependabot[bot]'
     runs-on: AppleSilicon
-    timeout-minutes: 60
+    timeout-minutes: 90
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -75,6 +75,15 @@ jobs:
             --rev 53b948e8f37dd018300ae3fee2d0fd5ece59e2cd \
             cargo-swift
 
+      - name: Install cargo-license
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        run: |
+          cargo install cargo-license
+
+      - name: Install appdmg
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        run: npm install -g appdmg
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -96,6 +105,48 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-edit
+
+      - name: Add existing Homebrew to PATH (no install)
+        run: |
+          set -euxo pipefail
+          for HB in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+            if [ -x "$HB" ]; then
+              echo "$(dirname "$HB")" >> "$GITHUB_PATH"     # future steps
+              export PATH="$(dirname "$HB"):$PATH"          # this step
+              eval "$("$HB" shellenv)"                      # set Homebrew env vars
+              {
+                echo "HOMEBREW_PREFIX=$HOMEBREW_PREFIX"
+                echo "HOMEBREW_CELLAR=$HOMEBREW_CELLAR"
+                echo "HOMEBREW_REPOSITORY=$HOMEBREW_REPOSITORY"
+              } >> "$GITHUB_ENV"
+              "$HB" --version
+              exit 0
+            fi
+          done
+          echo "❌ Homebrew binary not found at /opt/homebrew/bin/brew or /usr/local/bin/brew" >&2
+          exit 1
+
+      - name: Update prebundled servers
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        working-directory: nym-vpn-apple/scripts
+        run: |
+          sh UpdatePrebundledServers.sh
+      
+      - name: Enable QA mode
+        if: env.RELEASE_TYPE == 'qa'
+        working-directory: nym-vpn-apple
+        run: |
+          sed -E ':a;N;$!ba; s|(</dict>[[:space:]]*</plist>)|    <key>EnvironmentVariables</key>\n    <dict>\n        <key>RUST_LOG</key>\n        <string>debug</string>\n    </dict>\n\1|' "Daemon/net.nymtech.vpn.helper.plist"
+
+      - name: Update licences
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        run: |
+          cargo license -j --avoid-dev-deps --current-dir ./nym-vpn-core --filter-platform x86_64-apple-darwin --avoid-build-deps > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
+
+      - name: Install Fastlane
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        run: |
+          brew install fastlane
 
       - name: Build core
         working-directory: nym-vpn-apple/scripts
@@ -123,7 +174,22 @@ jobs:
             build | xcbeautify --renderer github-actions
           find "$DERIVED_DATA/Build/Products" -maxdepth 3 -name '*.app' -print || true
 
-      - name: Archive iOS (QA/Ship, signed Release, automatic)
+      - name: Prepare App Store Connect API key
+        if: env.RELEASE_TYPE != 'pr'
+        id: asc-key
+        working-directory: nym-vpn-apple
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+          echo "$ASC_KEY_BASE64" | base64 --decode > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Archive iOS (QA/Ship, Distribution, Automatic, ASC auth)
         if: env.RELEASE_TYPE != 'pr'
         id: ios-archive
         working-directory: nym-vpn-apple
@@ -134,72 +200,67 @@ jobs:
           set -euxo pipefail
           ARCHIVE_PATH="$PWD/build/NymVPN-iOS.xcarchive"
 
-          xcodebuild \
+          xcrun xcodebuild \
             -workspace NymVPN.xcworkspace \
             -scheme NymVPN \
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -sdk iphoneos \
             -archivePath "$ARCHIVE_PATH" \
-            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
             CODE_SIGN_STYLE=Automatic \
             CODE_SIGNING_ALLOWED=YES \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
             -allowProvisioningUpdates \
-            clean archive
+            -authenticationKeyIssuerID "${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}" \
+            -authenticationKeyID "${{ secrets.APP_STORE_CONNECT_API_KEY }}" \
+            -authenticationKeyPath "${{ steps.asc-key.outputs.key_path }}" \
+            clean archive | xcbeautify --renderer github-actions
 
           echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
 
-      - name: Export IPA (QA – app-store)
+      - name: Export IPA (QA/Ship – App Store Connect, ASC auth)
+        if: env.RELEASE_TYPE != 'pr'
+        working-directory: nym-vpn-apple
+        run: |
+          set -euxo pipefail
+          EXPORT_DIR="$PWD/build/export-${{ env.RELEASE_TYPE }}"
+          mkdir -p "$EXPORT_DIR"
+          cat > exportOptions.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>export</string>
+            <key>stripSwiftSymbols</key><true/>
+            <key>compileBitcode</key><false/>
+          </dict>
+          </plist>
+          EOF
+
+          xcrun xcodebuild -exportArchive \
+            -archivePath "${{ steps.ios-archive.outputs.archive_path }}" \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath "$EXPORT_DIR" \
+            -allowProvisioningUpdates \
+            -authenticationKeyIssuerID "${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}" \
+            -authenticationKeyID "${{ secrets.APP_STORE_CONNECT_API_KEY }}" \
+            -authenticationKeyPath "${{ steps.asc-key.outputs.key_path }}" | xcbeautify --renderer github-actions
+
+          echo "Exported files:"; ls -lah "$EXPORT_DIR"
+
+      - name: Upload to TestFlight (QA)
         if: env.RELEASE_TYPE == 'qa'
         working-directory: nym-vpn-apple
+        env:
+          ASC_KEY_ID:       ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ASC_ISSUER_ID:    ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_KEY_BASE64:   ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
         run: |
           set -euxo pipefail
-          EXPORT_DIR="$PWD/build/export-qa"
-          mkdir -p "$EXPORT_DIR"
-          cat > exportOptions.plist <<'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key><string>app-store</string>
-            <key>signingStyle</key><string>automatic</string>
-            <key>destination</key><string>export</string>
-            <key>stripSwiftSymbols</key><true/>
-            <key>compileBitcode</key><false/>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild -exportArchive \
-            -archivePath "${{ steps.ios-archive.outputs.archive_path }}" \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath "$EXPORT_DIR"
-          ls -la "$EXPORT_DIR"
-
-      - name: Export IPA (Ship – App Store)
-        if: env.RELEASE_TYPE == 'ship'
-        working-directory: nym-vpn-apple
-        run: |
-          set -euxo pipefail
-          EXPORT_DIR="$PWD/build/export-ship"
-          mkdir -p "$EXPORT_DIR"
-          cat > exportOptions.plist <<'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key><string>app-store</string>
-            <key>stripSwiftSymbols</key><true/>
-            <key>compileBitcode</key><false/>
-            <key>signingStyle</key><string>automatic</string>
-            <key>destination</key><string>export</string>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild -exportArchive \
-            -archivePath "${{ steps.ios-archive.outputs.archive_path }}" \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath "$EXPORT_DIR"
-          ls -la "$EXPORT_DIR"
+          IPA="$(ls build/export-qa/*.ipa | head -n1)"
+          fastlane ios upload_testflight ipa_path:"$IPA" changelog:"QA build ${GITHUB_SHA}"
 
       - name: Build macOS (PR, unsigned Debug)
         if: env.RELEASE_TYPE == 'pr'
@@ -220,41 +281,252 @@ jobs:
             build | xcbeautify --renderer github-actions
           find "$DERIVED_DATA/Build/Products" -maxdepth 3 -name '*.app' -print || true
 
-      - name: Archive macOS (QA/Ship, signed Release, automatic)
-        if: env.RELEASE_TYPE != 'pr'
+      - name: Archive macOS (QA/Ship, Developer ID, no profiles)
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
         id: mac-archive
         working-directory: nym-vpn-apple
         env:
           MACOSX_DEPLOYMENT_TARGET: 13.0
           DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euxo pipefail
           ARCHIVE_PATH="$PWD/build/NymVPNDaemon-macOS.xcarchive"
+          APP="$ARCHIVE_PATH/Products/Applications/NymVPN.app"
+          IDENTITY="Developer ID Application: Nym Technologies SA (${DEVELOPMENT_TEAM})"
 
+          echo "🏗️  Building macOS archive…"
           xcodebuild \
             -workspace NymVPN.xcworkspace \
             -scheme NymVPNDaemon \
             -configuration Release \
             -destination 'generic/platform=macOS' \
             -archivePath "$ARCHIVE_PATH" \
+            CODE_SIGN_STYLE=Manual \
+            "CODE_SIGN_IDENTITY=${DEVELOPER_ID_APP_IDENTITY}" \
             DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-            CODE_SIGN_STYLE=Automatic \
-            CODE_SIGNING_ALLOWED=YES \
-            -allowProvisioningUpdates \
-            clean archive
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            PROVISIONING_PROFILE= \
+            PROVISIONING_PROFILE_SPECIFIER= \
+            clean archive | xcbeautify --renderer github-actions
 
           echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
 
-      # # ---------- Artifacts (helpful for QA/Ship) ----------
-      # - name: Upload artifacts
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: apple-builds-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
-      #     path: |
-      #       nym-vpn-apple/build/**/*.xcarchive
-      #       nym-vpn-apple/build/**/export-qa/*.ipa
-      #       nym-vpn-apple/build/**/export-ship/*.ipa
-      #       nym-vpn-apple/.DerivedData*/Build/Products/**/*.app
-      #     if-no-files-found: ignore
-      #     retention-days: 5
+          echo "🔍 Verifying initial app signature…"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
+          echo "🔏 Re-signing Sparkle helpers if present…"
+          SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+          if [[ -d "$SPARKLE" ]]; then
+            # Sign all executable files inside Sparkle
+            find "$SPARKLE" -type f -perm +111 -print0 | while IFS= read -r -d '' bin; do
+              echo "  • Signing Sparkle binary: $bin"
+              codesign --force --options runtime --timestamp \
+                --sign "$IDENTITY" "$bin"
+            done
+
+            echo "  • Re-signing Sparkle.framework itself"
+            codesign --force --options runtime --timestamp \
+              --sign "$IDENTITY" "$SPARKLE"
+          else
+            echo "ℹ️  Sparkle.framework not found — skipping."
+          fi
+
+          echo "🔏 Re-signing main app bundle to seal all signatures…"
+          codesign --force --deep --options runtime --timestamp \
+            --sign "$IDENTITY" "$APP"
+
+          echo "✅ Final signature verification…"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          spctl --assess --type execute -vvv "$APP" || true
+
+          echo "🔍 Displaying signature details:"
+          codesign -dv --verbose=4 "$APP" || true
+
+      - name: Create DMG
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        id: make-dmg
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          # Locate the .app
+          if [[ "${RELEASE_TYPE}" == "pr" ]]; then
+            ROOT="./.DerivedData-macOS/Build/Products"
+            APP_PATH="$(find "$ROOT" -type d -name 'NymVPN*.app' -print -quit || true)"
+            [[ -z "${APP_PATH:-}" ]] && APP_PATH="$(find "$ROOT" -type d -name '*.app' -print -quit || true)"
+          else
+            ARCH="${{ steps.mac-archive.outputs.archive_path }}/Products/Applications"
+            APP_PATH="$(find "$ARCH" -maxdepth 1 -type d -name 'NymVPN*.app' -print -quit || true)"
+            [[ -z "${APP_PATH:-}" ]] && APP_PATH="$(find "$ARCH" -maxdepth 1 -type d -name '*.app' -print -quit || true)"
+          fi
+
+          if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
+            echo "❌ Could not locate a .app to package" >&2
+            exit 1
+          fi
+          echo "✅ Using app: $APP_PATH"
+
+          # DMG assets (from NymVPN/Resources)
+          BG="$PWD/NymVPN/Resources/background_dmg.png"
+          ICON="$PWD/NymVPN/Resources/macDmgIcon.icns"
+
+          if [[ ! -f "$BG" || ! -f "$ICON" ]]; then
+            echo "❌ Missing DMG assets:"
+            echo "   $BG"
+            echo "   $ICON"
+            exit 1
+          fi
+
+          OUT_DIR="$PWD/build/dmg"
+          mkdir -p "$OUT_DIR"
+
+          # Determine DMG name
+          case "${RELEASE_TYPE}" in
+            qa)
+              DMG_NAME="NymVPN_QA.dmg"
+              ;;
+            ship)
+              DMG_NAME="NymVPN.dmg"
+              ;;
+            *)
+              DMG_NAME="NymVPN_${RELEASE_TYPE}.dmg"
+              ;;
+          esac
+
+          # appdmg spec
+          cat > appdmg.json <<'JSON'
+          {
+            "title": "NymVPN Installer",
+            "background": "__BG__",
+            "icon": "__ICON__",
+            "contents": [
+              { "x": 607, "y": 290, "type": "link", "path": "/Applications" },
+              { "x": 192, "y": 290, "type": "file", "path": "__APP__" }
+            ],
+            "icon-size": 160,
+            "window": { "size": { "width": 800, "height": 600 } }
+          }
+          JSON
+
+          # Inject paths (macOS sed needs the '' arg)
+          sed -i '' "s#__BG__#${BG//\//\\/}#g" appdmg.json
+          sed -i '' "s#__ICON__#${ICON//\//\\/}#g" appdmg.json
+          sed -i '' "s#__APP__#${APP_PATH//\//\\/}#g" appdmg.json
+
+          # Create DMG
+          appdmg appdmg.json "$OUT_DIR/$DMG_NAME"
+
+          echo "dmg_path=$OUT_DIR/$DMG_NAME" >> "$GITHUB_OUTPUT"
+          echo "✅ DMG created at: $OUT_DIR/$DMG_NAME"
+
+      - name: Notarize DMG (Developer ID)
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        id: notarize-dmg
+        working-directory: nym-vpn-apple
+        env:
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_KEY_ID:    ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ASC_KEY_PATH:  ${{ steps.asc-key.outputs.key_path }}   # from earlier ASC key prep
+        run: |
+          set -euxo pipefail
+
+          DMG="$PWD/build/dmg/NymVPN_${RELEASE_TYPE}.dmg"
+          test -f "$DMG" || { echo "❌ DMG not found at $DMG"; exit 1; }
+
+          mkdir -p "$PWD/build/dmg"
+          OUT_JSON="$PWD/build/dmg/notarytool-log.json"
+
+          echo "📤 Submitting $DMG for notarization…"
+          xcrun notarytool submit "$DMG" \
+            --key "$ASC_KEY_PATH" \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
+            --wait \
+            --output-format json | tee "$OUT_JSON"
+
+          STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
+
+          if [[ "$STATUS" != "Accepted" ]]; then
+            echo "❌ Notarization status: $STATUS"
+
+            # Extract Request ID from JSON
+            REQUEST_ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("id",""))' "$OUT_JSON")"
+            echo "ℹ️  Fetching detailed log for request: $REQUEST_ID …"
+
+            # Fetch and print Apple’s full error log (shows exact files/reasons)
+            xcrun notarytool log "$REQUEST_ID" \
+              --key "$ASC_KEY_PATH" \
+              --key-id "$ASC_KEY_ID" \
+              --issuer "$ASC_ISSUER_ID" || true
+
+            echo "⚠️  Full summary JSON:"
+            cat "$OUT_JSON"
+
+            exit 1
+          fi
+
+          echo "✅ Notarization status: Accepted"
+          echo "📎 Stapling DMG…"
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+
+          echo "dmg_path=$DMG" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Sparkle appcast & DMG hash (Ship only)
+        if: ${{ env.RELEASE_TYPE == 'ship' }}
+        working-directory: nym-vpn-apple
+        env:
+          DEPLOY_DIR: ${{ github.workspace }}/nym-vpn-apple/build/dmg
+        run: |
+          set -euxo pipefail
+
+          echo "📦 Preparing Sparkle tools..."
+          mkdir -p "$DEPLOY_DIR/Sparkle"
+          tar -xf "$DEPLOY_DIR/Sparkle.tar.xz" -C "$DEPLOY_DIR/Sparkle"
+
+          DMG_PATH="$DEPLOY_DIR/NymVPN.dmg"
+          PRIVATE_KEY_FILE="$DEPLOY_DIR/sparkle_private_key_file"
+          SPARKLE_BIN="$DEPLOY_DIR/Sparkle/bin"
+
+          echo "🔑 Generating Sparkle EdDSA key..."
+          "$SPARKLE_BIN/generate_keys" -f "$PRIVATE_KEY_FILE"
+
+          echo "🔏 Signing DMG for Sparkle auto-update..."
+          edSignature=$("$SPARKLE_BIN/sign_update" "$DMG_PATH" --ed-key-file "$PRIVATE_KEY_FILE")
+          echo "✅ Sparkle EdDSA signature: $edSignature"
+
+          echo "📰 Generating Sparkle appcast.xml..."
+          "$SPARKLE_BIN/generate_appcast" "$DEPLOY_DIR" \
+            --ed-key-file "$PRIVATE_KEY_FILE" \
+            --link "https://nymvpn.com"
+
+          echo "🧮 Calculating SHA256 checksum..."
+          shasum -a 256 "$DMG_PATH" > "$DEPLOY_DIR/sha256-hash.txt"
+          echo "✅ SHA256 checksum written to: $DEPLOY_DIR/sha256-hash.txt"
+
+          echo "🧹 Cleaning up temporary Sparkle artifacts..."
+          rm -rf "$DEPLOY_DIR/Sparkle" \
+                "$PRIVATE_KEY_FILE" \
+                "$DEPLOY_DIR/Sparkle.tar.xz"
+
+          echo "✅ Sparkle appcast and hash generation complete!"
+
+      - name: Upload artifacts (QA / Ship)
+        if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
+          path: |
+            # macOS DMG
+            nym-vpn-apple/build/dmg/NymVPN_QA.dmg
+            nym-vpn-apple/build/dmg/NymVPN.dmg
+            # Sparkle signature + checksum
+            nym-vpn-apple/build/dmg/appcast.xml
+            nym-vpn-apple/build/dmg/sha256-hash.txt
+            # iOS IPA (QA/Ship)
+            nym-vpn-apple/build/export-qa/*.ipa
+            nym-vpn-apple/build/export-ship/*.ipa
+          if-no-files-found: ignore
+          retention-days: 1
