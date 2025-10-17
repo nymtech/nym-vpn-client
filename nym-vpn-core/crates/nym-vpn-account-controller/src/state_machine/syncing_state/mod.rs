@@ -234,8 +234,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::ForgetAccount(return_sender) => {
+                    AccountCommand::RegisterAccount(return_sender, account, platform) => {
+                        let res = handler::handle_register_account(shared_state, account, platform).await;
+                        return_sender.send(res);
+                    }                    AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
                         return_sender.send(res);
