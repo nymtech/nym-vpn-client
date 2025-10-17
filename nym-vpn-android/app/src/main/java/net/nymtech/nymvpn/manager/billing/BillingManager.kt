@@ -13,6 +13,6 @@ interface BillingManager {
 	val purchases: Flow<List<Purchase>>
 	fun initialize()
 	fun fetchSubscriptions()
-	suspend fun launchPurchaseFlow(activity: Activity, productId: String)
+	suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String)
 	fun endConnection()
 }

@@ -27,7 +27,6 @@ constructor(
 		viewModelScope.launch {
 			val token = backendManager.createAndRegisterAccount()
 			runCatching {
-				// backendManager.storeMnemonic(token.trim())
 				Timber.d("Imported account successfully")
 				_success.emit(true)
 			}.onFailure {

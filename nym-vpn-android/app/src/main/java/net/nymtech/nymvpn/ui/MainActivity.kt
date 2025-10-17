@@ -280,7 +280,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Payment> {
 									val args = it.toRoute<Route.Payment>()
 									runCatching {
-										PaymentScreen(args.productId)
+										PaymentScreen(appState, args.productId)
 									}
 								}
 								composable<Route.Passphrase> {

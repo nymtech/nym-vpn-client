@@ -305,6 +305,7 @@
 	<string name="account_payment_anonymous">Your anonymous access credentials are now safely stored, private, encrypted, and in your control</string>
 	<string name="account_payment_welcome">Welcome to true privacy 🎉</string>
 	<string name="account_payment_protected">You\'re now fully protected</string>
+	<string name="account_payment_error">Failed to purchase a subscription. Please, try again later</string>
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Your account passphrase</string>
 	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>

@@ -243,6 +243,9 @@ dependencies {
 
 	// billing
 	add("generalImplementation", libs.billing.client)
+
+	// okhttp for testing
+	implementation(libs.okhttp)
 }
 
 fun determineVersionName(): String {

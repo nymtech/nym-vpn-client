@@ -237,8 +237,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				return@withContext true
 			}
 			Timber.d(
-				"Client is incompatible with current network version. " +
-					"Client: $currentVersion, Network: $compatibleVersion",
+				"Client is incompatible with current network version. " + "Client: $currentVersion, Network: $compatibleVersion",
 			)
 			return@withContext false
 		}
@@ -356,9 +355,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return withContext(ioDispatcher) {
 			initialized.await()
 			nym_vpn_lib.createAccount()
-// 			val response = nym_vpn_lib.registerAccount()
-// 			response.accountToken
-			""
+			val response = nym_vpn_lib.registerAccount()
+			response.accountToken
 		}
 	}
 
@@ -430,6 +428,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			is TunnelEvent.AccountState -> {
 				tunnel?.onBackendEvent(BackendEvent.AccountState(event.v1))
 			}
+
 			is TunnelEvent.ConfigChanged -> {
 				tunnel?.onBackendEvent(BackendEvent.ConfigChanged(event.v1))
 			}

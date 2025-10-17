@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,30 +37,56 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
 @Composable
-fun PaymentScreen(productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
+fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
 	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val activity = context as? Activity
+	val userId = appUiState.managerState.accountId
+
+	var animationEnded by remember { mutableStateOf(false) }
+	var hasNavigated by remember { mutableStateOf(false) }
 
 	LaunchedEffect(activity, productId) {
 		activity?.let {
-			viewModel.startPurchaseFlow(it, productId)
+			viewModel.startPurchaseFlow(it, productId, userId)
+		}
+	}
+
+	LaunchedEffect(success) {
+		if (success == false && !hasNavigated) {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.account_payment_error))
+			navController.replaceCurrentWith(Route.SelectPlan)
+		}
+	}
+
+	LaunchedEffect(success, animationEnded) {
+		if (!hasNavigated && animationEnded && success == true) {
+			hasNavigated = true
+			navController.navigateAndForget(Route.Main())
 		}
 	}
 
 	PaymentScreen {
-		navController.navigateAndForget(Route.Main())
+		animationEnded = true
+		if (!hasNavigated && success == true) {
+			hasNavigated = true
+			navController.navigateAndForget(Route.Main())
+		}
 	}
 }
 

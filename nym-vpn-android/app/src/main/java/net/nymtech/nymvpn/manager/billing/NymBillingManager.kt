@@ -23,14 +23,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import javax.inject.Inject
 
 class NymBillingManager @Inject constructor(
 	@ApplicationContext private val context: Context,
 	@ApplicationScope private val applicationScope: CoroutineScope,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : BillingManager {
 
 	private val _state = MutableStateFlow<BillingResult?>(null)
@@ -101,7 +99,7 @@ class NymBillingManager @Inject constructor(
 		}
 	}
 
-	override suspend fun launchPurchaseFlow(activity: android.app.Activity, productId: String) {
+	override suspend fun launchPurchaseFlow(activity: android.app.Activity, productId: String, userId: String) {
 		val query = QueryProductDetailsParams.newBuilder()
 			.setProductList(
 				listOf(
