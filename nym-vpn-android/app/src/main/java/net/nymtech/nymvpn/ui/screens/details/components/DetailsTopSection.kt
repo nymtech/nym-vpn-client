@@ -26,7 +26,7 @@ internal fun DetailsTopSection(
 	countryCode: String?,
 	description: String?,
 	asnKind: AsnKind?,
-	onEnableQuicProtocolClicked: () -> Unit,
+	onEnableQuicProtocolClick: () -> Unit,
 ) {
 	Text(
 		text = name,
@@ -61,6 +61,6 @@ internal fun DetailsTopSection(
 		asnKind,
 		isQuicFeatureFlagEnabled,
 		isQuickSupportedByGateway,
-		onEnableQuicProtocolClicked,
+		onEnableQuicProtocolClick,
 	)
 }

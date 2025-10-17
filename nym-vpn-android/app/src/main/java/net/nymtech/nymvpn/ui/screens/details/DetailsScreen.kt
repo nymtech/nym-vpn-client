@@ -72,14 +72,14 @@ fun DetailsScreen(appUiState: AppUiState, id: String, type: GatewayType, gateway
 			viewModel.onSelected(uiState.identity, location)
 			navController.navigateAndForget(Route.Main())
 		},
-		onEnableQuicProtocolClicked = {
+		onEnableQuicProtocolClick = {
 			navController.navigate(Route.Censorship)
 		},
 	)
 }
 
 @Composable
-fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit, onEnableQuicProtocolClicked: () -> Unit) {
+fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit, onEnableQuicProtocolClick: () -> Unit) {
 	Column(
 		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.Start,
@@ -104,7 +104,7 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 				isQuicFeatureFlagEnabled = detailsUiState.isQuicFeatureFlagEnabled,
 				isQuickSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
 				description = detailsUiState.description,
-				onEnableQuicProtocolClicked = onEnableQuicProtocolClicked,
+				onEnableQuicProtocolClick = onEnableQuicProtocolClick,
 			)
 			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
 			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
@@ -146,7 +146,8 @@ internal fun PreviewPrivacyScreen() {
 		val detailsUiState = DetailsUiState(
 			identity = "wqewqewqewqewqfade2123123",
 			name = "Jacksonville-Cloak04",
-			description = "Enabling safety and privacy in the age of AI and quantum computing. Follow service status announcements at https://t.me/oceanusp17o",
+			description = "Enabling safety and privacy in the age of AI and quantum computing." +
+				" Follow service status announcements at https://t.me/oceanusp17o",
 			location = "Jacksonville, Texas, United States",
 			countryCode = "DE",
 			mixnetScore = Score.HIGH,
@@ -163,6 +164,6 @@ internal fun PreviewPrivacyScreen() {
 			isQuicFeatureFlagEnabled = true,
 			isQuickSupportedByGateway = true,
 		)
-		DetailsScreen(detailsUiState = detailsUiState, onSelectServerClick = {}, onEnableQuicProtocolClicked = {})
+		DetailsScreen(detailsUiState = detailsUiState, onSelectServerClick = {}, onEnableQuicProtocolClick = {})
 	}
 }

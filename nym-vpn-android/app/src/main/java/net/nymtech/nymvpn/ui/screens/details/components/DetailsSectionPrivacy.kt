@@ -34,7 +34,7 @@ fun DetailsSectionPrivacy(
 	asnKind: AsnKind?,
 	isQuicFeatureFlagEnabled: Boolean,
 	isQuicSupportedByGateway: Boolean,
-	onEnableQuicProtocolClicked: () -> Unit,
+	onEnableQuicProtocolClick: () -> Unit,
 ) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
 		add(
@@ -148,7 +148,7 @@ fun DetailsSectionPrivacy(
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					),
 					modifier = Modifier.clickable {
-						onEnableQuicProtocolClicked()
+						onEnableQuicProtocolClick()
 					},
 				)
 			}
