@@ -76,7 +76,7 @@ pub async fn build_fronted_http_client(
     Ok(client)
 }
 
-// Returns (url, domain))
+// Returns (url, domain)
 pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientError> {
     let parse_url = |s: &str| -> Result<url::Url, VpnApiClientError> {
         match url::Url::parse(s) {
@@ -91,12 +91,18 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientErr
 
     let url = parse_url(&api_url.url)?;
 
-    let domain = url
-        .domain()
-        .ok_or(VpnApiClientError::InvalidUrl {
-            url: api_url.url.clone(),
-        })?
-        .to_string();
+    // For URLs like "http://127.0.0.1:49675", `domain()` returns `None`.
+    let domain = match url.domain() {
+        Some(d) => d.to_string(),
+        None => match url.host_str() {
+            Some(d) => d.to_string(),
+            None => {
+                return Err(VpnApiClientError::InvalidUrl {
+                    url: api_url.url.clone(),
+                });
+            }
+        },
+    };
 
     let fronts: Option<Vec<url::Url>> = api_url
         .front_hosts
