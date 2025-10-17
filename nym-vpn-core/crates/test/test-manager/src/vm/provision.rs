@@ -76,8 +76,8 @@ async fn provision_ssh(
             );
             if started.elapsed() < SSH_TIMEOUT {
                 if let Err(err) = last_result {
-                    log::warn!("Failed to provision over SSH: {err}, retrying...");
-                    std::thread::sleep(Duration::from_secs(1));
+                    log::error!("Failed to provision over SSH: {err}, retrying...");
+                    std::thread::sleep(Duration::from_secs(5));
                     continue;
                 }
             }
