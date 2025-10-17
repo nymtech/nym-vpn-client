@@ -28,6 +28,7 @@ constructor(
 	private val _success = MutableSharedFlow<Boolean?>()
 	val success = _success.asSharedFlow()
 	private val httpClient = OkHttpClient()
+	private var accountId: String? = null
 
 	init {
 		viewModelScope.launch {
@@ -47,6 +48,7 @@ constructor(
 	}
 
 	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?) {
+		accountId = userId
 		viewModelScope.launch {
 			userId?.let {
 				billingManager.launchPurchaseFlow(activity, productId, userId)
@@ -55,6 +57,7 @@ constructor(
 	}
 
 	private fun testApiCall(purchaseId: String) {
+		accountId // account address
 		viewModelScope.launch {
 			try {
 				val url = "URL"
