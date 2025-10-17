@@ -8,12 +8,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 
-use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
-};
-use tokio::{sync::mpsc, task::JoinHandle};
-use tokio_util::sync::CancellationToken;
-
+use crate::state_machine::upgrade_mode_state::UpgradeModeState;
 use crate::{
     SharedAccountState,
     commands::{
@@ -25,6 +20,14 @@ use crate::{
     },
     storage::VpnCredentialStorage,
 };
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
+    RequestZkNymSuccess, UpgradeModeData,
+};
+use tokio::task::JoinError;
+use tokio::{sync::mpsc, task::JoinHandle};
+use tokio_util::sync::CancellationToken;
+use tracing::{debug, error, info};
 
 // The maximum number of zk-nym requests that can fail in a row
 const ZK_NYM_MAX_FAILS: u32 = 10;
@@ -42,8 +45,9 @@ const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - SyncingState : We handled a refresh account command
 /// - LoggedOutState : A successful forget account command was handled
+/// - UpgradeModeState : Instead of retrieving zk-nyms, we have received information about upgrade mode being activated
 pub(super) struct RequestingZkNymsState {
-    zk_nym_fetching_handle: JoinHandle<Result<(), ZkNymError>>,
+    zk_nym_fetching_handle: JoinHandle<Result<ZkNymFetchResult, ZkNymError>>,
     attempts: u32,
     fair_usage_left: bool,
 }
@@ -100,9 +104,9 @@ impl RequestingZkNymsState {
         storage: VpnCredentialStorage,
         credential_mode: bool,
         fair_usage_left: bool,
-    ) -> Result<(), ZkNymError> {
+    ) -> Result<ZkNymFetchResult, ZkNymError> {
         if !credential_mode {
-            return Ok(());
+            return Ok(ZkNymFetchResult::DisabledCredentials);
         }
 
         if !fair_usage_left {
@@ -112,56 +116,261 @@ impl RequestingZkNymsState {
         let ticket_types_to_request = storage
             .get_ticket_types_running_low()
             .await
-            .inspect_err(|e| tracing::error!("Zk-nym storage error : {e}"))
+            .inspect_err(|e| error!("zk-nym storage error: {e}"))
             .map_err(|_| ZkNymError::Storage)?;
 
         if ticket_types_to_request.is_empty() {
             // We have enough credential, we can return
-            return Ok(());
+            return Ok(ZkNymFetchResult::SufficientBandwidth);
         }
 
-        let request_handler = RequestZkNymCommandHandler::new(
-            vpn_api_account,
-            device,
-            storage,
-            vpn_api_client.clone(),
-        );
+        let request_handler =
+            RequestZkNymCommandHandler::new(vpn_api_account, device, storage, vpn_api_client);
+
+        let mut fetched_tickets: Option<Vec<_>> = None;
+        let mut upgrade_mode = None;
         for partial_result in request_handler
             .request_zk_nyms(ticket_types_to_request)
             .await
         {
-            if let Err(e) = partial_result {
-                match RequestZkNymErrorReason::from(e) {
-                    RequestZkNymErrorReason::VpnApi(inner) => {
-                        tracing::error!("Something went wrong trying to request zk-nym : {inner}");
-                        if let Some(code_id) = inner.code_reference_id()
-                            && code_id == FAIR_USAGE_DEPLETED_CODE_ID
-                        {
-                            return Err(ZkNymError::BandwidthExceeded);
-                        } else {
-                            return Err(ZkNymError::ApiFailure(
-                                inner.code_reference_id().unwrap_or_default(),
-                            ));
+            let success = match partial_result.map_err(RequestZkNymErrorReason::from) {
+                Ok(success) => success,
+                Err(err) => {
+                    return match err {
+                        RequestZkNymErrorReason::VpnApi(inner) => {
+                            let code = inner.code_reference_id();
+                            error!("something went wrong trying to request zk-nym: {inner}");
+                            if let Some(code_id) = &code
+                                && code_id == FAIR_USAGE_DEPLETED_CODE_ID
+                            {
+                                Err(ZkNymError::BandwidthExceeded)
+                            } else {
+                                Err(ZkNymError::ApiFailure(code.unwrap_or_default()))
+                            }
                         }
-                    }
-                    RequestZkNymErrorReason::UnexpectedVpnApiResponse(inner) => {
-                        tracing::error!("Unexpected response trying to request zk-nym : {inner}");
-                        return Err(ZkNymError::ApiFailure(inner));
-                    }
+                        RequestZkNymErrorReason::UnexpectedVpnApiResponse(inner) => {
+                            error!("unexpected response trying to request zk-nym: {inner}");
+                            Err(ZkNymError::ApiFailure(inner))
+                        }
 
-                    RequestZkNymErrorReason::Storage(e) => {
-                        tracing::error!("Storage error trying to request zk-nym : {e}");
-                        return Err(ZkNymError::Storage);
-                    }
-                    RequestZkNymErrorReason::Internal(e) => {
-                        tracing::error!("Internal error trying to request zk-nym : {e}");
-                        return Err(ZkNymError::Internal(e));
-                    }
+                        RequestZkNymErrorReason::Storage(e) => {
+                            error!("storage error trying to request zk-nym: {e}");
+                            Err(ZkNymError::Storage)
+                        }
+                        RequestZkNymErrorReason::Internal(e) => {
+                            error!("internal error trying to request zk-nym: {e}");
+                            Err(ZkNymError::Internal(e))
+                        }
+                    };
                 }
-            }
+            };
+
+            let id = match success {
+                RequestZkNymSuccess::Ticketbook {
+                    ticketbook_type,
+                    id,
+                } => {
+                    fetched_tickets
+                        .get_or_insert_with(Vec::new)
+                        .push(ticketbook_type);
+                    id
+                }
+                RequestZkNymSuccess::UpgradeMode {
+                    upgrade_mode_data,
+                    id,
+                } => {
+                    upgrade_mode = Some(upgrade_mode_data);
+                    id
+                }
+            };
+            debug!("managed to resolve zk-nym request '{id}'");
         }
 
-        Ok(())
+        match (fetched_tickets, upgrade_mode) {
+            (Some(tickets), Some(upgrade_mode_data)) => {
+                // edge case where upgrade mode has been triggered in between concurrent ticket requests
+                // incredibly unlikely, but always fallback to the upgrade mode
+                info!(
+                    "we managed to fetch the following tickets just before upgrade mode has been triggered: {tickets:?}"
+                );
+                Ok(ZkNymFetchResult::UpgradeMode { upgrade_mode_data })
+            }
+            (Some(tickets), None) => {
+                debug!("managed to retrieve ticketbooks of the following types: {tickets:?}");
+                Ok(ZkNymFetchResult::FetchedTickets { types: tickets })
+            }
+            (None, Some(upgrade_mode_data)) => {
+                info!(
+                    "upgrade mode has been triggered while attempting to fetch additional zk-nym tickets"
+                );
+                Ok(ZkNymFetchResult::UpgradeMode { upgrade_mode_data })
+            }
+            (None, None) => {
+                // this branch should be impossible, given that we did have more than one result
+                // and on any errors, we would have returned.
+                // however, it's better to return a nonsense error than crashing in case something changes in the impl in the future
+                error!(
+                    "BUG DETECTED: did not receive ticketbooks nor upgrade mode information after successful zk-nym request"
+                );
+                Err(ZkNymError::internal(
+                    "did not receive ticketbooks nor upgrade mode information after successful zk-nym request",
+                ))
+            }
+        }
+    }
+
+    async fn handle_retrieved_zk_nym<C: ConnectivityMonitor>(
+        &mut self,
+        shared_state: &mut SharedAccountState<C>,
+        zknym_result: Result<Result<ZkNymFetchResult, ZkNymError>, JoinError>,
+    ) -> NextAccountControllerState<C> {
+        let join_result = match zknym_result {
+            Ok(join_result) => join_result,
+            Err(err) => {
+                error!("Failed to join on the fetching task : {err}");
+                return NextAccountControllerState::NewState(SyncingState::enter(
+                    shared_state,
+                    self.attempts + 1,
+                ));
+            }
+        };
+
+        let retrieval_result = match join_result {
+            Ok(retrieval_result) => retrieval_result,
+            Err(zk_nym_error) => {
+                if self.attempts > ZK_NYM_MAX_FAILS {
+                    return NextAccountControllerState::NewState(ErrorState::enter(
+                        zk_nym_error.into(),
+                    ));
+                }
+
+                // We have an error, but maybe we still have enough ticketbook to proceed
+                if let Ok(true) = shared_state
+                    .credential_storage
+                    .is_all_ticket_types_above_minimal_threshold()
+                    .await
+                {
+                    // let's see if next sync fixes it
+                    return NextAccountControllerState::NewState(ReadyState::enter());
+                }
+                return match zk_nym_error {
+                    ZkNymError::Storage | ZkNymError::Internal(_) => {
+                        // Error is on our side, let's give it one last try though
+                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(
+                            shared_state,
+                            ZK_NYM_MAX_FAILS + 1,
+                            self.fair_usage_left,
+                        ))
+                    }
+                    ZkNymError::ApiFailure(_) => {
+                        // Error on the API side, let's try again
+                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(
+                            shared_state,
+                            self.attempts + 1,
+                            self.fair_usage_left,
+                        ))
+                    }
+                    ZkNymError::BandwidthExceeded => {
+                        tracing::warn!("Our fair usage is depleted");
+                        if let Ok(true) = shared_state
+                            .credential_storage
+                            .is_all_ticket_types_non_empty()
+                            .await
+                        {
+                            tracing::warn!("We still have some tickets though");
+                            NextAccountControllerState::NewState(ReadyState::enter())
+                        } else {
+                            NextAccountControllerState::NewState(ErrorState::enter(
+                                ZkNymError::BandwidthExceeded.into(),
+                            ))
+                        }
+                    }
+                };
+            }
+        };
+
+        match retrieval_result {
+            ZkNymFetchResult::DisabledCredentials
+            | ZkNymFetchResult::SufficientBandwidth
+            | ZkNymFetchResult::FetchedTickets { .. } => {
+                NextAccountControllerState::NewState(ReadyState::enter())
+            }
+            ZkNymFetchResult::UpgradeMode { upgrade_mode_data } => {
+                NextAccountControllerState::NewState(UpgradeModeState::enter(upgrade_mode_data))
+            }
+        }
+    }
+
+    async fn handle_account_command<C: ConnectivityMonitor>(
+        self: Box<Self>,
+        command: AccountCommand,
+        shared_state: &mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C> {
+        match command {
+            AccountCommand::CreateAccount(return_sender) => {
+                return_sender.send(Err(AccountCommandError::ExistingAccount))
+            }
+            AccountCommand::StoreAccount(return_sender, _) => {
+                return_sender.send(Err(AccountCommandError::ExistingAccount))
+            }
+            AccountCommand::RegisterAccount(return_sender, account, platform) => {
+                let res = handler::handle_register_account(shared_state, account, platform).await;
+                return_sender.send(res);
+            }
+            AccountCommand::ForgetAccount(return_sender) => {
+                self.zk_nym_fetching_handle.abort();
+                let res = handler::handle_forget_account(shared_state).await;
+                let error = res.is_err();
+                return_sender.send(res);
+                return if error {
+                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                } else {
+                    NextAccountControllerState::NewState(LoggedOutState::enter())
+                };
+            }
+            AccountCommand::RotateKeys(return_sender) => {
+                let res = handler::handle_rotate_keys(shared_state).await;
+                return_sender.send(res);
+            }
+            AccountCommand::AccountBalance(return_sender) => {
+                return_sender.send(Err(AccountCommandError::AccountNotDecentralised))
+            }
+            AccountCommand::ObtainTicketbooks(return_sender, _) => {
+                return_sender.send(Err(AccountCommandError::AccountNotDecentralised))
+            }
+            AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
+                self.zk_nym_fetching_handle.abort();
+                return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
+                return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+            }
+            AccountCommand::RefreshAccountState(return_sender) => {
+                return_sender.send(Ok(()));
+                return if shared_state.firewall_active {
+                    NextAccountControllerState::SameState(self)
+                } else {
+                    self.zk_nym_fetching_handle.abort();
+                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                };
+            }
+            AccountCommand::VpnApiFirewallDown(return_sender) => {
+                shared_state.firewall_active = false;
+                return_sender.send(Ok(()));
+                return NextAccountControllerState::NewState(RequestingZkNymsState::enter(
+                    shared_state,
+                    self.attempts,
+                    self.fair_usage_left,
+                ));
+            }
+            AccountCommand::VpnApiFirewallUp(return_sender) => {
+                shared_state.firewall_active = true;
+                self.zk_nym_fetching_handle.abort();
+                return_sender.send(Ok(()));
+            }
+            AccountCommand::Common(common_command) => {
+                common_handler::handle_common_command(common_command, shared_state).await
+            }
+        }
+        NextAccountControllerState::SameState(self)
     }
 }
 
@@ -174,109 +383,13 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
         shared_state: &'async_trait mut SharedAccountState<C>,
     ) -> NextAccountControllerState<C> {
         tokio::select! {
-            zknym_result = &mut self.zk_nym_fetching_handle => {
-                match zknym_result {
-                    Ok(result) => {
-                        match result {
-                            Ok(()) => {
-                                // No error whatsoever, we're ready to connect
-                                NextAccountControllerState::NewState(ReadyState::enter())
-                            },
-                            Err(zk_nym_error) => {
-                                if self.attempts > ZK_NYM_MAX_FAILS {
-                                    return NextAccountControllerState::NewState(ErrorState::enter(zk_nym_error.into()));
-                                }
-
-                                // We have an error, but maybe we still have enough ticketbook to proceed
-                                if let Ok(true) = shared_state.credential_storage.is_all_ticket_types_above_minimal_threshold().await {
-                                    // let's see if next sync fixes it
-                                    return NextAccountControllerState::NewState(ReadyState::enter());
-                                }
-                                match zk_nym_error {
-                                    ZkNymError::Storage | ZkNymError::Internal(_) => {
-                                        // Error is on our side, let's give it one last try though
-                                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, ZK_NYM_MAX_FAILS + 1, self.fair_usage_left))
-                                    },
-                                    ZkNymError::ApiFailure(_) => {
-                                        // Error on the API side, let's try again
-                                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts + 1, self.fair_usage_left))
-                                    },
-                                    ZkNymError::BandwidthExceeded => {
-                                        tracing::warn!("Our fair usage is depleted");
-                                        if let Ok(true) = shared_state.credential_storage.is_all_ticket_types_non_empty().await {
-                                            tracing::warn!("We still have some tickets though");
-                                            NextAccountControllerState::NewState(ReadyState::enter())
-                                        } else {
-                                            NextAccountControllerState::NewState(ErrorState::enter(ZkNymError::BandwidthExceeded.into()))
-                                        }
-                                    },
-                                }
-                            },
-                        }
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to join on the fetching task : {e}");
-                        NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
-                    }
-                }
-            },
-        Some(command) = command_rx.recv() => {
-                match command {
-                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::RegisterAccount(return_sender, account, platform) => {
-                        let res = handler::handle_register_account(shared_state, account, platform).await;
-                        return_sender.send(res);
-                    }
-                    AccountCommand::ForgetAccount(return_sender) => {
-                        self.zk_nym_fetching_handle.abort();
-                        let res = handler::handle_forget_account(shared_state).await;
-                        let error = res.is_err();
-                        return_sender.send(res);
-                        if error {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
-                        } else {
-                            return NextAccountControllerState::NewState(LoggedOutState::enter());
-                        }
-                    },
-                    AccountCommand::RotateKeys(return_sender) => {
-                        let res = handler::handle_rotate_keys(shared_state).await;
-                        return_sender.send(res);
-                    },
-                        AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
-                        self.zk_nym_fetching_handle.abort();
-                        return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
-                    },
-                    AccountCommand::RefreshAccountState(return_sender) => {
-                        return_sender.send(Ok(()));
-                        if shared_state.firewall_active {
-                            return NextAccountControllerState::SameState(self);
-                        } else {
-                            self.zk_nym_fetching_handle.abort();
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
-                        }
-                    },
-
-                    AccountCommand::VpnApiFirewallDown(return_sender) =>  {
-                        shared_state.firewall_active = false;
-                        return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, self.fair_usage_left));
-                    },
-
-                    AccountCommand::VpnApiFirewallUp(return_sender) => {
-                        shared_state.firewall_active = true;
-                        self.zk_nym_fetching_handle.abort();
-                        return_sender.send(Ok(()));
-                    },
-                    AccountCommand::Common(common_command) => {
-                        common_handler::handle_common_command(common_command, shared_state).await
-                    },
-                }
-                NextAccountControllerState::SameState(self)
+            biased;
+            _ = shutdown_token.cancelled() => {
+                self.zk_nym_fetching_handle.abort();
+                NextAccountControllerState::Finished
             }
+            fetching_result = &mut self.zk_nym_fetching_handle => self.handle_retrieved_zk_nym(shared_state, fetching_result).await,
+            Some(command) = command_rx.recv() => self.handle_account_command(command, shared_state).await,
             Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
                     self.zk_nym_fetching_handle.abort();
@@ -284,10 +397,6 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                 } else {
                     NextAccountControllerState::SameState(self)
                 }
-            }
-            _ = shutdown_token.cancelled() => {
-                self.zk_nym_fetching_handle.abort();
-                NextAccountControllerState::Finished
             }
         }
     }
@@ -299,6 +408,12 @@ enum ZkNymError {
     ApiFailure(String),
     Internal(String),
     BandwidthExceeded,
+}
+
+impl ZkNymError {
+    fn internal<S: Into<String>>(msg: S) -> ZkNymError {
+        ZkNymError::Internal(msg.into())
+    }
 }
 
 impl From<ZkNymError> for AccountControllerErrorStateReason {
@@ -321,4 +436,16 @@ impl From<ZkNymError> for AccountControllerErrorStateReason {
             },
         }
     }
+}
+
+enum ZkNymFetchResult {
+    DisabledCredentials,
+    SufficientBandwidth,
+    FetchedTickets {
+        #[allow(unused)]
+        types: Vec<String>,
+    },
+    UpgradeMode {
+        upgrade_mode_data: Box<UpgradeModeData>,
+    },
 }

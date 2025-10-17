@@ -16,7 +16,7 @@ mod logged_out_state;
 mod offline_state;
 mod ready_state;
 mod syncing_state;
-
+mod upgrade_mode_state;
 // Account Controller state machine available states
 
 /// Account stored, online, can't proceed without user action and/or temporary failure somewhere
@@ -66,6 +66,7 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::LoggedOut => Self::LoggedOut,
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
             PrivateAccountControllerState::Decentralised => Self::Decentralised,
+            PrivateAccountControllerState::UpgradeMode => todo!(),
             PrivateAccountControllerState::Error(reason) => Self::Error(reason),
             PrivateAccountControllerState::RequestingZkNyms => Self::RequestingZkNyms,
         }
@@ -80,6 +81,7 @@ pub(super) enum PrivateAccountControllerState {
     LoggedOut,
     ReadyToConnect,
     Decentralised,
+    UpgradeMode,
     Error(AccountControllerErrorStateReason),
     RequestingZkNyms,
 }

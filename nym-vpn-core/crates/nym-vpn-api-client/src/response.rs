@@ -10,9 +10,8 @@ use std::{
 use crate::{error::VpnApiClientError, network_compatibility::NetworkCompatibility};
 use itertools::Itertools;
 use nym_contracts_common::Percent;
-use nym_credential_proxy_requests::api::v1::ticketbook::models::{
-    TicketbookWalletSharesResponse, UpgradeModeAttestation,
-};
+use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
+pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
@@ -24,7 +23,7 @@ pub struct NymVpnRegisterAccountResponse {
     pub last_updated_utc: String,
     pub account_addr: String,
     pub status: NymVpnRegisterAccountStatusResponse,
-    pub account_token: String,
+    pub account_token: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

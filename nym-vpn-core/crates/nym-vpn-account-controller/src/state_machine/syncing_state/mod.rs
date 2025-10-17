@@ -5,7 +5,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
-    response::{NymErrorResponse, NymVpnAccountStatusResponse},
+    response::NymErrorResponse,
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
@@ -225,11 +225,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
                         return_sender.send(res);
-                        if error {
-                            return NextAccountControllerState::SameState(self);
+                        return if error {
+                            NextAccountControllerState::SameState(self)
                         } else {
                             self.syncing_state_handle.abort();
-                            return NextAccountControllerState::NewState(LoggedOutState::enter());
+                            NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
                     AccountCommand::RotateKeys(return_sender) => {
@@ -240,11 +240,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        if shared_state.firewall_active {
-                            return NextAccountControllerState::SameState(self);
+                        return if shared_state.firewall_active {
+                            NextAccountControllerState::SameState(self)
                         } else {
                             self.syncing_state_handle.abort();
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
                         }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {

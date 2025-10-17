@@ -51,7 +51,9 @@ pub use account::{
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
-    request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
+    request_zknym::{
+        RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess, UpgradeModeData,
+    },
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
