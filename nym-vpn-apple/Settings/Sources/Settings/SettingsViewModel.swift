@@ -325,20 +325,20 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        if featureFlagsManager.isQuicEnabled || featureFlagsManager.isStealthAPIEnabled {
-            viewModels.append(
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.censorship.title".localizedString,
-                    imageName: "domain",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToCensorship()
-                        }
-                    }
-                )
-            )
-        }
+//        if featureFlagsManager.isQuicEnabled || featureFlagsManager.isStealthAPIEnabled {
+//            viewModels.append(
+//                SettingsListItemViewModel(
+//                    accessory: .arrow,
+//                    title: "settings.censorship.title".localizedString,
+//                    imageName: "domain",
+//                    action: { [weak self] in
+//                        Task { @MainActor in
+//                            self?.navigateToCensorship()
+//                        }
+//                    }
+//                )
+//            )
+//        }
         return .killSwitch(viewModels: viewModels)
     }
 
