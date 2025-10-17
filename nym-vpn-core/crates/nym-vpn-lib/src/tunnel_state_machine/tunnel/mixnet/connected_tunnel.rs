@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_registration_common::AssignedAddresses;
-use nym_sdk::mixnet::MixnetClient;
+use nym_sdk::mixnet::{EventReceiver, MixnetClient};
 use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
@@ -19,6 +19,7 @@ pub async fn start_mixnet_tunnel(
     assigned_addresses: AssignedAddresses,
     tun_device: AsyncDevice,
     cancel_token: CancellationToken,
+    event_rx: EventReceiver,
 ) -> Result<TunnelHandle> {
     let connection_monitor = ConnectionMonitorTask::setup();
     let processor_config = MixnetProcessorConfig::new(
@@ -35,6 +36,7 @@ pub async fn start_mixnet_tunnel(
         mixnet_client,
         &connection_monitor,
         cancel_token.clone(),
+        event_rx,
     )
     .await;
 

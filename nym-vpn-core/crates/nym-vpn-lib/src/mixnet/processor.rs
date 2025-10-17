@@ -13,7 +13,7 @@ use nym_ip_packet_requests::{
     v8::request::IpPacketRequest,
 };
 use nym_sdk::mixnet::{
-    InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
+    EventReceiver, InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender,
     MixnetMessageSinkTranslator, Recipient, TransmissionLane,
 };
 use tokio::task::JoinHandle;
@@ -87,6 +87,9 @@ struct MixnetProcessor {
 
     // Listen for when we should disconnect from the IPR and being shutting down
     cancel_token: CancellationToken,
+
+    // Receive events from the mixnet client
+    event_rx: EventReceiver,
 }
 
 impl MixnetProcessor {
@@ -97,6 +100,7 @@ impl MixnetProcessor {
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: IpPair,
         cancel_token: CancellationToken,
+        event_rx: EventReceiver,
     ) -> Self {
         MixnetProcessor {
             device,
@@ -106,6 +110,7 @@ impl MixnetProcessor {
             our_ips,
             icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             cancel_token,
+            event_rx,
         }
     }
 
@@ -140,6 +145,7 @@ impl MixnetProcessor {
             self.our_ips,
             self.connection_event_tx.clone(),
             mixnet_listener_cancel_token.clone(),
+            self.event_rx,
         );
 
         // Keeps track of whether ipr disconnect timeout has been activated.
@@ -379,6 +385,7 @@ pub async fn start_processor(
     mixnet_client: MixnetClient,
     connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
+    event_rx: EventReceiver,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     tracing::info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
@@ -388,6 +395,7 @@ pub async fn start_processor(
         config.ip_packet_router_address,
         config.our_ips,
         cancel_token,
+        event_rx,
     );
 
     tokio::spawn(async move {
