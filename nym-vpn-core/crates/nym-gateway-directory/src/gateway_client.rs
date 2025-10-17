@@ -12,7 +12,7 @@ use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    ResolverOverrides, build_fronted_http_client, str_to_socket_addr,
+    ResolverOverrides, api_url_to_url, fronted_http_client, str_to_socket_addr,
     types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
 };
@@ -202,13 +202,24 @@ impl GatewayClient {
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
-        let api_client =
-            build_fronted_http_client(config.nym_api_urls(), Some(user_agent.clone()), None)
-                .await
-                .map_err(Error::VpnApiClientError)?;
+        let nym_api_urls: Vec<nym_http_api_client::Url> = config
+            .nym_api_urls()
+            .iter()
+            .map(|api_url| api_url_to_url(api_url).map_err(Error::VpnApiClientError))
+            .collect::<Result<Vec<_>>>()?;
+
+        let api_client = fronted_http_client(nym_api_urls, Some(user_agent.clone()), None, None)
+            .await
+            .map_err(Error::VpnApiClientError)?;
+
+        let nym_vpn_api_urls: Vec<nym_http_api_client::Url> = config
+            .nym_vpn_api_urls()
+            .iter()
+            .map(|api_url| api_url_to_url(api_url).map_err(Error::VpnApiClientError))
+            .collect::<Result<Vec<_>>>()?;
 
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
-            config.nym_vpn_api_urls(),
+            nym_vpn_api_urls,
             user_agent.clone(),
             resolver_overrides,
         )

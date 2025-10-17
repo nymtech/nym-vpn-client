@@ -6,27 +6,20 @@ use std::{
     sync::LazyLock,
 };
 
-use nym_common::trace_err_chain;
-use nym_sdk::UserAgent;
-use url::Url;
-
-use nym_vpn_api_client::{
-    VpnApiClient,
-    fronted_http_client::build_fronted_http_client,
-    response::{ApiUrl, NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
-};
-
 use crate::{
-    AccountManagement, Error, FeatureFlags, Result, SystemMessages,
-    system_configuration::SystemConfiguration,
+    AccountManagement, Error, FeatureFlags, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, SystemMessages,
+    nym_network::NymNetwork, system_configuration::SystemConfiguration,
 };
 use nym_api_requests::NymNetworkDetailsResponse;
+use nym_common::trace_err_chain;
+use nym_sdk::UserAgent;
 use nym_validator_client::nym_api::NymApiClientExt;
-
-use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
-
-// TODO: integrate with nym-vpn-api-client
-
+use nym_vpn_api_client::{
+    VpnApiClient,
+    fronted_http_client::{api_url_to_url, fronted_http_client},
+    response::{ApiUrl, NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
+    urls_to_resolver_overrides,
+};
 const DISCOVERY_FILE: &str = "discovery.json";
 
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
@@ -43,9 +36,9 @@ pub struct Discovery {
     pub network_name: String,
 
     // Use the getters!
-    nym_api_url: Url,
+    nym_api_url: url::Url,
     nym_api_urls: Vec<ApiUrl>,
-    nym_vpn_api_url: Url,
+    nym_vpn_api_url: url::Url,
     nym_vpn_api_urls: Vec<ApiUrl>,
 
     // Additional context
@@ -105,7 +98,19 @@ impl Discovery {
 
     pub async fn fetch(network_name: &str) -> Result<Self> {
         // allow panic because a broken bootstrap url means everything will fail anyways.
-        let client = VpnApiClient::new(Self::default_vpn_api_urls(), empty_user_agent(), None)
+        let api_urls = Self::default_vpn_api_urls();
+
+        let urls: Vec<nym_http_api_client::Url> = api_urls
+            .iter()
+            .map(api_url_to_url)
+            .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
+            .map_err(Error::CreateVpnApiClient)?;
+
+        let resolver_overrides = urls_to_resolver_overrides(&urls)
+            .await
+            .map_err(Error::CreateVpnApiClient)?;
+
+        let client = VpnApiClient::new(urls, empty_user_agent(), Some(&resolver_overrides))
             .await
             .map_err(Error::CreateVpnApiClient)?;
 
@@ -185,7 +190,12 @@ impl Discovery {
         tracing::debug!("Fetching nym network details");
 
         let api_urls = self.nym_api_urls();
-        let client = build_fronted_http_client(&api_urls, None, None)
+        let urls = api_urls
+            .iter()
+            .map(api_url_to_url)
+            .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
+            .map_err(Error::CreateVpnApiClient)?;
+        let client = fronted_http_client(urls, None, None, None)
             .await
             .map_err(Error::CreateVpnApiClient)?;
 
@@ -339,7 +349,7 @@ fn empty_user_agent() -> UserAgent {
 }
 
 pub(crate) async fn fetch_nym_network_details(
-    nym_api_url: Url,
+    nym_api_url: url::Url,
 ) -> Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
     let client = nym_http_api_client::Client::builder(nym_api_url)
@@ -358,7 +368,12 @@ pub(crate) async fn fetch_nym_vpn_network_details(
     nym_vpn_api_urls: &[nym_network_defaults::ApiUrl],
 ) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
-    VpnApiClient::new(nym_vpn_api_urls, empty_user_agent(), None)
+    let urls = nym_vpn_api_urls
+        .iter()
+        .map(api_url_to_url)
+        .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
+        .map_err(Error::CreateVpnApiClient)?;
+    VpnApiClient::new(urls, empty_user_agent(), None)
         .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_current_env()

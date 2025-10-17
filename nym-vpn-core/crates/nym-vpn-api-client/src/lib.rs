@@ -14,7 +14,10 @@ mod client;
 mod network_compatibility;
 mod routes;
 
-pub use client::{ResolverOverrides, VpnApiClient};
-pub use fronted_http_client::build_fronted_http_client;
+pub use client::VpnApiClient;
+pub use fronted_http_client::{
+    ResolverOverrides, api_url_to_url, api_url_to_url_and_domain, api_urls_to_resolver_overrides,
+    fronted_http_client, fronted_http_client_builder, urls_to_resolver_overrides,
+};
 pub use network_compatibility::NetworkCompatibility;
 pub use resolve_host::{str_to_socket_addr, url_to_socket_addr};

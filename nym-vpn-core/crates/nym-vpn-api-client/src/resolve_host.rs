@@ -100,17 +100,22 @@ pub async fn str_to_socket_addr(
     unresolved_url: &str,
     limit: Option<(usize, usize)>,
 ) -> Result<Vec<SocketAddr>> {
-    let url = match url::Url::parse(unresolved_url) {
-        Ok(url) => url,
-        Err(_) => {
-            let prefixed = format!("https://{unresolved_url}");
-            url::Url::parse(&prefixed).map_err(|_e| VpnApiClientError::InvalidUrl {
-                url: unresolved_url.to_string(),
-            })?
-        }
-    };
-
+    let url = url::Url::parse(unresolved_url).map_err(|_e| VpnApiClientError::InvalidUrl {
+        url: unresolved_url.to_string(),
+    })?;
     url_to_socket_addr(&url, limit).await
+}
+
+/// Get the address of the specified domain, potentially limiting the number of IPv4, IPv6 addresses returned.
+pub async fn domain_to_socket_addr(
+    domain: &str,
+    limit: Option<(usize, usize)>,
+) -> Result<Vec<SocketAddr>> {
+    if domain.contains("://") {
+        str_to_socket_addr(domain, limit).await
+    } else {
+        str_to_socket_addr(&format!("https://{domain}"), None).await
+    }
 }
 
 #[cfg(test)]
@@ -118,9 +123,7 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn test_resolve_host() {
-        let addresses = str_to_socket_addr("https://microsoft.com", None)
-            .await
-            .unwrap();
+        let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
 
         let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
             .await

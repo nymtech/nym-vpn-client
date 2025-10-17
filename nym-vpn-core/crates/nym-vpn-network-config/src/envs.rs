@@ -10,7 +10,7 @@ use std::{
 use itertools::Itertools;
 use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
-use nym_vpn_api_client::VpnApiClient;
+use nym_vpn_api_client::{VpnApiClient, api_url_to_url};
 
 use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
 
@@ -66,8 +66,13 @@ impl RegisteredNetworks {
 
         // Spawn the root task
         let api_urls = Discovery::default_vpn_api_urls();
+        let urls = api_urls
+            .iter()
+            .map(api_url_to_url)
+            .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
+            .map_err(Error::CreateVpnApiClient)?;
         let inner = VpnApiClient::new(
-            api_urls,
+            urls,
             UserAgent {
                 application: String::new(),
                 version: String::new(),
