@@ -3,7 +3,7 @@
   "platforms": {
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjBERjZmdDlnYTl0T2RrTWg2aVl5ZlNKUlFRNHNWTVZzS2pkTm5rZTI1bTJXemJGTmdnVEEyQ25Za1g1MDg2cFNrNU1LT0pQTlpBTEJLcG0xYUFGZncwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwNjkzMzk1CWZpbGU6TnltVlBOXzEuMTcuMC1lbGRlcmJlcnJ5X3g2NC1zZXR1cC5leGUKZkZrQ2g2L01JN1BsZ3BoTzYrNFNNc25PcmkzMTYxSzFQNTdYVEdkTitHR2N4N0NvK3R0OGxLbUJWYW1WZEszWVhyNVR2U2RZczNyamVYMmx0cW9QQXc9PQo=",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.17.0/NymVPN_1.17.0-elderberry_x64-setup.exe"
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.17.0/NymVPN_1.17.0-x64-setup.exe"
     }
   }
 }
