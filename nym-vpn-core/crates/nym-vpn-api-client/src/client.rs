@@ -108,7 +108,7 @@ impl VpnApiClient {
             return Err(VpnApiClientError::CreateVpnApiClient(Box::new(err)));
         }
 
-        let urls_and_domains: Vec<(Url, String)> = api_urls
+        let urls_and_domains: Vec<(Url, Option<String>)> = api_urls
             .iter()
             .map(api_url_to_url)
             .collect::<Result<Vec<_>, _>>()?;
@@ -139,7 +139,9 @@ impl VpnApiClient {
 
             // Have to use ApiUrl fronts as there is no `Url::fronts()` method :(
             for i in 0..api_urls.len() {
-                let domain = &urls_and_domains[i].1;
+                let Some(domain) = &urls_and_domains[i].1 else {
+                    continue;
+                };
                 let api_url = &api_urls[i];
                 if let Some(ref fronts) = api_url.front_hosts {
                     for front in fronts.iter() {

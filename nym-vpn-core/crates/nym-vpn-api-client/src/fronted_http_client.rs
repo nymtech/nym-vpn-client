@@ -11,12 +11,12 @@ pub async fn build_fronted_http_client(
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
 ) -> Result<Client> {
-    let urls_and_domains: Vec<(Url, String)> = api_urls
+    let urls_and_domains: Vec<(Url, Option<String>)> = api_urls
         .iter()
         .map(api_url_to_url)
         .collect::<Result<Vec<_>, _>>()?;
 
-    // We wouldn't need to do this if `Url::fronts()` existed.
+    // We wouldn't need to do this if `Url::front_hosts()` existed.
     #[allow(deprecated)]
     if api_urls.len() != urls_and_domains.len() {
         return Err(VpnApiClientError::CreateVpnApiClient(Box::new(
@@ -46,9 +46,11 @@ pub async fn build_fronted_http_client(
     if has_front {
         builder = builder.with_fronting(FrontPolicy::OnRetry);
 
-        // Have to use ApiUrl fronts as there is no `Url::fronts()` method :(
+        // Have to use `ApiUrl::front_hosts` as there is no `Url::front_hosts()` method :(
         for i in 0..api_urls.len() {
-            let domain = &urls_and_domains[i].1;
+            let Some(domain) = &urls_and_domains[i].1 else {
+                continue;
+            };
             let api_url = &api_urls[i];
             if let Some(ref fronts) = api_url.front_hosts {
                 for front in fronts.iter() {
@@ -76,8 +78,8 @@ pub async fn build_fronted_http_client(
     Ok(client)
 }
 
-// Returns (url, domain)
-pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientError> {
+// Returns (url, Some(domain))
+pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, Option<String>), VpnApiClientError> {
     let parse_url = |s: &str| -> Result<url::Url, VpnApiClientError> {
         match url::Url::parse(s) {
             Ok(url) => Ok(url),
@@ -92,13 +94,7 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientErr
     let url = parse_url(&api_url.url)?;
 
     // For URLs like "http://127.0.0.1:49675", `domain()` returns `None`.
-    let domain = url
-        .domain()
-        .or(url.host_str())
-        .ok_or_else(|| VpnApiClientError::InvalidUrl {
-            url: api_url.url.clone(),
-        })?
-        .to_string();
+    let domain = url.domain().map(|s| s.to_string());
 
     let fronts: Option<Vec<url::Url>> = api_url
         .front_hosts
@@ -130,7 +126,7 @@ mod tests {
         };
         let (url, domain) = api_url_to_url(&api_url).unwrap();
         assert_eq!(url.as_str(), "https://example.com/api");
-        assert_eq!(domain, "example.com");
+        assert_eq!(domain, Some("example.com".to_string()));
     }
 
     #[test]
@@ -141,6 +137,6 @@ mod tests {
         };
         let (url, domain) = api_url_to_url(&api_url).unwrap();
         assert_eq!(url.as_str(), "http://127.0.0.1:49675/");
-        assert_eq!(domain, "127.0.0.1");
+        assert!(domain.is_none());
     }
 }
