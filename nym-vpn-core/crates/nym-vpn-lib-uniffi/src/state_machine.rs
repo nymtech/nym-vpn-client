@@ -125,8 +125,13 @@ pub(super) async fn start_state_machine(
 
     let shutdown_token = CancellationToken::new();
 
-    let api_url = network_env.fronted_api_url();
-    let validator_client = build_fronted_http_client(&api_url, None, None)
+    let api_urls = network_env
+        .nym_api_urls()
+        .ok_or(VpnError::InvalidStateError {
+            details: "Nym API URLs are empty".to_string(),
+        })?;
+
+    let validator_client = build_fronted_http_client(&api_urls, None, None)
         .await
         .map_err(|e| VpnError::HttpClient(e.to_string()))?;
 

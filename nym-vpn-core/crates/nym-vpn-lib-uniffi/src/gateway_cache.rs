@@ -61,14 +61,18 @@ async fn make_gateway_config() -> nym_gateway_directory::Config {
         .await
         .unwrap();
 
-    nym_gateway_directory::Config::new(
+    match nym_gateway_directory::Config::new(
         network_env.nyxd_url(),
-        network_env.nym_api_url().clone(),
-        network_env.nym_api_urls(),
-        network_env.nym_vpn_api_url(),
-        network_env.nym_vpn_api_urls(),
+        network_env.nym_api_urls().unwrap_or_default(),
+        network_env.nym_vpn_api_urls().unwrap_or_default(),
         None,
-    )
+    ) {
+        Ok(config) => config,
+        Err(e) => {
+            tracing::error!("Failed to create gateway directory config: {e:#?}");
+            panic!("Inconsistent network environment");
+        }
+    }
 }
 
 pub async fn init_gateway_cache(

@@ -67,7 +67,7 @@ impl RegisteredNetworks {
         // Spawn the root task
         let api_urls = Discovery::default_vpn_api_urls();
         let inner = VpnApiClient::new(
-            &api_urls,
+            api_urls,
             UserAgent {
                 application: String::new(),
                 version: String::new(),

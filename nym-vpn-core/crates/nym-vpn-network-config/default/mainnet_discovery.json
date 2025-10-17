@@ -22,7 +22,10 @@
   "nym_vpn_api_url": "https://nymvpn.com/api/",
   "nym_vpn_api_urls": [
     {
-      "url": "https://nymvpn.com/api/",
+      "url": "https://nymvpn.com/api/"
+    },
+    {
+      "url": "https://nym-frontdoor.vercel.app/nym-vpn-api/",
       "fronts": [
         "vercel.app",
         "vercel.com"
