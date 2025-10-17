@@ -797,6 +797,7 @@ impl TunnelMonitor {
             assigned_addresses,
             tun_device,
             self.shutdown_token.clone(),
+            registration_result.event_rx,
         )
         .await
         .map_err(|e| Error::Tunnel(Box::new(e)))?;

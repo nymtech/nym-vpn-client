@@ -162,8 +162,8 @@ impl VpnAccount {
         ))
     }
 
-    pub fn get_mnemonic(&self) -> String {
-        self.wallet.mnemonic()
+    pub fn get_mnemonic(&self) -> Zeroizing<String> {
+        self.wallet.mnemonic_string()
     }
 
     pub fn mode(&self) -> VpnAccountMode {
