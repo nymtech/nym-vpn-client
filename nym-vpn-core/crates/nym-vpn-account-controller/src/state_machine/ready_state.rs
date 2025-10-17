@@ -66,7 +66,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
             Some(command) = command_rx.recv() => {
                 match command {
                     AccountCommand::CreateAccount(return_sender) |  AccountCommand::StoreAccount(return_sender, _) => return_existing_account(return_sender),
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_existing_account(return_sender),
+                    AccountCommand::RegisterAccount(return_sender, account, platform) => {
+                        let res = handler::handle_register_account(shared_state, account, platform).await;
+                        return_sender.send(res);
+                    }
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
