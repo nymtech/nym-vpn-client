@@ -2,41 +2,12 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-// TODO dz add a test with the following steps
-
-// get_account_identity
-// get_account_state
-//
-// store_account
-// is_account_stored
-//
-// get_account_identity
-// get_account_state
-// get_account_usage
-//
-// set_network
-//
-// list_gateways
-//
-// connect_tunnel
-// get_tunnel_state
-//
-// <do something: ping or download a file>
-//
-// disconnect_tunnel
-// get_tunnel_state
-//
-// get_active_devices
-// get_account_usage
-
-// TODO dz test annotated with `test_function_nym` should come here
-// test function will have access to RPC context & Nym client
 
 use crate::nym_daemon::RpcClientProvider;
 use crate::tests::config_nym::TEST_CONFIG_NYM;
 use crate::tests::{TestContext, helpers_nym};
-use anyhow::{Context, bail};
-use nym_vpn_lib_types::{AccountControllerState, TunnelState};
+use anyhow::{Context, anyhow, bail};
+use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
 use test_macro::test_function_nym;
@@ -74,7 +45,6 @@ pub async fn basic_functionality(
         log::error!("{}", err);
     }
 
-    let timeout = tokio::time::sleep(Duration::from_secs(60 * 2)).await;
     loop {
         let is_stored = nym_proxy_client.is_account_stored().await?;
         log::debug!("nym-vpnd has a registered account: {is_stored}");
@@ -121,11 +91,13 @@ pub async fn basic_functionality(
 
     let usages = nym_proxy_client.get_account_usage().await?;
     log::debug!("Usage details:");
-    for usage in usages {
-        log::debug!("Created on: {}", usage.created_on_utc);
-        log::debug!("Subscription valid until: {}", usage.valid_until_utc);
-        log::debug!("Bandwidth used: {}GB", usage.bandwidth_used_gb);
-        log::debug!("Allowance: {}GB", usage.bandwidth_allowance_gb);
+    let n = usages.len();
+    for (i, usage) in usages.iter().enumerate() {
+        log::debug!("\t{}/{}", i + 1, n);
+        log::debug!("\tCreated on: {}", usage.created_on_utc);
+        log::debug!("\tSubscription valid until: {}", usage.valid_until_utc);
+        log::debug!("\tBandwidth used: {}GB", usage.bandwidth_used_gb);
+        log::debug!("\tAllowance: {}GB", usage.bandwidth_allowance_gb);
     }
 
     log::info!("🏁 🏁 🏁 Passed!");

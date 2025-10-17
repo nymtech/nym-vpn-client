@@ -4,32 +4,23 @@
 
 use futures::{SinkExt, StreamExt, pin_mut};
 use std::{
-    collections::{BTreeMap, HashMap},
-    net::{IpAddr, SocketAddr},
+    collections::HashMap,
     path::{Path, PathBuf},
-    process::Stdio,
     sync::Arc,
-    time::{Duration, SystemTime},
 };
 use util::OnDrop;
 
 use crate::server_nym::NymTestServer;
-use crate::sys::MULLVAD_SYSTEMD_OVERRIDE_FILE;
-use tarpc::{context, server::Channel};
+use tarpc::server::Channel;
 use test_rpc::{
-    AppTrace, Service, SpawnOpts, UNPRIVILEGED_USER,
-    meta::OsVersion,
-    net::SockHandleId,
+    Service,
     nym_daemon::{MULLVAD_SOCKET_PATH, NYMVPN_SOCKET_PATH, ServiceStatus},
-    package::Package,
     transport::GrpcForwarder,
 };
 use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
-    process::{ChildStdin, ChildStdout, Command},
-    sync::{Mutex, broadcast::error::TryRecvError, oneshot},
-    task,
-    time::sleep,
+    io::{AsyncReadExt, AsyncWriteExt},
+    process::{ChildStdin, ChildStdout},
+    sync::Mutex,
 };
 use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 
@@ -118,101 +109,6 @@ async fn main() -> Result<(), Error> {
         server.execute(NymTestServer::default().serve()).await;
 
         log::error!("Restarting server since it stopped");
-    }
-}
-
-/// Forward data between the test manager and Mullvad management interface socket
-async fn forward_to_mullvad_daemon_interface(proxy_transport: GrpcForwarder) {
-    const IPC_READ_BUF_SIZE: usize = 16 * 1024;
-
-    let mut srv_read_buf = [0u8; IPC_READ_BUF_SIZE];
-    let mut proxy_transport = LengthDelimitedCodec::new().framed(proxy_transport);
-
-    loop {
-        // Wait for input from the test manager before connecting to the UDS or named pipe.
-        // Connect at the last moment since the daemon may not even be running when the
-        // test runner first starts.
-        let first_message = match proxy_transport.next().await {
-            Some(Ok(bytes)) => {
-                if bytes.is_empty() {
-                    log::debug!("ignoring EOF from client");
-                    continue;
-                }
-                bytes
-            }
-            Some(Err(error)) => {
-                log::error!("daemon client channel error: {error}");
-                break;
-            }
-            None => break,
-        };
-
-        log::info!("mullvad daemon: connecting");
-
-        let mut daemon_socket_endpoint =
-            match parity_tokio_ipc::Endpoint::connect(MULLVAD_SOCKET_PATH).await {
-                Ok(uds_endpoint) => uds_endpoint,
-                Err(error) => {
-                    log::error!("mullvad daemon: failed to connect: {error}");
-                    // send EOF
-                    let _ = proxy_transport.send(bytes::Bytes::new()).await;
-                    continue;
-                }
-            };
-
-        log::info!("mullvad daemon: connected");
-
-        if let Err(error) = daemon_socket_endpoint.write_all(&first_message).await {
-            log::error!("writing to uds failed: {error}");
-            continue;
-        }
-
-        loop {
-            let srv_read = daemon_socket_endpoint.read(&mut srv_read_buf);
-            pin_mut!(srv_read);
-
-            match futures::future::select(srv_read, proxy_transport.next()).await {
-                futures::future::Either::Left((read, _)) => match read {
-                    Ok(num_bytes) => {
-                        if num_bytes == 0 {
-                            log::debug!("uds EOF; restarting server");
-                            break;
-                        }
-                        if let Err(error) = proxy_transport
-                            .send(srv_read_buf[..num_bytes].to_vec().into())
-                            .await
-                        {
-                            log::error!("writing to client channel failed: {error}");
-                            break;
-                        }
-                    }
-                    Err(error) => {
-                        log::error!("reading from uds failed: {error}");
-                        let _ = proxy_transport.send(bytes::Bytes::new()).await;
-                        break;
-                    }
-                },
-                futures::future::Either::Right((read, _)) => match read {
-                    Some(Ok(bytes)) => {
-                        if bytes.is_empty() {
-                            log::debug!("management interface EOF; restarting server");
-                            break;
-                        }
-                        if let Err(error) = daemon_socket_endpoint.write_all(&bytes).await {
-                            log::error!("writing to uds failed: {error}");
-                            break;
-                        }
-                    }
-                    Some(Err(error)) => {
-                        log::error!("daemon client channel error: {error}");
-                        break;
-                    }
-                    None => break,
-                },
-            }
-        }
-
-        log::info!("mullvad daemon: disconnected");
     }
 }
 

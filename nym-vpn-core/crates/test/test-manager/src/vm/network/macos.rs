@@ -15,7 +15,15 @@ use std::{
     convert::Infallible,
     net::{Ipv4Addr, SocketAddrV4},
 };
-use talpid_types::drop_guard::on_drop;
+/// A simple drop guard that runs a closure when dropped.
+struct DropGuard<F: FnOnce()>(Option<F>);
+impl<F: FnOnce()> Drop for DropGuard<F> {
+    fn drop(&mut self) {
+        if let Some(f) = self.0.take() {
+            f();
+        }
+    }
+}
 use tokio::{io::AsyncWriteExt, process::Command, time::sleep};
 
 // Private key of the wireguard remote peer on host.
@@ -112,11 +120,11 @@ async fn create_wireguard_interface() -> Result<()> {
         let pid = child.id().context("wireguard-go exited prematurely")?;
         let pid = Pid::from_raw(pid as libc::pid_t);
 
-        let _term_on_drop = on_drop(|| {
+        let _term_on_drop = DropGuard(Some(|| {
             if let Err(e) = kill(pid, Signal::SIGTERM) {
                 log::warn!("Failed to kill wireguard-go ({pid}): {e}");
             }
-        });
+        }));
 
         let output = child.wait_with_output().await.context("Run wireguard-go")?;
         if output.status.success() {

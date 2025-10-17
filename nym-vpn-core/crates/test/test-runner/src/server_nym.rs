@@ -2,10 +2,9 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
 use crate::{
-    app_nymvpn, forward, get_mullvad_pipe_status, get_nymvpn_pipe_status, logging, logging::LOGGER,
-    net, package, package_nym, sys, util, util::OnDrop,
+    app_nymvpn, forward, get_nymvpn_pipe_status, logging, logging::LOGGER, net, package_nym, sys,
+    util, util::OnDrop,
 };
 use futures::{FutureExt, select, select_biased};
 use std::{
@@ -14,7 +13,7 @@ use std::{
     path::PathBuf,
     process::Stdio,
     sync::Arc,
-    time::{Duration, SystemTime},
+    time::Duration,
 };
 use tarpc::context;
 use test_rpc::{
@@ -183,7 +182,7 @@ impl Service for NymTestServer {
 
     async fn geoip_lookup(
         self,
-        ctx: context::Context,
+        _ctx: context::Context,
     ) -> Result<test_rpc::AmIMullvad, test_rpc::Error> {
         unimplemented!()
     }
@@ -290,17 +289,38 @@ impl Service for NymTestServer {
     }
 
     async fn restart_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
-        sys::restart_app(NYM_SYSTEMD_SERVICE_NAME).await
+        #[cfg(target_os = "linux")]
+        {
+            sys::restart_app(NYM_SYSTEMD_SERVICE_NAME).await
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     /// Stop the Mullvad VPN application.
     async fn stop_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
-        sys::stop_app(NYM_SYSTEMD_SERVICE_NAME).await
+        #[cfg(target_os = "linux")]
+        {
+            sys::stop_app(NYM_SYSTEMD_SERVICE_NAME).await
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     /// Start the Mullvad VPN application.
     async fn start_nymvpn_daemon(self, _: context::Context) -> Result<(), test_rpc::Error> {
-        sys::start_app(NYM_SYSTEMD_SERVICE_NAME).await
+        #[cfg(target_os = "linux")]
+        {
+            sys::start_app(NYM_SYSTEMD_SERVICE_NAME).await
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     /// Disable the Mullvad VPN system service.
@@ -333,12 +353,21 @@ impl Service for NymTestServer {
         _: context::Context,
         verbosity_level: test_rpc::nym_daemon::Verbosity,
     ) -> Result<(), test_rpc::Error> {
-        sys::set_daemon_log_level(
-            verbosity_level,
-            NYM_SYSTEMD_SERVICE_NAME,
-            NYM_VPN_SYSTEMD_OVERRIDE_FILE,
-        )
-        .await
+        #[cfg(target_os = "linux")]
+        {
+            use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
+            sys::set_daemon_log_level(
+                verbosity_level,
+                NYM_SYSTEMD_SERVICE_NAME,
+                NYM_VPN_SYSTEMD_OVERRIDE_FILE,
+            )
+            .await
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = verbosity_level;
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     async fn set_daemon_environment(
@@ -346,15 +375,36 @@ impl Service for NymTestServer {
         _: context::Context,
         env: HashMap<String, String>,
     ) -> Result<(), test_rpc::Error> {
-        sys::set_daemon_environment(env, NYM_SYSTEMD_SERVICE_NAME, NYM_VPN_SYSTEMD_OVERRIDE_FILE)
+        #[cfg(target_os = "linux")]
+        {
+            use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
+            sys::set_daemon_environment(
+                env,
+                NYM_SYSTEMD_SERVICE_NAME,
+                NYM_VPN_SYSTEMD_OVERRIDE_FILE,
+            )
             .await
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = env;
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     async fn get_daemon_environment(
         self,
         _: context::Context,
     ) -> Result<HashMap<String, String>, test_rpc::Error> {
-        sys::get_daemon_environment(NYM_VPN_SYSTEMD_OVERRIDE_FILE).await
+        #[cfg(target_os = "linux")]
+        {
+            use crate::sys::NYM_VPN_SYSTEMD_OVERRIDE_FILE;
+            sys::get_daemon_environment(NYM_VPN_SYSTEMD_OVERRIDE_FILE).await
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     async fn copy_file(
@@ -590,7 +640,18 @@ impl Service for NymTestServer {
     }
 
     async fn get_os_version(self, _: context::Context) -> Result<OsVersion, test_rpc::Error> {
-        sys::get_os_version()
+        #[cfg(target_os = "linux")]
+        {
+            sys::get_os_version()
+        }
+        #[cfg(target_os = "macos")]
+        {
+            sys::get_os_version()
+        }
+        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+        {
+            Err(test_rpc::Error::TargetNotImplemented)
+        }
     }
 
     #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]

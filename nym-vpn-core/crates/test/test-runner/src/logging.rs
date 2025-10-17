@@ -80,7 +80,7 @@ pub async fn get_nym_app_logs() -> LogOutput {
 
 
 async fn read_settings_file_nym() -> Result<String, Error> {
-    let mut settings_path =
+    let settings_path =
         get_default_settings_path_nym().map_err(|error| Error::Logs(format!("{error}")))?;
     read_truncated(&settings_path, None).await.map_err(|error| {
         Error::Logs(format!(

@@ -2,8 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::collections::HashMap;
-use test_rpc::meta::OsVersion;
+#[cfg(target_os = "linux")]
 use test_rpc::nym_daemon::Verbosity;
 
 #[cfg(target_os = "linux")]
@@ -338,8 +337,27 @@ async fn wait_for_service_state(
 }
 
 #[cfg(target_os = "linux")]
-pub fn get_os_version() -> Result<OsVersion, test_rpc::Error> {
-    Ok(OsVersion::Linux)
+pub fn get_os_version() -> Result<test_rpc::meta::OsVersion, test_rpc::Error> {
+    Ok(test_rpc::meta::OsVersion::Linux)
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_os_version() -> Result<test_rpc::meta::OsVersion, test_rpc::Error> {
+    // Get macOS major version via sysctl
+    let output = std::process::Command::new("sw_vers")
+        .arg("-productVersion")
+        .output()
+        .map_err(|_| test_rpc::Error::Syscall)?;
+    let version_str = String::from_utf8_lossy(&output.stdout);
+    let major: u32 = version_str
+        .trim()
+        .split('.')
+        .next()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0);
+    Ok(test_rpc::meta::OsVersion::Macos(
+        test_rpc::meta::MacosVersion { major },
+    ))
 }
 
 #[cfg(test)]

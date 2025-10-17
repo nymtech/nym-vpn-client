@@ -2233,32 +2233,11 @@ dependencies = [
 
 [[package]]
 name = "dirs"
-version = "5.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
-dependencies = [
- "dirs-sys 0.4.1",
-]
-
-[[package]]
-name = "dirs"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
 dependencies = [
- "dirs-sys 0.5.0",
-]
-
-[[package]]
-name = "dirs-sys"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
-dependencies = [
- "libc",
- "option-ext",
- "redox_users 0.4.6",
- "windows-sys 0.48.0",
+ "dirs-sys",
 ]
 
 [[package]]
@@ -2269,7 +2248,7 @@ checksum = "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab"
 dependencies = [
  "libc",
  "option-ext",
- "redox_users 0.5.2",
+ "redox_users",
  "windows-sys 0.61.1",
 ]
 
@@ -2885,17 +2864,6 @@ dependencies = [
  "typenum",
  "version_check",
  "zeroize",
-]
-
-[[package]]
-name = "getrandom"
-version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
-dependencies = [
- "cfg-if",
- "libc",
- "wasi 0.9.0+wasi-snapshot-preview1",
 ]
 
 [[package]]
@@ -3838,15 +3806,6 @@ dependencies = [
 
 [[package]]
 name = "ipnetwork"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf466541e9d546596ee94f9f69590f89473455f88372423e0008fc1a7daf100e"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "ipnetwork"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf370abdafd54d13e54a620e8c3e1145f28e46cc9d704bc6d94414559df41763"
@@ -4292,16 +4251,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "328c4789d42200f1eeec05bd86c9c13c7f091d2ba9a6ea35acdf51f31bc0f043"
 dependencies = [
  "pkg-config",
-]
-
-[[package]]
-name = "libloading"
-version = "0.6.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "351a32417a12d5f7e82c368a66781e307834dae04c6ce0cd4456d52989229883"
-dependencies = [
- "cfg-if",
- "winapi",
 ]
 
 [[package]]
@@ -5153,7 +5102,7 @@ name = "nym-config"
 version = "1.20.4"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
- "dirs 6.0.0",
+ "dirs",
  "handlebars",
  "log",
  "nym-network-defaults",
@@ -5463,7 +5412,7 @@ dependencies = [
 name = "nym-firewall"
 version = "1.26.0-beta"
 dependencies = [
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "libc",
  "log",
  "mnl",
@@ -5485,7 +5434,7 @@ dependencies = [
 name = "nym-firewall-config"
 version = "1.26.0-beta"
 dependencies = [
- "ipnetwork 0.21.1",
+ "ipnetwork",
 ]
 
 [[package]]
@@ -5668,7 +5617,7 @@ version = "1.26.0-beta"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "nix 0.31.1",
  "rand 0.8.5",
  "rtnetlink",
@@ -6101,7 +6050,7 @@ version = "1.26.0-beta"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "libc",
  "nix 0.31.1",
  "nym-common",
@@ -6128,7 +6077,7 @@ dependencies = [
  "bytes",
  "clap",
  "dashmap",
- "dirs 6.0.0",
+ "dirs",
  "futures",
  "http 1.3.1",
  "httpcodec",
@@ -6221,7 +6170,7 @@ version = "1.20.4"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "anyhow",
- "dirs 6.0.0",
+ "dirs",
  "futures",
  "log",
  "nym-bandwidth-controller",
@@ -6455,7 +6404,7 @@ dependencies = [
  "either",
  "futures-util",
  "insta",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "libc",
  "nix 0.31.1",
  "nym-common",
@@ -6464,7 +6413,7 @@ dependencies = [
  "nym-macos",
  "nym-platform-metadata",
  "nym-routing",
- "pcap 2.4.0",
+ "pcap",
  "pnet_packet 0.35.0",
  "serde",
  "serde_json",
@@ -6787,7 +6736,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.8.1",
  "hyper-util",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "itertools 0.14.0",
  "log-panics",
  "nix 0.31.1",
@@ -6874,7 +6823,7 @@ name = "nym-vpn-lib-types"
 version = "1.26.0-beta"
 dependencies = [
  "bip39",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "nym-bandwidth-controller",
  "nym-crypto",
  "nym-gateway-directory",
@@ -6903,7 +6852,7 @@ version = "1.26.0-beta"
 dependencies = [
  "async-trait",
  "ipnet",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "iprange",
  "itertools 0.14.0",
  "log",
@@ -7075,7 +7024,7 @@ version = "1.26.0-beta"
 dependencies = [
  "base64 0.22.1",
  "hex",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "nym-windows",
  "rand 0.8.5",
  "thiserror 2.0.18",
@@ -7408,20 +7357,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parity-tokio-ipc"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9981e32fb75e004cc148f5fb70342f393830e0a4aa62e3cc93b50976218d42b6"
-dependencies = [
- "futures",
- "libc",
- "log",
- "rand 0.7.3",
- "tokio",
- "winapi",
-]
-
-[[package]]
 name = "parking"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7464,23 +7399,6 @@ checksum = "b867cad97c0791bbd3aaa6472142568c6c9e8f71937e98379f584cfb0cf35bec"
 
 [[package]]
 name = "pcap"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99e935fc73d54a89fff576526c2ccd42bbf8247aae05b358693475b14fd4ff79"
-dependencies = [
- "bitflags 1.3.2",
- "errno 0.2.8",
- "futures",
- "libc",
- "libloading 0.6.7",
- "pkg-config",
- "regex",
- "tokio",
- "windows-sys 0.36.1",
-]
-
-[[package]]
-name = "pcap"
 version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2eecc2ddc671ec563b5b39f846556aade68a65d1afb14d8fe6b30b0457d75"
@@ -7489,7 +7407,7 @@ dependencies = [
  "errno 0.2.8",
  "futures",
  "libc",
- "libloading 0.8.9",
+ "libloading",
  "pkg-config",
  "regex",
  "tokio",
@@ -7611,7 +7529,7 @@ checksum = "944d2c073758b6bda57f517cff54cf69d74eae3593fe1e9aa9918666543456a9"
 dependencies = [
  "derive_builder",
  "ioctl-sys 0.8.0",
- "ipnetwork 0.21.1",
+ "ipnetwork",
  "libc",
 ]
 
@@ -8246,19 +8164,6 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rand"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a6b1679d49b24bbfe0c803429aa1874472f50d9b363131f0e89fc356b544d03"
-dependencies = [
- "getrandom 0.1.16",
- "libc",
- "rand_chacha 0.2.2",
- "rand_core 0.5.1",
- "rand_hc",
-]
-
-[[package]]
-name = "rand"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
@@ -8280,16 +8185,6 @@ dependencies = [
 
 [[package]]
 name = "rand_chacha"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4c8ed856279c9737206bf725bf36935d8666ead7aa69b52be55af369d193402"
-dependencies = [
- "ppv-lite86",
- "rand_core 0.5.1",
-]
-
-[[package]]
-name = "rand_chacha"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
@@ -8306,15 +8201,6 @@ checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
 dependencies = [
  "ppv-lite86",
  "rand_core 0.9.3",
-]
-
-[[package]]
-name = "rand_core"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
-dependencies = [
- "getrandom 0.1.16",
 ]
 
 [[package]]
@@ -8346,15 +8232,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rand_hc"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca3129af7b92a17112d59ad498c6f81eaf463253766b90396d39ea7a39d6613c"
-dependencies = [
- "rand_core 0.5.1",
-]
-
-[[package]]
 name = "rayon"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8381,17 +8258,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5407465600fb0548f1442edf71dd20683c6ed326200ace4b1ef0763521bb3b77"
 dependencies = [
  "bitflags 2.11.0",
-]
-
-[[package]]
-name = "redox_users"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
-dependencies = [
- "getrandom 0.2.16",
- "libredox",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -10354,24 +10220,22 @@ dependencies = [
  "clap",
  "colored",
  "data-encoding-macro",
- "dirs 5.0.1",
+ "dirs",
  "env_logger",
  "futures",
  "glob",
  "hyper-util",
  "inventory",
- "ipnetwork 0.20.0",
- "itertools 0.10.5",
+ "ipnetwork",
+ "itertools 0.14.0",
  "libc",
  "log",
  "nix 0.31.1",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "pcap 1.3.0",
- "pnet_base 0.34.0",
- "pnet_packet 0.34.0",
+ "pcap",
+ "pnet_packet 0.35.0",
  "regex",
- "scopeguard",
  "serde",
  "serde_json",
  "socket2 0.6.2",
@@ -10421,14 +10285,13 @@ version = "0.0.0"
 dependencies = [
  "bytes",
  "chrono",
- "dirs 5.0.1",
+ "dirs",
  "futures",
  "libc",
  "log",
  "nix 0.31.1",
  "nym-ipc",
  "nym-vpnd",
- "parity-tokio-ipc",
  "rand 0.8.5",
  "rs-release",
  "serde",
@@ -11765,12 +11628,6 @@ dependencies = [
 
 [[package]]
 name = "wasi"
-version = "0.9.0+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
-
-[[package]]
-name = "wasi"
 version = "0.11.1+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
@@ -12724,7 +12581,7 @@ dependencies = [
  "blocking",
  "c2rust-bitfields",
  "futures",
- "libloading 0.8.9",
+ "libloading",
  "log",
  "thiserror 2.0.18",
  "windows-sys 0.60.2",

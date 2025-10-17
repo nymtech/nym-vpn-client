@@ -1,5 +1,7 @@
 # Nym VPN end to end test framework
 
+This was forked from (https://github.com/mullvad/mullvadvpn-app) under SPDX-License-Identifier: GPL-3.0-only
+
 ## Project structure
 
 ### test-manager
