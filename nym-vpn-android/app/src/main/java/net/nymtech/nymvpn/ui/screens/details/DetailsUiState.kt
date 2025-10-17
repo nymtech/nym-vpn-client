@@ -25,7 +25,7 @@ data class DetailsUiState(
 	val exitIpv4: String? = null,
 	val exitIpv6: String? = null,
 	val isQuicFeatureFlagEnabled: Boolean = false,
-	val isQuickSupportedByGateway: Boolean = false
+	val isQuickSupportedByGateway: Boolean = false,
 ) {
 	companion object {
 		fun from(gateway: NymGateway): DetailsUiState {
@@ -47,7 +47,7 @@ data class DetailsUiState(
 				buildVersion = gateway.buildVersion,
 				exitIpv4 = gateway.exitIpv4s.firstOrNull(),
 				exitIpv6 = gateway.exitIpv6s.firstOrNull(),
-				isQuickSupportedByGateway = gateway.isQuicSupported()
+				isQuickSupportedByGateway = gateway.isQuicSupported(),
 			)
 		}
 

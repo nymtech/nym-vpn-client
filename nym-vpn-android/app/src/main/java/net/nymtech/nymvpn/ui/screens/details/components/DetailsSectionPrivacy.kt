@@ -30,7 +30,12 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
 @Composable
-fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicFeatureFlagEnabled: Boolean, isQuicSupportedByGateway: Boolean, onEnableQuicProtocolClicked: () -> Unit) {
+fun DetailsSectionPrivacy(
+	asnKind: AsnKind?,
+	isQuicFeatureFlagEnabled: Boolean,
+	isQuicSupportedByGateway: Boolean,
+	onEnableQuicProtocolClicked: () -> Unit,
+) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
 		add(
 			stringResource(R.string.details_advanced_privacy) to {
@@ -147,6 +152,6 @@ fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicFeatureFlagEnabled: Boolean, 
 					},
 				)
 			}
-		}
+		},
 	)
 }

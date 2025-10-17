@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
-	private val environmentManager: EnvironmentManager
+	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(DetailsUiState())
@@ -29,7 +29,7 @@ class DetailsViewModel @Inject constructor(
 		gateways.firstOrNull { gateway -> gateway.identity == id }?.let {
 			val isQuicFeatureFlagEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
 			_uiState.value = DetailsUiState.from(it).copy(
-				isQuicFeatureFlagEnabled =  isQuicFeatureFlagEnabled
+				isQuicFeatureFlagEnabled = isQuicFeatureFlagEnabled,
 			)
 		}
 	}
