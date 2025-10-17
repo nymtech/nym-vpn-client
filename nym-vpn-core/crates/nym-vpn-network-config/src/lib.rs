@@ -202,7 +202,7 @@ impl Network {
         for api_url in self.nym_vpn_network.nym_vpn_api_urls.iter() {
             if let Some(fronts) = api_url.front_hosts.as_ref() {
                 for front in fronts {
-                    match str_to_socket_addr(front, Some(1)).await {
+                    match str_to_socket_addr(front, Some((1, 1))).await {
                         Ok(addrs) => {
                             for addr in addrs {
                                 unique.insert(addr);

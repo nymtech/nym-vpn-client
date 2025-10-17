@@ -46,9 +46,10 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     Ok(ips)
 }
 
+/// Get the address of the specified URL, potentially limiting the number of IPv4, IPv6 addresses returned.
 pub async fn url_to_socket_addr(
     unresolved_url: &url::Url,
-    limit: Option<usize>,
+    limit: Option<(usize, usize)>,
 ) -> Result<Vec<SocketAddr>> {
     let port = unresolved_url
         .port_or_known_default()
@@ -69,15 +70,35 @@ pub async fn url_to_socket_addr(
         .map(|ip| SocketAddr::new(ip, port))
         .collect();
 
-    match limit {
-        Some(l) if addresses.len() > l => Ok(addresses.into_iter().take(l).collect()),
-        _ => Ok(addresses),
+    if let Some((v4_limit, v6_limit)) = limit {
+        let mut limited_addresses = Vec::new();
+        let mut v4_count = 0usize;
+        let mut v6_count = 0usize;
+
+        for addr in addresses.into_iter() {
+            match addr.ip() {
+                IpAddr::V4(_) if v4_count < v4_limit => {
+                    limited_addresses.push(addr);
+                    v4_count += 1;
+                }
+                IpAddr::V6(_) if v6_count < v6_limit => {
+                    limited_addresses.push(addr);
+                    v6_count += 1;
+                }
+                _ => {}
+            }
+        }
+
+        Ok(limited_addresses)
+    } else {
+        Ok(addresses)
     }
 }
 
+/// Get the address of the specified URL, potentially limiting the number of IPv4, IPv6 addresses returned.
 pub async fn str_to_socket_addr(
     unresolved_url: &str,
-    limit: Option<usize>,
+    limit: Option<(usize, usize)>,
 ) -> Result<Vec<SocketAddr>> {
     let url = match url::Url::parse(unresolved_url) {
         Ok(url) => url,
@@ -90,4 +111,21 @@ pub async fn str_to_socket_addr(
     };
 
     url_to_socket_addr(&url, limit).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[tokio::test]
+    async fn test_resolve_host() {
+        let addresses = str_to_socket_addr("https://microsoft.com", None)
+            .await
+            .unwrap();
+
+        let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
+            .await
+            .unwrap();
+        assert!(addresses.len() > 2);
+        assert_eq!(limited_addresses.len(), 2);
+    }
 }
