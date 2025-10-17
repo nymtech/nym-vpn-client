@@ -30,7 +30,7 @@ data class NymGateway(
 	val buildVersion: String?,
 	var exitIpv4s: List<Ipv4Addr>,
 	var exitIpv6s: List<Ipv6Addr>,
-	val bridgeInformation: BridgeInformation?
+	val bridgeInformation: BridgeInformation?,
 ) {
 	companion object {
 		fun from(gateway: Gateway): NymGateway {
@@ -52,7 +52,7 @@ data class NymGateway(
 				buildVersion = gateway.buildVersion,
 				exitIpv4s = gateway.exitIpv4s,
 				exitIpv6s = gateway.exitIpv6s,
-				bridgeInformation = gateway.bridgeParams?.toBridgeInformation()
+				bridgeInformation = gateway.bridgeParams?.toBridgeInformation(),
 			)
 		}
 
@@ -72,11 +72,9 @@ data class NymGateway(
 			},
 		)
 
-		private fun SdkBridgeParameter.toBridgeParameter() =
-			when (this) {
-				is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
-			}
-
+		private fun SdkBridgeParameter.toBridgeParameter() = when (this) {
+			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
+		}
 	}
 	override fun toString(): String {
 		return Json.encodeToString(serializer(), this)
@@ -85,7 +83,7 @@ data class NymGateway(
 
 @Serializable
 data class BridgeInformation(
-	val transports: List<BridgeParameter>
+	val transports: List<BridgeParameter>,
 )
 
 @Serializable
