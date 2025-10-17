@@ -21,7 +21,7 @@ impl UniffiGatewayCacheHandle {
         connectivity_handle: ConnectivityHandle,
     ) -> Result<Self, VpnError> {
         let shutdown_token = CancellationToken::new();
-        let directory_config = make_gateway_config().await;
+        let directory_config = make_gateway_config().await?;
         let gateway_client = GatewayClient::new(directory_config.clone(), user_agent.into())
             .await
             .map_err(VpnError::internal)?;
@@ -56,23 +56,16 @@ impl UniffiGatewayCacheHandle {
     }
 }
 
-async fn make_gateway_config() -> nym_gateway_directory::Config {
-    let network_env = crate::environment::current_environment_details()
-        .await
-        .unwrap();
+async fn make_gateway_config() -> Result<nym_gateway_directory::Config, VpnError> {
+    let network_env = crate::environment::current_environment_details().await?;
+    let nym_api_urls = network_env.nym_api_urls().unwrap_or_default();
+    let nym_vpn_api_urls = network_env.nym_vpn_api_urls().unwrap_or_default();
 
-    match nym_gateway_directory::Config::new(
-        network_env.nyxd_url(),
-        network_env.nym_api_urls().unwrap_or_default(),
-        network_env.nym_vpn_api_urls().unwrap_or_default(),
-        None,
-    ) {
-        Ok(config) => config,
-        Err(e) => {
-            tracing::error!("Failed to create gateway directory config: {e:#?}");
-            panic!("Inconsistent network environment");
-        }
-    }
+    // Config::new() will error if nym_api_urls or nym_vpn_api_urls are empty
+    nym_gateway_directory::Config::new(network_env.nyxd_url(), nym_api_urls, nym_vpn_api_urls, None)
+        .map_err(|e| VpnError::InternalError {
+            details: format!("Failed to create config: {e:#?}"),
+        })
 }
 
 pub async fn init_gateway_cache(
