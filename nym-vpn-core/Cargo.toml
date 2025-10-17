@@ -233,6 +233,7 @@ nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develo
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "develop" }
 
 # For local development
+# [patch."https://github.com/nymtech/nym"]
 # nym-authenticator-client = { path = "../../nym/nym-authenticator-client" }
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
 # nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
