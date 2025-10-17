@@ -92,17 +92,13 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientErr
     let url = parse_url(&api_url.url)?;
 
     // For URLs like "http://127.0.0.1:49675", `domain()` returns `None`.
-    let domain = match url.domain() {
-        Some(d) => d.to_string(),
-        None => match url.host_str() {
-            Some(d) => d.to_string(),
-            None => {
-                return Err(VpnApiClientError::InvalidUrl {
-                    url: api_url.url.clone(),
-                });
-            }
-        },
-    };
+    let domain = url
+        .domain()
+        .or(url.host_str())
+        .ok_or_else(|| VpnApiClientError::InvalidUrl {
+            url: api_url.url.clone(),
+        })?
+        .to_string();
 
     let fronts: Option<Vec<url::Url>> = api_url
         .front_hosts
@@ -120,4 +116,31 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<(Url, String), VpnApiClientErr
     })?;
 
     Ok((http_url, domain))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_api_url_to_url_domain() {
+        let api_url = ApiUrl {
+            url: "example.com/api".to_string(),
+            front_hosts: Some(vec!["front1.com".to_string(), "front2.com".to_string()]),
+        };
+        let (url, domain) = api_url_to_url(&api_url).unwrap();
+        assert_eq!(url.as_str(), "https://example.com/api");
+        assert_eq!(domain, "example.com");
+    }
+
+    #[test]
+    fn test_api_url_to_url_ipaddr() {
+        let api_url = ApiUrl {
+            url: "http://127.0.0.1:49675".to_string(),
+            front_hosts: Some(vec!["front1.com".to_string(), "front2.com".to_string()]),
+        };
+        let (url, domain) = api_url_to_url(&api_url).unwrap();
+        assert_eq!(url.as_str(), "http://127.0.0.1:49675/");
+        assert_eq!(domain, "127.0.0.1");
+    }
 }
