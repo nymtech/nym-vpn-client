@@ -237,7 +237,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                     AccountCommand::RegisterAccount(return_sender, account, platform) => {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
-                    }                    AccountCommand::ForgetAccount(return_sender) => {
+                    }
+                    AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
                         return_sender.send(res);
@@ -248,7 +249,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
-                        AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
