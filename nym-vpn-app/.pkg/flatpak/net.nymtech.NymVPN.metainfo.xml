@@ -49,6 +49,9 @@
         </p>
     </description>
     <releases>
+        <release version="1.17.0-elderberry" date="2025-10-17">
+            <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.17.0-elderberry</url>
+        </release>
         <release version="1.16.0" date="2025-09-26">
             <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.16.0</url>
         </release>
