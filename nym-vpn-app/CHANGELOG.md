@@ -7,11 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2025-10-17
+
 ### Added
 
 - When navigating from the _Server details_ screen back to the node list,
   restore previous expanded nodes and scroll to the last focused node
-- Enable _Anticensorship_ settings menu and add QUIC mode support
 - [Windows] Improve NSIS installer when vpnd service fails
   to install, uninstall or start, show interactive dialog messages
 

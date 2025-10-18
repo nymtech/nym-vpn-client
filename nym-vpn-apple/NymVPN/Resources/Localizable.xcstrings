@@ -3531,10 +3531,100 @@
     "censorship.quic.disable.alert.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لكي تصبح التغييرات سارية المفعول، تحتاج إلى إعادة الاتصال."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damit die Änderungen wirksam werden, müssen Sie sich neu verbinden."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que los cambios surtan efecto, es necesario volver a conectar."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour que les changements prennent effet, vous devez vous reconnecter."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affinché le modifiche abbiano effetto, è necessario riconnettersi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変更を有効にするには、再接続する必要があります。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que as alterações tenham efeito, você precisa reconectar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que as alterações tenham efeito, você precisa reconectar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы изменения вступили в силу, необходимо переподключиться."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб зміни набули чинності, необхідно повторно підключитися."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để các thay đổi có hiệu lực, bạn cần kết nối lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要使更改生效，您需要重新连接。"
           }
         }
       }
@@ -3542,10 +3632,100 @@
     "censorship.quic.disable.alert.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هل أنت متأكد من أنك تريد المتابعة؟"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sind Sie sicher, dass Sie fortfahren möchten?"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Are you sure you want to continue?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Está seguro de que desea continuar?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir continuer ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sei sicuro di voler continuare?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続行してもよろしいですか？"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tem certeza que deseja continuar?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tem certeza que deseja continuar?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы уверены, что хотите продолжить?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ви впевнені, що хочете продовжити?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có chắc chắn muốn tiếp tục?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您确定要继续吗？"
           }
         }
       }
@@ -3639,8 +3819,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How QUIC improves connections"
+            "state" : "translated",
+            "value" : "Cách QUIC cải thiện kết nối"
           }
         },
         "zh-Hans" : {
@@ -3740,8 +3920,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+            "state" : "translated",
+            "value" : "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường."
           }
         },
         "zh-Hans" : {
@@ -3841,8 +4021,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+            "state" : "translated",
+            "value" : "Lưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích QUIC."
           }
         },
         "zh-Hans" : {
@@ -3942,8 +4122,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enhanced connection (QUIC)"
+            "state" : "translated",
+            "value" : "Kết nối nâng cao (QUIC)"
           }
         },
         "zh-Hans" : {
@@ -4043,8 +4223,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How the Stealth API connect mode works"
+            "state" : "translated",
+            "value" : "Cách chế độ kết nối API Ẩn danh hoạt động"
           }
         },
         "zh-Hans" : {
@@ -4144,8 +4324,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+            "state" : "translated",
+            "value" : "Tự động được NymVPN sử dụng khi các lần thử kết nối API tiêu chuẩn thất bại."
           }
         },
         "zh-Hans" : {
@@ -4245,8 +4425,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stealth API connect"
+            "state" : "translated",
+            "value" : "Kết nối API Ẩn danh"
           }
         },
         "zh-Hans" : {
@@ -6592,13 +6772,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "es" : {
@@ -6634,7 +6814,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -7174,8 +7354,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved my passphrase"
+            "state" : "translated",
+            "value" : "Tôi đã lưu cụm từ mật khẩu của mình"
           }
         },
         "zh-Hans" : {
@@ -9295,8 +9475,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry server is offline. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại."
           }
         },
         "zh-Hans" : {
@@ -9391,13 +9571,13 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обліковий запис децентралізовано."
+            "value" : "Децентралізований обліковий запис."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account decentralized."
+            "state" : "translated",
+            "value" : "Tài khoản phi tập trung."
           }
         },
         "zh-Hans" : {
@@ -9444,7 +9624,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le compte n'existe pas dans la chaîne."
+            "value" : "Le compte n'existe pas on chain."
           }
         },
         "hi" : {
@@ -9492,13 +9672,13 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обліковий запис не існує в ланцюжку."
+            "value" : "Акаунт не існує в ланцюжку."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account does not exist on chain."
+            "state" : "translated",
+            "value" : "Tài khoản không tồn tại trên chuỗi."
           }
         },
         "zh-Hans" : {
@@ -9593,13 +9773,13 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обліковий запис не децентралізовано."
+            "value" : "Акаунт не децентралізований."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account not decentralized."
+            "state" : "translated",
+            "value" : "Tài khoản không được phi tập trung."
           }
         },
         "zh-Hans" : {
@@ -10002,8 +10182,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
+            "state" : "translated",
+            "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng."
           }
         },
         "zh-Hans" : {
@@ -10204,8 +10384,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry server is not responding or responding badly to a bandwidth increase."
+            "state" : "translated",
+            "value" : "Máy chủ vào không phản hồi hoặc phản hồi kém khi tăng băng thông."
           }
         },
         "zh-Hans" : {
@@ -10305,8 +10485,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit server is not responding or responding badly to a bandwidth increase."
+            "state" : "translated",
+            "value" : "Máy chủ thoát không phản hồi hoặc phản hồi kém khi tăng băng thông."
           }
         },
         "zh-Hans" : {
@@ -10406,8 +10586,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device logged out."
+            "state" : "translated",
+            "value" : "Thiết bị đã đăng xuất."
           }
         },
         "zh-Hans" : {
@@ -10502,7 +10682,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Час пристрою не синхронізований. Будь ласка, синхронізуйте час вашого пристрою з інтернетом."
+            "value" : "Час пристрою не синхронізовано. Будь ласка, синхронізуйте час вашого пристрою з Інтернетом."
           }
         },
         "vi" : {
@@ -11108,13 +11288,13 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обліковий запис неактивний."
+            "value" : "Акаунт неактивний."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The account is not active."
+            "state" : "translated",
+            "value" : "Tài khoản không hoạt động."
           }
         },
         "zh-Hans" : {
@@ -11214,8 +11394,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Insufficient funds."
+            "state" : "translated",
+            "value" : "Không đủ tiền."
           }
         },
         "zh-Hans" : {
@@ -11416,8 +11596,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid country for entry server. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "Vị trí node vào không hợp lệ. Vui lòng thay đổi vị trí node vào và kết nối lại."
           }
         },
         "zh-Hans" : {
@@ -11517,8 +11697,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid country for exit server. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "Vị trí node thoát không hợp lệ. Vui lòng thay đổi vị trí node thoát và kết nối lại."
           }
         },
         "zh-Hans" : {
@@ -11618,8 +11798,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit server is offline. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại."
           }
         },
         "zh-Hans" : {
@@ -12123,8 +12303,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Can't reach entry server. Try another!"
+            "state" : "translated",
+            "value" : "Không thể kết nối máy chủ vào. Thử một máy chủ khác!"
           }
         },
         "zh-Hans" : {
@@ -12224,8 +12404,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Can't reach exit server. Try another!"
+            "state" : "translated",
+            "value" : "Không thể kết nối với máy chủ thoát. Vui lòng thử máy chủ khác!"
           }
         },
         "zh-Hans" : {
@@ -14244,8 +14424,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced privacy"
+            "state" : "translated",
+            "value" : "Quyền riêng tư nâng cao"
           }
         },
         "zh-Hans" : {
@@ -14345,8 +14525,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "With mixnet (5-hop)"
+            "state" : "translated",
+            "value" : "Với mixnet (5 bước nhảy)"
           }
         },
         "zh-Hans" : {
@@ -14446,7 +14626,7 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "ASN"
           }
         },
@@ -14547,8 +14727,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN name"
+            "state" : "translated",
+            "value" : "Tên ASN"
           }
         },
         "zh-Hans" : {
@@ -14648,8 +14828,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Nym build version"
+            "state" : "translated",
+            "value" : "Phiên bản build Nym"
           }
         },
         "zh-Hans" : {
@@ -14749,8 +14929,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Datacenter IP"
+            "state" : "translated",
+            "value" : "IP trung tâm dữ liệu"
           }
         },
         "zh-Hans" : {
@@ -14850,8 +15030,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key"
+            "state" : "translated",
+            "value" : "Khóa xác thực"
           }
         },
         "zh-Hans" : {
@@ -14951,8 +15131,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit IPv4"
+            "state" : "translated",
+            "value" : "Thoát IPv4"
           }
         },
         "zh-Hans" : {
@@ -15052,8 +15232,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit IPv6"
+            "state" : "translated",
+            "value" : "Thoát IPv6"
           }
         },
         "zh-Hans" : {
@@ -15153,8 +15333,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update"
+            "state" : "translated",
+            "value" : "Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua. Cập nhật lần cuối"
           }
         },
         "zh-Hans" : {
@@ -15254,8 +15434,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Why is there missing or incorrect info"
+            "state" : "translated",
+            "value" : "Tại sao lại thiếu hoặc sai thông tin"
           }
         },
         "zh-Hans" : {
@@ -15355,8 +15535,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "More details in the Nym"
+            "state" : "translated",
+            "value" : "Xem chi tiết trong Nym"
           }
         },
         "zh-Hans" : {
@@ -15456,8 +15636,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Network Explorer"
+            "state" : "translated",
+            "value" : "Trình khám phá mạng"
           }
         },
         "zh-Hans" : {
@@ -15557,8 +15737,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Overall performance"
+            "state" : "translated",
+            "value" : "Hiệu suất tổng thể"
           }
         },
         "zh-Hans" : {
@@ -15658,8 +15838,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Residential IP"
+            "state" : "translated",
+            "value" : "Địa chỉ IP dân cư"
           }
         },
         "zh-Hans" : {
@@ -15759,8 +15939,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select server"
+            "state" : "translated",
+            "value" : "Chọn máy chủ"
           }
         },
         "zh-Hans" : {
@@ -15860,8 +16040,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server details"
+            "state" : "translated",
+            "value" : "Thông tin máy chủ"
           }
         },
         "zh-Hans" : {
@@ -15961,8 +16141,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server load"
+            "state" : "translated",
+            "value" : "Tải máy chủ"
           }
         },
         "zh-Hans" : {
@@ -16062,8 +16242,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Streaming and content"
+            "state" : "translated",
+            "value" : "Phát trực tiếp và đăng tải nội dung"
           }
         },
         "zh-Hans" : {
@@ -16163,8 +16343,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uptime"
+            "state" : "translated",
+            "value" : "Thời gian hoạt động"
           }
         },
         "zh-Hans" : {
@@ -17274,8 +17454,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating keys that never leave your device"
+            "state" : "translated",
+            "value" : "Tạo khóa và lưu giữ hoàn toàn trong thiết bị"
           }
         },
         "zh-Hans" : {
@@ -17375,8 +17555,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing anonymous network credentials"
+            "state" : "translated",
+            "value" : "Thiết lập thông tin xác thực mạng ẩn danh"
           }
         },
         "zh-Hans" : {
@@ -17476,8 +17656,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+            "state" : "translated",
+            "value" : "Mã hóa thông tin xác thực bằng khóa thiết bị của bạn. Chỉ bạn mới có thể mở khóa chúng"
           }
         },
         "zh-Hans" : {
@@ -17577,8 +17757,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Generating cryptographic keypairs..."
+            "state" : "translated",
+            "value" : "Đang tạo cặp khóa mã hóa..."
           }
         },
         "zh-Hans" : {
@@ -17678,8 +17858,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating your anonymous identity..."
+            "state" : "translated",
+            "value" : "Đang tạo danh tính ẩn danh của bạn..."
           }
         },
         "zh-Hans" : {
@@ -17779,8 +17959,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "Đang bảo mật cục bộ thông tin xác thực của bạn..."
           }
         },
         "zh-Hans" : {
@@ -18605,19 +18785,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -18659,7 +18839,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -21314,8 +21494,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "High"
+            "state" : "translated",
+            "value" : "Cao"
           }
         },
         "zh-Hans" : {
@@ -25051,8 +25231,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "Thấp"
           }
         },
         "zh-Hans" : {
@@ -25152,8 +25332,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "Trung bình"
           }
         },
         "zh-Hans" : {
@@ -26061,8 +26241,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data"
+            "state" : "translated",
+            "value" : "Không có dữ liệu"
           }
         },
         "zh-Hans" : {
@@ -26667,8 +26847,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "Hiển thị cụm từ mật khẩu của tôi"
           }
         },
         "zh-Hans" : {
@@ -26768,8 +26948,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share them with anyone, including Nym Support."
+            "state" : "translated",
+            "value" : "Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym."
           }
         },
         "zh-Hans" : {
@@ -26970,8 +27150,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy passphrase"
+            "state" : "translated",
+            "value" : "Sao chép cụm mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -27071,8 +27251,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Face ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Sử dụng Face ID để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -27172,8 +27352,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved these 24 words securely and will never share them"
+            "state" : "translated",
+            "value" : "Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng"
           }
         },
         "zh-Hans" : {
@@ -27273,8 +27453,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "⚠️ Lose these words = lose your account forever."
+            "state" : "translated",
+            "value" : "⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi."
           }
         },
         "zh-Hans" : {
@@ -27374,8 +27554,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+            "state" : "translated",
+            "value" : "🔒Cụm từ mật khẩu chính của bạn: 24 từ giúp bạn truy cập tài khoản từ bất kỳ thiết bị nào."
           }
         },
         "zh-Hans" : {
@@ -27475,8 +27655,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Optic ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Sử dụng Optic ID để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -27576,8 +27756,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your passcode to access the passphrase"
+            "state" : "translated",
+            "value" : "Nhập mã khóa của bạn để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -27677,8 +27857,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your password to access the passphrase"
+            "state" : "translated",
+            "value" : "Nhập mật khẩu của bạn để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -27778,8 +27958,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save to keychain"
+            "state" : "translated",
+            "value" : "Lưu vào Keychain"
           }
         },
         "zh-Hans" : {
@@ -27879,8 +28059,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "Hiển thị cụm từ mật khẩu của tôi"
           }
         },
         "zh-Hans" : {
@@ -27980,8 +28160,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Touch ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Sử dụng Touch ID để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -28081,8 +28261,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your account passphrase"
+            "state" : "translated",
+            "value" : "Cụm từ mật khẩu tài khoản của bạn"
           }
         },
         "zh-Hans" : {
@@ -28687,8 +28867,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "state" : "translated",
+            "value" : "Gửi thông tin sự cố để giúp chúng tôi sửa lỗi nhanh hơn.\nBáo cáo được gửi qua hệ thống bảo mật của Sentry và chỉ bao gồm dữ liệu gỡ lỗi kỹ thuật."
           }
         },
         "zh-Hans" : {
@@ -28889,7 +29069,7 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " "
           }
         },
@@ -28990,8 +29170,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
+            "state" : "translated",
+            "value" : "Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn"
           }
         },
         "zh-Hans" : {
@@ -29091,8 +29271,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
+            "state" : "translated",
+            "value" : "Các thông tin xác thực zero-knowledge này chứng minh bạn có quyền truy cập mà không tiết lộ danh tính của bạn"
           }
         },
         "zh-Hans" : {
@@ -29192,8 +29372,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
+            "state" : "translated",
+            "value" : "Thông tin xác thực truy cập ẩn danh của bạn hiện đã được lưu trữ an toàn, riêng tư, được mã hóa, và do bạn kiểm soát"
           }
         },
         "zh-Hans" : {
@@ -29394,8 +29574,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment confirmed"
+            "state" : "translated",
+            "value" : "Thanh toán đã được xác nhận"
           }
         },
         "zh-Hans" : {
@@ -29495,8 +29675,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Processing your payment securely..."
+            "state" : "translated",
+            "value" : "Đang xử lý thanh toán của bạn một cách an toàn..."
           }
         },
         "zh-Hans" : {
@@ -29525,7 +29705,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "es" : {
@@ -29537,7 +29717,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "fr" : {
@@ -29596,8 +29776,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "state" : "translated",
+            "value" : "Đang lấy thông tin xác thực tài khoản ẩn danh của bạn (zk-nyms)..."
           }
         },
         "zh-Hans" : {
@@ -29626,7 +29806,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "es" : {
@@ -29638,7 +29818,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "fr" : {
@@ -29697,8 +29877,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "state" : "translated",
+            "value" : "Đang lưu zk-nyms của bạn trên thiết bị..."
           }
         },
         "zh-Hans" : {
@@ -29899,8 +30079,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You’re now fully protected"
+            "state" : "translated",
+            "value" : "Bạn hiện đã được bảo vệ toàn diện"
           }
         },
         "zh-Hans" : {
@@ -30808,8 +30988,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "translated",
+            "value" : "Tài khoản NymVPN bảo mật của bạn đã sẵn sàng🎉"
           }
         },
         "zh-Hans" : {
@@ -31429,10 +31609,100 @@
     "reconnect" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الاتصال"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu verbinden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconnect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a conectar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecter"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riconnetti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再接続"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переподключить"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторно підключитися"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối lại"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新连接"
           }
         }
       }
@@ -31526,8 +31796,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retry"
+            "state" : "translated",
+            "value" : "Thử lại"
           }
         },
         "zh-Hans" : {
@@ -33546,8 +33816,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anti-censorship"
+            "state" : "translated",
+            "value" : "Chống kiểm duyệt"
           }
         },
         "zh-Hans" : {
@@ -35162,8 +35432,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Passphrase"
+            "state" : "translated",
+            "value" : "Cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -35970,8 +36240,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help improve NymVPN by sharing anonymous network stats from your region. "
+            "state" : "translated",
+            "value" : "Giúp cải thiện NymVPN bằng cách chia sẻ thông tin thống kê mạng ẩn danh từ khu vực của bạn. "
           }
         },
         "zh-Hans" : {
@@ -36980,8 +37250,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Awaiting account readiness"
+            "state" : "translated",
+            "value" : "Đang chờ tài khoản sẵn sàng"
           }
         },
         "zh-Hans" : {
@@ -37081,8 +37351,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting mixnet client"
+            "state" : "translated",
+            "value" : "Đang kết nối đến máy khách mixnet"
           }
         },
         "zh-Hans" : {
@@ -37182,8 +37452,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting tunnel"
+            "state" : "translated",
+            "value" : "Đang kết nối tunnel"
           }
         },
         "zh-Hans" : {
@@ -37283,8 +37553,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Refreshing gateways"
+            "state" : "translated",
+            "value" : "Đang làm mới các cổng kết nối"
           }
         },
         "zh-Hans" : {
@@ -37384,8 +37654,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Resolving API IP addresses"
+            "state" : "translated",
+            "value" : "Đang xử lý địa chỉ IP của API"
           }
         },
         "zh-Hans" : {
@@ -37485,8 +37755,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selecting gateways"
+            "state" : "translated",
+            "value" : "Đang chọn cổng kết nối"
           }
         },
         "zh-Hans" : {
@@ -38799,7 +39069,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giúp chúng tôi hoàn thiện ứng dụng! Phản hồi của bạn rất quan trọng để xác định và khắc phục các vấn đề. Tham gia theo dõi lỗi ẩn danh (qua"
+            "value" : "Giúp chúng tôi hoàn thiện ứng dụng! Phản hồi của bạn rất quan trọng để xác định và khắc phục các sự cố. Tham gia theo dõi lỗi ẩn danh (qua"
           }
         },
         "zh-Hans" : {
