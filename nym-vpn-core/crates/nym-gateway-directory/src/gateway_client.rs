@@ -12,7 +12,7 @@ use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    ResolverOverrides, api_url_to_url, fronted_http_client,
+    ResolverOverrides, api_urls_to_urls, fronted_http_client,
     types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
 };
@@ -162,33 +162,19 @@ impl GatewayClient {
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
-        let nym_api_urls: Vec<nym_http_api_client::Url> = config
-            .nym_api_urls()
-            .iter()
-            .map(|api_url| api_url_to_url(api_url).map_err(Error::VpnApiClientError))
-            .collect::<Result<Vec<_>>>()?;
+        let nym_urls = api_urls_to_urls(config.nym_api_urls())?;
 
-        let api_client = fronted_http_client(nym_api_urls, Some(user_agent.clone()), None, None)
+        // No resolver overrides for this client?
+        let api_client = fronted_http_client(nym_urls, Some(user_agent.clone()), None, None)
             .await
             .map_err(Error::VpnApiClientError)?;
 
-        let nym_vpn_api_urls: Vec<nym_http_api_client::Url> = config
-            .nym_vpn_api_urls()
-            .iter()
-            .map(|api_url| api_url_to_url(api_url).map_err(Error::VpnApiClientError))
-            .collect::<Result<Vec<_>>>()?;
-
-        // TODO: Is this right???
-        let mut api_resolver_overrides =
-            ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls).await?;
-        if let Some(overrides) = resolver_overrides {
-            api_resolver_overrides.extend(overrides);
-        }
+        let nym_vpn_urls = api_urls_to_urls(config.nym_vpn_api_urls())?;
 
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
-            nym_vpn_api_urls,
+            nym_vpn_urls,
             user_agent.clone(),
-            Some(&api_resolver_overrides),
+            resolver_overrides,
         )
         .await
         .map_err(Error::VpnApiClientError)?;
@@ -202,20 +188,21 @@ impl GatewayClient {
         })
     }
 
+    // So this function is pretty much the same as new_with_resolver_overrides(),
+    // except it uses the network_details.nym_vpn_api_urls to create the vpn_api_client.
     pub async fn from_network_with_resolver_overrides(
         config: Config,
         network_details: &nym_network_defaults::NymNetworkDetails,
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
-        // Use the new unified HTTP client with domain fronting for the main API client
-        let api_client = nym_http_api_client::ClientBuilder::from_network(network_details)
-            .map_err(Box::new)?
-            .with_user_agent(user_agent.clone())
-            .build()
-            .map_err(Box::new)?;
+        let nym_urls = api_urls_to_urls(&config.nym_api_urls)?;
 
-        // Use domain fronting with resolver overrides for VPN API client
+        // No resolver overrides for this client?
+        let api_client = fronted_http_client(nym_urls, Some(user_agent.clone()), None, None)
+            .await
+            .map_err(Error::VpnApiClientError)?;
+
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_details,
             user_agent.clone(),
