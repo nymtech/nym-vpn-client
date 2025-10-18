@@ -15,11 +15,10 @@ use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
 use nym_validator_client::nym_api::NymApiClientExt;
 use nym_vpn_api_client::{
-    VpnApiClient,
-    fronted_http_client::{api_url_to_url, fronted_http_client},
+    ResolverOverrides, VpnApiClient, api_urls_to_urls, fronted_http_client,
     response::{ApiUrl, NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
-    urls_to_resolver_overrides,
 };
+
 const DISCOVERY_FILE: &str = "discovery.json";
 
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
@@ -100,13 +99,9 @@ impl Discovery {
         // allow panic because a broken bootstrap url means everything will fail anyways.
         let api_urls = Self::default_vpn_api_urls();
 
-        let urls: Vec<nym_http_api_client::Url> = api_urls
-            .iter()
-            .map(api_url_to_url)
-            .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
-            .map_err(Error::CreateVpnApiClient)?;
+        let urls = api_urls_to_urls(api_urls).map_err(Error::CreateVpnApiClient)?;
 
-        let resolver_overrides = urls_to_resolver_overrides(&urls)
+        let resolver_overrides = ResolverOverrides::from_urls(&urls)
             .await
             .map_err(Error::CreateVpnApiClient)?;
 
@@ -190,11 +185,7 @@ impl Discovery {
         tracing::debug!("Fetching nym network details");
 
         let api_urls = self.nym_api_urls();
-        let urls = api_urls
-            .iter()
-            .map(api_url_to_url)
-            .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
-            .map_err(Error::CreateVpnApiClient)?;
+        let urls = api_urls_to_urls(&api_urls).map_err(Error::CreateVpnApiClient)?;
         let client = fronted_http_client(urls, None, None, None)
             .await
             .map_err(Error::CreateVpnApiClient)?;
@@ -368,12 +359,11 @@ pub(crate) async fn fetch_nym_vpn_network_details(
     nym_vpn_api_urls: &[nym_network_defaults::ApiUrl],
 ) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
-    let urls = nym_vpn_api_urls
-        .iter()
-        .map(api_url_to_url)
-        .collect::<nym_vpn_api_client::error::Result<Vec<_>, _>>()
+    let urls = api_urls_to_urls(nym_vpn_api_urls).map_err(Error::CreateVpnApiClient)?;
+    let resolver_overrides = ResolverOverrides::from_urls(&urls)
+        .await
         .map_err(Error::CreateVpnApiClient)?;
-    VpnApiClient::new(urls, empty_user_agent(), None)
+    VpnApiClient::new(urls, empty_user_agent(), Some(&resolver_overrides))
         .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_current_env()

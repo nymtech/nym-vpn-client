@@ -12,7 +12,7 @@ use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    ResolverOverrides, api_url_to_url, fronted_http_client, str_to_socket_addr,
+    ResolverOverrides, api_url_to_url, fronted_http_client,
     types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
 };
@@ -118,47 +118,11 @@ impl ResolvedConfig {
     pub async fn from_config(config: &Config) -> Result<Self> {
         let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url(), Some((1, 1))).await?;
 
-        let mut nym_api_resolver_overrides = ResolverOverrides::default();
-        for api_url in config.nym_api_urls.iter() {
-            let addrs = str_to_socket_addr(&api_url.url, Some((1, 1))).await?;
-            nym_api_resolver_overrides
-                .entry(api_url.url.clone())
-                .or_default()
-                .extend(addrs);
+        let nym_api_resolver_overrides =
+            ResolverOverrides::from_api_urls(&config.nym_api_urls).await?;
 
-            if let Some(ref fronts) = api_url.front_hosts
-                && !fronts.is_empty()
-            {
-                for front in fronts.iter() {
-                    let addrs = str_to_socket_addr(front, Some((1, 1))).await?;
-                    nym_api_resolver_overrides
-                        .entry(api_url.url.clone())
-                        .or_default()
-                        .extend(addrs);
-                }
-            }
-        }
-
-        let mut nym_vpn_api_resolver_overrides = ResolverOverrides::default();
-        for api_url in config.nym_vpn_api_urls().iter() {
-            if let Some(ref fronts) = api_url.front_hosts
-                && !fronts.is_empty()
-            {
-                let addrs = str_to_socket_addr(&api_url.url, Some((1, 1))).await?;
-                nym_vpn_api_resolver_overrides
-                    .entry(api_url.url.clone())
-                    .or_default()
-                    .extend(addrs);
-
-                for front in fronts.iter() {
-                    let addrs = str_to_socket_addr(front, Some((1, 1))).await?;
-                    nym_vpn_api_resolver_overrides
-                        .entry(api_url.url.clone())
-                        .or_default()
-                        .extend(addrs);
-                }
-            }
-        }
+        let nym_vpn_api_resolver_overrides =
+            ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls).await?;
 
         Ok(ResolvedConfig {
             nyxd_socket_addrs,
@@ -170,12 +134,8 @@ impl ResolvedConfig {
     pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
         let mut socket_addrs = vec![];
         socket_addrs.extend(self.nyxd_socket_addrs.iter());
-        for (_, addrs) in self.nym_api_resolver_overrides.iter() {
-            socket_addrs.extend(addrs.iter());
-        }
-        for (_, addrs) in self.nym_vpn_api_resolver_overrides.iter() {
-            socket_addrs.extend(addrs.iter());
-        }
+        socket_addrs.extend(self.nym_api_resolver_overrides.all_socket_addrs());
+        socket_addrs.extend(self.nym_vpn_api_resolver_overrides.all_socket_addrs());
         socket_addrs
     }
 }
@@ -218,10 +178,17 @@ impl GatewayClient {
             .map(|api_url| api_url_to_url(api_url).map_err(Error::VpnApiClientError))
             .collect::<Result<Vec<_>>>()?;
 
+        // TODO: Is this right???
+        let mut api_resolver_overrides =
+            ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls).await?;
+        if let Some(overrides) = resolver_overrides {
+            api_resolver_overrides.extend(overrides);
+        }
+
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
             nym_vpn_api_urls,
             user_agent.clone(),
-            resolver_overrides,
+            Some(&api_resolver_overrides),
         )
         .await
         .map_err(Error::VpnApiClientError)?;

@@ -12,8 +12,9 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::OffsetDateTime;
 
 use crate::{
+    ResolverOverrides, api_urls_to_urls,
     error::{Result, VpnApiClientError},
-    fronted_http_client::{ResolverOverrides, api_url_to_url, fronted_http_client},
+    fronted_http_client,
     request::{
         ApplyFreepassRequestBody, CreateAccountRequestBody, CreateSubscriptionKind,
         CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
@@ -81,10 +82,7 @@ impl VpnApiClient {
             VpnApiClientError::CreateVpnApiClient(Box::new(err))
         })?;
 
-        let urls: Vec<Url> = api_urls
-            .iter()
-            .map(api_url_to_url)
-            .collect::<Result<Vec<_>, _>>()?;
+        let urls = api_urls_to_urls(api_urls)?;
 
         let inner = fronted_http_client(
             urls.clone(),

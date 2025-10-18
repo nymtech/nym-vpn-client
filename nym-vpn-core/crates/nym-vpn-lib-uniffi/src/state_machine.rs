@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
-use nym_vpn_api_client::fronted_http_client::fronted_http_client;
+use nym_vpn_api_client::{api_urls_to_urls, fronted_http_client};
 use nym_vpn_lib::{
     VpnTopologyProvider,
     tunnel_state_machine::{
@@ -130,8 +130,8 @@ pub(super) async fn start_state_machine(
         .ok_or(VpnError::InvalidStateError {
             details: "Nym API URLs are empty".to_string(),
         })?;
-
-    let validator_client = fronted_http_client(&api_urls, None, None)
+    let urls = api_urls_to_urls(&api_urls).map_err(|e| VpnError::HttpClient(e.to_string()))?;
+    let validator_client = fronted_http_client(urls, None, None, None)
         .await
         .map_err(|e| VpnError::HttpClient(e.to_string()))?;
 

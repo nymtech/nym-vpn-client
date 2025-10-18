@@ -9,7 +9,7 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     NyxdClient,
 };
-use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
+use nym_vpn_api_client::{ResolverOverrides, VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
@@ -19,6 +19,7 @@ use nym_vpn_store::{
 use wiremock::{Mock, MockServer};
 
 use crate::common::credential_proxy::MockCredentialProxy;
+use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_store::account::{StorableAccount, StoredAccountMode};
 use tokio::{sync::watch, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
@@ -213,11 +214,18 @@ impl TestBench {
 
         // Setup mock server. Route behavior has to be done by the actual tests
         let vpn_api_server = MockServer::start().await;
+
         let api_url = nym_network_defaults::ApiUrl {
             url: vpn_api_server.uri(),
             front_hosts: None,
         };
-        let nym_vpn_api_client = VpnApiClient::new(&[api_url], mock_user_agent(), None).await?;
+
+        let urls = api_urls_to_urls(&[api_url])?;
+
+        let resolver_overrides = ResolverOverrides::from_urls(&urls).await?;
+
+        let nym_vpn_api_client =
+            VpnApiClient::new(urls, mock_user_agent(), Some(&resolver_overrides)).await?;
 
         let nyxd_server = MockServer::start().await;
         let mut network_env = Network::mainnet_default().unwrap();

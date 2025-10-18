@@ -1,10 +1,8 @@
-use std::{collections::HashMap, net::SocketAddr, time::Duration};
+use std::time::Duration;
 
-use crate::{error::VpnApiClientError, url_to_socket_addr};
+use crate::{ResolverOverrides, error::VpnApiClientError};
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
-
-pub type ResolverOverrides = HashMap<String, Vec<SocketAddr>>;
 
 pub async fn fronted_http_client(
     urls: Vec<Url>,
@@ -49,7 +47,7 @@ pub async fn fronted_http_client_builder(
     if let Some(resolver_overrides) = resolver_overrides.as_ref()
         && !resolver_overrides.is_empty()
     {
-        for (domain, addresses) in resolver_overrides.iter() {
+        for (domain, addresses) in resolver_overrides.overrides().iter() {
             tracing::info!(
                 "Enabling Resolver override for {domain}: {}",
                 addresses
@@ -86,6 +84,13 @@ pub fn api_url_to_url(api_url: &ApiUrl) -> Result<Url, VpnApiClientError> {
     Ok(http_url)
 }
 
+pub fn api_urls_to_urls(api_urls: &[ApiUrl]) -> Result<Vec<Url>, VpnApiClientError> {
+    api_urls
+        .iter()
+        .map(api_url_to_url)
+        .collect::<Result<Vec<_>, _>>()
+}
+
 // Returns (url, Some(domain))
 pub fn api_url_to_url_and_domain(
     api_url: &ApiUrl,
@@ -111,76 +116,6 @@ pub fn api_url_to_url_and_domain(
     })?;
 
     Ok((http_url, domain))
-}
-
-pub async fn urls_to_resolver_overrides(
-    urls: &[Url],
-) -> Result<ResolverOverrides, VpnApiClientError> {
-    let mut overrides = ResolverOverrides::new();
-
-    for url in urls {
-        let Some(domain) = url.inner_url().domain() else {
-            tracing::warn!(
-                "Ignoring API URL '{}' for resolver overrides as it does not have a valid domain",
-                url.to_string()
-            );
-            continue;
-        };
-
-        let addresses = url_to_socket_addr(url.inner_url(), Some((1, 1))).await?;
-        overrides.insert(domain.to_string(), addresses);
-
-        if let Some(fronts) = url.fronts() {
-            for front_url in fronts {
-                let Some(front_domain) = front_url.domain() else {
-                    tracing::warn!(
-                        "Ignoring front host URL '{}' for resolver overrides as it does not have a valid domain",
-                        front_url
-                    );
-                    continue;
-                };
-                let front_addresses = url_to_socket_addr(front_url, Some((1, 1))).await?;
-                overrides.insert(front_domain.to_string(), front_addresses);
-            }
-        }
-    }
-
-    Ok(overrides)
-}
-
-pub async fn api_urls_to_resolver_overrides(
-    api_urls: &[ApiUrl],
-) -> Result<ResolverOverrides, VpnApiClientError> {
-    let mut overrides = ResolverOverrides::new();
-
-    for api_url in api_urls {
-        let (url, Some(domain)) = api_url_to_url_and_domain(api_url)? else {
-            tracing::warn!(
-                "Ignoring API URL '{}' for resolver overrides as it does not have a valid domain",
-                api_url.url
-            );
-            continue;
-        };
-
-        let addresses = url_to_socket_addr(url.inner_url(), Some((1, 1))).await?;
-        overrides.insert(domain, addresses);
-
-        if let Some(fronts) = url.fronts() {
-            for front_url in fronts {
-                let Some(front_domain) = front_url.domain() else {
-                    tracing::warn!(
-                        "Ignoring front host URL '{}' for resolver overrides as it does not have a valid domain",
-                        front_url
-                    );
-                    continue;
-                };
-                let front_addresses = url_to_socket_addr(front_url, Some((1, 1))).await?;
-                overrides.insert(front_domain.to_string(), front_addresses);
-            }
-        }
-    }
-
-    Ok(overrides)
 }
 
 fn parse_url(s: &str) -> Result<url::Url, VpnApiClientError> {
