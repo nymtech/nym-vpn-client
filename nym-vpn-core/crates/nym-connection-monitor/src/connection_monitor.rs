@@ -121,7 +121,7 @@ struct State {
     /// Phase of connection monitor
     phase: Phase,
 
-    /// Last determined connection state
+    /// Last determined connection status
     status: ConnectionStatus,
 
     /// Probe retry attempt
@@ -204,7 +204,7 @@ where
 
     async fn run(mut self) -> Result<(), Error> {
         let timeout = self.state.timeout(&self.timing_config);
-        tracing::info!(
+        tracing::debug!(
             "Sending initial probe with {} ms timeout",
             timeout.as_millis()
         );
@@ -224,9 +224,8 @@ where
                     let next_probe_at = match res {
                         Ok(()) => {
                             let elapsed = current_timestamp.duration_since(self.state.last_sent_at);
-                            tracing::info!("Probe succeeded in {} ms", elapsed.as_millis());
+                            tracing::debug!("Probe succeeded in {} ms", elapsed.as_millis());
 
-                            self.state.status = ConnectionStatus::Viable;
                             self.state.last_reply_at = Some(current_timestamp);
                             self.state.retry = 0;
 
@@ -235,11 +234,20 @@ where
                                 self.state.phase = Phase::Monitoring;
                             }
 
-                            self.send_event(ConnectionEvent {
-                                status: ConnectionStatusEvent::Viable,
-                                start_timestamp: self.state.last_sent_at,
-                                end_timestamp: current_timestamp,
-                            });
+                            match self.state.status {
+                                ConnectionStatus::Undetermined | ConnectionStatus::Failed => {
+                                    self.send_event(ConnectionEvent {
+                                        status: ConnectionStatusEvent::Viable,
+                                        start_timestamp: self.state.last_sent_at,
+                                        end_timestamp: current_timestamp,
+                                    });
+                                    self.state.status = ConnectionStatus::Viable;
+                                    tracing::info!("Connection is {}", self.state.status);
+                                }
+                                ConnectionStatus::Viable => {
+                                    // Don't repeat the same events until something goes wrong
+                                }
+                            }
 
                             // Since the probe succeeded, send the next one at longer interval
                             let delay = self.timing_config.probe_periodicity;
@@ -262,6 +270,7 @@ where
                                             start_timestamp: self.state.last_sent_at,
                                             end_timestamp: current_timestamp,
                                         });
+                                        tracing::info!("Connection is {}", self.state.status);
                                     } else {
                                         self.send_event(ConnectionEvent {
                                             status: ConnectionStatusEvent::IntermittentFailure { retry: self.state.retry },
@@ -271,7 +280,7 @@ where
                                     }
                                 }
                                 ConnectionStatus::Failed => {
-                                    // Don't emit events until recovery
+                                    // Don't repeat the same events until recovery
                                 }
                             }
 
@@ -286,15 +295,15 @@ where
                     // Elapsed may lapse due to system clock adjustments
                     let elapsed = next_probe_at.checked_duration_since(current_timestamp);
                     if let Some(elapsed) = elapsed && !elapsed.is_zero() {
-                        tracing::info!("Connection is {}, next probe in {} ms", self.state.status, elapsed.as_millis());
+                        tracing::trace!("Connection is {}, next probe in {} ms", self.state.status, elapsed.as_millis());
                     } else {
-                        tracing::info!("Connection is {}, next probe is now", self.state.status);
+                        tracing::trace!("Connection is {}, next probe is now", self.state.status);
                     }
                     next_probe_timer.set(tokio::time::sleep_until(next_probe_at).fuse());
                 }
                 _ = &mut next_probe_timer => {
                     let timeout = self.state.timeout(&self.timing_config);
-                    tracing::info!(
+                    tracing::trace!(
                         "Sending next probe with {} ms timeout",
                         timeout.as_millis()
                     );
