@@ -33,6 +33,9 @@ public struct GatewayDetailsView: View {
                         .frame(height: 16)
                     location()
                     Spacer()
+                        .frame(height: 16)
+                    serverDescription()
+                    Spacer()
                         .frame(height: 24)
                     capabilitiesSection()
                     Spacer()
@@ -93,6 +96,18 @@ private extension GatewayDetailsView {
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Headline.Medium.regular)
             Spacer()
+        }
+    }
+
+    @ViewBuilder
+    func serverDescription() -> some View {
+        if let description = gateway.description, !description.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(description)
+                    .multilineTextAlignment(.leading)
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Medium.regular)
+            }
         }
     }
 

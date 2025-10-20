@@ -314,7 +314,7 @@ private extension GatewayManager {
     func loadGatewaysFromStore() {
         exit = gatewayStore.exit
         entry = gatewayStore.entry
-        vpn  = gatewayStore.vpn
+        vpn = gatewayStore.vpn
     }
 
     func configureEnvironmentChange() {

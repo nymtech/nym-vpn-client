@@ -143,3 +143,13 @@ private extension GatewaysViewModel {
         }
     }
 }
+
+extension GatewaysViewModel: Equatable, Hashable {
+    nonisolated public static func == (lhs: GatewaysViewModel, rhs: GatewaysViewModel) -> Bool {
+        lhs.type == rhs.type
+    }
+
+    nonisolated public func hash(into hasher: inout Hasher) {
+        hasher.combine(type)
+    }
+}
