@@ -12,18 +12,18 @@ use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    api_urls_to_urls, fronted_http_client, types::{GatewayMinPerformance, Percent},
+    ResolverOverrides, api_urls_to_urls, fronted_http_client,
+    types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
-    ResolverOverrides,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use tracing::{debug, error, warn};
 use url::Url;
 
 use crate::{
-    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList}, error::Result,
-    Error,
-    NymNode,
+    Error, NymNode,
+    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
+    error::Result,
 };
 
 #[derive(Clone, Debug)]

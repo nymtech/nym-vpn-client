@@ -8,8 +8,8 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    future::{BoxFuture, Fuse},
     FutureExt,
+    future::{BoxFuture, Fuse},
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -30,14 +30,14 @@ use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
+    Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
+    Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
+    tunnel::{SelectedGateways, Tombstone},
+    tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    }, Error, ErrorStateReason,
-    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
-    TunnelCommand,
-    TunnelInterface,
-    TunnelStateHandler,
+    },
 };
 
 /// Initial delay between retry attempts.
