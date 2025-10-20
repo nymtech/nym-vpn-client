@@ -8,8 +8,8 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    FutureExt,
     future::{BoxFuture, Fuse},
+    FutureExt,
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -30,14 +30,14 @@ use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
-    Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
-    Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
-    tunnel::{SelectedGateways, Tombstone},
-    tunnel_monitor::{
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    },
+    }, Error, ErrorStateReason,
+    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
 };
 
 /// Initial delay between retry attempts.
@@ -272,15 +272,9 @@ impl ConnectingState {
             }
         }
 
-        if resolved_gateway_config
-            .nym_api_resolver_overrides
-            .is_empty()
-            || resolved_gateway_config
-                .nym_vpn_api_resolver_overrides
-                .is_empty()
-        {
+        if !resolved_gateway_config.has_resolver_overrides() {
             tracing::warn!(
-                "nym_vpn_api_socket_addrs is empty which may result into firewall blocking the API requests."
+                "There are no resolver overrides, which may result in the firewall blocking API requests"
             );
         } else if let Err(e) = shared_state
             .account_command_tx

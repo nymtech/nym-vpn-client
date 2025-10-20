@@ -12,18 +12,18 @@ use nym_validator_client::{
     models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
-    ResolverOverrides, api_urls_to_urls, fronted_http_client,
-    types::{GatewayMinPerformance, Percent},
+    api_urls_to_urls, fronted_http_client, types::{GatewayMinPerformance, Percent},
     url_to_socket_addr,
+    ResolverOverrides,
 };
 use rand::{prelude::SliceRandom, thread_rng};
 use tracing::{debug, error, warn};
 use url::Url;
 
 use crate::{
-    Error, NymNode,
-    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
-    error::Result,
+    entries::gateway::{Gateway, GatewayList, GatewayType, NymNodeList}, error::Result,
+    Error,
+    NymNode,
 };
 
 #[derive(Clone, Debug)]
@@ -129,6 +129,11 @@ impl ResolvedConfig {
             nym_api_resolver_overrides,
             nym_vpn_api_resolver_overrides,
         })
+    }
+
+    pub fn has_resolver_overrides(&self) -> bool {
+        !self.nym_api_resolver_overrides.is_empty()
+            || !self.nym_vpn_api_resolver_overrides.is_empty()
     }
 
     pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
