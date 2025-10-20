@@ -159,27 +159,28 @@ pub struct GatewayClient {
 
 impl GatewayClient {
     pub async fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
-        Self::new_with_resolver_overrides(config, user_agent, None).await
+        Self::new_with_resolver_overrides(config, user_agent, None, None).await
     }
 
     pub async fn new_with_resolver_overrides(
         config: Config,
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
+        vpn_resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
         let nym_urls = api_urls_to_urls(config.nym_api_urls())?;
 
-        // No resolver overrides for this client?
-        let api_client = fronted_http_client(nym_urls, Some(user_agent.clone()), None, None)
-            .await
-            .map_err(Error::VpnApiClientError)?;
+        let api_client =
+            fronted_http_client(nym_urls, Some(user_agent.clone()), None, resolver_overrides)
+                .await
+                .map_err(Error::VpnApiClientError)?;
 
         let nym_vpn_urls = api_urls_to_urls(config.nym_vpn_api_urls())?;
 
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
             nym_vpn_urls,
             user_agent.clone(),
-            resolver_overrides,
+            vpn_resolver_overrides,
         )
         .await
         .map_err(Error::VpnApiClientError)?;

@@ -11,7 +11,7 @@ use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
 use itertools::Itertools;
 use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
-use nym_vpn_api_client::{ResolverOverrides, VpnApiClient, api_urls_to_urls};
+use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -68,10 +68,6 @@ impl RegisteredNetworks {
 
         let urls = api_urls_to_urls(api_urls).map_err(Error::CreateVpnApiClient)?;
 
-        let resolver_overrides = ResolverOverrides::from_urls(&urls)
-            .await
-            .map_err(Error::CreateVpnApiClient)?;
-
         let inner = VpnApiClient::new(
             urls,
             UserAgent {
@@ -80,7 +76,7 @@ impl RegisteredNetworks {
                 platform: String::new(),
                 git_commit: String::new(),
             },
-            Some(&resolver_overrides),
+            None,
         )
         .await
         .map_err(Error::CreateVpnApiClient)?

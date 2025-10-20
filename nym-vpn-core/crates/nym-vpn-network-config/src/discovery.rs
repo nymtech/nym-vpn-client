@@ -360,10 +360,7 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 ) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
     let urls = api_urls_to_urls(nym_vpn_api_urls).map_err(Error::CreateVpnApiClient)?;
-    let resolver_overrides = ResolverOverrides::from_urls(&urls)
-        .await
-        .map_err(Error::CreateVpnApiClient)?;
-    VpnApiClient::new(urls, empty_user_agent(), Some(&resolver_overrides))
+    VpnApiClient::new(urls, empty_user_agent(), None)
         .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_current_env()

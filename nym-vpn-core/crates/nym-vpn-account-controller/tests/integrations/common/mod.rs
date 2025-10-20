@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{sync::OnceLock, time::Duration};
-use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     NyxdClient,
 };
-use nym_vpn_api_client::{ResolverOverrides, VpnApiClient, types::VpnAccount};
+use nym_vpn_api_client::{types::VpnAccount, VpnApiClient};
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    account::{AccountInformationStorage, Mnemonic, ephemeral::InMemoryAccountStorageError},
+    account::{ephemeral::InMemoryAccountStorageError, AccountInformationStorage, Mnemonic},
     keys::device::{DeviceKeyStore, DeviceKeys},
 };
 use wiremock::{Mock, MockServer};
@@ -222,10 +222,7 @@ impl TestBench {
 
         let urls = api_urls_to_urls(&[api_url])?;
 
-        let resolver_overrides = ResolverOverrides::from_urls(&urls).await?;
-
-        let nym_vpn_api_client =
-            VpnApiClient::new(urls, mock_user_agent(), Some(&resolver_overrides)).await?;
+        let nym_vpn_api_client = VpnApiClient::new(urls, mock_user_agent(), None).await?;
 
         let nyxd_server = MockServer::start().await;
         let mut network_env = Network::mainnet_default().unwrap();

@@ -16,72 +16,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Get more gateway details, parse them, and expose them to UI to be shown in the server details
-  page (https://github.com/nymtech/nym-vpn-client/pull/3447)
+- Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
 - Allow for random selection inside a US state (https://github.com/nymtech/nym-vpn-client/pull/3489)
 - Add control over LAN sharing when device connection is secured (https://github.com/nymtech/nym-vpn-client/pull/3496)
-- The `nym-vpnc status --listen` command now prints the daemon configuration when it's changed by other
-  clients (https://github.com/nymtech/nym-vpn-client/pull/3503).
+- The `nym-vpnc status --listen` command now prints the daemon configuration when it's changed by other clients (https://github.com/nymtech/nym-vpn-client/pull/3503).
 - Users can select residential only exit nodes (https://github.com/nymtech/nym-vpn-client/pull/3560).
 
 ### Changed
 
-- LAN sharing is off by default. Use "Allow LAN" setting to allow
-  it (https://github.com/nymtech/nym-vpn-client/pull/3496)
+- LAN sharing is off by default. Use "Allow LAN" setting to allow it (https://github.com/nymtech/nym-vpn-client/pull/3496)
 - Differentiate between entry and exit gateway errors (https://github.com/nymtech/nym-vpn-client/pull/3458)
-- New CLI command interface. Legacy commands will continue working until the following
-  release. (https://github.com/nymtech/nym-vpn-client/pull/3559)
+- New CLI command interface. Legacy commands will continue working until the following release. (https://github.com/nymtech/nym-vpn-client/pull/3559)
 
 ### Fixed
 
-- Don't retry on disappeared entry or exit gateway and return to UI for selecting
-  again (https://github.com/nymtech/nym-vpn-client/pull/3520)
-- Recover from error loop when mixnet client can't reach gateway after a number of
-  retries (https://github.com/nymtech/nym-vpn-client/pull/3694)
+- Don't retry on disappeared entry or exit gateway and return to UI for selecting again (https://github.com/nymtech/nym-vpn-client/pull/3520)
+- Recover from error loop when mixnet client can't reach gateway after a number of retries (https://github.com/nymtech/nym-vpn-client/pull/3694)
 
 ### Removed
 
 - Removed countries query (https://github.com/nymtech/nym-vpn-client/pull/3523)
 
+
 ## [1.16.0] - 2025-09-26
 
 ### Added
 
-- Expose exit IPs (v4 and v6) as well as gateway version from the
-  core (https://github.com/nymtech/nym-vpn-client/pull/3427)
+- Expose exit IPs (v4 and v6) as well as gateway version from the core (https://github.com/nymtech/nym-vpn-client/pull/3427)
 
 ### Fixed
 
-- Fix edge case where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck
-  in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
+- Fix edge case where mixnet processor could be blocked from exiting by mixnet listener causing the client to be stuck in disconnecting state (https://github.com/nymtech/nym-vpn-client/pull/3394)
 - Fix Sentry extra metadata tag when there is no OS extra info (https://github.com/nymtech/nym-vpn-client/pull/3411)
 
 ### Changed
 
 - [macOS] Skip filtering loopback traffic to optimize performance (https://github.com/nymtech/nym-vpn-client/pull/3441)
-- Prioritize high performance gateways first, fallback to medium. This rule does not apply when specific gateway is
-  selected explicitly (https://github.com/nymtech/nym-vpn-client/pull/3511)
+- Prioritize high performance gateways first, fallback to medium. This rule does not apply when specific gateway is selected explicitly (https://github.com/nymtech/nym-vpn-client/pull/3511)
+
 
 ## [1.15.0] - 2025-09-10
 
 ### Added
 
-- Provide metadata to keep track of progress when establishing
-  connection (https://github.com/nymtech/nym-vpn-client/pull/3351)
+- Provide metadata to keep track of progress when establishing connection (https://github.com/nymtech/nym-vpn-client/pull/3351)
 
 ### Fixed
 
 - [Windows] Embed core version into `winfw.dll` and `libwg.dll` (https://github.com/nymtech/nym-vpn-client/pull/3292)
 - Disable mixnet cover traffic in two-hop mode (https://github.com/nymtech/nym-vpn-client/pull/3347)
-- Prevent discovery file from becoming stale because it's only refreshed whilst
-  connected (https://github.com/nymtech/nym-vpn-client/pull/3377)
+- Prevent discovery file from becoming stale because it's only refreshed whilst connected (https://github.com/nymtech/nym-vpn-client/pull/3377)
 
 ### Changed
 
 - Daemon global and service configuration is now stored in JSON format, allowing versioning to be
   supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
-- Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet
-  channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
+- Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
 
 ## [1.14.0] - 2025-08-26
 

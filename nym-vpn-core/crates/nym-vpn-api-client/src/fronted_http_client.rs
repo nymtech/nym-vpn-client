@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{ResolverOverrides, error::VpnApiClientError};
+use crate::{error::VpnApiClientError, ResolverOverrides};
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
 
@@ -47,19 +47,13 @@ pub async fn fronted_http_client_builder(
     if let Some(resolver_overrides) = resolver_overrides.as_ref()
         && !resolver_overrides.is_empty()
     {
-        for domain in resolver_overrides.domains().into_iter() {
-            let addrs = resolver_overrides
-                .domain_addrs(&domain)
-                .expect("Domain was obtained from the overrides");
-            tracing::info!(
-                "Enabling Resolver override for {domain}: {}",
-                addrs
-                    .iter()
-                    .map(|addr| addr.to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            );
-            builder = builder.resolve_to_addrs(&domain, &addrs);
+        for domain in resolver_overrides.domains() {
+            if let Some(addrs) = resolver_overrides.domain_addrs(&domain) {
+                for addr in addrs {
+                    tracing::info!("Enabling Resolver override for {domain}: {addr}");
+                }
+                builder = builder.resolve_to_addrs(&domain, &addrs);
+            }
         }
     }
 
