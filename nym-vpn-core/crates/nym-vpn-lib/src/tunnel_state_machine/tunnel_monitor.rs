@@ -3,6 +3,10 @@
 
 use futures::{FutureExt, future::Fuse, pin_mut};
 
+use nym_connection_monitor::{
+    ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
+    TimingConfig,
+};
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
     RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
@@ -564,8 +568,7 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // todo: do initial ping
-
+        // todo: move discovery refresher closer to VpnService
         let (discovery_refresher_tx, mut discovery_refresher_rx) = tokio::sync::mpsc::channel(1);
         let discovery_refresher_handle = if let Some(config_path) =
             self.tunnel_parameters.nym_config.config_path.as_ref()
@@ -593,7 +596,7 @@ impl TunnelMonitor {
         });
 
         // Send metadata endpoint data to the bandwidth controller
-        match tunnel_interface {
+        match &tunnel_interface {
             TunnelInterface::One(exit) => {
                 let _metadata_event_handler = tokio::spawn(async move {
                     if let Ok(entry_metadata_endpoint) = entry_metadata_addr_rx.await {
@@ -625,8 +628,34 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
         pin_mut!(mixnet_monitoring_token);
 
+        let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
+            mpsc::unbounded_channel();
+        let tunnel_connection_monitor_handle = self.create_tunnel_connection_monitor(
+            tunnel_interface.exit_tunnel_metadata(),
+            tunnel_connection_monitor_tx,
+        )?;
+
         loop {
             tokio::select! {
+                event = tunnel_connection_monitor_rx.recv() => {
+                    let Some(event) = event else {
+                        tracing::info!("Event channel with connection monitor is closed");
+                        break;
+                    };
+
+                    match event.status {
+                        ConnectionStatusEvent::Viable => {
+                            tracing::info!("Tunnel connection viable");
+                        }
+                        ConnectionStatusEvent::IntermittentFailure { retry } => {
+                            tracing::info!("Tunnel connection is failing (retry: {retry})");
+                        }
+                        ConnectionStatusEvent::Failed => {
+                            tracing::info!("Tunnel connection is down. Exiting");
+                            break;
+                        }
+                    }
+                }
                 _  = &mut mixnet_monitoring_token => {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
@@ -644,7 +673,7 @@ impl TunnelMonitor {
                             trace_err_chain!(err, "Failed to refresh discovery file");
                         }
                         None => {
-                            // channel closed
+                            tracing::info!("Discovery refresh channel is closed");
                             break;
                         }
                     }
@@ -654,6 +683,10 @@ impl TunnelMonitor {
 
         // Trigger cancellation since many other tasks depend on shutdown token
         self.shutdown_token.cancel();
+
+        if let Err(e) = tunnel_connection_monitor_handle.await {
+            tracing::error!("Tunnel connection monitor exited with error: {}", e);
+        }
 
         tracing::info!("Waiting for tunnel to exit");
         tunnel_handle.cancel();
@@ -1604,6 +1637,54 @@ impl TunnelMonitor {
 
     fn enable_ipv6(&self) -> bool {
         self.tunnel_parameters.tunnel_settings.enable_ipv6
+    }
+
+    fn create_tunnel_connection_monitor(
+        &self,
+        exit_tunnel_metadata: &TunnelMetadata,
+        event_tx: mpsc::UnboundedSender<ConnectionEvent>,
+    ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
+        let mut icmp_probe_config = IcmpProbeConfig::default_v4();
+
+        // Prefer bind to interface on supported platforms
+        #[cfg(any(
+            target_os = "linux",
+            target_os = "android",
+            target_os = "ios",
+            target_os = "macos"
+        ))]
+        {
+            icmp_probe_config =
+                icmp_probe_config.with_interface(exit_tunnel_metadata.interface.clone());
+        }
+
+        // Bind to local interface IP on other platforms
+        #[cfg(not(any(
+            target_os = "linux",
+            target_os = "android",
+            target_os = "ios",
+            target_os = "macos"
+        )))]
+        {
+            let local_addr = exit_tunnel_metadata
+                .ips
+                .iter()
+                .find(|v| v.is_ipv4())
+                .ok_or(Error::IcmpProbeRequiresIPv4Addr)?;
+            icmp_probe_config = icmp_probe_config.with_local_address(*local_addr);
+        }
+
+        let icmp_probe = IcmpProbe::new(icmp_probe_config).map_err(Error::CreateIcmpProbe)?;
+        let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type {
+            TunnelType::Mixnet => TimingConfig::mixnet(),
+            TunnelType::Wireguard => TimingConfig::two_hop(),
+        };
+        Ok(ConnectionMonitor::spawn(
+            icmp_probe,
+            timing_config,
+            event_tx,
+            self.shutdown_token.child_token(),
+        ))
     }
 }
 

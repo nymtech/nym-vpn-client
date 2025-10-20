@@ -5417,7 +5417,6 @@ version = "1.18.0-beta"
 dependencies = [
  "ipnetwork",
  "nym-bandwidth-controller",
- "nym-connection-monitor",
  "nym-crypto",
  "nym-gateway-directory",
  "nym-network-defaults",
