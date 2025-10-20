@@ -210,9 +210,9 @@ impl State {
             if let Some(settings) = settings {
                 settings.save(store, service_path.as_str())?;
             } else {
-                tracing::debug!("Removing DNS for {}", service_path);
+                tracing::debug!("Removing DNS for {} if it exists", service_path);
                 if !store.remove(CFString::new(&service_path)) {
-                    return Err(Error::SettingDnsFailed);
+                    tracing::debug!("DNS for {} doesn't exist in store", service_path);
                 }
             }
         }
