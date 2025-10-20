@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
 
+### Fixed
+
+- Account controller fast errors don't mask a possible shutdown (https://github.com/nymtech/nym-vpn-client/pull/3715)
+
 
 ## [1.17.0] - 2025-10-17
 
