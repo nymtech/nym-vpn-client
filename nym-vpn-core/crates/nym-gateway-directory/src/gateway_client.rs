@@ -139,8 +139,8 @@ impl ResolvedConfig {
     pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
         let mut socket_addrs = vec![];
         socket_addrs.extend(self.nyxd_socket_addrs.iter());
-        socket_addrs.extend(self.nym_api_resolver_overrides.all_socket_addrs());
-        socket_addrs.extend(self.nym_vpn_api_resolver_overrides.all_socket_addrs());
+        socket_addrs.extend(self.nym_api_resolver_overrides.all_addresses());
+        socket_addrs.extend(self.nym_vpn_api_resolver_overrides.all_addresses());
         socket_addrs
     }
 }

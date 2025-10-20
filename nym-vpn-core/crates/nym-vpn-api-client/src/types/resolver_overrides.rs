@@ -79,14 +79,14 @@ impl ResolverOverrides {
     }
 
     // Get all the addresses for a domain
-    pub fn domain_addrs(&self, domain: &str) -> Option<Vec<SocketAddr>> {
+    pub fn addresses(&self, domain: &str) -> Option<Vec<SocketAddr>> {
         self.overrides
             .get(domain)
             .map(|addrs| addrs.iter().cloned().collect())
     }
 
-    /// Get all the socket addresses
-    pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
+    /// Get all the addresses
+    pub fn all_addresses(&self) -> Vec<SocketAddr> {
         self.overrides
             .values()
             .flat_map(|addrs| addrs.iter().cloned())

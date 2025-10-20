@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{sync::OnceLock, time::Duration};
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 use nym_offline_monitor::{Connectivity, ConnectivityMonitor};
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     NyxdClient,
 };
-use nym_vpn_api_client::{types::VpnAccount, VpnApiClient};
+use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    account::{ephemeral::InMemoryAccountStorageError, AccountInformationStorage, Mnemonic},
+    account::{AccountInformationStorage, Mnemonic, ephemeral::InMemoryAccountStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys},
 };
 use wiremock::{Mock, MockServer};
