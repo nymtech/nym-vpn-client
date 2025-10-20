@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add new CLI commands to manage sentry and anonymous network statistics collection (https://github.com/nymtech/nym-vpn-client/pull/3695)
+- Add tunnel connection monitoring (https://github.com/nymtech/nym-vpn-client/pull/XXXX)
 
 ### Changed
 
