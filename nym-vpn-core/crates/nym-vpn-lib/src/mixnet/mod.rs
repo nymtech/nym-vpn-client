@@ -7,7 +7,7 @@ mod mixnet_listener;
 mod processor;
 mod topology_provider;
 
-pub use processor::{MixnetProcessorConfig, start_processor};
+pub use processor::start_processor;
 
 pub use error::MixnetError;
 pub use topology_provider::VpnTopologyProvider;

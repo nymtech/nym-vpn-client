@@ -4,11 +4,9 @@
 use std::{result::Result, time::Duration};
 
 use bytes::{Bytes, BytesMut};
-use futures::{FutureExt, StreamExt, channel::mpsc, future::Fuse, pin_mut};
-use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{
-    IpPair,
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
 };
@@ -27,21 +25,6 @@ const IPR_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Interval between attempts to send ipr disconnect
 const IPR_DISCONNECT_RETRY_DELAY: Duration = Duration::from_millis(500);
-
-#[derive(Debug)]
-pub struct MixnetProcessorConfig {
-    pub ip_packet_router_address: IpPacketRouterAddress,
-    pub our_ips: IpPair,
-}
-
-impl MixnetProcessorConfig {
-    pub fn new(ip_packet_router_address: IpPacketRouterAddress, our_ips: IpPair) -> Self {
-        MixnetProcessorConfig {
-            ip_packet_router_address,
-            our_ips,
-        }
-    }
-}
 
 struct MessageCreator {
     recipient: Recipient,
@@ -72,18 +55,8 @@ struct MixnetProcessor {
     // The mixnet client for sending and receiving messages from the mixnet
     mixnet_client: MixnetClient,
 
-    // The connection monitor for sending connection events
-    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-
     // The address of the IP packet router we're sending messages to
     ip_packet_router_address: IpPacketRouterAddress,
-
-    // Our IP addresses
-    our_ips: IpPair,
-
-    // Identifier for ICMP beacon, so we can check incoming ICMP packets to see if we should
-    // forward them to the connection monitor
-    icmp_beacon_identifier: u16,
 
     // Listen for when we should disconnect from the IPR and being shutting down
     cancel_token: CancellationToken,
@@ -93,25 +66,22 @@ struct MixnetProcessor {
 }
 
 impl MixnetProcessor {
-    fn new(
+    pub fn spawn(
         device: AsyncDevice,
         mixnet_client: MixnetClient,
-        connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
-        our_ips: IpPair,
         cancel_token: CancellationToken,
         event_rx: EventReceiver,
-    ) -> Self {
-        MixnetProcessor {
+    ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
+        let processor = MixnetProcessor {
             device,
             mixnet_client,
-            connection_event_tx: connection_monitor.event_sender(),
             ip_packet_router_address,
-            our_ips,
-            icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             cancel_token,
             event_rx,
-        }
+        };
+
+        tokio::spawn(processor.run())
     }
 
     async fn run(self) -> Result<AsyncDevice, MixnetError> {
@@ -141,9 +111,6 @@ impl MixnetProcessor {
         let mut mixnet_listener_handle = super::mixnet_listener::MixnetListener::spawn(
             self.mixnet_client,
             tun_device_sink,
-            self.icmp_beacon_identifier,
-            self.our_ips,
-            self.connection_event_tx.clone(),
             mixnet_listener_cancel_token.clone(),
             self.event_rx,
         );
@@ -380,27 +347,18 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
 }
 
 pub async fn start_processor(
-    config: MixnetProcessorConfig,
+    ip_packet_router_address: IpPacketRouterAddress,
     dev: AsyncDevice,
     mixnet_client: MixnetClient,
-    connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
     event_rx: EventReceiver,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     tracing::info!("Creating mixnet processor");
-    let processor = MixnetProcessor::new(
+    MixnetProcessor::spawn(
         dev,
         mixnet_client,
-        connection_monitor,
-        config.ip_packet_router_address,
-        config.our_ips,
+        ip_packet_router_address,
         cancel_token,
         event_rx,
-    );
-
-    tokio::spawn(async move {
-        processor.run().await.inspect_err(|err| {
-            tracing::error!("Mixnet processor error: {err}");
-        })
-    })
+    )
 }

@@ -14,8 +14,6 @@ use crate::{AccountControllerState, service::VpnServiceConfig};
 #[cfg(feature = "nym-type-conversions")]
 use nym_bandwidth_controller::BandwidthStatusMessage;
 #[cfg(feature = "nym-type-conversions")]
-use nym_connection_monitor::ConnectionMonitorStatus;
-#[cfg(feature = "nym-type-conversions")]
 use nym_statistics_common::clients::packet_statistics::{
     MixnetBandwidthStatisticsEvent, PacketRates,
 };
@@ -246,25 +244,6 @@ impl From<&BandwidthStatusMessage> for BandwidthEvent {
         match value {
             BandwidthStatusMessage::NoBandwidth => Self::NoBandwidth,
             BandwidthStatusMessage::RemainingBandwidth(value) => Self::RemainingBandwidth(*value),
-        }
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<&ConnectionMonitorStatus> for ConnectionEvent {
-    fn from(value: &ConnectionMonitorStatus) -> Self {
-        match value {
-            ConnectionMonitorStatus::ConnectedIpv4 => Self::ConnectedIpv4,
-            ConnectionMonitorStatus::ConnectedIpv6 => Self::ConnectedIpv6,
-            ConnectionMonitorStatus::EntryGatewayDown => Self::EntryGatewayDown,
-            ConnectionMonitorStatus::ExitGatewayDownIpv4 => Self::ExitGatewayDownIpv4,
-            ConnectionMonitorStatus::ExitGatewayDownIpv6 => Self::ExitGatewayDownIpv6,
-            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4 => {
-                Self::ExitGatewayRoutingErrorIpv4
-            }
-            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6 => {
-                Self::ExitGatewayRoutingErrorIpv6
-            }
         }
     }
 }
