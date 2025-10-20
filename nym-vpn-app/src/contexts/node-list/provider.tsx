@@ -13,7 +13,7 @@ export type NodesStateProviderProps = {
 };
 
 function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
-  const { vpnMode, entryNode, exitNode } = useMainState();
+  const { vpnMode, entryNode, exitNode, quic } = useMainState();
   const {
     mxEntry: mxEntryGateways,
     mxExit: mxExitGateways,
@@ -38,14 +38,20 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
       selectedExit: Country | Gateway,
     ) => {
       return list
-        .map<UiGatewaysByCountry>((country) => {
+        .reduce<UiGatewaysByCountry[]>((countryAcc, country) => {
+          if (quic && !country.quic) {
+            return countryAcc;
+          }
           const isCountrySelected = isSelectedNodeType(
             country.country,
             selectedEntry,
             selectedExit,
           );
-          const gateways = country.gateways.map<UiGateway>((gw) => {
-            return {
+          const gateways = country.gateways.reduce<UiGateway[]>((gwAcc, gw) => {
+            if (quic && !gw.quic) {
+              return gwAcc;
+            }
+            const uiGw: UiGateway = {
               ...gw,
               isSelected: isSelectedNodeType(
                 gw,
@@ -53,9 +59,11 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
                 selectedExit,
               ) as GwSelectedKind,
             };
-          });
+            gwAcc.push(uiGw);
+            return gwAcc;
+          }, []);
 
-          return {
+          const uiCountry: UiGatewaysByCountry = {
             country: {
               ...country.country,
               isSelected: isCountrySelected,
@@ -65,10 +73,12 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
             isSelected: isCountrySelected,
             i18n: getCountryName(country.country.code) || country.country.name,
           };
-        })
+          countryAcc.push(uiCountry);
+          return countryAcc;
+        }, [])
         .sort((a, b) => compare(a.i18n, b.i18n));
     },
-    [compare, getCountryName],
+    [compare, getCountryName, quic],
   );
 
   const toGatewayList = useCallback(
@@ -106,6 +116,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
     vpnMode,
     wgGateways,
     toGatewayList,
+    quic,
   ]);
 
   const loading = useMemo(() => {

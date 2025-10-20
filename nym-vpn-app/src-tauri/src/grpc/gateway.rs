@@ -84,6 +84,7 @@ pub struct Gateway {
     pub exit_ipv4: Option<String>,
     pub exit_ipv6: Option<String>,
     pub build_version: Option<String>,
+    pub quic: bool,
 }
 
 impl Gateway {
@@ -118,6 +119,19 @@ impl Gateway {
             .transpose()?
             .unwrap_or(p::Score::Offline);
 
+        let quic = gateway
+            .bridge_params
+            .as_ref()
+            .map(|info| {
+                info.transports.iter().any(|p| {
+                    p.state
+                        .as_ref()
+                        .map(|s| matches!(s, p::bridge_parameters::State::QuicPlain(_)))
+                        .unwrap_or(false)
+                })
+            })
+            .unwrap_or(false);
+
         let asn = location.asn.clone().map(|a| a.into());
         let exit_ipv4 = gateway.exit_ipv4s.first().cloned();
         let exit_ipv6 = gateway.exit_ipv6s.first().cloned();
@@ -135,6 +149,7 @@ impl Gateway {
             exit_ipv4,
             exit_ipv6,
             build_version: gateway.build_version,
+            quic,
         })
     }
 }

@@ -27,6 +27,8 @@ pub struct GatewaysByCountry {
     pub gateways: Vec<Gateway>,
     #[serde(rename = "type")]
     pub kind: GatewayType,
+    // whether there is at least 1 quic compatible gateway
+    pub quic: bool,
 }
 
 fn group_by_country(gateways: Vec<Gateway>, gw_type: GatewayType) -> Vec<GatewaysByCountry> {
@@ -36,8 +38,12 @@ fn group_by_country(gateways: Vec<Gateway>, gw_type: GatewayType) -> Vec<Gateway
             HashMap::<String, GatewaysByCountry>::new(),
             |mut map, gateway| {
                 let country_code = &gateway.country.code;
+                let is_quic = gateway.quic;
                 if let Some(gw_by_country) = map.get_mut(country_code) {
                     gw_by_country.gateways.push(gateway);
+                    if is_quic {
+                        gw_by_country.quic = true;
+                    }
                 } else {
                     map.insert(
                         country_code.clone(),
@@ -45,6 +51,7 @@ fn group_by_country(gateways: Vec<Gateway>, gw_type: GatewayType) -> Vec<Gateway
                             country: gateway.country.clone(),
                             gateways: vec![gateway],
                             kind: gw_type,
+                            quic: is_quic,
                         },
                     );
                 }
