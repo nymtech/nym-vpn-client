@@ -114,7 +114,7 @@ pub async fn domain_to_socket_addr(
     if domain.contains("://") {
         str_to_socket_addr(domain, limit).await
     } else {
-        str_to_socket_addr(&format!("https://{domain}"), None).await
+        str_to_socket_addr(&format!("https://{domain}"), limit).await
     }
 }
 
