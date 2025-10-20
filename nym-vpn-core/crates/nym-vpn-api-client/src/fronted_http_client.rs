@@ -47,16 +47,19 @@ pub async fn fronted_http_client_builder(
     if let Some(resolver_overrides) = resolver_overrides.as_ref()
         && !resolver_overrides.is_empty()
     {
-        for (domain, addresses) in resolver_overrides.overrides().iter() {
+        for domain in resolver_overrides.domains().into_iter() {
+            let addrs = resolver_overrides
+                .domain_addrs(&domain)
+                .expect("Domain was obtained from the overrides");
             tracing::info!(
                 "Enabling Resolver override for {domain}: {}",
-                addresses
+                addrs
                     .iter()
                     .map(|addr| addr.to_string())
                     .collect::<Vec<_>>()
                     .join(", ")
             );
-            builder = builder.resolve_to_addrs(domain, addresses);
+            builder = builder.resolve_to_addrs(&domain, &addrs);
         }
     }
 

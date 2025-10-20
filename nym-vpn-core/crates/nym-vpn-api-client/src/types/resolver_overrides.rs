@@ -1,11 +1,14 @@
 use crate::{api_urls_to_urls, error::VpnApiClientError, url_to_socket_addr};
 use nym_http_api_client::Url;
 use nym_network_defaults::ApiUrl;
-use std::{collections::HashMap, net::SocketAddr};
+use std::{
+    collections::{HashMap, HashSet},
+    net::SocketAddr,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct ResolverOverrides {
-    overrides: HashMap<String, Vec<SocketAddr>>,
+    overrides: HashMap<String, HashSet<SocketAddr>>,
 }
 
 impl ResolverOverrides {
@@ -23,7 +26,10 @@ impl ResolverOverrides {
             };
 
             let addresses = url_to_socket_addr(url.inner_url(), Some((1, 1))).await?;
-            overrides.insert(domain.to_string(), addresses);
+            overrides.insert(
+                domain.to_string(),
+                HashSet::from_iter(addresses.into_iter()),
+            );
 
             if let Some(fronts) = url.fronts() {
                 for front_url in fronts {
@@ -35,7 +41,10 @@ impl ResolverOverrides {
                         continue;
                     };
                     let front_addresses = url_to_socket_addr(front_url, Some((1, 1))).await?;
-                    overrides.insert(front_domain.to_string(), front_addresses);
+                    overrides.insert(
+                        front_domain.to_string(),
+                        HashSet::from_iter(front_addresses.into_iter()),
+                    );
                 }
             }
         }
@@ -64,9 +73,16 @@ impl ResolverOverrides {
         self.overrides.is_empty()
     }
 
-    /// Get the overrides map.
-    pub fn overrides(&self) -> &HashMap<String, Vec<SocketAddr>> {
-        &self.overrides
+    /// Get all the domains
+    pub fn domains(&self) -> Vec<String> {
+        self.overrides.keys().cloned().collect()
+    }
+
+    // Get all the addresses for a domain
+    pub fn domain_addrs(&self, domain: &str) -> Option<Vec<SocketAddr>> {
+        self.overrides
+            .get(domain)
+            .map(|addrs| addrs.iter().cloned().collect())
     }
 
     /// Get all the socket addresses
