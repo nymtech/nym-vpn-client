@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Add QUIC status and server description (https://github.com/nymtech/nym-vpn-client/pull/3696)
+
 ## [2.1.0]
 
 ### Added

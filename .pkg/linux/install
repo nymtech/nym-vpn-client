@@ -53,8 +53,8 @@ CORE_BUILD=${CORE_BUILD:-0}
 
 ## STABLE BUILDS #################################################
 # app artifacts
-app_tag=nym-vpn-app-v1.17.0
-app_version=1.17.0
+app_tag=nym-vpn-app-v1.17.1
+app_version=1.17.1
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
 app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/ac4153bb1/nym-vpn-app/.pkg/app.desktop"

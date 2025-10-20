@@ -227,7 +227,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
                     AccountCommand::RegisterAccount(return_sender, account, platform) => {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
-                    }                    AccountCommand::ForgetAccount(return_sender) => {
+                    }
+                    AccountCommand::ForgetAccount(return_sender) => {
                         self.zk_nym_fetching_handle.abort();
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
