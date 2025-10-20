@@ -32,17 +32,17 @@ constructor(
 
 	init {
 		viewModelScope.launch {
-			billingManager.stateFlow.collectLatest { billingResult ->
-				if (billingResult?.responseCode == BillingClient.BillingResponseCode.OK) {
+			billingManager.uiState.collectLatest { state ->
+				if(state.purchases.isNotEmpty()) {
+					Timber.d("uiState purchase ${state.purchases}")
+					testApiCall(state.purchases.first().purchaseToken)
+				}
+				if (state.billingResult?.responseCode == BillingClient.BillingResponseCode.OK) {
 					_success.emit(true)
 				} else {
-					Timber.e("Response code: ${billingResult?.responseCode}, message: ${billingResult?.debugMessage}")
+					Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
 					_success.emit(false)
 				}
-			}
-			billingManager.purchases.collectLatest { purchase ->
-				Timber.d(purchase.toString())
-				testApiCall(purchase.first().purchaseToken)
 			}
 		}
 	}

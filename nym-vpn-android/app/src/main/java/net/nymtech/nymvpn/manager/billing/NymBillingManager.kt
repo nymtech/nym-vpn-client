@@ -7,7 +7,6 @@ import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
-import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.queryProductDetails
@@ -17,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -31,23 +31,19 @@ class NymBillingManager @Inject constructor(
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BillingManager {
 
-	private val _state = MutableStateFlow<BillingResult?>(null)
-
-	override val stateFlow: Flow<BillingResult?> = _state.asStateFlow()
-
-	private val _purchases = MutableSharedFlow<List<Purchase>>(replay = 1)
-	override val purchases: Flow<List<Purchase>> = _purchases.asSharedFlow()
+	private val _uiState = MutableStateFlow(BillingUiState())
+	override val uiState: StateFlow<BillingUiState> = _uiState.asStateFlow()
 
 	private val _products = MutableSharedFlow<List<ProductDetails>>(replay = 1)
 	override val products: Flow<List<ProductDetails>> = _products.asSharedFlow()
 
 	private val purchasesUpdatedListener =
 		PurchasesUpdatedListener { billingResult, purchases ->
-			_state.update { billingResult }
-			if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-				applicationScope.launch(ioDispatcher) {
-					_purchases.run { emit(purchases) }
-				}
+			_uiState.update { state ->
+				state.copy(
+					billingResult = billingResult,
+					purchases = purchases ?: emptyList()
+				)
 			}
 		}
 
@@ -77,7 +73,7 @@ class NymBillingManager @Inject constructor(
 
 		billingClient.startConnection(object : BillingClientStateListener {
 			override fun onBillingSetupFinished(billingResult: BillingResult) {
-				_state.update { billingResult }
+				_uiState.update { it.copy(billingResult = billingResult) }
 			}
 
 			override fun onBillingServiceDisconnected() {
@@ -90,7 +86,7 @@ class NymBillingManager @Inject constructor(
 		if (!billingClient.isReady) return
 
 		billingClient.queryProductDetailsAsync(queryProductDetailsParams) { billingResult, result ->
-			_state.update { billingResult }
+			_uiState.update { it.copy(billingResult = billingResult) }
 			if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
 				applicationScope.launch(ioDispatcher) {
 					_products.emit(result.productDetailsList)
