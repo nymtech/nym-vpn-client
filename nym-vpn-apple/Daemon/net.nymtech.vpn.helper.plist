@@ -16,10 +16,5 @@
 	<true/>
 	<key>BundleProgram</key>
 	<string>Contents/MacOS/net.nymtech.vpn.helper</string>
-	<key>MachServices</key>
-	<dict>
-		<key>net.nymtech.vpn.helper</key>
-		<true/>
-	</dict>
 </dict>
 </plist>
