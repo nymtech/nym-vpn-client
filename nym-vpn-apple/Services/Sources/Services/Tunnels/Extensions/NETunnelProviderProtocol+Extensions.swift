@@ -1,7 +1,7 @@
 import NetworkExtension
 import Keychain
 
-extension NETunnelProviderProtocol {
+@MainActor extension NETunnelProviderProtocol {
     public func destroyConfigurationReference() {
         guard let ref = passwordReference else { return }
         Keychain.deleteReference(called: ref)

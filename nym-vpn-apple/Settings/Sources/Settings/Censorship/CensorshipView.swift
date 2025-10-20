@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConnectionManager
 import FeatureFlagsManager
 import Constants
 import UIComponents
@@ -7,8 +8,10 @@ import Theme
 
 public struct CensorshipView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
+    @State private var isConfirmationDisplayed = false
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -37,6 +40,9 @@ public struct CensorshipView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+        .overlay {
+            confirmationOnlineOverlay()
+        }
     }
 
     public init(path: Binding<NavigationPath>) {
@@ -59,7 +65,18 @@ private extension CensorshipView {
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
                     viewModel: ToggleViewModel(
-                        isOn: $appSettings.isQuicEnabled
+                        isOn: $appSettings.isQuicEnabled,
+                        controlInAlert: true,
+                        isDisplayingAlert: $isConfirmationDisplayed,
+                        action: { isOn in
+                            guard connectionManager.currentTunnelStatus == .connected ||
+                                    connectionManager.currentTunnelStatus == .connecting
+                            else {
+                                appSettings.isQuicEnabled.toggle()
+                                return
+                            }
+                            isConfirmationDisplayed = true
+                        }
                     )
                 ),
                 title: "censorship.quic.title".localizedString,
@@ -129,6 +146,37 @@ private extension CensorshipView {
             text[range].foregroundColor = NymColor.primary
         }
         return text
+    }
+
+    var overlayConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            titleLocalizedString: "censorship.quic.disable.alert.title".localizedString,
+            subtitleLocalizedString: "censorship.quic.disable.alert.subtitle".localizedString,
+            yesLocalizedString: "reconnect".localizedString,
+            noLocalizedString: "cancel".localizedString,
+            yesAction: {
+                appSettings.isQuicEnabled.toggle()
+                isConfirmationDisplayed = false
+            },
+            noAction: {
+                isConfirmationDisplayed = false
+            }
+        )
+    }
+
+    @ViewBuilder
+    func confirmationOnlineOverlay() -> some View {
+        if isConfirmationDisplayed {
+            ActionDialogView(
+                viewModel: ActionDialogViewModel(
+                    isDisplayed: $isConfirmationDisplayed,
+                    configuration: overlayConfiguration,
+                    impactGenerator: .shared
+                )
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: isConfirmationDisplayed)
+        }
     }
 }
 

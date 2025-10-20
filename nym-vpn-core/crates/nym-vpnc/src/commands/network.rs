@@ -18,12 +18,7 @@ impl Command {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             Command::Get => {
-                let network_name = rpc_client
-                    .get_info()
-                    .await?
-                    .nym_network
-                    .network
-                    .network_name;
+                let network_name = rpc_client.get_info().await?.nym_network.network_name;
                 println!("Current network: {network_name}");
                 Ok(())
             }

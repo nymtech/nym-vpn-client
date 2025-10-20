@@ -39,6 +39,7 @@ time = { workspace = true, features = [
 ] }
 tracing.workspace = true
 url.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
@@ -46,4 +47,7 @@ bip39 = { workspace = true, features = ["zeroize"] }
 
 [features]
 default = ["network-defaults"]
-network-defaults = ["dep:nym-network-defaults", "nym-http-api-client/network-defaults"]
+network-defaults = [
+    "dep:nym-network-defaults",
+    "nym-http-api-client/network-defaults",
+]

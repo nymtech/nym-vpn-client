@@ -6,10 +6,13 @@ use std::fmt;
 use crate::jwt::Jwt;
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
-    DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
+    DirectSecp256k1HdWallet,
+    nyxd::{AccountId, bip32::DerivationPath},
+    signing::signer::OfflineSigner as _,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use time::{Duration, OffsetDateTime};
+use zeroize::Zeroizing;
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
@@ -24,7 +27,8 @@ pub enum Error {
 }
 
 /// Defines the mode of operation of the associated account.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, strum_macros::Display)]
+#[strum(serialize_all = "snake_case")]
 pub enum VpnAccountMode {
     /// Account works in the API mode, i.e. the subscription is managed
     /// by the VPN API which provides required ticketbooks
@@ -32,6 +36,7 @@ pub enum VpnAccountMode {
 
     /// Account works in the decentralised mode, i.e. there is no associated subscription
     /// and the account uses its own funds for obtaining required ticketbooks
+    // add an alias for our US friends
     Decentralised,
 }
 
@@ -66,7 +71,7 @@ pub struct VpnAccount {
     wallet: DirectSecp256k1HdWallet,
 
     /// Cosmos account identifier of the first derived account.
-    id: String,
+    id: AccountId,
 
     /// Base58-encoded public (secp256k1) key of the first derived account.
     pub_key: String,
@@ -112,14 +117,18 @@ impl VpnAccount {
 
         Ok(Self {
             wallet,
-            id,
+            id: address.clone(),
             pub_key,
             mode,
             signature_base64,
         })
     }
 
-    pub fn id(&self) -> &str {
+    pub fn id(&self) -> String {
+        self.id.to_string()
+    }
+
+    pub fn id_typed(&self) -> &AccountId {
         &self.id
     }
 
@@ -139,15 +148,22 @@ impl VpnAccount {
     }
 
     pub fn create_ecash_keypair(&self) -> Result<KeyPairUser, Error> {
+        let seed = self.ecash_keypair_seed()?;
+        Ok(KeyPairUser::new_seeded(&seed))
+    }
+
+    pub fn ecash_keypair_seed(&self) -> Result<Zeroizing<Vec<u8>>, Error> {
         let hd_path = cosmos_derivation_path();
+        // TODO: private key is NOT zeroized here
         let extended_private_key = self.wallet.derive_extended_private_key(&hd_path)?;
-        Ok(KeyPairUser::new_seeded(
-            extended_private_key.private_key().to_bytes(),
+
+        Ok(Zeroizing::new(
+            extended_private_key.private_key().to_bytes().to_vec(),
         ))
     }
 
-    pub fn get_mnemonic(&self) -> String {
-        self.wallet.mnemonic()
+    pub fn get_mnemonic(&self) -> Zeroizing<String> {
+        self.wallet.mnemonic_string()
     }
 
     pub fn mode(&self) -> VpnAccountMode {

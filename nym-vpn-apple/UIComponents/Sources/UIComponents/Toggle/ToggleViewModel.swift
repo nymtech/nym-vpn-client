@@ -2,6 +2,7 @@ import SwiftUI
 import Theme
 
 public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
+    public let controlInAlert: Bool
     public let id = UUID()
 
     @Binding var isOn: Bool {
@@ -9,6 +10,7 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
             configure(with: isOn)
         }
     }
+    @Binding var isDisplayingAlert: Bool
     @Published var offset = CGFloat(0)
     @Published var circleDiameter = CGFloat(16)
     @Published var circleColor = NymColor.gray1
@@ -18,8 +20,16 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
 
     private var action: ((Bool) -> Void)?
 
-    public init(isOn: Binding<Bool>, isDisabled: Bool = false, action: ((Bool) -> Void)? = nil) {
+    public init(
+        isOn: Binding<Bool>,
+        controlInAlert: Bool = false,
+        isDisplayingAlert: Binding<Bool> = .constant(false),
+        isDisabled: Bool = false,
+        action: ((Bool) -> Void)? = nil
+    ) {
         _isOn = isOn
+        _isDisplayingAlert = isDisplayingAlert
+        self.controlInAlert = controlInAlert
         self.action = action
         self.isDisabled = isDisabled
         configure(with: isOn.wrappedValue)
@@ -36,6 +46,11 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
 
 extension ToggleViewModel {
     func onTap() {
+        guard !controlInAlert
+        else {
+            action?(isOn)
+            return
+        }
         isOn.toggle()
         action?(isOn)
     }

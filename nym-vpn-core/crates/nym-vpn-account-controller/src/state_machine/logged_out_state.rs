@@ -65,13 +65,13 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
-
+                    AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_account(return_sender),
                     // We don't even have an identity at this point, so we might as well not do anything
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
 
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender) => return_no_account(return_sender),
-
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.firewall_active = false;
                         return_sender.send(Ok(()));

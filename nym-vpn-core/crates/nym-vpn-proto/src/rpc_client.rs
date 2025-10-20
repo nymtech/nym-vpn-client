@@ -3,17 +3,12 @@
 
 use std::path::PathBuf;
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayFilters};
-use nym_vpn_api_client::{
-    NetworkCompatibility,
-    response::{NymVpnDevice, NymVpnUsage},
-};
 use nym_vpn_lib_types::{
-    AccountCommandResponse, AccountControllerState, AvailableTickets, ConnectArgs, Gateway,
-    ListGatewaysOptions, LogPath, StoreAccountRequest, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
+    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
+    LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -144,7 +139,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_system_messages(&mut self) -> Result<SystemMessages> {
+    pub async fn get_system_messages(&mut self) -> Result<Vec<SystemMessage>> {
         let response = self
             .0
             .get_system_messages(())
@@ -152,7 +147,13 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        Ok(SystemMessages::from(response))
+        let messages = response
+            .messages
+            .into_iter()
+            .map(SystemMessage::from)
+            .collect::<Vec<_>>();
+
+        Ok(messages)
     }
 
     pub async fn get_network_compatibility(&mut self) -> Result<Option<NetworkCompatibility>> {
@@ -328,7 +329,33 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
 
-        ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
+        Ok(ParsedAccountLinks::from(response))
+    }
+
+    pub async fn account_balance(&mut self) -> Result<AccountBalanceResponse> {
+        let response = self
+            .0
+            .account_balance(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn decentralised_obtain_ticketbooks(
+        &mut self,
+        amount: u64,
+    ) -> Result<AccountCommandResponse> {
+        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+        let response = self
+            .0
+            .decentralised_obtain_ticketbooks(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {

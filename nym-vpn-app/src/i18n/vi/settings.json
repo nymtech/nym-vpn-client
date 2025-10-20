@@ -36,19 +36,19 @@
     "daemon": "Nhật ký daemon"
   },
   "anti-censorship": {
-    "title": "Anti-censorship",
-    "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
+    "title": "Chống kiểm duyệt",
+    "intro": "Bật các tính năng này nếu bạn gặp sự cố kết nối hoặc NymVPN bị chặn tại vị trí của bạn.",
     "quic": {
-      "label": "Enhanced connection (QUIC)",
-      "warning": "Changes will apply after reconnect",
-      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
-      "link": "How QUIC improves connections"
+      "label": "Kết nối nâng cao (QUIC)",
+      "warning": "Thay đổi sẽ có hiệu lực sau khi kết nối lại",
+      "content": "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường.\n\nLưu ý: Giới hạn các tùy chọn máy chủ vào chỉ dành cho các cổng kết nối tương thích QUIC.",
+      "link": "Cách QUIC cải thiện kết nối"
     },
     "stealth-api": {
-      "label": "Stealth API connect",
-      "warning": "Changes will apply after reconnect",
-      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
-      "link": "How the Stealth API connect mode works"
+      "label": "Kết nối API Ẩn danh",
+      "warning": "Thay đổi sẽ có hiệu lực sau khi kết nối lại",
+      "content": "Ẩn yêu cầu API phía sau các tên miền phổ biến, được phép để vượt qua chặn VPN. Tự động được NymVPN sử dụng khi các lần thử kết nối tiêu chuẩn thất bại.",
+      "link": "Cách chế độ kết nối API Ẩn danh hoạt động"
     }
   },
   "faq": "Câu hỏi thường gặp",
@@ -85,7 +85,7 @@
     "network-stats": {
       "label": "Thống kê mạng ẩn danh",
       "sublabel": "Thay đổi sẽ có hiệu lực sau khi khởi động lại daemon.",
-      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "desc": "Giúp chúng tôi xây dựng mạng nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu tốc độ, giảm mất kết nối và điều hướng vùng phủ sóng máy chủ nơi cần thiết nhất.\n\nChỉ dữ liệu hiệu suất mạng được chia sẻ – không bao giờ chia sẻ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn.",
       "link": "Tìm hiểu chính xác những gì được chia sẻ"
     }
   },

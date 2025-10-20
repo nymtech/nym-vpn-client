@@ -9,7 +9,7 @@ import KeyboardManager
 #endif
 import Theme
 
-final class AddCredentialsViewModel: ObservableObject {
+@MainActor final class AddCredentialsViewModel: ObservableObject {
     private let credentialsManager: CredentialsManager
     private let configurationManager: ConfigurationManager
 #if os(iOS)
@@ -23,7 +23,7 @@ final class AddCredentialsViewModel: ObservableObject {
 //        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
 //            return link
 //        } else {
-            return Constants.pricingURL.rawValue
+            Constants.pricingURL.rawValue
 //        }
     }
 
@@ -47,9 +47,7 @@ final class AddCredentialsViewModel: ObservableObject {
     }
     @Published var error: Error = CredentialsManagerError.noError {
         didSet {
-            Task {
-                await configureError()
-            }
+            configureError()
         }
     }
     @Published var textFieldStrokeColor = NymColor.gray2
@@ -62,10 +60,10 @@ final class AddCredentialsViewModel: ObservableObject {
 #if os(iOS)
     init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = AppSettings.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        configurationManager: ConfigurationManager = ConfigurationManager.shared,
-        keyboardManager: KeyboardManager = KeyboardManager.shared
+        appSettings: AppSettings,
+        credentialsManager: CredentialsManager,
+        configurationManager: ConfigurationManager,
+        keyboardManager: KeyboardManager
     ) {
         _path = path
         self.appSettings = appSettings
@@ -73,13 +71,12 @@ final class AddCredentialsViewModel: ObservableObject {
         self.configurationManager = configurationManager
         self.keyboardManager = keyboardManager
     }
-#endif
-#if os(macOS)
+#elseif os(macOS)
     init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = AppSettings.shared,
-        configurationManager: ConfigurationManager = ConfigurationManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        credentialsManager: CredentialsManager
     ) {
         _path = path
         self.appSettings = appSettings

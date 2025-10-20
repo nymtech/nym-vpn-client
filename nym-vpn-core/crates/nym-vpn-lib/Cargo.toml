@@ -64,6 +64,7 @@ nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
 nym-statistics.workspace = true
+nym-vpn-api-client.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true

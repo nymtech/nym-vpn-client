@@ -1,21 +1,23 @@
 name: build-wireguard-go-linux
 on:
+  pull_request:
+    types: [opened]
+    paths:
+      - "wireguard/**"
+      - ".github/workflows/build-wireguard-go-linux.yml"
   workflow_dispatch:
   workflow_call:
     inputs:
       artifact_name:
         required: false
         type: string
-  pull_request:
-    paths:
-      - "wireguard/**"
-      - ".github/workflows/build-wireguard-go-linux.yml"
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-22.04
 
     steps:

@@ -5,10 +5,10 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
-use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
-use nym_vpn_lib_types_uniffi::{AccountControllerState, RegisterAccountResponse};
+use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{account::Mnemonic, keys::device::DeviceKeyStore};
 use tokio::task::JoinHandle;
@@ -74,6 +74,8 @@ async fn start_account_controller(
         details: err.to_string(),
     })?;
 
+    let nyxd_client = NyxdClient::new(&network_env);
+
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
         credentials_mode: credential_mode,
@@ -82,6 +84,7 @@ async fn start_account_controller(
 
     let account_controller = nym_vpn_account_controller::AccountController::new(
         nym_vpn_api_client,
+        nyxd_client,
         account_controller_config,
         storage,
         connectivity_handle,
@@ -165,7 +168,7 @@ pub(super) async fn wait_for_account_ready_to_connect(timeout: Duration) -> Resu
 
 pub(super) async fn get_account_state() -> Result<AccountControllerState, VpnError> {
     let state_receiver = get_state_receiver().await?;
-    Ok(state_receiver.get_state().into())
+    Ok(state_receiver.get_state())
 }
 
 pub(super) async fn update_account_state() -> Result<(), VpnError> {
@@ -217,7 +220,6 @@ pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnErr
         .await?
         .register_account(mnemonic, platform)
         .await
-        .map(RegisterAccountResponse::from)
         .map_err(VpnError::from)
 }
 
@@ -273,11 +275,10 @@ pub(crate) mod raw {
     use crate::environment;
     use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
-    use nym_vpn_api_client::types::VpnAccountMode;
     use nym_vpn_api_client::{
         VpnApiClient,
         response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
-        types::{Device, DeviceStatus},
+        types::{Device, DeviceStatus, VpnAccountMode},
     };
     use nym_vpn_store::account::AccountInformationStorage;
 

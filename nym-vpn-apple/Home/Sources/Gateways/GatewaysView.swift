@@ -6,11 +6,11 @@ import Theme
 import UIComponents
 
 public struct GatewaysView: View {
-    @StateObject private var viewModel: GatewaysViewModel
+    @ObservedObject private var viewModel: GatewaysViewModel
     @FocusState private var isSearchFocused: Bool
 
     public init(viewModel: GatewaysViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
 
     public var body: some View {
@@ -29,16 +29,16 @@ public struct GatewaysView: View {
                     countriesGatewaysList()
                     noSearchResultsView()
                     foundCountriesList()
+                    foundUSRegionsList()
                     foundGatewaysList()
                 }
                 .scrollDismissesKeyboard(.immediately)
                 .scrollIndicators(.hidden)
                 .frame(maxWidth: MagicNumbers.maxWidth)
                 .ignoresSafeArea(.all)
-                .onChange(of: viewModel.scrollToServer) { _ in
-                    guard let server = viewModel.scrollToServer else { return }
+                .onAppear {
                     withAnimation {
-                        proxy.scrollTo(server.id, anchor: .center)
+                        proxy.scrollTo(viewModel.scrollToModel.scrollToIdentifier, anchor: .top)
                     }
                 }
             }
@@ -92,7 +92,9 @@ private extension GatewaysView {
                     servers: viewModel.gatewaysInCountry(with: country.code),
                     type: viewModel.type,
                     path: $viewModel.path,
-                    scrollToServer: $viewModel.scrollToServer,
+                    scrollToModel: $viewModel.scrollToModel,
+                    entryGateway: $viewModel.connectionManager.entryGateway,
+                    exitRouter: $viewModel.connectionManager.exitRouter,
                     infoButtonTapCompletion: { gateway in
                         viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                     }
@@ -171,7 +173,9 @@ private extension GatewaysView {
                 servers: viewModel.gatewaysInCountry(with: country.code),
                 type: viewModel.type,
                 path: $viewModel.path,
-                scrollToServer: $viewModel.scrollToServer,
+                scrollToModel: $viewModel.scrollToModel,
+                entryGateway: $viewModel.connectionManager.entryGateway,
+                exitRouter: $viewModel.connectionManager.exitRouter,
                 infoButtonTapCompletion: { gateway in
                     viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                 },
@@ -189,11 +193,31 @@ private extension GatewaysView {
                 server: server,
                 type: viewModel.type,
                 path: $viewModel.path,
+                scrollToModel: .constant(.empty),
                 isSearching: true,
                 infoButtonTapCompletion: { gateway in
                     viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                 }
             )
+        }
+    }
+
+    @ViewBuilder
+    func foundUSRegionsList() -> some View {
+        if let usCountry = viewModel.gatewayManager.localizedCountry(with: "US") {
+            ForEach(viewModel.foundUSRegions, id: \.self) { region in
+                GatewaysRegionCell(
+                    hopType: viewModel.type,
+                    country: usCountry,
+                    region: region,
+                    servers: viewModel.gatewayManager.vpn.filter { $0.location?.region == region },
+                    infoButtonTapCompletion: { _ in },
+                    path: $viewModel.path,
+                    entryGateway: $viewModel.connectionManager.entryGateway,
+                    exitRouter: $viewModel.connectionManager.exitRouter,
+                    scrollToModel: .constant(.empty)
+                )
+            }
         }
     }
 }

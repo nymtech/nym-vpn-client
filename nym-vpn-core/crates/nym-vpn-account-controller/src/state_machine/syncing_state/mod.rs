@@ -12,13 +12,12 @@ use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::state_machine::ReadyState;
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState,
+        OfflineState, PrivateAccountControllerState, decentralised_state::DecentralisedState,
     },
 };
 use requesting_zknym_state::RequestingZkNymsState;
@@ -45,7 +44,7 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 /// - SyncingState : We try again if there was an error while making an API request
 /// - ErrorState : An actual error happened, or one of the above questions has a negative answers, preventing us to proceed.
 /// - OfflineState : the connectivity monitor is telling we're not connected
-/// - ReadyState : The loaded account is set to "decentralised" mode
+/// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
     attempts: u32,
@@ -63,7 +62,7 @@ impl SyncingState {
             return LoggedOutState::enter();
         };
         if vpn_api_account.mode().is_decentralised() {
-            return ReadyState::enter();
+            return DecentralisedState::enter();
         }
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(
@@ -235,7 +234,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::RegisterAccount(return_sender, account, platform) => {
+                        let res = handler::handle_register_account(shared_state, account, platform).await;
+                        return_sender.send(res);
+                    }
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
@@ -247,6 +249,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {

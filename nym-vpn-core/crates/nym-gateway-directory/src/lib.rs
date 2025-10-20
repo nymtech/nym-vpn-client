@@ -21,7 +21,6 @@ pub use crate::{
             GatewayType, Location, NymNode, Performance, Probe, ProbeOutcome, ScoreValue,
         },
         ipr_addresses::IpPacketRouterAddress,
-        score::Score,
     },
     error::Error,
     gateway_cache::{GatewayCache, GatewayCacheHandle},

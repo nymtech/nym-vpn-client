@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.details.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -16,8 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -25,7 +30,12 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
 @Composable
-fun DetailsSectionPrivacy(asnKind: AsnKind?) {
+fun DetailsSectionPrivacy(
+	asnKind: AsnKind?,
+	isQuicFeatureFlagEnabled: Boolean,
+	isQuicSupportedByGateway: Boolean,
+	onEnableQuicProtocolClick: () -> Unit,
+) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
 		add(
 			stringResource(R.string.details_advanced_privacy) to {
@@ -78,59 +88,70 @@ fun DetailsSectionPrivacy(asnKind: AsnKind?) {
 				},
 			)
 		}
-		// 			stringResource(R.string.details_anti_censorship) to {
-// 				val isResidential = asnKind == AsnKind.RESIDENTIAL
-// 				val icon = if (isResidential) Icons.Outlined.Check else Icons.Filled.Circle
-// 				val iconTint = if (isResidential) Color.Green else CustomColors.warning
-// 				val text = stringResource(
-// 					if (isResidential) R.string.details_quic_protocol
-// 					else R.string.details_standard_protocol
-// 				)
-// 				Row(verticalAlignment = Alignment.CenterVertically) {
-// 					Icon(
-// 						painter = rememberVectorPainter(icon),
-// 						contentDescription = null,
-// 						tint = iconTint,
-// 						modifier = Modifier.size(12.dp)
-// 					)
-// 					Spacer(modifier = Modifier.width(6.dp))
-// 					Text(
-// 						text = text,
-// 						style = Typography.bodyMedium,
-// 						color = MaterialTheme.colorScheme.onBackground,
-// 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))
-// 					)
-// 				}
-// 			},
-		// 		bottomContent = {
-// 			val annotatedText = buildAnnotatedString {
-// 				pushStringAnnotation(tag = "QUIC", annotation = "quic_action")
-// 				withStyle(
-// 					style = SpanStyle(
-// 						color = MaterialTheme.colorScheme.onBackground,
-// 						textDecoration = TextDecoration.Underline,
-// 					),
-// 				) {
-// 					append(stringResource(R.string.details_enable_quic_start))
-// 				}
-// 				pop()
-// 				append(" ")
-// 				append(stringResource(R.string.details_enable_quic_end))
-// 			}
-//
-// 			Text(
-// 				text = annotatedText,
-// 				style = Typography.labelSmall.copy(
-// 					color = MaterialTheme.colorScheme.outline,
-// 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-// 				),
-// 				modifier = Modifier.clickable {
-//
-// 				},
-// 			)
-//
-// 		},
+
+		if (isQuicFeatureFlagEnabled) {
+			add(
+				stringResource(R.string.details_anti_censorship) to {
+					val icon = if (isQuicSupportedByGateway) Icons.Outlined.Check else Icons.Filled.Circle
+					val iconTint = if (isQuicSupportedByGateway) Color.Green else CustomColors.warning
+					val text = stringResource(
+						if (isQuicSupportedByGateway) {
+							R.string.details_quic_protocol
+						} else {
+							R.string.details_standard_protocol
+						},
+					)
+
+					Row(verticalAlignment = Alignment.CenterVertically) {
+						Icon(
+							painter = rememberVectorPainter(icon),
+							contentDescription = null,
+							tint = iconTint,
+							modifier = Modifier.size(12.dp),
+						)
+						Spacer(modifier = Modifier.width(6.dp))
+						Text(
+							text = text,
+							style = Typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onBackground,
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						)
+					}
+				},
+			)
+		}
 	}
 
-	InfoSection(items = items)
+	InfoSection(
+		items = items,
+		bottomContent = {
+			if (isQuicFeatureFlagEnabled && isQuicSupportedByGateway) {
+				val annotatedText = buildAnnotatedString {
+					pushStringAnnotation(tag = "QUIC", annotation = "quic_action")
+					withStyle(
+						style = SpanStyle(
+							color = MaterialTheme.colorScheme.onBackground,
+							textDecoration = TextDecoration.Underline,
+						),
+					) {
+						append(stringResource(R.string.details_enable_quic_start))
+					}
+					pop()
+					append(" ")
+					append(stringResource(R.string.details_enable_quic_end))
+				}
+
+				Text(
+					text = annotatedText,
+					style = Typography.labelSmall.copy(
+						color = MaterialTheme.colorScheme.outline,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					),
+					modifier = Modifier.clickable {
+						onEnableQuicProtocolClick()
+					},
+				)
+			}
+		},
+	)
 }

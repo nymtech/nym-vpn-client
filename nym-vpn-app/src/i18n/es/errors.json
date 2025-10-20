@@ -12,9 +12,9 @@
     "firewall": "Error del firewall",
     "routing": "Error al enrutar",
     "dns": "Error de DNS",
-    "same-entry-exit-gw": "No se puede conectar con el mismo nodo de entrada y salida. Por favor, cambia la ubicación del nodo de entrada o de salida.",
-    "invalid-entry-gw-country": "El país del nodo de entrada no es válido, por favor cambia la ubicación del nodo de entrada",
-    "invalid-exit-gw-country": "El país del nodo de salida no es válido. Por favor, cambia la ubicación del nodo de salida",
+    "same-entry-exit-gw": "No se puede conectar con el mismo gateway de entrada y salida. Por favor, cambia la ubicación del gateway de entrada o de salida.",
+    "invalid-entry-gw-country": "El país del gateway de entrada no es válido, por favor cambia la ubicación del gateway de entrada",
+    "invalid-exit-gw-country": "El país del gateway de salida no es válido. Por favor, cambia la ubicación del gateway de salida",
     "invalid-entry-gw-id": "El servidor de entrada está desconectado. Elija otro y vuelva a conectar.",
     "invalid-exit-gw-id": "El servidor de salida está desconectado. Elige otro y vuelve a conectar.",
     "credential-wasted-entry-gw": "El servidor de entrada no responde o responde mal a un aumento del ancho de banda.",
@@ -51,7 +51,7 @@
     "fast-mode": "Fallo al buscar los países disponibles"
   },
   "mixnet": {
-    "no-bandwidth": "No queda ancho de banda.",
+    "no-bandwidth": "No queda ancho de banda",
     "entry-gateway-down": "El gateway de entrada está caído",
     "exit-gateway-down": {
       "ipv4": "El gateway de salida está caído (IPv4)",

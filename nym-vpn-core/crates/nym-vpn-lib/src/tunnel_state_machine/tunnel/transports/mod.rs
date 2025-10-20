@@ -1,5 +1,5 @@
 use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -17,7 +17,7 @@ use tracing::*;
 
 mod certs;
 use certs::*;
-pub use nym_vpn_lib_types::{BridgeInformation, BridgeParameters, QuicClientOptions};
+pub use nym_vpn_api_client::response::{BridgeInformation, BridgeParameters, QuicClientOptions};
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
 const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
@@ -35,6 +35,9 @@ pub enum TransportError {
 
     #[error("insufficient or broken transport params: {0}")]
     Config(String),
+
+    #[error("transport connection was cancelled")]
+    Cancelled,
 
     #[error("transport error: {0}")]
     Other(String),
@@ -61,16 +64,26 @@ pub struct BridgeConn {
 }
 
 impl BridgeConn {
-    pub async fn try_connect(params: BridgeParameters) -> Result<Self, TransportError> {
+    pub async fn try_connect(
+        params: BridgeParameters,
+        token: CancellationToken,
+    ) -> Result<Self, TransportError> {
         let start = Instant::now();
 
         match params {
             BridgeParameters::QuicPlain(ref opts) => {
                 let opts = ClientOptions::try_from(opts)?;
-                let conn = transport_conn(&opts).await?;
+
+                let conn = token
+                    .run_until_cancelled(transport_conn(&opts))
+                    .await
+                    .ok_or(TransportError::Cancelled)??;
                 let endpoint = conn.remote_address();
                 // .context("failed to connect to transport conn")?;
-                let (writer, reader) = conn.open_bi().await?;
+                let (writer, reader) = token
+                    .run_until_cancelled(conn.open_bi())
+                    .await
+                    .ok_or(TransportError::Cancelled)??;
                 // .context("failed to connect to transport stream")?;
                 info!("quic transport connected in {:?}", start.elapsed());
                 Ok(Self {
@@ -194,10 +207,16 @@ pub async fn process_udp<R, W>(
         token.clone(),
     ));
 
-    // Wait for both tasks to complete
-    let _ = tasks.join_all().await;
+    // Wait for both tasks to complete, if either one exits it _should_ cancel the other as well.
+    for res in tasks.join_all().await {
+        if let Err(e) = res {
+            tracing::error!("bridge udp forwarder error: {e}");
+        }
+    }
+    info!("transport udp forwarder shutdown");
 }
 
+// Assumes that the socket has already had `connect` called.
 async fn udp_to_transport_task<W>(
     sock: Arc<UdpSocket>,
     mut framed_writer: W,
@@ -213,17 +232,12 @@ where
 
     loop {
         tokio::select! {
-            res = sock.recv_buf_from(&mut dn_buf) => {
-                let (len, src) = res.map_err(|e| {
+            res = sock.recv_buf(&mut dn_buf) => {
+                let len = res.map_err(|e| {
                     error!("error receiving from forward socket: {e}");
                     token.cancel();
                     e
                 })?;
-
-                if !address_match(fwd_addr, src) {
-                    debug!("received {len}B from alt addr {src} -- ignoring");
-                    continue;
-                }
 
                 trace!(" <-{fwd_addr} read {len}B");
                 framed_writer.send(dn_buf.copy_to_bytes(len)).await.map_err(|e| {
@@ -248,6 +262,7 @@ where
     Ok(())
 }
 
+// Assumes that the socket has already had `connect` called.
 async fn transport_to_udp_task<R>(
     mut framed_reader: R,
     sock: Arc<UdpSocket>,
@@ -271,7 +286,7 @@ where
                         let mut sent = 0;
                         let mut sends = 1;
                         while sent < len {
-                            let len_sent = sock.send_to(&buf[sent..len], fwd_addr).await.map_err(|e| {
+                            let len_sent = sock.send(&buf[sent..len]).await.map_err(|e| {
                                 error!("error sending to egress socket: {e}");
                                 token.cancel();
                                 e
@@ -297,22 +312,6 @@ where
     Ok(())
 }
 
-fn address_match(original: SocketAddr, incoming: SocketAddr) -> bool {
-    if incoming == original {
-        true
-    } else {
-        match (original.ip(), incoming.ip()) {
-            (IpAddr::V4(orig), IpAddr::V6(_)) => {
-                SocketAddr::from((orig.to_ipv6_mapped(), original.port())) == incoming
-            }
-            (IpAddr::V6(_), IpAddr::V4(inc)) => {
-                original == SocketAddr::from((inc.to_ipv6_mapped(), incoming.port()))
-            }
-            _ => false,
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct ClientOptions {
     /// Address describing the remote transport server
@@ -330,16 +329,7 @@ pub struct ClientOptions {
 impl TryFrom<&QuicClientOptions> for ClientOptions {
     type Error = TransportError;
     fn try_from(value: &QuicClientOptions) -> Result<Self, Self::Error> {
-        let mut pubkey_bytes = [0u8; 32];
-        BASE64_STANDARD
-            .decode_slice(&value.id_pubkey, &mut pubkey_bytes)
-            .map_err(|e| {
-                TransportError::config_err(format!(
-                    "failed to decode Quic bridge public key as base64: {e}"
-                ))
-            })?;
-        let id_pubkey = VerifyingKey::from_bytes(&pubkey_bytes)
-            .map_err(|e| TransportError::config_err(format!("bad Quic bridge public key: {e}")))?;
+        let id_pubkey = Self::parse_base64_pubkey(&value.id_pubkey)?;
 
         Ok(Self {
             addresses: value.addresses.clone(),
@@ -350,6 +340,19 @@ impl TryFrom<&QuicClientOptions> for ClientOptions {
 }
 
 impl ClientOptions {
+    fn parse_base64_pubkey(key: impl AsRef<str>) -> Result<VerifyingKey, TransportError> {
+        let mut pubkey_bytes = [0u8; 32];
+        BASE64_STANDARD
+            .decode_slice(key.as_ref(), &mut pubkey_bytes)
+            .map_err(|e| {
+                TransportError::config_err(format!(
+                    "failed to decode Quic bridge public key as base64: {e}"
+                ))
+            })?;
+        VerifyingKey::from_bytes(&pubkey_bytes)
+            .map_err(|e| TransportError::config_err(format!("bad Quic bridge public key: {e}")))
+    }
+
     fn get_ipv4(&self) -> Option<SocketAddr> {
         self.addresses.iter().find(|s| s.is_ipv4()).cloned()
     }

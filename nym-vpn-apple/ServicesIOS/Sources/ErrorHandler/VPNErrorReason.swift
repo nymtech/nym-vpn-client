@@ -23,6 +23,13 @@ public enum VPNErrorReason: LocalizedError {
     case existingAccount
     case accountControllerError(details: String)
     case httpClient(details: String)
+    case accountDoesntExistOnChain
+    case accountNotDecentralised
+    case accountDecentralised
+    case insufficientFunds
+    case zkNymAcquisitionFailure(details: String)
+    case nyxdConnectionFailure(details: String)
+    case nyxdQueryFailure(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -50,11 +57,11 @@ public enum VPNErrorReason: LocalizedError {
             self = .noDeviceIdentity
         case let .VpnApi(details: vpnApiErrorResponse):
             switch vpnApiErrorResponse {
-            case .timeout:
+            case .Timeout:
                 self = .vpnApiTimeout
-            case let .statusCode(code):
-                self = .vpnApi(details: String(code))
-            case let .response(errorResponse):
+            case let .StatusCode(code: code, msg: message):
+                self = .vpnApi(details: String("\(code): \(message)"))
+            case let .Response(errorResponse):
                 self = .vpnApi(details: errorResponse.message)
             }
         case .VpnApiTimeout:
@@ -68,26 +75,109 @@ public enum VPNErrorReason: LocalizedError {
         case let .RequestZkNym(details: details):
             let messageString: String
             switch details {
-            case .noAccountStored:
-                self = .noAccountStored
-                return
-            case .noDeviceStored:
-                self = .noDeviceIdentity
-                return
-            case let .vpnApi(vpnApiErrorResponse):
-                switch vpnApiErrorResponse {
-                case .timeout:
+            case let .GetZkNymsAvailableForDownloadEndpointFailure(response: response):
+                switch response {
+                case .Timeout:
                     self = .vpnApiTimeout
-                case let .statusCode(code):
-                    self = .vpnApi(details: String(code))
-                case let .response(errorResponse):
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
                     self = .vpnApi(details: errorResponse.message)
+                    return
                 }
+            case let .CreateEcashKeyPair(response):
+                messageString = response
+            case let .ConstructWithdrawalRequest(response):
+                messageString = response
+            case let .RequestZkNymEndpointFailure(ticketType: _, response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case let .InvalidTicketTypeInResponse(response):
+                messageString = response
+            case .TicketTypeMismatch:
+                messageString = "Ticket type mismatch"
+            case let .PollZkNymEndpointFailure(response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case .PollingTimeout:
+                self = .vpnApiTimeout
                 return
-            case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
-                messageString = message
-            case .offline:
-                self = .offline
+            case .MissingBlindedShares:
+                messageString = "Missing blinded shares"
+            case let .ResponseHasInvalidMasterVerificationKey(response):
+                messageString = response
+            case .EpochIdMismatch:
+                messageString = "Epoch ID mismatch"
+            case .ExpirationDateMismatch:
+                messageString = "Expiration date mismatch"
+            case let .GetPartialVerificationKeysEndpointFailure(epochId: _, response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case .NoMasterVerificationKeyInStorage:
+                messageString = "No master verification key in storage"
+            case .NoCoinIndexSignaturesInStorage:
+                messageString = "No coin index signatures in storage"
+            case .NoExpirationDateSignaturesInStorage:
+                messageString = "No expiration date signatures in storage"
+            case let .InvalidVerificationKey(details):
+                messageString = details
+            case let .DeserializeBlindedSignature(details):
+                messageString = details
+            case .DecodedKeysMissingIndex:
+                messageString = "Decoded keys missing index"
+            case let .ImportZkNym(ticketType: ticketType, error: error):
+                messageString = "\(ticketType): \(error)"
+            case let .AggregateWallets(details):
+                messageString = details
+            case let .ConfirmZkNymDownloadEndpointFailure(id: _, response: response):
+                switch response {
+                case .Timeout:
+                    self = .vpnApiTimeout
+                    return
+                case let .StatusCode(code: code, msg: message):
+                    self = .vpnApi(details: String("\(code): \(message)"))
+                    return
+                case let .Response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                    return
+                }
+            case let .MissingPendingRequest(details):
+                messageString = details
+            case let .CredentialStorage(details):
+                messageString = details
+            case let .UnexpectedErrorResponse(details):
+                messageString = details
+            case let .Internal(details):
+                self = .internalError(details: details)
                 return
             }
             self = .requestZknym(details: messageString)
@@ -101,6 +191,20 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountControllerError(details: details)
         case let .HttpClient(details):
             self = .httpClient(details: details)
+        case .AccountDoesntExistOnChain:
+            self = .accountDoesntExistOnChain
+        case .AccountNotDecentralised:
+            self = .accountNotDecentralised
+        case .AccountDecentralised:
+            self = .accountDecentralised
+        case .InsufficientFunds:
+            self = .insufficientFunds
+        case let .ZkNymAcquisitionFailure(details: details):
+            self = .zkNymAcquisitionFailure(details: details)
+        case let .NyxdConnectionFailure(details: details):
+            self = .nyxdConnectionFailure(details: details)
+        case let .NyxdQueryFailure(details: details):
+            self = .nyxdQueryFailure(details: details)
         }
     }
 
@@ -156,6 +260,20 @@ public enum VPNErrorReason: LocalizedError {
             self = .existingAccount
         case .httpClient:
             self = .httpClient(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .accountDoesntExistOnChain:
+            self = .accountDecentralised
+        case .accountNotDecentralised:
+            self = .accountNotDecentralised
+        case .accountDecentralised:
+            self = .accountDecentralised
+        case .insufficientFunds:
+            self = .insufficientFunds
+        case .zkNymAcquisitionFailure:
+            self = .zkNymAcquisitionFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .nyxdConnectionFailure:
+            self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .nyxdQueryFailure:
+            self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -224,6 +342,20 @@ extension VPNErrorReason {
             details
         case let .httpClient(details: details):
             details
+        case .accountDoesntExistOnChain:
+            "errorReason.accountDoesntExistOnChain".localizedString
+        case .accountNotDecentralised:
+            "errorReason.accountNotDecentralised".localizedString
+        case .accountDecentralised:
+            "errorReason.accountDecentralised".localizedString
+        case .insufficientFunds:
+            "errorReason.insufficientFunds".localizedString
+        case let .zkNymAcquisitionFailure(details: details):
+            details
+        case let .nyxdConnectionFailure(details: details):
+            details
+        case let .nyxdQueryFailure(details: details):
+            details
         }
     }
 }
@@ -256,6 +388,13 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case existingAccount
     case accountControllerError
     case httpClient
+    case accountDoesntExistOnChain
+    case accountNotDecentralised
+    case accountDecentralised
+    case insufficientFunds
+    case zkNymAcquisitionFailure
+    case nyxdConnectionFailure
+    case nyxdQueryFailure
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -299,6 +438,20 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .accountControllerError
         case .httpClient:
             self = .httpClient
+        case .accountDoesntExistOnChain:
+            self = .accountDoesntExistOnChain
+        case .accountNotDecentralised:
+            self = .accountNotDecentralised
+        case .accountDecentralised:
+            self = .accountDecentralised
+        case .insufficientFunds:
+            self = .insufficientFunds
+        case .zkNymAcquisitionFailure:
+            self = .zkNymAcquisitionFailure
+        case .nyxdConnectionFailure:
+            self = .nyxdConnectionFailure
+        case .nyxdQueryFailure:
+            self = .nyxdQueryFailure
         }
     }
 }

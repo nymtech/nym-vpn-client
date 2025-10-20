@@ -1,13 +1,11 @@
 import SwiftUI
 import AppSettings
 import Constants
-#if os(iOS)
 import ImpactGenerator
-#endif
 import UIComponents
 import Theme
 
-public final class WelcomeViewModel: ObservableObject {
+@MainActor public final class WelcomeViewModel: ObservableObject {
     private var appSettings: AppSettings
 
     let titleText = "welcome.title".localizedString
@@ -21,8 +19,12 @@ public final class WelcomeViewModel: ObservableObject {
     let sentryText = "welcome.sentry".localizedString
     let continueText = "welcome.continue".localizedString
 
-    public init(appSettings: AppSettings = AppSettings.shared) {
+    @Published public private(set) var subtitleAttributed: AttributedString?
+    @Published public private(set) var privacyPolicyAttributed: AttributedString?
+
+    public init(appSettings: AppSettings) {
         self.appSettings = appSettings
+        precomputeAttributedStrings()
     }
 
     func subtitleViewHorizontalPadding() -> CGFloat {
@@ -50,22 +52,45 @@ public final class WelcomeViewModel: ObservableObject {
         )
     }
 
-    func subtitleAttributedString() -> AttributedString? {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return try? AttributedString(
-            markdown: "\(subtitle1Text) [\(sentryText)](\(Constants.sentryURL.rawValue))\(subtitle2Text)\n\n\(subtitle3Text)",
-            options: options
-        )
-    }
-
-    func privacyPolicyAttributedString() -> AttributedString? {
-        try? AttributedString(markdown: "\(privacyPolicy1Text) [\(termsOfUse)](\(Constants.termsOfUseURL.rawValue)) \(privacyPolicy2Text) [\(privacyPolicy)](\(Constants.privacyPolicyURL.rawValue))")
-    }
+    func subtitleAttributedString() -> AttributedString? { subtitleAttributed }
+    func privacyPolicyAttributedString() -> AttributedString? { privacyPolicyAttributed }
 
     func continueTapped() {
-#if os(iOS)
         ImpactGenerator.shared.impact()
-#endif
         appSettings.welcomeScreenDidDisplay = true
+    }
+}
+
+private extension WelcomeViewModel {
+    func precomputeAttributedStrings() {
+        let s1 = subtitle1Text
+        let s2 = subtitle2Text
+        let s3 = subtitle3Text
+        let sentry = sentryText
+        let terms = termsOfUse
+        let pp1 = privacyPolicy1Text
+        let pp2 = privacyPolicy2Text
+        let pp = privacyPolicy
+        let termsURL = Constants.termsOfUseURL.rawValue
+        let privacyURL = Constants.privacyPolicyURL.rawValue
+        let sentryURL = Constants.sentryURL.rawValue
+
+        Task.detached(priority: .low) { [weak self] in
+            guard let self else { return }
+            let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+
+            let subtitleMarkdown =
+            "\(s1) [\(sentry)](\(sentryURL))\(s2)\n\n\(s3)"
+            let subtitle = try? AttributedString(markdown: subtitleMarkdown, options: options)
+
+            let privacyMarkdown =
+            "\(pp1) [\(terms)](\(termsURL)) \(pp2) [\(pp)](\(privacyURL))"
+            let privacy = try? AttributedString(markdown: privacyMarkdown, options: options)
+
+            await MainActor.run {
+                self.subtitleAttributed = subtitle
+                self.privacyPolicyAttributed = privacy
+            }
+        }
     }
 }

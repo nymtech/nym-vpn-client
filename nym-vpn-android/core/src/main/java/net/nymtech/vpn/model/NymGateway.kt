@@ -3,6 +3,8 @@ package net.nymtech.vpn.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.BridgeInformation as SdkBridgeInformation
+import nym_vpn_lib_types.BridgeParameters as SdkBridgeParameter
 import nym_vpn_lib_types.Gateway
 import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
@@ -13,6 +15,7 @@ import nym_vpn_lib_types.Score
 data class NymGateway(
 	val identity: NodeIdentity,
 	val twoLetterCountryISO: String?,
+	val description: String?,
 	val mixnetScore: Score?,
 	val wgScore: Score?,
 	val wgLoad: Score?,
@@ -27,18 +30,20 @@ data class NymGateway(
 	val buildVersion: String?,
 	var exitIpv4s: List<Ipv4Addr>,
 	var exitIpv6s: List<Ipv6Addr>,
+	val bridgeInformation: BridgeInformation?,
 ) {
 	companion object {
 		fun from(gateway: Gateway): NymGateway {
 			return NymGateway(
-				identity = gateway.id,
-				name = gateway.moniker,
+				identity = gateway.identityKey,
+				name = gateway.name,
+				description = gateway.description,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
-				mixnetScore = gateway.mixnetScore,
-				wgScore = gateway.wgPerformance?.score,
-				wgLoad = gateway.wgPerformance?.load,
-				lastUpdated = gateway.wgPerformance?.lastUpdatedUtc,
-				wgUptime = gateway.wgPerformance?.uptimePercentageLast24Hours,
+				mixnetScore = gateway.performance?.mixnetScore,
+				wgScore = gateway.performance?.score,
+				wgLoad = gateway.performance?.load,
+				lastUpdated = gateway.performance?.lastUpdatedUtc,
+				wgUptime = gateway.performance?.uptimePercentageLast24Hours,
 				city = gateway.location?.city,
 				region = gateway.location?.region,
 				asn = gateway.location?.asn?.asn,
@@ -47,6 +52,7 @@ data class NymGateway(
 				buildVersion = gateway.buildVersion,
 				exitIpv4s = gateway.exitIpv4s,
 				exitIpv6s = gateway.exitIpv6s,
+				bridgeInformation = gateway.bridgeParams?.toBridgeInformation(),
 			)
 		}
 
@@ -59,8 +65,29 @@ data class NymGateway(
 				Json.decodeFromString<List<NymGateway>>(it)
 			} ?: emptyList()
 		}
+
+		private fun SdkBridgeInformation.toBridgeInformation() = BridgeInformation(
+			transports = transports.map {
+				it.toBridgeParameter()
+			},
+		)
+
+		private fun SdkBridgeParameter.toBridgeParameter() = when (this) {
+			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
+		}
 	}
 	override fun toString(): String {
 		return Json.encodeToString(serializer(), this)
 	}
+}
+
+@Serializable
+data class BridgeInformation(
+	val transports: List<BridgeParameter>,
+)
+
+@Serializable
+sealed class BridgeParameter {
+	@Serializable
+	class QuicPlain : BridgeParameter()
 }

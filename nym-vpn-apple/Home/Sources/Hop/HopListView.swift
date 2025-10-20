@@ -104,7 +104,7 @@ private extension HopListView {
     }
 
     @ViewBuilder
-    func countryButton(with country: Country) -> some View {
+    func countryButton(with country: NymCountry) -> some View {
         GatewayCellButton(
             viewModel: GatewayCellButtonViewModel(
                 type: .country(country: country),

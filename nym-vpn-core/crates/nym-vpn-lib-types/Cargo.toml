@@ -8,31 +8,51 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lib]
+crate-type = ["cdylib", "lib"]
+
 [lints]
 workspace = true
 
 [features]
+default = []
 nym-type-conversions = [
     "dep:nym-bandwidth-controller",
     "dep:nym-connection-monitor",
+    "dep:nym-gateway-directory",
+    "dep:nym-network-defaults",
+    "dep:nym-sdk",
     "dep:nym-statistics-common",
     "dep:nym-registration-common",
+    "dep:nym-validator-client",
+    "dep:nym-vpn-api-client",
+    "dep:nym-vpn-network-config",
 ]
+uniffi-bindings = ["dep:uniffi", "ipnetwork"]
+typescript-bindings = ["dep:ts-rs", "serde"]
+serde = ["dep:serde"]
 
 [dependencies]
+time = { workspace = true, features = ["serde", "parsing", "formatting"] }
+serde = { workspace = true, features = ["derive"], optional = true }
 si-scale.workspace = true
 thiserror.workspace = true
-time.workspace = true
+ts-rs = { workspace = true, optional = true }
 zeroize.workspace = true
+ipnetwork = { workspace = true, optional = true }
+uniffi = { workspace = true, optional = true }
 
 nym-registration-common = { workspace = true, optional = true }
+nym-crypto = { workspace = true, features = ["asymmetric"] }
 nym-bandwidth-controller = { workspace = true, optional = true }
 nym-connection-monitor = { workspace = true, optional = true }
-nym-gateway-directory = { workspace = true }
-nym-sdk.workspace = true
-nym-validator-client.workspace = true
+nym-gateway-directory = { workspace = true, optional = true }
+nym-sdk = { workspace = true, optional = true }
 nym-statistics-common = { workspace = true, optional = true }
-nym-vpn-network-config.workspace = true
-nym-vpn-api-client.workspace = true
-serde = { workspace = true, features = ["derive"] }
-strum_macros.workspace = true
+nym-validator-client = { workspace = true, optional = true }
+nym-vpn-api-client = { workspace = true, optional = true }
+nym-vpn-network-config = { workspace = true, optional = true }
+nym-network-defaults = { workspace = true, optional = true }
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }

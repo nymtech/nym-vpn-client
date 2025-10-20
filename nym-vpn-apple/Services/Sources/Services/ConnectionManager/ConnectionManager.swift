@@ -11,7 +11,7 @@ import TunnelStatus
 import GRPCManager
 #endif
 
-public final class ConnectionManager: ObservableObject {
+@MainActor public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
 
     private var timerCancellable: AnyCancellable?
@@ -35,11 +35,25 @@ public final class ConnectionManager: ObservableObject {
     public var isReconnecting = false
     public var isDisconnecting = false
 
-    public static let shared = ConnectionManager()
+#if os(iOS)
+    public static let shared = ConnectionManager(
+        appSettings: .shared,
+        connectionStorage: .shared,
+        credentialsManager: .shared,
+        tunnelsManager: .shared
+    )
+#elseif os(macOS)
+    public static let shared = ConnectionManager(
+        appSettings: .shared,
+        connectionStorage: .shared,
+        credentialsManager: .shared,
+        tunnelsManager: .shared,
+        grpcManager: .shared
+    )
+#endif
 
     @Published public var connectionConfig: ConnectionConfig?
     @Published public var connectedDate: Date?
-    @Published public var connectedDateString: String?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
     @Published public var lastError: Error?
@@ -97,10 +111,10 @@ public final class ConnectionManager: ObservableObject {
 
 #if os(iOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        tunnelsManager: TunnelsManager = TunnelsManager.shared
+        appSettings: AppSettings,
+        connectionStorage: ConnectionStorage,
+        credentialsManager: CredentialsManager,
+        tunnelsManager: TunnelsManager
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
@@ -115,11 +129,11 @@ public final class ConnectionManager: ObservableObject {
 
 #if os(macOS)
     public init(
-        appSettings: AppSettings = AppSettings.shared,
-        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
-        tunnelsManager: TunnelsManager = TunnelsManager.shared,
-        grpcManager: GRPCManager = GRPCManager.shared
+        appSettings: AppSettings,
+        connectionStorage: ConnectionStorage,
+        credentialsManager: CredentialsManager,
+        tunnelsManager: TunnelsManager,
+        grpcManager: GRPCManager
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
@@ -156,9 +170,9 @@ private extension ConnectionManager {
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
+        setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
-        configureConnectedTimeTimer()
         Task { @MainActor in
             await fetchConnectionConfig()
         }
@@ -196,6 +210,16 @@ private extension ConnectionManager {
 // MARK: - Countries -
 
 private extension ConnectionManager {
+    func setupAppSettingsObservers() {
+        appSettings.$isQuicEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] value in
+                self?.connectionConfig?.enableBridges = value
+                self?.updateConnectionConfig()
+            }
+            .store(in: &cancellables)
+    }
+
     func setupConnectionChangeObserver() {
         $connectionType.sink { [weak self] _ in
             self?.updateCountries()
@@ -230,34 +254,5 @@ private extension ConnectionManager {
     func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway
         exitRouter = connectionStorage.exitRouter
-    }
-}
-
-// MARK: - Connection time -
-private extension ConnectionManager {
-    func configureConnectedTimeTimer() {
-        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                updateConnectedDateString()
-            }
-    }
-
-    func updateConnectedDateString() {
-        guard let connectedDate
-        else {
-            guard connectedDateString != nil else { return }
-            connectedDateString = nil
-            return
-        }
-        let timeElapsed = Date().timeIntervalSince(connectedDate)
-        let hours = Int(timeElapsed) / 3600
-        let minutes = (Int(timeElapsed) % 3600) / 60
-        let seconds = Int(timeElapsed) % 60
-        let newConnectedDateString = "\(String(format: "%02d:%02d:%02d", hours, minutes, seconds))"
-        guard connectedDateString != newConnectedDateString else { return }
-        connectedDateString = newConnectedDateString
     }
 }

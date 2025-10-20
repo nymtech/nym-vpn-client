@@ -8,7 +8,7 @@ import Keychain
 import ErrorHandler
 #endif
 
-public final class TunnelsManager: ObservableObject {
+@MainActor public final class TunnelsManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     public static let shared = TunnelsManager()
@@ -20,20 +20,21 @@ public final class TunnelsManager: ObservableObject {
     public var logger = Logger(label: "TunnelsManager")
 
     init() {
-        Task {
-            try? await loadTunnels()
-            observeTunnelStatuses()
+        Task { [weak self] in
+            guard let self else { return }
+            try? await self.loadTunnels()
+            self.observeTunnelStatuses()
         }
     }
 }
 
-// MARK: - Management -
+// MARK: - Management
 extension TunnelsManager {
     public func loadTunnels() async throws {
         do {
-            let loadedTunnels = try await loadAllTunnelManagers()
-            activeTunnel = loadedTunnels.first { $0.tunnel.isEnabled }
-            tunnels = loadedTunnels
+            let loaded = try await loadAllTunnelManagers()
+            activeTunnel = loaded.first { $0.tunnel.isEnabled }
+            tunnels = loaded
             isLoaded = .success(())
         } catch {
             logger.log(level: .error, "Failed loading tunnel managers with \(error)")
@@ -43,18 +44,21 @@ extension TunnelsManager {
     }
 
     public func resetVpnProfile() {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             do {
-                var tunnelManagers = try await NETunnelProviderManager.loadAllFromPreferences()
-                for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
-                    tunnelManager.removeFromPreferences { [weak self] error in
-                        if let error = error {
-                            self?.logger.error("Failed to remove VPN profile: \(error.localizedDescription)")
-                        } else {
-                            self?.logger.info("VPN profile removed successfully.")
+                var managers = try await NETunnelProviderManager.loadAllFromPreferences()
+                for (idx, manager) in managers.enumerated().reversed() {
+                    manager.removeFromPreferences { [weak self] error in
+                        Task { @MainActor [weak self] in
+                            if let error {
+                                self?.logger.error("Failed to remove VPN profile: \(error.localizedDescription)")
+                            } else {
+                                self?.logger.info("VPN profile removed successfully.")
+                            }
                         }
                     }
-                    tunnelManagers.remove(at: index)
+                    managers.remove(at: idx)
                 }
                 Keychain.deleteReferences(except: [])
                 try await loadTunnels()
@@ -65,10 +69,10 @@ extension TunnelsManager {
     }
 }
 
-// MARK: - Connection -
+// MARK: - Connection
 extension TunnelsManager {
     public func connect(tunnel: Tunnel) async throws {
-        guard tunnels.contains(tunnel)  else { return }
+        guard tunnels.contains(tunnel) else { return }
 #if targetEnvironment(simulator)
         tunnel.status = .connected
 #else
@@ -91,18 +95,19 @@ extension TunnelsManager {
     }
 }
 
-// MARK: - Load All Tunnel Managers -
+// MARK: - Load All Tunnel Managers
 private extension TunnelsManager {
     func loadAllTunnelManagers() async throws -> [Tunnel] {
         do {
-            var tunnelManagers = try await NETunnelProviderManager.loadAllFromPreferences()
+            var managers = try await NETunnelProviderManager.loadAllFromPreferences()
             var refs: Set<Data> = []
             var tunnelNames: Set<String> = []
-            for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
-                if let tunnelName = tunnelManager.localizedDescription {
-                    tunnelNames.insert(tunnelName)
-                }
-                guard let proto = tunnelManager.protocolConfiguration as? NETunnelProviderProtocol else { continue }
+
+            for (idx, manager) in managers.enumerated().reversed() {
+                if let name = manager.localizedDescription { tunnelNames.insert(name) }
+
+                guard let proto = manager.protocolConfiguration as? NETunnelProviderProtocol else { continue }
+
 #if os(iOS)
                 let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
 #elseif os(macOS)
@@ -110,42 +115,44 @@ private extension TunnelsManager {
                 if proto.providerConfiguration?["UID"] as? uid_t == getuid() {
                     passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
                 } else {
-                    passwordRef = proto.passwordReference // To handle multiple users in macOS, we skip verifying
+                    // Multiple users on macOS: skip verification to avoid false negatives
+                    passwordRef = proto.passwordReference
                 }
 #else
 #error("Unimplemented")
 #endif
+
                 if let ref = passwordRef {
                     refs.insert(ref)
                 } else {
-                    tunnelManager.removeFromPreferences { _ in }
-                    tunnelManagers.remove(at: index)
+                    manager.removeFromPreferences { _ in }
+                    managers.remove(at: idx)
                 }
             }
+
             Keychain.deleteReferences(except: refs)
-            let tunnels = tunnelManagers.map {
-                Tunnel(tunnel: $0)
-            }
-            return tunnels
+
+            return managers.map { Tunnel(tunnel: $0) }
         } catch {
             throw TunnelsManagerError.tunnelList(error: error)
         }
     }
 }
 
-// MARK: - Observation -
+// MARK: - Observation
 private extension TunnelsManager {
     func observeTunnelStatuses() {
         NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)
-            .sink { [weak self] statusChangeNotification in
+            .sink { [weak self] note in
                 guard
                     let self,
-                    let session = statusChangeNotification.object as? NETunnelProviderSession,
-                    let tunnelProvider = session.manager as? NETunnelProviderManager,
-                    let tunnel = self.tunnels.first(where: { $0.tunnel == tunnelProvider })
+                    let session = note.object as? NETunnelProviderSession,
+                    let provider = session.manager as? NETunnelProviderManager,
+                    let tunnel = self.tunnels.first(where: { $0.tunnel == provider })
                 else {
                     return
                 }
+
                 tunnel.updateStatus()
 #if os(iOS)
                 Task { [weak self] in

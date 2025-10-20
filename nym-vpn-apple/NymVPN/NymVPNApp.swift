@@ -34,8 +34,18 @@ struct NymVPNApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
 
-    @StateObject private var homeViewModel = HomeViewModel()
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @ObservedObject private var homeViewModel = HomeViewModel(
+        appSettings: .shared,
+        connectionManager: .shared,
+        configurationManager: .shared,
+        credentialsManager: .shared,
+        networkMonitor: .shared,
+        externalLinkManager: .shared,
+        gatewayManager: .shared,
+        impactGenerator: .shared,
+        messagesManager: .shared
+    )
+    @ObservedObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
 
     @State private var splashScreenDidDisplay = false
     @State private var isSecureScreenVisible = false
@@ -45,12 +55,13 @@ struct NymVPNApp: App {
     }
 
     var body: some Scene {
-        // swiftlint:disable:next closure_body_length
         WindowGroup {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+                // DISABLED until we figure out where the crash is coming from
+//                if !splashScreenDidDisplay {
+//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+//                } else
+            if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {

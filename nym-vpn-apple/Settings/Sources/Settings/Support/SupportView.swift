@@ -30,6 +30,7 @@ struct SupportView: View {
                 ResetVPNProfileDialog(
                     viewModel: ResetVPNProfileDialogViewModel(
                         isDisplayed: $viewModel.isResetVPNProfileDisplayed,
+                        impactGenerator: .shared,
                         action: {
                             viewModel.resetVPNProfile()
                         }

@@ -19,7 +19,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     assert_eq!(
         test_bench
@@ -105,7 +105,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     // Straight up go offline
     test_bench.go_offline()?;
@@ -232,7 +232,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
         endpoints::get_devices_200(),
         endpoints::get_active_devices_200(),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
     test_bench
@@ -341,7 +341,7 @@ async fn error_state_command() -> anyhow::Result<()> {
         endpoints::get_devices_200(),
         endpoints::get_active_devices_200(),
     ];
-    test_bench.register_mocks(mocks).await;
+    test_bench.register_vpn_api_mocks(mocks).await;
 
     test_bench.store_mock_account().await?;
     test_bench

@@ -8,7 +8,7 @@ import AppKit
 
 import Constants
 
-public final class ExternalLinkManager {
+@MainActor public final class ExternalLinkManager {
     public static let shared = ExternalLinkManager()
 
 #if os(iOS)

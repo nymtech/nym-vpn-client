@@ -60,8 +60,11 @@
 		D98E52312D4005ED00AE92C3 /* ErrorReason in Frameworks */ = {isa = PBXBuildFile; productRef = D98E52302D4005ED00AE92C3 /* ErrorReason */; };
 		D98E52332D40087A00AE92C3 /* ErrorReason in Frameworks */ = {isa = PBXBuildFile; productRef = D98E52322D40087A00AE92C3 /* ErrorReason */; };
 		D98E52352D40096600AE92C3 /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D98E52342D40096600AE92C3 /* NetworkMonitor */; };
+		D99035882E9063D600E42A82 /* ImpactGenerator in Frameworks */ = {isa = PBXBuildFile; productRef = D99035872E9063D600E42A82 /* ImpactGenerator */; };
+		D99035C62E92F53C00E42A82 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D52BA1CBE000489055 /* Network.framework */; };
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
+		D99B4F332E95900100A224A9 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
 		D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -92,7 +95,6 @@
 		D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */; };
 		D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */; };
 		D9D336672E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
-		D9D336682E7A8EDE00590D81 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
 		D9D3366A2E7B0D7700590D81 /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D336692E7B0D7700590D81 /* FeatureFlagsManager */; };
 		D9D381332E7B1683006DAFBB /* FeatureFlagsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9D381322E7B1683006DAFBB /* FeatureFlagsManager */; };
 		D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */ = {isa = PBXBuildFile; productRef = D9D483572BEBA72F0005A41C /* UIComponents */; };
@@ -291,6 +293,7 @@
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
+				D99035C62E92F53C00E42A82 /* Network.framework in Frameworks */,
 				D96680D12CC4FC7200267FA1 /* Device in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
 				D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */,
@@ -312,6 +315,7 @@
 			files = (
 				D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */,
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
+				D99035882E9063D600E42A82 /* ImpactGenerator in Frameworks */,
 				D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9D3366A2E7B0D7700590D81 /* FeatureFlagsManager in Frameworks */,
@@ -604,7 +608,6 @@
 				D9BEF2CD2BEB63310036C566 /* Frameworks */,
 				D9BEF2CE2BEB63310036C566 /* Resources */,
 				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
-				D97883B12E4B6E1300C6C9CC /* Download Helper Tool if needed */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
 				D956A8042D4B9609006651E7 /* Embed Helper Plist */,
 			);
@@ -640,6 +643,7 @@
 				D9391F0A2E461E1C002BE10F /* MessagesManager */,
 				D9391F0C2E4624CD002BE10F /* MessageModels */,
 				D9D336692E7B0D7700590D81 /* FeatureFlagsManager */,
+				D99035872E9063D600E42A82 /* ImpactGenerator */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -674,7 +678,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1530;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					D954C0B72B51C1CA00C6BAAC = {
 						CreatedOnToolsVersion = 15.2;
@@ -768,13 +772,13 @@
 				D9DE89412CFE54CD006C4071 /* launchLogo@3x.png in Resources */,
 				D9DE89422CFE54CD006C4071 /* launchLogo.png in Resources */,
 				D9DE89432CFE54CD006C4071 /* launchLogo@2x.png in Resources */,
+				D99B4F332E95900100A224A9 /* AppIcon.icon in Resources */,
 				D9CACB0F2D67B7090004F9E0 /* gatewaysEntry.json in Resources */,
 				D9CACB102D67B7090004F9E0 /* gatewaysExit.json in Resources */,
 				D9CACB112D67B7090004F9E0 /* gatewaysVpn.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 				D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
-				D9D336682E7A8EDE00590D81 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -805,6 +809,7 @@
 		};
 		D94127BD2C00AB2E009EDB7A /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -820,24 +825,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint --no-cache\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
-		};
-		D97883B12E4B6E1300C6C9CC /* Download Helper Tool if needed */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Download Helper Tool if needed";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\nset -euo pipefail\n\nHELPER_PATH=\"${SRCROOT}/Daemon/net.nymtech.vpn.helper\"\nSCRIPTS_DIR=\"${SRCROOT}/Scripts\"\nSCRIPT_NAME=\"FetchMacOSCore.sh\"\n\nif [[ ! -f \"$HELPER_PATH\" ]]; then\n    echo \"⚠️  net.nymtech.vpn.helper missing, running ${SCRIPT_NAME}...\"\n    cd \"$SCRIPTS_DIR\"\n    /bin/bash \"./${SCRIPT_NAME}\"\n    cd ..\nelse\n    echo \"✅ net.nymtech.vpn.helper already exists, skipping core fetch.\"\nfi\n";
 		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -926,8 +913,10 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 416;
+				CURRENT_PROJECT_VERSION = 420;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = NymMixnetTunnel/Info.plist;
@@ -962,8 +951,10 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 416;
+				CURRENT_PROJECT_VERSION = 420;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = NymMixnetTunnel/Info.plist;
@@ -997,6 +988,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1050,6 +1042,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -1060,6 +1053,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1106,6 +1100,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -1114,16 +1109,17 @@
 		D99A14852B357E9A00F2728B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 416;
+				CURRENT_PROJECT_VERSION = 420;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "$(PROJECT_DIR)/NymVPN/Resources/Info.plist";
@@ -1154,16 +1150,17 @@
 		D99A14862B357E9A00F2728B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 416;
+				CURRENT_PROJECT_VERSION = 420;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "$(PROJECT_DIR)/NymVPN/Resources/Info.plist";
@@ -1196,11 +1193,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPNDaemon/Resources/NymVPNDaemon.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 118;
+				CURRENT_PROJECT_VERSION = 122;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1232,16 +1230,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = NymVPNDaemon/Resources/NymVPNDaemon.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 118;
+				CURRENT_PROJECT_VERSION = 122;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = VW5DZLFHM5;
+				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -1259,7 +1256,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "NymVPN macOS + Daemon";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1362,7 +1358,7 @@
 			repositoryURL = "https://github.com/apple/swift-log";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.4;
+				minimumVersion = 1.6.4;
 			};
 		};
 		D98B32E62C58E0A4005A15A3 /* XCRemoteSwiftPackageReference "AcknowList" */ = {
@@ -1549,6 +1545,10 @@
 		D98E52342D40096600AE92C3 /* NetworkMonitor */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkMonitor;
+		};
+		D99035872E9063D600E42A82 /* ImpactGenerator */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ImpactGenerator;
 		};
 		D99A148B2B35A74200F2728B /* Theme */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,8 +1,24 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
-pub enum ErrorStateReason {
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
+
+// todo: rename this type back to ErrorStateReason once support for renaming uniffi structs is released
+//       see: https://github.com/mozilla/uniffi-rs/issues/2212
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum AccountControllerErrorStateReason {
     /// Error due to storage
     Storage { context: String },
 
@@ -30,7 +46,39 @@ pub enum ErrorStateReason {
     DeviceTimeDesynced,
 }
 
+impl std::fmt::Display for AccountControllerErrorStateReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AccountControllerErrorStateReason::Storage { context } => {
+                write!(f, "Storage error: {context}")
+            }
+            AccountControllerErrorStateReason::ApiFailure { context, details } => {
+                write!(f, "API failure: {context} - {details}")
+            }
+            AccountControllerErrorStateReason::Internal { context, details } => {
+                write!(f, "Internal error: {context} - {details}")
+            }
+            AccountControllerErrorStateReason::BandwidthExceeded { context } => {
+                write!(f, "Bandwidth exceeded: {context}")
+            }
+            AccountControllerErrorStateReason::AccountStatusNotActive { status } => {
+                write!(f, "Account status not active: {status}")
+            }
+            AccountControllerErrorStateReason::InactiveSubscription => {
+                write!(f, "Inactive subscription")
+            }
+            AccountControllerErrorStateReason::MaxDeviceReached => {
+                write!(f, "Max device numbers reached")
+            }
+            AccountControllerErrorStateReason::DeviceTimeDesynced => {
+                write!(f, "Device time is off by too much")
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
 pub enum AccountControllerError {
     #[error("Account controller is offline")]
     Offline,
@@ -42,5 +90,5 @@ pub enum AccountControllerError {
     Internal(String),
 
     #[error("Account controller is in error state. Reason : {0}")]
-    ErrorState(ErrorStateReason),
+    ErrorState(AccountControllerErrorStateReason),
 }

@@ -61,13 +61,20 @@ extension GatewayManager {
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let decodedString = try container.decode(String.self)
-                if let d1 = self.iso8601Flexible.date(from: decodedString) {
-                    return d1
+
+                // flexible parser with fractional seconds
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                if let date1 = formatter.date(from: decodedString) {
+                    return date1
                 }
-                let f2 = ISO8601DateFormatter()
-                if let d2 = f2.date(from: decodedString) {
-                    return d2
+
+                // fallback plain ISO8601
+                let formatter2 = ISO8601DateFormatter()
+                if let date2 = formatter2.date(from: decodedString) {
+                    return date2
                 }
+
                 throw DecodingError.dataCorruptedError(
                     in: container,
                     debugDescription: "Bad ISO8601 date: \(decodedString)"
@@ -81,6 +88,7 @@ extension GatewayManager {
                 let performance = GatewayNodePerformance(
                     lastUpdated: perfV2?.lastUpdatedUTC,
                     score: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
+                    mixnetScore: perfV2.map { mapScore(from: $0.mixnetScore) } ?? .noScore,
                     load: perfV2.map { mapScore(from: $0.load) } ?? .noScore,
                     uptime: perfV2?.uptimePercentageLast24Hours ?? 0
                 )
@@ -112,7 +120,8 @@ extension GatewayManager {
                     location: gatewayNodeLocation,
                     performance: performance,
                     mixnetScore: perfV2.map { mapScore(from: $0.score) } ?? .noScore,
-                    moniker: node.name,
+                    name: node.name,
+                    description: node.description,
                     buildVersion: node.buildInformation?.buildVersion,
                     ipv4s: node.ipAddresses?.ipv4s ?? [],
                     ipv6s: node.ipAddresses?.ipv6s ?? []
@@ -164,6 +173,7 @@ private func mapASNType(from kind: Kind) -> GatewayNodeASNType {
 private struct NodeElement: Codable, Sendable {
     let identityKey: String
     let name: String
+    let description: String?
     let ipPacketRouter: Authenticator?
     let authenticator: Authenticator?
     let location: Location
@@ -174,11 +184,13 @@ private struct NodeElement: Codable, Sendable {
     let entry: Entry?
     let performance: String?
     let performanceV2: PerformanceV2?
+    let mixnetScore: Load?
     let buildInformation: BuildInformation?
 
     enum CodingKeys: String, CodingKey {
         case identityKey = "identity_key"
         case name
+        case description
         case ipPacketRouter = "ip_packet_router"
         case authenticator, location
         case lastProbe = "last_probe"
@@ -187,6 +199,7 @@ private struct NodeElement: Codable, Sendable {
         case role, entry, performance
         case performanceV2 = "performance_v2"
         case buildInformation = "build_information"
+        case mixnetScore = "mixnet_score"
     }
 }
 
@@ -371,12 +384,13 @@ private enum Kind: String, Codable, Sendable { case other, residential }
 // MARK: - PerformanceV2
 private struct PerformanceV2: Codable, Sendable {
     let lastUpdatedUTC: Date
-    let score, load: Load
+    let score, mixnetScore, load: Load?
     let uptimePercentageLast24Hours: Double
 
     enum CodingKeys: String, CodingKey {
         case lastUpdatedUTC = "last_updated_utc"
         case score, load
+        case mixnetScore = "mixnet_score"
         case uptimePercentageLast24Hours = "uptime_percentage_last_24_hours"
     }
 }
@@ -416,4 +430,5 @@ private enum Role: String, Codable, Sendable {
          exitGateway = "ExitGateway",
          inactive = "Inactive"
 }
+
 private typealias Node = [NodeElement]

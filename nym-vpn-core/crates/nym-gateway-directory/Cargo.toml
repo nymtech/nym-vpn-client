@@ -29,6 +29,7 @@ thiserror.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true
 tracing.workspace = true
+typed-builder.workspace = true
 url.workspace = true
 
 [dev-dependencies]

@@ -2,6 +2,7 @@
 import NetworkExtension
 import AppSettings
 import Constants
+import CredentialsManager
 import NymVPNLib
 import TunnelMixnet
 import Tunnels
@@ -89,8 +90,8 @@ extension ConnectionManager {
 extension ConnectionManager {
     func generateConfig() throws -> MixnetConfig {
         let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
-        let credentialURL = try credentialsManager.dataFolderURL()
-        let configURL = try credentialsManager.configFolderURL()
+        let credentialURL = try CredentialsManager.dataFolderURL()
+        let configURL = try CredentialsManager.configFolderURL()
 
         switch connectionType {
         case .mixnet5hop:
@@ -132,7 +133,7 @@ extension ConnectionManager {
 
     /// Sends connect command to lib if entry/exit gateways changed while connected,
     /// to initiate reconnect
-    @MainActor func reconnectIfNeeded() async {
+    func reconnectIfNeeded() async {
         do {
             let newConfig = try generateConfig()
             guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,

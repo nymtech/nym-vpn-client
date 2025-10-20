@@ -2,7 +2,7 @@ import SwiftUI
 import AcknowList
 import ExternalLinkManager
 
-public final class AcknowledgementsRowViewModel {
+@MainActor public final class AcknowledgementsRowViewModel {
     private let externalLinkManager: ExternalLinkManager
     private var canFetchLicenseFromGitHub = true
 
@@ -17,7 +17,7 @@ public final class AcknowledgementsRowViewModel {
     public init(
         acknowledgement: Acknow,
         navigationPath: Binding<NavigationPath>,
-        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+        externalLinkManager: ExternalLinkManager
     ) {
         _navigationPath = navigationPath
         self.acknowledgement = acknowledgement

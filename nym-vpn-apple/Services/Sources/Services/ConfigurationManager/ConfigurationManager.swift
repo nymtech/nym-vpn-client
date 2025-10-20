@@ -17,7 +17,7 @@ public enum AppType {
     case networkExtension
 }
 
-public final class ConfigurationManager: ObservableObject {
+@MainActor public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings
     private let credentialsManager: CredentialsManager
     private let logger = Logger(label: "Configuration Manager")
@@ -104,61 +104,60 @@ public final class ConfigurationManager: ObservableObject {
     public func setup(for appType: AppType) async throws {
         try await configure()
 
-        #if os(iOS)
+#if os(iOS)
         if case .main = appType {
             try configureLibForMainProcess(userAgent: .appUserAgent)
         }
-        #endif
+#endif
 
-        appSettings.$isCredentialImportedPublisher.sink { [weak self] _ in
-            self?.updateAccountLinks()
-        }
-        .store(in: &cancellables)
+        appSettings.$isCredentialImportedPublisher
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.updateAccountLinks()
+            }
+            .store(in: &cancellables)
     }
 
     public func updateEnv(to env: Env) {
-        Task { [weak self] in
+        Task.detached(priority: .low) { [weak self] in
             guard let self else { return }
-            guard isTestFlight || Device.isMacOS
-            else {
-                return
-            }
+            guard self.isTestFlight || Device.isMacOS else { return }
             do {
-                try await configure()
-                await MainActor.run { [weak self] in
-                    self?.currentEnv = env
+                try await self.configure()
+                await MainActor.run {
+                    self.currentEnv = env
+                    self.environmentDidChange?()
                 }
-                environmentDidChange?()
             } catch {
-                logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
+                self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
             }
         }
     }
 
     public func updateAccountLinks() {
-        Task {
-            let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
+        let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
+
+        Task.detached(priority: .low) { [weak self] in
+            guard let self else { return }
             do {
 #if os(iOS)
-                let links = try getAccountLinksRaw(
-                    accountStorePath: credentialsManager.dataFolderURL().path(),
-                    locale: locale
-                )
-                Task { @MainActor in
-                    accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
+                let path = try CredentialsManager.dataFolderURL().path()
+                let links = try getAccountLinksRaw(accountStorePath: path, locale: locale)
+                await MainActor.run {
+                    self.accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }
 #elseif os(macOS)
-                let links = try await grpcManager.accountLinks(for: locale)
-                Task { @MainActor in
-                    if let signIn = links.signIn, !signIn.isEmpty, let signUp = links.signUp, !signUp.isEmpty {
-                        accountLinks = AccountLinks(account: links.account, signIn: signIn, signUp: signUp)
+                let links = try await self.grpcManager.accountLinks(for: locale)
+                await MainActor.run {
+                    if let si = links.signIn, !si.isEmpty, let su = links.signUp, !su.isEmpty {
+                        self.accountLinks = AccountLinks(account: links.account, signIn: si, signUp: su)
                     } else {
-                        accountLinks = nil
+                        self.accountLinks = nil
                     }
                 }
 #endif
             } catch {
-                logger.error("Failed to fetch account links: \(error.localizedDescription)")
+                self.logger.error("Failed to fetch account links: \(error.localizedDescription)")
             }
         }
     }
@@ -173,44 +172,51 @@ private extension ConfigurationManager {
             guard currentEnv == .mainnet else { return }
             try await setFallbackEnvVariables()
         }
-#elseif os(macOS)
+#else
         try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()
         try? await updateNetworkStatisticsIfNeeded()
 #endif
         updateAccountLinks()
         updateCompatibilityVersions()
-
         logger.info("🛜 env: \(currentEnv.rawValue)")
     }
 
-    func updateCompatibilityVersions() {
-        Task {
+    private func updateCompatibilityVersions() {
+        Task.detached(priority: .low) { [weak self] in
+            guard let self else { return }
             do {
 #if os(iOS)
                 let versions = try getNetworkCompatibilityVersions()
-                lastCompatibleAppVersion = versions?.ios
-                lastCompatibleCoreVersion = versions?.core
-#elseif os(macOS)
-                let versions = try await grpcManager.fetchCompatibleVersions()
-                lastCompatibleAppVersion = versions.macOS
-                lastCompatibleCoreVersion = versions.core
+                await MainActor.run {
+                    self.lastCompatibleAppVersion = versions?.ios
+                    self.lastCompatibleCoreVersion = versions?.core
+                }
+#else
+                let versions = try await self.grpcManager.fetchCompatibleVersions()
+                await MainActor.run {
+                    self.lastCompatibleAppVersion = versions.macOS
+                    self.lastCompatibleCoreVersion = versions.core
+                }
 #endif
             } catch {
-                logger.error("Failed to update compatibility versions: \(error.localizedDescription)")
+                self.logger.error("Failed to update compatibility versions: \(error.localizedDescription)")
             }
         }
     }
 
 #if os(iOS)
     func setEnvVariables() async throws {
-        try await Task {
-            try initEnvironment(cacheDir: credentialsManager.cacheFolderURL().path(), networkName: currentEnv.rawValue)
+        try await Task.detached(priority: .utility) { [currentEnv] in
+            try initEnvironment(
+                cacheDir: try CredentialsManager.cacheFolderURL().path(),
+                networkName: currentEnv.rawValue
+            )
         }.value
     }
 
     func setFallbackEnvVariables() async throws {
-        try await Task {
+        try await Task.detached(priority: .utility) {
             try initFallbackMainnetEnvironment()
         }.value
     }

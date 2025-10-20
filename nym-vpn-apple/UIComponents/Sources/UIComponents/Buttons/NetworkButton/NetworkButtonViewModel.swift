@@ -4,7 +4,7 @@ import AppSettings
 import ConnectionManager
 import Theme
 
-public final class NetworkButtonViewModel: ObservableObject {
+@MainActor public final class NetworkButtonViewModel: ObservableObject {
     let type: ConnectionType
 
     private let appSettings: AppSettings
@@ -15,8 +15,8 @@ public final class NetworkButtonViewModel: ObservableObject {
 
     public init(
         type: ConnectionType,
-        appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared
+        appSettings: AppSettings,
+        connectionManager: ConnectionManager
     ) {
         self.type = type
         self.connectionManager = connectionManager

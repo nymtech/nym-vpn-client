@@ -6,6 +6,7 @@ use std::fmt::Debug;
 use super::VpnApiError;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
 pub enum RequestZkNymError {
     #[error(transparent)]
     GetZkNymsAvailableForDownloadEndpointFailure { response: VpnApiError },
@@ -207,7 +208,9 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
 
 pub type ZkNymId = String;
 
+// todo: this type is not used anywhere in the codebase for some reason
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct RequestZkNymSuccess {
     pub id: ZkNymId,
     pub ticketbook_type: String,

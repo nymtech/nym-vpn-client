@@ -39,7 +39,7 @@ let package = Package(
                 .product(name: "ExternalLinkManager", package: "Services"),
                 .product(name: "FeatureFlagsManager", package: "Services"),
                 .product(name: "HelperInstall", package: "HelperInstall", condition: .when(platforms: [.macOS])),
-                .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
+                .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "PurchasesManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),

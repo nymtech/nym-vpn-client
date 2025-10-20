@@ -22,7 +22,7 @@ pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use refresh::start_background_file_refresh;
-use system_configuration::SystemConfiguration;
+pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
 use discovery::Discovery;
@@ -35,6 +35,7 @@ use crate::{
     discovery::DiscoveryFromNymWellknownDiscoveryError,
     nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
 };
+
 use nym_http_api_client::HttpClientError;
 use std::{
     fmt::Debug,
@@ -46,7 +47,7 @@ use std::{
 const NETWORKS_SUBDIR: &str = "networks";
 
 // Refresh the discovery and network details files periodically
-const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
+const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60);
 
 pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
 
@@ -201,6 +202,10 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Netw
         discovery.system_messages.clone().into_current_messages()
     );
 
+    network_from_discovery(config_path, discovery).await
+}
+
+pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) -> Result<Network> {
     let feature_flags = discovery.feature_flags.clone();
     if let Some(ref feature_flags) = feature_flags {
         tracing::debug!("Feature flags: {}", feature_flags);
@@ -372,6 +377,15 @@ pub enum Error {
 
     #[error("HTTP Client Error: {0}")]
     HttpClient(#[from] Box<HttpClientError>),
+
+    #[error("inconsistent network detected")]
+    InconsistentNetwork,
+
+    #[error("failed to refresh discovery file")]
+    RefreshDiscoveryFile,
+
+    #[error("failed to parse refreshed discovery file")]
+    ParseDiscoveryFile,
 }
 
 impl Error {

@@ -5,6 +5,7 @@ import Security
 import Constants
 import Logging
 
+@MainActor
 public class Keychain {
     private static var logger = Logger(label: "KeychainLogger")
 

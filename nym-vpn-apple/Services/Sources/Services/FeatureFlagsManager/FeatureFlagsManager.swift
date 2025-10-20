@@ -8,7 +8,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 
-public final class FeatureFlagsManager: ObservableObject {
+@MainActor public final class FeatureFlagsManager: ObservableObject {
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
@@ -16,7 +16,15 @@ public final class FeatureFlagsManager: ObservableObject {
     private var featureFlags: [FeatureFlag]
     private var cancellables = Set<AnyCancellable>()
 
-    public static let shared = FeatureFlagsManager()
+#if os(iOS)
+    public static let shared = FeatureFlagsManager(featureFlags: [], configurationManager: .shared)
+#elseif os(macOS)
+    public static let shared = FeatureFlagsManager(
+        featureFlags: [],
+        configurationManager: .shared,
+        grpcManager: .shared
+    )
+#endif
 
     public var isStealthAPIEnabled: Bool {
         featureFlags.contains(where: { $0.name == "domain_fronting.enabled" && $0.isEnabled })
@@ -27,16 +35,16 @@ public final class FeatureFlagsManager: ObservableObject {
     }
 
 #if os(iOS)
-    init(featureFlags: [FeatureFlag] = [FeatureFlag](), configurationManager: ConfigurationManager = .shared) {
+    init(featureFlags: [FeatureFlag], configurationManager: ConfigurationManager) {
         self.featureFlags = featureFlags
         self.configurationManager = configurationManager
         setup()
     }
 #elseif os(macOS)
     init(
-        featureFlags: [FeatureFlag] = [FeatureFlag](),
-        configurationManager: ConfigurationManager = .shared,
-        grpcManager: GRPCManager = GRPCManager.shared
+        featureFlags: [FeatureFlag],
+        configurationManager: ConfigurationManager,
+        grpcManager: GRPCManager
     ) {
         self.featureFlags = featureFlags
         self.configurationManager = configurationManager
@@ -48,9 +56,7 @@ public final class FeatureFlagsManager: ObservableObject {
 
     public func setup() {
         setupEnvironmentChangeObserver()
-        Task {
-            await updateFeatureFlags()
-        }
+        updateFeatureFlags()
     }
 }
 
@@ -74,23 +80,25 @@ private extension FeatureFlagsManager {
 private extension FeatureFlagsManager {
     func setupEnvironmentChangeObserver() {
         configurationManager.environmentDidChange = { [weak self] in
-            Task {
-                await self?.updateFeatureFlags()
-            }
+            self?.updateFeatureFlags()
         }
     }
 }
 
 private extension FeatureFlagsManager {
-    @MainActor func updateFeatureFlags() {
+    func updateFeatureFlags() {
         Task {
+            let newFlags: [FeatureFlag]
 #if os(iOS)
             guard let flags = try? currentEnvironment().featureFlags else { return }
-            featureFlags = flags.toFeatureFlagList()
+            newFlags = flags.toFeatureFlagList()
 #elseif os(macOS)
             guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
-            featureFlags = flags
+            newFlags = flags
 #endif
+            await MainActor.run {
+                featureFlags = newFlags
+            }
         }
     }
 }

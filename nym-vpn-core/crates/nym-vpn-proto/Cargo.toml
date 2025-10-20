@@ -16,38 +16,20 @@ prost-types.workspace = true
 prost.workspace = true
 tonic-prost.workspace = true
 tonic.workspace = true
-
-nym-config = { workspace = true, optional = true }
-nym-gateway-directory = { workspace = true, optional = true }
-nym-http-api-client = { workspace = true, optional = true }
-nym-sdk = { workspace = true, optional = true }
-nym-vpn-api-client = { workspace = true, optional = true }
-nym-vpn-network-config = { workspace = true, optional = true }
-nym-vpn-lib-types = { workspace = true, optional = true }
-nym-ipc = { workspace = true, optional = true }
 tokio-stream = { workspace = true, optional = true, features = ["net"] }
 tower = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
-time = { workspace = true, optional = true }
-url = { workspace = true, optional = true }
+time = { workspace = true, optional = true, features = ["parsing"] }
+
+nym-vpn-lib-types = { workspace = true, optional = true }
+nym-ipc = { workspace = true, optional = true }
 
 [build-dependencies]
 tonic-prost-build.workspace = true
 
 [features]
 default = []
-conversions = [
-    "dep:nym-config",
-    "dep:nym-gateway-directory",
-    "dep:nym-sdk",
-    "dep:nym-vpn-api-client",
-    "dep:nym-http-api-client",
-    "dep:nym-vpn-network-config",
-    "dep:nym-vpn-lib-types",
-    "dep:thiserror",
-    "dep:time",
-    "dep:url",
-]
+conversions = ["dep:nym-vpn-lib-types", "dep:thiserror", "dep:time"]
 rpc_client = [
     "conversions",
     "dep:nym-vpn-lib-types",
@@ -55,7 +37,7 @@ rpc_client = [
     "dep:thiserror",
     "dep:tokio-stream",
     "dep:tower",
-    "dep:url",
+    "dep:time",
 ]
 
 [package.metadata.cargo-machete]

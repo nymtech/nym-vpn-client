@@ -8,25 +8,28 @@ import NymLogger
 
 // Any changes made to Info.plist - are used to create daemon in nym-vpnd.
 
-public final class HelperManager: ObservableObject {
+@MainActor public final class HelperManager: ObservableObject {
+    public static let shared = HelperManager(grpcManager: .shared)
+
     private let grpcManager: GRPCManager
     private let daemon = SMAppService.daemon(plistName: "net.nymtech.vpn.helper.plist")
     private let logger = Logger(label: "🚜 HelperManager")
 
     private var cancellables = Set<AnyCancellable>()
     private var pollingTask: Task<Void, Never>?
+
     private var isInstalledAndUpToDate: Bool {
         daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isServing
     }
 
-    public static let shared = HelperManager()
-
     @Published public var daemonState = DaemonState.unknown
 
-    public init(grpcManager: GRPCManager = .shared) {
+    public init(grpcManager: GRPCManager) {
         self.grpcManager = grpcManager
         setup()
     }
+
+    // MARK: - Public API
 
     public func isInstallNeeded() -> Bool {
         // If .connected, no need to perform install checks to be able to disconnect
@@ -35,11 +38,9 @@ public final class HelperManager: ObservableObject {
     }
 
     public func uninstall() async throws {
-        do {
-            try await daemon.unregister()
-            try await Task.sleep(for: .seconds(1))
-            updateDaemonState()
-        }
+        try await daemon.unregister()
+        try await Task.sleep(for: .seconds(1))
+        updateDaemonState()
     }
 
     public func openSystemSettings() {
@@ -66,20 +67,20 @@ public final class HelperManager: ObservableObject {
     }
 }
 
-// MARK: - Private -
+// MARK: - Private
 private extension HelperManager {
+
     func setup() {
-        Task {
-            updateDaemonState()
-            setupGrpcManagerObservers()
-            registerDaemonIfNeeded()
-            try? updateDaemonIfNeeded()
-        }
+        // Entire setup runs on MainActor because the class is @MainActor.
+        updateDaemonState()
+        setupGrpcManagerObservers()
+        registerDaemonIfNeeded()
+        try? updateDaemonIfNeeded()
     }
 
     func setupGrpcManagerObservers() {
+        // Since we're @MainActor, we can subscribe directly; ensure delivery on main.
         grpcManager.$daemonVersion
-            .receive(on: DispatchQueue.main)
             .removeDuplicates()
             .sink { [weak self] _ in
                 self?.updateDaemonState()
@@ -87,35 +88,39 @@ private extension HelperManager {
             .store(in: &cancellables)
 
         grpcManager.$tunnelStatus
-            .receive(on: DispatchQueue.main)
             .removeDuplicates()
             .sink { [weak self] newTunnelStatus in
+                guard let self else { return }
                 guard newTunnelStatus != .connected else { return }
-                try? self?.updateDaemonIfNeeded()
+                try? self.updateDaemonIfNeeded()
             }
             .store(in: &cancellables)
     }
 
     func updateDaemonState() {
         guard daemonState != .updating else { return }
-        var newState: DaemonState
 
+        var newState: DaemonState
         switch daemon.status {
         case .notRegistered, .notFound:
             newState = .unknown
+
         case .enabled:
-            guard grpcManager.isServing
-            else {
+            guard grpcManager.isServing else {
                 checkIfDaemonNeedsForcedUpdate()
                 return
             }
-            if grpcManager.daemonVersion != "unknown" || grpcManager.daemonVersion != "noVersion" {
+
+            // FIX: this was `||` (always true). It should be `&&`.
+            if grpcManager.daemonVersion != "unknown" && grpcManager.daemonVersion != "noVersion" {
                 newState = isInstalledAndUpToDate ? .running : .requiresUpdate
             } else {
                 newState = .authorized
             }
+
         case .requiresApproval:
             newState = .requiresAuthorization
+
         @unknown default:
             newState = .unknown
         }
@@ -147,40 +152,42 @@ private extension HelperManager {
     func updateDaemonIfNeeded() throws {
         guard daemonState == .requiresUpdate, grpcManager.tunnelStatus != .connected else { return }
         daemonState = .updating
-        Task {
+
+        // Ensure all state mutations stay on MainActor:
+        Task { @MainActor in
             do {
                 logger.info("Update if needed...")
-                logger.info("daemonState: \(daemonState)")
+                logger.info("daemonState: \(self.daemonState)")
                 logger.info("Req. v: \(AppVersionProvider.libVersion)")
-                logger.info("Cur. v: \(grpcManager.daemonVersion)")
+                logger.info("Cur. v: \(self.grpcManager.daemonVersion)")
 
                 logger.info("Uninstalling...")
-                try await uninstall()
+                try await self.uninstall()
                 logger.info("Registering...")
-                try daemon.register()
+                try self.daemon.register()
                 logger.info("Updated")
+
                 try await Task.sleep(for: .seconds(3))
-                Task { @MainActor [weak self] in
-                    self?.daemonState = .running
-                }
+                self.daemonState = .running
             } catch {
-                Task { @MainActor [weak self] in
-                    self?.daemonState = .running
-                    self?.updateDaemonState()
-                }
+                // Fall back to updating state + re-evaluating
+                self.daemonState = .running
+                self.updateDaemonState()
                 throw error
             }
         }
     }
 }
 
-// MARK: - Polling -
+// MARK: - Polling
 private extension HelperManager {
     func startPolling() {
+        // Poll on MainActor; access to grpcManager and daemonState stays safe.
+        pollingTask?.cancel()
         pollingTask = Task { [weak self] in
             guard let self else { return }
-            while pollingTask != nil {
-                updateDaemonState()
+            while !Task.isCancelled, self.pollingTask != nil {
+                self.updateDaemonState()
                 try? await Task.sleep(for: .seconds(5))
             }
         }

@@ -2,21 +2,47 @@ import Foundation
 import Logging
 import Constants
 
-public class FileLogHandler: LogHandler {
+private final class Lock {
+    private let lock = NSLock()
+
+    @discardableResult func with<T>(_ body: () throws -> T) rethrows -> T {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        return try body()
+    }
+}
+
+public final class FileLogHandler: LogHandler, @unchecked Sendable {
     private let label: String
     private let logFileManager: LogFileManager
+    private let lock = Lock()
+
+    // Backing storage guarded by lock
+    private var _metadata = Logger.Metadata()
+    private var _logLevel: Logger.Level = .info
 
     public init(label: String, logFileManager: LogFileManager) {
         self.label = label
         self.logFileManager = logFileManager
     }
 
-    public var metadata = Logging.Logger.Metadata()
-    public var logLevel = Logging.Logger.Level.info
+    // MARK: LogHandler requirements
 
-    public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
-        get { metadata[key] }
-        set { metadata[key] = newValue }
+    public var metadata: Logger.Metadata {
+        get { lock.with { _metadata } }
+        set { lock.with { _metadata = newValue } }
+    }
+
+    public var logLevel: Logger.Level {
+        get { lock.with { _logLevel } }
+        set { lock.with { _logLevel = newValue } }
+    }
+
+    public subscript(metadataKey key: String) -> Logger.Metadata.Value? {
+        get { lock.with { _metadata[key] } }
+        set { lock.with { _metadata[key] = newValue } }
     }
 
     // swiftlint:disable:next function_parameter_count
@@ -29,25 +55,28 @@ public class FileLogHandler: LogHandler {
         function: String,
         line: UInt
     ) {
-        var fullMetadata = self.metadata
-        if let metadata = metadata {
-            fullMetadata.merge(metadata) { $1 }
-        }
+        // snapshot current metadata thread-safely
+        let baseMeta = lock.with { _metadata }
+        var fullMetadata = baseMeta
+        if let metadata { fullMetadata.merge(metadata) { $1 } }
 
         var metadataOutput = fullMetadata.formatted()
-        if !metadataOutput.isEmpty {
-            metadataOutput = " " + metadataOutput
-        }
+        if !metadataOutput.isEmpty { metadataOutput = " " + metadataOutput }
 
         let logLine = "\(Date()) [\(label)] \(level.emoji) \(level)\(metadataOutput): \(message)\n"
-        logFileManager.write(logLine)
+
+        // LogFileManager.write is @MainActor → hop safely
+        Task { @MainActor [logFileManager, logLine] in
+            logFileManager.write(logLine)
+        }
     }
 }
 
+// MARK: - Helpers
+
 extension Logging.Logger.Metadata {
     func formatted() -> String {
-        map { key, value in "\(key)=\(value)" }
-            .joined(separator: " ")
+        map { key, value in "\(key)=\(value)" }.joined(separator: " ")
     }
 }
 

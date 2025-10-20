@@ -3528,6 +3528,208 @@
         }
       }
     },
+    "censorship.quic.disable.alert.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لكي تصبح التغييرات سارية المفعول، تحتاج إلى إعادة الاتصال."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damit die Änderungen wirksam werden, müssen Sie sich neu verbinden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que los cambios surtan efecto, es necesario volver a conectar."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour que les changements prennent effet, vous devez vous reconnecter."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affinché le modifiche abbiano effetto, è necessario riconnettersi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変更を有効にするには、再接続する必要があります。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que as alterações tenham efeito, você precisa reconectar."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que as alterações tenham efeito, você precisa reconectar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы изменения вступили в силу, необходимо переподключиться."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For changes to take effect, you need to reconnect."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб зміни набули чинності, необхідно повторно підключитися."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để các thay đổi có hiệu lực, bạn cần kết nối lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要使更改生效，您需要重新连接。"
+          }
+        }
+      }
+    },
+    "censorship.quic.disable.alert.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هل أنت متأكد من أنك تريد المتابعة؟"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sind Sie sicher, dass Sie fortfahren möchten?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Está seguro de que desea continuar?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir continuer ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sei sicuro di voler continuare?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続行してもよろしいですか？"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tem certeza que deseja continuar?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tem certeza que deseja continuar?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы уверены, что хотите продолжить?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Are you sure you want to continue?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ви впевнені, що хочете продовжити?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có chắc chắn muốn tiếp tục?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您确定要继续吗？"
+          }
+        }
+      }
+    },
     "censorship.quic.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3617,8 +3819,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How QUIC improves connections"
+            "state" : "translated",
+            "value" : "Cách QUIC cải thiện kết nối"
           }
         },
         "zh-Hans" : {
@@ -3718,8 +3920,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+            "state" : "translated",
+            "value" : "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường."
           }
         },
         "zh-Hans" : {
@@ -3819,8 +4021,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+            "state" : "translated",
+            "value" : "Lưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích QUIC."
           }
         },
         "zh-Hans" : {
@@ -3920,8 +4122,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enhanced connection (QUIC)"
+            "state" : "translated",
+            "value" : "Kết nối nâng cao (QUIC)"
           }
         },
         "zh-Hans" : {
@@ -4021,8 +4223,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How the Stealth API connect mode works"
+            "state" : "translated",
+            "value" : "Cách chế độ kết nối API Ẩn danh hoạt động"
           }
         },
         "zh-Hans" : {
@@ -4122,8 +4324,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+            "state" : "translated",
+            "value" : "Tự động được NymVPN sử dụng khi các lần thử kết nối API tiêu chuẩn thất bại."
           }
         },
         "zh-Hans" : {
@@ -4223,8 +4425,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stealth API connect"
+            "state" : "translated",
+            "value" : "Kết nối API Ẩn danh"
           }
         },
         "zh-Hans" : {
@@ -6570,13 +6772,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "es" : {
@@ -6612,7 +6814,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
           }
         },
         "pt" : {
@@ -7066,10 +7268,100 @@
     "createAccount.savedPassphrase" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لقد قمت بحفظ كلمة المرور الخاصة بي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich habe mein Passwort gespeichert"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "I have saved my passphrase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He guardado mi contraseña"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "I have saved my passphrase"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "J'ai sauvegardé mon mot de passe"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "I have saved my passphrase"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ho salvato la mia passphrase"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パスフレーズを保存しました"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eu gravei a minha senha"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eu gravei a minha senha"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я сохранил свою секретную фразу"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizli ifademi kaydettim"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Я зберіг мою фразу-пароль"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tôi đã lưu cụm từ mật khẩu của mình"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我已保存我的密码"
           }
         }
       }
@@ -9097,10 +9389,403 @@
     "erroReason.invalidEntryGatewayIdentity" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خادم الإدخال غير متصل. اختر آخر وإعادة الاتصال."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Eintragsserver ist offline. Wählen Sie einen anderen und verbinden Sie ihn erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor de entrada está desconectado. Elija otro y vuelva a conectar."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur d'entrée est hors ligne. Choisissez un autre serveur et reconnectez-vous."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server degli elementi è offline. Scegliere un altro e riconnettersi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor de entrada está offline. Escolha outro e reconecte-se."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor de entrada está offline. Escolha outro e reconecte-se."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер входа недоступен. Выберите другой и подключитесь повторно."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giriş sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер входу не працює. Виберіть інший і підключіться знову."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "条目服务器处于离线状态。选择另一个并重新连接。"
+          }
+        }
+      }
+    },
+    "errorReason.accountDecentralised" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا مركزية الحساب."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto dezentralisiert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account decentralized."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuenta descentralizada."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account decentralized."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte décentralisé."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account decentralized."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account decentralizzato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウントは分散化されました。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conta descentralizada."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conta descentralizada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Учетная запись децентрализована."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account decentralized."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Децентралізований обліковий запис."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tài khoản phi tập trung."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帐户分散。"
+          }
+        }
+      }
+    },
+    "errorReason.accountDoesntExistOnChain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الحساب غير موجود في السلسلة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto existiert nicht in der Kette."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account does not exist on chain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La cuenta no existe en la cadena."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account does not exist on chain."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le compte n'existe pas on chain."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account does not exist on chain."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'account non esiste nella catena."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウントがチェーン上に存在しません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A conta não existe na cadeia."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A conta não existe na cadeia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Учетная запись не существует в цепочке."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account does not exist on chain."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт не існує в ланцюжку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tài khoản không tồn tại trên chuỗi."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帐户不存在于链上。"
+          }
+        }
+      }
+    },
+    "errorReason.accountNotDecentralised" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الحساب غير لامركزي."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto nicht dezentralisiert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account not decentralized."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuenta no descentralizada."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account not decentralized."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte non décentralisé."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account not decentralized."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account non decentralizzato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウントは分散化されていません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conta não descentralizada."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conta não descentralizada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аккаунт не децентрализован."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Account not decentralized."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт не децентралізований."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tài khoản không được phi tập trung."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "账户未分散。"
           }
         }
       }
@@ -9497,8 +10182,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
+            "state" : "translated",
+            "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng."
           }
         },
         "zh-Hans" : {
@@ -9615,14 +10300,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "بوابة الدخول لا تستجيب أو تستجيب لسوء عرض النطاق الترددي."
+            "state" : "translated",
+            "value" : "خادم الدخول لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض النطاق الترددي."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Der Eingangsgateway reagiert nicht oder reagiert schlecht auf eine Bandbreite."
+            "state" : "translated",
+            "value" : "Der Eintragsserver reagiert nicht oder reagiert schlecht auf eine Bandbreitenerhöhung."
           }
         },
         "en" : {
@@ -9633,80 +10318,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "La pasarela de entrada no responde o responde mal a un ancho de banda."
+            "state" : "translated",
+            "value" : "El servidor de entrada no responde o responde mal a un aumento del ancho de banda."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Entry gateway is not responding or responding badly to a bandwidth."
+            "value" : "Entry server is not responding or responding badly to a bandwidth increase."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "La passerelle d'entrée ne répond pas ou ne répond pas correctement à une bande passante."
+            "state" : "translated",
+            "value" : "Le serveur d'entrée ne répond pas ou ne répond pas mal à une augmentation de la bande passante."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Entry gateway is not responding or responding badly to a bandwidth."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Il gateway di entrata non risponde o risponde male ad una larghezza di banda."
+            "state" : "translated",
+            "value" : "Il server degli elementi non risponde o risponde male ad un aumento della larghezza di banda."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "エントリ ゲートウェイは帯域幅に応答していないか、応答していません。"
+            "state" : "translated",
+            "value" : "エントリーサーバーが帯域幅の増加に応答または不適切に応答していません。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "O gateway de entrada não está respondendo ou respondendo mal a uma largura de banda."
+            "state" : "translated",
+            "value" : "O servidor de entrada não está respondendo mal a um aumento da largura de banda."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "O gateway de entrada não está respondendo ou respondendo mal a uma largura de banda."
+            "state" : "translated",
+            "value" : "O servidor de entrada não está respondendo mal a um aumento da largura de banda."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Входной шлюз не отвечает или плохо реагирует при увеличении пропускной способности."
+            "state" : "translated",
+            "value" : "Входной сервер не отвечает или плохо реагирует на увеличение пропускной способности."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Giriş gateway'i yanıt vermiyor veya bant genişliği değişikliklerine uygun şekilde tepki göstermiyor."
+            "state" : "translated",
+            "value" : "Giriş sunucusu yanıt vermiyor veya bant genişliği artırma isteğine düzgün yanıt vermiyor."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Шлюз входу не реагує або погано реагує на пропускну здатність."
+            "state" : "translated",
+            "value" : "Сервер входу не відповідає або погано реагує на збільшення пропускної здатності."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry gateway is not responding or responding badly to a bandwidth."
+            "state" : "translated",
+            "value" : "Máy chủ vào không phản hồi hoặc phản hồi kém khi tăng băng thông."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "入口网关没有响应或响应带宽。"
+            "state" : "translated",
+            "value" : "条目服务器没有响应或响应带宽增加。"
           }
         }
       }
@@ -9716,14 +10401,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "مدخل الخروج لا يستجيب أو يستجيب لسوء العرض الترددي."
+            "state" : "translated",
+            "value" : "خروج الخادم لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض الترددات."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Exit Gateway reagiert nicht oder reagiert schlecht auf eine Bandbreite."
+            "state" : "translated",
+            "value" : "Der Exit-Server reagiert nicht oder reagiert schlecht auf eine Bandbreitenerhöhung."
           }
         },
         "en" : {
@@ -9734,80 +10419,181 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Salir de la puerta de enlace no está respondiendo o respondiendo mal a un ancho de banda."
+            "state" : "translated",
+            "value" : "El servidor de salida no responde o responde mal a un aumento del ancho de banda."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Exit gateway is not responding or responding badly to a bandwidth."
+            "value" : "Exit server is not responding or responding badly to a bandwidth increase."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quitter la passerelle ne répond pas ou ne répond pas mal à une bande passante."
+            "state" : "translated",
+            "value" : "Quitter le serveur ne répond pas ou ne répond pas mal à une augmentation de la bande passante."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Exit gateway is not responding or responding badly to a bandwidth."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Il gateway di uscita non risponde o risponde male ad una larghezza di banda."
+            "state" : "translated",
+            "value" : "Il server di uscita non risponde o risponde male ad un aumento della larghezza di banda."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Exit ゲートウェイが帯域幅に反応または反応していません。"
+            "state" : "translated",
+            "value" : "Exit サーバーが帯域幅の増加に応答または不適切に応答していません。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "O gateway de saída não está respondendo ou respondendo mal a uma largura de banda."
+            "state" : "translated",
+            "value" : "Sair do servidor não está respondendo ou respondendo mal a um aumento da largura de banda."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "O gateway de saída não está respondendo ou respondendo mal a uma largura de banda."
+            "state" : "translated",
+            "value" : "Sair do servidor não está respondendo ou respondendo mal a um aumento da largura de banda."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Выходной шлюз не отвечает или плохо реагирует при увеличении пропускной способности."
+            "state" : "translated",
+            "value" : "Выходной сервер не отвечает или плохо реагирует на увеличение пропускной способности."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Çıkış gateway'i yanıt vermiyor veya bant genişliği değişikliklerine uygun şekilde tepki göstermiyor."
+            "state" : "translated",
+            "value" : "Çıkış sunucusu yanıt vermiyor veya bant genişliği artırma isteğine düzgün yanıt vermiyor."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Вихідний шлюз не відповідає або погано реагує на пропускну здатність."
+            "state" : "translated",
+            "value" : "Вихідний шлюз не реагує або погано реагує на збільшення пропускної здатності."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit gateway is not responding or responding badly to a bandwidth."
+            "state" : "translated",
+            "value" : "Máy chủ thoát không phản hồi hoặc phản hồi kém khi tăng băng thông."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "退出网关没有响应或响应带宽。"
+            "state" : "translated",
+            "value" : "退出服务器没有响应或响应带宽增加。"
+          }
+        }
+      }
+    },
+    "errorReason.deviceLoggedOut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم تسجيل خروج الجهاز."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerät ausgeloggt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device logged out."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivo desconectado."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Device logged out."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Périphérique déconnecté."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Device logged out."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivo disconnesso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デバイスがログアウトしました。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivo desconectado."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispositivo desconectado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Устройство вышло из системы."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Device logged out."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пристрій вийшов із системи."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thiết bị đã đăng xuất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设备已登出。"
           }
         }
       }
@@ -9818,37 +10604,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"وقت الجهاز غير متزامن. يرجى مزامنة وقت جهازك مع الإنترنت.\""
+            "value" : "وقت الجهاز غير متزامن. الرجاء مزامنة وقت جهازك مع الإنترنت."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Gerätezeit ist nicht synchronisiert. Bitte synchronisieren Sie die Zeit Ihres Geräts mit dem Internet.\""
+            "value" : "Die Gerätezeit ist nicht synchronisiert. Bitte synchronisieren Sie die Zeit Ihres Geräts mit dem Internet."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "value" : "Device time is out of sync. Please synchronize your device's time with the internet."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"El tiempo del dispositivo no está sincronizado. Por favor, sincroniza el tiempo de tu dispositivo con el internet.\""
+            "value" : "La hora del dispositivo está fuera de sincronización. Por favor, sincronice la hora de su dispositivo con Internet."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "ساعت دستگاه همگام‌سازی نشده است. لطفا ساعت دستگاه خود را از طریق اینترنت همگام‌سازی کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "L'horloge de l'appareil n'est pas synchronisée. Veuillez synchroniser l'heure sur une horloge réseau."
+            "value" : "L'heure de votre appareil n'est pas synchronisée. Veuillez synchroniser l'heure de votre appareil avec celle d'Internet."
           }
         },
         "hi" : {
@@ -9860,13 +10646,13 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Il tempo del dispositivo non è sincronizzato. Sincronizza il tempo del dispositivo con Internet.\""
+            "value" : "Il tempo del dispositivo non è sincronizzato. Si prega di sincronizzare l'ora del dispositivo con Internet."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"デバイスの時間が同期されていません。お使いのデバイスの時間をインターネットと同期してください。"
+            "value" : "端末の時刻が同期されていません。端末の時刻をインターネットと同期してください。"
           }
         },
         "pt" : {
@@ -9878,37 +10664,37 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"O tempo do dispositivo está fora de sincronia. Por favor, sincronize o horário do seu dispositivo com a internet.\""
+            "value" : "O tempo do dispositivo está fora de sincronização. Por favor, sincronize o tempo do seu dispositivo com a internet."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Время на устройстве не синхронизировано. Пожалуйста, синхронизируйте время на вашем устройстве с интернетом.\""
+            "value" : "Время устройства не синхронизировано. Пожалуйста, синхронизируйте время вашего устройства с интернетом."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin.\""
+            "value" : "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Час пристрою не синхронізований. Будь ласка, синхронізуйте час вашого пристрою з інтернетом.\""
+            "value" : "Час пристрою не синхронізовано. Будь ласка, синхронізуйте час вашого пристрою з Інтернетом."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet.\""
+            "value" : "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备时间不同步。请将您的设备时间与互联网同步。"
+            "value" : "设备时间不同步，请将设备时间和互联网时间同步。"
           }
         }
       }
@@ -10418,6 +11204,208 @@
         }
       }
     },
+    "errorReason.inactiveAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الحساب غير نشط."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Konto ist nicht aktiv."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The account is not active."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La cuenta no está activa."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The account is not active."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le compte n'est pas actif."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The account is not active."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'account non è attivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウントがアクティブではありません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A conta não está ativa."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A conta não está ativa."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Учетная запись не активна."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The account is not active."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Акаунт неактивний."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tài khoản không hoạt động."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帐户未激活。"
+          }
+        }
+      }
+    },
+    "errorReason.insufficientFunds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأموال غير كافية."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unzureichendes Guthaben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insufficient funds."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fondos insuficientes."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Insufficient funds."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fonds insuffisants."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Insufficient funds."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fondi insufficienti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資金が足りません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundos insuficientes."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundos insuficientes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недостаточно средств."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Insufficient funds."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недостатньо коштів."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không đủ tiền."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资金不足。"
+          }
+        }
+      }
+    },
     "errorReason.internalUnknown" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10524,14 +11512,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "بلد بوابة الإدخال غير صالح"
+            "state" : "translated",
+            "value" : "البلد غير صالح لخادم الدخول. اختر آخر وإعادة الاتصال."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid entry gateway country"
+            "state" : "translated",
+            "value" : "Ungültiges Land für den Eingangsserver. Wählen Sie ein anderes und verbinden Sie es erneut."
           }
         },
         "en" : {
@@ -10542,80 +11530,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gateway de país de entrada no válido"
+            "state" : "translated",
+            "value" : "País no válido para el servidor de entradas. Elige otro y vuelve a conectar."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "کشور گیت‌وی ورودی نامعتبر"
+            "state" : "new",
+            "value" : "Invalid country for entry server. Choose another and reconnect."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Passerelle d'entrée incorrecte"
+            "state" : "translated",
+            "value" : "Pays invalide pour le serveur d'entrée. Choisissez un autre pays et reconnectez-vous."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "अमान्य प्रविष्टि गेटवे देश"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Paese di ingresso non valido"
+            "state" : "translated",
+            "value" : "Paese non valido per il server di ingresso. Scegliere un altro e riconnettersi."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "無効なエントリーgatewayの国"
+            "state" : "translated",
+            "value" : "Invalid country for entry server. Choose another and reconnect."
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "País do gateway inválido"
+            "state" : "translated",
+            "value" : "País inválido para o servidor de entrada. Escolha outro e reconecte-se."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "País do gateway de entrada inválido"
+            "state" : "translated",
+            "value" : "País inválido para o servidor de entrada. Escolha outro e reconecte-se."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Некорректная страна входного шлюза"
+            "state" : "translated",
+            "value" : "Неверная страна для входного сервера. Выберите другую страну и подключитесь снова."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Geçersiz giriş gateway ülkesi"
+            "state" : "translated",
+            "value" : "Giriş sunucusu için geçersiz bir ülke seçtiniz. Başka bir ülke seçip yeniden bağlanın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Недійсна країна шлюзу входу"
+            "state" : "translated",
+            "value" : "Неправильна країна для вхідного сервера. Виберіть іншу і підключіться знову."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quốc gia cổng vào không hợp lệ"
+            "state" : "translated",
+            "value" : "Vị trí node vào không hợp lệ. Vui lòng thay đổi vị trí node vào và kết nối lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "入口网关国家无效"
+            "state" : "translated",
+            "value" : "条目服务器无效的国家。选择另一个并重新连接。"
           }
         }
       }
@@ -10625,14 +11613,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "بلد بوابة الخروج غير صالح"
+            "state" : "translated",
+            "value" : "البلد غير صالح للخادم الخروج. اختر آخر وإعادة الاتصال."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid exit gateway country"
+            "state" : "translated",
+            "value" : "Ungültiges Land zum Beenden Server. Wählen Sie ein anderes und verbinden Sie es erneut."
           }
         },
         "en" : {
@@ -10643,80 +11631,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gateway de país de salida no válido"
+            "state" : "translated",
+            "value" : "País no válido para el servidor de salida. Elige otro y vuelve a conectar."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "کشور گیت‌وی خروجی نامعتبر"
+            "state" : "new",
+            "value" : "Invalid country for exit server. Choose another and reconnect."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Passerelle de sortie incorrecte"
+            "state" : "translated",
+            "value" : "Pays invalide pour le serveur de sortie. Choisissez un autre pays et reconnectez-vous."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "अमान्य निकास गेटवे देश"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Paese di uscita non valido"
+            "state" : "translated",
+            "value" : "Paese non valido per il server di uscita. Scegliere un altro e riconnettersi."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "無効な出口gatewayの国"
+            "state" : "translated",
+            "value" : "終了サーバーの国が無効です。別の国を選択して再接続してください。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "País do gateway de saída inválido"
+            "state" : "translated",
+            "value" : "País inválido para sair do servidor. Escolha outro e reconecte-o."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "País do gateway de saída inválido"
+            "state" : "translated",
+            "value" : "País inválido para sair do servidor. Escolha outro e reconecte-o."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Некорректная страна выходного шлюза"
+            "state" : "translated",
+            "value" : "Неверная страна для сервера выхода. Выберите другую страну и подключитесь повторно."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Geçersiz çıkış gateway ülkesi"
+            "state" : "translated",
+            "value" : "Çıkış sunucusu için geçersiz bir ülke seçtiniz. Başka bir ülke seçip yeniden bağlanın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Недійсна країна шлюзу виходу"
+            "state" : "translated",
+            "value" : "Неправильна країна для вихідного сервера. Виберіть іншу і підключіться знову."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quốc gia cổng thoát không hợp lệ"
+            "state" : "translated",
+            "value" : "Vị trí node thoát không hợp lệ. Vui lòng thay đổi vị trí node thoát và kết nối lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "退出网关国家无效"
+            "state" : "translated",
+            "value" : "退出服务器无效的国家。选择另一个并重新连接。"
           }
         }
       }
@@ -10724,10 +11712,100 @@
     "errorReason.invalidExitGatewayIdentity" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خروج السيرفر غير متصل. اختر آخر وإعادة الاتصال."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server verlassen ist offline. Wähle einen anderen und verbinde ihn erneut."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exit server is offline. Choose another and reconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor de salida está desconectado. Elige otro y vuelve a conectar."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exit server is offline. Choose another and reconnect."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sortie du serveur est hors ligne. Choisissez un autre et reconnectez-vous."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exit server is offline. Choose another and reconnect."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server di uscita è offline. Scegliere un altro e riconnettersi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバを終了するとオフラインです。別のサーバを選択して再接続します。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sair do servidor está offline. Escolha outro e reconecte-se."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sair do servidor está offline. Escolha outro e reconecte-se."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер выхода отключен. Выберите другой и переподключитесь."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çıkış sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер виходу не працює. Виберіть інший і підключіться знову."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出服务器离线。选择另一个并重新连接。"
           }
         }
       }
@@ -11139,10 +12217,100 @@
     "errorReason.performantEntryGatewayUnavailable" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن الوصول إلى خادم الدخول. جرب آخر!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kann den Eingangsserver nicht erreichen. Versuche einen anderen!"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't reach entry server. Try another!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede acceder al servidor de entradas. ¡Pruebe con otro!"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Can't reach entry server. Try another!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'accéder au serveur d'entrée. Essayez un autre !"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Can't reach entry server. Try another!"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile raggiungere il server di ingresso. Provane un altro!"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エントリサーバーにアクセスできません。別のものをお試しください！"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossível encontrar o servidor de entrada. Tente outro!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossível encontrar o servidor de entrada. Tente outro!"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удаётся подключиться к серверу входа. Попробуйте другой!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giriş sunucusuna ulaşılamıyor. Başka bir sunucu deneyin!"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдається підключитися до сервера входу. Спробуйте інший!"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể kết nối máy chủ vào. Thử một máy chủ khác!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到条目服务器。请尝试其他服务器！"
           }
         }
       }
@@ -11150,10 +12318,100 @@
     "errorReason.performantExitGatewayUnavailable" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن الوصول إلى خادم الخروج. جرب آخر!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kann den Server nicht erreichen. Versuche einen anderen!"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't reach exit server. Try another!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede acceder al servidor de salida. ¡Intenta otro!"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Can't reach exit server. Try another!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'accéder au serveur de sortie. Essayez un autre !"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Can't reach exit server. Try another!"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile raggiungere il server di uscita. Provane un altro!"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終了サーバーにアクセスできません。もう一度お試しください！"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível encontrar o servidor de saída. Tente outro!"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível encontrar o servidor de saída. Tente outro!"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удается подключиться к серверу выхода. Попробуйте другой!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çıkış sunucusuna ulaşılamıyor. Başka bir sunucu deneyin!"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдається підключитися до сервера виходу. Спробуйте інший!"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể kết nối với máy chủ thoát. Vui lòng thử máy chủ khác!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到退出服务器。请尝试其他服务器！"
           }
         }
       }
@@ -13154,8 +14412,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced privacy"
+            "state" : "translated",
+            "value" : "Gelişmiş gizlilik"
           }
         },
         "uk" : {
@@ -13166,8 +14424,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced privacy"
+            "state" : "translated",
+            "value" : "Quyền riêng tư nâng cao"
           }
         },
         "zh-Hans" : {
@@ -13250,25 +14508,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "С mixnet (5-хоп)"
+            "value" : "С микснетом (пятиступенчатым)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "With mixnet (5-hop)"
+            "state" : "translated",
+            "value" : "Mixnet ile (5-hop (atlama))"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Через mixnet (5-тривалість)"
+            "value" : "Через mixnet (5-hop)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "With mixnet (5-hop)"
+            "state" : "translated",
+            "value" : "Với mixnet (5 bước nhảy)"
           }
         },
         "zh-Hans" : {
@@ -13351,24 +14609,24 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ОЗН"
+            "value" : "ASN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN"
+            "state" : "translated",
+            "value" : "Otonom Sistem Numarası"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "АСН"
+            "value" : "ASN"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "ASN"
           }
         },
@@ -13457,8 +14715,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN name"
+            "state" : "translated",
+            "value" : "Otonom Sistem'in adı"
           }
         },
         "uk" : {
@@ -13469,8 +14727,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN name"
+            "state" : "translated",
+            "value" : "Tên ASN"
           }
         },
         "zh-Hans" : {
@@ -13558,20 +14816,20 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Nym build version"
+            "state" : "translated",
+            "value" : "Nym sürüm versiyonu"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Версія збірки Nm"
+            "value" : "Версія збірки Nym"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Nym build version"
+            "state" : "translated",
+            "value" : "Phiên bản build Nym"
           }
         },
         "zh-Hans" : {
@@ -13654,25 +14912,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "IP хранилища данных"
+            "value" : "IP дата-центра"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Datacenter IP"
+            "state" : "translated",
+            "value" : "Veri Merkezi IP'si"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Шифрування даних"
+            "value" : "IP-адреса центру обробки даних"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Datacenter IP"
+            "state" : "translated",
+            "value" : "IP trung tâm dữ liệu"
           }
         },
         "zh-Hans" : {
@@ -13755,13 +15013,13 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Личный ключ"
+            "value" : "Идентификационный ключ"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key"
+            "state" : "translated",
+            "value" : "Kimlik anahtarı"
           }
         },
         "uk" : {
@@ -13772,8 +15030,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key"
+            "state" : "translated",
+            "value" : "Khóa xác thực"
           }
         },
         "zh-Hans" : {
@@ -13861,7 +15119,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Exit IPv4"
           }
         },
@@ -13873,8 +15131,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit IPv4"
+            "state" : "translated",
+            "value" : "Thoát IPv4"
           }
         },
         "zh-Hans" : {
@@ -13962,7 +15220,7 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Exit IPv6"
           }
         },
@@ -13974,8 +15232,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit IPv6"
+            "state" : "translated",
+            "value" : "Thoát IPv6"
           }
         },
         "zh-Hans" : {
@@ -14058,25 +15316,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оценка производительности, рассчитанная на основе нагрузки на сервер и времени обновления. Обновления в течение 24 часов. Последнее обновление"
+            "value" : "Показатель производительности, рассчитанный на основе нагрузки и времени обновления. Обновления в течение 24 часов. Последнее обновление"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update"
+            "state" : "translated",
+            "value" : "Performans puanı, sunucu yükü ve çalışma süresi dikkate alınarak hesaplanır. Çalışma süresi, son 24 saatin ortalamasıdır. Son güncelleme"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оцінка швидкості, обчислена від завантаження і оновленого сервера. Час за останні 24-годинне оновлення"
+            "value" : "Оцінка продуктивності розраховується на основі навантаження на сервер і часу безвідмовної роботи. Час безвідмовної роботи — середнє значення за останні 24 години. Останнє оновлення"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update"
+            "state" : "translated",
+            "value" : "Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua. Cập nhật lần cuối"
           }
         },
         "zh-Hans" : {
@@ -14159,25 +15417,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Почему там отсутствует или неправильная информация"
+            "value" : "Почему информация отсутствует или указана неверно"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Why is there missing or incorrect info"
+            "state" : "translated",
+            "value" : "Neden bazı bilgiler eksik veya hatalı?"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Чому немає інформації або неправильної"
+            "value" : "Чому інформація відсутня або неправильна?"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Why is there missing or incorrect info"
+            "state" : "translated",
+            "value" : "Tại sao lại thiếu hoặc sai thông tin"
           }
         },
         "zh-Hans" : {
@@ -14260,25 +15518,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подробнее в Nym"
+            "value" : "Больше подробностей в Nym"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "More details in the Nym"
+            "state" : "translated",
+            "value" : "Detaylı bilgi için Nym ’i inceleyin."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Детальніше в Нюмі"
+            "value" : "Більше деталей у Nym"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "More details in the Nym"
+            "state" : "translated",
+            "value" : "Xem chi tiết trong Nym"
           }
         },
         "zh-Hans" : {
@@ -14361,25 +15619,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сетевой проводник"
+            "value" : "Эксплорер сети"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Network Explorer"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Огляд мережі"
+            "value" : "Мережевий провідник"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Network Explorer"
+            "state" : "translated",
+            "value" : "Trình khám phá mạng"
           }
         },
         "zh-Hans" : {
@@ -14467,8 +15725,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Overall performance"
+            "state" : "translated",
+            "value" : "Genel performans"
           }
         },
         "uk" : {
@@ -14479,8 +15737,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Overall performance"
+            "state" : "translated",
+            "value" : "Hiệu suất tổng thể"
           }
         },
         "zh-Hans" : {
@@ -14563,25 +15821,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Жилой IP"
+            "value" : "Пользовательский IP-адрес"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Residential IP"
+            "state" : "translated",
+            "value" : "Yerleşik IP"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Житловий IP"
+            "value" : "Домашня IP"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Residential IP"
+            "state" : "translated",
+            "value" : "Địa chỉ IP dân cư"
           }
         },
         "zh-Hans" : {
@@ -14669,8 +15927,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select server"
+            "state" : "translated",
+            "value" : "Sunucu seçin"
           }
         },
         "uk" : {
@@ -14681,8 +15939,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select server"
+            "state" : "translated",
+            "value" : "Chọn máy chủ"
           }
         },
         "zh-Hans" : {
@@ -14770,8 +16028,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server details"
+            "state" : "translated",
+            "value" : "Sunucu detayları"
           }
         },
         "uk" : {
@@ -14782,8 +16040,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server details"
+            "state" : "translated",
+            "value" : "Thông tin máy chủ"
           }
         },
         "zh-Hans" : {
@@ -14871,20 +16129,20 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server load"
+            "state" : "translated",
+            "value" : "Sunucunun mevcut yük durumu"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Завантаження сервера"
+            "value" : "Навантаження на сервер"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server load"
+            "state" : "translated",
+            "value" : "Tải máy chủ"
           }
         },
         "zh-Hans" : {
@@ -14967,25 +16225,25 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вещание и контент"
+            "value" : "Стриминг и контент"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Streaming and content"
+            "state" : "translated",
+            "value" : "Akış ve içerik"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Потокове трансляції і зміст"
+            "value" : "Стрімінг та контент"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Streaming and content"
+            "state" : "translated",
+            "value" : "Phát trực tiếp và đăng tải nội dung"
           }
         },
         "zh-Hans" : {
@@ -15073,8 +16331,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uptime"
+            "state" : "translated",
+            "value" : "Çalışma süresi"
           }
         },
         "uk" : {
@@ -15085,8 +16343,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uptime"
+            "state" : "translated",
+            "value" : "Thời gian hoạt động"
           }
         },
         "zh-Hans" : {
@@ -16196,8 +17454,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating keys that never leave your device"
+            "state" : "translated",
+            "value" : "Tạo khóa và lưu giữ hoàn toàn trong thiết bị"
           }
         },
         "zh-Hans" : {
@@ -16297,8 +17555,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing anonymous network credentials"
+            "state" : "translated",
+            "value" : "Thiết lập thông tin xác thực mạng ẩn danh"
           }
         },
         "zh-Hans" : {
@@ -16398,8 +17656,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+            "state" : "translated",
+            "value" : "Mã hóa thông tin xác thực bằng khóa thiết bị của bạn. Chỉ bạn mới có thể mở khóa chúng"
           }
         },
         "zh-Hans" : {
@@ -16499,8 +17757,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Generating cryptographic keypairs..."
+            "state" : "translated",
+            "value" : "Đang tạo cặp khóa mã hóa..."
           }
         },
         "zh-Hans" : {
@@ -16600,8 +17858,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating your anonymous identity..."
+            "state" : "translated",
+            "value" : "Đang tạo danh tính ẩn danh của bạn..."
           }
         },
         "zh-Hans" : {
@@ -16701,8 +17959,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "Đang bảo mật cục bộ thông tin xác thực của bạn..."
           }
         },
         "zh-Hans" : {
@@ -17527,19 +18785,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -17581,7 +18839,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -20224,8 +21482,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "High"
+            "state" : "translated",
+            "value" : "Yüksek"
           }
         },
         "uk" : {
@@ -20236,8 +21494,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "High"
+            "state" : "translated",
+            "value" : "Cao"
           }
         },
         "zh-Hans" : {
@@ -23961,20 +25219,20 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "Düşük"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Низька"
+            "value" : "Низький"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "Thấp"
           }
         },
         "zh-Hans" : {
@@ -24062,20 +25320,20 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "Orta"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Медіум"
+            "value" : "Середній"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "Trung bình"
           }
         },
         "zh-Hans" : {
@@ -24971,8 +26229,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data"
+            "state" : "translated",
+            "value" : "Veri bulunamadı"
           }
         },
         "uk" : {
@@ -24983,8 +26241,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data"
+            "state" : "translated",
+            "value" : "Không có dữ liệu"
           }
         },
         "zh-Hans" : {
@@ -25589,8 +26847,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "Hiển thị cụm từ mật khẩu của tôi"
           }
         },
         "zh-Hans" : {
@@ -25690,8 +26948,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share them with anyone, including Nym Support."
+            "state" : "translated",
+            "value" : "Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym."
           }
         },
         "zh-Hans" : {
@@ -25892,8 +27150,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy passphrase"
+            "state" : "translated",
+            "value" : "Sao chép cụm mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -25993,8 +27251,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Face ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Sử dụng Face ID để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -26094,8 +27352,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved these 24 words securely and will never share them"
+            "state" : "translated",
+            "value" : "Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng"
           }
         },
         "zh-Hans" : {
@@ -26195,8 +27453,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "⚠️ Lose these words = lose your account forever."
+            "state" : "translated",
+            "value" : "⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi."
           }
         },
         "zh-Hans" : {
@@ -26296,8 +27554,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+            "state" : "translated",
+            "value" : "🔒Cụm từ mật khẩu chính của bạn: 24 từ giúp bạn truy cập tài khoản từ bất kỳ thiết bị nào."
           }
         },
         "zh-Hans" : {
@@ -26397,8 +27655,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Optic ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Sử dụng Optic ID để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -26498,8 +27756,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your passcode to access the passphrase"
+            "state" : "translated",
+            "value" : "Nhập mã khóa của bạn để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -26599,8 +27857,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your password to access the passphrase"
+            "state" : "translated",
+            "value" : "Nhập mật khẩu của bạn để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -26700,8 +27958,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save to keychain"
+            "state" : "translated",
+            "value" : "Lưu vào Keychain"
           }
         },
         "zh-Hans" : {
@@ -26801,8 +28059,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "Hiển thị cụm từ mật khẩu của tôi"
           }
         },
         "zh-Hans" : {
@@ -26902,8 +28160,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Touch ID to access the passphrase"
+            "state" : "translated",
+            "value" : "Sử dụng Touch ID để truy cập cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -27003,8 +28261,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your account passphrase"
+            "state" : "translated",
+            "value" : "Cụm từ mật khẩu tài khoản của bạn"
           }
         },
         "zh-Hans" : {
@@ -27609,8 +28867,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "state" : "translated",
+            "value" : "Gửi thông tin sự cố để giúp chúng tôi sửa lỗi nhanh hơn.\nBáo cáo được gửi qua hệ thống bảo mật của Sentry và chỉ bao gồm dữ liệu gỡ lỗi kỹ thuật."
           }
         },
         "zh-Hans" : {
@@ -27811,7 +29069,7 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " "
           }
         },
@@ -27912,8 +29170,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
+            "state" : "translated",
+            "value" : "Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn"
           }
         },
         "zh-Hans" : {
@@ -28013,8 +29271,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
+            "state" : "translated",
+            "value" : "Các thông tin xác thực zero-knowledge này chứng minh bạn có quyền truy cập mà không tiết lộ danh tính của bạn"
           }
         },
         "zh-Hans" : {
@@ -28114,8 +29372,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
+            "state" : "translated",
+            "value" : "Thông tin xác thực truy cập ẩn danh của bạn hiện đã được lưu trữ an toàn, riêng tư, được mã hóa, và do bạn kiểm soát"
           }
         },
         "zh-Hans" : {
@@ -28316,8 +29574,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment confirmed"
+            "state" : "translated",
+            "value" : "Thanh toán đã được xác nhận"
           }
         },
         "zh-Hans" : {
@@ -28417,8 +29675,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Processing your payment securely..."
+            "state" : "translated",
+            "value" : "Đang xử lý thanh toán của bạn một cách an toàn..."
           }
         },
         "zh-Hans" : {
@@ -28447,7 +29705,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "es" : {
@@ -28459,7 +29717,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
           }
         },
         "fr" : {
@@ -28518,8 +29776,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+            "state" : "translated",
+            "value" : "Đang lấy thông tin xác thực tài khoản ẩn danh của bạn (zk-nyms)..."
           }
         },
         "zh-Hans" : {
@@ -28548,7 +29806,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "es" : {
@@ -28560,7 +29818,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "value" : "Saving your zk-nyms\u2028on the device..."
           }
         },
         "fr" : {
@@ -28619,8 +29877,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saving your zk-nyms on the device..."
+            "state" : "translated",
+            "value" : "Đang lưu zk-nyms của bạn trên thiết bị..."
           }
         },
         "zh-Hans" : {
@@ -28735,10 +29993,100 @@
     "purchasePlan.fullyProtected" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أنت الآن محمي بالكامل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist jetzt vollständig geschützt"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "You’re now fully protected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora estás completamente protegido"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You’re now fully protected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous êtes maintenant entièrement protégé"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You’re now fully protected"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ora sei completamente protetto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完全に保護されています"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você agora está totalmente protegido"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Você agora está totalmente protegido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Теперь вы полностью защищены"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artık tamamen güvendesiniz"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тепер ви повністю захищені"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn hiện đã được bảo vệ toàn diện"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您现在已经受到充分保护"
           }
         }
       }
@@ -29049,10 +30397,100 @@
     "purchasePlan.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدد خطة الآن لتفعيل حمايتك"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle jetzt einen Plan um deinen Schutz zu aktivieren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona un plan ahora para activar tu protección"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اکنون یک طرح را انتخاب کنید تا محافظت از خود را فعال کنید"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un plan pour être protégé"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleziona ora un piano per attivare la tua protezione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保護を有効にするプランを選択してください"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione um plano agora para ativar sua proteção"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione um plano agora para ativar sua proteção"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите тариф сейчас, чтобы активировать защиту"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Güvenliğinizi başlatmak için şimdi bir plan seçin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Виберіть план зараз, щоб активувати захист"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn một gói dịch vụ ngay bây giờ để dữ liệu của bạn được bảo vệ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在选择一个订阅来保护您的隐私"
           }
         }
       }
@@ -29060,10 +30498,100 @@
     "purchasePlan.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن ربط الدفعة القادمة بنشاط التصفح الخاص بك في المستقبل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihre anstehende Zahlung kann nicht mit Ihrer zukünftigen Browser-Aktivität verknüpft werden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu próximo pago no podrá ser vinculado a tu actividad de navegación"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پرداخت شما نمی‌تواند به فعالیت وب‌گردیتان مرتبط شود"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre paiement ne pourra être lié à vos activités en ligne"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपका आगामी भुगतान आपकी भविष्य की ब्राउज़िंग गतिविधि से जोड़ी नहीं जा सकती"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo prossimo pagamento non può essere collegato alla tua attività di navigazione futura"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今後の支払いは、今後の閲覧アクティビティにリンクできません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu próximo pagamento não pode ser vinculado a sua futura atividade de navegação"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu próximo pagamento não pode ser vinculado à sua futura atividade de navegação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш будущий платёж не может быть связан с вашей дальнейшей активностью в интернете"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ödemeniz, gelecekteki internet kullanımınızla ilişkilendirilmez"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш майбутній платіж не може бути пов'язаний з вашою майбутньою активністю в Інтернеті."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các khoản thanh toán của bạn sẽ không bị liên kết với hoạt động duyệt web trong tương lai"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的付款信息不会和网上活动关联"
           }
         }
       }
@@ -29460,8 +30988,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "translated",
+            "value" : "Tài khoản NymVPN bảo mật của bạn đã sẵn sàng🎉"
           }
         },
         "zh-Hans" : {
@@ -29475,10 +31003,100 @@
     "purchasePlan.welcomeToTruePrivacy" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مرحبا بك في الخصوصية الحقيقية 🎉"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Willkommen zur wahren Privatsphäre 🎉"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenido a la verdadera privacidad 🎉"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "به حریم خصوصی واقعی خوش آمدید 🎉"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La confidentialité est à vous 🎉"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "असली गोपनीयता में आपका स्वागत है 🎉"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benvenuto nella vera privacy 🎉"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "真のプライバシーへようこそ 🎉"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bem-vindo à privacidade verdadeira 🎉"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bem-vindo à verdadeira privacidade 🎉"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добро пожаловать в настоящую приватность 🎉"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerçek gizliliğe hoş geldiniz 🎉"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ласкаво просимо до справжнього конфіденційності 🎉"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chào mừng đến với quyền riêng tư thật sự 🎉"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "欢迎来到真正的隐私 🎉"
           }
         }
       }
@@ -29988,6 +31606,107 @@
         }
       }
     },
+    "reconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الاتصال"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu verbinden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a conectar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecter"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riconnetti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再接続"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переподключить"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторно підключитися"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối lại"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新连接"
+          }
+        }
+      }
+    },
     "retry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -30077,8 +31796,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retry"
+            "state" : "translated",
+            "value" : "Thử lại"
           }
         },
         "zh-Hans" : {
@@ -32032,7 +33751,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anticensura"
+            "value" : "Anti-censura"
           }
         },
         "fa" : {
@@ -32097,8 +33816,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anti-censorship"
+            "state" : "translated",
+            "value" : "Chống kiểm duyệt"
           }
         },
         "zh-Hans" : {
@@ -33713,8 +35432,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Passphrase"
+            "state" : "translated",
+            "value" : "Cụm từ mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -34521,8 +36240,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help improve NymVPN by sharing anonymous network stats from your region. "
+            "state" : "translated",
+            "value" : "Giúp cải thiện NymVPN bằng cách chia sẻ thông tin thống kê mạng ẩn danh từ khu vực của bạn. "
           }
         },
         "zh-Hans" : {
@@ -35531,8 +37250,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Awaiting account readiness"
+            "state" : "translated",
+            "value" : "Đang chờ tài khoản sẵn sàng"
           }
         },
         "zh-Hans" : {
@@ -35632,8 +37351,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting mixnet client"
+            "state" : "translated",
+            "value" : "Đang kết nối đến máy khách mixnet"
           }
         },
         "zh-Hans" : {
@@ -35733,8 +37452,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting tunnel"
+            "state" : "translated",
+            "value" : "Đang kết nối tunnel"
           }
         },
         "zh-Hans" : {
@@ -35834,8 +37553,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Refreshing gateways"
+            "state" : "translated",
+            "value" : "Đang làm mới các cổng kết nối"
           }
         },
         "zh-Hans" : {
@@ -35935,8 +37654,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Resolving API IP addresses"
+            "state" : "translated",
+            "value" : "Đang xử lý địa chỉ IP của API"
           }
         },
         "zh-Hans" : {
@@ -36036,8 +37755,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selecting gateways"
+            "state" : "translated",
+            "value" : "Đang chọn cổng kết nối"
           }
         },
         "zh-Hans" : {
@@ -37350,7 +39069,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giúp chúng tôi hoàn thiện ứng dụng! Phản hồi của bạn rất quan trọng để xác định và khắc phục các vấn đề. Tham gia theo dõi lỗi ẩn danh (qua"
+            "value" : "Giúp chúng tôi hoàn thiện ứng dụng! Phản hồi của bạn rất quan trọng để xác định và khắc phục các sự cố. Tham gia theo dõi lỗi ẩn danh (qua"
           }
         },
         "zh-Hans" : {

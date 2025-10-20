@@ -73,7 +73,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)), // do we try to register here?
+                    AccountCommand::RegisterAccount(return_sender, account, platform) => {
+                        let res = handler::handle_register_account(shared_state, account, platform).await;
+                        return_sender.send(res);
+                    }
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
@@ -84,6 +87,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
                     },
+                    AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         let res = handler::handle_reset_device_identity(shared_state, seed).await;
                         let error = res.is_err();

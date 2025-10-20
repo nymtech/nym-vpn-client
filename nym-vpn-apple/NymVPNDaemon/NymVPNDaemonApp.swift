@@ -41,9 +41,21 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
-    @StateObject private var homeViewModel = HomeViewModel()
+    @StateObject private var homeViewModel = HomeViewModel(
+        appSettings: .shared,
+        connectionManager: .shared,
+        configurationManager: .shared,
+        credentialsManager: .shared,
+        networkMonitor: .shared,
+        grpcManager: .shared,
+        helperManager: .shared,
+        externalLinkManager: .shared,
+        gatewayManager: .shared,
+        impactGenerator: .shared,
+        messagesManager: .shared
+    )
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
-    @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @StateObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var splashScreenDidDisplay = false
@@ -60,9 +72,10 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         Window(windowId, id: windowId) {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.welcomeScreenDidDisplay {
+//                if !splashScreenDidDisplay {
+//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+//                } else
+                if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -247,8 +260,8 @@ private extension NymVPNDaemonApp {
     func connectionDetails() -> some View {
         if let entryName = gatewayManager.userFriendlyTitle(with: connectionManager.entryGateway),
            let exitName = gatewayManager.userFriendlyTitle(with: connectionManager.exitRouter) {
-            let entry = gatewayManager.country(with: entryName)?.name ?? entryName
-            let exit = gatewayManager.country(with: exitName)?.name ?? exitName
+            let entry = gatewayManager.localizedCountry(with: entryName)?.name ?? entryName
+            let exit = gatewayManager.localizedCountry(with: exitName)?.name ?? exitName
 
             let statusButtonConfig = StatusButtonConfig(
                 tunnelStatus: connectionManager.currentTunnelStatus,

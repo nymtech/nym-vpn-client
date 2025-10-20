@@ -112,7 +112,6 @@ jobs:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
           cache-dependency-path: |
             wireguard/libwg/go.sum
-            nym-vpn-core/crates/nym-gateway-probe/netstack_ping/go.sum
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master

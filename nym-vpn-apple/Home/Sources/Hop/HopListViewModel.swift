@@ -6,7 +6,7 @@ import CountriesManagerTypes
 import GatewayManager
 import UIComponents
 
-public class HopListViewModel: ObservableObject {
+@MainActor public class HopListViewModel: ObservableObject {
     let type: HopType
 
     public let noResultsText = "search.noResults".localizedString
@@ -18,8 +18,8 @@ public class HopListViewModel: ObservableObject {
     @Binding var path: NavigationPath
 
     @Published var isGeolocationModalDisplayed = false
-    @Published var quickestCountry: Country?
-    @Published var countries: [Country]?
+    @Published var quickestCountry: NymCountry?
+    @Published var countries: [NymCountry]?
     @Published var searchText: String = "" {
         didSet {
             updateCountries()
@@ -29,10 +29,10 @@ public class HopListViewModel: ObservableObject {
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
-        appSettings: AppSettings = .shared,
-        configurationManager: ConfigurationManager = .shared,
-        connectionManager: ConnectionManager = .shared,
-        gatewayManager: GatewayManager = .shared
+        appSettings: AppSettings,
+        configurationManager: ConfigurationManager,
+        connectionManager: ConnectionManager,
+        gatewayManager: GatewayManager
     ) {
         _path = path
         self.type = type
@@ -43,7 +43,7 @@ public class HopListViewModel: ObservableObject {
         setup()
     }
 
-    func connectionSelect(with country: Country) {
+    func connectionSelect(with country: NymCountry) {
         switch type {
         case .entry:
             connectionManager.entryGateway = .country(country.code)
@@ -63,7 +63,7 @@ public class HopListViewModel: ObservableObject {
         navigateHome()
     }
 
-    func quickestConnectionSelect(with country: Country) {
+    func quickestConnectionSelect(with country: NymCountry) {
         switch type {
         case .entry:
             connectionManager.entryGateway = .lowLatencyCountry(country.code)
@@ -106,7 +106,7 @@ private extension HopListViewModel {
     func updateCountries() {
         Task { [weak self] in
             guard let self else { return }
-            let newCountries: [Country]?
+            let newCountries: [NymCountry]?
             switch connectionManager.connectionType {
             case .mixnet5hop:
                 newCountries = countriesMixnet()
@@ -119,7 +119,7 @@ private extension HopListViewModel {
         }
     }
 
-    func countriesMixnet() -> [Country] {
+    func countriesMixnet() -> [NymCountry] {
         switch type {
         case .entry:
             return !searchText.isEmpty ? gatewayManager.entryCountries.filter {
@@ -134,7 +134,7 @@ private extension HopListViewModel {
         }
     }
 
-    func countriesWireGuard() -> [Country] {
+    func countriesWireGuard() -> [NymCountry] {
         !searchText.isEmpty ? gatewayManager.vpnCountries.filter {
             $0.name.lowercased().contains(searchText.lowercased()) ||
             $0.code.lowercased().contains(searchText.lowercased())

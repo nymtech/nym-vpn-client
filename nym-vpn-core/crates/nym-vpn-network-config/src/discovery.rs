@@ -57,7 +57,7 @@ pub struct Discovery {
 
 impl Discovery {
     /// Default VPN API URL
-    pub fn defaul_vpn_api_url() -> Url {
+    pub fn default_vpn_api_url() -> Url {
         DEFAULT_VPN_API_URL.clone()
     }
 

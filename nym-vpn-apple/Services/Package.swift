@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "FeatureFlagsManager", targets: ["FeatureFlagsManager"]),
         .library(name: "GatewayManager", targets: ["GatewayManager"]),
+        .library(name: "ImpactGenerator", targets: ["ImpactGenerator"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
@@ -122,9 +123,14 @@ let package = Package(
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources/Services/GatewayManager"
+        ),
+        .target(
+            name: "ImpactGenerator",
+            dependencies: [],
+            path: "Sources/Services/ImpactGenerator"
         ),
         .target(
             name: "Keychain",
