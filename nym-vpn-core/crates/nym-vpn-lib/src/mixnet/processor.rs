@@ -25,6 +25,9 @@ use super::{MixnetError, backpressure::MixnetBackpressureMonitor};
 /// How much time to wait for ipr disconnect before proceeding to shutdown.
 const IPR_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// How much time to wait for the mixnet listener to finish
+const MIXNET_LISTENER_TIMEOUT: Duration = Duration::from_secs(5);
+
 /// Interval between attempts to send ipr disconnect
 const IPR_DISCONNECT_RETRY_DELAY: Duration = Duration::from_millis(500);
 
@@ -297,7 +300,7 @@ impl MixnetProcessor {
             tun_device = &mut mixnet_listener_handle => {
                 tun_device
             },
-            _ = ipr_disconnect_timeout => {
+            _ = tokio::time::sleep(MIXNET_LISTENER_TIMEOUT) => {
                     tracing::warn!("Timed out waiting for mixnet listener to finish");
                     mixnet_listener_cancel_token.cancel();
                     mixnet_listener_handle.await
