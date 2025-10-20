@@ -12,7 +12,8 @@ extension GatewayNode {
             description: newGateway.description,
             buildVersion: newGateway.buildVersion,
             ipv4s: newGateway.exitIpv4s,
-            ipv6s: newGateway.exitIpv6s
+            ipv6s: newGateway.exitIpv6s,
+            bridges: GatewayBridgeInformation(with: newGateway.bridgeParams)
         )
     }
 }

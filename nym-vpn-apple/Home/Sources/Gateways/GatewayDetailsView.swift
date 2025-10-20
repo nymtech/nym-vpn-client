@@ -5,8 +5,10 @@ import ConnectionManager
 import CountriesManagerTypes
 import Device
 import ExternalLinkManager
+import FeatureFlagsManager
 import GatewayManager
 import ImpactGenerator
+import Settings
 import Theme
 import UIComponents
 
@@ -18,6 +20,7 @@ public struct GatewayDetailsView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
+    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @State private var messageOverlayText: String?
     @State private var displayMessageOverlay = false
 
@@ -103,10 +106,13 @@ private extension GatewayDetailsView {
     func serverDescription() -> some View {
         if let description = gateway.description, !description.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-                Text(description)
-                    .multilineTextAlignment(.leading)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Medium.regular)
+                HStack(alignment: .firstTextBaseline) {
+                    Text(description)
+                        .multilineTextAlignment(.leading)
+                        .foregroundStyle(NymColor.gray1)
+                        .textStyle(.Body.Medium.regular)
+                    Spacer()
+                }
             }
         }
     }
@@ -227,6 +233,13 @@ private extension GatewayDetailsView {
             advancedPrivacyRow()
             separatorLine()
             streamingAndContentRow()
+            if gateway.isBridgesAvailable, hopType == .entry, featureFlagsManager.isQuicEnabled {
+                separatorLine()
+                bridges()
+                Spacer()
+                    .frame(height: 12)
+                bridgesInfo()
+            }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -272,6 +285,49 @@ private extension GatewayDetailsView {
             }
         }
     }
+
+    func bridges() -> some View {
+        HStack(spacing: 0) {
+            rowTitle(with: "gatewayInfo.bridges".localizedString)
+            Spacer()
+            GenericImage(systemImageName: gateway.isBridgesAvailable ? "checkmark" : "circle.fill")
+                .frame(width: 10, height: 10)
+                .foregroundStyle(gateway.isBridgesAvailable ? NymColor.accent : NymColor.warning)
+                .padding(.horizontal, 8)
+            rowSubtite(
+                with: gateway.isBridgesAvailable
+                ? "gatewayInfo.quicProtocol".localizedString
+                : "gatewayInfo.standardProtocol".localizedString
+            )
+        }
+    }
+
+    func bridgesInfo() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(enableQuicText())
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Small.regular)
+        }
+        .environment(\.openURL, OpenURLAction { url in
+            if url == URL(string: "app://enable-quic") {
+                path.append(HomeLink.settings)
+                path.append(SettingLink.censorship)
+                return .handled
+            }
+            return .systemAction
+        })
+    }
+
+    func enableQuicText() -> AttributedString {
+        let first = "gatewayInfo.enableQuic1".localizedString
+        let second = "gatewayInfo.enableQuic2".localizedString
+        var firstAttr = AttributedString(first)
+        firstAttr.underlineStyle = .single
+        firstAttr.foregroundColor = NymColor.primary
+        firstAttr.link = URL(string: "app://enable-quic")
+        let secondAttr = AttributedString(second)
+        return firstAttr + AttributedString(" ") + secondAttr
+    }
 }
 
 // MARK: - Performance section -
@@ -302,9 +358,15 @@ private extension GatewayDetailsView {
             GenericImage(imageName: gateway.performance?.score.imageName)
                 .frame(width: 16, height: 16)
                 .padding(8)
-            Text(gateway.performance?.score.localizedKey.localizedString ?? GatewayNodeScore.noScore.localizedKey.localizedString)
-                .foregroundStyle(scoreOverallPerformanceImageColor(with: gateway.performance?.score ?? GatewayNodeScore.noScore))
-                .textStyle(.Body.Medium.regular)
+            Text(gateway.performance?.score.localizedKey.localizedString
+                 ?? GatewayNodeScore.noScore.localizedKey.localizedString
+            )
+            .foregroundStyle(
+                scoreOverallPerformanceImageColor(
+                    with: gateway.performance?.score ?? GatewayNodeScore.noScore
+                )
+            )
+            .textStyle(.Body.Medium.regular)
         }
     }
 
@@ -312,9 +374,15 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.serverLoad".localizedString)
             Spacer()
-            Text(gateway.performance?.load.localizedKey.localizedString ?? GatewayNodeScore.noScore.localizedKey.localizedString)
-                .foregroundStyle(scoreLoadImageColor(with: gateway.performance?.load ?? GatewayNodeScore.noScore))
-                .textStyle(.Body.Medium.regular)
+            Text(gateway.performance?.load.localizedKey.localizedString
+                 ?? GatewayNodeScore.noScore.localizedKey.localizedString
+            )
+            .foregroundStyle(
+                scoreLoadImageColor(
+                    with: gateway.performance?.load ?? GatewayNodeScore.noScore
+                )
+            )
+            .textStyle(.Body.Medium.regular)
         }
     }
 
