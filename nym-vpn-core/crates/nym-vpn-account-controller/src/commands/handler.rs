@@ -6,9 +6,9 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
-    types::{DeviceStatus, VpnAccount},
+    types::{DeviceStatus, Platform, VpnAccount},
 };
-use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnApiError};
 use nym_vpn_store::account::StorableAccount;
 use tracing::info;
 
@@ -95,6 +95,24 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
     tracing::debug!("Account created and stored");
 
     Ok(())
+}
+
+pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    account: StorableAccount,
+    platform: Platform,
+) -> Result<RegisterAccountResponse, AccountCommandError> {
+    let vpn_account = VpnAccount::try_from(account.clone())
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+    let account_token = shared_state
+        .vpn_api_client
+        .post_account(&vpn_account, platform)
+        .await?
+        .account_token;
+
+    tracing::debug!("Account registered with API");
+
+    Ok(RegisterAccountResponse { account_token })
 }
 
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
