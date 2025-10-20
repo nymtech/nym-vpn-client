@@ -72,6 +72,10 @@ jobs:
           curl -LfsSo ${{ env.TARBALL }} "https://github.com/${{ env.REPOSITORY }}/archive/refs/tags/${{ env.RELEASE_TAG }}.tar.gz"
           mkdir tarball
           tar -xzf $TARBALL -C tarball
+      - name: Install rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
       - name: Get app version
         id: app-version
         uses: nicolaiunrein/cargo-get@master
