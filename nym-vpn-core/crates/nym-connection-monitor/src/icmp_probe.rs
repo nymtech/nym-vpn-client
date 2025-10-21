@@ -241,6 +241,7 @@ impl ConnectionProbe for IcmpProbe {
     }
 }
 
+// Running these tests on Linux requires CAP_NET_RAW
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -267,10 +268,12 @@ mod tests {
         let mut config = IcmpProbeConfig::new(probe_ip);
         #[cfg(any(
             target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
+            target_os = "android"
         ))]
+        {
+            config = config.with_interface("lo".to_owned());
+        }
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
         {
             config = config.with_interface("lo0".to_owned());
         }
