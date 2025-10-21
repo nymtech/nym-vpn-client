@@ -1,12 +1,17 @@
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import { useMainDispatch, useMainState } from '../../../contexts';
+import {
+  useInAppNotify,
+  useMainDispatch,
+  useMainState,
+} from '../../../contexts';
 import { StateDispatch } from '../../../types';
 import { kvSet } from '../../../kvStore';
 import { DomainFrontingUrl, QuicUrl } from '../../../constants';
 
 function AntiCensorship() {
-  const { quic, backendFlags } = useMainState();
+  const { quic, backendFlags, state } = useMainState();
+  const { push } = useInAppNotify();
 
   const dispatch = useMainDispatch() as StateDispatch;
 
@@ -16,7 +21,13 @@ function AntiCensorship() {
     const isChecked = !quic;
     await kvSet('quic-enabled', isChecked);
     dispatch({ type: 'set-quic', enabled: isChecked });
-    // TODO invoke command
+    if (state == 'connected' || state == 'connecting') {
+      push({
+        message: t('anti-censorship.reconnect-snackbar'),
+        clickAway: true,
+        close: true,
+      });
+    }
   };
 
   // const onDomainFrontingChange = async () => {
