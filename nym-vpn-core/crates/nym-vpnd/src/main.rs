@@ -15,6 +15,7 @@ mod windows_service;
 
 use std::path::PathBuf;
 
+use anyhow::Context;
 use clap::Parser;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -29,9 +30,22 @@ use crate::{
 };
 use service::{NymVpnService, NymVpnServiceParameters};
 
-// Are we sure we need 10 worker threads?
-#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
+    // COM must be initialized on main thread to prevent crash in firewall
+    // internals where we use a combination of COM and thread_local
+    // See: https://github.com/ohadravid/wmi-rs/issues/136
+    #[cfg(windows)]
+    let _com = wmi::COMLibrary::new().context("failed to initialize COM")?;
+
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(10)
+        .enable_all()
+        .build()
+        .context("failed to build tokio runtime")?;
+    rt.block_on(async_main())
+}
+
+async fn async_main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
 
     match args.command.unwrap_or_default() {
