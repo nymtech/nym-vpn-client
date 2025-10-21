@@ -254,6 +254,7 @@ impl MixnetProcessor {
                     }
                     None => {
                         tracing::error!("Tun device stream ended");
+                        mixnet_listener_cancel_token.cancel();
                         break;
                     }
                 },
