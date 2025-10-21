@@ -21,7 +21,6 @@ use crate::tunnel_state_machine::{
     tunnel::SelectedGateways,
 };
 
-
 use std::time::Duration;
 
 /// Delay before reconnecting after network comes online
