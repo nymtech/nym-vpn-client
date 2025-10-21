@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Account controller fast errors don't mask a possible shutdown (https://github.com/nymtech/nym-vpn-client/pull/3715)
+- Fix mixnet listener timeout not being set (https://github.com/nymtech/nym-vpn-client/pull/3715)
 
 
 ## [1.17.0] - 2025-10-17
