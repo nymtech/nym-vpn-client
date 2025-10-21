@@ -147,9 +147,11 @@ enum IcmpProbeInnerError {
     #[error("failed to create ICMP client")]
     CreateIcmpClient(#[source] std::io::Error),
 
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     #[error("failed to get interface index for {0}")]
     GetInterfaceIndex(String, #[source] nix::errno::Errno),
 
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     #[error("received invalid interface index for {0}")]
     InvalidInterfaceIndex(String),
 }
