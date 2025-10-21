@@ -1,6 +1,6 @@
 import Foundation
 
-public enum HopType: Codable, Hashable {
+public enum HopType: Codable, Hashable, Sendable {
     case entry
     case exit
 
