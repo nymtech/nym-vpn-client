@@ -4,7 +4,6 @@ use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
 use crate::state::SharedAppState;
 use crate::state::app::NetworkCompat;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use tauri::State;
 use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
