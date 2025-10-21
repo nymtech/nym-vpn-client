@@ -86,15 +86,19 @@ private extension FeatureFlagsManager {
 }
 
 private extension FeatureFlagsManager {
-    @MainActor func updateFeatureFlags() {
+    func updateFeatureFlags() {
         Task {
+            let newFlags: [FeatureFlag]
 #if os(iOS)
             guard let flags = try? currentEnvironment().featureFlags else { return }
-            featureFlags = flags.toFeatureFlagList()
+            newFlags = flags.toFeatureFlagList()
 #elseif os(macOS)
             guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
-            featureFlags = flags
+            newFlags = flags
 #endif
+            await MainActor.run {
+                featureFlags = newFlags
+            }
         }
     }
 }

@@ -101,11 +101,11 @@ import UIComponents
         AppVersionProvider.appVersion()
     }
 
-    @MainActor func navigateHome() {
+    func navigateHome() {
         path = .init()
     }
 
-    @MainActor func navigateToAddCredentialsOrCredential() {
+    func navigateToAddCredentialsOrCredential() {
 #if os(macOS)
         guard !helperManager.isInstallNeeded()
         else {
@@ -126,42 +126,42 @@ import UIComponents
 #endif
     }
 
-    @MainActor func navigateToSantasMenu() {
+    func navigateToSantasMenu() {
         guard configurationManager.isSantaClaus else { return }
         path.append(SettingLink.santasMenu)
     }
 }
 
 private extension SettingsViewModel {
-    @MainActor func navigateToPrivacyAndData() {
+    func navigateToPrivacyAndData() {
         path.append(SettingLink.privacyAndData)
     }
 
-    @MainActor func navigateToAppearance() {
+    func navigateToAppearance() {
         path.append(SettingLink.appearance)
     }
 
-    @MainActor func navigateToLogs() {
+    func navigateToLogs() {
         path.append(SettingLink.logs)
     }
 
-    @MainActor func navigateToSupportAndFeedback() {
+    func navigateToSupportAndFeedback() {
         path.append(SettingLink.support)
     }
 
-    @MainActor func navigateToLegal() {
+    func navigateToLegal() {
         path.append(SettingLink.legal)
     }
 
-    @MainActor func navigateToAccount() {
+    func navigateToAccount() {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
 
-    @MainActor func navigateToCensorship() {
+    func navigateToCensorship() {
         path.append(SettingLink.censorship)
     }
 #if os(macOS)
-    @MainActor func navigateToInstallHelper() {
+    func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in
             self?.navigateToAddCredentialsOrCredential()
         }
@@ -197,22 +197,26 @@ private extension SettingsViewModel {
     }
 
     func configureSections() {
-        var newSections = [SettingsSection]()
-        if appSettings.isCredentialImported {
-            newSections.append(accountSection())
+        Task {
+            var newSections = [SettingsSection]()
+            if appSettings.isCredentialImported {
+                newSections.append(accountSection())
+            }
+            newSections.append(
+                contentsOf: [
+                    feedbackSection(),
+                    killswitchSection(),
+                    appearanceSection(),
+                    legalSection()
+                ]
+            )
+            if appSettings.isCredentialImported {
+                newSections.append(logoutSection())
+            }
+            await MainActor.run {
+                sections = newSections
+            }
         }
-        newSections.append(
-            contentsOf: [
-                feedbackSection(),
-                killswitchSection(),
-                appearanceSection(),
-                legalSection()
-            ]
-        )
-        if appSettings.isCredentialImported {
-            newSections.append(logoutSection())
-        }
-        sections = newSections
     }
 }
 
@@ -321,20 +325,20 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        if featureFlagsManager.isQuicEnabled || featureFlagsManager.isStealthAPIEnabled {
-            viewModels.append(
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.censorship.title".localizedString,
-                    imageName: "domain",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToCensorship()
-                        }
-                    }
-                )
-            )
-        }
+//        if featureFlagsManager.isQuicEnabled || featureFlagsManager.isStealthAPIEnabled {
+//            viewModels.append(
+//                SettingsListItemViewModel(
+//                    accessory: .arrow,
+//                    title: "settings.censorship.title".localizedString,
+//                    imageName: "domain",
+//                    action: { [weak self] in
+//                        Task { @MainActor in
+//                            self?.navigateToCensorship()
+//                        }
+//                    }
+//                )
+//            )
+//        }
         return .killSwitch(viewModels: viewModels)
     }
 

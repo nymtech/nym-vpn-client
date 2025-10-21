@@ -127,7 +127,7 @@ extension Tunnel {
 private extension Tunnel {
     func startPollingTunnelStatus() {
         isPolling = true
-        pollingTask = Task { @MainActor [weak self] in
+        pollingTask = Task { [weak self] in
             guard let self else { return }
             while self.isPolling {
                 await self.pollTunnelStatus()
@@ -143,24 +143,38 @@ private extension Tunnel {
     }
 
     func pollTunnelStatus() async {
-        guard let session = tunnel.connection as? NETunnelProviderSession,
-              let message = try? TunnelProviderMessage.status.encode(),
-              let response = try? await session.sendMessageOnMainActor(message),
-              let decoded = try? JSONDecoder().decode(TunnelStatusResponse.self, from: response)
-        else { return }
+        let (session, message): (NETunnelProviderSession?, Data?) = await MainActor.run { [weak self] in
+            guard let self else {
+                return (nil, nil)
+            }
+            let session = self.tunnel.connection as? NETunnelProviderSession
+            let message = try? TunnelProviderMessage.status.encode()
+            return (session, message)
+        }
 
-        retryAttempt = decoded.retryAttempt
-        afterDisconnectAction = decoded.afterDisconnectAction
-        tunnelConnectingState = decoded.tunnelConnectingState
-        connectionInfoData = decoded.connectionInfoData
+        guard let session, let message else { return }
 
-        guard isPolling else { return }
-        if let newError = decoded.lastError {
-            guard status != .error else { return }
-            status = .error
-            lastError = newError
-        } else if status != decoded.status {
-            status = decoded.status
+        guard let response = try? await session.sendMessageOnMainActor(message),
+            let decoded = try? JSONDecoder().decode(TunnelStatusResponse.self, from: response)
+        else {
+            return
+        }
+
+        await MainActor.run { [weak self] in
+            guard let self else { return }
+            self.retryAttempt = decoded.retryAttempt
+            self.afterDisconnectAction = decoded.afterDisconnectAction
+            self.tunnelConnectingState = decoded.tunnelConnectingState
+            self.connectionInfoData = decoded.connectionInfoData
+
+            guard self.isPolling else { return }
+            if let newError = decoded.lastError {
+                guard self.status != .error else { return }
+                self.status = .error
+                self.lastError = newError
+            } else if self.status != decoded.status {
+                self.status = decoded.status
+            }
         }
     }
 }

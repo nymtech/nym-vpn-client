@@ -6,7 +6,12 @@ public struct GatewayNodePerformance: Codable, Hashable {
     public let load: GatewayNodeScore
     public let uptime: Double
 
-    public init(lastUpdated: Date?, score: GatewayNodeScore, load: GatewayNodeScore, uptime: Double) {
+    public init(
+        lastUpdated: Date?,
+        score: GatewayNodeScore,
+        load: GatewayNodeScore,
+        uptime: Double
+    ) {
         self.lastUpdated = lastUpdated
         self.score = score
         self.load = load

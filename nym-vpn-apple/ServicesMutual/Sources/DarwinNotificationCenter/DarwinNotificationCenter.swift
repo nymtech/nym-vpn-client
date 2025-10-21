@@ -75,8 +75,9 @@ extension DarwinNotificationCenter {
                 continuation.yield()
             }
             continuation.onTermination = { _ in
-                // Ensure cancellation happens on the main actor
-                Task { @MainActor in observation.cancel() }
+                Task { @MainActor in
+                    observation.cancel()
+                }
             }
         }
     }
@@ -97,10 +98,13 @@ extension DarwinNotificationCenter {
         }
 
         return subject
-            .handleEvents(receiveCancel: {
-                // Ensure cancellation happens on the main actor
-                Task { @MainActor in observation.cancel() }
-            })
+            .handleEvents(
+                receiveCancel: {
+                    Task { @MainActor in
+                        observation.cancel()
+                    }
+                }
+            )
             .eraseToAnyPublisher()
     }
 }

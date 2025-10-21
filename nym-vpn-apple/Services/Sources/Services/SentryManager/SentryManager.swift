@@ -28,21 +28,18 @@ extension SentryManager {
     }
 
     func configureSentry() {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            if appSettings.isErrorReportingOn {
-                SentrySDK.start { options in
-                    options.dsn = "https://f860c307259ffe7827fa4ecdfaa8834f@o967446.ingest.us.sentry.io/4507135758237696"
-                    options.debug = false // Enabled debug when first installing is always helpful
-                    options.tracesSampleRate = 1.0
+        if appSettings.isErrorReportingOn {
+            SentrySDK.start { options in
+                options.dsn = "https://f860c307259ffe7827fa4ecdfaa8834f@o967446.ingest.us.sentry.io/4507135758237696"
+                options.debug = false
+                options.tracesSampleRate = 1.0
 
-                    // Uncomment the following lines to add more data to your events
-                    // options.attachScreenshot = true // This adds a screenshot to the error events
-                    // options.attachViewHierarchy = true // This adds the view hierarchy to the error events
-                }
-            } else {
-                SentrySDK.close()
+                // Uncomment the following lines to add more data to your events
+                // options.attachScreenshot = true // This adds a screenshot to the error events
+                // options.attachViewHierarchy = true // This adds the view hierarchy to the error events
             }
+        } else {
+            SentrySDK.close()
         }
     }
 }
