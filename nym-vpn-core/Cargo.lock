@@ -8079,7 +8079,7 @@ checksum = "734676eb262c623cec13c3155096e08d1f8f29adce39ba17948b18dad1e54142"
 [[package]]
 name = "surge-ping"
 version = "0.8.2"
-source = "git+https://github.com/pronebird/surge-ping.git?branch=add-interface-index#d5d973b50eb75d5908f88cb0b98dafa6979f4c8a"
+source = "git+https://github.com/pronebird/surge-ping.git?rev=d5d973b50eb75d5908f88cb0b98dafa6979f4c8a#d5d973b50eb75d5908f88cb0b98dafa6979f4c8a"
 dependencies = [
  "hex",
  "parking_lot",
