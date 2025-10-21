@@ -3,6 +3,7 @@
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -14,6 +15,10 @@ use crate::{
         SyncingState,
     },
 };
+
+/// Grace period to wait after network comes online before attempting API calls
+/// This allows DNS, routing, and network stack to fully stabilize
+const NETWORK_STABILIZATION_DELAY: Duration = Duration::from_secs(2);
 
 /// OfflineState
 ///
@@ -97,6 +102,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                 if connectivity.is_offline() {
                     NextAccountControllerState::SameState(self)
                 } else {
+                    tracing::info!(
+                        "Network connectivity restored, waiting {}s for network stabilization before syncing",
+                        NETWORK_STABILIZATION_DELAY.as_secs()
+                    );
+                    tokio::time::sleep(NETWORK_STABILIZATION_DELAY).await;
                     NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
                 }
             }
