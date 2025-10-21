@@ -8,6 +8,17 @@ public struct GatewayNode: Codable, Hashable {
     public let buildVersion: String?
     public let ipv4s: [String]
     public let ipv6s: [String]
+    public let bridges: GatewayBridgeInformation?
+
+    public var isBridgesAvailable: Bool {
+        guard let bridges else { return false }
+        return bridges.transports.contains {
+            switch $0 {
+            case .quicPlain:
+                true
+            }
+        }
+    }
 
     public init(
         id: String,
@@ -18,7 +29,8 @@ public struct GatewayNode: Codable, Hashable {
         description: String?,
         buildVersion: String?,
         ipv4s: [String],
-        ipv6s: [String]
+        ipv6s: [String],
+        bridges: GatewayBridgeInformation?
     ) {
         self.id = id
         self.location = location
@@ -29,6 +41,7 @@ public struct GatewayNode: Codable, Hashable {
         self.buildVersion = buildVersion
         self.ipv4s = ipv4s
         self.ipv6s = ipv6s
+        self.bridges = bridges
     }
 }
 

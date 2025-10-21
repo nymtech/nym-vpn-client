@@ -39,6 +39,7 @@ let package = Package(
         .target(
             name: "ConnectionTypes",
             dependencies: [
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
                 "CountriesManagerTypes",
                 "Theme"
@@ -55,6 +56,8 @@ let package = Package(
         .target(
             name: "CountriesManagerTypes",
             dependencies: [
+                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
+                .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources/CountriesManagerTypes"
         ),
