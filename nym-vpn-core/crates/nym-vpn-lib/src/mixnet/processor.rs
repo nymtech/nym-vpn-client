@@ -249,6 +249,7 @@ impl MixnetProcessor {
                     }
                     Some(Err(err)) => {
                         tracing::error!("Failed to read from tun device: {err}");
+                        mixnet_listener_cancel_token.cancel();
                         break;
                     }
                     None => {
