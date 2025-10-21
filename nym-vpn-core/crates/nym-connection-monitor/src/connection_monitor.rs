@@ -234,19 +234,15 @@ where
                                 self.state.phase = Phase::Monitoring;
                             }
 
-                            match self.state.status {
-                                ConnectionStatus::Undetermined | ConnectionStatus::Failed => {
-                                    self.send_event(ConnectionEvent {
-                                        status: ConnectionStatusEvent::Viable,
-                                        start_timestamp: self.state.last_sent_at,
-                                        end_timestamp: current_timestamp,
-                                    });
-                                    self.state.status = ConnectionStatus::Viable;
-                                    tracing::info!("Connection is {}", self.state.status);
-                                }
-                                ConnectionStatus::Viable => {
-                                    // Don't repeat the same events until something goes wrong
-                                }
+                            self.send_event(ConnectionEvent {
+                                status: ConnectionStatusEvent::Viable,
+                                start_timestamp: self.state.last_sent_at,
+                                end_timestamp: current_timestamp,
+                            });
+
+                            if self.state.status != ConnectionStatus::Viable {
+                                self.state.status = ConnectionStatus::Viable;
+                                tracing::info!("Connection is {}", self.state.status);
                             }
 
                             // Since the probe succeeded, send the next one at longer interval
@@ -260,28 +256,21 @@ where
 
                             self.state.increment_retry();
 
-                            match self.state.status {
-                                ConnectionStatus::Viable | ConnectionStatus::Undetermined => {
-                                    // Check if retry count has been reached to declare that connection is lost
-                                    if self.state.retry > self.state.max_retry_count(&self.timing_config) {
-                                        self.state.status = ConnectionStatus::Failed;
-                                        self.send_event(ConnectionEvent {
-                                            status: ConnectionStatusEvent::Failed,
-                                            start_timestamp: self.state.last_sent_at,
-                                            end_timestamp: current_timestamp,
-                                        });
-                                        tracing::info!("Connection is {}", self.state.status);
-                                    } else {
-                                        self.send_event(ConnectionEvent {
-                                            status: ConnectionStatusEvent::IntermittentFailure { retry: self.state.retry },
-                                            start_timestamp: self.state.last_sent_at,
-                                            end_timestamp: current_timestamp,
-                                        });
-                                    }
-                                }
-                                ConnectionStatus::Failed => {
-                                    // Don't repeat the same events until recovery
-                                }
+                            // Check if retry count has been reached to declare that connection is lost
+                            if self.state.retry > self.state.max_retry_count(&self.timing_config) {
+                                self.state.status = ConnectionStatus::Failed;
+                                self.send_event(ConnectionEvent {
+                                    status: ConnectionStatusEvent::Failed,
+                                    start_timestamp: self.state.last_sent_at,
+                                    end_timestamp: current_timestamp,
+                                });
+                                tracing::info!("Connection is {}", self.state.status);
+                            } else {
+                                self.send_event(ConnectionEvent {
+                                    status: ConnectionStatusEvent::IntermittentFailure { retry: self.state.retry },
+                                    start_timestamp: self.state.last_sent_at,
+                                    end_timestamp: current_timestamp,
+                                });
                             }
 
                             // Re-transmit in equal intervals to avoid the flood in the event of socket failure
@@ -295,9 +284,9 @@ where
                     // Elapsed may lapse due to system clock adjustments
                     let elapsed = next_probe_at.checked_duration_since(current_timestamp);
                     if let Some(elapsed) = elapsed && !elapsed.is_zero() {
-                        tracing::trace!("Connection is {}, next probe in {} ms", self.state.status, elapsed.as_millis());
+                        tracing::trace!("Next probe in {} ms", elapsed.as_millis());
                     } else {
-                        tracing::trace!("Connection is {}, next probe is now", self.state.status);
+                        tracing::trace!("Next probe is now");
                     }
                     next_probe_timer.set(tokio::time::sleep_until(next_probe_at).fuse());
                 }
