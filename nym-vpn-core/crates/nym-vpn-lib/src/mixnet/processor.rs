@@ -152,7 +152,8 @@ impl MixnetProcessor {
         );
 
         // Keeps track of whether ipr disconnect timeout has been activated.
-        let mut is_disconnect_timeout_active = false;
+        let mut is_disconnect_timeout_set = false;
+        let mut started_sleep_timeout = false;
 
         // Ipr disconnect timeout future set upon cancellation
         let ipr_disconnect_timeout = Fuse::terminated();
@@ -195,10 +196,10 @@ impl MixnetProcessor {
                 // make sure we've fully disconnected before we return.
                 _ = self.cancel_token.cancelled() => {
                     // Start disconnect timeout upon receiving cancellation in the very first time.
-                    if is_disconnect_timeout_active {
+                    if is_disconnect_timeout_set {
                         tracing::debug!("Re-sending disconnect message");
                     } else {
-                        is_disconnect_timeout_active = true;
+                        is_disconnect_timeout_set = true;
                         ipr_disconnect_timeout.set(tokio::time::sleep(IPR_DISCONNECT_TIMEOUT).fuse());
                         tracing::debug!("Cancel token triggered, sending disconnect message");
                     }
@@ -208,12 +209,14 @@ impl MixnetProcessor {
                         Err(err) => {
                             tracing::error!("Failed to create disconnect message: {err}");
                             tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
+                            started_sleep_timeout = true;
                             continue;
                         }
                     };
                     if let Err(err) = mixnet_sender.send(input_message).await {
                         tracing::error!("Failed to send disconnect message: {err}");
                         tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
+                        started_sleep_timeout = true;
                         continue;
                     }
 
@@ -249,12 +252,10 @@ impl MixnetProcessor {
                     }
                     Some(Err(err)) => {
                         tracing::error!("Failed to read from tun device: {err}");
-                        mixnet_listener_cancel_token.cancel();
                         break;
                     }
                     None => {
                         tracing::error!("Tun device stream ended");
-                        mixnet_listener_cancel_token.cancel();
                         break;
                     }
                 },
@@ -296,12 +297,19 @@ impl MixnetProcessor {
 
         tracing::info!("Waiting for mixnet listener to finish");
 
+        // if loop terminates for some other reason without sending disconnect OR
+        // we already started waiting some time, we force shutdown so we don't wait even more
+        if !is_disconnect_timeout_set || started_sleep_timeout {
+            mixnet_listener_cancel_token.cancel();
+        }
+
         // Wait for the mixnet listener to finish, or force finish
         let mix_listener_result = tokio::select! {
             biased;
             tun_device = &mut mixnet_listener_handle => {
                 tun_device
             },
+            // backup timeout, just in case cancel didn't somehow get properly sent
             _ = tokio::time::sleep(MIXNET_LISTENER_TIMEOUT) => {
                     tracing::warn!("Timed out waiting for mixnet listener to finish");
                     mixnet_listener_cancel_token.cancel();
