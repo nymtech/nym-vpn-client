@@ -19,10 +19,10 @@ use super::{BoxedProbeError, ConnectionProbe, ProbeError};
 const DEFAULT_ICMP_IDENT: u16 = 217;
 
 /// Default host used for probing via IPv4
-const DEFAULT_IPV4_PROBE_IP: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
+const DEFAULT_IPV4_PROBE_IP: Ipv4Addr = Ipv4Addr::new(1, 1, 1, 1);
 
 /// Default host used for probing via IPv6
-const DEFAULT_IPV6_PROBE_IP: Ipv6Addr = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
+const DEFAULT_IPV6_PROBE_IP: Ipv6Addr = Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111);
 
 /// ICMP probe configuration
 #[derive(Debug, Clone)]
