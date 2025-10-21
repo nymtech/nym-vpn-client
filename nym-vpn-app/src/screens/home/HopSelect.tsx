@@ -26,13 +26,16 @@ export default function HopSelect({
   disabled,
   locked,
 }: HopSelectProps) {
-  const { quic } = useMainState();
+  const { backendFlags, quic } = useMainState();
   const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
   const quicTag =
-    nodeHop === 'entry' && quic && (isGateway(node) ? node.quic : true);
+    nodeHop === 'entry' &&
+    backendFlags.quic &&
+    quic &&
+    (isGateway(node) ? node.quic : true);
 
   const handleClick = () => {
     if (disabled) {

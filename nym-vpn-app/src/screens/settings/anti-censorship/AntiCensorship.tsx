@@ -23,8 +23,14 @@ function AntiCensorship() {
     dispatch({ type: 'set-quic', enabled: isChecked });
     if (state == 'connected' || state == 'connecting') {
       push({
-        message: t('anti-censorship.reconnect-snackbar'),
-        clickAway: true,
+        id: `quic-switch-${isChecked}`,
+        message: t(
+          isChecked
+            ? 'anti-censorship.snackbar-switch-on'
+            : 'anti-censorship.snackbar-switch-off',
+        ),
+        throttle: 5,
+        duration: 5000,
         close: true,
       });
     }
@@ -39,7 +45,7 @@ function AntiCensorship() {
   //   } catch {}
   // };
 
-  if (!backendFlags?.quic && !backendFlags?.domainFronting) {
+  if (!backendFlags.quic && !backendFlags.domainFronting) {
     return (
       <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
         This feature is not available
@@ -52,7 +58,7 @@ function AntiCensorship() {
       <div className="text-iron dark:text-bombay">
         {t('anti-censorship.intro')}
       </div>
-      {backendFlags?.quic && (
+      {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
             <CardSwitch
@@ -78,7 +84,7 @@ function AntiCensorship() {
           </div>
         </SettingsMenuCardBig>
       )}
-      {backendFlags?.domainFronting && (
+      {backendFlags.domainFronting && (
         <SettingsMenuCardBig
           header={
             <CardSwitch

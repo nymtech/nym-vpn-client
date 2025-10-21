@@ -13,7 +13,7 @@ export type NodesStateProviderProps = {
 };
 
 function NodeListProvider({ children, hop }: NodesStateProviderProps) {
-  const { vpnMode, entryNode, exitNode, quic } = useMainState();
+  const { vpnMode, entryNode, exitNode, quic, backendFlags } = useMainState();
   const {
     mxEntry: mxEntryGateways,
     mxExit: mxExitGateways,
@@ -28,7 +28,8 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
 
   const [nodes, setNodes] = useState<UiGatewaysByCountry[]>([]);
   const [gatewayList, setGatewayList] = useState<UiGateway[]>([]);
-  const quicFilter = vpnMode === 'wg' && hop === 'entry' && quic;
+  const quicFilter =
+    vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
 
   const { compare, getCountryName } = useLang();
 

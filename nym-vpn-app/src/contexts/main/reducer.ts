@@ -71,7 +71,7 @@ export type StateAction =
   | { type: 'set-account-syncing'; syncing: boolean }
   | { type: 'set-welcome-checked'; checked: boolean }
   | { type: 'set-account-error'; error: AppError | null }
-  | { type: 'set-backend-flags'; flags: FeatureFlags | null }
+  | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
   | { type: 'set-domain-fronting'; enabled: boolean };
 
@@ -105,6 +105,13 @@ export const initialState: AppState = {
   welcomeChecked: false,
   quic: false,
   domainFronting: false,
+  backendFlags: {
+    quic: false,
+    domainFronting: false,
+    zknymCredential: false,
+    gatewayUpdateVersion: null,
+    flags: {},
+  },
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {

@@ -51,7 +51,7 @@ export type AppState = {
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
   // feature flags from backend and APIs (via daemon)
-  backendFlags?: FeatureFlags | null;
+  backendFlags: FeatureFlags;
   networkEnv: NetworkEnv;
   version: string | null;
   error?: AppError | null;
@@ -82,7 +82,9 @@ export type AppState = {
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
+  // current user setting
   quic: boolean;
+  // current user setting
   domainFronting: boolean;
 };
 

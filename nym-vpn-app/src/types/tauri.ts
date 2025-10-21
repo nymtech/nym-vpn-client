@@ -127,6 +127,7 @@ export type Gateway = {
   name: string;
   country: Country;
   location: Location;
+  description: string | null;
   asn: Asn | null;
   mxScore: Score;
   wgScore: Score;

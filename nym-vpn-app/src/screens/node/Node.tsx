@@ -22,7 +22,7 @@ import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
-  const { vpnMode, quic } = useMainState();
+  const { backendFlags, vpnMode, quic } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
@@ -33,7 +33,8 @@ function Node({ node }: { node: NodeHop }) {
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
   const [search, setSearch] = useState('');
-  const quicFilter = vpnMode === 'wg' && node === 'entry' && quic;
+  const quicFilter =
+    vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
 
   const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');

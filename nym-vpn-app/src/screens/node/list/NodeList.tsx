@@ -32,7 +32,7 @@ function NodeList({
   vpnMode,
   onNodeDetails,
 }: NodeListProps) {
-  const { quic } = useMainState();
+  const { backendFlags, quic } = useMainState();
   const {
     exit: exitState,
     entry: entryState,
@@ -42,7 +42,8 @@ function NodeList({
   const focused = node === 'entry' ? entryState.focused : exitState.focused;
   const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
   const gatewaysRef = useRef<Map<string, HTMLDivElement>>(null);
-  const quicFilter = vpnMode === 'wg' && node === 'entry' && quic;
+  const quicFilter =
+    vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
 
   const getMap = (type: 'country' | 'gateway') => {
     if (type === 'country') {
