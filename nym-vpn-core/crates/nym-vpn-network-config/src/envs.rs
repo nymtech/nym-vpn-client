@@ -7,12 +7,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
 use itertools::Itertools;
 use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
-use nym_vpn_api_client::VpnApiClient;
-
-use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
+use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -65,16 +64,21 @@ impl RegisteredNetworks {
         tracing::debug!("Fetching registered networks");
 
         // Spawn the root task
-        let default_url = Discovery::default_vpn_api_url();
+        let api_urls = Discovery::default_vpn_api_urls();
+
+        let urls = api_urls_to_urls(api_urls).map_err(Error::CreateVpnApiClient)?;
+
         let inner = VpnApiClient::new(
-            default_url,
+            urls,
             UserAgent {
                 application: String::new(),
                 version: String::new(),
                 platform: String::new(),
                 git_commit: String::new(),
             },
+            None,
         )
+        .await
         .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_envs()
         .await

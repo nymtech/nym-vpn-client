@@ -266,10 +266,13 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     };
 
     if options.enable_stdout_log {
+        // When debugging using WinDBG, the ANSI escape codes play havoc with the terminal output.
+        let with_ansi = !(cfg!(debug_assertions) && cfg!(windows));
+
         let console_layer = tracing_subscriber::fmt::layer()
             .compact()
             .with_span_events(FmtSpan::CLOSE)
-            .with_ansi(true);
+            .with_ansi(with_ansi);
         layers.push(console_layer.boxed());
     }
 

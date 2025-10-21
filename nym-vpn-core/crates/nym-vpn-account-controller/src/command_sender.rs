@@ -7,12 +7,12 @@ use crate::{
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::types::StorableAccount;
-use std::net::SocketAddr;
 use tokio::sync::mpsc::UnboundedSender;
 
 #[derive(Clone)]
@@ -143,15 +143,16 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn set_static_api_addresses(
+    pub async fn set_resolver_overrides(
         &self,
-        static_addresses: Option<Vec<SocketAddr>>,
+        resolver_overrides: Option<ResolverOverrides>,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::Common(
-                CommonCommand::SetStaticApiAddresses(tx, static_addresses),
-            ))
+            .send(AccountCommand::Common(CommonCommand::SetResolverOverrides(
+                tx,
+                resolver_overrides,
+            )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

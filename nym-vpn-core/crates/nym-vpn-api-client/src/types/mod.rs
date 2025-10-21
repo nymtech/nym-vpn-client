@@ -5,6 +5,7 @@ mod account;
 mod device;
 mod gateway;
 mod platform;
+mod resolver_overrides;
 
 #[cfg(test)]
 mod test_fixtures;
@@ -17,3 +18,4 @@ pub use gateway::{GatewayMinPerformance, GatewayType, ScoreThresholds};
 pub use platform::Platform;
 
 pub use nym_contracts_common::{NaiveFloat, Percent};
+pub use resolver_overrides::ResolverOverrides;

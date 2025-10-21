@@ -36,6 +36,7 @@ tokio-util = { workspace = true, features = ["codec", "rt"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
+url.workspace = true
 
 nym-bin-common.workspace = true
 nym-sdk.workspace = true

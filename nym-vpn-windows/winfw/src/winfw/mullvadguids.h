@@ -84,6 +84,18 @@ public:
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_10();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_11();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_12();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_13();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_14();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_15();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_16();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_17();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_18();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_19();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_20();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_21();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_22();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_23();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_24();
 
 	static const GUID &Filter_Baseline_PermitEndpoint_Ipv6_1();
 	static const GUID &Filter_Baseline_PermitEndpoint_Ipv6_2();
@@ -97,6 +109,18 @@ public:
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_10();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_11();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_12();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_13();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_14();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_15();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_16();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_17();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_18();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_19();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_20();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_21();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_22();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_23();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_24();
 
 	static const GUID &Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1();
 	static const GUID &Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_1();

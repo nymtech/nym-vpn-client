@@ -385,8 +385,8 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!();
     println!("nym_vpn_network:");
     println!(
-        "  nym_vpn_api_url: {}",
-        service_info.nym_vpn_network.nym_vpn_api_url
+        "  nym_vpn_api_urls: {:?}",
+        service_info.nym_vpn_network.nym_vpn_api_urls
     )
 }
 
