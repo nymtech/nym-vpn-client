@@ -83,6 +83,7 @@ pub async fn feature_flags(
         zknym_credential: true,
         flags: HashMap::new(),
     })
+    // TODO revert this!!
     // grpc_client
     //     .feature_flags()
     //     .await
