@@ -140,7 +140,7 @@ function Node({ node }: { node: NodeHop }) {
                 i18nKey="quic-filter-note"
                 ns="nodeLocation"
                 components={{
-                  settingsMenu: (
+                  here: (
                     <Link
                       text={t('here', { ns: 'glossary' })}
                       to={routes.antiCensorship}

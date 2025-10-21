@@ -76,21 +76,13 @@ pub async fn system_messages(
 pub async fn feature_flags(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<FeatureFlags, BackendError> {
-    Ok(FeatureFlags {
-        quic: true,
-        domain_fronting: false,
-        gateway_update_version: None,
-        zknym_credential: true,
-        flags: HashMap::new(),
-    })
-    // TODO revert this!!
-    // grpc_client
-    //     .feature_flags()
-    //     .await
-    //     .inspect_err(|e| {
-    //         warn!("failed to get feature flags: {:?}", e);
-    //     })
-    //     .map_err(|e| e.into())
+    grpc_client
+        .feature_flags()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to get feature flags: {:?}", e);
+        })
+        .map_err(|e| e.into())
 }
 
 #[instrument(skip_all)]
