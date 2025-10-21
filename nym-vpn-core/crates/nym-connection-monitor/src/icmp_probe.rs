@@ -190,27 +190,25 @@ impl IcmpProbe {
         if let Some(addr) = config.local_address {
             builder = builder.bind(SocketAddr::new(addr, 0));
         }
-        if let Some(interface) = config.interface.as_deref() {
-            #[cfg(any(target_os = "android", target_os = "linux"))]
-            {
-                builder = builder.interface(interface);
-            }
 
-            #[cfg(any(target_os = "ios", target_os = "macos"))]
-            {
-                // Convert interface name to index
-                let index = nix::net::if_::if_nametoindex(interface)
-                    .map_err(|err| {
-                        IcmpProbeInnerError::GetInterfaceIndex(interface.to_owned(), err)
-                    })
-                    .and_then(|index| {
-                        std::num::NonZeroU32::new(index).ok_or(
-                            IcmpProbeInnerError::InvalidInterfaceIndex(interface.to_owned()),
-                        )
-                    })?;
-                builder = builder.interface_index(index);
-            }
+        #[cfg(any(target_os = "android", target_os = "linux"))]
+        if let Some(interface) = config.interface.as_deref() {
+            builder = builder.interface(interface);
         }
+
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
+        if let Some(interface) = config.interface.as_deref() {
+            // Convert interface name to index
+            let index = nix::net::if_::if_nametoindex(interface)
+                .map_err(|err| IcmpProbeInnerError::GetInterfaceIndex(interface.to_owned(), err))
+                .and_then(|index| {
+                    std::num::NonZeroU32::new(index).ok_or(
+                        IcmpProbeInnerError::InvalidInterfaceIndex(interface.to_owned()),
+                    )
+                })?;
+            builder = builder.interface_index(index);
+        }
+
         let client_config = builder.build();
         let client =
             SurgeClient::new(&client_config).map_err(IcmpProbeInnerError::CreateIcmpClient)?;
