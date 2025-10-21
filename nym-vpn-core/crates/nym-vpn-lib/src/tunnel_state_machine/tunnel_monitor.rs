@@ -500,6 +500,9 @@ impl TunnelMonitor {
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
 
+        // Setup shutdown guard to cancel pending tasks that otherwise may continue running upon return
+        let shutdown_guard = self.shutdown_token.clone().drop_guard();
+
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
         let registration_client = Box::pin(rc_builder.build()).await?;
@@ -682,7 +685,7 @@ impl TunnelMonitor {
         }
 
         // Trigger cancellation since many other tasks depend on shutdown token
-        self.shutdown_token.cancel();
+        drop(shutdown_guard);
 
         if let Err(e) = tunnel_connection_monitor_handle.await {
             tracing::error!("Tunnel connection monitor exited with error: {}", e);
