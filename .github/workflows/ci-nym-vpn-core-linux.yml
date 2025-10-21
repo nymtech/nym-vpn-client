@@ -94,8 +94,9 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           CARGO_OUTPUT=$(cargo test --no-run --workspace --locked --message-format json)
-          NYM_CONNECTION_MONITOR_TESTS_BIN=$(echo "$CARGO_OUTPUT" | jq 'select(.reason == "compiler-artifact" and .target.name == "nym_connection_monitor" and .executable != null) | .executable')
-          sudo setcap 'cap_net_raw=ep' "$NYM_CONNECTION_MONITOR_TESTS_BIN"
+          NYM_CONNECTION_MONITOR_TESTS_BIN=$(echo "$CARGO_OUTPUT" | jq --raw-output 'select(.reason == "compiler-artifact" and .target.name == "nym_connection_monitor" and .executable != null) | .executable')
+          echo "Found test binary for nym-connection-monitor: $NYM_CONNECTION_MONITOR_TESTS_BIN"
+          sudo setcap 'cap_net_raw+ep' $NYM_CONNECTION_MONITOR_TESTS_BIN
 
       - name: Run tests
         working-directory: nym-vpn-core
