@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
 
+### Fixed
+
+- Prevent account controller from networking while state machine is in offline state (https://github.com/nymtech/nym-vpn-client/pull/3723)
+
+
 ## [1.17.0] - 2025-10-17
 
 ### Added
