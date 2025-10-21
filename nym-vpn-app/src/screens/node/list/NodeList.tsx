@@ -7,6 +7,7 @@ import {
   UiCountry,
   UiGateway,
   UiGatewaysByCountry,
+  useMainState,
   useNodeListState,
 } from '../../../contexts';
 import { NodeHop, VpnMode } from '../../../types';
@@ -31,6 +32,7 @@ function NodeList({
   vpnMode,
   onNodeDetails,
 }: NodeListProps) {
+  const { quic } = useMainState();
   const {
     exit: exitState,
     entry: entryState,
@@ -40,6 +42,7 @@ function NodeList({
   const focused = node === 'entry' ? entryState.focused : exitState.focused;
   const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
   const gatewaysRef = useRef<Map<string, HTMLDivElement>>(null);
+  const quicFilter = vpnMode === 'wg' && node === 'entry' && quic;
 
   const getMap = (type: 'country' | 'gateway') => {
     if (type === 'country') {
@@ -192,6 +195,7 @@ function NodeList({
                     onSelect={onSelect}
                     onNodeDetails={onNodeDetails}
                     vpnMode={vpnMode}
+                    quicLabel={quicFilter}
                   />
                 ))}
               </motion.div>
@@ -216,6 +220,7 @@ function NodeList({
                 onSelect={onSelect}
                 vpnMode={vpnMode}
                 onNodeDetails={onNodeDetails}
+                quicLabel={quicFilter}
               />
             </motion.div>
           ))}

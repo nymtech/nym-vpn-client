@@ -9,10 +9,10 @@ import { isSelectedNodeType } from './util';
 
 export type NodesStateProviderProps = {
   children: React.ReactNode;
-  nodeType: NodeHop;
+  hop: NodeHop;
 };
 
-function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
+function NodeListProvider({ children, hop }: NodesStateProviderProps) {
   const { vpnMode, entryNode, exitNode, quic } = useMainState();
   const {
     mxEntry: mxEntryGateways,
@@ -28,6 +28,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
 
   const [nodes, setNodes] = useState<UiGatewaysByCountry[]>([]);
   const [gatewayList, setGatewayList] = useState<UiGateway[]>([]);
+  const quicFilter = vpnMode === 'wg' && hop === 'entry' && quic;
 
   const { compare, getCountryName } = useLang();
 
@@ -39,7 +40,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
     ) => {
       return list
         .reduce<UiGatewaysByCountry[]>((countryAcc, country) => {
-          if (quic && !country.quic) {
+          if (quicFilter && !country.quic) {
             return countryAcc;
           }
           const isCountrySelected = isSelectedNodeType(
@@ -48,7 +49,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
             selectedExit,
           );
           const gateways = country.gateways.reduce<UiGateway[]>((gwAcc, gw) => {
-            if (quic && !gw.quic) {
+            if (quicFilter && !gw.quic) {
               return gwAcc;
             }
             const uiGw: UiGateway = {
@@ -78,7 +79,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
         }, [])
         .sort((a, b) => compare(a.i18n, b.i18n));
     },
-    [compare, getCountryName, quic],
+    [compare, getCountryName, quicFilter],
   );
 
   const toGatewayList = useCallback(
@@ -97,9 +98,9 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
 
   useEffect(() => {
     let list = [];
-    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+    if (vpnMode === 'mixnet' && hop === 'entry') {
       list = uifyGateways(mxEntryGateways, entryNode, exitNode);
-    } else if (vpnMode === 'mixnet' && nodeType === 'exit') {
+    } else if (vpnMode === 'mixnet' && hop === 'exit') {
       list = uifyGateways(mxExitGateways, entryNode, exitNode);
     } else {
       list = uifyGateways(wgGateways, entryNode, exitNode);
@@ -107,7 +108,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
     setNodes(list);
     setGatewayList(toGatewayList(list));
   }, [
-    nodeType,
+    hop,
     entryNode,
     exitNode,
     mxEntryGateways,
@@ -116,49 +117,41 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
     vpnMode,
     wgGateways,
     toGatewayList,
-    quic,
   ]);
 
   const loading = useMemo(() => {
     if (nodes.length > 0) {
       return false;
     }
-    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+    if (vpnMode === 'mixnet' && hop === 'entry') {
       return mxEntryLoading;
     }
-    if (vpnMode === 'mixnet' && nodeType === 'exit') {
+    if (vpnMode === 'mixnet' && hop === 'exit') {
       return mxExitLoading;
     }
     return wgLoading;
-  }, [
-    nodes.length,
-    mxEntryLoading,
-    mxExitLoading,
-    wgLoading,
-    nodeType,
-    vpnMode,
-  ]);
+  }, [nodes.length, mxEntryLoading, mxExitLoading, wgLoading, hop, vpnMode]);
 
   const error = useMemo(() => {
-    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+    if (vpnMode === 'mixnet' && hop === 'entry') {
       return mxEntryError;
     }
-    if (vpnMode === 'mixnet' && nodeType === 'exit') {
+    if (vpnMode === 'mixnet' && hop === 'exit') {
       return mxExitError;
     }
     return wgError;
-  }, [mxEntryError, mxExitError, nodeType, vpnMode, wgError]);
+  }, [mxEntryError, mxExitError, hop, vpnMode, wgError]);
 
   const ctx = useMemo(
     () => ({
       nodes,
       gateways: gatewayList,
       loading,
-      node: nodeType,
+      node: hop,
       vpnMode,
       error,
     }),
-    [error, gatewayList, loading, nodeType, nodes, vpnMode],
+    [error, gatewayList, loading, hop, nodes, vpnMode],
   );
 
   return (

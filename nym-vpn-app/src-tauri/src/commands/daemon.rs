@@ -4,6 +4,7 @@ use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
 use crate::state::SharedAppState;
 use crate::state::app::NetworkCompat;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tauri::State;
 use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
@@ -75,13 +76,20 @@ pub async fn system_messages(
 pub async fn feature_flags(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<FeatureFlags, BackendError> {
-    grpc_client
-        .feature_flags()
-        .await
-        .inspect_err(|e| {
-            warn!("failed to get feature flags: {:?}", e);
-        })
-        .map_err(|e| e.into())
+    Ok(FeatureFlags {
+        quic: true,
+        domain_fronting: false,
+        gateway_update_version: None,
+        zknym_credential: true,
+        flags: HashMap::new(),
+    })
+    // grpc_client
+    //     .feature_flags()
+    //     .await
+    //     .inspect_err(|e| {
+    //         warn!("failed to get feature flags: {:?}", e);
+    //     })
+    //     .map_err(|e| e.into())
 }
 
 #[instrument(skip_all)]

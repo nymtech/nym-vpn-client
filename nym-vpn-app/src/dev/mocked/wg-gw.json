@@ -4,6 +4,7 @@
       "code": "YY",
       "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
     },
+    "quic": true,
     "gateways": [
       {
         "country": {
@@ -34,7 +35,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.01.256.256",
-        "exitIpv6": null
+        "exitIpv6": null,
+        "quic": true
       }
     ]
   },
@@ -43,6 +45,7 @@
       "code": "FR",
       "name": "France"
     },
+    "quic": true,
     "gateways": [
       {
         "country": {
@@ -73,7 +76,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.01.256.256",
-        "exitIpv6": null
+        "exitIpv6": null,
+        "quic": true
       },
       {
         "country": {
@@ -135,7 +139,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.01.256.256",
-        "exitIpv6": null
+        "exitIpv6": null,
+        "quic": true
       }
     ],
     "type": "wg"
@@ -145,6 +150,7 @@
       "code": "RU",
       "name": "Russian Federation"
     },
+    "quic": true,
     "gateways": [
       {
         "country": {
@@ -175,7 +181,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.1.256.256",
-        "exitIpv6": "ff:00:11:ee"
+        "exitIpv6": "ff:00:11:ee",
+        "quic": true
       },
       {
         "country": {
