@@ -21,6 +21,26 @@ use crate::tunnel_state_machine::{
     tunnel::SelectedGateways,
 };
 
+
+use std::time::Duration;
+
+/// Delay before reconnecting after network comes online
+/// This allows DNS, routing, and network stack to stabilize
+#[cfg(target_os = "linux")]
+const NETWORK_STABILIZATION_DELAY: Duration = Duration::from_secs(3);
+
+#[cfg(target_os = "macos")]
+const NETWORK_STABILIZATION_DELAY: Duration = Duration::from_secs(2);
+
+#[cfg(target_os = "windows")]
+const NETWORK_STABILIZATION_DELAY: Duration = Duration::from_secs(0); // Windows waits 5s in power management
+
+#[cfg(target_os = "android")]
+const NETWORK_STABILIZATION_DELAY: Duration = Duration::from_secs(2);
+
+#[cfg(target_os = "ios")]
+const NETWORK_STABILIZATION_DELAY: Duration = Duration::from_secs(2);
+
 pub struct OfflineState {
     /// Whether to connect the tunnel once online
     reconnect: bool,
@@ -173,6 +193,14 @@ impl TunnelStateHandler for OfflineState {
 
                     #[cfg(any(target_os = "linux", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
+                    // Wait for network stack to stabilize before attempting connection
+                    if NETWORK_STABILIZATION_DELAY.as_secs() > 0 {
+                        tracing::info!(
+                            "Network connectivity restored, waiting {}s for stabilization before reconnecting",
+                            NETWORK_STABILIZATION_DELAY.as_secs()
+                        );
+                        tokio::time::sleep(NETWORK_STABILIZATION_DELAY).await;
+                    }
 
                     if self.reconnect {
                         NextTunnelState::NewState(ConnectingState::enter(0, self.selected_gateways, shared_state).await)
