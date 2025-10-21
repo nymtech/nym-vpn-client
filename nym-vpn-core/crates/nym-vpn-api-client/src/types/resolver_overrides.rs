@@ -52,7 +52,7 @@ impl ResolverOverrides {
         Ok(Self { overrides })
     }
 
-    /// Create resolver overrides from the provides ApiUrls
+    /// Create resolver overrides from the provided ApiUrls
     pub async fn from_api_urls(api_urls: &[ApiUrl]) -> Result<Self, VpnApiClientError> {
         let urls = api_urls_to_urls(api_urls)?;
         Self::from_urls(&urls).await
