@@ -17,46 +17,46 @@
   "node-details": {
     "id-label": "Khóa xác thực:",
     "data": {
-      "advanced-privacy": "Advanced privacy",
-      "with-mixnet": "With mixnet (5-hop)",
-      "ip-type": "Streaming & content",
-      "ip-residential": "Residential IP",
-      "ip-datacenter": "Datacenter IP",
-      "anti-censorship": "Anti-censorship",
-      "quic-protocol": "QUIC protocol",
-      "standard-protocol": "Standard protocol",
-      "overall-performance": "Overall performance",
-      "server-load": "Server load",
-      "speed": "Speed",
-      "uptime": "Uptime",
-      "exit-ipv4": "Exit IPv4",
-      "exit-ipv6": "Exit IPv6",
+      "advanced-privacy": "Quyền riêng tư nâng cao",
+      "with-mixnet": "Với mixnet (5 bước nhảy)",
+      "ip-type": "Phát trực tiếp & đăng tải nội dung",
+      "ip-residential": "Địa chỉ IP dân cư",
+      "ip-datacenter": "IP trung tâm dữ liệu",
+      "anti-censorship": "Chống kiểm duyệt",
+      "quic-protocol": "Giao thức QUIC",
+      "standard-protocol": "Giao thức tiêu chuẩn",
+      "overall-performance": "Hiệu suất tổng thể",
+      "server-load": "Tải máy chủ",
+      "speed": "Tốc độ",
+      "uptime": "Thời gian hoạt động",
+      "exit-ipv4": "Thoát IPv4",
+      "exit-ipv6": "Thoát IPv6",
       "asn": "ASN",
-      "asn-name": "ASN name",
-      "build-version": "Nym build version",
-      "identity-key": "Identity key:"
+      "asn-name": "Tên ASN",
+      "build-version": "Phiên bản build Nym",
+      "identity-key": "Khóa xác thực:"
     },
     "perf-score": {
-      "high": "Good",
-      "medium": "Mid",
-      "low": "Low",
-      "offline": "Offline"
+      "high": "Tốt",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "offline": "Ngoại tuyến"
     },
     "server-load-score": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low",
-      "offline": "Offline"
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "offline": "Ngoại tuyến"
     },
     "notes": {
-      "anti-censorship": "Enable “QUIC protocol” in Anti-censorship Settings to use this feature",
-      "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
-      "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
+      "anti-censorship": "Bật “giao thức QUIC” trong Cài đặt Chống kiểm duyệt để sử dụng tính năng này",
+      "performance_with_time": "Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua. Cập nhật lần cuối {{relativeTime}}.",
+      "performance": "Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua."
     },
     "links": {
-      "missing-info": "Why is there missing or incorrect info",
-      "explorer": "More details in the Nym <networkExplorerLink />"
+      "missing-info": "Tại sao lại thiếu hoặc sai thông tin",
+      "explorer": "Xem chi tiết trong Nym <networkExplorerLink />"
     },
-    "select-button": "Select server"
+    "select-button": "Chọn máy chủ"
   }
 }

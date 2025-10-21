@@ -11,9 +11,10 @@ pub enum Command {
     Get,
     /// Login with mnemonic
     Set {
+        /// Mnemonic phrase
         #[arg(index = 1)]
         mnemonic: String,
-
+        /// Account mode
         #[clap(long, default_value_t = VpnAccountMode::Api)]
         mode: VpnAccountMode,
     },
@@ -21,6 +22,7 @@ pub enum Command {
     Forget,
     /// Get account links
     Links {
+        /// Locale string (i.e en-US)
         #[arg(long)]
         locale: String,
     },

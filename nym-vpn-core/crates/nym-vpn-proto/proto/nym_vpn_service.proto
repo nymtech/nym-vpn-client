@@ -165,7 +165,6 @@ message NymNetworkDetails {
 }
 
 message NymVpnNetworkDetails {
-  string nym_vpn_api_url = 1;
   repeated ApiUrl nym_vpn_api_urls = 2;
 }
 
@@ -320,15 +319,15 @@ message BridgeInformation {
 }
 
 message BridgeParameters {
-    oneof state {
-        QuicClientOptions quic_plain = 1;
-    }
+  oneof state {
+    QuicClientOptions quic_plain = 1;
+  }
 }
 
 message QuicClientOptions {
-    repeated SocketAddr addresses = 1;
-    optional string host = 2;
-    string id_pubkey = 3;
+  repeated SocketAddr addresses = 1;
+  optional string host = 2;
+  string id_pubkey = 3;
 }
 
 message Performance {

@@ -24,18 +24,6 @@ pub enum Error {
     #[error(transparent)]
     VpnApiClientError(#[from] nym_vpn_api_client::error::VpnApiClientError),
 
-    #[error("failed to resolve gateway hostname: {hostname}")]
-    FailedToDnsResolveGateway {
-        hostname: String,
-        source: nym_http_api_client::HickoryDnsError,
-    },
-
-    #[error("resolved hostname {0} but no IP address found")]
-    ResolvedHostnameButNoIp(String),
-
-    #[error("timed out while attempting to resolve hostname: {hostname}")]
-    HostnameResolutionTimeout { hostname: String },
-
     #[error("failed to lookup described gateways")]
     FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
 
@@ -85,9 +73,6 @@ pub enum Error {
     #[error("failed to lookup gateway ip for gateway {0}")]
     FailedToLookupIp(String),
 
-    #[error("the url {url} doesn't parse to a host and/or a port: {reason}")]
-    UrlError { url: url::Url, reason: String },
-
     #[error("the provided gateway information is malformed")]
     MalformedGateway,
 
@@ -105,6 +90,9 @@ pub enum Error {
 
     #[error("invalid score value: {0}. Valid values are: offline, low, medium, high")]
     InvalidScoreValue(String),
+
+    #[error("invalid configuration: {0}")]
+    InvalidConfiguration(String),
 }
 
 impl Error {

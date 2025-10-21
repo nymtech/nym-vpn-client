@@ -14739,6 +14739,17 @@
         }
       }
     },
+    "gatewayInfo.bridges" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censorship"
+          }
+        }
+      }
+    },
     "gatewayInfo.buildVersion" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14937,6 +14948,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基准IP"
+          }
+        }
+      }
+    },
+    "gatewayInfo.enableQuic1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable “QUIC protocol”"
+          }
+        }
+      }
+    },
+    "gatewayInfo.enableQuic2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in Anti-censorship Settings to use this feature"
           }
         }
       }
@@ -15749,6 +15782,17 @@
         }
       }
     },
+    "gatewayInfo.quicProtocol" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC protocol"
+          }
+        }
+      }
+    },
     "gatewayInfo.residentialIp" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16149,6 +16193,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "服务器负载"
+          }
+        }
+      }
+    },
+    "gatewayInfo.standardProtocol" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
           }
         }
       }

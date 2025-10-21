@@ -272,18 +272,17 @@ impl ConnectingState {
             }
         }
 
-        if resolved_gateway_config.nym_vpn_api_socket_addrs.is_none()
-            || resolved_gateway_config
-                .nym_vpn_api_socket_addrs
-                .as_ref()
-                .is_some_and(|x| x.is_empty())
-        {
+        if !resolved_gateway_config.has_resolver_overrides() {
             tracing::warn!(
-                "nym_vpn_api_socket_addrs is empty which may result into firewall blocking the API requests."
+                "There are no resolver overrides, which may result in the firewall blocking API requests"
             );
         } else if let Err(e) = shared_state
             .account_command_tx
-            .set_static_api_addresses(resolved_gateway_config.nym_vpn_api_socket_addrs.to_owned())
+            .set_resolver_overrides(Some(
+                resolved_gateway_config
+                    .nym_vpn_api_resolver_overrides
+                    .clone(),
+            ))
             .await
         {
             trace_err_chain!(e, "Failed to set static API addresses");
@@ -524,7 +523,21 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::NewNetworkEnv { network } => {
-                        shared_state.nym_config.network_env = *network;
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            self.firewall_policy_params.api_endpoints = network.vpn_api_addresses().await;
+                            shared_state.nym_config.network_env = *network;
+                            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                trace_err_chain!(e, "failed to set firewall policy");
+                                return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                            }
+                        }
+
+                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        {
+                            shared_state.nym_config.network_env = *network;
+                        }
+
                         NextTunnelState::SameState(self)
                     }
                 }

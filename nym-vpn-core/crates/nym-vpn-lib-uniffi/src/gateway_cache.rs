@@ -1,13 +1,12 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{GATEWAY_CACHE, error::VpnError};
 use nym_gateway_directory::{GatewayCache, GatewayCacheHandle, GatewayClient};
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_lib_types::UserAgent;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
-
-use crate::{GATEWAY_CACHE, error::VpnError};
 
 pub struct UniffiGatewayCacheHandle {
     directory_config: nym_gateway_directory::Config,
@@ -22,8 +21,9 @@ impl UniffiGatewayCacheHandle {
         connectivity_handle: ConnectivityHandle,
     ) -> Result<Self, VpnError> {
         let shutdown_token = CancellationToken::new();
-        let directory_config = make_gateway_config().await;
+        let directory_config = make_gateway_config().await?;
         let gateway_client = GatewayClient::new(directory_config.clone(), user_agent.into())
+            .await
             .map_err(VpnError::internal)?;
         let (gateway_cache_handle, join_handle) = GatewayCache::spawn(
             gateway_client,
@@ -56,20 +56,16 @@ impl UniffiGatewayCacheHandle {
     }
 }
 
-async fn make_gateway_config() -> nym_gateway_directory::Config {
-    let network_env = crate::environment::current_environment_details()
-        .await
-        .unwrap();
-    let nyxd_url = network_env.nyxd_url();
-    let api_url = network_env.api_url();
-    let nym_vpn_api_url = Some(network_env.vpn_api_url());
+async fn make_gateway_config() -> Result<nym_gateway_directory::Config, VpnError> {
+    let network_env = crate::environment::current_environment_details().await?;
+    let nym_api_urls = network_env.nym_api_urls().unwrap_or_default();
+    let nym_vpn_api_urls = network_env.nym_vpn_api_urls().unwrap_or_default();
 
-    nym_gateway_directory::Config {
-        nyxd_url,
-        api_url,
-        nym_vpn_api_url,
-        min_gateway_performance: None,
-    }
+    // Config::new() will error if nym_api_urls or nym_vpn_api_urls are empty
+    nym_gateway_directory::Config::new(network_env.nyxd_url(), nym_api_urls, nym_vpn_api_urls, None)
+        .map_err(|e| VpnError::InternalError {
+            details: format!("Failed to create config: {e:#?}"),
+        })
 }
 
 pub async fn init_gateway_cache(

@@ -22,6 +22,7 @@ pub struct StatisticsApiClient {
 
 impl StatisticsApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
+        // What about domain fronting?  The discovery schema makes no provision for it.
         nym_http_api_client::Client::builder(base_url.clone())
             .and_then(|builder| {
                 builder

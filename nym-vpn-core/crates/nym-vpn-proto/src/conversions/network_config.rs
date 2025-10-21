@@ -250,7 +250,6 @@ impl From<proto::ApiUrl> for nym_vpn_lib_types::ApiUrl {
 impl From<nym_vpn_lib_types::NymVpnNetwork> for proto::NymVpnNetworkDetails {
     fn from(nym_vpn_network: nym_vpn_lib_types::NymVpnNetwork) -> Self {
         proto::NymVpnNetworkDetails {
-            nym_vpn_api_url: nym_vpn_network.nym_vpn_api_url,
             nym_vpn_api_urls: nym_vpn_network
                 .nym_vpn_api_urls
                 .into_iter()

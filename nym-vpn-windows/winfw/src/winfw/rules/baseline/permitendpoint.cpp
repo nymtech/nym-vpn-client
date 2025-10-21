@@ -17,7 +17,7 @@ namespace rules::baseline
 
 namespace {
 	// Maximum number of allowed endpoint per IP protocol version.
-	static const uint32_t MAX_ALLOWED_ENDPOINTS = 12;
+	static const uint32_t MAX_ALLOWED_ENDPOINTS = 24;
 
 	static const GUID ENDPOINT_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = { 
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_1(),
@@ -32,6 +32,18 @@ namespace {
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_10(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_11(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_12(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_13(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_14(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_15(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_16(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_17(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_18(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_19(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_20(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_21(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_22(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_23(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_24(),
 	};
 
 	static const GUID ENDPOINT_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
@@ -47,6 +59,18 @@ namespace {
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_10(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_11(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_12(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_13(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_14(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_15(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_16(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_17(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_18(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_19(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_20(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_21(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_22(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_23(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_24(),
 	};
 
 } // anonymous namespace

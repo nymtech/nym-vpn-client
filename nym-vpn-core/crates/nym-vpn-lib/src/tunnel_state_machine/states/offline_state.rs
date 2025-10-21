@@ -36,22 +36,27 @@ impl OfflineState {
     pub async fn enter(
         reconnect: bool,
         selected_gateways: Option<SelectedGateways>,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if Self::set_local_dns_resolver(_shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, _shared_state)).await;
+        if Self::set_local_dns_resolver(shared_state).await.is_err() {
+            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = BlockedPolicyParameters {
-            allow_lan: _shared_state.tunnel_settings.allow_lan,
+            allow_lan: shared_state.tunnel_settings.allow_lan,
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(e) = Self::set_firewall_policy(_shared_state, &firewall_policy_params) {
+        if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
             trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
+
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_up()
+            .await;
 
         (
             Box::new(Self {

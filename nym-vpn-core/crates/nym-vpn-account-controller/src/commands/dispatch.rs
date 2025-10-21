@@ -6,10 +6,10 @@ use nym_vpn_store::account::StorableAccount;
 
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use std::net::SocketAddr;
 use tokio::sync::oneshot;
 
 use crate::AvailableTicketbooks;
@@ -75,7 +75,7 @@ impl AccountCommand {
                 CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
-                CommonCommand::SetStaticApiAddresses(return_sender, _) => {
+                CommonCommand::SetResolverOverrides(return_sender, _) => {
                     return_sender.send(Err(error))
                 }
             },
@@ -107,10 +107,10 @@ pub enum CommonCommand {
     /// Returns a list of tickets available in storage
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
 
-    /// Override the VPN API client resolver to allow him to go through the firewall
-    SetStaticApiAddresses(
+    /// Override the VPN API client resolver to allow him to go through the firewall (witg Domain Fronting)
+    SetResolverOverrides(
         ReturnSender<(), AccountCommandError>,
-        Option<Vec<SocketAddr>>,
+        Option<ResolverOverrides>,
     ),
 }
 
