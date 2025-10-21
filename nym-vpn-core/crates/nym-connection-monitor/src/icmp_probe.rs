@@ -264,10 +264,7 @@ mod tests {
 
     fn create_loopback_probe_with_addr(probe_ip: impl Into<IpAddr>) -> IcmpProbe {
         let mut config = IcmpProbeConfig::new(probe_ip);
-        #[cfg(any(
-            target_os = "linux",
-            target_os = "android"
-        ))]
+        #[cfg(any(target_os = "linux", target_os = "android"))]
         {
             config = config.with_interface("lo".to_owned());
         }
