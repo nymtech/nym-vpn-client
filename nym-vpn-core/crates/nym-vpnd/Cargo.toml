@@ -67,6 +67,7 @@ nym-gateway-directory = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 
 [target.'cfg(windows)'.dependencies]
+wmi.workspace = true
 windows-service.workspace = true
 eventlog.workspace = true
 
