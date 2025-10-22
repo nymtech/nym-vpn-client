@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Add QUIC status and server description (https://github.com/nymtech/nym-vpn-client/pull/3696)
+- Android: On Entry/Exit screens, display city instead of server key ID
 
 ## [2.1.0]
 
