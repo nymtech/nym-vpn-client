@@ -145,8 +145,16 @@ pub enum TunnelMonitorEvent {
         reply_tx: tokio::sync::oneshot::Sender<()>,
     },
 
-    /// Connecting mixnet client
-    ConnectingMixnetClient,
+    /// Registering with gateways
+    RegisteringWithGateways,
+
+    /// Finished gateway registration
+    RegisteredWithGateways {
+        /// Connection data
+        connection_data: Box<EstablishConnectionData>,
+        /// Back channel to acknowledge that the event has been processed
+        reply_tx: tokio::sync::oneshot::Sender<()>,
+    },
 
     /// Tunnel interface is up.
     InterfaceUp {
@@ -389,7 +397,7 @@ impl TunnelMonitor {
                 new_gateways
             };
 
-        self.send_event(TunnelMonitorEvent::ConnectingMixnetClient);
+        self.send_event(TunnelMonitorEvent::RegisteringWithGateways);
 
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
@@ -508,6 +516,45 @@ impl TunnelMonitor {
         let registration_client = Box::pin(rc_builder.build()).await?;
         let registration_result = Box::pin(registration_client.register()).await?;
 
+        // Send event upon successful gateway registration
+        // The receiver should handle the event and add firewall exceptions for entry gateway
+        let tunnel_connection_data = match &registration_result {
+            RegistrationResult::Mixnet(result) => {
+                TunnelConnectionData::Mixnet(MixnetConnectionData {
+                    nym_address: NymAddress::from(result.assigned_addresses.mixnet_client_address),
+                    exit_ipr: NymAddress::from(result.assigned_addresses.exit_mix_address),
+                    entry_ip: result.assigned_addresses.entry_mixnet_gateway_ip,
+                    exit_ip: result.assigned_addresses.exit_mixnet_gateway_ip,
+                    ipv4: result.assigned_addresses.interface_addresses.ipv4,
+                    ipv6: self
+                        .tunnel_parameters
+                        .tunnel_settings
+                        .enable_ipv6
+                        .then_some(result.assigned_addresses.interface_addresses.ipv6),
+                })
+            }
+            RegistrationResult::Wireguard(result) => {
+                TunnelConnectionData::Wireguard(WireguardConnectionData {
+                    entry_bridge_addr: None, // not known yet
+                    entry: WireguardNode::from(result.entry_gateway_data.clone()),
+                    exit: WireguardNode::from(result.exit_gateway_data.clone()),
+                })
+            }
+        };
+        let connection_data = Box::new(EstablishConnectionData {
+            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            tunnel: Some(tunnel_connection_data),
+        });
+        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+        self.send_event(TunnelMonitorEvent::RegisteredWithGateways {
+            connection_data,
+            reply_tx,
+        });
+        if tokio::time::timeout(REPLY_TIMEOUT, reply_rx).await.is_err() {
+            tracing::warn!("Registered with gateways reply timeout");
+        }
+
         let (entry_metadata_tx, entry_metadata_rx) =
             tokio::sync::oneshot::channel::<MetadataEvent>();
         let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
@@ -523,7 +570,6 @@ impl TunnelMonitor {
                 self.start_mixnet_tunnel(*inner_result).await?
             }
             RegistrationResult::Wireguard(inner_result) => {
-                // As a first step, spin the bw controller here
                 let connected_tunnel = self
                     .setup_wireguard_tunnel(
                         *inner_result,
@@ -930,8 +976,7 @@ impl TunnelMonitor {
             exit: exit_gateway_data,
         };
 
-        let mut transport_fwd_handle = None;
-        if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+        let transport_fwd_handle = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
             let entry_bridge_params = selected_gateways
                 .entry_gateway()
                 .get_bridge_params()
@@ -955,11 +1000,13 @@ impl TunnelMonitor {
                 transports::UdpForwarder::launch(bridge_conn, None, self.shutdown_token.clone())
                     .await
                     .inspect_err(|_| self.shutdown_token.cancel())?;
-            transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
             );
             connection_data.entry.endpoint = local_fwd_listen_addr;
+            Some(fwd_handle)
+        } else {
+            None
         };
 
         Ok(wireguard::connected_tunnel::ConnectedTunnel::new(

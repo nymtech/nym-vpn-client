@@ -88,8 +88,8 @@ pub enum EstablishConnectionState {
     /// Selecting gateways
     SelectingGateways,
 
-    /// Connecting mixnet client
-    ConnectingMixnetClient,
+    /// Registering with gateways
+    RegisteringWithGateways,
 
     /// Establishing tunnel connection
     ConnectingTunnel,
@@ -102,7 +102,7 @@ impl fmt::Display for EstablishConnectionState {
             EstablishConnectionState::AwaitingAccountReadiness => "awaiting account readiness",
             EstablishConnectionState::RefreshingGateways => "refreshing gateways",
             EstablishConnectionState::SelectingGateways => "selecting gateways",
-            EstablishConnectionState::ConnectingMixnetClient => "connecting mixnet client",
+            EstablishConnectionState::RegisteringWithGateways => "registering with gateways",
             EstablishConnectionState::ConnectingTunnel => "connecting tunnel",
         })
     }
