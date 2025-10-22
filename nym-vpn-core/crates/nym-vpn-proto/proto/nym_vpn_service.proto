@@ -245,6 +245,26 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
+message ConnectRequest {
+  EntryNode entry = 1;
+  ExitNode exit = 2;
+  Dns dns = 3;
+  bool disable_ipv6 = 14;
+  bool enable_two_hop = 5;
+  bool enable_bridges = 21;
+  bool netstack = 13;
+  bool disable_poisson_rate = 6;
+  bool disable_background_cover_traffic = 7;
+  bool enable_credentials_mode = 8;
+  UserAgent user_agent = 12;
+}
+
+message SetPoissonParameterRequest {
+  uint32 poisson_parameter = 1;
+}
+
+message SetPoissonParameterResponse {}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -262,6 +282,9 @@ message VpnServiceConfig {
   bool enable_custom_dns = 17;
   IpAddrList custom_dns = 16;
   NetworkStatsConfig network_stats = 18;
+  optional uint32 poisson_parameter = 24;
+  optional uint32 average_packet_delay = 22;
+  optional uint32 message_sending_average_delay = 23;
 }
 
 message NetworkStatsConfig {
@@ -800,6 +823,9 @@ message DeleteLogFileResponse {
   bool success = 1;
   DeleteLogFileError error = 2;
 }
+message SetAveragePacketDelayRequest {
+    uint32 delay_ms = 1;
+}
 
 // Enable SOCKS5 proxy request
 message EnableSocks5Request {
@@ -843,10 +869,17 @@ message NetworkStatisticsIdentity {
     string id = 2;
 }
 
+message SetMessageSendingAverageDelayRequest {
+    uint32 delay_ms = 1;
+}
+message SetDisablePoissonRateRequest {
+  bool disable = 1;
+}
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
-
+  rpc SetPoissonParameter (SetPoissonParameterRequest) returns (google.protobuf.Empty);
+   rpc SetDisablePoissonRate (SetDisablePoissonRateRequest) returns (google.protobuf.Empty);
   // Get the VPN service configuration
   rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
 
@@ -983,4 +1016,6 @@ service NymVpnService {
 
   // Get socks5 proxy status
   rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
+  rpc SetAveragePacketDelay(SetAveragePacketDelayRequest) returns (google.protobuf.Empty);
+  rpc SetMessageSendingAverageDelay(SetMessageSendingAverageDelayRequest) returns (google.protobuf.Empty);
 }

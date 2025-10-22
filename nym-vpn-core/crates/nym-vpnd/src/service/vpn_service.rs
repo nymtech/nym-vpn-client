@@ -150,6 +150,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
         (),
     ),
+    SetPoissonParameter(oneshot::Sender<()>, u32),
+    SetAveragePacketDelay(oneshot::Sender<()>, u32),
+    SetMessageSendingAverageDelay(oneshot::Sender<()>, u32),
+    SetDisablePoissonRate(oneshot::Sender<()>, bool),
 }
 
 pub struct NymVpnServiceParameters {
@@ -927,6 +931,24 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::SetPoissonParameter(tx, value) => {
+                self.handle_set_poisson_parameter(value).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetAveragePacketDelay(resp, delay_ms) => {
+                self.handle_set_average_packet_delay(delay_ms).await;
+                let _ = resp.send(());
+            }
+
+            VpnServiceCommand::SetMessageSendingAverageDelay(resp, delay_ms) => {
+                self.handle_set_message_sending_average_delay(delay_ms)
+                    .await;
+                let _ = resp.send(());
+            }
+            VpnServiceCommand::SetDisablePoissonRate(tx, disable) => {
+                self.handle_set_disable_poisson_rate(disable).await;
+                let _ = tx.send(());
+            }
         }
     }
 
@@ -971,6 +993,38 @@ impl NymVpnService {
 
     async fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+    async fn handle_set_poisson_parameter(&mut self, value: u32) {
+        // Update the Poisson parameter inside the configuration manager
+        self.config_manager.set_poisson_parameter(value).await;
+
+        // Update tunnel settings with throttle
+        self.update_tunnel_settings_with_throttle();
+    }
+    async fn handle_set_disable_poisson_rate(&mut self, disable: bool) {
+        // Update the disable_poisson_rate flag in the configuration manager
+        self.config_manager.set_disable_poisson_rate(disable).await;
+
+        // Update tunnel settings accordingly
+        self.update_tunnel_settings_with_throttle();
+    }
+    pub async fn handle_set_message_sending_average_delay(&mut self, delay_ms: u32) {
+        // Update config
+        self.config_manager
+            .set_message_sending_average_delay(Some(delay_ms))
+            .await;
+
+        // Update tunnel settings (with throttle)
+        self.update_tunnel_settings_with_throttle();
+    }
+    pub async fn handle_set_average_packet_delay(&mut self, delay_ms: u32) {
+        // Update config
+        self.config_manager
+            .set_average_packet_delay(Some(delay_ms))
+            .await;
+
+        // Update tunnel settings (with throttle)
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -1510,3 +1564,5 @@ impl NymVpnService {
         self.stats_control_commands_sender.get_seed().await
     }
 }
+
+

@@ -129,7 +129,69 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(()))
     }
+    async fn set_poisson_parameter(
+        &self,
+        request: tonic::Request<proto::SetPoissonParameterRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let value = request.into_inner().poisson_parameter;
+        tracing::debug!("Received set_poisson_parameter RPC with value: {}", value);
 
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetPoissonParameter, value)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set Poisson parameter: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+    async fn set_average_packet_delay(
+        &self,
+        request: tonic::Request<proto::SetAveragePacketDelayRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let delay_ms = request.into_inner().delay_ms;
+        tracing::debug!("Received SetAveragePacketDelay: {} ms", delay_ms);
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetAveragePacketDelay, delay_ms)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set average packet delay: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+    async fn set_disable_poisson_rate(
+        &self,
+        request: tonic::Request<proto::SetDisablePoissonRateRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let disable_poisson_rate = request.into_inner().disable;
+
+        self.send_and_wait(
+            VpnServiceCommand::SetDisablePoissonRate,
+            disable_poisson_rate,
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(format!("Failed to set disable Poisson rate: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+    async fn set_message_sending_average_delay(
+        &self,
+        request: tonic::Request<proto::SetMessageSendingAverageDelayRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let delay_ms = request.into_inner().delay_ms;
+        tracing::debug!("Received SetMessageSendingAverageDelay: {} ms", delay_ms);
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetMessageSendingAverageDelay, delay_ms)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set message sending average delay: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
     async fn set_enable_two_hop(
         &self,
         request: tonic::Request<bool>,
