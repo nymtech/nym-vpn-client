@@ -428,9 +428,10 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let urls = api_urls_to_urls(&nym_api_urls).map_err(|e| {
+        let urls = api_urls_to_urls(&nym_api_urls).map_err(|err| {
+            tracing::error!("Failed to convert Nym API URLs: {err:?}");
             AccountControllerError::Initialization {
-                reason: e.to_string(),
+                reason: err.to_string(),
             }
         })?;
 
