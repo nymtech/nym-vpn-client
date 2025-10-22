@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Don't retry on disappeared entry or exit gateway and return to UI for selecting again (https://github.com/nymtech/nym-vpn-client/pull/3520)
 - Recover from error loop when mixnet client can't reach gateway after a number of retries (https://github.com/nymtech/nym-vpn-client/pull/3694)
+- Fix MacOS load/remove bug in store (https://github.com/nymtech/nym-vpn-client/pull/3711)
 
 ### Removed
 
