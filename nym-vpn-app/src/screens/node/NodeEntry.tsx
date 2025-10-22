@@ -41,7 +41,7 @@ function NodeEntry({ node }: NodeEntryProps) {
   }, [node, vpnMode, daemonStatus]);
 
   return (
-    <NodeListProvider nodeType={node}>
+    <NodeListProvider hop={node}>
       <Node node={node} />
     </NodeListProvider>
   );

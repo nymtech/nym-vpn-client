@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Filter server list by QUIC protocol when QUIC mode is enabled in the settings,
+  entry node only
+- Add QUIC tags in server list and in home screen on the entry node input
+- Add server description and QUIC support to server details screen
+
 ## [1.17.1] - 2025-10-20
 
 ### Fixed

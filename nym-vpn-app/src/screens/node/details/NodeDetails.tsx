@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router';
 import {
   UiGateway,
   useMainDispatch,
+  useMainState,
   useNodeListState,
 } from '../../../contexts';
 import {
@@ -36,6 +37,7 @@ type RouteState = {
 };
 
 function NodeDetails() {
+  const { backendFlags } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const location = useLocation() as H.Location<RouteState>;
   const { t } = useTranslation('nodeLocation');
@@ -57,6 +59,7 @@ function NodeDetails() {
   const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
   const isSelected =
     gateway.isSelected === 'exit' || gateway.isSelected === 'entry';
+  const quic = backendFlags.quic && gateway.quic;
 
   const DataRow = ({
     children,
@@ -170,6 +173,16 @@ function NodeDetails() {
       ),
       key: 'ip-type',
     },
+    backendFlags.quic && {
+      row: featureRow(
+        t('node-details.data.anti-censorship'),
+        quic
+          ? t('node-details.data.quic-protocol')
+          : t('node-details.data.standard-protocol'),
+        quic ? 'green' : 'orange',
+      ),
+      key: 'anticensor-protocal',
+    },
   ];
   const card2 = [
     {
@@ -253,6 +266,17 @@ function NodeDetails() {
     { row: identityKey, key: 'id-key' },
   ];
 
+  const Card1Footer = (
+    <p className="text-iron dark:text-bombay">
+      <Trans i18nKey="node-details.notes.anti-censorship" ns="nodeLocation">
+        <span className="text-black dark:text-white underline">
+          Enable “QUIC protocol”
+        </span>
+        in Anti-censorship Settings to use this feature
+      </Trans>
+    </p>
+  );
+
   const card2Footer = lastUpdate
     ? t('node-details.notes.performance_with_time', {
         relativeTime: dayjs().to(dayjs(lastUpdate)),
@@ -274,7 +298,10 @@ function NodeDetails() {
           {getCountryName(country.code) || country.name}
         </div>
       </div>
-      <DataCard rows={card1} />
+      {gateway.description && (
+        <p className="text-iron dark:text-bombay">{gateway.description}</p>
+      )}
+      <DataCard rows={card1} footer={hop === 'entry' && quic && Card1Footer} />
       <DataCard rows={card2} footer={card2Footer} />
       {showCard3 && <DataCard rows={card3} />}
       <DataCard rows={card4} />

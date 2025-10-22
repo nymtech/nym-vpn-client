@@ -6,6 +6,7 @@ import {
   Cli,
   Country,
   DbKey,
+  FeatureFlags,
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
@@ -59,6 +60,13 @@ const savedEntry: Country = {
   name: 'France',
 };
 const savedExit = (wgGwJson as GatewaysByCountry[])[2].gateways[0];
+const featureFlags: FeatureFlags = {
+  quic: true,
+  domainFronting: true,
+  zknymCredential: true,
+  gatewayUpdateVersion: null,
+  flags: {},
+};
 
 export function mockTauriIPC() {
   mockWindows('main');
@@ -143,6 +151,9 @@ export function mockTauriIPC() {
           break;
         case 'welcome-screen-seen':
           res = !showWelcome;
+          break;
+        case 'quic-enabled':
+          res = true;
           break;
 
         /* 1740391345259 */
@@ -244,6 +255,10 @@ export function mockTauriIPC() {
     if (cmd === 'set_credentials_mode') {
       zknymMode = (args as ArgsObj<boolean>).enabled;
       return new Promise((resolve) => resolve(1));
+    }
+
+    if (cmd === 'feature_flags') {
+      return new Promise((resolve) => resolve(featureFlags));
     }
 
     if (cmd === 'plugin:autostart|is_enabled') {

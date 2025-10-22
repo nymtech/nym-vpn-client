@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import {
   UiCountry,
@@ -13,7 +13,7 @@ import {
   useNodeListState,
 } from '../../contexts';
 import { NodeHop, StateDispatch, isGateway } from '../../types';
-import { PageAnim, TextInput } from '../../ui';
+import { Link, PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
 import { uiNodeToRaw } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
@@ -22,7 +22,7 @@ import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
-  const { vpnMode } = useMainState();
+  const { backendFlags, vpnMode, quic } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
@@ -33,6 +33,8 @@ function Node({ node }: { node: NodeHop }) {
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
   const [search, setSearch] = useState('');
+  const quicFilter =
+    vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
 
   const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
@@ -132,6 +134,25 @@ function Node({ node }: { node: NodeHop }) {
           className="w-full max-w-md px-6 mt-6 mb-6"
           data-testid="node-search-container"
         >
+          {quicFilter && (
+            <p className="text-xs text-iron dark:text-bombay mb-6 select-none">
+              <Trans
+                i18nKey="quic-filter-note"
+                ns="nodeLocation"
+                components={{
+                  here: (
+                    <Link
+                      text={t('here', { ns: 'glossary' })}
+                      to={routes.antiCensorship}
+                      className="text-black dark:text-white"
+                      textClassName="underline-offset-2"
+                      data-testid="welcome-tos-link"
+                    />
+                  ),
+                }}
+              />
+            </p>
+          )}
           <TextInput
             value={search}
             onChange={filter}

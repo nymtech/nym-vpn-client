@@ -13,7 +13,7 @@ const FoldButton = ({ html, state }: FoldButtonProps) => {
   return (
     <Button
       className={clsx(
-        'w-16 h-full flex justify-center items-center mr-3',
+        'w-14 h-full flex justify-center items-center mr-3',
         'border-l-1 border-bombay dark:border-iron',
         'text-baltic-sea/80 dark:text-white/80',
         'hover:text-baltic-sea dark:hover:text-white',

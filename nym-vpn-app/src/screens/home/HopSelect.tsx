@@ -5,7 +5,8 @@ import clsx from 'clsx';
 import { Country, Gateway, NodeHop, isGateway } from '../../types';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
-import { useGateways } from '../../contexts';
+import { useGateways, useMainState } from '../../contexts';
+import { QuicTag } from '../node';
 import { useActionToast } from './util';
 
 type HopSelectProps = {
@@ -25,10 +26,16 @@ export default function HopSelect({
   disabled,
   locked,
 }: HopSelectProps) {
+  const { backendFlags, quic } = useMainState();
   const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
+  const quicTag =
+    nodeHop === 'entry' &&
+    backendFlags.quic &&
+    quic &&
+    (isGateway(node) ? node.quic : true);
 
   const handleClick = () => {
     if (disabled) {
@@ -129,11 +136,14 @@ export default function HopSelect({
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
       {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node, gateway)}
-      <MsIcon
-        icon="arrow_right"
-        className="pointer-events-none"
-        data-testid={`hop-select-arrow-${nodeHop}`}
-      />
+      <div className="flex items-center">
+        {quicTag && <QuicTag className="mx-2" />}
+        <MsIcon
+          icon="arrow_right"
+          className="pointer-events-none"
+          data-testid={`hop-select-arrow-${nodeHop}`}
+        />
+      </div>
     </div>
   );
 }
