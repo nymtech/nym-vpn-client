@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.ui.screens.hop
 
 import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.vpn.model.NymGateway
-import java.util.*
+import java.util.Locale
 
 data class HopUiState(
 	val error: Boolean = false,

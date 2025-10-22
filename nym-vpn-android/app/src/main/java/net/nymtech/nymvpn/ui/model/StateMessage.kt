@@ -1,8 +1,8 @@
 package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.util.StringValue
-import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib.VpnException
+import nym_vpn_lib_types.ErrorStateReason
 
 sealed class StateMessage {
 	data class Status(val message: StringValue) : StateMessage()
