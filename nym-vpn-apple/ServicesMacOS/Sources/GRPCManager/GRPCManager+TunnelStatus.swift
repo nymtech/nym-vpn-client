@@ -224,8 +224,8 @@ private extension TunnelConnectingState {
             self = .refreshingGateways
         case .selectingGateways:
             self = .selectingGateways
-        case .connectingMixnetClient:
-            self = .connectingMixnetClient
+        case .registeringWithGateways:
+            self = .registeringWithGateways
         case .connectingTunnel:
             self = .connectingTunnel
         }

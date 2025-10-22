@@ -90,7 +90,6 @@ private extension CensorshipView {
     func quicMultilineText() -> AttributedString? {
         let first = "censorship.quic.subtitle1".localizedString
         let second = "censorship.quic.subtitle2".localizedString
-        // TODO: update link
         let link = Constants.quicURL.rawValue
         let linkText = "censorship.quic.link".localizedString
         let markdown = """
@@ -149,18 +148,38 @@ private extension CensorshipView {
     }
 
     var overlayConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            titleLocalizedString: "censorship.quic.disable.alert.title".localizedString,
-            subtitleLocalizedString: "censorship.quic.disable.alert.subtitle".localizedString,
-            yesLocalizedString: "reconnect".localizedString,
-            noLocalizedString: "cancel".localizedString,
+        let alertTitle = appSettings.isQuicEnabled
+        ? "censorship.quic.disable.alert.title".localizedString
+        : "censorship.quic.enable.alert.title".localizedString
+
+        let subtitle = "censorship.quic.disable.alert.subtitle".localizedString
+        + "\n\n"
+        + "censorship.quic.disable.alert.subtitle1".localizedString
+
+        let yesTitle = appSettings.isQuicEnabled
+        ? "censorship.quic.disableAndReconnect".localizedString
+        : "censorship.quic.enableAndReconnect".localizedString
+
+        let noTitle = appSettings.isQuicEnabled
+        ? "censorship.quic.offAndNext".localizedString
+        : "censorship.quic.onAndNext".localizedString
+
+        return ActionDialogConfiguration(
+            systemIconImageName: "shippingbox",
+            titleLocalizedString: alertTitle,
+            subtitleLocalizedString: subtitle,
+            yesLocalizedString: yesTitle,
+            noLocalizedString: noTitle,
             yesAction: {
                 appSettings.isQuicEnabled.toggle()
+                appSettings.shouldReconnect = true
                 isConfirmationDisplayed = false
             },
             noAction: {
+                appSettings.isQuicEnabled.toggle()
                 isConfirmationDisplayed = false
-            }
+            },
+            verticalButtonsLayout: true
         )
     }
 
