@@ -26,12 +26,13 @@ export default function HopSelect({
   disabled,
   locked,
 }: HopSelectProps) {
-  const { backendFlags, quic } = useMainState();
+  const { backendFlags, quic, vpnMode } = useMainState();
   const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
   const quicTag =
+    vpnMode === 'wg' &&
     nodeHop === 'entry' &&
     backendFlags.quic &&
     quic &&
