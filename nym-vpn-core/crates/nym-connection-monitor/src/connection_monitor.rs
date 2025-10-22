@@ -87,7 +87,7 @@ impl TimingConfig {
     pub fn two_hop() -> Self {
         TimingConfig {
             initial_probe_timeout: Duration::from_secs(3),
-            initial_probe_retry_count: 5,
+            initial_probe_retry_count: 3,
             monitoring_probe_timeout: Duration::from_secs(5),
             monitoring_probe_retry_count: 3,
             probe_periodicity: Duration::from_secs(10),
