@@ -38,6 +38,9 @@ pub struct VpnServiceConfig {
     pub enable_custom_dns: bool,
     pub custom_dns: Vec<IpAddr>,
     pub network_stats: NetworkStatisticsConfig,
+    pub poisson_parameter: Option<u32>,
+    pub average_packet_delay: Option<u32>,
+    pub message_sending_average_delay: Option<u32>,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -82,6 +85,18 @@ impl fmt::Display for VpnServiceConfig {
                 .join(", ")
         )?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
+        writeln!(f, "poisson_parameter: {:?}", self.poisson_parameter)?;
+        writeln!(
+            f,
+            "average_packet_delay: {} ms, message_sending_average_delay: {} ms",
+            self.average_packet_delay
+                .map(|v| format!("{v}"))
+                .unwrap_or_else(|| "<None>".to_string()),
+            self.message_sending_average_delay
+                .map(|v| format!("{v}"))
+                .unwrap_or_else(|| "<None>".to_string())
+        )?;
+
         Ok(())
     }
 }
@@ -109,6 +124,9 @@ impl Default for VpnServiceConfig {
             enable_custom_dns: false,
             custom_dns: vec![],
             network_stats: Default::default(),
+            poisson_parameter: None,
+            average_packet_delay: None,
+            message_sending_average_delay: None,
         }
     }
 }

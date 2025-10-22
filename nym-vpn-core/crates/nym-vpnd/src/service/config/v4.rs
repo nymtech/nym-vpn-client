@@ -68,6 +68,9 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
             network_stats: nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats),
+            average_packet_delay: None,
+            message_sending_average_delay: None,
+            poisson_parameter: None,
         };
         Ok(config)
     }

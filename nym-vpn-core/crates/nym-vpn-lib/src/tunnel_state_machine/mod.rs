@@ -123,7 +123,7 @@ impl Default for TunnelConstants {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
@@ -747,7 +747,6 @@ impl TunnelStateMachine {
                     &mut self.shared_state,
                 )
                 .await;
-
             match next_state {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
