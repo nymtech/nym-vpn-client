@@ -15,7 +15,10 @@ function QuicTag({ className }: QuicTagProps) {
         className,
       )}
     >
-      <MsIcon icon="package_2" className="text-base text-ozone dark:text-azur" />
+      <MsIcon
+        icon="package_2"
+        className="text-base text-ozone dark:text-azur"
+      />
       <p>QUIC</p>
     </div>
   );
