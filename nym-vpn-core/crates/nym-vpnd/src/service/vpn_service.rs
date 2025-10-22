@@ -441,7 +441,7 @@ impl NymVpnService {
         })?;
 
         let validator_client = fronted_http_client(
-            urls,
+            urls.clone(),
             Some(parameters.user_agent.clone()),
             None,
             Some(&resolver_overrides),
@@ -454,14 +454,9 @@ impl NymVpnService {
             }
         })?;
 
-        let urls = parameters.network_env.nym_api_urls_as_urls().ok_or(
-            AccountControllerError::Initialization {
-                reason: "Nym API URLs are empty".to_string(),
-            },
-        )?;
-
         let topology_provider = VpnTopologyProvider::new(
             urls,
+            Some(parameters.user_agent.clone()),
             validator_client,
             false,
             services_shutdown_token.child_token(),

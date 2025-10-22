@@ -131,18 +131,17 @@ pub(super) async fn start_state_machine(
             details: "Nym API URLs are empty".to_string(),
         })?;
     let urls = api_urls_to_urls(&api_urls).map_err(|e| VpnError::HttpClient(e.to_string()))?;
-    let validator_client = fronted_http_client(urls, None, None, None)
+    let validator_client = fronted_http_client(urls.clone(), None, None, None)
         .await
         .map_err(|e| VpnError::HttpClient(e.to_string()))?;
 
-    let urls = network_env
-        .nym_api_urls_as_urls()
-        .ok_or(VpnError::InvalidStateError {
-            details: "Nym API URLs are empty".to_string(),
-        })?;
-
-    let topology_provider =
-        VpnTopologyProvider::new(urls, validator_client, false, shutdown_token.child_token());
+    let topology_provider = VpnTopologyProvider::new(
+        urls,
+        None,
+        validator_client,
+        false,
+        shutdown_token.child_token(),
+    );
     topology_provider.fetch().await;
 
     let state_machine_handle = TunnelStateMachine::spawn(

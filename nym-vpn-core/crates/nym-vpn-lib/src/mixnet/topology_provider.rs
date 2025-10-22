@@ -4,6 +4,8 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use nym_http_api_client::{Url, UserAgent};
+use nym_vpn_api_client::{ResolverOverrides, fronted_http_client};
 use tokio::{
     sync::{
         Mutex, RwLock,
@@ -13,7 +15,6 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use url::Url;
 
 use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::Config};
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider};
@@ -25,6 +26,7 @@ enum FetcherCommand {
     UpdateConfig {
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
+        resolver_overrides: ResolverOverrides,
         response: oneshot::Sender<()>,
     },
 }
@@ -32,6 +34,7 @@ enum FetcherCommand {
 struct Fetcher {
     topology_provider: NymApiTopologyProvider,
     nym_api_urls: Vec<Url>,
+    user_agent: Option<UserAgent>,
     validator_client: nym_http_api_client::Client,
     command_rx: UnboundedReceiver<FetcherCommand>,
     cancel_token: CancellationToken,
@@ -47,6 +50,7 @@ impl Fetcher {
 
     fn new(
         nym_api_urls: Vec<Url>,
+        user_agent: Option<UserAgent>,
         validator_client: nym_http_api_client::Client,
         command_rx: UnboundedReceiver<FetcherCommand>,
         cancel_token: CancellationToken,
@@ -54,10 +58,11 @@ impl Fetcher {
         Self {
             topology_provider: NymApiTopologyProvider::new(
                 Self::DEFAULT_CONFIG,
-                nym_api_urls.clone(),
+                nym_api_urls.clone().into_iter().map(Into::into).collect(),
                 validator_client.clone(),
             ),
             nym_api_urls,
+            user_agent,
             validator_client,
             command_rx,
             cancel_token,
@@ -68,10 +73,11 @@ impl Fetcher {
         self.topology_provider.get_new_topology().await
     }
 
-    fn update_config(
+    async fn update_config(
         &mut self,
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
+        resolver_overrides: &ResolverOverrides,
     ) {
         let mut config = Self::DEFAULT_CONFIG;
         if let Some(min_mixnode_performance) = min_mixnode_performance {
@@ -80,10 +86,27 @@ impl Fetcher {
         if let Some(min_gateway_performance) = min_gateway_performance {
             config.min_gateway_performance = min_gateway_performance;
         }
+        let validator_client = fronted_http_client(
+            self.nym_api_urls.clone(),
+            self.user_agent.clone(),
+            None,
+            Some(resolver_overrides),
+        )
+        .await
+        .inspect_err(|err| {
+            tracing::warn!(
+                "Could not update topology provider with domain fronting HTTP client: {err}"
+            )
+        })
+        .unwrap_or(self.validator_client.clone());
         self.topology_provider = NymApiTopologyProvider::new(
             config,
-            self.nym_api_urls.clone(),
-            self.validator_client.clone(),
+            self.nym_api_urls
+                .clone()
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            validator_client,
         );
     }
 
@@ -96,9 +119,15 @@ impl Fetcher {
             FetcherCommand::UpdateConfig {
                 min_mixnode_performance,
                 min_gateway_performance,
+                resolver_overrides,
                 response,
             } => {
-                self.update_config(min_mixnode_performance, min_gateway_performance);
+                self.update_config(
+                    min_mixnode_performance,
+                    min_gateway_performance,
+                    &resolver_overrides,
+                )
+                .await;
                 let _ = response.send(());
             }
         }
@@ -135,12 +164,19 @@ pub struct VpnTopologyProvider {
 impl VpnTopologyProvider {
     pub fn new(
         nym_api_urls: Vec<Url>,
+        user_agent: Option<UserAgent>,
         validator_client: nym_http_api_client::Client,
         use_network: bool,
         cancel_token: CancellationToken,
     ) -> Self {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
-        let refresher = Fetcher::new(nym_api_urls, validator_client, command_rx, cancel_token);
+        let refresher = Fetcher::new(
+            nym_api_urls,
+            user_agent,
+            validator_client,
+            command_rx,
+            cancel_token,
+        );
         tokio::spawn(refresher.run());
 
         Self {
@@ -200,6 +236,7 @@ impl VpnTopologyProvider {
         &self,
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
+        resolver_overrides: ResolverOverrides,
     ) {
         let (signal_finished_tx, signal_finished_rx) = oneshot::channel();
         if self
@@ -207,6 +244,7 @@ impl VpnTopologyProvider {
             .send(FetcherCommand::UpdateConfig {
                 min_mixnode_performance,
                 min_gateway_performance,
+                resolver_overrides,
                 response: signal_finished_tx,
             })
             .is_err()
