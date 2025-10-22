@@ -8,7 +8,7 @@ use time::OffsetDateTime;
 
 use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
@@ -25,6 +25,12 @@ pub struct VpnServiceConfig {
     pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
+    pub poisson_parameter: Option<f32>,
+    /// Average delay for packet sending (in milliseconds)
+    pub average_packet_delay: Option<f32>,
+
+    /// Average delay for message sending (in milliseconds)
+    pub message_sending_average_delay: Option<f32>,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -62,6 +68,18 @@ impl fmt::Display for VpnServiceConfig {
                 .unwrap_or_else(|| "<None>".to_string())
         )?;
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
+        writeln!(f, "poisson_parameter: {:?}", self.poisson_parameter)?;
+        writeln!(
+            f,
+            "average_packet_delay: {} ms, message_sending_average_delay: {} ms",
+            self.average_packet_delay
+                .map(|v| format!("{v:.2}"))
+                .unwrap_or_else(|| "<None>".to_string()),
+            self.message_sending_average_delay
+                .map(|v| format!("{v:.2}"))
+                .unwrap_or_else(|| "<None>".to_string())
+        )?;
+
         Ok(())
     }
 }
@@ -83,6 +101,10 @@ impl Default for VpnServiceConfig {
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
             residential_exit: false,
+            poisson_parameter: None,
+            // new defaults
+            average_packet_delay: None, 
+            message_sending_average_delay: None,
         }
     }
 }

@@ -132,6 +132,10 @@ pub enum VpnServiceCommand {
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
     IsCollectNetStatsEnabled(oneshot::Sender<bool>, ()),
     ToggleCollectNetStats(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
+    SetPoissonParameter(oneshot::Sender<()>, f32),
+    SetAveragePacketDelay(oneshot::Sender<()>, f32),
+    SetMessageSendingAverageDelay(oneshot::Sender<()>, f32),
+    SetDisablePoissonRate(oneshot::Sender<()>, bool),
 }
 
 pub struct NymVpnServiceParameters {
@@ -781,6 +785,23 @@ impl NymVpnService {
                 let result = self.handle_toggle_collect_network_stats(enable).await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::SetPoissonParameter(tx, value) => {
+                 self.handle_set_poisson_parameter(value).await;
+                let _ = tx.send(());
+            }
+        VpnServiceCommand::SetAveragePacketDelay(resp, delay_ms) => {
+            self.handle_set_average_packet_delay(delay_ms).await;
+            let _ = resp.send(());
+        }
+
+        VpnServiceCommand::SetMessageSendingAverageDelay(resp, delay_ms) => {
+            self.handle_set_message_sending_average_delay(delay_ms).await;
+            let _ = resp.send(());
+        }
+        VpnServiceCommand::SetDisablePoissonRate(tx, disable) => {
+            self.handle_set_disable_poisson_rate(disable).await;
+            let _ = tx.send(());
+        }
         }
     }
 
@@ -827,6 +848,34 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
+async fn handle_set_poisson_parameter(&mut self, value: f32) {
+    tracing::debug!(
+        "Handling SetPoissonParameter with value: {}",
+        value
+    );
+
+    // Update the Poisson parameter inside the configuration manager
+    self.config_manager
+        .set_poisson_parameter(value)
+        .await;
+
+    // Update tunnel settings with throttle
+    self.update_tunnel_settings_with_throttle();
+}
+async fn handle_set_disable_poisson_rate(&mut self, disable: bool) {
+    tracing::debug!(
+        "Handling SetDisablePoissonRate with value: {}",
+        disable
+    );
+
+    // Update the disable_poisson_rate flag in the configuration manager
+    self.config_manager
+        .set_disable_poisson_rate(disable)
+        .await;
+
+    // Update tunnel settings accordingly
+    self.update_tunnel_settings_with_throttle();
+}
     async fn handle_set_allow_lan(&mut self, allow_lan: bool, complete_tx: oneshot::Sender<()>) {
         self.config_manager.set_allow_lan(allow_lan).await;
         _ = self
@@ -845,7 +894,38 @@ impl NymVpnService {
             .await;
         self.update_tunnel_settings_with_throttle();
     }
+pub async fn handle_set_average_packet_delay(&mut self, delay_ms: f32) {
+    tracing::info!(
+        "⚙️ Received request to set average packet delay to {} ms",
+        delay_ms
+    );
 
+    // For debugging
+
+    // Update config
+    self.config_manager
+        .set_average_packet_delay(Some(delay_ms))
+        .await;
+
+    // Update tunnel settings (with throttle)
+    self.update_tunnel_settings_with_throttle();
+}
+
+pub async fn handle_set_message_sending_average_delay(&mut self, delay_ms: f32) {
+    tracing::info!(
+        "⚙️ Received request to set message sending average delay to {} ms",
+        delay_ms
+    );
+
+
+    // Update config
+    self.config_manager
+        .set_message_sending_average_delay(Some(delay_ms))
+        .await;
+
+    // Update tunnel settings (with throttle)
+    self.update_tunnel_settings_with_throttle();
+}
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config =
             GlobalConfig::read_from_default_config_dir()
@@ -956,7 +1036,7 @@ impl NymVpnService {
             exit,
             options,
         } = connect_args;
-
+        let temporar_config  = self.config_manager.config();
         let entry_point = entry.unwrap_or(self.config_manager.config().entry_point.clone());
         let exit_point = exit.unwrap_or(self.config_manager.config().exit_point.clone());
         let config = VpnServiceConfig {
@@ -971,9 +1051,12 @@ impl NymVpnService {
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
-            disable_poisson_rate: options.disable_poisson_rate,
+            disable_poisson_rate: temporar_config.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
             residential_exit: false,
+            poisson_parameter: temporar_config.poisson_parameter,
+            average_packet_delay: temporar_config.average_packet_delay,
+            message_sending_average_delay: temporar_config.message_sending_average_delay
         };
 
         self.config_manager.set_config(config).await;

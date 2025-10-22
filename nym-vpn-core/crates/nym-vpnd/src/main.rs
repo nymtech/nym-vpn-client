@@ -96,7 +96,6 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
 
     #[cfg(not(windows))]
     run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
-
     let _worker_guard = if let Some(setup) = logging_setup {
         if setup.log_file_remover_join_handle.await.is_err() {
             tracing::error!("Failed to join on file logging handle");
@@ -199,9 +198,8 @@ impl VpnServiceHandle {
         if let Err(e) = self.vpn_service_handle.await {
             tracing::error!("Failed to join on vpn service: {}", e);
         }
-
         self.command_shutdown_token.cancel();
-
+    
         if let Err(e) = self.command_handle.await {
             tracing::error!("Failed to join on command interface: {}", e);
         }

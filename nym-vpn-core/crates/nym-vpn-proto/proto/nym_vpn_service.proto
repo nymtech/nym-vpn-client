@@ -239,6 +239,12 @@ message ConnectRequest {
   UserAgent user_agent = 12;
 }
 
+message SetPoissonParameterRequest {
+  float poisson_parameter = 1;
+}
+
+message SetPoissonParameterResponse {}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -254,6 +260,9 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
+  optional float poisson_parameter = 16;
+  optional float average_packet_delay = 22;
+  optional float message_sending_average_delay = 23;
 }
 
 message AsEntry {
@@ -760,11 +769,21 @@ message DeleteLogFileResponse {
   bool success = 1;
   DeleteLogFileError error = 2;
 }
+message SetAveragePacketDelayRequest {
+    float delay_ms = 1;
+}
 
+message SetMessageSendingAverageDelayRequest {
+    float delay_ms = 1;
+}
+message SetDisablePoissonRateRequest {
+  bool disable = 1;
+}
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
-
+  rpc SetPoissonParameter (SetPoissonParameterRequest) returns (google.protobuf.Empty);
+   rpc SetDisablePoissonRate (SetDisablePoissonRateRequest) returns (google.protobuf.Empty);
   // Get the VPN service configuration
   rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
 
@@ -884,4 +903,6 @@ service NymVpnService {
 
   // Disable network statistics collection (requires daemon restart)
   rpc DisableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetAveragePacketDelay(SetAveragePacketDelayRequest) returns (google.protobuf.Empty);
+  rpc SetMessageSendingAverageDelay(SetMessageSendingAverageDelayRequest) returns (google.protobuf.Empty);
 }

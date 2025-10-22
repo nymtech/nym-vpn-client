@@ -155,6 +155,7 @@ fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
 }
 
 async fn connect_v2(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
+    println!("Connect function called");
     rpc_client.connect_tunnel_v2().await?;
 
     if wait {
@@ -202,7 +203,6 @@ async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
     rpc_client.disconnect_tunnel().await?;
 
     if wait {
-        println!("Waiting until disconnected");
         wait_until_disconnected(rpc_client).await
     } else {
         Ok(())

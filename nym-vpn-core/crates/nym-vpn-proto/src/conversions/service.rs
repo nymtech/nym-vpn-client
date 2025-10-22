@@ -42,6 +42,9 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
+            poisson_parameter: value.poisson_parameter,
+            average_packet_delay: value.average_packet_delay,
+            message_sending_average_delay: value.message_sending_average_delay,
         };
         Ok(config)
     }
@@ -66,6 +69,9 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
+            poisson_parameter: value.poisson_parameter,
+            average_packet_delay: value.average_packet_delay,
+            message_sending_average_delay: value.message_sending_average_delay,
         }
     }
 }

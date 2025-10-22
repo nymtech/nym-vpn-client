@@ -301,7 +301,6 @@ impl Probe {
         import_bandwidth(bandwidth_import, tickets_materials).await?;
 
         let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
-
         self.do_probe_test(
             gateway_config,
             mixnet_client,

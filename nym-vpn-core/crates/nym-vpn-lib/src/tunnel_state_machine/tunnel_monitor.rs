@@ -371,7 +371,6 @@ impl TunnelMonitor {
             };
 
         self.send_event(TunnelMonitorEvent::ConnectingMixnetClient);
-
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
         #[cfg(target_os = "linux")]

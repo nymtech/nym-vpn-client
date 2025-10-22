@@ -175,7 +175,34 @@ impl VpnServiceConfigManager {
             self.save_config_and_send_event().await;
         }
     }
+    pub async fn set_poisson_parameter(&mut self, poisson_parameter: f32) {
+       //TODO, TO PUT CHECK THERE CORRECT
+        // if self.config.poisson_parameter != poisson_parameter {
+             self.config.poisson_parameter = Some(poisson_parameter);
+             self.save_config_and_send_event().await;
+        //}
+    }
+    pub async fn set_average_packet_delay(&mut self, average_packet_delay: Option<f32>) {
+        if self.config.average_packet_delay != average_packet_delay {
+            tracing::debug!(
+                "Setting average_packet_delay = {:?}",
+                average_packet_delay
+            );
+            self.config.average_packet_delay = average_packet_delay;
+            self.save_config_and_send_event().await;
+        }
+    }
 
+    pub async fn set_message_sending_average_delay(&mut self, message_sending_average_delay: Option<f32>) {
+        if self.config.message_sending_average_delay != message_sending_average_delay {
+            tracing::debug!(
+                "Setting message_sending_average_delay = {:?}",
+                message_sending_average_delay
+            );
+            self.config.message_sending_average_delay = message_sending_average_delay;
+            self.save_config_and_send_event().await;
+        }
+    }
     pub async fn set_enable_two_hop(&mut self, enable_two_hop: bool) {
         if self.config.enable_two_hop != enable_two_hop {
             self.config.enable_two_hop = enable_two_hop;
@@ -354,6 +381,9 @@ impl VpnServiceConfigManager {
             disable_background_cover_traffic: self.config.disable_background_cover_traffic,
             min_mixnode_performance: self.config.min_mixnode_performance,
             min_gateway_performance: self.config.min_gateway_mixnet_performance,
+            poisson_rate: self.config.poisson_parameter,
+            average_packet_delay: self.config.average_packet_delay,
+            message_sending_average_delay: self.config.message_sending_average_delay,
         };
 
         let tunnel_type = if self.config.enable_two_hop {
@@ -521,6 +551,10 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
+            poisson_parameter: None,
+            average_packet_delay: None,
+            message_sending_average_delay: None,
+
         };
         Ok(config)
     }
