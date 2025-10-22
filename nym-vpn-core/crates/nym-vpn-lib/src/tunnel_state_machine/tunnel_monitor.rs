@@ -638,6 +638,7 @@ impl TunnelMonitor {
             tunnel_connection_monitor_tx,
         )?;
 
+        let mut last_connection_status = None;
         loop {
             tokio::select! {
                 event = tunnel_connection_monitor_rx.recv() => {
@@ -645,17 +646,21 @@ impl TunnelMonitor {
                         tracing::info!("Event channel with connection monitor is closed");
                         break;
                     };
+                    // Prevent repeated messages
+                    if last_connection_status != Some(event.status) {
+                        last_connection_status = Some(event.status);
 
-                    match event.status {
-                        ConnectionStatusEvent::Viable => {
-                            tracing::info!("Tunnel connection viable");
-                        }
-                        ConnectionStatusEvent::IntermittentFailure { retry } => {
-                            tracing::info!("Tunnel connection is failing (retry: {retry})");
-                        }
-                        ConnectionStatusEvent::Failed => {
-                            tracing::info!("Tunnel connection is down. Exiting");
-                            break;
+                        match event.status {
+                            ConnectionStatusEvent::Viable => {
+                                tracing::info!("Tunnel connection is viable");
+                            }
+                            ConnectionStatusEvent::IntermittentFailure { retry } => {
+                                tracing::info!("Tunnel connection is failing (retry: {retry})");
+                            }
+                            ConnectionStatusEvent::Failed => {
+                                tracing::info!("Tunnel connection is down. Exiting");
+                                break;
+                            }
                         }
                     }
                 }

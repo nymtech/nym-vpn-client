@@ -20,6 +20,7 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["macros", "rt"] }
 tokio-util.workspace = true
 tracing.workspace = true
+nym-common.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt", "time", "test-util"] }

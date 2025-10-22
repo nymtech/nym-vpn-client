@@ -3991,6 +3991,7 @@ dependencies = [
  "async-trait",
  "futures",
  "nix 0.30.1",
+ "nym-common",
  "pretty_assertions",
  "surge-ping",
  "thiserror 2.0.17",

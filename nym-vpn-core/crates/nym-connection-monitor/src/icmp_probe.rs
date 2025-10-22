@@ -120,15 +120,21 @@ pub struct IcmpProbeError {
     inner: IcmpProbeInnerError,
 }
 
+impl IcmpProbeError {
+    pub fn inner(&self) -> &(dyn std::error::Error + 'static) {
+        &self.inner
+    }
+}
+
 impl std::fmt::Display for IcmpProbeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.inner)
+        self.inner.fmt(f)
     }
 }
 
 impl std::error::Error for IcmpProbeError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.inner)
+        self.inner.source()
     }
 }
 

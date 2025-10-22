@@ -7,6 +7,8 @@ use futures::{FutureExt, future::Fuse};
 use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle, time::Instant};
 use tokio_util::sync::CancellationToken;
 
+use nym_common::trace_err_chain;
+
 use super::ConnectionProbe;
 
 #[derive(thiserror::Error, Debug)]
@@ -204,7 +206,7 @@ where
 
     async fn run(mut self) -> Result<(), Error> {
         let timeout = self.state.timeout(&self.timing_config);
-        tracing::debug!(
+        tracing::trace!(
             "Sending initial probe with {} ms timeout",
             timeout.as_millis()
         );
@@ -224,7 +226,7 @@ where
                     let next_probe_at = match res {
                         Ok(()) => {
                             let elapsed = current_timestamp.duration_since(self.state.last_sent_at);
-                            tracing::debug!("Probe succeeded in {} ms", elapsed.as_millis());
+                            tracing::trace!("Probe succeeded in {} ms", elapsed.as_millis());
 
                             self.state.last_reply_at = Some(current_timestamp);
                             self.state.retry = 0;
@@ -240,10 +242,7 @@ where
                                 end_timestamp: current_timestamp,
                             });
 
-                            if self.state.status != ConnectionStatus::Viable {
-                                self.state.status = ConnectionStatus::Viable;
-                                tracing::info!("Connection is {}", self.state.status);
-                            }
+                            self.state.status = ConnectionStatus::Viable;
 
                             // Since the probe succeeded, send the next one at longer interval
                             let delay = self.timing_config.probe_periodicity;
@@ -252,7 +251,7 @@ where
                                 .ok_or(Error::ComputeNextProbeTime(current_timestamp, delay))?
                         }
                         Err(err) => {
-                            tracing::error!("Probe failed: {}", err);
+                            trace_err_chain!(err);
 
                             self.state.increment_retry();
 
@@ -264,7 +263,6 @@ where
                                     start_timestamp: self.state.last_sent_at,
                                     end_timestamp: current_timestamp,
                                 });
-                                tracing::info!("Connection is {}", self.state.status);
                             } else {
                                 self.send_event(ConnectionEvent {
                                     status: ConnectionStatusEvent::IntermittentFailure { retry: self.state.retry },
@@ -301,7 +299,7 @@ where
                     probe_task.set(self.probe.send(timeout).fuse());
                 }
                 _ = self.shutdown_token.cancelled() => {
-                    tracing::info!("Connection monitor cancelled");
+                    tracing::debug!("Connection monitor is cancelled");
                     break Ok(());
                 }
             }
