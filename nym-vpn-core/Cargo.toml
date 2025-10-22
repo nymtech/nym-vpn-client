@@ -138,7 +138,7 @@ tempfile = "3.23"
 tabled = "0.20"
 thiserror = "2.0"
 time = "0.3.44"
-tokio = "1.47"
+tokio = "1.48"
 tokio-rustls = { version = "0.26", default-features = false }
 tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.16", features = ["codec"] }
