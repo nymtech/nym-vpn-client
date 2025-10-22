@@ -240,7 +240,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					value = appUiState.entryPointName,
 					label = stringResource(R.string.entry),
 					countryCode = appUiState.entryPointCountry,
-					gatewayName = appUiState.entryPointGatewayName,
+					gatewayLocation = appUiState.entryPointLocation,
 					onClick = { navController.goFromRoot(Route.EntryLocation) },
 					enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
 				)
@@ -248,7 +248,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					value = appUiState.exitPointName,
 					label = stringResource(R.string.exit),
 					countryCode = appUiState.exitPointCountry,
-					gatewayName = appUiState.exitPointGatewayName,
+					gatewayLocation = appUiState.exitPointLocation,
 					onClick = { navController.goFromRoot(Route.ExitLocation) },
 					enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
 				)

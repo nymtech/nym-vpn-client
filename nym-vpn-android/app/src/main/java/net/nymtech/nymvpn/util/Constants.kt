@@ -19,4 +19,6 @@ object Constants {
 
 	const val KOTLIN_LICENSES_ASSET_FILE_NAME = "artifacts.json"
 	const val RUST_LICENSES_ASSET_FILE_NAME = "licenses_rust.json"
+
+	val countryCodesForRegionSupport = listOf("us", "ca", "au", "mx", "br", "in", "cn")
 }

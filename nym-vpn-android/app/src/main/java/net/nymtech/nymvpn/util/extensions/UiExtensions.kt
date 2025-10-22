@@ -162,18 +162,22 @@ fun VpnException.toUserMessage(context: Context): String {
 fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
 	return this.sortedBy {
 		when (mode) {
-			Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore
-			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore
+			Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore ?: Score.OFFLINE
+			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore ?: Score.OFFLINE
 		}
 	}
 }
 
+fun toDisplayCountry(twoLetterIsoCountryCode: String): String {
+	return Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
+}
+
 fun EntryPoint.Country.toDisplayCountry(): String {
-	return Locale(this.twoLetterIsoCountryCode, this.twoLetterIsoCountryCode).displayCountry
+	return toDisplayCountry(twoLetterIsoCountryCode)
 }
 
 fun ExitPoint.Country.toDisplayCountry(): String {
-	return Locale(this.twoLetterIsoCountryCode, this.twoLetterIsoCountryCode).displayCountry
+	return toDisplayCountry(twoLetterIsoCountryCode)
 }
 
 @Composable
