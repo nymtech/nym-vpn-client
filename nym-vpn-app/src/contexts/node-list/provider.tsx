@@ -70,6 +70,7 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
               ...country.country,
               isSelected: isCountrySelected,
             },
+            regions: country.regions,
             type: country.type,
             gateways,
             isSelected: isCountrySelected,

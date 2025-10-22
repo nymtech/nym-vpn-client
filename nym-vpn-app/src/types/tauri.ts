@@ -142,6 +142,7 @@ export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
 export type GatewaysByCountry = {
   country: Country;
+  regions: Array<Region>;
   gateways: Array<Gateway>;
   type: GatewayType;
   quic: boolean;
@@ -219,6 +220,14 @@ export type Performance = {
    * uptime percentage on the last 24 hours
    */
   uptime24h: number;
+};
+
+export type Region = {
+  region: string;
+  country: Country;
+  gateways: Array<Gateway>;
+  type: GatewayType;
+  quic: boolean;
 };
 
 export type Score = 'offline' | 'low' | 'medium' | 'high';
