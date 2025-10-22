@@ -587,17 +587,6 @@ impl TunnelMonitor {
             None
         };
 
-        let connection_data = ConnectionData {
-            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
-            connected_at: OffsetDateTime::now_utc(),
-            tunnel: tunnel_conn_data,
-        };
-        self.send_event(TunnelMonitorEvent::Up {
-            tunnel_interface: tunnel_interface.clone(),
-            connection_data: Box::new(connection_data),
-        });
-
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
@@ -639,6 +628,14 @@ impl TunnelMonitor {
         )?;
 
         let mut last_connection_status = None;
+        let mut has_sent_up_event = false;
+        let connection_data = Box::new(ConnectionData {
+            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            connected_at: OffsetDateTime::now_utc(),
+            tunnel: tunnel_conn_data,
+        });
+
         loop {
             tokio::select! {
                 event = tunnel_connection_monitor_rx.recv() => {
@@ -653,6 +650,14 @@ impl TunnelMonitor {
                         match event.status {
                             ConnectionStatusEvent::Viable => {
                                 tracing::info!("Tunnel connection is viable");
+                                if !has_sent_up_event {
+                                    has_sent_up_event = true;
+
+                                    self.send_event(TunnelMonitorEvent::Up {
+                                        tunnel_interface: tunnel_interface.clone(),
+                                        connection_data: connection_data.clone(),
+                                    });
+                                }
                             }
                             ConnectionStatusEvent::IntermittentFailure { retry } => {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
