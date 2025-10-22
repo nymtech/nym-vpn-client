@@ -123,7 +123,6 @@ pub struct ApiUrl {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct NymVpnNetwork {
-    pub nym_vpn_api_url: String,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
 }
 
@@ -140,7 +139,6 @@ pub struct NymVpnNetwork {
 pub struct Network {
     pub nym_network: NymNetworkDetails,
     pub nyxd_url: String,
-    pub api_url: String,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
@@ -347,7 +345,6 @@ impl From<nym_vpn_network_config::Network> for Network {
         Self {
             nym_network: NymNetworkDetails::from(value.nym_network),
             nyxd_url: value.nyxd_url.to_string(),
-            api_url: value.api_url.to_string(),
             nym_vpn_network: NymVpnNetwork::from(value.nym_vpn_network),
             feature_flags: value.feature_flags.map(FeatureFlags::from),
             system_configuration: value.system_configuration.map(SystemConfiguration::from),
@@ -489,7 +486,6 @@ impl From<nym_network_defaults::ValidatorDetails> for ValidatorDetails {
 impl From<nym_vpn_network_config::NymVpnNetwork> for NymVpnNetwork {
     fn from(value: nym_vpn_network_config::NymVpnNetwork) -> Self {
         Self {
-            nym_vpn_api_url: value.nym_vpn_api_url.to_string(),
             nym_vpn_api_urls: value
                 .nym_vpn_api_urls
                 .into_iter()

@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::boolean_option::BooleanOption;
+use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -20,20 +20,20 @@ pub enum Command {
 #[group(required = true, multiple = true)]
 pub struct SetParams {
     /// Enable or disable IPv6
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     ipv6: Option<BooleanOption>,
 
     /// Enable or disable two-hop mode
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     two_hop: Option<BooleanOption>,
 
     /// Enable or disable netstack in two-hop mode
     /// Normally this is only used for testing purposes and should always be off
-    #[arg(long, value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     netstack: Option<BooleanOption>,
 
     /// Enable Circumvention Transport (CT) wrapping for the connection to the entry gateway in two hop wireguard mode.
-    #[arg(long, alias = "ct", value_parser = BooleanOption::custom_parser("on", "off"))]
+    #[arg(long, alias = "ct", value_parser = clap::value_parser!(BooleanOption))]
     circumvention_transports: Option<BooleanOption>,
 }
 
@@ -42,12 +42,13 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                println!("IPv6: {}", if config.disable_ipv6 { "off" } else { "on" });
+                println!("IPv6: {}", display_on_off(!config.disable_ipv6));
+                println!("Two-hop: {}", display_on_off(config.enable_two_hop));
+                println!("Netstack: {}", display_on_off(config.netstack));
                 println!(
-                    "Two-hop: {}",
-                    if config.enable_two_hop { "on" } else { "off" }
+                    "Circumvention transports: {}",
+                    display_on_off(config.enable_bridges)
                 );
-                println!("Netstack: {}", if config.netstack { "on" } else { "off" });
 
                 Ok(())
             }

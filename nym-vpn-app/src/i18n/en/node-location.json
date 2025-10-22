@@ -5,6 +5,7 @@
   "selected": "Selected",
   "search-country": "Search location",
   "input-label": "Search",
+  "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
     "title": "Details on server locations",
     "description": "We infer server locations based on their IP addresses, but the actual locations may vary slightly.",
@@ -49,7 +50,7 @@
       "offline": "Offline"
     },
     "notes": {
-      "anti-censorship": "Enable “QUIC protocol” in Anti-censorship Settings to use this feature",
+      "anti-censorship": "<0>Enable “QUIC protocol”</0> in Anti-censorship Settings to use this feature",
       "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
       "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
     },

@@ -1,11 +1,14 @@
 import clsx from 'clsx';
+import { useNavigate } from 'react-router';
 import { Button } from '@headlessui/react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { Routes } from '../types';
 import MsIcon from './MsIcon';
 
 type LinkProps = {
   text: string;
-  url: string;
+  url?: string;
+  to?: Routes;
   icon?: boolean | string;
   color?: 'primary' | 'malachite' | 'iron';
   className?: string;
@@ -18,6 +21,7 @@ type LinkProps = {
 function Link({
   text,
   url,
+  to,
   icon,
   color = 'malachite',
   className,
@@ -28,6 +32,15 @@ function Link({
 }: LinkProps) {
   const testId =
     rest['data-testid'] || `link-${text.replace(/\s+/g, '-').toLowerCase()}`;
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (url) {
+      openUrl(url);
+    } else if (to) {
+      navigate(to);
+    }
+  };
 
   return (
     <Button
@@ -41,7 +54,7 @@ function Link({
         className && className,
         selectable && '!select-text',
       ])}
-      onClick={() => openUrl(url)}
+      onClick={handleClick}
       data-testid={testId}
       data-test-url={url}
     >

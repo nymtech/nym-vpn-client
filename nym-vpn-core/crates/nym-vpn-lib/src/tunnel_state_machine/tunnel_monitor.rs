@@ -320,22 +320,37 @@ impl TunnelMonitor {
             }
         }
 
-        // todo: user_agent must not be a part of tunnel_settings
         let user_agent = self
             .tunnel_parameters
             .tunnel_settings
             .user_agent
             .clone()
             .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+
+        // TODO: user_agent must not be a part of tunnel_settings
+
+        let resolver_overrides = Some(
+            &self
+                .tunnel_parameters
+                .resolved_gateway_config
+                .nym_api_resolver_overrides,
+        );
+
+        let vpn_resolver_overrides = Some(
+            &self
+                .tunnel_parameters
+                .resolved_gateway_config
+                .nym_vpn_api_resolver_overrides,
+        );
+
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
             gateway_config.clone(),
             user_agent.clone(),
-            self.tunnel_parameters
-                .resolved_gateway_config
-                .nym_vpn_api_socket_addrs
-                .as_deref(),
+            resolver_overrides,
+            vpn_resolver_overrides,
         )
-        .unwrap();
+        .await
+        .map_err(Error::GatewayDirectoryClient)?;
 
         self.gateway_cache_handle
             .replace_gateway_client(gateway_directory_client)

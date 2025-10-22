@@ -181,7 +181,7 @@ impl GatewayCache {
         self.gateway_client = gateway_client;
 
         // Invalidate cache immediately if gateway performance change
-        if new_config.min_gateway_performance != old_config.min_gateway_performance {
+        if new_config.min_gateway_performance() != old_config.min_gateway_performance() {
             self.cached_gateways.clear();
         }
     }

@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { UiGateway } from '../../../contexts';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
+import QuicTag from '../QuicTag';
 import { getScoreIcon } from './util';
 
 type GatewayRowProps = {
@@ -12,6 +13,7 @@ type GatewayRowProps = {
   onNodeDetails: (node: UiGateway) => void;
   node: NodeHop;
   vpnMode: VpnMode;
+  quicLabel: boolean;
 };
 
 const GatewayItem = ({
@@ -21,6 +23,7 @@ const GatewayItem = ({
   vpnMode,
   onSelect,
   onNodeDetails,
+  quicLabel,
 }: GatewayRowProps) => {
   const { isSelected } = gateway;
   const scoreIcon = getScoreIcon(gateway, vpnMode);
@@ -86,11 +89,11 @@ const GatewayItem = ({
           </div>
         </div>
       </Button>
+      {quicLabel && gateway.quic && <QuicTag />}
       <div className="flex py-2 self-stretch">
         <Button
           className={clsx(
-            'w-16 flex justify-center items-center mr-3 shrink-0',
-            'border-l-1 border-bombay dark:border-iron',
+            'w-14 flex justify-center items-center mr-3 shrink-0',
             'text-baltic-sea/80 dark:text-white/80',
             'hover:text-baltic-sea dark:hover:text-white',
             'focus:outline-none',

@@ -7,4 +7,6 @@ pub mod gateway;
 pub mod lan;
 pub mod legacy;
 pub mod network;
+pub mod network_stats;
+pub mod sentry;
 pub mod tunnel;

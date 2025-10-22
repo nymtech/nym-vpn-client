@@ -114,6 +114,7 @@ extension GatewayManager {
                         asn: asn
                     )
                 }
+                let bridges = mapBridgeInfo(from: node.bridges)
 
                 return GatewayNode(
                     id: node.identityKey,
@@ -124,7 +125,8 @@ extension GatewayManager {
                     description: node.description,
                     buildVersion: node.buildInformation?.buildVersion,
                     ipv4s: node.ipAddresses?.ipv4s ?? [],
-                    ipv6s: node.ipAddresses?.ipv6s ?? []
+                    ipv6s: node.ipAddresses?.ipv6s ?? [],
+                    bridges: bridges
                 )
             }
         } catch {
@@ -137,6 +139,31 @@ extension GatewayManager {
         Task { @MainActor in
             appSettings.gatewayStore = gatewayStore.rawValue
         }
+    }
+}
+
+private extension GatewayManager {
+    func mapBridgeInfo(from bridges: Bridges?) -> GatewayBridgeInformation? {
+        guard let newBridges = bridges
+        else {
+            return nil
+        }
+
+        let transports: [GatewayBridgeParameters] = newBridges.transports.compactMap { transport in
+            switch transport.transportType {
+            case .quicPlain:
+                let args = transport.args
+                let host: String? = args.host.isEmpty ? nil : args.host
+                return .quicPlain(
+                    GatewayQuicClientOptions(
+                        addresses: args.addresses,
+                        host: host,
+                        idPubkey: args.idPubkey
+                    )
+                )
+            }
+        }
+        return GatewayBridgeInformation(version: newBridges.version, transports: transports)
     }
 }
 
@@ -186,6 +213,7 @@ private struct NodeElement: Codable, Sendable {
     let performanceV2: PerformanceV2?
     let mixnetScore: Load?
     let buildInformation: BuildInformation?
+    let bridges: Bridges?
 
     enum CodingKeys: String, CodingKey {
         case identityKey = "identity_key"
@@ -200,6 +228,7 @@ private struct NodeElement: Codable, Sendable {
         case performanceV2 = "performance_v2"
         case buildInformation = "build_information"
         case mixnetScore = "mixnet_score"
+        case bridges
     }
 }
 
@@ -356,6 +385,39 @@ private struct Wg: Codable, Sendable {
         downloadDurationSECV6 = container.decodeLossyDouble(forKey: .downloadDurationSECV6)
         downloadedFileV6 = try? container.decode(String.self, forKey: .downloadedFileV6)
         downloadErrorV6 = try? container.decode(String.self, forKey: .downloadErrorV6)
+    }
+}
+
+// MARK: - Bridges
+private struct Bridges: Codable, Sendable {
+    let version: String
+    let transports: [Transport]
+}
+
+// MARK: - Transport
+private struct Transport: Codable, Sendable {
+    let transportType: TransportType
+    let args: Args
+
+    enum CodingKeys: String, CodingKey {
+        case transportType = "transport_type"
+        case args
+    }
+}
+
+enum TransportType: String, Codable, Sendable {
+    case quicPlain = "quic_plain"
+}
+
+// MARK: - Args
+private struct Args: Codable, Sendable {
+    let addresses: [String]
+    let host: String
+    let idPubkey: String
+
+    enum CodingKeys: String, CodingKey {
+        case addresses, host
+        case idPubkey = "id_pubkey"
     }
 }
 

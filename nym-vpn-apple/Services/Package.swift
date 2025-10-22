@@ -53,6 +53,7 @@ let package = Package(
             name: "ConfigurationManager",
             dependencies: [
                 "AppSettings",
+                .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 "Device",
                 "CredentialsManager",

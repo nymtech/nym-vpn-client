@@ -1,12 +1,17 @@
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import { useMainDispatch, useMainState } from '../../../contexts';
+import {
+  useInAppNotify,
+  useMainDispatch,
+  useMainState,
+} from '../../../contexts';
 import { StateDispatch } from '../../../types';
 import { kvSet } from '../../../kvStore';
 import { DomainFrontingUrl, QuicUrl } from '../../../constants';
 
 function AntiCensorship() {
-  const { quic, backendFlags } = useMainState();
+  const { quic, backendFlags, state } = useMainState();
+  const { push } = useInAppNotify();
 
   const dispatch = useMainDispatch() as StateDispatch;
 
@@ -16,7 +21,19 @@ function AntiCensorship() {
     const isChecked = !quic;
     await kvSet('quic-enabled', isChecked);
     dispatch({ type: 'set-quic', enabled: isChecked });
-    // TODO invoke command
+    if (state == 'connected' || state == 'connecting') {
+      push({
+        id: `quic-switch-${isChecked}`,
+        message: t(
+          isChecked
+            ? 'anti-censorship.snackbar-switch-on'
+            : 'anti-censorship.snackbar-switch-off',
+        ),
+        throttle: 5,
+        duration: 5000,
+        close: true,
+      });
+    }
   };
 
   // const onDomainFrontingChange = async () => {
@@ -28,7 +45,7 @@ function AntiCensorship() {
   //   } catch {}
   // };
 
-  if (!backendFlags?.quic && !backendFlags?.domainFronting) {
+  if (!backendFlags.quic && !backendFlags.domainFronting) {
     return (
       <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
         This feature is not available
@@ -41,7 +58,7 @@ function AntiCensorship() {
       <div className="text-iron dark:text-bombay">
         {t('anti-censorship.intro')}
       </div>
-      {backendFlags?.quic && (
+      {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
             <CardSwitch
@@ -67,7 +84,7 @@ function AntiCensorship() {
           </div>
         </SettingsMenuCardBig>
       )}
-      {backendFlags?.domainFronting && (
+      {backendFlags.domainFronting && (
         <SettingsMenuCardBig
           header={
             <CardSwitch

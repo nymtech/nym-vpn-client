@@ -69,7 +69,9 @@ async fn start_account_controller(
     let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
         network_env.nym_network_details(),
         user_agent,
+        None,
     )
+    .await
     .map_err(|err| VpnError::InternalError {
         details: err.to_string(),
     })?;
@@ -397,7 +399,8 @@ pub(crate) mod raw {
         let network_env = environment::current_environment_details().await?;
         let user_agent = crate::user_agent::construct_user_agent();
         let vpn_api_client =
-            VpnApiClient::from_network(network_env.nym_network_details(), user_agent)
+            VpnApiClient::from_network(network_env.nym_network_details(), user_agent, None)
+                .await
                 .map_err(VpnError::internal)?;
         Ok(vpn_api_client)
     }

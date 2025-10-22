@@ -4,6 +4,7 @@
       "code": "YY",
       "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
     },
+    "quic": true,
     "gateways": [
       {
         "country": {
@@ -17,6 +18,7 @@
           "region": "New South Wales"
         },
         "id": "VERYLONNNNNGGGGG4h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA2",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.",
         "mxScore": "low",
         "name": "__anon__",
         "type": "wg",
@@ -34,7 +36,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.01.256.256",
-        "exitIpv6": null
+        "exitIpv6": null,
+        "quic": true
       }
     ]
   },
@@ -43,6 +46,7 @@
       "code": "FR",
       "name": "France"
     },
+    "quic": true,
     "gateways": [
       {
         "country": {
@@ -56,6 +60,7 @@
           "region": "New South Wales"
         },
         "id": "3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.",
         "mxScore": "high",
         "name": "la porte en bois",
         "type": "wg",
@@ -73,7 +78,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.01.256.256",
-        "exitIpv6": null
+        "exitIpv6": null,
+        "quic": true
       },
       {
         "country": {
@@ -87,6 +93,7 @@
           "region": "New South Wales"
         },
         "id": "4ksetqeuV9uDXzgVqqwHUnaSLaS69zVSpKGAp4DFNMgC",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.",
         "mxScore": "high",
         "name": "Le comté est le roi des fromages",
         "type": "wg",
@@ -135,7 +142,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.01.256.256",
-        "exitIpv6": null
+        "exitIpv6": null,
+        "quic": true
       }
     ],
     "type": "wg"
@@ -145,6 +153,7 @@
       "code": "RU",
       "name": "Russian Federation"
     },
+    "quic": true,
     "gateways": [
       {
         "country": {
@@ -158,6 +167,7 @@
           "longitude": 10.0
         },
         "id": "72SCrUZ3u81QrryUVL65pr8jWfQC3LpC3CyQgqLgJnrQ",
+        "description": "A quoi servirait ton bien, si le mal n'existait pas, et à quoi ressemblerait la terre, si on en effaçait les ombres ?",
         "mxScore": "high",
         "name": "Mikhaïl Boulgakov 😼",
         "type": "wg",
@@ -175,7 +185,8 @@
         },
         "buildVersion": "1.18.0",
         "exitIpv4": "11.1.256.256",
-        "exitIpv6": "ff:00:11:ee"
+        "exitIpv6": "ff:00:11:ee",
+        "quic": true
       },
       {
         "country": {

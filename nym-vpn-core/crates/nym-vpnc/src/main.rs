@@ -3,6 +3,7 @@
 
 mod boolean_option;
 mod commands;
+mod display_helpers;
 mod table_style;
 
 use std::str::FromStr;
@@ -72,31 +73,43 @@ pub enum Command {
     /// Manage entry and exit gateway nodes, list available gateways
     Gateway(commands::gateway::Args),
 
-    /// View and manage local network policy
+    /// Local network policy
     Lan {
         #[command(subcommand)]
         subcommand: commands::lan::Command,
     },
 
-    /// View and manage tunnel configuration
+    /// Tunnel configuration (enable or disable ipv6, two-hop mode, circumvention transports)
     Tunnel {
         #[command(subcommand)]
         subcommand: commands::tunnel::Command,
     },
 
-    /// View and manage account information
+    /// Account information
     Account {
         #[command(subcommand)]
         subcommand: commands::account::Command,
     },
 
-    /// View and manage device information
+    /// Device information
     Device(commands::device::Args),
 
-    /// View and manage Nym network configuration
+    /// Nym network configuration
     Network {
         #[command(subcommand)]
         subcommand: commands::network::Command,
+    },
+
+    /// Sentry integration
+    Sentry {
+        #[command(subcommand)]
+        subcommand: commands::sentry::Command,
+    },
+
+    /// Anonymous network statistics collection
+    NetworkStats {
+        #[command(subcommand)]
+        subcommand: commands::network_stats::Command,
     },
 
     #[command(flatten)]
@@ -131,6 +144,8 @@ async fn main() -> Result<()> {
         Command::Network { subcommand } => subcommand.execute(rpc_client).await,
         Command::Account { subcommand } => subcommand.execute(rpc_client).await,
         Command::Device(args) => args.execute(rpc_client).await,
+        Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
+        Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
         Command::Legacy(subcommand) => subcommand.execute(rpc_client, user_agent).await,
     }
 }
@@ -370,8 +385,8 @@ fn print_service_info(service_info: VpnServiceInfo) {
     println!();
     println!("nym_vpn_network:");
     println!(
-        "  nym_vpn_api_url: {}",
-        service_info.nym_vpn_network.nym_vpn_api_url
+        "  nym_vpn_api_urls: {:?}",
+        service_info.nym_vpn_network.nym_vpn_api_urls
     )
 }
 

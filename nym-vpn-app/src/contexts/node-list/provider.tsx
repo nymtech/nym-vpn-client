@@ -9,11 +9,11 @@ import { isSelectedNodeType } from './util';
 
 export type NodesStateProviderProps = {
   children: React.ReactNode;
-  nodeType: NodeHop;
+  hop: NodeHop;
 };
 
-function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
-  const { vpnMode, entryNode, exitNode } = useMainState();
+function NodeListProvider({ children, hop }: NodesStateProviderProps) {
+  const { vpnMode, entryNode, exitNode, quic, backendFlags } = useMainState();
   const {
     mxEntry: mxEntryGateways,
     mxExit: mxExitGateways,
@@ -28,6 +28,8 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
 
   const [nodes, setNodes] = useState<UiGatewaysByCountry[]>([]);
   const [gatewayList, setGatewayList] = useState<UiGateway[]>([]);
+  const quicFilter =
+    vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
 
   const { compare, getCountryName } = useLang();
 
@@ -38,14 +40,20 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
       selectedExit: Country | Gateway,
     ) => {
       return list
-        .map<UiGatewaysByCountry>((country) => {
+        .reduce<UiGatewaysByCountry[]>((countryAcc, country) => {
+          if (quicFilter && !country.quic) {
+            return countryAcc;
+          }
           const isCountrySelected = isSelectedNodeType(
             country.country,
             selectedEntry,
             selectedExit,
           );
-          const gateways = country.gateways.map<UiGateway>((gw) => {
-            return {
+          const gateways = country.gateways.reduce<UiGateway[]>((gwAcc, gw) => {
+            if (quicFilter && !gw.quic) {
+              return gwAcc;
+            }
+            const uiGw: UiGateway = {
               ...gw,
               isSelected: isSelectedNodeType(
                 gw,
@@ -53,9 +61,11 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
                 selectedExit,
               ) as GwSelectedKind,
             };
-          });
+            gwAcc.push(uiGw);
+            return gwAcc;
+          }, []);
 
-          return {
+          const uiCountry: UiGatewaysByCountry = {
             country: {
               ...country.country,
               isSelected: isCountrySelected,
@@ -65,10 +75,12 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
             isSelected: isCountrySelected,
             i18n: getCountryName(country.country.code) || country.country.name,
           };
-        })
+          countryAcc.push(uiCountry);
+          return countryAcc;
+        }, [])
         .sort((a, b) => compare(a.i18n, b.i18n));
     },
-    [compare, getCountryName],
+    [compare, getCountryName, quicFilter],
   );
 
   const toGatewayList = useCallback(
@@ -87,9 +99,9 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
 
   useEffect(() => {
     let list = [];
-    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+    if (vpnMode === 'mixnet' && hop === 'entry') {
       list = uifyGateways(mxEntryGateways, entryNode, exitNode);
-    } else if (vpnMode === 'mixnet' && nodeType === 'exit') {
+    } else if (vpnMode === 'mixnet' && hop === 'exit') {
       list = uifyGateways(mxExitGateways, entryNode, exitNode);
     } else {
       list = uifyGateways(wgGateways, entryNode, exitNode);
@@ -97,7 +109,7 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
     setNodes(list);
     setGatewayList(toGatewayList(list));
   }, [
-    nodeType,
+    hop,
     entryNode,
     exitNode,
     mxEntryGateways,
@@ -112,42 +124,35 @@ function NodeListProvider({ children, nodeType }: NodesStateProviderProps) {
     if (nodes.length > 0) {
       return false;
     }
-    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+    if (vpnMode === 'mixnet' && hop === 'entry') {
       return mxEntryLoading;
     }
-    if (vpnMode === 'mixnet' && nodeType === 'exit') {
+    if (vpnMode === 'mixnet' && hop === 'exit') {
       return mxExitLoading;
     }
     return wgLoading;
-  }, [
-    nodes.length,
-    mxEntryLoading,
-    mxExitLoading,
-    wgLoading,
-    nodeType,
-    vpnMode,
-  ]);
+  }, [nodes.length, mxEntryLoading, mxExitLoading, wgLoading, hop, vpnMode]);
 
   const error = useMemo(() => {
-    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+    if (vpnMode === 'mixnet' && hop === 'entry') {
       return mxEntryError;
     }
-    if (vpnMode === 'mixnet' && nodeType === 'exit') {
+    if (vpnMode === 'mixnet' && hop === 'exit') {
       return mxExitError;
     }
     return wgError;
-  }, [mxEntryError, mxExitError, nodeType, vpnMode, wgError]);
+  }, [mxEntryError, mxExitError, hop, vpnMode, wgError]);
 
   const ctx = useMemo(
     () => ({
       nodes,
       gateways: gatewayList,
       loading,
-      node: nodeType,
+      node: hop,
       vpnMode,
       error,
     }),
-    [error, gatewayList, loading, nodeType, nodes, vpnMode],
+    [error, gatewayList, loading, hop, nodes, vpnMode],
   );
 
   return (

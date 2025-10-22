@@ -22,6 +22,7 @@ nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-credential-utils.workspace = true
 nym-ecash-time.workspace = true
+nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
 nym-sdk.workspace = true
 nym-vpn-api-client.workspace = true

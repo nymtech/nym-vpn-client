@@ -710,6 +710,9 @@ pub enum Error {
 
     #[error("wireguard key database")]
     WireguardKeyDb(#[source] nym_vpn_store::keys::wireguard::KeysDbError),
+
+    #[error("failed to create gateway directory client")]
+    GatewayDirectoryClient(#[source] nym_gateway_directory::Error),
 }
 
 impl Error {
@@ -745,9 +748,10 @@ impl Error {
             Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
-            Self::Account(err) => err.error_state_reason()?,
+            Self::Account(e) => e.error_state_reason()?,
             Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
             Self::WireguardKeyDb(e) => ErrorStateReason::Internal(e.to_string()),
+            Self::GatewayDirectoryClient(e) => ErrorStateReason::Internal(e.to_string()),
         })
     }
 }

@@ -7,8 +7,12 @@ use nym_vpn_proto::rpc_client::RpcClient;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
+    /// Get current Nym network.
     Get,
+
+    /// Set Nym network.
     Set {
+        /// Network name (i.e: mainnet, sandbox, canary, evil)
         #[arg(index = 1)]
         network_name: String,
     },

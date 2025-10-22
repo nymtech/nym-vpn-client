@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add new CLI commands to manage sentry and anonymous network statistics collection (https://github.com/nymtech/nym-vpn-client/pull/3695)
+
 ### Changed
 
 - Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
+
+### Fixed
+
+- Fix mixnet listener timeout not being set (https://github.com/nymtech/nym-vpn-client/pull/3715)
+- Prevent account controller from networking while state machine is in offline state (https://github.com/nymtech/nym-vpn-client/pull/3723)
 
 
 ## [1.17.0] - 2025-10-17
@@ -19,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Get more gateway details, parse them, and expose them to UI to be shown in the server details page (https://github.com/nymtech/nym-vpn-client/pull/3447)
 - Allow for random selection inside a US state (https://github.com/nymtech/nym-vpn-client/pull/3489)
 - Add control over LAN sharing when device connection is secured (https://github.com/nymtech/nym-vpn-client/pull/3496)
-- The `nym-vpnc status --listen` command now prints the daemon configuration when it's changed by other clients (https://github.com/nymtech/nym-vpn-client/pull/3503).
+- The
+  `nym-vpnc status --listen` command now prints the daemon configuration when it's changed by other clients (https://github.com/nymtech/nym-vpn-client/pull/3503).
 - Users can select residential only exit nodes (https://github.com/nymtech/nym-vpn-client/pull/3560).
 
 ### Changed
@@ -32,11 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Don't retry on disappeared entry or exit gateway and return to UI for selecting again (https://github.com/nymtech/nym-vpn-client/pull/3520)
 - Recover from error loop when mixnet client can't reach gateway after a number of retries (https://github.com/nymtech/nym-vpn-client/pull/3694)
+- Fix MacOS load/remove bug in store (https://github.com/nymtech/nym-vpn-client/pull/3711)
 
 ### Removed
 
 - Removed countries query (https://github.com/nymtech/nym-vpn-client/pull/3523)
-
 
 ## [1.16.0] - 2025-09-26
 
@@ -53,7 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Skip filtering loopback traffic to optimize performance (https://github.com/nymtech/nym-vpn-client/pull/3441)
 - Prioritize high performance gateways first, fallback to medium. This rule does not apply when specific gateway is selected explicitly (https://github.com/nymtech/nym-vpn-client/pull/3511)
-
 
 ## [1.15.0] - 2025-09-10
 
@@ -99,8 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   initialization. (https://github.com/nymtech/nym-vpn-client/pull/3160)
 - Add timeout to DNS resolution fixing indefinite connecting
   state. (https://github.com/nymtech/nym-vpn-client/pull/3231)
-- [macOS] Fix issues with DNS not being properly reset on disconnect on macOS
-    15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
+- [macOS] Fix issues with DNS not being properly reset on disconnect on macOS 15. (https://github.com/nymtech/nym-vpn-client/pull/3232)
 - [macOS] Bind DNS resolver to random loopback IP on port 53 to fix compatibility issues with other software, notably
   `dig` and `nslookup`. (https://github.com/nymtech/nym-vpn-client/pull/3232)
 

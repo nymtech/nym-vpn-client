@@ -7,7 +7,7 @@ export type UiGateway = Gateway & { isSelected: GwSelectedKind };
 
 export type UiGatewaysByCountry = Omit<
   GatewaysByCountry,
-  'gateways' | 'country'
+  'gateways' | 'country' | 'quic'
 > & {
   country: UiCountry;
   gateways: UiGateway[];

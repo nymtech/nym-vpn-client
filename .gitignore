@@ -1,17 +1,14 @@
-// Copyright 2020 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: CC0-1.0
-
 **/*.rs.bk
 /*/target
-target
-.idea
-build
-/android
-bin
-.env
-.env.dev
-/.vscode/settings.json
-.vscode
+target/
+build/
+android/
+bin/
+.env/
+.env.dev/
+.vscode/
+.zed/
+.idea/
 **/.DS_Store
 /.cargo
 /nym-vpn-core/.cargo
@@ -39,3 +36,6 @@ nym-vpn-core/upload/mac/nym-vpnd
 # Visual Studio
 *.vcxproj.user
 .vs/
+
+# GitHub Copilot
+.github/copilot-instructions.md

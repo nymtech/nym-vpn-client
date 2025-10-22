@@ -21,7 +21,7 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  const showAntiCensorship = backendFlags?.quic || backendFlags?.domainFronting;
+  const showAntiCensorship = backendFlags.quic || backendFlags.domainFronting;
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
