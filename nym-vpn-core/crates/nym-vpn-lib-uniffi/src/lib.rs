@@ -283,8 +283,8 @@ pub fn createAccount() -> Result<(), VpnError> {
 /// Register the stored account.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn registerAccount() -> Result<RegisterAccountResponse, VpnError> {
-    RUNTIME.block_on(account::register_account())
+pub fn registerAccount(args: RegistrationArgs) -> Result<RegisterAccountResponse, VpnError> {
+    RUNTIME.block_on(account::register_account(args))
 }
 
 /// Store the account mnemonic
@@ -538,4 +538,27 @@ pub struct NymVpnLibConfig {
     #[cfg(target_os = "android")]
     pub connectivity_monitor: Arc<dyn AndroidConnectivityMonitor>,
     pub user_agent: UserAgent,
+}
+
+#[derive(uniffi::Record)]
+pub struct RegistrationArgs {
+    #[cfg(target_os = "android")]
+    pub purchase_token: String,
+}
+
+impl TryFrom<RegistrationArgs> for nym_vpn_api_client::types::Platform {
+    type Error = VpnError;
+
+    fn try_from(_value: RegistrationArgs) -> Result<Self, Self::Error> {
+        #[cfg(target_os = "ios")]
+        return Ok(nym_vpn_api_client::types::Platform::Apple);
+        #[cfg(target_os = "android")]
+        return Ok(nym_vpn_api_client::types::Platform::Android {
+            purchase_token: _value.purchase_token,
+        });
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        Err(VpnError::InternalError {
+            details: "only iOS and Android supported for now".to_string(),
+        })
+    }
 }

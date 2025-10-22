@@ -545,6 +545,7 @@ impl VpnApiClient {
             account_addr: account.id().to_string(),
             pub_key: account.pub_key().to_string(),
             signature_base64: account.signature_base64().to_string(),
+            purchase_token: platform.purchase_token(),
         };
 
         self.post_json_with_retry(

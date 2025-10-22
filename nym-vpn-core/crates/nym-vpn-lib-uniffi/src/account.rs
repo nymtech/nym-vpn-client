@@ -204,22 +204,16 @@ pub(super) async fn create_account() -> Result<(), VpnError> {
         .map_err(VpnError::from)
 }
 
-pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnError> {
+pub(super) async fn register_account(
+    args: crate::RegistrationArgs,
+) -> Result<RegisterAccountResponse, VpnError> {
     let mnemonic = get_command_sender()
         .await?
         .get_stored_account()
         .await
         .map_err(VpnError::from)?
         .ok_or(VpnError::NoAccountStored)?;
-    let platform = if cfg!(target_os = "ios") {
-        Platform::Apple
-    } else if cfg!(target_os = "android") {
-        Platform::Android
-    } else {
-        return Err(VpnError::InternalError {
-            details: "only iOS and Android supported for now".to_string(),
-        });
-    };
+    let platform = Platform::try_from(args)?;
     get_command_sender()
         .await?
         .register_account(mnemonic, platform)
