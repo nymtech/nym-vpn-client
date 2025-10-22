@@ -49,6 +49,9 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
             network_stats,
+            poisson_parameter: value.poisson_parameter,
+            average_packet_delay: value.average_packet_delay,
+            message_sending_average_delay: value.message_sending_average_delay,
         };
         Ok(config)
     }
@@ -77,6 +80,9 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
             network_stats: Some(proto::NetworkStatsConfig::from(value.network_stats)),
+            poisson_parameter: value.poisson_parameter,
+            average_packet_delay: value.average_packet_delay,
+            message_sending_average_delay: value.message_sending_average_delay,
         }
     }
 }
