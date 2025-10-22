@@ -224,7 +224,9 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 						GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
 						GatewayType.WG -> appUiState.gateways.wgGateways
 						else -> emptyList()
-					}.filter { it.twoLetterCountryISO == country.country.lowercase() },
+					}
+						.filter { it.twoLetterCountryISO == country.country.lowercase() }
+						.scoreSorted(appUiState.settings.vpnMode),
 					selectedKey = selectedKey,
 					onSelectionChange = { id ->
 						viewModel.onSelected(id, gatewayLocation)
@@ -295,7 +297,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 								},
 								description = {
 									Text(
-										"${locale?.displayCountry ?: stringResource(R.string.unknown)}, ${gateway.identity}",
+										text = gateway.serverLocation(locale?.displayCountry),
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
 										style = MaterialTheme.typography.bodySmall,
