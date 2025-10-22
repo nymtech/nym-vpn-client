@@ -263,6 +263,7 @@ mod tests {
     }
 
     fn create_loopback_probe_with_addr(probe_ip: impl Into<IpAddr>) -> IcmpProbe {
+        let probe_ip: IpAddr = probe_ip.into();
         let mut config = IcmpProbeConfig::new(probe_ip);
         #[cfg(any(target_os = "linux", target_os = "android"))]
         {
