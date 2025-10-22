@@ -23,7 +23,9 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
-use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
+use nym_vpn_lib_types::{
+    EstablishConnectionData, EstablishConnectionState, GatewayId, TunnelConnectionData,
+};
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
@@ -342,6 +344,32 @@ impl ConnectingState {
         NextTunnelState::SameState(self)
     }
 
+    async fn handle_registered_with_gateways(
+        &mut self,
+        connection_data: Box<EstablishConnectionData>,
+        _shared_state: &mut SharedState,
+    ) -> Result<()> {
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            // Only allow entry wg endpoint in firewall when bridges are not enabled.
+            // Because all bridges are already added to firewall exceptions.
+            let wg_entry_endpoint = if let Some(TunnelConnectionData::Wireguard(ref wg)) =
+                connection_data.tunnel
+                && !_shared_state.tunnel_settings.bridges_enabled()
+            {
+                Some(wg.entry.endpoint)
+            } else {
+                None
+            };
+            self.firewall_policy_params.wg_entry_endpoint = wg_entry_endpoint;
+            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)?;
+        }
+
+        self.connection_data = Some(*connection_data);
+
+        Ok(())
+    }
+
     async fn handle_interface_up(
         &mut self,
         _tunnel_interface: TunnelInterface,
@@ -436,8 +464,8 @@ impl TunnelStateHandler for ConnectingState {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
-                    TunnelMonitorEvent::ConnectingMixnetClient => {
-                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingMixnetClient);
+                    TunnelMonitorEvent::RegisteringWithGateways => {
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RegisteringWithGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectingGateways => {
@@ -450,6 +478,28 @@ impl TunnelStateHandler for ConnectingState {
                     let next_state = match self.handle_selected_gateways(gateways, shared_state).await {
                             Ok(()) => {
                                 NextTunnelState::SameState(self)
+                            }
+                            Err(e) => {
+                                trace_err_chain!(e, "Failed to set firewall policy");
+                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                                    NextTunnelState::NewState(DisconnectingState::enter(
+                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
+                                        tunnel_monitor_handle,
+                                        shared_state
+                                    ))
+                                } else {
+                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
+                                }
+                            }
+                        };
+                        _ = reply_tx.send(());
+                        next_state
+                    }
+                    TunnelMonitorEvent::RegisteredWithGateways { connection_data, reply_tx } => {
+                        let next_state = match self.handle_registered_with_gateways(connection_data, shared_state).await {
+                            Ok(()) => {
+                                let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
+                                NextTunnelState::NewState((self, new_state))
                             }
                             Err(e) => {
                                 trace_err_chain!(e, "Failed to set firewall policy");

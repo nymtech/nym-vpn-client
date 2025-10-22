@@ -18,7 +18,6 @@ workspace = true
 default = []
 nym-type-conversions = [
     "dep:nym-bandwidth-controller",
-    "dep:nym-connection-monitor",
     "dep:nym-gateway-directory",
     "dep:nym-network-defaults",
     "dep:nym-sdk",
@@ -45,7 +44,6 @@ uniffi = { workspace = true, optional = true }
 nym-registration-common = { workspace = true, optional = true }
 nym-crypto = { workspace = true, features = ["asymmetric"] }
 nym-bandwidth-controller = { workspace = true, optional = true }
-nym-connection-monitor = { workspace = true, optional = true }
 nym-gateway-directory = { workspace = true, optional = true }
 nym-sdk = { workspace = true, optional = true }
 nym-statistics-common = { workspace = true, optional = true }

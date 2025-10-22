@@ -1,11 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bytes::Bytes;
-use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
-use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
+use futures::{SinkExt, StreamExt, prelude::stream::SplitSink};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
-use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::{EventReceiver, MixTrafficEvent, MixnetClient, MixnetClientEvent};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
@@ -23,15 +20,6 @@ pub(super) struct MixnetListener {
     // Sink for sending packets to the tun device
     tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
 
-    // Identifier for ICMP beacon
-    icmp_beacon_identifier: u16,
-
-    // Our IP addresses
-    our_ips: IpPair,
-
-    // Connection event sender
-    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-
     // Cancellation token
     shutdown_token: CancellationToken,
 
@@ -43,9 +31,6 @@ impl MixnetListener {
     pub(super) fn spawn(
         mixnet_client: MixnetClient,
         tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
-        icmp_beacon_identifier: u16,
-        our_ips: IpPair,
-        connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
         shutdown_token: CancellationToken,
         event_rx: EventReceiver,
     ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
@@ -54,28 +39,10 @@ impl MixnetListener {
             mixnet_client,
             ipr_listener,
             tun_device_sink,
-            icmp_beacon_identifier,
-            our_ips,
-            connection_event_tx,
             shutdown_token,
             event_rx,
         };
         tokio::spawn(mixnet_listener.run())
-    }
-
-    fn send_connection_event(&self, event: ConnectionStatusEvent) {
-        let res = self.connection_event_tx.unbounded_send(event);
-        if res.is_err() && !self.shutdown_token.is_cancelled() {
-            tracing::error!("Failed to send connection event to connection monitor");
-        }
-    }
-
-    fn check_for_icmp_beacon_reply(&self, packet: &Bytes) {
-        if let Some(connection_event) =
-            check_for_icmp_beacon_reply(packet, self.icmp_beacon_identifier, self.our_ips)
-        {
-            self.send_connection_event(connection_event);
-        }
     }
 
     // we exit the loop if :
@@ -107,8 +74,6 @@ impl MixnetListener {
                         match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
                             Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
                                 for packet in packets {
-                                    self.check_for_icmp_beacon_reply(&packet);
-
                                     // Consider not including packets that are ICMP ping replies to our beacon
                                     // in the responses. We are defensive here just in case we incorrectly
                                     // label real packets as ping replies to our beacon.
@@ -118,7 +83,7 @@ impl MixnetListener {
                                 }
                             }
                             Ok(Some(MixnetMessageOutcome::MixnetSelfPing)) => {
-                                self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
+                                // Ignore self-ping messages
                             }
                             Ok(Some(MixnetMessageOutcome::Disconnect)) => {
                                 tracing::debug!("Mixnet listener: Received disconnect message");
@@ -146,41 +111,4 @@ impl MixnetListener {
         tracing::debug!("Mixnet listener: Exiting");
         self.tun_device_sink
     }
-}
-
-fn check_for_icmp_beacon_reply(
-    packet: &Bytes,
-    icmp_beacon_identifier: u16,
-    our_ips: IpPair,
-) -> Option<ConnectionStatusEvent> {
-    match nym_connection_monitor::is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4)
-    {
-        Some(IcmpBeaconReply::TunDeviceReply) => {
-            tracing::trace!("Received ping response from ipr tun device");
-            return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
-        }
-        Some(IcmpBeaconReply::ExternalPingReply(_source)) => {
-            tracing::trace!("Received ping response from an external ip through the ipr");
-            return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
-        }
-        None => {}
-    }
-
-    match nym_connection_monitor::is_icmp_v6_beacon_reply(
-        packet,
-        icmp_beacon_identifier,
-        our_ips.ipv6,
-    ) {
-        Some(Icmpv6BeaconReply::TunDeviceReply) => {
-            tracing::trace!("Received ping v6 response from ipr tun device");
-            return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
-        }
-        Some(Icmpv6BeaconReply::ExternalPingReply(_source)) => {
-            tracing::trace!("Received ping v6 response from an external ip through the ipr");
-            return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
-        }
-        None => {}
-    }
-
-    None
 }

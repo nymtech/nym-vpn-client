@@ -713,6 +713,12 @@ pub enum Error {
 
     #[error("failed to create gateway directory client")]
     GatewayDirectoryClient(#[source] nym_gateway_directory::Error),
+
+    #[error("failed to create icmp probe")]
+    CreateIcmpProbe(#[source] nym_connection_monitor::IcmpProbeError),
+
+    #[error("failed to configure icmp probe due to missing IPv4 interface address")]
+    IcmpProbeRequiresIPv4Addr,
 }
 
 impl Error {
@@ -752,6 +758,8 @@ impl Error {
             Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
             Self::WireguardKeyDb(e) => ErrorStateReason::Internal(e.to_string()),
             Self::GatewayDirectoryClient(e) => ErrorStateReason::Internal(e.to_string()),
+            Self::CreateIcmpProbe(e) => ErrorStateReason::Internal(e.to_string()),
+            Self::IcmpProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
         })
     }
 }
