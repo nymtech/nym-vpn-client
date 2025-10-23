@@ -63,18 +63,16 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 			)
 		}
 
-		uptime?.let { u ->
-			add(
-				stringResource(R.string.details_uptime) to {
-					Text(
-						text = "${u.toInt()}%",
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				},
-			)
-		}
+		add(
+			stringResource(R.string.details_uptime) to {
+				Text(
+					text = uptime?.let { u -> "${u.toInt()}%" } ?: stringResource(R.string.not_applicable),
+					style = Typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onBackground,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				)
+			},
+		)
 	}
 
 	InfoSection(
