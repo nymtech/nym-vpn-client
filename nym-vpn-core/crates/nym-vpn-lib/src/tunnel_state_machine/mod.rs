@@ -777,10 +777,10 @@ impl tunnel::Error {
                 GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-                GatewayDirectoryError::PerformantEntryGatewayUnavailable { .. } => {
+                GatewayDirectoryError::SelectEntryGatewayFailed { .. } => {
                     Some(ErrorStateReason::PerformantEntryGatewayUnavailable)
                 }
-                GatewayDirectoryError::PerformantExitGatewayUnavailable { .. } => {
+                GatewayDirectoryError::SelectExitGatewayFailed { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
                 }
                 GatewayDirectoryError::SelectEntryGateway(source) => match source {
