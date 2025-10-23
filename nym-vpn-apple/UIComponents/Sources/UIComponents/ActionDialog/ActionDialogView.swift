@@ -82,20 +82,26 @@ private extension ActionDialogView {
 
     @ViewBuilder
     func buttons() -> some View {
-        HStack {
-            Spacer()
-            if let yesLocalizedString = viewModel.configuration.yesLocalizedString {
-                yesButton(text: yesLocalizedString)
+        if viewModel.configuration.verticalButtonsLayout {
+            VStack(spacing: 16) {
+                combinedButtons()
             }
-
-            if let noLocalizedString = viewModel.configuration.noLocalizedString {
+        } else {
+            HStack(spacing: 16) {
                 Spacer()
-                    .frame(width: 16)
-
-                noButton(text: noLocalizedString)
+                combinedButtons()
+                Spacer()
             }
+        }
+    }
 
-            Spacer()
+    @ViewBuilder
+    func combinedButtons() -> some View {
+        if let yesLocalizedString = viewModel.configuration.yesLocalizedString {
+            yesButton(text: yesLocalizedString)
+        }
+        if let noLocalizedString = viewModel.configuration.noLocalizedString {
+            noButton(text: noLocalizedString)
         }
     }
 
@@ -115,7 +121,7 @@ private extension ActionDialogView {
 
     @ViewBuilder
     func noButton(text: String) -> some View {
-        GenericButton(title: text, style: .borderOnly)
+        GenericButton(title: text, style: .textOnly)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.impact()

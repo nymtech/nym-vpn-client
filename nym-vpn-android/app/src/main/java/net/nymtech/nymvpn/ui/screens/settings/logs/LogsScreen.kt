@@ -8,13 +8,25 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.*
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.AutoScrollEffect
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.DeleteLogsModal
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsBottomBar
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsList
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsTabBar
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.ScrollToBottomFab
 
 @Composable
 fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {

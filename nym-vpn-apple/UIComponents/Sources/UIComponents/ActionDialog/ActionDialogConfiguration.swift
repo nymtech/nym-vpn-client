@@ -11,6 +11,7 @@ public struct ActionDialogConfiguration {
     let yesAction: (() -> Void)?
     let noAction: (() -> Void)?
     let shouldCloseAfterYesAction: Bool
+    let verticalButtonsLayout: Bool
 
     public init (
         systemIconImageName: String? = nil,
@@ -21,7 +22,8 @@ public struct ActionDialogConfiguration {
         noLocalizedString: String? = nil,
         yesAction: (() -> Void)? = nil,
         noAction: (() -> Void)? = nil,
-        shouldCloseAfterYesAction: Bool = true
+        shouldCloseAfterYesAction: Bool = true,
+        verticalButtonsLayout: Bool = false
     ) {
         self.systemIconImageName = systemIconImageName
         self.systemIconImageColor = systemIconImageColor
@@ -32,5 +34,6 @@ public struct ActionDialogConfiguration {
         self.yesAction = yesAction
         self.noAction = noAction
         self.shouldCloseAfterYesAction = shouldCloseAfterYesAction
+        self.verticalButtonsLayout = verticalButtonsLayout
     }
 }

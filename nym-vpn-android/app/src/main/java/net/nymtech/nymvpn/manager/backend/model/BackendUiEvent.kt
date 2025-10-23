@@ -1,8 +1,8 @@
 package net.nymtech.nymvpn.manager.backend.model
 
+import nym_vpn_lib.VpnException
 import nym_vpn_lib_types.BandwidthEvent
 import nym_vpn_lib_types.ErrorStateReason
-import nym_vpn_lib.VpnException
 
 sealed class BackendUiEvent {
 	data class Failure(val reason: ErrorStateReason) : BackendUiEvent()

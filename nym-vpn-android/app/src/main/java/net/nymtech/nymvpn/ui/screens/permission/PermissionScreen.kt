@@ -12,8 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.ui.screens.permission.components.PermissionContent
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun PermissionScreen(permission: Permission) {

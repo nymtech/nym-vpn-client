@@ -101,8 +101,9 @@ import UIComponents
         AppVersionProvider.appVersion()
     }
 
-    func navigateHome() {
-        path = .init()
+    func navigateBack() {
+        guard !path.isEmpty else { return }
+        path.removeLast()
     }
 
     func navigateToAddCredentialsOrCredential() {

@@ -18,23 +18,23 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.ui.Route
-import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib.VpnException
 import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
-import nym_vpn_lib_types.ErrorStateReason
-import nym_vpn_lib.VpnException
 import timber.log.Timber
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Locale
+import kotlin.reflect.KClass
 
 fun Dp.scaledHeight(previewScale: Float = 1f): Dp = if (NymVpn.isInitialized) {
 	NymVpn.instance.resizeHeight(this)
@@ -162,18 +162,22 @@ fun VpnException.toUserMessage(context: Context): String {
 fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
 	return this.sortedBy {
 		when (mode) {
-			Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore
-			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore
+			Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore ?: Score.OFFLINE
+			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore ?: Score.OFFLINE
 		}
 	}
 }
 
+fun toDisplayCountry(twoLetterIsoCountryCode: String): String {
+	return Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
+}
+
 fun EntryPoint.Country.toDisplayCountry(): String {
-	return Locale(this.twoLetterIsoCountryCode, this.twoLetterIsoCountryCode).displayCountry
+	return toDisplayCountry(twoLetterIsoCountryCode)
 }
 
 fun ExitPoint.Country.toDisplayCountry(): String {
-	return Locale(this.twoLetterIsoCountryCode, this.twoLetterIsoCountryCode).displayCountry
+	return toDisplayCountry(twoLetterIsoCountryCode)
 }
 
 @Composable

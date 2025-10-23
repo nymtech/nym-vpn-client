@@ -3533,25 +3533,25 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "لكي تصبح التغييرات سارية المفعول، تحتاج إلى إعادة الاتصال."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Damit die Änderungen wirksam werden, müssen Sie sich neu verbinden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "For changes to take effect, you need to reconnect."
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Para que los cambios surtan efecto, es necesario volver a conectar."
           }
         },
@@ -3563,7 +3563,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Pour que les changements prennent effet, vous devez vous reconnecter."
           }
         },
@@ -3575,31 +3575,31 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Affinché le modifiche abbiano effetto, è necessario riconnettersi."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "変更を有効にするには、再接続する必要があります。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Para que as alterações tenham efeito, você precisa reconectar."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Para que as alterações tenham efeito, você precisa reconectar."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Чтобы изменения вступили в силу, необходимо переподключиться."
           }
         },
@@ -3611,20 +3611,31 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Щоб зміни набули чинності, необхідно повторно підключитися."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Để các thay đổi có hiệu lực, bạn cần kết nối lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "要使更改生效，您需要重新连接。"
+          }
+        }
+      }
+    },
+    "censorship.quic.disable.alert.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your data stays protected during reconnection"
           }
         }
       }
@@ -3632,100 +3643,43 @@
     "censorship.quic.disable.alert.title" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هل أنت متأكد من أنك تريد المتابعة؟"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sind Sie sicher, dass Sie fortfahren möchten?"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Are you sure you want to continue?"
+            "value" : "Disable enhanced connection (QUIC)?"
           }
-        },
-        "es" : {
+        }
+      }
+    },
+    "censorship.quic.disableAndReconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Está seguro de que desea continuar?"
+            "value" : "Reconnect without QUIC now"
           }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to continue?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir continuer ?"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to continue?"
-          }
-        },
-        "it" : {
+        }
+      }
+    },
+    "censorship.quic.enable.alert.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sei sicuro di voler continuare?"
+            "value" : "Enable enhanced connection (QUIC)?"
           }
-        },
-        "ja" : {
+        }
+      }
+    },
+    "censorship.quic.enableAndReconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "続行してもよろしいですか？"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tem certeza que deseja continuar?"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tem certeza que deseja continuar?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вы уверены, что хотите продолжить?"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to continue?"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ви впевнені, що хочете продовжити?"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bạn có chắc chắn muốn tiếp tục?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您确定要继续吗？"
+            "value" : "Reconnect with QUIC now"
           }
         }
       }
@@ -3827,6 +3781,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "QUIC如何改善连接"
+          }
+        }
+      }
+    },
+    "censorship.quic.offAndNext" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off QUIC on next connection"
+          }
+        }
+      }
+    },
+    "censorship.quic.onAndNext" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply QUIC on next connection"
           }
         }
       }
@@ -16608,6 +16584,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "服务器"
+          }
+        }
+      }
+    },
+    "gatewaysView.quic1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+          }
+        }
+      }
+    },
+    "gatewaysView.quic2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "here"
           }
         }
       }
@@ -37818,6 +37816,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在选择网关"
+          }
+        }
+      }
+    },
+    "tunnelConnetingState.registeringWithGateways" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registering with gateways"
           }
         }
       }

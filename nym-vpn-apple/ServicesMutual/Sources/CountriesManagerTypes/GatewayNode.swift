@@ -10,7 +10,7 @@ public struct GatewayNode: Codable, Hashable {
     public let ipv6s: [String]
     public let bridges: GatewayBridgeInformation?
 
-    public var isBridgesAvailable: Bool {
+    public var isQuicAvailable: Bool {
         guard let bridges else { return false }
         return bridges.transports.contains {
             switch $0 {
