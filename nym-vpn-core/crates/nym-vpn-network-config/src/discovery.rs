@@ -249,7 +249,7 @@ impl Discovery {
 
     pub async fn create_client() -> Result<(VpnApiClient, ResolverOverrides)> {
         let urls =
-            api_urls_to_urls(&Self::default_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
+            api_urls_to_urls(Self::default_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
 
         let resolver_overrides = ResolverOverrides::from_urls(&urls)
             .await
