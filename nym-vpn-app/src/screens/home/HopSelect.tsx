@@ -5,11 +5,9 @@ import clsx from 'clsx';
 import {
   Country,
   Gateway,
+  GatewayNode,
   NodeHop,
   SelectedNode,
-  isCountry,
-  isGateway,
-  isRegion,
 } from '../../types';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
@@ -40,11 +38,7 @@ export default function HopSelect({
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
   const quicTag =
-    vpnMode === 'wg' &&
-    nodeHop === 'entry' &&
-    backendFlags.quic &&
-    quic &&
-    (isGateway(node) ? node.quic : true);
+    vpnMode === 'wg' && nodeHop === 'entry' && backendFlags.quic && quic;
 
   const handleClick = () => {
     if (disabled) {
@@ -54,15 +48,17 @@ export default function HopSelect({
     }
   };
 
-  const nodeRow = (node: SelectedNode, gateway: Gateway | null) => {
-    if (isGateway(node)) {
-      return SelectedGateway(node);
-    }
-    if (isCountry(node)) {
-      return SelectedCountry(node, gateway);
-    }
-    if (isRegion(node)) {
-      return SelectedCountry(node.country, gateway, node.name);
+  const nodeRow = (
+    { type, node: selected }: SelectedNode,
+    gateway: Gateway | null,
+  ) => {
+    switch (type) {
+      case 'country':
+        return SelectedCountry(selected, gateway);
+      case 'gateway':
+        return SelectedGateway(selected);
+      case 'region':
+        return SelectedCountry(selected.country, gateway, selected.name);
     }
   };
 
@@ -105,7 +101,7 @@ export default function HopSelect({
     </div>
   );
 
-  const SelectedGateway = (gateway: Gateway) => (
+  const SelectedGateway = (gateway: GatewayNode) => (
     <div
       className="flex flex-row items-center gap-3 overflow-hidden"
       data-testid={`hop-select-gateway-${nodeHop}`}
@@ -125,10 +121,14 @@ export default function HopSelect({
   );
 
   const gateway = useMemo(() => {
-    if (!gatewayId || isGateway(node)) {
+    if (!gatewayId) {
       return null;
     }
-    const countryCode = isCountry(node) ? node.code : node.country.code;
+    if (node.type === 'gateway') {
+      return lookupGw(node.node.id, node.node.country.code, nodeHop);
+    }
+    const countryCode =
+      node.type === 'country' ? node.node.code : node.node.country.code;
     return lookupGw(gatewayId, countryCode, nodeHop);
   }, [gatewayId, lookupGw, nodeHop, node]);
 
@@ -164,7 +164,7 @@ export default function HopSelect({
       </div>
       {nodeRow(node, gateway)}
       <div className="flex items-center">
-        {quicTag && <QuicTag className="mx-2" />}
+        {quicTag && gateway?.quic && <QuicTag className="mx-2" />}
         <MsIcon
           icon="arrow_right"
           className="pointer-events-none"

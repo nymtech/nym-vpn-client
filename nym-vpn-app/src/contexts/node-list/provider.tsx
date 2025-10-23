@@ -10,8 +10,14 @@ import { useMainState } from '../main';
 import { useGateways } from '../gateways';
 import { useLang } from '../../hooks';
 import { NodeListContext } from './context';
-import { GwSelectedKind, UiGateway, UiGatewaysByCountry } from './types';
-import { isSelectedNodeType, regionToSelectedNode } from './util';
+import {
+  GwSelectedKind,
+  UiCountry,
+  UiGateway,
+  UiGatewaysByCountry,
+  UiRegion,
+} from './types';
+import { isSelectedNodeType } from './util';
 
 export type NodesStateProviderProps = {
   children: React.ReactNode;
@@ -39,7 +45,11 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
 
   const { compare, getCountryName } = useLang();
 
-  const countryToUi = useCallback(
+  const countryToUi: (
+    country: Country,
+    selectedEntry: SelectedNode,
+    selectedExit: SelectedNode,
+  ) => UiCountry = useCallback(
     (
       country: Country,
       selectedEntry: SelectedNode,
@@ -52,6 +62,7 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
       );
       return {
         ...country,
+        nodeType: 'country',
         isSelected: isCountrySelected,
       };
     },
@@ -70,6 +81,7 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
         }
         const uiGw: UiGateway = {
           ...gw,
+          nodeType: 'gateway',
           isSelected: isSelectedNodeType(
             gw,
             selectedEntry,
@@ -104,18 +116,18 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
             selectedEntry,
             selectedExit,
           );
-          const regions = country.regions.map((region) => {
+          const regions: UiRegion[] = country.regions.map((region) => {
             const regionGateways = gatewaysToUi(
               region.gateways,
               selectedEntry,
               selectedExit,
             );
-            const selectedRegion = regionToSelectedNode(region);
             return {
               ...region,
+              nodeType: 'region',
               gateways: regionGateways,
               isSelected: isSelectedNodeType(
-                selectedRegion,
+                region,
                 selectedEntry,
                 selectedExit,
               ) as GwSelectedKind,

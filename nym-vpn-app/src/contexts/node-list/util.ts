@@ -1,53 +1,69 @@
 import {
   Region,
+  SelectableNode,
   SelectedNode,
-  isCountry,
-  isGateway,
-  isRegion,
+  toSelectedNode,
 } from '../../types';
 import { SelectedKind, SelectedUiNode, UiRegion } from './types';
 
 export function regionToSelectedNode(region: Region | UiRegion): SelectedNode {
   return {
-    name: region.name,
-    country: region.country,
+    type: 'region',
+    node: { name: region.name, country: region.country },
   };
 }
 
 export function isSelected(node: SelectedNode, selected: SelectedNode) {
-  if (isGateway(node) && isGateway(selected)) {
-    return selected.id === node.id;
+  if (node.type === 'gateway' && selected.type === 'gateway') {
+    return selected.node.id === node.node.id;
   }
-  if (isCountry(node) && isCountry(selected)) {
-    return selected.code === node.code;
+  if (node.type === 'country' && selected.type === 'country') {
+    return selected.node.code === node.node.code;
   }
-  if (isRegion(node) && isRegion(selected)) {
-    return selected.name === node.name;
+  if (node.type === 'region' && selected.type === 'region') {
+    return selected.node.name === node.node.name;
   }
   return false;
 }
 
 export function isSelectedNodeType(
-  node: SelectedNode,
+  node: SelectableNode,
   selectedEntry: SelectedNode,
   selectedExit: SelectedNode,
 ): SelectedKind {
+  const selected = toSelectedNode(node);
   if (
-    isCountry(node) &&
-    isSelected(node, selectedEntry) &&
-    isSelected(node, selectedExit)
+    selected.type === 'country' &&
+    isSelected(selected, selectedEntry) &&
+    isSelected(selected, selectedExit)
   )
     return 'entry-and-exit';
-  if (isSelected(node, selectedEntry)) return 'entry';
-  if (isSelected(node, selectedExit)) return 'exit';
+  if (isSelected(selected, selectedEntry)) return 'entry';
+  if (isSelected(selected, selectedExit)) return 'exit';
   return false;
 }
 
-export function uiNodeToRaw({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isSelected,
-  ...node
-}: SelectedUiNode): SelectedNode {
-  // TODO need to be fixed
-  return node;
+export function uiNodeToSelectedNode(uiNode: SelectedUiNode): SelectedNode {
+  switch (uiNode.nodeType) {
+    case 'country':
+      return {
+        type: 'country',
+        node: { code: uiNode.code, name: uiNode.name },
+      };
+    case 'region':
+      return {
+        type: 'region',
+        node: { name: uiNode.name, country: uiNode.country },
+      };
+    case 'gateway': {
+      return {
+        type: 'gateway',
+        node: {
+          id: uiNode.id,
+          name: uiNode.name,
+          country: uiNode.country,
+        },
+      };
+    }
+  }
 }

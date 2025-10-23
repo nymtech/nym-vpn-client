@@ -6,7 +6,6 @@ import {
   MixnetData,
   MixnetEvent,
   MixnetEventPayload,
-  RegionNode,
   SelectedNode,
   TAccountState,
   TBackendError,
@@ -123,24 +122,36 @@ export function isVpndNonCompat(status: VpndStatus): status is VpndNonCompat {
   return status !== 'down' && (status as VpndNonCompat).nonCompat !== undefined;
 }
 
-export function isGateway(node: SelectedNode): node is Gateway {
+export type SelectableNode = SelectedNode['node'];
+function isGateway(node: SelectableNode): node is Gateway {
   return (
     (node as Gateway).id !== undefined && (node as Gateway).type !== undefined
   );
 }
-
-export function isCountry(node: SelectedNode): node is Country {
+function isCountry(node: SelectableNode): node is Country {
   return (
-    (node as Country).code !== undefined && (node as Country).name !== undefined
+    (node as Country).code !== undefined &&
+    (node as Country).name !== undefined &&
+    (node as Gateway).id === undefined
   );
 }
-
-export function isRegion(node: SelectedNode): node is RegionNode {
-  return (
-    (node as Gateway).id === undefined &&
-    (node as RegionNode).name !== undefined &&
-    (node as RegionNode).country !== undefined
-  );
+export function toSelectedNode(node: SelectableNode): SelectedNode {
+  if (isGateway(node)) {
+    return {
+      type: 'gateway',
+      node,
+    };
+  } else if (isCountry(node)) {
+    return {
+      type: 'country',
+      node,
+    };
+  } else {
+    return {
+      type: 'region',
+      node,
+    };
+  }
 }
 
 export type AccountStateError = {

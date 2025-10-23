@@ -4,7 +4,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 import {
-  DefaultCountry,
+  DefaultNode,
   DefaultRootFontSize,
   DefaultThemeMode,
 } from '../constants';
@@ -66,10 +66,7 @@ export async function initFirstBatch(
           },
         });
       } else {
-        console.info(
-          'no entry node saved, using default country',
-          DefaultCountry,
-        );
+        console.info('no entry node saved, using default country', DefaultNode);
       }
     },
   };
@@ -87,10 +84,7 @@ export async function initFirstBatch(
           },
         });
       } else {
-        console.info(
-          'no exit node saved, using default country',
-          DefaultCountry,
-        );
+        console.info('no exit node saved, using default country', DefaultNode);
       }
     },
   };

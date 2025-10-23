@@ -12,10 +12,10 @@ import {
   useNodeList,
   useNodeListState,
 } from '../../contexts';
-import { NodeHop, StateDispatch, isGateway } from '../../types';
+import { NodeHop, StateDispatch } from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
-import { uiNodeToRaw } from '../../contexts/node-list/util';
+import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import LocationDetailsDialog from './LocationDetailsDialog';
@@ -65,8 +65,9 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const handleSelect = async (selected: SelectedUiNode) => {
+    const selectedNode = uiNodeToSelectedNode(selected);
     if (
-      isGateway(selected) &&
+      selectedNode.type === 'gateway' &&
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')
     ) {
       return;
@@ -74,11 +75,11 @@ function Node({ node }: { node: NodeHop }) {
 
     await kvSet(
       node === 'entry' ? 'entry-node' : 'exit-node',
-      uiNodeToRaw(selected),
+      uiNodeToSelectedNode(selected),
     );
     dispatch({
       type: 'set-node',
-      payload: { hop: node, node: selected },
+      payload: { hop: node, node: selectedNode },
     });
     navigate(routes.root);
     resetSaved(node);

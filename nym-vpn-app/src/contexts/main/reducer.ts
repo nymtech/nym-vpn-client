@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import {
-  DefaultCountry,
+  DefaultNode,
   DefaultRootFontSize,
   DefaultThemeMode,
 } from '../../constants';
@@ -93,8 +93,8 @@ export const initialState: AppState = {
   autoConnect: false,
   monitoring: false,
   desktopNotifications: true,
-  entryNode: DefaultCountry,
-  exitNode: DefaultCountry,
+  entryNode: DefaultNode,
+  exitNode: DefaultNode,
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],

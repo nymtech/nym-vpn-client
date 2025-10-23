@@ -27,7 +27,7 @@ import {
   SupportServerLocationUrl,
 } from '../../../constants';
 import { kvSet } from '../../../kvStore';
-import { uiNodeToRaw } from '../../../contexts/node-list/util';
+import { uiNodeToSelectedNode } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
 import DataCard from './DataCard';
 
@@ -143,13 +143,11 @@ function NodeDetails() {
     if (isSelected) {
       return;
     }
-    await kvSet(
-      hop === 'entry' ? 'entry-node' : 'exit-node',
-      uiNodeToRaw(gateway),
-    );
+    const selectedNode = uiNodeToSelectedNode(gateway);
+    await kvSet(hop === 'entry' ? 'entry-node' : 'exit-node', selectedNode);
     dispatch({
       type: 'set-node',
-      payload: { hop, node: gateway },
+      payload: { hop, node: selectedNode },
     });
     navigate(routes.root);
     resetSaved(hop);

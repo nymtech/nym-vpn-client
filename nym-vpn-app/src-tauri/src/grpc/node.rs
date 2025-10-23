@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use ts_rs::TS;
 
-use super::gateway::Gateway;
 use crate::country::Country;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
@@ -16,14 +15,22 @@ pub struct RegionNode {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "tauri.ts")]
+pub struct GatewayNode {
+    pub id: String,
+    pub name: String,
+    pub country: Country,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
-#[serde(untagged)]
 #[ts(export, export_to = "tauri.ts")]
 #[ts(rename = "SelectedNode")]
-#[allow(clippy::large_enum_variant)]
+#[serde(tag = "type", content = "node")]
 pub enum Node {
     Country(Country),
-    Gateway(Gateway),
+    Gateway(GatewayNode),
     Region(RegionNode),
 }
 
@@ -67,16 +74,16 @@ impl From<RegionNode> for ExitNode {
     }
 }
 
-impl From<Gateway> for EntryNode {
-    fn from(gateway: Gateway) -> Self {
+impl From<GatewayNode> for EntryNode {
+    fn from(gateway: GatewayNode) -> Self {
         EntryNode {
             entry_node_enum: Some(EntryNodeEnum::Gateway(GatewayId { id: gateway.id })),
         }
     }
 }
 
-impl From<Gateway> for ExitNode {
-    fn from(gateway: Gateway) -> Self {
+impl From<GatewayNode> for ExitNode {
+    fn from(gateway: GatewayNode) -> Self {
         ExitNode {
             exit_node_enum: Some(ExitNodeEnum::Gateway(GatewayId { id: gateway.id })),
         }
@@ -116,5 +123,11 @@ impl fmt::Display for Node {
 impl fmt::Display for RegionNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{}] {}", self.country.code, self.name)
+    }
+}
+
+impl fmt::Display for GatewayNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}] {}, {}", self.id, self.name, self.country)
     }
 }
