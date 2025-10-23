@@ -149,7 +149,7 @@ pub async fn select_gateways(
                 Err(err)
             }
         })
-        .map_err(GatewayDirectoryError::SelectExitGatewayFailed)?;
+        .map_err(GatewayDirectoryError::ExitGatewayUnavailable)?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
@@ -182,7 +182,7 @@ pub async fn select_gateways(
                 Err(err)
             }
         })
-        .map_err(GatewayDirectoryError::SelectEntryGatewayFailed)?;
+        .map_err(GatewayDirectoryError::EntryGatewayUnavailable)?;
 
     let entry_keys = wg_keys_db
         .load_or_create_keys(&entry_gateway.identity().to_string())
