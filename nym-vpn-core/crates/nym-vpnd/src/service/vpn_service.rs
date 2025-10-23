@@ -486,6 +486,7 @@ impl NymVpnService {
             discovery_refresher_command_tx,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
+            parameters.user_agent.clone(),
             state_machine_shutdown_token.child_token(),
         )
         .await

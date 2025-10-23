@@ -18,13 +18,18 @@ use itertools::Itertools;
 
 // Re-export some our nym dependencies
 pub use nym_config;
-pub use nym_connection_monitor as connection_monitor;
 pub use nym_gateway_directory as gateway_directory;
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::{
     UserAgent,
     mixnet::{NodeIdentity, Recipient, StoragePaths},
 };
+
+// Re-exports used by new_user_agent macros
+#[doc(hidden)]
+pub use nym_bin_common;
+#[doc(hidden)]
+pub use nym_platform_metadata;
 
 pub use crate::{
     error::GatewayDirectoryError,
@@ -60,15 +65,21 @@ pub const TUNNEL_TABLE_ID: u32 = 0x14d;
 #[cfg(target_os = "linux")]
 pub const TUNNEL_FWMARK: u32 = 0x14d;
 
-#[derive(Debug, Clone, Copy)]
-pub struct MixnetConnectionInfo {
-    pub nym_address: Recipient,
-    pub entry_gateway: NodeIdentity,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct MixnetExitConnectionInfo {
-    pub exit_gateway: NodeIdentity,
-    pub exit_ipr: Recipient,
-    pub ips: IpPair,
+/// Macro that creates `UserAgent` from compiled in vergen metadata.
+#[macro_export]
+macro_rules! new_user_agent {
+    () => {{
+        let bin_info = $crate::nym_bin_common::bin_info_local_vergen!();
+        let sys_info = $crate::nym_platform_metadata::SysInfo::new();
+        let platform = format!(
+            "{}; {}; {}",
+            sys_info.system_name, sys_info.os_version, sys_info.arch
+        );
+        $crate::UserAgent {
+            application: bin_info.binary_name.to_string(),
+            version: bin_info.build_version.to_string(),
+            platform,
+            git_commit: bin_info.commit_sha.to_string(),
+        }
+    }};
 }

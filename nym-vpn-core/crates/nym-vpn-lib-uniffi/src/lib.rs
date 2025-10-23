@@ -60,7 +60,6 @@ mod state_machine;
 mod stats;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 mod tunnel_provider;
-mod user_agent;
 
 use std::{
     env,

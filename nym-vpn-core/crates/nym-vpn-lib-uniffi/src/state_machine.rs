@@ -8,7 +8,7 @@ use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    VpnTopologyProvider,
+    UserAgent, VpnTopologyProvider,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
@@ -71,6 +71,8 @@ pub(super) async fn start_state_machine(
         TunnelType::Mixnet
     };
 
+    let user_agent = UserAgent::from(config.user_agent);
+
     let entry_point = config.entry_gateway;
     let exit_point = config.exit_router;
 
@@ -87,8 +89,6 @@ pub(super) async fn start_state_machine(
         gateway_config,
         network_rx,
     };
-
-    let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
 
     let tunnel_settings = TunnelSettings {
         enable_ipv6: true,
@@ -107,7 +107,6 @@ pub(super) async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
-        user_agent: Some(user_agent.clone()),
     };
     let tunnel_constants = TunnelConstants::default();
 
@@ -218,6 +217,7 @@ pub(super) async fn start_state_machine(
         )),
         #[cfg(target_os = "android")]
         Arc::new(crate::tunnel_provider::android::AndroidTunProviderImpl::new(config.tun_provider)),
+        user_agent.clone(),
         shutdown_token.child_token(),
     )
     .await?;
