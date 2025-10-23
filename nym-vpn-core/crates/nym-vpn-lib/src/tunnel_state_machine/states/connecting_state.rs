@@ -132,27 +132,6 @@ impl ConnectingState {
             firewall_policy_params
         };
 
-        // Note: errors ignored!
-        if let Ok(resolver_overrides) = shared_state
-            .nym_config
-            .network_env
-            .resolver_overrides()
-            .await
-        {
-            shared_state
-                .discovery_refresher_command_tx
-                .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
-                    Box::new(resolver_overrides),
-                )))
-                .await
-                .ok();
-            shared_state
-                .discovery_refresher_command_tx
-                .send(DiscoveryRefresherCommand::Pause(false))
-                .await
-                .ok();
-        }
-
         // If that fails, it's not really important
         let _ = shared_state
             .account_command_tx
@@ -306,25 +285,48 @@ impl ConnectingState {
             tracing::warn!(
                 "There are no resolver overrides, which may result in the firewall blocking API requests"
             );
-        } else if let Err(e) = shared_state
-            .account_command_tx
-            .set_resolver_overrides(Some(
-                resolved_gateway_config
-                    .nym_vpn_api_resolver_overrides
-                    .clone(),
-            ))
-            .await
-        {
-            trace_err_chain!(e, "Failed to set static API addresses");
-            return NextTunnelState::NewState(
-                ErrorState::enter(
-                    ErrorStateReason::Internal(
-                        "Failed to set static NYM API addresses to account controller".to_owned(),
+        } else {
+            // Tell the Account Controller about the resolver overrrides
+            if let Err(e) = shared_state
+                .account_command_tx
+                .set_resolver_overrides(Some(
+                    resolved_gateway_config
+                        .nym_vpn_api_resolver_overrides
+                        .clone(),
+                ))
+                .await
+            {
+                trace_err_chain!(e, "Failed to set resolver overrides for account controller");
+                return NextTunnelState::NewState(
+                    ErrorState::enter(
+                        ErrorStateReason::Internal(
+                            "Failed to set static NYM API addresses to account controller"
+                                .to_owned(),
+                        ),
+                        shared_state,
+                    )
+                    .await,
+                );
+            }
+
+            // Tell the Discovery Resolver about the resolver overrides and resume it
+            shared_state
+                .discovery_refresher_command_tx
+                .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
+                    Box::new(
+                        resolved_gateway_config
+                            .nym_vpn_api_resolver_overrides
+                            .clone(),
                     ),
-                    shared_state,
-                )
-                .await,
-            );
+                )))
+                .await
+                .ok();
+
+            shared_state
+                .discovery_refresher_command_tx
+                .send(DiscoveryRefresherCommand::Pause(false))
+                .await
+                .ok();
         }
 
         let _ = shared_state
