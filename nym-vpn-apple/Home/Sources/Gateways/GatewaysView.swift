@@ -2,6 +2,7 @@ import SwiftUI
 import Constants
 import CountriesManagerTypes
 import ExternalLinkManager
+import Settings
 import Theme
 import UIComponents
 
@@ -16,9 +17,9 @@ public struct GatewaysView: View {
     public var body: some View {
         VStack(spacing: 0) {
             navbar()
+            optionalQuicMessage()
             Spacer()
                 .frame(height: 24)
-
             searchView()
                 .frame(maxWidth: MagicNumbers.maxWidth)
             Spacer()
@@ -36,9 +37,13 @@ public struct GatewaysView: View {
                 .scrollIndicators(.hidden)
                 .frame(maxWidth: MagicNumbers.maxWidth)
                 .ignoresSafeArea(.all)
-                .onAppear {
-                    withAnimation {
-                        proxy.scrollTo(viewModel.scrollToModel.scrollToIdentifier, anchor: .top)
+                .onReceive(viewModel.$shouldScroll.filter { $0 }) { _ in
+                    Task { @MainActor in
+                        await Task.yield() // let SwiftUI lay out with the new data
+                        withAnimation {
+                            proxy.scrollTo(viewModel.scrollToModel.scrollToIdentifier, anchor: .top)
+                        }
+                        viewModel.shouldScroll = false
                     }
                 }
             }
@@ -68,7 +73,6 @@ public struct GatewaysView: View {
 }
 
 private extension GatewaysView {
-    @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.type.selectHopLocalizedTitle,
@@ -78,6 +82,37 @@ private extension GatewaysView {
     }
 
     @ViewBuilder
+    func optionalQuicMessage() -> some View {
+        if viewModel.shouldShowQuic {
+            Spacer()
+                .frame(height: 24)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 0) {
+                    Text(quicText())
+                        .foregroundStyle(NymColor.gray1)
+                        .textStyle(.Body.Small.regular)
+                }
+            }
+            .environment(\.openURL, OpenURLAction { url in
+                if url == URL(string: "app://enable-quic") {
+                    viewModel.path.append(HomeLink.settings)
+                    viewModel.path.append(SettingLink.censorship)
+                    return .handled
+                }
+                return .systemAction
+            })
+        }
+    }
+
+    func quicText() -> AttributedString {
+        let first = AttributedString("gatewaysView.quic1".localizedString)
+        var secondAttr = AttributedString("gatewaysView.quic2".localizedString)
+        secondAttr.underlineStyle = .single
+        secondAttr.foregroundColor = NymColor.primary
+        secondAttr.link = URL(string: "app://enable-quic")
+        return first + AttributedString(" ") + secondAttr
+    }
+
     func searchView() -> some View {
         SearchView(searchText: $viewModel.searchText, isSearchFocused: $isSearchFocused)
             .padding(.horizontal, 16)
@@ -186,7 +221,6 @@ private extension GatewaysView {
             .frame(height: 24)
     }
 
-    @ViewBuilder
     func foundGatewaysList() -> some View {
         ForEach(viewModel.foundGateways, id: \.id) { server in
             GatewayCell(

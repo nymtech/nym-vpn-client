@@ -23,9 +23,9 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
-use nym_vpn_lib_types::{
-    EstablishConnectionData, EstablishConnectionState, GatewayId, TunnelConnectionData,
-};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_vpn_lib_types::TunnelConnectionData;
+use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;

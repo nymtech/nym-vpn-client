@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Add QUIC status and server description (https://github.com/nymtech/nym-vpn-client/pull/3696)
-- In "Gateway details", use relative time in last update.
+- Android: On Entry/Exit screens, display city instead of server key ID (https://github.com/nymtech/nym-vpn-client/pull/3733)
+- In "Gateway details", use relative time in last update. (https://github.com/nymtech/nym-vpn-client/pull/3748)
 
 ## [2.1.0]
 

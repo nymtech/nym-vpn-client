@@ -215,7 +215,15 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] value in
                 self?.connectionConfig?.enableBridges = value
+            }
+            .store(in: &cancellables)
+
+        appSettings.$shouldReconnectPublisher
+            .removeDuplicates()
+            .filter { $0 }
+            .sink { [weak self] _ in
                 self?.updateConnectionConfig()
+                self?.appSettings.shouldReconnect = false
             }
             .store(in: &cancellables)
     }

@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
+import FeatureFlagsManager
 import GatewayManager
 import Theme
 
@@ -10,7 +11,16 @@ public struct HopButton: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
+    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @State private var isHovered = false
+
+    private var shouldShowQuic: Bool {
+        featureFlagsManager.isQuicEnabled
+        && hopType == .entry
+        && connectionManager.connectionType == .wireguard
+        && appSettings.isQuicEnabled
+        && gatewayManager.containsQuic(with: connectionManager.entryGateway)
+    }
 
     private var gatewayId: String? {
         switch hopType {
@@ -84,6 +94,9 @@ public struct HopButton: View {
                 titleSubtitleText(with: titleText, subtitle: subtitleText)
 
                 Spacer()
+                if shouldShowQuic {
+                    QuicLabel()
+                }
                 Image("arrowRight", bundle: .module)
                     .resizable()
                     .frame(width: 24, height: 24)

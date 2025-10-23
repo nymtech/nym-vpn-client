@@ -1,9 +1,9 @@
 package net.nymtech.vpn.backend
 
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
+import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.UserAgent
 
