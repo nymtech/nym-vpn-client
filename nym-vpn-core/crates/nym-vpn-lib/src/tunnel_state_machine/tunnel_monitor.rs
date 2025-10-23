@@ -3,6 +3,10 @@
 
 use futures::{FutureExt, future::Fuse, pin_mut};
 
+use nym_connection_monitor::{
+    ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
+    TimingConfig,
+};
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
     RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
@@ -141,8 +145,16 @@ pub enum TunnelMonitorEvent {
         reply_tx: tokio::sync::oneshot::Sender<()>,
     },
 
-    /// Connecting mixnet client
-    ConnectingMixnetClient,
+    /// Registering with gateways
+    RegisteringWithGateways,
+
+    /// Finished gateway registration
+    RegisteredWithGateways {
+        /// Connection data
+        connection_data: Box<EstablishConnectionData>,
+        /// Back channel to acknowledge that the event has been processed
+        reply_tx: tokio::sync::oneshot::Sender<()>,
+    },
 
     /// Tunnel interface is up.
     InterfaceUp {
@@ -385,7 +397,7 @@ impl TunnelMonitor {
                 new_gateways
             };
 
-        self.send_event(TunnelMonitorEvent::ConnectingMixnetClient);
+        self.send_event(TunnelMonitorEvent::RegisteringWithGateways);
 
         #[cfg(target_os = "android")]
         let tun_provider = self.tun_provider.clone();
@@ -496,10 +508,52 @@ impl TunnelMonitor {
             connection_fd_callback: Arc::new(connection_fd_callback),
         };
 
+        // Setup shutdown guard to cancel pending tasks that otherwise may continue running upon return
+        let shutdown_guard = self.shutdown_token.clone().drop_guard();
+
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
         let registration_client = Box::pin(rc_builder.build()).await?;
         let registration_result = Box::pin(registration_client.register()).await?;
+
+        // Send event upon successful gateway registration
+        // The receiver should handle the event and add firewall exceptions for entry gateway
+        let tunnel_connection_data = match &registration_result {
+            RegistrationResult::Mixnet(result) => {
+                TunnelConnectionData::Mixnet(MixnetConnectionData {
+                    nym_address: NymAddress::from(result.assigned_addresses.mixnet_client_address),
+                    exit_ipr: NymAddress::from(result.assigned_addresses.exit_mix_address),
+                    entry_ip: result.assigned_addresses.entry_mixnet_gateway_ip,
+                    exit_ip: result.assigned_addresses.exit_mixnet_gateway_ip,
+                    ipv4: result.assigned_addresses.interface_addresses.ipv4,
+                    ipv6: self
+                        .tunnel_parameters
+                        .tunnel_settings
+                        .enable_ipv6
+                        .then_some(result.assigned_addresses.interface_addresses.ipv6),
+                })
+            }
+            RegistrationResult::Wireguard(result) => {
+                TunnelConnectionData::Wireguard(WireguardConnectionData {
+                    entry_bridge_addr: None, // not known yet
+                    entry: WireguardNode::from(result.entry_gateway_data.clone()),
+                    exit: WireguardNode::from(result.exit_gateway_data.clone()),
+                })
+            }
+        };
+        let connection_data = Box::new(EstablishConnectionData {
+            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            tunnel: Some(tunnel_connection_data),
+        });
+        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+        self.send_event(TunnelMonitorEvent::RegisteredWithGateways {
+            connection_data,
+            reply_tx,
+        });
+        if tokio::time::timeout(REPLY_TIMEOUT, reply_rx).await.is_err() {
+            tracing::warn!("Registered with gateways reply timeout");
+        }
 
         let (entry_metadata_tx, entry_metadata_rx) =
             tokio::sync::oneshot::channel::<MetadataEvent>();
@@ -516,7 +570,6 @@ impl TunnelMonitor {
                 self.start_mixnet_tunnel(*inner_result).await?
             }
             RegistrationResult::Wireguard(inner_result) => {
-                // As a first step, spin the bw controller here
                 let connected_tunnel = self
                     .setup_wireguard_tunnel(
                         *inner_result,
@@ -564,8 +617,7 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // todo: do initial ping
-
+        // todo: move discovery refresher closer to VpnService
         let (discovery_refresher_tx, mut discovery_refresher_rx) = tokio::sync::mpsc::channel(1);
         let discovery_refresher_handle = if let Some(config_path) =
             self.tunnel_parameters.nym_config.config_path.as_ref()
@@ -581,19 +633,8 @@ impl TunnelMonitor {
             None
         };
 
-        let connection_data = ConnectionData {
-            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
-            connected_at: OffsetDateTime::now_utc(),
-            tunnel: tunnel_conn_data,
-        };
-        self.send_event(TunnelMonitorEvent::Up {
-            tunnel_interface: tunnel_interface.clone(),
-            connection_data: Box::new(connection_data),
-        });
-
         // Send metadata endpoint data to the bandwidth controller
-        match tunnel_interface {
+        match &tunnel_interface {
             TunnelInterface::One(exit) => {
                 let _metadata_event_handler = tokio::spawn(async move {
                     if let Ok(entry_metadata_endpoint) = entry_metadata_addr_rx.await {
@@ -625,8 +666,55 @@ impl TunnelMonitor {
             .unwrap_or(Fuse::terminated());
         pin_mut!(mixnet_monitoring_token);
 
+        let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
+            mpsc::unbounded_channel();
+        let tunnel_connection_monitor_handle = self.create_tunnel_connection_monitor(
+            tunnel_interface.exit_tunnel_metadata(),
+            tunnel_connection_monitor_tx,
+        )?;
+
+        let mut last_connection_status = None;
+        let mut has_sent_up_event = false;
+        let connection_data = Box::new(ConnectionData {
+            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            connected_at: OffsetDateTime::now_utc(),
+            tunnel: tunnel_conn_data,
+        });
+
         loop {
             tokio::select! {
+                event = tunnel_connection_monitor_rx.recv() => {
+                    let Some(event) = event else {
+                        tracing::info!("Event channel with connection monitor is closed");
+                        break;
+                    };
+                    // Prevent repeated messages
+                    if last_connection_status != Some(event.status) {
+                        last_connection_status = Some(event.status);
+
+                        match event.status {
+                            ConnectionStatusEvent::Viable => {
+                                tracing::info!("Tunnel connection is viable");
+                                if !has_sent_up_event {
+                                    has_sent_up_event = true;
+
+                                    self.send_event(TunnelMonitorEvent::Up {
+                                        tunnel_interface: tunnel_interface.clone(),
+                                        connection_data: connection_data.clone(),
+                                    });
+                                }
+                            }
+                            ConnectionStatusEvent::IntermittentFailure { retry } => {
+                                tracing::info!("Tunnel connection is failing (retry: {retry})");
+                            }
+                            ConnectionStatusEvent::Failed => {
+                                tracing::info!("Tunnel connection is down. Exiting");
+                                break;
+                            }
+                        }
+                    }
+                }
                 _  = &mut mixnet_monitoring_token => {
                     tracing::error!("MixnetClient exited unexpectedly");
                     break;
@@ -644,7 +732,7 @@ impl TunnelMonitor {
                             trace_err_chain!(err, "Failed to refresh discovery file");
                         }
                         None => {
-                            // channel closed
+                            tracing::info!("Discovery refresh channel is closed");
                             break;
                         }
                     }
@@ -653,7 +741,11 @@ impl TunnelMonitor {
         }
 
         // Trigger cancellation since many other tasks depend on shutdown token
-        self.shutdown_token.cancel();
+        drop(shutdown_guard);
+
+        if let Err(e) = tunnel_connection_monitor_handle.await {
+            tracing::error!("Tunnel connection monitor exited with error: {}", e);
+        }
 
         tracing::info!("Waiting for tunnel to exit");
         tunnel_handle.cancel();
@@ -884,8 +976,7 @@ impl TunnelMonitor {
             exit: exit_gateway_data,
         };
 
-        let mut transport_fwd_handle = None;
-        if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+        let transport_fwd_handle = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
             let entry_bridge_params = selected_gateways
                 .entry_gateway()
                 .get_bridge_params()
@@ -909,11 +1000,13 @@ impl TunnelMonitor {
                 transports::UdpForwarder::launch(bridge_conn, None, self.shutdown_token.clone())
                     .await
                     .inspect_err(|_| self.shutdown_token.cancel())?;
-            transport_fwd_handle = Some(fwd_handle);
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
             );
             connection_data.entry.endpoint = local_fwd_listen_addr;
+            Some(fwd_handle)
+        } else {
+            None
         };
 
         Ok(wireguard::connected_tunnel::ConnectedTunnel::new(
@@ -1604,6 +1697,54 @@ impl TunnelMonitor {
 
     fn enable_ipv6(&self) -> bool {
         self.tunnel_parameters.tunnel_settings.enable_ipv6
+    }
+
+    fn create_tunnel_connection_monitor(
+        &self,
+        exit_tunnel_metadata: &TunnelMetadata,
+        event_tx: mpsc::UnboundedSender<ConnectionEvent>,
+    ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
+        let mut icmp_probe_config = IcmpProbeConfig::default_v4();
+
+        // Prefer bind to interface on supported platforms
+        #[cfg(any(
+            target_os = "linux",
+            target_os = "android",
+            target_os = "ios",
+            target_os = "macos"
+        ))]
+        {
+            icmp_probe_config =
+                icmp_probe_config.with_interface(exit_tunnel_metadata.interface.clone());
+        }
+
+        // Bind to local interface IP on other platforms
+        #[cfg(not(any(
+            target_os = "linux",
+            target_os = "android",
+            target_os = "ios",
+            target_os = "macos"
+        )))]
+        {
+            let local_addr = exit_tunnel_metadata
+                .ips
+                .iter()
+                .find(|v| v.is_ipv4())
+                .ok_or(Error::IcmpProbeRequiresIPv4Addr)?;
+            icmp_probe_config = icmp_probe_config.with_local_address(*local_addr);
+        }
+
+        let icmp_probe = IcmpProbe::new(icmp_probe_config).map_err(Error::CreateIcmpProbe)?;
+        let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type {
+            TunnelType::Mixnet => TimingConfig::mixnet(),
+            TunnelType::Wireguard => TimingConfig::two_hop(),
+        };
+        Ok(ConnectionMonitor::spawn(
+            icmp_probe,
+            timing_config,
+            event_tx,
+            self.shutdown_token.child_token(),
+        ))
     }
 }
 

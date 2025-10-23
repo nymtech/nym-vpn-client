@@ -1,16 +1,17 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_registration_common::AssignedAddresses;
-use nym_sdk::mixnet::{EventReceiver, MixnetClient};
 use tokio::task::{JoinError, JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
-use nym_connection_monitor::ConnectionMonitorTask;
+use nym_common::trace_err_chain;
+use nym_gateway_directory::IpPacketRouterAddress;
+use nym_registration_common::AssignedAddresses;
+use nym_sdk::mixnet::{EventReceiver, MixnetClient};
 
 use crate::{
-    mixnet::{MixnetError, MixnetProcessorConfig},
+    mixnet::MixnetError,
     tunnel_state_machine::tunnel::{Result, Tombstone},
 };
 
@@ -21,33 +22,15 @@ pub async fn start_mixnet_tunnel(
     cancel_token: CancellationToken,
     event_rx: EventReceiver,
 ) -> Result<TunnelHandle> {
-    let connection_monitor = ConnectionMonitorTask::setup();
-    let processor_config = MixnetProcessorConfig::new(
-        assigned_addresses.exit_mix_address.into(),
-        assigned_addresses.interface_addresses,
-    );
-
-    let mixnet_client_sender = mixnet_client.split_sender();
     let mixnet_cancellation_token = mixnet_client.cancellation_token().clone();
-
     let processor_handle = crate::mixnet::start_processor(
-        processor_config,
+        IpPacketRouterAddress::from(assigned_addresses.exit_mix_address),
         tun_device,
         mixnet_client,
-        &connection_monitor,
         cancel_token.clone(),
         event_rx,
     )
     .await;
-
-    connection_monitor.start(
-        mixnet_client_sender,
-        assigned_addresses.mixnet_client_address,
-        // todo: not fully possible to disable IPv6 because IpPair is passed.
-        assigned_addresses.interface_addresses,
-        assigned_addresses.exit_mix_address,
-        cancel_token.clone(),
-    );
 
     Ok(TunnelHandle {
         processor_handle,
@@ -80,6 +63,7 @@ impl TunnelHandle {
         tracing::trace!("Waiting for mixnet processor handle");
         self.processor_handle
             .await
+            .inspect_err(|err| trace_err_chain!(err, "mixnet processor exited with error"))
             .map(|result| result.map(Tombstone::with_tun_device))
     }
 }

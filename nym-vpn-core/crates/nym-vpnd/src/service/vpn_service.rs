@@ -23,7 +23,7 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::{ResolverOverrides, api_urls_to_urls, fronted_http_client};
+use nym_vpn_api_client::{api_urls_to_urls, fronted_http_client};
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
@@ -428,31 +428,22 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        let urls = api_urls_to_urls(&nym_api_urls).map_err(|e| {
-            AccountControllerError::Initialization {
-                reason: e.to_string(),
-            }
-        })?;
-
-        let resolver_overrides = ResolverOverrides::from_urls(&urls).await.map_err(|e| {
-            AccountControllerError::Initialization {
-                reason: e.to_string(),
-            }
-        })?;
-
-        let validator_client = fronted_http_client(
-            urls,
-            Some(parameters.user_agent.clone()),
-            None,
-            Some(&resolver_overrides),
-        )
-        .await
-        .map_err(|err| {
-            tracing::error!("Failed to create HTTP client: {err:?}");
+        let urls = api_urls_to_urls(&nym_api_urls).map_err(|err| {
+            tracing::error!("Failed to convert Nym API URLs: {err:?}");
             AccountControllerError::Initialization {
                 reason: err.to_string(),
             }
         })?;
+
+        let validator_client =
+            fronted_http_client(urls, Some(parameters.user_agent.clone()), None, None)
+                .await
+                .map_err(|err| {
+                    tracing::error!("Failed to create HTTP client: {err:?}");
+                    AccountControllerError::Initialization {
+                        reason: err.to_string(),
+                    }
+                })?;
 
         let urls = parameters.network_env.nym_api_urls_as_urls().ok_or(
             AccountControllerError::Initialization {
