@@ -171,6 +171,9 @@ impl From<nym_vpn_lib_types::GatewayFilter> for proto::GatewayFilter {
             nym_vpn_lib_types::GatewayFilter::Residential => proto::GatewayFilter {
                 filter: Some(proto::gateway_filter::Filter::Residential(())),
             },
+            nym_vpn_lib_types::GatewayFilter::QuicEnabled => proto::GatewayFilter {
+                filter: Some(proto::gateway_filter::Filter::QuicEnabled(())),
+            },
             nym_vpn_lib_types::GatewayFilter::Exit => proto::GatewayFilter {
                 filter: Some(proto::gateway_filter::Filter::Exit(())),
             },
@@ -204,6 +207,9 @@ impl TryFrom<proto::GatewayFilter> for nym_vpn_lib_types::GatewayFilter {
                 }
                 proto::gateway_filter::Filter::Residential(()) => {
                     nym_vpn_lib_types::GatewayFilter::Residential
+                }
+                proto::gateway_filter::Filter::QuicEnabled(()) => {
+                    nym_vpn_lib_types::GatewayFilter::QuicEnabled
                 }
                 proto::gateway_filter::Filter::Exit(()) => nym_vpn_lib_types::GatewayFilter::Exit,
                 proto::gateway_filter::Filter::Vpn(()) => nym_vpn_lib_types::GatewayFilter::Vpn,
