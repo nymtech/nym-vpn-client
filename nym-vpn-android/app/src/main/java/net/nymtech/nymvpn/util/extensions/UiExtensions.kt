@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.util.extensions
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.text.format.DateUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -231,6 +232,17 @@ fun formatUtcString(utcString: String?): String {
 			formatter.format(instant)
 		} ?: "--"
 	} catch (e: Exception) {
+		"--"
+	}
+}
+
+fun relativeTimeSpan(utcString: String?): String {
+	return try {
+		utcString?.let {
+			val instant = Instant.parse(it)
+			DateUtils.getRelativeTimeSpanString(instant.toEpochMilli()).toString()
+		} ?: "--"
+	} catch (_: Exception) {
 		"--"
 	}
 }
