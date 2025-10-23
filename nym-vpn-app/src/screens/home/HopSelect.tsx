@@ -2,7 +2,15 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
-import { Country, Gateway, NodeHop, isGateway } from '../../types';
+import {
+  Country,
+  Gateway,
+  NodeHop,
+  SelectedNode,
+  isCountry,
+  isGateway,
+  isRegion,
+} from '../../types';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
 import { useGateways, useMainState } from '../../contexts';
@@ -10,7 +18,7 @@ import { QuicTag } from '../node';
 import { useActionToast } from './util';
 
 type HopSelectProps = {
-  node: Country | Gateway;
+  node: SelectedNode;
   gatewayId: string | null;
   onClick: () => void;
   nodeHop: NodeHop;
@@ -46,7 +54,23 @@ export default function HopSelect({
     }
   };
 
-  const SelectedCountry = (country: Country, gateway: Gateway | null) => (
+  const nodeRow = (node: SelectedNode, gateway: Gateway | null) => {
+    if (isGateway(node)) {
+      return SelectedGateway(node);
+    }
+    if (isCountry(node)) {
+      return SelectedCountry(node, gateway);
+    }
+    if (isRegion(node)) {
+      return SelectedCountry(node.country, gateway, node.name);
+    }
+  };
+
+  const SelectedCountry = (
+    country: Country,
+    gateway: Gateway | null,
+    region?: string,
+  ) => (
     <div
       className="flex flex-row items-center gap-3 overflow-hidden"
       data-testid={`hop-select-country-${nodeHop}`}
@@ -62,6 +86,7 @@ export default function HopSelect({
           data-testid={`hop-select-country-name-${nodeHop}`}
         >
           {getCountryName(country.code) || country.name}
+          {region && `, ${region}`}
         </div>
         <AnimatePresence>
           {gateway && (
@@ -103,7 +128,8 @@ export default function HopSelect({
     if (!gatewayId || isGateway(node)) {
       return null;
     }
-    return lookupGw(gatewayId, node.code, nodeHop);
+    const countryCode = isCountry(node) ? node.code : node.country.code;
+    return lookupGw(gatewayId, countryCode, nodeHop);
   }, [gatewayId, lookupGw, nodeHop, node]);
 
   return (
@@ -136,7 +162,7 @@ export default function HopSelect({
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node, gateway)}
+      {nodeRow(node, gateway)}
       <div className="flex items-center">
         {quicTag && <QuicTag className="mx-2" />}
         <MsIcon

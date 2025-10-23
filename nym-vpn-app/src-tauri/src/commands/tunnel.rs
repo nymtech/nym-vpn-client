@@ -4,7 +4,7 @@ use crate::{
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
     grpc::{
-        client::{GrpcClient, NodeConnect, VpndError},
+        client::{GrpcClient, Node, VpndError},
         tunnel::{ConnectingState, TunnelState},
     },
     state::{SharedAppState, app::VpnMode},
@@ -29,8 +29,8 @@ pub async fn connect(
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
     db: State<'_, Db>,
-    entry: NodeConnect,
-    exit: NodeConnect,
+    entry: Node,
+    exit: Node,
 ) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;

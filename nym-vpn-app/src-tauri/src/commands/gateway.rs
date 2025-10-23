@@ -23,7 +23,7 @@ pub enum Hop {
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export, export_to = "tauri.ts")]
 pub struct Region {
-    pub region: String,
+    pub name: String,
     pub country: Country,
     pub gateways: Vec<Gateway>,
     #[serde(rename = "type")]
@@ -67,7 +67,7 @@ fn group_by_region(
                         map.insert(
                             region.clone(),
                             Region {
-                                region: region.to_owned(),
+                                name: region.to_owned(),
                                 country: country.country.clone(),
                                 gateways: vec![gateway],
                                 kind: gw_type,
@@ -78,7 +78,7 @@ fn group_by_region(
                     map
                 })
                 .into_values()
-                .sorted_by_key(|region| region.region.clone())
+                .sorted_by_key(|region| region.name.clone())
                 .collect();
             country.regions = by_region;
             country
@@ -186,7 +186,7 @@ impl fmt::Display for Region {
             f,
             "({}) {}: gws #{}",
             self.country.code,
-            self.region,
+            self.name,
             self.gateways.len()
         )
     }

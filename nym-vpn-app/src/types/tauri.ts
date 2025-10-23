@@ -198,8 +198,6 @@ export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
 
 export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 
-export type NodeConnect = Country | Gateway;
-
 export type OsInfo = {
   /**
    * long version
@@ -223,14 +221,18 @@ export type Performance = {
 };
 
 export type Region = {
-  region: string;
+  name: string;
   country: Country;
   gateways: Array<Gateway>;
   type: GatewayType;
   quic: boolean;
 };
 
+export type RegionNode = { name: string; country: Country };
+
 export type Score = 'offline' | 'low' | 'medium' | 'high';
+
+export type SelectedNode = Country | Gateway | RegionNode;
 
 export type StartupError = {
   key: 'internal' | 'db-open' | 'db-locked';

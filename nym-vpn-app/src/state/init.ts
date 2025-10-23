@@ -13,11 +13,10 @@ import { kvGet } from '../kvStore';
 import {
   AccountLinks,
   CodeDependency,
-  Country,
   FeatureFlags,
-  Gateway,
   InitState,
   NetworkCompat,
+  SelectedNode,
   StateDispatch,
   TAccountState,
   TTunnelState,
@@ -54,49 +53,47 @@ export async function initFirstBatch(
     },
   };
 
-  const getEntryNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
-    {
-      name: 'getEntryNode',
-      request: () => kvGet<Gateway | Country>('entry-node'),
-      onFulfilled: (node) => {
-        if (node) {
-          dispatch({
-            type: 'set-node',
-            payload: {
-              hop: 'entry',
-              node,
-            },
-          });
-        } else {
-          console.info(
-            'no entry node saved, using default country',
-            DefaultCountry,
-          );
-        }
-      },
-    };
+  const getEntryNodeRq: TauriReq<() => Promise<SelectedNode | undefined>> = {
+    name: 'getEntryNode',
+    request: () => kvGet<SelectedNode>('entry-node'),
+    onFulfilled: (node) => {
+      if (node) {
+        dispatch({
+          type: 'set-node',
+          payload: {
+            hop: 'entry',
+            node,
+          },
+        });
+      } else {
+        console.info(
+          'no entry node saved, using default country',
+          DefaultCountry,
+        );
+      }
+    },
+  };
 
-  const getExitNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
-    {
-      name: 'getExitNode',
-      request: () => kvGet<Gateway | Country>('exit-node'),
-      onFulfilled: (node) => {
-        if (node) {
-          dispatch({
-            type: 'set-node',
-            payload: {
-              hop: 'exit',
-              node,
-            },
-          });
-        } else {
-          console.info(
-            'no exit node saved, using default country',
-            DefaultCountry,
-          );
-        }
-      },
-    };
+  const getExitNodeRq: TauriReq<() => Promise<SelectedNode | undefined>> = {
+    name: 'getExitNode',
+    request: () => kvGet<SelectedNode>('exit-node'),
+    onFulfilled: (node) => {
+      if (node) {
+        dispatch({
+          type: 'set-node',
+          payload: {
+            hop: 'exit',
+            node,
+          },
+        });
+      } else {
+        console.info(
+          'no exit node saved, using default country',
+          DefaultCountry,
+        );
+      }
+    },
+  };
 
   const getAccountStateRq: TauriReq<() => Promise<TAccountState | undefined>> =
     {

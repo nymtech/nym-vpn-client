@@ -6,6 +6,8 @@ import {
   MixnetData,
   MixnetEvent,
   MixnetEventPayload,
+  RegionNode,
+  SelectedNode,
   TAccountState,
   TBackendError,
   TTunnelState,
@@ -121,15 +123,23 @@ export function isVpndNonCompat(status: VpndStatus): status is VpndNonCompat {
   return status !== 'down' && (status as VpndNonCompat).nonCompat !== undefined;
 }
 
-export function isGateway(node: Gateway | Country): node is Gateway {
+export function isGateway(node: SelectedNode): node is Gateway {
   return (
     (node as Gateway).id !== undefined && (node as Gateway).type !== undefined
   );
 }
 
-export function isCountry(node: Gateway | Country): node is Country {
+export function isCountry(node: SelectedNode): node is Country {
   return (
     (node as Country).code !== undefined && (node as Country).name !== undefined
+  );
+}
+
+export function isRegion(node: SelectedNode): node is RegionNode {
+  return (
+    (node as Gateway).id === undefined &&
+    (node as RegionNode).name !== undefined &&
+    (node as RegionNode).country !== undefined
   );
 }
 
@@ -147,3 +157,22 @@ export function isAccountError(
 ): state is AccountStateError {
   return (state as AccountStateError).error !== undefined;
 }
+
+export type CodeDependency = {
+  name: string;
+  version?: string;
+  licenses: string[];
+  repository?: string;
+  authors: string[];
+  copyright?: string;
+};
+
+export type DaemonStatus = 'ok' | 'non-compat' | 'down';
+
+export type ProgressMsg = 'canceling';
+
+export type AppError = {
+  message: string;
+  key: ErrorKey;
+  data?: Record<string, string> | null;
+};

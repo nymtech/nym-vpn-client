@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import clsx from 'clsx';
 import {
   SelectedKind,
+  SelectedUiNode,
   UiCountry,
   UiGateway,
   UiGatewaysByCountry,
@@ -18,7 +19,7 @@ import FoldButton from './FoldButton';
 export type NodeListProps = {
   nodes: UiGatewaysByCountry[];
   gateways: UiGateway[];
-  onSelect: (node: UiCountry | UiGateway) => void;
+  onSelect: (node: SelectedUiNode) => void;
   onNodeDetails: (node: UiGateway) => void;
   node: NodeHop;
   vpnMode: VpnMode;

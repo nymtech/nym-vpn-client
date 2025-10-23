@@ -8,13 +8,23 @@ use super::gateway::Gateway;
 use crate::country::Country;
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "tauri.ts")]
+pub struct RegionNode {
+    name: String,
+    country: Country,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
 #[serde(untagged)]
 #[ts(export, export_to = "tauri.ts")]
+#[ts(rename = "SelectedNode")]
 #[allow(clippy::large_enum_variant)]
-pub enum NodeConnect {
+pub enum Node {
     Country(Country),
     Gateway(Gateway),
+    Region(RegionNode),
 }
 
 impl From<Country> for EntryNode {
@@ -37,6 +47,26 @@ impl From<Country> for ExitNode {
     }
 }
 
+impl From<RegionNode> for EntryNode {
+    fn from(region: RegionNode) -> Self {
+        EntryNode {
+            entry_node_enum: Some(EntryNodeEnum::Region(p::Region {
+                region: region.name,
+            })),
+        }
+    }
+}
+
+impl From<RegionNode> for ExitNode {
+    fn from(region: RegionNode) -> Self {
+        ExitNode {
+            exit_node_enum: Some(ExitNodeEnum::Region(p::Region {
+                region: region.name,
+            })),
+        }
+    }
+}
+
 impl From<Gateway> for EntryNode {
     fn from(gateway: Gateway) -> Self {
         EntryNode {
@@ -53,29 +83,38 @@ impl From<Gateway> for ExitNode {
     }
 }
 
-impl From<NodeConnect> for EntryNode {
-    fn from(node: NodeConnect) -> Self {
+impl From<Node> for EntryNode {
+    fn from(node: Node) -> Self {
         match node {
-            NodeConnect::Country(country) => country.into(),
-            NodeConnect::Gateway(gateway) => gateway.into(),
+            Node::Country(country) => country.into(),
+            Node::Region(region) => region.into(),
+            Node::Gateway(gateway) => gateway.into(),
         }
     }
 }
 
-impl From<NodeConnect> for ExitNode {
-    fn from(node: NodeConnect) -> Self {
+impl From<Node> for ExitNode {
+    fn from(node: Node) -> Self {
         match node {
-            NodeConnect::Country(country) => country.into(),
-            NodeConnect::Gateway(gateway) => gateway.into(),
+            Node::Country(country) => country.into(),
+            Node::Region(region) => region.into(),
+            Node::Gateway(gateway) => gateway.into(),
         }
     }
 }
 
-impl fmt::Display for NodeConnect {
+impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            NodeConnect::Country(country) => write!(f, "country {country}"),
-            NodeConnect::Gateway(gateway) => write!(f, "gateway {gateway}"),
+            Node::Country(country) => write!(f, "country {country}"),
+            Node::Region(region) => write!(f, "region {region}"),
+            Node::Gateway(gateway) => write!(f, "gateway {gateway}"),
         }
+    }
+}
+
+impl fmt::Display for RegionNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}] {}", self.country.code, self.name)
     }
 }

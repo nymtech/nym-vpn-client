@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import {
-  UiCountry,
+  SelectedUiNode,
   UiGateway,
   UiGatewaysByCountry,
   useDialog,
@@ -64,7 +64,7 @@ function Node({ node }: { node: NodeHop }) {
     setSearch(value);
   };
 
-  const handleSelect = async (selected: UiCountry | UiGateway) => {
+  const handleSelect = async (selected: SelectedUiNode) => {
     if (
       isGateway(selected) &&
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')

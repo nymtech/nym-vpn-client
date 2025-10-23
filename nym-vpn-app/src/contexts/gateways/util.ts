@@ -1,10 +1,10 @@
 import { CKey } from '../../cache';
 import {
-  Country,
-  Gateway,
   GatewayType,
   GatewaysByCountry,
+  SelectedNode,
   isCountry,
+  isGateway,
 } from '../../types';
 import { GatewaysState } from './types';
 
@@ -50,9 +50,12 @@ export function getStateProps(type: GatewayType): {
 }
 
 // Check if a node exists in the gateways list
-export function exists(node: Country | Gateway, gateways: GatewaysByCountry[]) {
+export function exists(node: SelectedNode, gateways: GatewaysByCountry[]) {
   if (isCountry(node)) {
     return gateways.some((g) => g.country.code === node.code);
   }
-  return gateways.some((g) => g.gateways.some((gw) => gw.id === node.id));
+  if (isGateway(node)) {
+    return gateways.some((g) => g.gateways.some((gw) => gw.id === node.id));
+  }
+  return gateways.some((g) => g.regions.some((r) => r.name === node.name));
 }
