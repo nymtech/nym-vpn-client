@@ -42,8 +42,8 @@ struct Fetcher {
 
 impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
-        min_mixnode_performance: 50,
-        min_gateway_performance: 50,
+        min_mixnode_performance: 0,
+        min_gateway_performance: 0,
         use_extended_topology: false,
         ignore_egress_epoch_role: true,
     };
@@ -75,7 +75,11 @@ impl Fetcher {
     }
 
     async fn fetch_topology(&mut self) -> Option<NymTopology> {
-        self.topology_provider.get_new_topology().await
+        let topology = self.topology_provider.get_new_topology().await;
+        if topology.is_none() {
+            tracing::error!("VpnTopologyProvider: Failed to fetch topology from nym-api");
+        }
+        topology
     }
 
     async fn update_config(

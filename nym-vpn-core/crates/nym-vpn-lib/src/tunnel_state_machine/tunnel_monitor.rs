@@ -419,7 +419,15 @@ impl TunnelMonitor {
             .mixnet_client_config
             .clone()
             .unwrap_or_default();
-        self.custom_topology_provider
+
+        tracing::debug!(
+            "Mixnet client performance thresholds: min_mixnode={:?}, min_gateway={:?}",
+            mixnet_client_config.min_mixnode_performance,
+            mixnet_client_config.min_gateway_performance
+        );
+
+        let custom_topology_provider = self.custom_topology_provider.clone();
+        custom_topology_provider
             .update_config(
                 mixnet_client_config.min_mixnode_performance,
                 mixnet_client_config.min_gateway_performance,
@@ -429,6 +437,15 @@ impl TunnelMonitor {
                     .clone(),
             )
             .await;
+
+        tracing::debug!(
+            "Connecting to entry gateway: {}",
+            selected_gateways.entry_gateway().identity().to_base58_string()
+        );
+        tracing::debug!(
+            "Connecting to exit gateway: {}",
+            selected_gateways.exit_gateway().identity().to_base58_string()
+        );
 
         let entry_ip = selected_gateways
             .entry_gateway()
