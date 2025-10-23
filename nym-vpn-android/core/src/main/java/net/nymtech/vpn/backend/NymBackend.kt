@@ -31,6 +31,7 @@ import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib.NymVpnLibConfig
+import nym_vpn_lib.RegistrationArgs
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib.TunnelStatusListener
@@ -351,11 +352,18 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	override suspend fun createAndRegisterAccount(): String {
+	override suspend fun createAccount() {
 		return withContext(ioDispatcher) {
 			initialized.await()
 			nym_vpn_lib.createAccount()
-			val response = nym_vpn_lib.registerAccount()
+		}
+	}
+
+	override suspend fun registerAccount(token: String): String {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			nym_vpn_lib.createAccount()
+			val response = nym_vpn_lib.registerAccount(RegistrationArgs(token))
 			response.accountToken
 		}
 	}

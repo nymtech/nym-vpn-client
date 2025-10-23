@@ -199,8 +199,8 @@
 	<string name="connection_state_awaiting_readiness">Awaiting account readiness</string>
 	<string name="connection_state_refreshing_gateways">Refreshing servers</string>
 	<string name="connection_state_selecting_gateways">Selecting servers</string>
-	<string name="connection_state_connecting_mixnet_client">Connecting mixnet client</string>
 	<string name="connection_state_connecting_tunnel">Connecting tunnel</string>
+	<string name="connection_state_registering_gateways">Registering with gateways</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<string name="settings_passphrase_title">Passphrase</string>

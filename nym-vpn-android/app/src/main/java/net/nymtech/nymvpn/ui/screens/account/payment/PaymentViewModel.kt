@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -23,6 +24,7 @@ class PaymentViewModel
 @Inject
 constructor(
 	private val billingManager: BillingManager,
+	private val backendManager: BackendManager,
 ) : ViewModel() {
 
 	private val _success = MutableSharedFlow<Boolean?>()
@@ -35,7 +37,12 @@ constructor(
 			billingManager.uiState.collectLatest { state ->
 				if(state.purchases.isNotEmpty()) {
 					Timber.d("uiState purchase ${state.purchases}")
-					testApiCall(state.purchases.first().purchaseToken)
+					runCatching {
+						backendManager.registerAccount(state.purchases.first().purchaseToken)
+						testApiCall(state.purchases.first().purchaseToken)
+					}.onFailure {
+						Timber.e(it)
+					}
 				}
 				if (state.billingResult?.responseCode == BillingClient.BillingResponseCode.OK) {
 					_success.emit(true)

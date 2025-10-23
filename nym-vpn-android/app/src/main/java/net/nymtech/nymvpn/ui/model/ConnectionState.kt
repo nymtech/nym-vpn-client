@@ -63,8 +63,8 @@ sealed class ConnectionState(val status: StringValue) {
 							EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> R.string.connection_state_awaiting_readiness
 							EstablishConnectionState.REFRESHING_GATEWAYS -> R.string.connection_state_refreshing_gateways
 							EstablishConnectionState.SELECTING_GATEWAYS -> R.string.connection_state_selecting_gateways
-							EstablishConnectionState.CONNECTING_MIXNET_CLIENT -> R.string.connection_state_connecting_mixnet_client
 							EstablishConnectionState.CONNECTING_TUNNEL -> R.string.connection_state_connecting_tunnel
+							EstablishConnectionState.REGISTERING_WITH_GATEWAYS -> R.string.connection_state_registering_gateways
 						}
 					} ?: R.string.establishing_connection
 

@@ -245,12 +245,15 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
-	override suspend fun createAndRegisterAccount(): String {
-		val response = backend.await().createAndRegisterAccount()
+	override suspend fun createAccount() {
+		backend.await().createAccount()
 		emitMnemonicStored(true)
 		updateAccountIds()
 		refreshAccountLinks()
-		return response
+	}
+
+	override suspend fun registerAccount(purchaseToken: String): String {
+		return backend.await().registerAccount(purchaseToken)
 	}
 
 	private fun emitMnemonicStored(stored: Boolean) {

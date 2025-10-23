@@ -25,14 +25,14 @@ constructor(
 
 	init {
 		viewModelScope.launch {
-			val token = backendManager.createAndRegisterAccount()
 			runCatching {
-				Timber.d("Imported account successfully")
+				backendManager.createAccount()
+				Timber.d("Account created successfully")
 				_success.emit(true)
 			}.onFailure {
 				Timber.e(it)
 				_success.emit(false)
-				SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
+				SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
 			}
 		}
 	}
