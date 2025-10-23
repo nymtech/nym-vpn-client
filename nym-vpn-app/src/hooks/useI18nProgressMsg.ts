@@ -23,8 +23,8 @@ function useI18nProgressMsg() {
           return t('connection-progress.refreshing-gateways');
         case 'selecting-gateways':
           return t('connection-progress.selecting-gateways');
-        case 'connecting-mixnet-client':
-          return t('connection-progress.connecting-mixnet-client');
+        case 'registering-with-gateways':
+          return t('connection-progress.registering-with-gateways');
         case 'connecting-tunnel':
           return t('connection-progress.connecting-tunnel');
       }
