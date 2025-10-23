@@ -7,22 +7,24 @@ pub mod system_messages;
 
 mod account_management;
 mod discovery;
+mod discovery_refresher;
 mod envs;
 mod filetime;
 mod nym_network;
 mod nym_vpn_network;
-mod refresh;
 mod serialization;
 mod system_configuration;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
+pub use discovery_refresher::{
+    DiscoveryRefresherCommand, DiscoveryRefresherEvent, start_discovery_refresher,
+};
 pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
 use nym_vpn_api_client::str_to_socket_addr;
 pub use nym_vpn_network::NymVpnNetwork;
-pub use refresh::{FileRefresherEvent, start_background_file_refresh};
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 

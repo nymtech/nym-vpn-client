@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt};
 
 use nym_connection_monitor::{
     ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
@@ -14,7 +14,7 @@ use nym_registration_client::{
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::{FileRefresherEvent, Network, start_background_file_refresh};
+use nym_vpn_network_config::Network;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -31,7 +31,7 @@ use std::{
 use std::{os::fd::RawFd, sync::Arc};
 
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nix::sys::socket::{sockopt::Mark, SetSockOpt};
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -54,8 +54,8 @@ use super::tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
 use super::{
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
-    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
+    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone}, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
+    TunnelSettings,
 };
 use nym_common::trace_err_chain;
 use nym_vpn_api_client::ResolverOverrides;
@@ -75,17 +75,17 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(not(target_os = "linux"))]
 use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
-    VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
-        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
-        tunnel::{
+        account, ipv6_availability, tunnel::{
             mixnet, transports,
             wireguard::{
                 self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
             },
-        },
+        }, TunnelConstants,
+        WireguardMultihopMode,
     },
+    VpnTopologyProvider,
 };
 
 /// Default MTU for mixnet tun device.
@@ -624,22 +624,6 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // todo: move discovery refresher closer to VpnService
-        let (discovery_refresher_tx, mut discovery_refresher_rx) = mpsc::channel(1);
-        let discovery_refresher_handle = if let Some(config_path) =
-            self.tunnel_parameters.nym_config.config_path.as_ref()
-            && let Some(config_dir) = config_path.parent()
-        {
-            Some(start_background_file_refresh(
-                config_dir.to_path_buf(),
-                self.tunnel_parameters.nym_config.network_env.clone(),
-                discovery_refresher_tx.clone(),
-                self.shutdown_token.child_token(),
-            ))
-        } else {
-            None
-        };
-
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
@@ -729,25 +713,6 @@ impl TunnelMonitor {
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
-                ret = discovery_refresher_rx.recv() => {
-                    let Some(file_refresher_event) = ret else {
-                        tracing::info!("Discovery refresher channel is closed");
-                        break;
-                    };
-                    match file_refresher_event {
-                        FileRefresherEvent::UsingResolverOverrides(resolver_overrides) => {
-                            tracing::debug!("Discovery refresher is using new resolver overrides");
-                            self.send_event(TunnelMonitorEvent::NewResolverOverrides { resolver_overrides });
-                        }
-                        FileRefresherEvent::NewNetwork(network) => {
-                            tracing::info!("Refreshed discovery file");
-                            self.send_event(TunnelMonitorEvent::NewNetworkEnv { network });
-                        }
-                        FileRefresherEvent::Error(error) => {
-                            trace_err_chain!(error, "Failed to refresh discovery file");
-                        }
-                    }
-                }
             }
         }
 
@@ -769,12 +734,6 @@ impl TunnelMonitor {
             })
             .unwrap_or_default();
 
-        if let Some(discovery_refresher_handle) = discovery_refresher_handle {
-            tracing::debug!("Wait for discovery refresher to exit");
-            if let Err(e) = discovery_refresher_handle.await {
-                tracing::error!("Failed to join on discovery refresher: {}", e);
-            }
-        }
         tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
