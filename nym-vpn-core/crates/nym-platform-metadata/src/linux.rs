@@ -32,7 +32,7 @@ pub fn extra_metadata() -> HashMap<String, String> {
 #[cfg(feature = "network-manager")]
 fn nm_version() -> Option<String> {
     let nm = nym_dbus::network_manager::NetworkManager::new().ok()?;
-    nm.version_string().ok()?
+    nm.version_string().ok()
 }
 
 /// `systemctl --version` usually outputs two lines - one with the version, and another listing

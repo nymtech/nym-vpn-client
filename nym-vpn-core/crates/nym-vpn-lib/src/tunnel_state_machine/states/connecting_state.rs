@@ -23,6 +23,8 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{
     EstablishConnectionData, EstablishConnectionState, GatewayId, TunnelConnectionData,
 };
