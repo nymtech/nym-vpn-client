@@ -8,6 +8,7 @@ pub struct CreateAccountRequestBody {
     pub account_addr: String,
     pub pub_key: String,
     pub signature_base64: String,
+    pub purchase_token: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
