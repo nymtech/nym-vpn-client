@@ -19,11 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.ui.screens.settings.developer.components.ConnectionDataSection
 import net.nymtech.nymvpn.ui.screens.settings.developer.components.DeveloperOptionsSection
 import net.nymtech.nymvpn.ui.screens.settings.developer.components.MixnetStateSection
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
