@@ -430,15 +430,15 @@ impl GatewayClient {
             .vpn_api_client
             .get_gateways_by_type(gw_type.into(), self.min_gateway_performance)
             .await?;
-        
+
         let raw_gateways_vec: Vec<_> = raw_gateways.into_iter().collect();
-        
+
         tracing::debug!(
             "VPN-API returned {} raw gateways for {:?}",
             raw_gateways_vec.len(),
             gw_type
         );
-        
+
         let gateways: Vec<_> = raw_gateways_vec
             .into_iter()
             .filter_map(|gw| {
@@ -447,13 +447,13 @@ impl GatewayClient {
                     .ok()
             })
             .collect();
-        
+
         tracing::debug!(
             "Successfully parsed {} gateways for {:?}",
             gateways.len(),
             gw_type
         );
-        
+
         Ok(GatewayList::new(Some(gw_type), gateways))
     }
 }

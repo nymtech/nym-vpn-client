@@ -279,7 +279,10 @@ impl GatewayCache {
             );
             Ok(gateways.clone())
         } else {
-            tracing::debug!("No cached gateways for {:?}, returning refresh result", gw_type);
+            tracing::debug!(
+                "No cached gateways for {:?}, returning refresh result",
+                gw_type
+            );
             refresh_result
         }
     }

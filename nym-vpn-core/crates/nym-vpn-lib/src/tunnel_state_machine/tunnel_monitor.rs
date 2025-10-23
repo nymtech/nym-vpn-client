@@ -440,11 +440,17 @@ impl TunnelMonitor {
 
         tracing::debug!(
             "Connecting to entry gateway: {}",
-            selected_gateways.entry_gateway().identity().to_base58_string()
+            selected_gateways
+                .entry_gateway()
+                .identity()
+                .to_base58_string()
         );
         tracing::debug!(
             "Connecting to exit gateway: {}",
-            selected_gateways.exit_gateway().identity().to_base58_string()
+            selected_gateways
+                .exit_gateway()
+                .identity()
+                .to_base58_string()
         );
 
         let entry_ip = selected_gateways
