@@ -74,63 +74,63 @@ fun AccountSection(appUiState: AppUiState, context: Context) {
 				),
 			),
 		)
-//		SettingsGroup(
-//			items = listOf(
-//				SelectionItem(
-//					leading = {
-//						Icon(
-//							Icons.Outlined.Person,
-//							stringResource(R.string.account),
-//							modifier = Modifier.size(iconSize.scaledWidth()),
-//						)
-//					},
-//					trailing = {
-//						Icon(
-//							Icons.AutoMirrored.Outlined.Launch,
-//							stringResource(R.string.go),
-//							modifier = Modifier.size(iconSize),
-//						)
-//					},
-//					title = {
-//						Text(
-//							stringResource(R.string.account),
-//							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-//						)
-//					},
-//					onClick = {
-//						appUiState.managerState.accountLinks?.account?.let {
-//							Timber.d("Account url: $it")
-//							context.openWebUrl(it)
-//						}
-//					},
-//				),
+// 		SettingsGroup(
+// 			items = listOf(
+// 				SelectionItem(
+// 					leading = {
+// 						Icon(
+// 							Icons.Outlined.Person,
+// 							stringResource(R.string.account),
+// 							modifier = Modifier.size(iconSize.scaledWidth()),
+// 						)
+// 					},
+// 					trailing = {
+// 						Icon(
+// 							Icons.AutoMirrored.Outlined.Launch,
+// 							stringResource(R.string.go),
+// 							modifier = Modifier.size(iconSize),
+// 						)
+// 					},
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.account),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					onClick = {
+// 						appUiState.managerState.accountLinks?.account?.let {
+// 							Timber.d("Account url: $it")
+// 							context.openWebUrl(it)
+// 						}
+// 					},
+// 				),
 //
-//				SelectionItem(
-//					leading = {
-//						Icon(
-//							Icons.Outlined.Key,
-//							stringResource(R.string.settings_passphrase_title),
-//							modifier = Modifier.size(iconSize.scaledWidth()),
-//						)
-//					},
-//					trailing = {
-//						Icon(
-//							Icons.AutoMirrored.Outlined.ArrowRight,
-//							stringResource(R.string.go),
-//							modifier = Modifier.size(iconSize),
-//						)
-//					},
-//					title = {
-//						Text(
-//							stringResource(R.string.settings_passphrase_title),
-//							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-//						)
-//					},
-//					onClick = {
-//						navController.navigate(Route.Passphrase)
-//					},
-//				),
-//			),
-//		)
+// 				SelectionItem(
+// 					leading = {
+// 						Icon(
+// 							Icons.Outlined.Key,
+// 							stringResource(R.string.settings_passphrase_title),
+// 							modifier = Modifier.size(iconSize.scaledWidth()),
+// 						)
+// 					},
+// 					trailing = {
+// 						Icon(
+// 							Icons.AutoMirrored.Outlined.ArrowRight,
+// 							stringResource(R.string.go),
+// 							modifier = Modifier.size(iconSize),
+// 						)
+// 					},
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.settings_passphrase_title),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					onClick = {
+// 						navController.navigate(Route.Passphrase)
+// 					},
+// 				),
+// 			),
+// 		)
 	}
 }
