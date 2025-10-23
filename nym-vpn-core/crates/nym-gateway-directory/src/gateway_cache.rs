@@ -168,7 +168,7 @@ impl GatewayCache {
 
     async fn perform_initial_fetch_once(&mut self) {
         if !self.is_performed_initial_refresh {
-            tracing::info!("Performing initial refresh");
+            tracing::debug!("Performing initial gateway refresh");
             self.is_performed_initial_refresh = true;
             self.refresh_all().await;
         }
@@ -190,7 +190,7 @@ impl GatewayCache {
         let gw_types = self.get_stale_gateway_list_types();
 
         if !gw_types.is_empty() {
-            tracing::info!("Refreshing gateways: {:?}", gw_types,);
+            tracing::debug!("Refreshing gateways: {:?}", gw_types,);
             self.refresh(gw_types).await;
         }
     }
@@ -207,7 +207,7 @@ impl GatewayCache {
             return;
         }
 
-        tracing::info!("Refreshing gateway lists: {gw_list_types:?}");
+        tracing::debug!("Refreshing gateway lists: {gw_list_types:?}");
 
         let mut tasks = tokio::task::JoinSet::new();
 
@@ -223,12 +223,12 @@ impl GatewayCache {
             match res {
                 Ok((gw_type, r)) => match r {
                     Ok(refreshed_gateways) => {
-                        tracing::info!("Refreshed gateways for {gw_type:?}");
+                        tracing::debug!("Refreshed gateways for {gw_type:?}");
                         self.cached_gateways
                             .insert(gw_type, (refreshed_gateways, Instant::now()));
                     }
                     Err(err) => {
-                        tracing::warn!("Failed to refresh gateways for {gw_type:?}: {err}");
+                        tracing::debug!("Failed to refresh gateways for {gw_type:?}: {err}");
                     }
                 },
                 Err(err) => {
@@ -272,8 +272,14 @@ impl GatewayCache {
         // Regardless of if we managed to refresh the cache, we return the cached gateways if they
         // exist. They should be the most recent one we can muster
         if let Some((gateways, _)) = self.cached_gateways.get(&gw_type) {
+            tracing::debug!(
+                "Gateway cache returning {} cached gateways for {:?}",
+                gateways.len(),
+                gw_type
+            );
             Ok(gateways.clone())
         } else {
+            tracing::debug!("No cached gateways for {:?}, returning refresh result", gw_type);
             refresh_result
         }
     }

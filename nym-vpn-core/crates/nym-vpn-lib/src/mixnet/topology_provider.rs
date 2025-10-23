@@ -41,7 +41,7 @@ impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
         min_mixnode_performance: 0,
         min_gateway_performance: 0,
-        use_extended_topology: false,
+        use_extended_topology: true,
         ignore_egress_epoch_role: true,
     };
 
@@ -65,7 +65,11 @@ impl Fetcher {
     }
 
     async fn fetch_topology(&mut self) -> Option<NymTopology> {
-        self.topology_provider.get_new_topology().await
+        let topology = self.topology_provider.get_new_topology().await;
+        if topology.is_none() {
+            tracing::error!("VpnTopologyProvider: Failed to fetch topology from nym-api");
+        }
+        topology
     }
 
     fn update_config(
@@ -226,11 +230,17 @@ impl TopologyProvider for VpnTopologyProvider {
         let cached_topology = self.cached_topology.read().await.clone();
         if cached_topology.use_network || cached_topology.latest_topology.is_none() {
             self.fetch().await;
-            // wait for the fetch to complete in cache
             self.maybe_wait_on_fetch().await;
 
-            self.cached_topology.read().await.latest_topology.clone()
+            let result = self.cached_topology.read().await.latest_topology.clone();
+            if result.is_none() {
+                tracing::error!("VpnTopologyProvider: Fetch completed but topology is None");
+            }
+            result
         } else {
+            if cached_topology.latest_topology.is_none() {
+                tracing::error!("VpnTopologyProvider: Cached topology is None!");
+            }
             cached_topology.latest_topology
         }
     }
