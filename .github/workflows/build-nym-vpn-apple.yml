@@ -110,9 +110,8 @@ jobs:
         env:
           IPHONEOS_DEPLOYMENT_TARGET: 16.0
         run: |
-          set -euxo pipefail
           DERIVED_DATA="$PWD/.DerivedData-iOS"
-          xcodebuild \
+          set -euxo pipefail && xcodebuild \
             -workspace NymVPN.xcworkspace \
             -scheme NymVPN \
             -configuration Debug \
@@ -121,7 +120,7 @@ jobs:
             -derivedDataPath "$DERIVED_DATA" \
             CODE_SIGNING_ALLOWED=NO \
             DEVELOPMENT_TEAM= \
-            build
+            build | xcbeautify --renderer github-actions
           find "$DERIVED_DATA/Build/Products" -maxdepth 3 -name '*.app' -print || true
 
       - name: Archive iOS (QA/Ship, signed Release, automatic)
@@ -218,7 +217,7 @@ jobs:
             -derivedDataPath "$DERIVED_DATA" \
             CODE_SIGNING_ALLOWED=NO \
             DEVELOPMENT_TEAM= \
-            build
+            build | xcbeautify --renderer github-actions
           find "$DERIVED_DATA/Build/Products" -maxdepth 3 -name '*.app' -print || true
 
       - name: Archive macOS (QA/Ship, signed Release, automatic)

@@ -1,6 +1,8 @@
 import SwiftUI
+import AppSettings
 import ConnectionManager
 import CountriesManagerTypes
+import FeatureFlagsManager
 import GatewayManager
 import ImpactGenerator
 import Theme
@@ -13,11 +15,20 @@ public struct GatewayCell: View {
 
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
+    @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
     @Binding private var scrollToModel: GatewayScrollToModel
     @State private var isHovered = false
     @State private var isSelected: Bool
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
+
+    private var shouldShowQuic: Bool {
+        featureFlagsManager.isQuicEnabled
+        && hopType == .entry
+        && connectionManager.connectionType == .wireguard
+        && appSettings.isQuicEnabled
+    }
 
     public init(
         server: GatewayNode,
@@ -41,27 +52,15 @@ public struct GatewayCell: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 0) {
-                selectionMarkerView()
-                scoreImage()
-                serverDetails()
-                Spacer()
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(server.name ?? server.id)")
-            .accessibilityValue(isSelected ? "selected".localizedString : "")
-            .accessibilityAddTraits([.isButton])
-            .contentShape(Rectangle())
-            .onTapGesture {
-                tapAction()
-            }
-            .accessibilityAction {
-                tapAction()
-            }
-
+            serverInfo()
             Spacer()
                 .frame(width: 16)
-            lineSeparator()
+            if shouldShowQuic {
+                QuicLabel()
+            } else {
+                lineSeparator()
+            }
+
             infoButton()
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -74,6 +73,28 @@ public struct GatewayCell: View {
         .background(isHovered ? NymColor.backgroundHover : NymColor.background)
         .onHover { newValue in
             isHovered = newValue
+        }
+    }
+}
+
+private extension GatewayCell {
+    func serverInfo() -> some View {
+        HStack(spacing: 0) {
+            selectionMarkerView()
+            scoreImage()
+            serverDetails()
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(server.name ?? server.id)")
+        .accessibilityValue(isSelected ? "selected".localizedString : "")
+        .accessibilityAddTraits([.isButton])
+        .contentShape(Rectangle())
+        .onTapGesture {
+            tapAction()
+        }
+        .accessibilityAction {
+            tapAction()
         }
     }
 }
