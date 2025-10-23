@@ -23,6 +23,8 @@ struct DiscoveryRefresher {
     commands_rx: Receiver<DiscoveryRefresherCommand>,
     events_tx: Sender<DiscoveryRefresherEvent>,
     cancel_token: CancellationToken,
+    current_resolver_overrides: Option<ResolverOverrides>,
+    paused: bool,
 }
 
 impl DiscoveryRefresher {
@@ -32,13 +34,16 @@ impl DiscoveryRefresher {
         events_tx: Sender<DiscoveryRefresherEvent>,
         cancel_token: CancellationToken,
     ) -> Result<Self> {
-        let client = Discovery::create_client(None).await?;
+        let current_resolver_overrides = None;
+        let client = Discovery::create_client(current_resolver_overrides).await?;
         Ok(Self {
             client,
             config_path,
             commands_rx,
             events_tx,
             cancel_token,
+            current_resolver_overrides: current_resolver_overrides.cloned(),
+            paused: false,
         })
     }
 
@@ -80,9 +85,21 @@ impl DiscoveryRefresher {
                 }
                 Some(command) = self.commands_rx.recv() => {
                     match command {
+                        DiscoveryRefresherCommand::Pause(pause) => {
+                            if self.paused == pause {
+                                tracing::debug!("Discovery Refresher already {}", if pause {"paused"} else {"running"} );
+                            } else {
+                                tracing::debug!("Discovery Refresher {}", if pause {"pausing"} else {"running"} );
+                                self.paused = pause;
+                            }
+                        }
                         DiscoveryRefresherCommand::UseResolverOverrides(resolver_overrides) => {
+                            if self.current_resolver_overrides.as_ref() == resolver_overrides.as_deref() {
+                                tracing::debug!("Discovery Refresher received identical resolver overrides; ignoring");
+                                continue;
+                            }
                             let enabled = if resolver_overrides.is_some() {"enabled"} else {"disabled"};
-                            tracing::debug!("Discovery refresher using {enabled} resolver overrides");
+                            tracing::debug!("Discovery Refresher using {enabled} resolver overrides");
                                 match Discovery::create_client(resolver_overrides.as_deref()).await {
                                     Ok(client) => {self.client = client;},
                                     Err(err) => {
@@ -97,6 +114,10 @@ impl DiscoveryRefresher {
                     }
                 }
                 _ = interval.tick() => {
+                    if self.paused {
+                        continue;
+                    }
+
                     if !checked_consistency {
                         match network.check_consistency().await {
                             Err(e) => tracing::warn!("Discovery refresher could not check consistency: {e:?}"),
@@ -183,6 +204,7 @@ pub async fn start_discovery_refresher(
 
 #[derive(Debug)]
 pub enum DiscoveryRefresherCommand {
+    Pause(bool),
     UseResolverOverrides(Option<Box<ResolverOverrides>>),
 }
 

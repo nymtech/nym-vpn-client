@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{future::Fuse, pin_mut, FutureExt};
+use futures::{FutureExt, future::Fuse, pin_mut};
 
 use nym_connection_monitor::{
     ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
@@ -14,7 +14,6 @@ use nym_registration_client::{
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::Network;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -31,7 +30,7 @@ use std::{
 use std::{os::fd::RawFd, sync::Arc};
 
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -54,11 +53,10 @@ use super::tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
 use super::{
-    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone}, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
-    TunnelSettings,
+    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
+    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
 };
 use nym_common::trace_err_chain;
-use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
@@ -75,17 +73,17 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(not(target_os = "linux"))]
 use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
+    VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
-        account, ipv6_availability, tunnel::{
+        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
+        tunnel::{
             mixnet, transports,
             wireguard::{
                 self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
             },
-        }, TunnelConstants,
-        WireguardMultihopMode,
+        },
     },
-    VpnTopologyProvider,
 };
 
 /// Default MTU for mixnet tun device.
@@ -182,18 +180,6 @@ pub enum TunnelMonitorEvent {
         error_state_reason: Option<ErrorStateReason>,
         /// Back channel to acknowledge that the event has been processed
         reply_tx: tokio::sync::oneshot::Sender<()>,
-    },
-
-    /// A new network environment was discovered
-    NewNetworkEnv {
-        /// The new network environment
-        network: Box<Network>,
-    },
-
-    /// New resolver overrides are being used
-    NewResolverOverrides {
-        /// The new resolver overrides
-        resolver_overrides: Box<ResolverOverrides>,
     },
 }
 

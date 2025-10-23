@@ -23,7 +23,7 @@ pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
-use nym_vpn_api_client::str_to_socket_addr;
+use nym_vpn_api_client::{ResolverOverrides, str_to_socket_addr};
 pub use nym_vpn_network::NymVpnNetwork;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
@@ -219,6 +219,12 @@ impl Network {
 
         unique.into_iter().collect()
     }
+
+    pub async fn resolver_overrides(&self) -> Result<ResolverOverrides> {
+        ResolverOverrides::from_api_urls(&self.nym_vpn_network.nym_vpn_api_urls)
+            .await
+            .map_err(Error::CreateResolverOverrides)
+    }
 }
 
 pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {
@@ -338,6 +344,9 @@ pub enum Error {
 
     #[error("failed to bootstrap api client")]
     CreateBootstrapApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
+
+    #[error("failed to create resolver overrides")]
+    CreateResolverOverrides(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to create vpn api client")]
     CreateVpnApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),

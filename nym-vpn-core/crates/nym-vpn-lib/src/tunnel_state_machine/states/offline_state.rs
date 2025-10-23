@@ -4,11 +4,6 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_common::trace_err_chain;
-#[cfg(target_os = "macos")]
-use nym_dns::DnsConfig;
-
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -20,6 +15,11 @@ use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState},
     tunnel::SelectedGateways,
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_common::trace_err_chain;
+#[cfg(target_os = "macos")]
+use nym_dns::DnsConfig;
+use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct OfflineState {
     /// Whether to connect the tunnel once online
@@ -38,6 +38,18 @@ impl OfflineState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .await
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .await
+            .ok();
+
         #[cfg(target_os = "macos")]
         if Self::set_local_dns_resolver(shared_state).await.is_err() {
             return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
