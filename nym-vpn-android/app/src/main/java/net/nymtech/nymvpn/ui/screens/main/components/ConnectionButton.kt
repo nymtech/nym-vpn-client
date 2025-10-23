@@ -48,7 +48,9 @@ fun ConnectionButton(
 	Box(modifier = modifier.padding(horizontal = 24.dp.scaledWidth())) {
 		when (connectionState) {
 			ConnectionState.Disconnected, ConnectionState.Offline -> {
-				if (stateMessage is StateMessage.Error && stateMessage.reason is ErrorStateReason.InactiveSubscription) {
+				if (stateMessage is StateMessage.Error &&
+					(stateMessage.reason is ErrorStateReason.InactiveSubscription || stateMessage.reason is ErrorStateReason.InactiveAccount)
+				) {
 					if (isVpnAlwaysOn(context)) {
 						MainStyledButton(
 							onClick = onStopKillSwitch,

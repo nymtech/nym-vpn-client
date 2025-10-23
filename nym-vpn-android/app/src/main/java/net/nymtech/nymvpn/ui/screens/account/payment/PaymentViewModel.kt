@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.BillingClient
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -27,28 +29,48 @@ constructor(
 	private val backendManager: BackendManager,
 ) : ViewModel() {
 
-	private val _success = MutableSharedFlow<Boolean?>()
-	val success = _success.asSharedFlow()
+	private val _events = MutableSharedFlow<PaymentUiEvent>(
+		replay = 0,
+		extraBufferCapacity = 1,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	val events: SharedFlow<PaymentUiEvent> = _events.asSharedFlow()
 	private val httpClient = OkHttpClient()
 	private var accountId: String? = null
 
 	init {
 		viewModelScope.launch {
 			billingManager.uiState.collectLatest { state ->
-				if(state.purchases.isNotEmpty()) {
+				if (state.purchases.isNotEmpty()) {
 					Timber.d("uiState purchase ${state.purchases}")
 					runCatching {
 						backendManager.registerAccount(state.purchases.first().purchaseToken)
+						backendManager.refresh()
+						_events.tryEmit(PaymentUiEvent.PaymentSuccess)
 						testApiCall(state.purchases.first().purchaseToken)
 					}.onFailure {
 						Timber.e(it)
 					}
 				}
-				if (state.billingResult?.responseCode == BillingClient.BillingResponseCode.OK) {
-					_success.emit(true)
-				} else {
-					Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
-					_success.emit(false)
+				when (state.billingResult?.responseCode) {
+					BillingClient.BillingResponseCode.OK -> {
+						Timber.d("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
+					}
+					BillingClient.BillingResponseCode.ERROR, BillingClient.BillingResponseCode.NETWORK_ERROR, BillingClient.BillingResponseCode.DEVELOPER_ERROR -> {
+						Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
+						_events.tryEmit(PaymentUiEvent.PaymentError(state.billingResult.debugMessage))
+					}
+					BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+						Timber.d("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
+						_events.tryEmit(PaymentUiEvent.SubscriptionOwned)
+					}
+					BillingClient.BillingResponseCode.USER_CANCELED -> {
+						Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
+						_events.tryEmit(PaymentUiEvent.UserCanceled)
+					}
+					else -> {
+						Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
+					}
 				}
 			}
 		}
@@ -64,7 +86,6 @@ constructor(
 	}
 
 	private fun testApiCall(purchaseId: String) {
-		accountId // account address
 		viewModelScope.launch {
 			try {
 				val url = "URL"

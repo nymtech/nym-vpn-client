@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -52,14 +52,14 @@ import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
 @Composable
 fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
-	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val activity = context as? Activity
 	val userId = appUiState.managerState.accountId
 
-	var animationEnded by remember { mutableStateOf(false) }
-	var hasNavigated by remember { mutableStateOf(false) }
+	var animationEnded by rememberSaveable { mutableStateOf(false) }
+	var navigated by rememberSaveable { mutableStateOf(false) }
+	var latestEvent by remember { mutableStateOf<PaymentUiEvent?>(null) }
 
 	LaunchedEffect(activity, productId) {
 		activity?.let {
@@ -67,27 +67,37 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 		}
 	}
 
-	LaunchedEffect(success) {
-		if (success == false && !hasNavigated) {
-			SnackbarController.showMessage(StringValue.StringResource(R.string.account_payment_error))
-			navController.replaceCurrentWith(Route.SelectPlan)
+	LaunchedEffect(Unit) {
+		viewModel.events.collect { event ->
+			latestEvent = event
+			when (event) {
+				is PaymentUiEvent.PaymentError, is PaymentUiEvent.UserCanceled -> {
+					SnackbarController.showMessage(StringValue.StringResource(R.string.account_payment_error))
+					navController.replaceCurrentWith(Route.SelectPlan)
+				}
+				is PaymentUiEvent.PaymentSuccess -> {
+					if (animationEnded && !navigated) {
+						navigated = true
+						navController.navigateAndForget(Route.Main())
+					}
+				}
+				is PaymentUiEvent.SubscriptionOwned -> {
+					navigated = true
+					navController.navigateAndForget(Route.Main())
+				}
+			}
 		}
 	}
 
-	LaunchedEffect(success, animationEnded) {
-		if (!hasNavigated && animationEnded && success == true) {
-			hasNavigated = true
-			navController.navigateAndForget(Route.Main())
-		}
-	}
-
-	PaymentScreen {
-		animationEnded = true
-		if (!hasNavigated && success == true) {
-			hasNavigated = true
-			navController.navigateAndForget(Route.Main())
-		}
-	}
+	PaymentScreen(
+		onAnimationEnd = {
+			animationEnded = true
+			if (latestEvent == PaymentUiEvent.PaymentSuccess && !navigated) {
+				navigated = true
+				navController.navigateAndForget(Route.Main())
+			}
+		},
+	)
 }
 
 @Composable

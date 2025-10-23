@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.manager.billing.model.PurchaseInfo
 import javax.inject.Inject
 
 class NymBillingManager @Inject constructor(
@@ -31,8 +32,8 @@ class NymBillingManager @Inject constructor(
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BillingManager {
 
-	private val _uiState = MutableStateFlow(BillingUiState())
-	override val uiState: StateFlow<BillingUiState> = _uiState.asStateFlow()
+	private val _uiState = MutableStateFlow(PurchaseInfo())
+	override val uiState: StateFlow<PurchaseInfo> = _uiState.asStateFlow()
 
 	private val _products = MutableSharedFlow<List<ProductDetails>>(replay = 1)
 	override val products: Flow<List<ProductDetails>> = _products.asSharedFlow()
@@ -42,7 +43,7 @@ class NymBillingManager @Inject constructor(
 			_uiState.update { state ->
 				state.copy(
 					billingResult = billingResult,
-					purchases = purchases ?: emptyList()
+					purchases = purchases ?: emptyList(),
 				)
 			}
 		}
