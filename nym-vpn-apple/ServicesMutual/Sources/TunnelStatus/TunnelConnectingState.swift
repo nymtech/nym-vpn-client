@@ -3,7 +3,7 @@ public enum TunnelConnectingState: Int, Codable {
     case awaitingAccountReadiness
     case refreshingGateways
     case selectingGateways
-    case connectingMixnetClient
+    case registeringWithGateways
     case connectingTunnel
     case unrecognized
 

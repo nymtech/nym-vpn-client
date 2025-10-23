@@ -212,7 +212,7 @@ impl State {
             } else {
                 tracing::debug!("Removing DNS for {} if it exists", service_path);
                 if !store.remove(CFString::new(&service_path)) {
-                    tracing::debug!("DNS for {} doesn't exist in store", service_path);
+                    tracing::debug!("DNS for {service_path} doesn't exist in store");
                 }
             }
         }

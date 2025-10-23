@@ -30,36 +30,7 @@ public struct GatewayDetailsView: View {
             ScrollView {
                 Spacer()
                     .frame(height: 24)
-                VStack(spacing: 0) {
-                    serverTitle()
-                    Spacer()
-                        .frame(height: 16)
-                    location()
-                    Spacer()
-                        .frame(height: 16)
-                    serverDescription()
-                    Spacer()
-                        .frame(height: 24)
-                    capabilitiesSection()
-                    Spacer()
-                        .frame(height: 24)
-                    performanceSection()
-                    Spacer()
-                        .frame(height: 24)
-                    ipSection()
-                    Spacer()
-                        .frame(height: 24)
-                    serverInfoSection()
-                    Spacer()
-                        .frame(height: 24)
-                    missingInfoText()
-                    Spacer()
-                        .frame(height: 24)
-                    explorer()
-                    Spacer()
-                        .frame(height: 24)
-                }
-                .padding(.horizontal, 16)
+                scrollViewContent()
             }
             selectServerSection()
         }
@@ -91,6 +62,39 @@ private extension GatewayDetailsView {
             title: "gatewayInfo.serverDetails".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
+    }
+
+    func scrollViewContent() -> some View {
+        VStack(spacing: 0) {
+            serverTitle()
+            Spacer()
+                .frame(height: 16)
+            location()
+            Spacer()
+                .frame(height: 16)
+            serverDescription()
+            Spacer()
+                .frame(height: 24)
+            capabilitiesSection()
+            Spacer()
+                .frame(height: 24)
+            performanceSection()
+            Spacer()
+                .frame(height: 24)
+            ipSection()
+            Spacer()
+                .frame(height: 24)
+            serverInfoSection()
+            Spacer()
+                .frame(height: 24)
+            missingInfoText()
+            Spacer()
+                .frame(height: 24)
+            explorer()
+            Spacer()
+                .frame(height: 24)
+        }
+        .padding(.horizontal, 16)
     }
 
     func serverTitle() -> some View {
@@ -233,7 +237,10 @@ private extension GatewayDetailsView {
             advancedPrivacyRow()
             separatorLine()
             streamingAndContentRow()
-            if gateway.isBridgesAvailable, hopType == .entry, featureFlagsManager.isQuicEnabled {
+            if gateway.isQuicAvailable,
+                hopType == .entry,
+                featureFlagsManager.isQuicEnabled,
+                connectionManager.connectionType == .wireguard {
                 separatorLine()
                 bridges()
                 Spacer()
@@ -290,12 +297,12 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.bridges".localizedString)
             Spacer()
-            GenericImage(systemImageName: gateway.isBridgesAvailable ? "checkmark" : "circle.fill")
+            GenericImage(systemImageName: gateway.isQuicAvailable ? "checkmark" : "circle.fill")
                 .frame(width: 10, height: 10)
-                .foregroundStyle(gateway.isBridgesAvailable ? NymColor.accent : NymColor.warning)
+                .foregroundStyle(gateway.isQuicAvailable ? NymColor.accent : NymColor.warning)
                 .padding(.horizontal, 8)
             rowSubtite(
-                with: gateway.isBridgesAvailable
+                with: gateway.isQuicAvailable
                 ? "gatewayInfo.quicProtocol".localizedString
                 : "gatewayInfo.standardProtocol".localizedString
             )
@@ -358,8 +365,9 @@ private extension GatewayDetailsView {
             GenericImage(imageName: gateway.performance?.score.imageName)
                 .frame(width: 16, height: 16)
                 .padding(8)
-            Text(gateway.performance?.score.localizedKey.localizedString
-                 ?? GatewayNodeScore.noScore.localizedKey.localizedString
+            Text(
+                gateway.performance?.score.localizedKey.localizedString
+                ?? GatewayNodeScore.noScore.localizedKey.localizedString
             )
             .foregroundStyle(
                 scoreOverallPerformanceImageColor(
@@ -374,8 +382,9 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.serverLoad".localizedString)
             Spacer()
-            Text(gateway.performance?.load.localizedKey.localizedString
-                 ?? GatewayNodeScore.noScore.localizedKey.localizedString
+            Text(
+                gateway.performance?.load.localizedKey.localizedString
+                ?? GatewayNodeScore.noScore.localizedKey.localizedString
             )
             .foregroundStyle(
                 scoreLoadImageColor(

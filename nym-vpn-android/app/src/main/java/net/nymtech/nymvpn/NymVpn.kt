@@ -20,10 +20,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate

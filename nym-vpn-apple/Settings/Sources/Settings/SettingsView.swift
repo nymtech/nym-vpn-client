@@ -59,7 +59,7 @@ private extension SettingsView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.settingsTitle,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() })
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
     }
 

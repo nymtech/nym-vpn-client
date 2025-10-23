@@ -19,8 +19,8 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.capitalizeFirstLowerRest
 import net.nymtech.nymvpn.util.extensions.colorLoad
 import net.nymtech.nymvpn.util.extensions.colorPerformance
-import net.nymtech.nymvpn.util.extensions.formatUtcString
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
+import net.nymtech.nymvpn.util.extensions.relativeTimeSpan
 import nym_vpn_lib_types.Score
 
 @Composable
@@ -79,11 +79,11 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 		items = items,
 		bottomContent = lastUpdated?.let {
 			{
-				val formattedDate = formatUtcString(it)
+				val relativeTimeSpan = relativeTimeSpan(it)
 				Text(
 					text = stringResource(
 						R.string.details_performance_calculated,
-						formattedDate,
+						relativeTimeSpan,
 					),
 					style = Typography.labelSmall,
 					color = MaterialTheme.colorScheme.outline,

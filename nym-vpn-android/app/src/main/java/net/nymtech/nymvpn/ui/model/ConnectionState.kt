@@ -1,9 +1,10 @@
 package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.model.StateMessage.*
+import net.nymtech.nymvpn.ui.model.StateMessage.Status
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.nymvpn.util.StringValue.*
+import net.nymtech.nymvpn.util.StringValue.Empty
+import net.nymtech.nymvpn.util.StringValue.StringResource
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EstablishConnectionState
 

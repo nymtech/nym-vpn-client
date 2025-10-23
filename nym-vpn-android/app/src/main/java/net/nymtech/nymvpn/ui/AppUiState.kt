@@ -4,8 +4,10 @@ import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
+import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
@@ -28,11 +30,11 @@ data class AppUiState(
 		else -> null
 	}
 
-	val entryPointGatewayName = when (val entry = settings.entryPoint) {
+	val entryPointGateway = when (val entry = settings.entryPoint) {
 		is EntryPoint.Country -> {
-			if (managerState.tunnelState == Tunnel.State.Up) {
+			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
-					gateways.entryGateways.firstOrNull { it.identity == data.entryGateway.id }?.name
+					gateways.entryGateways.firstOrNull { it.identity == data.entryGateway.id }
 				}
 			} else {
 				null
@@ -41,11 +43,11 @@ data class AppUiState(
 		else -> null
 	}
 
-	val exitPointGatewayName = when (val exit = settings.exitPoint) {
+	val exitPointGateway = when (val exit = settings.exitPoint) {
 		is ExitPoint.Country -> {
-			if (managerState.tunnelState == Tunnel.State.Up) {
+			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
-					gateways.exitGateways.firstOrNull { it.identity == data.exitGateway.id }?.name
+					gateways.exitGateways.firstOrNull { it.identity == data.exitGateway.id }
 				}
 			} else {
 				null
@@ -59,6 +61,7 @@ data class AppUiState(
 			gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
 		}
 		is EntryPoint.Country -> entry.toDisplayCountry()
+		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.entryPointNameForRegion(entry.region) ?: entry.region
 		else -> Settings.DEFAULT_ENTRY_POINT.toDisplayCountry()
 	}
 
@@ -68,7 +71,26 @@ data class AppUiState(
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
 		is ExitPoint.Country -> exit.toDisplayCountry()
+		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region == exit.region }?.entryPointNameForRegion(exit.region) ?: exit.region
 		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
+	}
+
+	val entryPointLocation: String? = when (val entry = settings.entryPoint) {
+		is EntryPoint.Country -> entryPointGateway.serverLocationOnCountrySelection(entry.twoLetterIsoCountryCode)
+		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull {
+			it.identity == entry.identity
+		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
+		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.serverLocationOnRegionSelection()
+		else -> null
+	}
+
+	val exitPointLocation: String? = when (val exit = settings.exitPoint) {
+		is ExitPoint.Country -> exitPointGateway.serverLocationOnCountrySelection(exit.twoLetterIsoCountryCode)
+		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull {
+			it.identity == exit.identity
+		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
+		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region == exit.region }?.serverLocationOnRegionSelection()
+		else -> null
 	}
 
 	val exitPointId = when (val exit = settings.exitPoint) {
@@ -83,4 +105,22 @@ data class AppUiState(
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 		else -> null
 	}
+}
+
+private fun NymGateway?.serverLocationOnCountrySelection(twoLetterIsoCountryCode: String): String? {
+	val region = this?.region.takeIf { countryCodesForRegionSupport.contains(twoLetterIsoCountryCode.lowercase()) }
+	return this?.let { listOfNotNull(it.city, region).joinToString(", ") + " (${it.name})" }
+}
+
+private fun NymGateway.serverLocationOnGatewaySelection(twoLetterIsoCountryCode: String): String? {
+	val region = this.region.takeIf { countryCodesForRegionSupport.contains(twoLetterIsoCountryCode.lowercase()) }
+	return listOfNotNull(this.city, region, toDisplayCountry(twoLetterIsoCountryCode)).joinToString(", ")
+}
+
+private fun NymGateway.serverLocationOnRegionSelection(): String? {
+	return this.city.orEmpty() + " (${this.name})"
+}
+
+private fun NymGateway.entryPointNameForRegion(region: String): String {
+	return listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")
 }
