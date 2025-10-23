@@ -48,6 +48,7 @@ dirs = "6.0"
 semver = "1.0"
 url = "2.5.4"
 sentry = { version = "0.43.0", features = ["tracing", "logs"] }
+sysinfo = "0.37"
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
