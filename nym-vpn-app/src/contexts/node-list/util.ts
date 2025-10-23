@@ -1,17 +1,5 @@
-import {
-  Region,
-  SelectableNode,
-  SelectedNode,
-  toSelectedNode,
-} from '../../types';
-import { SelectedKind, SelectedUiNode, UiRegion } from './types';
-
-export function regionToSelectedNode(region: Region | UiRegion): SelectedNode {
-  return {
-    type: 'region',
-    node: { name: region.name, country: region.country },
-  };
-}
+import { SelectableNode, SelectedNode, toSelectedNode } from '../../types';
+import { SelectedKind, SelectedUiNode } from './types';
 
 export function isSelected(node: SelectedNode, selected: SelectedNode) {
   if (node.type === 'gateway' && selected.type === 'gateway') {

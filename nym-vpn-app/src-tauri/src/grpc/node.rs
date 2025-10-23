@@ -122,12 +122,16 @@ impl fmt::Display for Node {
 
 impl fmt::Display for RegionNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}] {}", self.country.code, self.name)
+        write!(
+            f,
+            "region: [{}] {}, {}",
+            self.country.code, self.country.name, self.name
+        )
     }
 }
 
 impl fmt::Display for GatewayNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}] {}, {}", self.id, self.name, self.country)
+        write!(f, "gateway: [{}] {}, {}", self.id, self.name, self.country)
     }
 }

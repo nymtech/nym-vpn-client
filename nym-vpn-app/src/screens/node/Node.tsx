@@ -180,7 +180,7 @@ function Node({ node }: { node: NodeHop }) {
             gateways={uiGateways}
             onSelect={handleSelect}
             onNodeDetails={handleNodeDetails}
-            node={node}
+            hop={node}
             vpnMode={vpnMode}
           />
         )}

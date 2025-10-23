@@ -162,7 +162,6 @@ pub async fn get_gateways(
                     .regions
                     .iter()
                     .for_each(|region| trace!("{}", region));
-
             }
         })
 }
