@@ -3,19 +3,20 @@
 
 use std::{path::PathBuf, str::FromStr, time::Duration};
 
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
+
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
-use nym_vpn_lib::storage::VpnClientOnDiskStorage;
+use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
     keys::{device::DeviceKeyStore, wireguard::WireguardKeysDb},
 };
-use tokio::task::JoinHandle;
-use tokio_util::sync::CancellationToken;
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 use crate::offline_monitor;
@@ -66,7 +67,7 @@ async fn start_account_controller(
 ) -> Result<AccountControllerHandle, VpnError> {
     let storage = VpnClientOnDiskStorage::new(data_dir.clone());
     // TODO: pass in as argument
-    let user_agent = crate::user_agent::construct_user_agent();
+    let user_agent = new_user_agent!();
     let shutdown_token = CancellationToken::new();
 
     let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
@@ -407,7 +408,7 @@ pub(crate) mod raw {
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
         let network_env = environment::current_environment_details().await?;
-        let user_agent = crate::user_agent::construct_user_agent();
+        let user_agent = new_user_agent!();
         let vpn_api_client =
             VpnApiClient::from_network(network_env.nym_network_details(), user_agent, None)
                 .await

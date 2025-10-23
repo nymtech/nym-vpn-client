@@ -6,14 +6,11 @@ mod commands;
 mod display_helpers;
 mod table_style;
 
-use std::str::FromStr;
-
 use anyhow::{Context, Result, bail};
 use clap::{ArgAction, Parser};
-use sysinfo::System;
 use tokio_stream::StreamExt;
 
-use nym_vpn_lib_types::{TunnelEvent, TunnelState, UserAgent, VpnServiceInfo};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState, VpnServiceInfo};
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::table_style::TableStyle;
@@ -25,16 +22,8 @@ pub struct ProgramArgs {
     #[arg(global = true, long, value_enum, default_value_t)]
     pub table_style: TableStyle,
 
-    /// Override the default user agent string.
-    #[arg(long, value_parser = parse_user_agent)]
-    pub user_agent: Option<UserAgent>,
-
     #[command(subcommand)]
     pub command: Command,
-}
-
-fn parse_user_agent(s: &str) -> Result<UserAgent, String> {
-    UserAgent::from_str(s)
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -120,16 +109,9 @@ pub enum Command {
 async fn main() -> Result<()> {
     let args = ProgramArgs::parse();
 
-    let mut rpc_client = RpcClient::new()
+    let rpc_client = RpcClient::new()
         .await
         .context("Failed to create RPC client")?;
-
-    let user_agent = if let Some(user_agent) = args.user_agent {
-        user_agent
-    } else {
-        let daemon_info = rpc_client.get_info().await?;
-        construct_user_agent(daemon_info)
-    };
 
     match args.command {
         Command::ConnectV2 { wait } => connect_v2(rpc_client, wait).await,
@@ -138,7 +120,7 @@ async fn main() -> Result<()> {
         Command::Status { listen } => status(rpc_client, listen).await,
         Command::Info => info(rpc_client).await,
         Command::GetConfig => get_config(rpc_client).await,
-        Command::Gateway(args) => args.execute(rpc_client, user_agent).await,
+        Command::Gateway(args) => args.execute(rpc_client).await,
         Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
         Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
         Command::Network { subcommand } => subcommand.execute(rpc_client).await,
@@ -146,26 +128,7 @@ async fn main() -> Result<()> {
         Command::Device(args) => args.execute(rpc_client).await,
         Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
         Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
-        Command::Legacy(subcommand) => subcommand.execute(rpc_client, user_agent).await,
-    }
-}
-
-fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
-    let bin_info = nym_bin_common::bin_info_local_vergen!();
-    let version = format!("{} ({})", bin_info.build_version, daemon_info.version);
-
-    // Construct the platform string similar to how user agents are constructed in web browsers
-    let name = System::name().unwrap_or("unknown".to_string());
-    let os_long = System::long_os_version().unwrap_or("unknown".to_string());
-    let arch = System::cpu_arch();
-    let platform = format!("{name}; {os_long}; {arch}");
-
-    let git_commit = format!("{} ({})", bin_info.commit_sha, daemon_info.git_commit);
-    UserAgent {
-        application: bin_info.binary_name.to_string(),
-        version,
-        platform,
-        git_commit,
+        Command::Legacy(subcommand) => subcommand.execute(rpc_client).await,
     }
 }
 

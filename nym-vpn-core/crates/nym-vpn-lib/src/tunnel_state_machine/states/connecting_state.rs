@@ -353,6 +353,7 @@ impl ConnectingState {
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
+            user_agent: shared_state.user_agent.clone(),
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
