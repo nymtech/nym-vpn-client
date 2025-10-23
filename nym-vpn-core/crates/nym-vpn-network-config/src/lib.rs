@@ -22,7 +22,7 @@ pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
 use nym_vpn_api_client::str_to_socket_addr;
 pub use nym_vpn_network::NymVpnNetwork;
-pub use refresh::start_background_file_refresh;
+pub use refresh::{FileRefresherEvent, start_background_file_refresh};
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
@@ -30,7 +30,6 @@ use discovery::Discovery;
 use envs::RegisteredNetworks;
 use nym_network_defaults::NymNetworkDetails;
 use tokio::join;
-use url::Url;
 
 use crate::{
     discovery::DiscoveryFromNymWellknownDiscoveryError,
@@ -57,7 +56,7 @@ pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
 #[derive(Clone, Debug)]
 pub struct Network {
     pub nym_network: NymNetwork,
-    pub nyxd_url: Url,
+    pub nyxd_url: url::Url,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
@@ -117,7 +116,7 @@ impl Network {
         Ok(network_name == vpn_network_name)
     }
 
-    pub fn nyxd_url(&self) -> Url {
+    pub fn nyxd_url(&self) -> url::Url {
         self.nyxd_url.clone()
     }
 

@@ -590,6 +590,18 @@ impl TunnelStateHandler for ConnectingState {
 
                         NextTunnelState::SameState(self)
                     }
+                    TunnelMonitorEvent::NewResolverOverrides { resolver_overrides } => {
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            self.firewall_policy_params.api_endpoints = resolver_overrides.all_addresses();
+                            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                trace_err_chain!(e, "failed to set firewall policy");
+                                return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                            }
+                        }
+
+                        NextTunnelState::SameState(self)
+                    }
                 }
            }
             Some(command) = command_rx.recv() => {

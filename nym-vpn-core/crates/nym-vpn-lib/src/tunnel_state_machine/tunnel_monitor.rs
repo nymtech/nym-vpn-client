@@ -14,7 +14,7 @@ use nym_registration_client::{
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
 use nym_vpn_account_controller::AccountStateReceiver;
-use nym_vpn_network_config::{Network, start_background_file_refresh};
+use nym_vpn_network_config::{FileRefresherEvent, Network, start_background_file_refresh};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -58,6 +58,7 @@ use super::{
     tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
 };
 use nym_common::trace_err_chain;
+use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
     NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
@@ -187,6 +188,12 @@ pub enum TunnelMonitorEvent {
     NewNetworkEnv {
         /// The new network environment
         network: Box<Network>,
+    },
+
+    /// New resolver overrides are being used
+    NewResolverOverrides {
+        /// The new resolver overrides
+        resolver_overrides: Box<ResolverOverrides>,
     },
 }
 
@@ -618,7 +625,7 @@ impl TunnelMonitor {
         }
 
         // todo: move discovery refresher closer to VpnService
-        let (discovery_refresher_tx, mut discovery_refresher_rx) = tokio::sync::mpsc::channel(1);
+        let (discovery_refresher_tx, mut discovery_refresher_rx) = mpsc::channel(1);
         let discovery_refresher_handle = if let Some(config_path) =
             self.tunnel_parameters.nym_config.config_path.as_ref()
             && let Some(config_dir) = config_path.parent()
@@ -723,17 +730,21 @@ impl TunnelMonitor {
                     break;
                 }
                 ret = discovery_refresher_rx.recv() => {
-                    match ret {
-                        Some(Ok(network)) => {
+                    let Some(file_refresher_event) = ret else {
+                        tracing::info!("Discovery refresher channel is closed");
+                        break;
+                    };
+                    match file_refresher_event {
+                        FileRefresherEvent::UsingResolverOverrides(resolver_overrides) => {
+                            tracing::debug!("Discovery refresher is using new resolver overrides");
+                            self.send_event(TunnelMonitorEvent::NewResolverOverrides { resolver_overrides });
+                        }
+                        FileRefresherEvent::NewNetwork(network) => {
                             tracing::info!("Refreshed discovery file");
-                            self.send_event(TunnelMonitorEvent::NewNetworkEnv { network: Box::new(network) });
+                            self.send_event(TunnelMonitorEvent::NewNetworkEnv { network });
                         }
-                        Some(Err(err)) => {
-                            trace_err_chain!(err, "Failed to refresh discovery file");
-                        }
-                        None => {
-                            tracing::info!("Discovery refresh channel is closed");
-                            break;
+                        FileRefresherEvent::Error(error) => {
+                            trace_err_chain!(error, "Failed to refresh discovery file");
                         }
                     }
                 }
@@ -980,7 +991,7 @@ impl TunnelMonitor {
             let entry_bridge_params = selected_gateways
                 .entry_gateway()
                 .get_bridge_params()
-                .ok_or(transports::TransportError::config_err(
+                .ok_or(TransportError::config_err(
                     "attempted to open transport connection without bridge params",
                 ))?;
 

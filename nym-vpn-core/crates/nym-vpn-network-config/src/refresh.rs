@@ -3,30 +3,33 @@
 
 use std::{path::PathBuf, time::Duration};
 
-use nym_common::trace_err_chain;
-use tokio::task::JoinHandle;
-use tokio_util::sync::CancellationToken;
-
 use crate::{
     Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
     network_from_discovery,
 };
+use nym_common::trace_err_chain;
+use nym_vpn_api_client::{ResolverOverrides, VpnApiClient};
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
 struct FileRefresher {
+    client: VpnApiClient,
     config_path: PathBuf,
-    discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Network>>,
+    discovery_refresher_tx: tokio::sync::mpsc::Sender<FileRefresherEvent>,
     cancel_token: CancellationToken,
 }
 
 impl FileRefresher {
     fn new(
+        client: VpnApiClient,
         config_path: PathBuf,
-        discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Network>>,
+        discovery_refresher_tx: tokio::sync::mpsc::Sender<FileRefresherEvent>,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
+            client,
             config_path,
             discovery_refresher_tx,
             cancel_token,
@@ -35,7 +38,7 @@ impl FileRefresher {
 
     async fn refresh_discovery_file(&self, network_name: &str) -> Result<Option<Discovery>> {
         if Discovery::path_is_stale(self.config_path.as_path(), network_name)? {
-            let discovery = Discovery::fetch(network_name).await?;
+            let discovery = Discovery::fetch(&self.client, network_name).await?;
             discovery.write_to_file(self.config_path.as_path())?;
             Ok(Some(discovery))
         } else {
@@ -75,7 +78,7 @@ impl FileRefresher {
                         Ok(false) => {
                             tracing::error!("Inconsistent network");
                             self.discovery_refresher_tx
-                                .send(Err(Error::InconsistentNetwork))
+                                .send(FileRefresherEvent::Error(Error::InconsistentNetwork))
                                 .await
                                 .ok();
                         }
@@ -96,7 +99,7 @@ impl FileRefresher {
                     Err(err) => {
                         trace_err_chain!(err, "Failed to refresh discovery file");
                         self.discovery_refresher_tx
-                            .send(Err(Error::RefreshDiscoveryFile))
+                            .send(FileRefresherEvent::Error(Error::RefreshDiscoveryFile))
                             .await
                             .ok();
                     }
@@ -115,13 +118,16 @@ impl FileRefresher {
                             Err(err) => {
                                 trace_err_chain!(err, "Failed to parse refreshed discovery file");
                                 self.discovery_refresher_tx
-                                    .send(Err(Error::ParseDiscoveryFile))
+                                    .send(FileRefresherEvent::Error(Error::ParseDiscoveryFile))
                                     .await
                                     .ok();
                             }
                             Ok(new_network) => {
                                 network = new_network.clone();
-                                self.discovery_refresher_tx.send(Ok(new_network)).await.ok();
+                                self.discovery_refresher_tx
+                                    .send(FileRefresherEvent::NewNetwork(Box::new(new_network)))
+                                    .await
+                                    .ok();
                             }
                         }
                     }
@@ -134,12 +140,31 @@ impl FileRefresher {
 }
 
 // Ideally we only refresh the discovery file when the tunnel is up
-pub fn start_background_file_refresh(
+pub async fn start_background_file_refresh(
     config_path: PathBuf,
     network: Network,
-    discovery_refresher_tx: tokio::sync::mpsc::Sender<Result<Network>>,
+    discovery_refresher_tx: tokio::sync::mpsc::Sender<FileRefresherEvent>,
     cancel_token: CancellationToken,
-) -> JoinHandle<()> {
-    let refresher = FileRefresher::new(config_path, discovery_refresher_tx, cancel_token);
-    tokio::spawn(refresher.run(network))
+) -> Result<JoinHandle<()>> {
+    let (client, resolver_overrides) = Discovery::create_client().await?;
+
+    discovery_refresher_tx
+        .send(FileRefresherEvent::UsingResolverOverrides(Box::new(
+            resolver_overrides,
+        )))
+        .await
+        .ok();
+
+    let refresher = FileRefresher::new(client, config_path, discovery_refresher_tx, cancel_token);
+
+    let join_handle = tokio::spawn(refresher.run(network));
+
+    Ok(join_handle)
+}
+
+#[derive(Debug)]
+pub enum FileRefresherEvent {
+    UsingResolverOverrides(Box<ResolverOverrides>),
+    NewNetwork(Box<Network>),
+    Error(Error),
 }
