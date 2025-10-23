@@ -431,7 +431,7 @@ impl GatewayClient {
             .get_gateways_by_type(gw_type.into(), self.min_gateway_performance)
             .await?;
 
-        let raw_gateways_vec: Vec<_> = raw_gateways.into_iter().collect();
+        let raw_gateways_vec = raw_gateways.into_inner();
 
         tracing::debug!(
             "VPN-API returned {} raw gateways for {:?}",

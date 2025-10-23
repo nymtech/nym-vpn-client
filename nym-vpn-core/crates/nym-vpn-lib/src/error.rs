@@ -19,10 +19,10 @@ pub enum GatewayDirectoryError {
     SelectEntryGateway(#[source] nym_gateway_directory::Error),
 
     #[error("failed to select any entry gateway after trying all performance tiers")]
-    SelectEntryGatewayFailed(#[source] nym_gateway_directory::Error),
+    EntryGatewayUnavailable(#[source] nym_gateway_directory::Error),
 
     #[error("failed to select any exit gateway after trying all performance tiers")]
-    SelectExitGatewayFailed(#[source] nym_gateway_directory::Error),
+    ExitGatewayUnavailable(#[source] nym_gateway_directory::Error),
 
     #[error("failed to select exit gateway")]
     SelectExitGateway(#[source] nym_gateway_directory::Error),
