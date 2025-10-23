@@ -184,6 +184,12 @@ impl TemporaryBandwidthClient {
             && let Ok(gateway_version) = semver::Version::parse(gateway_version)
             && let Some(update_version) = gateway_metadata_update_version
             && gateway_version >= update_version
+            && gateway
+                .last_probe
+                .as_ref()
+                .and_then(|p| p.outcome.wg.as_ref())
+                .map(|r| r.can_query_metadata_v4)
+                .unwrap_or(false)
         {
             tracing::debug!(
                 "Using latest metadata client for {}'s bandwidth controller",

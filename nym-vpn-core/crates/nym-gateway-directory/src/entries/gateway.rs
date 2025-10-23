@@ -363,6 +363,7 @@ pub struct WgProbeResults {
     pub can_register: bool,
     pub can_handshake: bool,
     pub can_resolve_dns: bool,
+    pub can_query_metadata_v4: bool,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
 }
@@ -468,6 +469,7 @@ impl From<nym_vpn_api_client::response::WgProbeResults> for WgProbeResults {
             can_register: results.can_register,
             can_handshake: results.can_handshake,
             can_resolve_dns: results.can_resolve_dns,
+            can_query_metadata_v4: results.can_query_metadata_v4,
             ping_hosts_performance: results.ping_hosts_performance,
             ping_ips_performance: results.ping_ips_performance,
         }
