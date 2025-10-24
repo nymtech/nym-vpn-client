@@ -127,11 +127,17 @@ function NodeList({
     return () => clearTimeout(timeoutId);
   }, [focused, scrollToNode]);
 
-  const PanelContent = ({ children }: { children: ReactNode }) => (
+  const PanelContent = ({
+    children,
+    animate = false,
+  }: {
+    children: ReactNode;
+    animate?: boolean;
+  }) => (
     <motion.div
-      initial={{ opacity: 0, translateY: -4 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ duration: 0.1, ease: 'easeIn' }}
+      initial={animate && { opacity: 0, translateY: -4 }}
+      animate={animate && { opacity: 1, translateY: 0 }}
+      transition={animate ? { duration: 0.1, ease: 'easeIn' } : undefined}
       className="flex flex-col gap-2"
     >
       {children}
@@ -166,10 +172,12 @@ function NodeList({
             />
             <Accordion.Panel
               data-testid={`country-accordion-content-${country.code}`}
+              className="w-full flex flex-col gap-3"
             >
               {country.code.toLowerCase() === 'us' ? (
                 regions.map((region) => (
                   <Accordion.Item
+                    className="first:pt-3"
                     key={region.name}
                     value={region.name}
                     ref={(node) => setRef('region', region.name, node)}
@@ -178,6 +186,7 @@ function NodeList({
                       hop={hop}
                       isSelected={region.isSelected}
                       node={region}
+                      i18n={i18n}
                       onClick={() => {
                         handleLocationSelect(
                           region,

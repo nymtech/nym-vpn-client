@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { Accordion } from '@base-ui-components/react';
 import { SelectedKind, UiCountry, UiRegion } from '../../../contexts';
-import CountryInfo from './CountryInfo';
+import LocationInfo from './LocationInfo';
 import FoldButton from './FoldButton';
 
 export type RowHeaderProps = {
@@ -11,7 +11,7 @@ export type RowHeaderProps = {
   onClick: (node: UiCountry | UiRegion) => void;
   sub?: boolean;
   gwCount: number;
-  i18n?: string;
+  i18n: string;
 };
 
 function RowHeader({
@@ -21,13 +21,18 @@ function RowHeader({
   node,
   gwCount,
   i18n,
+  sub,
 }: RowHeaderProps) {
   return (
     <div
       className={clsx(
         'flex flex-row justify-between',
-        ' bg-white dark:bg-charcoal',
-        'hover:bg-white/60 dark:hover:bg-charcoal/85',
+        !sub
+          ? ' bg-white dark:bg-charcoal'
+          : 'bg-gainsboro dark:bg-charcoal/60',
+        !sub
+          ? 'hover:bg-white/60 dark:hover:bg-charcoal/85'
+          : 'hover:bg-nordic-breeze hover:dark:bg-charcoal/75',
       )}
     >
       <div
@@ -44,9 +49,13 @@ function RowHeader({
         onClick={() => onClick(node)}
       >
         {node.nodeType === 'country' ? (
-          <CountryInfo country={node} name={i18n!} gwCount={gwCount} />
+          <LocationInfo node={node} name={i18n} gwCount={gwCount} />
         ) : (
-          <div>{`${node.name} - gw#${gwCount}`}</div>
+          <LocationInfo
+            node={node}
+            name={`${i18n}, ${node.name}`}
+            gwCount={gwCount}
+          />
         )}
       </div>
       <Accordion.Header className="flex py-2">
