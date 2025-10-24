@@ -680,21 +680,7 @@ impl TunnelStateHandler for ConnectingState {
             Some(discovery_event) = shared_state.discovery_refresher_event_rx.recv() => {
                 match discovery_event {
                    DiscoveryRefresherEvent::NewNetwork(network) => {
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        {
-                            self.firewall_policy_params.api_endpoints = network.vpn_api_addresses().await;
-                            shared_state.nym_config.network_env = *network;
-                            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                trace_err_chain!(e, "failed to set firewall policy");
-                                return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                            }
-                        }
-
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
-                        {
-                            shared_state.nym_config.network_env = *network;
-                        }
-
+                        shared_state.nym_config.network_env = *network;
                         NextTunnelState::SameState(self)
                     }
                     DiscoveryRefresherEvent::Error(error) => {
