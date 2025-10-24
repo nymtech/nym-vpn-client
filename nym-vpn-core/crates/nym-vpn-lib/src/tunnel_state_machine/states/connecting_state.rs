@@ -134,12 +134,6 @@ impl ConnectingState {
             firewall_policy_params
         };
 
-        // If that fails, it's not really important
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_up()
-            .await;
-
         let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
             let wait_delay = wait_delay(retry_attempt);
@@ -283,6 +277,21 @@ impl ConnectingState {
             }
         }
 
+        if let Err(err) = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_up()
+            .await
+        {
+            trace_err_chain!(err, "Failed to set VPN API firewall up");
+            return NextTunnelState::NewState(
+                ErrorState::enter(
+                    ErrorStateReason::Internal("Failed to set VPN API firewall up".to_owned()),
+                    shared_state,
+                )
+                .await,
+            );
+        }
+
         if !resolved_gateway_config.has_resolver_overrides() {
             tracing::warn!(
                 "There are no resolver overrides, which may result in the firewall blocking API requests"
@@ -302,8 +311,7 @@ impl ConnectingState {
                 return NextTunnelState::NewState(
                     ErrorState::enter(
                         ErrorStateReason::Internal(
-                            "Failed to set static NYM API addresses to account controller"
-                                .to_owned(),
+                            "Failed to set resolver overrides for account controller".to_owned(),
                         ),
                         shared_state,
                     )
