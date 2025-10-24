@@ -214,37 +214,44 @@ async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
-    rpc_client.disconnect_tunnel().await?;
-
     if wait {
+        let mut stream = rpc_client.clone().listen_to_events().await?;
+
         println!("Waiting until disconnected");
-        wait_until_disconnected(rpc_client).await
-    } else {
-        Ok(())
-    }
-}
 
-async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {
-    let mut stream = rpc_client.listen_to_events().await?;
+        let current_state = rpc_client.get_tunnel_state().await?;
+        println!("{current_state}");
 
-    while let Some(new_state) = stream.next().await {
-        let TunnelEvent::NewState(new_state) = new_state? else {
-            continue;
-        };
+        rpc_client.disconnect_tunnel().await?;
 
-        println!("{new_state}");
+        if matches!(
+            current_state,
+            TunnelState::Disconnected | TunnelState::Offline { .. }
+        ) {
+            return Ok(());
+        }
 
-        match new_state {
-            TunnelState::Disconnected | TunnelState::Offline { .. } => {
-                break;
-            }
-            TunnelState::Error(reason) => {
+        while let Some(new_state) = stream.next().await {
+            let TunnelEvent::NewState(new_state) = new_state? else {
+                continue;
+            };
+
+            println!("{new_state}");
+
+            if matches!(
+                new_state,
+                TunnelState::Disconnected | TunnelState::Offline { .. }
+            ) {
+                return Ok(());
+            } else if let TunnelState::Error(reason) = new_state {
                 bail!("Tunnel entered error state: {reason:?}")
             }
-            _ => {}
         }
+        Ok(())
+    } else {
+        rpc_client.disconnect_tunnel().await?;
+        Ok(())
     }
-    Ok(())
 }
 
 async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {

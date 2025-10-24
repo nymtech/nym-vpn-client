@@ -14,12 +14,12 @@ import net.nymtech.connectivity.NetworkService
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.LogcatReader
 import net.nymtech.nymvpn.data.GatewayRepository
-import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
-import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.DefaultDispatcher
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
+import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.service.gateway.GatewayDataStoreCacheService
 import net.nymtech.nymvpn.service.notification.NotificationService

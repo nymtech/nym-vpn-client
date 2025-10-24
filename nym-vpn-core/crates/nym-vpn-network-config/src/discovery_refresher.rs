@@ -4,8 +4,8 @@
 use std::{path::PathBuf, time::Duration};
 
 use crate::{
-    discovery::Discovery, envs::RegisteredNetworks, network_from_discovery, Error, Network, NymNetwork,
-    Result,
+    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
+    network_from_discovery,
 };
 use nym_common::trace_err_chain;
 use nym_vpn_api_client::{ResolverOverrides, VpnApiClient};

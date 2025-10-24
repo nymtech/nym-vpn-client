@@ -808,7 +808,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint --no-cache\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "#!/bin/bash\nset -euo pipefail\n\n# Ensure Homebrew bin on Apple Silicon\nif [[ \"$(uname -m)\" == \"arm64\" ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Go to repository root (ensures relative paths are correct)\nREPO_ROOT=$(git rev-parse --show-toplevel)\ncd \"$REPO_ROOT\"\n\nif command -v swiftlint >/dev/null 2>&1; then\n    echo \"Running SwiftLint (no-cache) autocorrect for modified Swift files…\"\n\n    # Collect modified Swift files (excluding deletions)\n    git status --porcelain | \\\n        grep -v '^ \\?D' | \\\n        cut -c 4- | \\\n        sed 's/.* -> //' | \\\n        tr -d '\"' | \\\n        while read -r file; do\n            if [[ \"$file\" == *.swift && -f \"$file\" ]]; then\n                echo \"Linting & correcting: $file\"\n                \n                # Run linting first (fresh, no cache if available)\n                if swiftlint lint --help | grep -q -- \"--no-cache\"; then\n                    swiftlint lint --no-cache \"$file\" || true\n                else\n                    swiftlint lint \"$file\" || true\n                fi\n            fi\n        done\n\nelse\n    echo \"warning: SwiftLint not installed. Install via Homebrew:\"\n    echo \"  brew install swiftlint\"\nfi\n";
 		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -827,7 +827,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint --no-cache\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "#!/bin/bash\nset -euo pipefail\n\n# Ensure Homebrew bin on Apple Silicon\nif [[ \"$(uname -m)\" == \"arm64\" ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\n# Go to repository root (ensures relative paths are correct)\nREPO_ROOT=$(git rev-parse --show-toplevel)\ncd \"$REPO_ROOT\"\n\nif command -v swiftlint >/dev/null 2>&1; then\n    echo \"Running SwiftLint (no-cache) autocorrect for modified Swift files…\"\n\n    # Collect modified Swift files (excluding deletions)\n    git status --porcelain | \\\n        grep -v '^ \\?D' | \\\n        cut -c 4- | \\\n        sed 's/.* -> //' | \\\n        tr -d '\"' | \\\n        while read -r file; do\n            if [[ \"$file\" == *.swift && -f \"$file\" ]]; then\n                echo \"Linting & correcting: $file\"\n                \n                # Run linting first (fresh, no cache if available)\n                if swiftlint lint --help | grep -q -- \"--no-cache\"; then\n                    swiftlint lint --no-cache \"$file\" || true\n                else\n                    swiftlint lint \"$file\" || true\n                fi\n            fi\n        done\n\nelse\n    echo \"warning: SwiftLint not installed. Install via Homebrew:\"\n    echo \"  brew install swiftlint\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

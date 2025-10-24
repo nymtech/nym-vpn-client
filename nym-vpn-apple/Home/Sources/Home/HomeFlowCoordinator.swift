@@ -29,8 +29,10 @@ private extension HomeFlowCoordinator {
                 viewModel: GatewaysViewModel(
                     type: .entry,
                     path: $state.path,
+                    appSettings: .shared,
                     connectionManager: .shared,
-                    gatewayManager: .shared
+                    gatewayManager: .shared,
+                    featureFlagsManager: .shared
                 )
             )
         case .exitGateways:
@@ -38,8 +40,10 @@ private extension HomeFlowCoordinator {
                 viewModel: GatewaysViewModel(
                     type: .exit,
                     path: $state.path,
+                    appSettings: .shared,
                     connectionManager: .shared,
-                    gatewayManager: .shared
+                    gatewayManager: .shared,
+                    featureFlagsManager: .shared
                 )
             )
         case .settings:

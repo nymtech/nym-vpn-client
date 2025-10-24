@@ -14,6 +14,8 @@ use futures::{
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+use nym_common::trace_err_chain;
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
@@ -28,7 +30,7 @@ use crate::tunnel_state_machine::{
         TunnelMonitorHandle, TunnelParameters,
     },
 };
-use nym_common::trace_err_chain;
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]

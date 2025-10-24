@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
@@ -32,7 +33,7 @@ fun LocationField(
 	value: String,
 	label: String,
 	countryCode: String?,
-	gatewayName: String?,
+	gatewayLocation: String?,
 	onClick: () -> Unit,
 	enabled: Boolean,
 	modifier: Modifier = Modifier,
@@ -59,13 +60,15 @@ fun LocationField(
 			)
 		},
 		trailing = { Icon(trailingIcon, stringResource(R.string.go), tint = MaterialTheme.colorScheme.onSurface) },
-		singleLine = gatewayName.isNullOrEmpty(),
+		singleLine = true,
 		subtitle = {
-			if (!gatewayName.isNullOrEmpty()) {
+			if (!gatewayLocation.isNullOrEmpty()) {
 				Text(
-					text = gatewayName,
+					text = gatewayLocation,
 					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+					color = MaterialTheme.colorScheme.outline,
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis,
 				)
 			}
 		},

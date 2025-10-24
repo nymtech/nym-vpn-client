@@ -93,6 +93,7 @@ public struct GenericButton: View {
                 Text(title)
                     .foregroundStyle(style.textTitleColor)
                     .textStyle(.Headline.Small.regular)
+                    .minimumScaleFactor(0.8)
             }
         }
         .padding(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
