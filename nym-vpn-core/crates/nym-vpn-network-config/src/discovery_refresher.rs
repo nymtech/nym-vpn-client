@@ -115,11 +115,7 @@ impl DiscoveryRefresher {
                         }
                     }
                 }
-                _ = interval.tick() => {
-                    if self.paused {
-                        continue;
-                    }
-
+                _ = interval.tick(), if !self.paused => {
                     if !checked_consistency {
                         match network.check_consistency().await {
                             Err(e) => tracing::warn!("Discovery refresher could not check consistency: {e:?}"),
