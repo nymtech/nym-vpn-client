@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +40,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
@@ -52,6 +52,7 @@ import java.util.Locale
 fun CountryItem(
 	country: Locale,
 	gatewayType: GatewayType,
+	gatewayLocation: GatewayLocation,
 	gateways: List<NymGateway>,
 	selectedKey: String?,
 	onSelectionChange: (String) -> Unit,
@@ -136,24 +137,8 @@ fun CountryItem(
 							}
 						},
 						trailing = {
-							Box(
-								modifier = Modifier
-									.clickable { onGatewayDetails(gateway) }
-									.fillMaxHeight(),
-								contentAlignment = Alignment.Center,
-							) {
-								Row(
-									horizontalArrangement = Arrangement.spacedBy(16.dp),
-									verticalAlignment = Alignment.CenterVertically,
-									modifier = Modifier.padding(end = 16.dp),
-								) {
-									VerticalDivider(modifier = Modifier.height(42.dp))
-									Icon(
-										Icons.Outlined.Info,
-										contentDescription = stringResource(R.string.info),
-										modifier = Modifier.size(iconSize),
-									)
-								}
+							ServerDetailsTrailingContent(gatewayLocation, gateway.asnKind) {
+								onGatewayDetails(gateway)
 							}
 						},
 						title = {

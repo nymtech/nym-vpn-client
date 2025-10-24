@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -43,6 +45,10 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.BannerAction
+import net.nymtech.nymvpn.ui.common.BannerConfig
+import net.nymtech.nymvpn.ui.common.BannerIcon
+import net.nymtech.nymvpn.ui.common.InfoBanner
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.IconAction
@@ -66,6 +72,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AsnKind
 
 @Composable
 fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -101,6 +108,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
+	var showBanner by remember { mutableStateOf(false) }
 
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
@@ -185,7 +193,15 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		navController.goFromRoot(Route.SelectPlan)
 	}
 
+	fun dismissStreamingBanner() {
+		viewModel.onStreamingServerBannerDisplayed()
+		showBanner = false
+	}
+
 	LaunchedEffect(Unit) {
+		if (!appUiState.settings.isStreamingServerBannerDisplayed) {
+			showBanner = true
+		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
 		}
@@ -198,73 +214,100 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		}
 	}
 
-	Column(
-		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
-		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier
-			.verticalScroll(rememberScrollState())
-			.fillMaxSize()
-			.padding(bottom = padding.calculateBottomPadding()),
-	) {
-		SnackbarHost(hostState = screenSnackbar, Modifier)
-		ConnectionStatus(
-			connectionState = uiState.connectionState,
-			vpnMode = appUiState.settings.vpnMode,
-			stateMessage = uiState.stateMessage,
-			connectionTime = connectionTime,
-			theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
-			isAppInForeground = isAppInForeground,
-		)
-		Spacer(modifier = Modifier.weight(1f))
+	Box {
 		Column(
-			verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
+			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier
+				.verticalScroll(rememberScrollState())
 				.fillMaxSize()
-				.padding(bottom = 24.dp.scaledHeight()),
+				.padding(bottom = padding.calculateBottomPadding()),
 		) {
-			ModeSelector(
-				vpnMode = appUiState.settings.vpnMode,
+			SnackbarHost(hostState = screenSnackbar, Modifier)
+			ConnectionStatus(
 				connectionState = uiState.connectionState,
-				onTwoHopClick = { viewModel.onTwoHopSelected() },
-				onFiveHopClick = { viewModel.onFiveHopSelected() },
-				onInfoClick = { showInfoDialog = true },
-				snackbar = snackbar,
+				vpnMode = appUiState.settings.vpnMode,
+				stateMessage = uiState.stateMessage,
+				connectionTime = connectionTime,
+				theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
+				isAppInForeground = isAppInForeground,
 			)
+			Spacer(modifier = Modifier.weight(1f))
 			Column(
-				verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
-				modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
+				verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(bottom = 24.dp.scaledHeight()),
 			) {
-				GroupLabel(title = stringResource(R.string.connect_to))
-				LocationField(
-					value = appUiState.entryPointName,
-					label = stringResource(R.string.entry),
-					countryCode = appUiState.entryPointCountry,
-					gatewayLocation = appUiState.entryPointLocation,
-					onClick = { navController.goFromRoot(Route.EntryLocation) },
-					enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+				ModeSelector(
+					vpnMode = appUiState.settings.vpnMode,
+					connectionState = uiState.connectionState,
+					onTwoHopClick = { viewModel.onTwoHopSelected() },
+					onFiveHopClick = { viewModel.onFiveHopSelected() },
+					onInfoClick = { showInfoDialog = true },
+					snackbar = snackbar,
 				)
-				LocationField(
-					value = appUiState.exitPointName,
-					label = stringResource(R.string.exit),
-					countryCode = appUiState.exitPointCountry,
-					gatewayLocation = appUiState.exitPointLocation,
-					onClick = { navController.goFromRoot(Route.ExitLocation) },
-					enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+				Column(
+					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
+					modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
+				) {
+					GroupLabel(title = stringResource(R.string.connect_to))
+					LocationField(
+						value = appUiState.entryPointName,
+						label = stringResource(R.string.entry),
+						countryCode = appUiState.entryPointCountry,
+						gatewayLocation = appUiState.entryPointLocation,
+						onClick = { navController.goFromRoot(Route.EntryLocation) },
+						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+					)
+					LocationField(
+						value = appUiState.exitPointName,
+						label = stringResource(R.string.exit),
+						countryCode = appUiState.exitPointCountry,
+						gatewayLocation = appUiState.exitPointLocation,
+						onClick = {
+							dismissStreamingBanner()
+							navController.goFromRoot(Route.ExitLocation)
+						},
+						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
+					)
+				}
+				ConnectionButton(
+					connectionState = uiState.connectionState,
+					stateMessage = uiState.stateMessage,
+					isMnemonicStored = appUiState.managerState.isMnemonicStored,
+					onConnect = { onConnectPressed() },
+					onDisconnect = { onDisconnectPressed() },
+					onStopKillSwitch = { onStopKillSwitchPressed() },
+					onGetStart = { onGetStartedPressed() },
+					navController = navController,
+					snackbar = snackbar,
 				)
 			}
-			ConnectionButton(
-				connectionState = uiState.connectionState,
-				stateMessage = uiState.stateMessage,
-				isMnemonicStored = appUiState.managerState.isMnemonicStored,
-				onConnect = { onConnectPressed() },
-				onDisconnect = { onDisconnectPressed() },
-				onStopKillSwitch = { onStopKillSwitchPressed() },
-				onGetStart = { onGetStartedPressed() },
-				navController = navController,
-				snackbar = snackbar,
-			)
 		}
+
+		InfoBanner(
+			showBanner = showBanner,
+			config = BannerConfig(
+				message = stringResource(R.string.streaming_server_banner_title),
+				action = BannerAction(
+					title = stringResource(R.string.streaming_server_banner_action),
+					onClicked = {
+						dismissStreamingBanner()
+						navController.goFromRoot(Route.ExitLocation)
+					},
+				),
+				icon = BannerIcon(
+					icon = Icons.Outlined.Close,
+					onClicked = {
+						dismissStreamingBanner()
+					},
+				),
+			),
+			modifier = Modifier.padding(16.dp),
+		)
 	}
 
 	ShowInfoModal(

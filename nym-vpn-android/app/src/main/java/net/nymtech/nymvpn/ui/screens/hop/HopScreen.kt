@@ -2,13 +2,10 @@ package net.nymtech.nymvpn.ui.screens.hop
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -52,12 +48,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
+import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
@@ -219,6 +215,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 				CountryItem(
 					country = country,
 					gatewayType = gatewayType,
+					gatewayLocation = gatewayLocation,
 					gateways = when (gatewayType) {
 						GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 						GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
@@ -265,26 +262,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 									}
 								},
 								trailing = {
-									Box(
-										modifier = Modifier
-											.clickable {
-												navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
-											}
-											.fillMaxHeight(),
-										contentAlignment = Alignment.Center,
-									) {
-										Row(
-											horizontalArrangement = Arrangement.spacedBy(16.dp),
-											verticalAlignment = Alignment.CenterVertically,
-											modifier = Modifier.padding(end = 16.dp),
-										) {
-											VerticalDivider(modifier = Modifier.height(42.dp))
-											Icon(
-												Icons.Outlined.Info,
-												contentDescription = stringResource(R.string.info),
-												modifier = Modifier.size(iconSize),
-											)
-										}
+									ServerDetailsTrailingContent(gatewayLocation, gateway.asnKind) {
+										navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
 									}
 								},
 								title = {
