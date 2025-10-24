@@ -289,10 +289,10 @@ impl ConnectingState {
             .set_vpn_api_firewall_down()
             .await
         {
-            trace_err_chain!(err, "Failed to set VPN API firewall up");
+            trace_err_chain!(err, "Failed to set VPN API firewall down");
             return NextTunnelState::NewState(
                 ErrorState::enter(
-                    ErrorStateReason::Internal("Failed to set VPN API firewall up".to_owned()),
+                    ErrorStateReason::Internal("Failed to set VPN API firewall down".to_owned()),
                     shared_state,
                 )
                 .await,
