@@ -39,9 +39,9 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
-use nym_vpn_lib_types::{
-    EstablishConnectionData, EstablishConnectionState, GatewayId, TunnelConnectionData,
-};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_vpn_lib_types::TunnelConnectionData;
+use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
 use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent};
 
 /// Initial delay between retry attempts.
