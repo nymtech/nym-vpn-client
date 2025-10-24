@@ -169,14 +169,11 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
-                    #[cfg(target_os = "macos")]
-                    if !*LOCAL_DNS_RESOLVER {
-                        // This is probably unnecessary, since DNS is already configured on the
-                        // primary interface.
-                        Self::reset_dns(shared_state).await;
-                    }
+                    tracing::info!("Network connectivity restored, preparing to reconnect");
 
-                    #[cfg(any(target_os = "linux", target_os = "windows"))]
+                    // Reset DNS to allow ConnectingState to resolve API hostnames.
+                    // The local filtering resolver will be reconfigured by ConnectingState once connection is established.
+                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {

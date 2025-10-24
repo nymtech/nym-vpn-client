@@ -51,6 +51,12 @@ const DELAY_MULTIPLIER: u32 = 2;
 /// Max wait delay between retry attempts.
 const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
 
+/// Number of fast retry attempts before switching to exponential backoff.
+const FAST_RETRY_ATTEMPTS: u32 = 2;
+
+/// Fast retry delay for network recovery scenarios (first FAST_RETRY_ATTEMPTS).
+const NETWORK_RECOVERY_DELAY: Duration = Duration::from_millis(500);
+
 type ResolveApiAddrsFuture = BoxFuture<'static, Result<ResolvedConfig>>;
 type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
@@ -73,10 +79,14 @@ impl ConnectingState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // This prevents hickory resolver from getting confused when system DNS points to 
+        // local forwarder but it expects responses from upstream DNS servers.
         #[cfg(target_os = "macos")]
-        if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
-            trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
-            return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
+        if retry_attempt > FAST_RETRY_ATTEMPTS {
+            if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
+                trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
+                return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
+            }
         }
 
         if shared_state
@@ -134,7 +144,7 @@ impl ConnectingState {
         let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
             let wait_delay = wait_delay(retry_attempt);
-            tracing::info!("Waiting {}s before reconnect", wait_delay.as_secs());
+            tracing::info!("Waiting {}ms before reconnect", wait_delay.as_millis());
             tokio::time::sleep(wait_delay).boxed().fuse()
         } else {
             std::future::ready(()).boxed().fuse()
@@ -802,7 +812,16 @@ impl ConnectingPolicyParameters {
 }
 
 fn wait_delay(retry_attempt: u32) -> Duration {
-    let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
-    let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
-    std::cmp::min(delay, MAX_WAIT_DELAY)
+    // Use fast retries for the first FAST_RETRY_ATTEMPTS to handle network recovery
+    // Where the network reports as "online" before DNS/routing are ready.
+    if retry_attempt <= FAST_RETRY_ATTEMPTS {
+        NETWORK_RECOVERY_DELAY
+    } else {
+        // After fast retries, use exponential backoff for persistent failures
+        let multiplier = retry_attempt
+            .saturating_sub(FAST_RETRY_ATTEMPTS)
+            .saturating_mul(DELAY_MULTIPLIER);
+        let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
+        std::cmp::min(delay, MAX_WAIT_DELAY)
+    }
 }
