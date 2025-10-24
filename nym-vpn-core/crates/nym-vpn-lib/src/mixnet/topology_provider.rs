@@ -42,8 +42,8 @@ struct Fetcher {
 
 impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
-        min_mixnode_performance: 0,
-        min_gateway_performance: 0,
+        min_mixnode_performance: 50,
+        min_gateway_performance: 50,
         use_extended_topology: false,
         ignore_egress_epoch_role: true,
     };
@@ -88,6 +88,7 @@ impl Fetcher {
         if let Some(min_mixnode_performance) = min_mixnode_performance {
             config.min_mixnode_performance = min_mixnode_performance;
         }
+
         if let Some(min_gateway_performance) = min_gateway_performance {
             config.min_gateway_performance = min_gateway_performance;
         }
