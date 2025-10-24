@@ -1,13 +1,9 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { useDebouncedCallback as useDebounce } from 'use-debounce';
 import {
   SelectedUiNode,
   UiGateway,
-  UiGatewaysByCountry,
-  UiRegion,
   useDialog,
   useMainDispatch,
   useMainState,
@@ -21,68 +17,24 @@ import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import LocationDetailsDialog from './LocationDetailsDialog';
-import { NodeList } from './list';
+import { NodeList, useFilterList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
   const { backendFlags, vpnMode, quic } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
-  const { nodes, loading, gateways, error } = useNodeList();
+  const { loading, error } = useNodeList();
   const { setFocused, reset: resetSaved, addToExpanded } = useNodeListState();
   const { tE } = useI18nError();
 
-  const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
-  const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
 
   const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
 
-  // refresh the UI list whenever the backend gateway data changes
-  useEffect(() => {
-    setUiNodes(nodes);
-    setUiGateways([]);
-  }, [nodes, gateways]);
-
-  const filter = (value: string) => {
-    if (value.length > 0) {
-      let usRegions: UiRegion[] = [];
-      const filteredNodes = structuredClone(nodes).filter((node) => {
-        if (node.country.code.toLowerCase() === 'us') {
-          usRegions = node.regions.filter((region) => {
-            return region.name.toLowerCase().includes(value.toLowerCase());
-          });
-          if (usRegions.length > 0) {
-            return true;
-          }
-        }
-        // toLowerCase() is used to make it case-insensitive
-        return node.i18n.toLowerCase().includes(value.toLowerCase());
-      });
-      if (usRegions.length > 0) {
-        const index = filteredNodes.findIndex(
-          (n) => n.country.code.toLowerCase() === 'us',
-        );
-        if (index !== -1) {
-          filteredNodes[index].regions = usRegions;
-        }
-      }
-      const filteredGw = gateways.filter((gw) => {
-        return gw.name.toLowerCase().includes(value.toLowerCase());
-      });
-      setUiNodes(filteredNodes);
-      setUiGateways(filteredGw);
-    } else {
-      setUiNodes(nodes);
-      setUiGateways([]);
-    }
-  };
-
-  const debounceFilter = useDebounce((value: string) => {
-    filter(value);
-  }, 200);
+  const { filter, nodes, gateways } = useFilterList();
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -176,7 +128,7 @@ function Node({ node }: { node: NodeHop }) {
           )}
           <TextInput
             defaultValue=""
-            onChange={debounceFilter}
+            onChange={filter}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
@@ -196,8 +148,8 @@ function Node({ node }: { node: NodeHop }) {
         )}
         {!loading && (
           <NodeList
-            nodes={uiNodes}
-            gateways={uiGateways}
+            nodes={nodes}
+            gateways={gateways}
             onSelect={handleSelect}
             onNodeDetails={handleNodeDetails}
             hop={node}
