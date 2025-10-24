@@ -1,0 +1,51 @@
+package net.nymtech.nymvpn.ui.screens.account.welcome
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.android.billingclient.api.BillingClient.BillingResponseCode
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.manager.billing.BillingManager
+import javax.inject.Inject
+
+@HiltViewModel
+class WelcomeAccountViewModel @Inject constructor(
+	private val billingManager: BillingManager,
+) : ViewModel() {
+
+	private val _loading = MutableStateFlow(true)
+	val loading = _loading.asStateFlow()
+
+	private val _activeSubscription = MutableStateFlow(false)
+	val activeSubscription = _activeSubscription.asStateFlow()
+
+	init {
+		viewModelScope.launch {
+			_loading.emit(true)
+			try {
+				if (billingManager.isReady()) {
+					checkSubscription()
+				} else {
+					billingManager.initialize()
+					billingManager.uiState
+						.map { it.billingResult?.responseCode }
+						.filter { it == BillingResponseCode.OK }
+						.first()
+					checkSubscription()
+				}
+			} finally {
+				_loading.emit(false)
+			}
+		}
+	}
+
+	private suspend fun checkSubscription() {
+		val subscribed = billingManager.hasActiveSubscription()
+		_activeSubscription.value = subscribed
+	}
+}

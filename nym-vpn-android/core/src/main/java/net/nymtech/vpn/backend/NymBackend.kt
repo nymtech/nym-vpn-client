@@ -356,6 +356,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return withContext(ioDispatcher) {
 			initialized.await()
 			nym_vpn_lib.createAccount()
+			nym_vpn_lib.updateAccountState()
 		}
 	}
 
@@ -363,6 +364,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return withContext(ioDispatcher) {
 			initialized.await()
 			val response = nym_vpn_lib.registerAccount(RegistrationArgs(token))
+			nym_vpn_lib.updateAccountState()
 			response.accountToken
 		}
 	}

@@ -22,15 +22,21 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -38,10 +44,15 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.screens.account.welcome.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -51,20 +62,50 @@ import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun WelcomeAccountScreen() {
+fun WelcomeAccountScreen(viewModel: WelcomeAccountViewModel = hiltViewModel()) {
+	val context = LocalContext.current
 	val navController = LocalNavController.current
+	val snackbar = SnackbarController.current
+
+	val activeSubscription by viewModel.activeSubscription.collectAsStateWithLifecycle(false)
+	val loading by viewModel.loading.collectAsStateWithLifecycle()
+	var showSubscriptionDialog by remember { mutableStateOf(false) }
+
 	WelcomeAccountScreen(
+		loading = loading,
 		onLogInClick = {
 			navController.navigateAndForget(Route.Login)
 		},
 		onStartClick = {
+			if (!loading) {
+				if (activeSubscription) {
+					showSubscriptionDialog = true
+				} else {
+					navController.replaceCurrentWith(Route.Generating)
+				}
+			}
+		},
+	)
+
+	ExistingSubscriptionModal(
+		showSubscriptionDialog = showSubscriptionDialog,
+		onClickLogin = {
+			showSubscriptionDialog = false
+			navController.navigateAndForget(Route.Login)
+		},
+		onClickCancel = {
+			showSubscriptionDialog = false
+			snackbar.showMessage(context.getString(R.string.account_subscription_info))
 			navController.replaceCurrentWith(Route.Generating)
+		},
+		onDismiss = {
+			showSubscriptionDialog = false
 		},
 	)
 }
 
 @Composable
-fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
+fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onStartClick: () -> Unit) {
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
@@ -193,10 +234,14 @@ fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
 					onStartClick()
 				},
 				content = {
-					Text(
-						stringResource(R.string.account_welcome_button),
-						style = CustomTypography.buttonMain,
-					)
+					if (loading) {
+						SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
+					} else {
+						Text(
+							stringResource(R.string.account_welcome_button),
+							style = CustomTypography.buttonMain,
+						)
+					}
 				},
 				color = MaterialTheme.colorScheme.primary,
 				modifier = Modifier
@@ -235,6 +280,6 @@ fun WelcomeAccountScreen(onLogInClick: () -> Unit, onStartClick: () -> Unit) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewWelcomeAccountScreen() {
 	NymVPNTheme(Theme.default()) {
-		WelcomeAccountScreen(onStartClick = {}, onLogInClick = {})
+		WelcomeAccountScreen(true, onStartClick = {}, onLogInClick = {})
 	}
 }

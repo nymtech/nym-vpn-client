@@ -290,6 +290,10 @@
 	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
 	<string name="account_welcome_button">Start protecting my privacy</string>
 	<string name="account_welcome_have_account">Already have account?</string>
+	<!-- Existing subscription -->
+	<string name="account_subscription_title">Subscription already active</string>
+	<string name="account_subscription_description">It looks like your Google account already has an active subscription. You don’t need to create a new account — just sign in to continue using your subscription.</string>
+	<string name="account_subscription_info">This account won\'t be connected to Google.</string>
 	<!-- Account Generating screen -->
 	<string name="account_generating_creating">Creating your anonymous identity…</string>
 	<string name="account_generating_establishing">Establishing anonymous network credentials</string>

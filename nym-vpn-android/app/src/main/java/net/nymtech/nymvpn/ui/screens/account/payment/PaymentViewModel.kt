@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.Purchase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,41 +36,70 @@ constructor(
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
 	val events: SharedFlow<PaymentUiEvent> = _events.asSharedFlow()
-	private val httpClient = OkHttpClient()
 	private var accountId: String? = null
+	private val processedTokens = mutableSetOf<String>()
+
+	private val httpClient = OkHttpClient()
 
 	init {
+		billingManager.initialize()
 		viewModelScope.launch {
 			billingManager.uiState.collectLatest { state ->
 				if (state.purchases.isNotEmpty()) {
-					Timber.d("uiState purchase ${state.purchases}")
-					runCatching {
-						backendManager.registerAccount(state.purchases.first().purchaseToken)
-						backendManager.refresh()
-						_events.tryEmit(PaymentUiEvent.PaymentSuccess)
-						testApiCall(state.purchases.first().purchaseToken)
-					}.onFailure {
-						Timber.e(it)
+					val pending = state.purchases.any { it.purchaseState == Purchase.PurchaseState.PENDING }
+					if (pending) {
+						_events.tryEmit(PaymentUiEvent.PaymentPending)
+					}
+					val purchased = state.purchases.firstOrNull {
+						it.purchaseState == Purchase.PurchaseState.PURCHASED
+					}
+					purchased?.let { purchase ->
+						val token = purchase.purchaseToken
+						if (processedTokens.add(token)) {
+							viewModelScope.launch {
+								runCatching {
+									backendManager.registerAccount(token)
+									backendManager.refreshAccount()
+									_events.tryEmit(PaymentUiEvent.PaymentSuccess)
+									testApiCall(token)
+								}.onFailure { e ->
+									_events.tryEmit(PaymentUiEvent.PaymentError(e.message ?: "Register account failed"))
+								}
+							}
+						} else {
+							Timber.d("Purchase token handled: $token")
+						}
 					}
 				}
-				when (state.billingResult?.responseCode) {
-					BillingClient.BillingResponseCode.OK -> {
-						Timber.d("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
-					}
-					BillingClient.BillingResponseCode.ERROR, BillingClient.BillingResponseCode.NETWORK_ERROR, BillingClient.BillingResponseCode.DEVELOPER_ERROR -> {
-						Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
-						_events.tryEmit(PaymentUiEvent.PaymentError(state.billingResult.debugMessage))
-					}
-					BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
-						Timber.d("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
-						_events.tryEmit(PaymentUiEvent.SubscriptionOwned)
-					}
-					BillingClient.BillingResponseCode.USER_CANCELED -> {
-						Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
-						_events.tryEmit(PaymentUiEvent.UserCanceled)
-					}
-					else -> {
-						Timber.e("Response code: ${state.billingResult?.responseCode}, message: ${state.billingResult?.debugMessage}")
+				state.billingResult?.let { br ->
+					when (br.responseCode) {
+						BillingClient.BillingResponseCode.OK -> {
+							Timber.d("Billing OK: code=${br.responseCode}, msg=${br.debugMessage}")
+						}
+						BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+							Timber.d("Item already owned: ${br.debugMessage}")
+							_events.tryEmit(PaymentUiEvent.SubscriptionOwned)
+						}
+						BillingClient.BillingResponseCode.USER_CANCELED -> {
+							Timber.w("User canceled: ${br.debugMessage}")
+							_events.tryEmit(PaymentUiEvent.UserCanceled)
+						}
+						BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> {
+							Timber.w("Billing service disconnected: ${br.debugMessage}")
+						}
+						BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE,
+						BillingClient.BillingResponseCode.BILLING_UNAVAILABLE,
+						BillingClient.BillingResponseCode.ERROR,
+						BillingClient.BillingResponseCode.NETWORK_ERROR,
+						BillingClient.BillingResponseCode.DEVELOPER_ERROR,
+						BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED,
+						-> {
+							Timber.e("Billing error ${br.responseCode}: ${br.debugMessage}")
+							_events.tryEmit(PaymentUiEvent.PaymentError(br.debugMessage))
+						}
+						else -> {
+							Timber.w("Unhandled billing code ${br.responseCode}: ${br.debugMessage}")
+						}
 					}
 				}
 			}
@@ -79,12 +109,15 @@ constructor(
 	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?) {
 		accountId = userId
 		viewModelScope.launch {
-			userId?.let {
-				billingManager.launchPurchaseFlow(activity, productId, userId)
+			if (!accountId.isNullOrBlank()) {
+				billingManager.launchPurchaseFlow(activity, productId, accountId!!)
+			} else {
+				_events.tryEmit(PaymentUiEvent.PaymentError("Missing user id"))
 			}
 		}
 	}
 
+	// Only for testing
 	private fun testApiCall(purchaseId: String) {
 		viewModelScope.launch {
 			try {

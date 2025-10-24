@@ -94,10 +94,10 @@ android {
 			isMinifyEnabled = false
 			isShrinkResources = false
 			isDebuggable = true
-			applicationIdSuffix = ".debug"
+			applicationIdSuffix = ""
 			versionNameSuffix = "-debug"
 			resValue("string", "app_name", "NymVPN - Debug")
-			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
 		}
 
 		create(Constants.PRERELEASE) {

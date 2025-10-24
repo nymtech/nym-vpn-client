@@ -78,12 +78,18 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 				is PaymentUiEvent.PaymentSuccess -> {
 					if (animationEnded && !navigated) {
 						navigated = true
-						navController.navigateAndForget(Route.Main())
+						navController.replaceCurrentWith(Route.Main())
 					}
 				}
 				is PaymentUiEvent.SubscriptionOwned -> {
 					navigated = true
-					navController.navigateAndForget(Route.Main())
+					navController.replaceCurrentWith(Route.Main())
+				}
+				PaymentUiEvent.PaymentPending -> {
+					if (animationEnded && !navigated) {
+						navigated = true
+						navController.replaceCurrentWith(Route.Main())
+					}
 				}
 			}
 		}
@@ -92,7 +98,7 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 	PaymentScreen(
 		onAnimationEnd = {
 			animationEnded = true
-			if (latestEvent == PaymentUiEvent.PaymentSuccess && !navigated) {
+			if ((latestEvent == PaymentUiEvent.PaymentSuccess || latestEvent == PaymentUiEvent.PaymentPending) && !navigated) {
 				navigated = true
 				navController.navigateAndForget(Route.Main())
 			}

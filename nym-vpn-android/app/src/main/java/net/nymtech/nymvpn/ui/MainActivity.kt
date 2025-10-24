@@ -42,6 +42,7 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -91,6 +92,9 @@ class MainActivity : AppCompatActivity() {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var billingManager: BillingManager
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val appViewModel by viewModels<AppViewModel>()
@@ -294,6 +298,13 @@ class MainActivity : AppCompatActivity() {
 					}
 				}
 			}
+		}
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		if (isFinishing) {
+			billingManager.endConnection()
 		}
 	}
 }

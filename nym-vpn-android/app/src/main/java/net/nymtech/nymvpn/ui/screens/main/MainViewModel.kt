@@ -45,7 +45,7 @@ constructor(
 
 	fun onDisconnect() = viewModelScope.launch {
 		backendManager.stopTunnel()
-		stopConnectionTimer() // stop on manual disconnect
+		stopConnectionTimer()
 	}
 
 	fun onBatteryOptSkipped() = viewModelScope.launch {

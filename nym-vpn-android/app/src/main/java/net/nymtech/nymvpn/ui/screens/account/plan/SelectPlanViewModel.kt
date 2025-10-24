@@ -20,8 +20,8 @@ class SelectPlanViewModel @Inject constructor(
 	val subscriptions: StateFlow<List<ProductData>> = _subscriptions
 
 	init {
-		billingManager.initialize()
 		viewModelScope.launch {
+			billingManager.initialize()
 			billingManager.products.collectLatest { productList ->
 				_subscriptions.value = productList.map { ProductData.from(it) }.toList()
 			}
@@ -34,10 +34,5 @@ class SelectPlanViewModel @Inject constructor(
 
 	fun fetchSubscriptions() {
 		billingManager.fetchSubscriptions()
-	}
-
-	override fun onCleared() {
-		super.onCleared()
-		billingManager.endConnection()
 	}
 }
