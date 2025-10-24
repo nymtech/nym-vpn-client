@@ -309,7 +309,7 @@ impl ConnectingState {
                 );
             }
 
-            // Tell the Discovery Resolver about the resolver overrides and resume it
+            // Tell the Discovery Refresher about the resolver overrides and resume it
             shared_state
                 .discovery_refresher_command_tx
                 .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
