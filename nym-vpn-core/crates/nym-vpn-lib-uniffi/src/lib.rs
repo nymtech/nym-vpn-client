@@ -283,7 +283,7 @@ pub fn createAccount() -> Result<(), VpnError> {
 /// Register the stored account.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn registerAccount(args: RegistrationArgs) -> Result<RegisterAccountResponse, VpnError> {
+pub fn registerAccount(args: AccountRegistrationArgs) -> Result<RegisterAccountResponse, VpnError> {
     RUNTIME.block_on(account::register_account(args))
 }
 
@@ -541,15 +541,15 @@ pub struct NymVpnLibConfig {
 }
 
 #[derive(uniffi::Record)]
-pub struct RegistrationArgs {
+pub struct AccountRegistrationArgs {
     #[cfg(target_os = "android")]
     pub purchase_token: String,
 }
 
-impl TryFrom<RegistrationArgs> for nym_vpn_api_client::types::Platform {
+impl TryFrom<AccountRegistrationArgs> for nym_vpn_api_client::types::Platform {
     type Error = VpnError;
 
-    fn try_from(_value: RegistrationArgs) -> Result<Self, Self::Error> {
+    fn try_from(_value: AccountRegistrationArgs) -> Result<Self, Self::Error> {
         #[cfg(target_os = "ios")]
         return Ok(nym_vpn_api_client::types::Platform::Apple);
         #[cfg(target_os = "android")]

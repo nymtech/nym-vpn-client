@@ -205,7 +205,7 @@ pub(super) async fn create_account() -> Result<(), VpnError> {
 }
 
 pub(super) async fn register_account(
-    args: crate::RegistrationArgs,
+    args: crate::AccountRegistrationArgs,
 ) -> Result<RegisterAccountResponse, VpnError> {
     let mnemonic = get_command_sender()
         .await?
@@ -451,7 +451,7 @@ pub(crate) mod raw {
     ) -> Result<NymVpnRegisterAccountResponse, VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
         vpn_api_client
-            .post_account(account, platform)
+            .register_account(account, platform)
             .await
             .map_err(|err| VpnError::FailedAccountRegistration {
                 details: err.display_chain(),

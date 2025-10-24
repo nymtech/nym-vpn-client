@@ -164,6 +164,12 @@ impl Gateway {
         })
     }
 
+    pub fn is_quic_enabled(&self) -> bool {
+        self.get_bridge_params()
+            .map(|bp| matches!(bp, BridgeParameters::QuicPlain(_)))
+            .unwrap_or(false)
+    }
+
     pub fn is_exit_node(&self) -> bool {
         self.ipr_address.is_some()
     }
@@ -219,6 +225,7 @@ impl Gateway {
             GatewayFilter::Country(code) => self.is_in_country(code),
             GatewayFilter::Region(region) => self.is_in_region(region),
             GatewayFilter::Residential => self.is_residential_asn(),
+            GatewayFilter::QuicEnabled => self.is_quic_enabled(),
             GatewayFilter::Exit => self.is_exit_node(),
             GatewayFilter::Vpn => self.is_vpn_node(),
         }
@@ -363,6 +370,7 @@ pub struct WgProbeResults {
     pub can_register: bool,
     pub can_handshake: bool,
     pub can_resolve_dns: bool,
+    pub can_query_metadata_v4: bool,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
 }
@@ -468,6 +476,7 @@ impl From<nym_vpn_api_client::response::WgProbeResults> for WgProbeResults {
             can_register: results.can_register,
             can_handshake: results.can_handshake,
             can_resolve_dns: results.can_resolve_dns,
+            can_query_metadata_v4: results.can_query_metadata_v4,
             ping_hosts_performance: results.ping_hosts_performance,
             ping_ips_performance: results.ping_ips_performance,
         }
@@ -690,6 +699,7 @@ pub enum GatewayFilter {
     Country(String),      // Two-letter ISO country code
     Region(String),       // Region name
     Residential,          // Has a residential ASN
+    QuicEnabled,          // Has QUIC enabled
     Exit,                 // Has an IPR address
     Vpn,                  // Has an authenticator address
 }
@@ -702,6 +712,8 @@ pub struct GatewayFilters {
 
 #[cfg(test)]
 mod tests {
+    use nym_vpn_api_client::response::QuicClientOptions;
+
     use super::*;
 
     #[test]
@@ -846,6 +858,39 @@ mod tests {
             .build();
 
         assert!(!gateway.matches_filter(None, &GatewayFilter::Residential));
+    }
+
+    #[test]
+    fn test_matching_quic_enabled() {
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .bridge_params(Some(BridgeInformation {
+                version: String::from("1"),
+                transports: vec![BridgeParameters::QuicPlain(QuicClientOptions {
+                    addresses: vec!["1.2.3.4:5".parse().unwrap()],
+                    host: Some(String::from("test.host")),
+                    id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
+                })],
+            }))
+            .build();
+
+        assert!(gateway.matches_filter(None, &GatewayFilter::QuicEnabled));
+
+        let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .bridge_params(Some(BridgeInformation {
+                version: String::from("1"),
+                transports: vec![],
+            }))
+            .build();
+
+        assert!(!gateway.matches_filter(None, &GatewayFilter::QuicEnabled));
     }
 
     #[test]

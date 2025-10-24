@@ -444,6 +444,7 @@ pub enum GatewayFilter {
     Country(String),
     Region(String),
     Residential,
+    QuicEnabled,
     Exit,
     Vpn,
 }
@@ -460,6 +461,7 @@ impl From<GatewayFilter> for nym_gateway_directory::GatewayFilter {
             }
             GatewayFilter::Region(region) => nym_gateway_directory::GatewayFilter::Region(region),
             GatewayFilter::Residential => nym_gateway_directory::GatewayFilter::Residential,
+            GatewayFilter::QuicEnabled => nym_gateway_directory::GatewayFilter::QuicEnabled,
             GatewayFilter::Exit => nym_gateway_directory::GatewayFilter::Exit,
             GatewayFilter::Vpn => nym_gateway_directory::GatewayFilter::Vpn,
         }

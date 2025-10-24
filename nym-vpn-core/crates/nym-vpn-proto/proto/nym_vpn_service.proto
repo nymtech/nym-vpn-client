@@ -654,6 +654,7 @@ message GatewayFilter {
     string country = 2;
     string region = 3;
     google.protobuf.Empty residential = 4;
+    google.protobuf.Empty quic_enabled = 7;
     google.protobuf.Empty exit = 5;
     google.protobuf.Empty vpn = 6;
   }
