@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
+import { useDebouncedCallback as useDebounce } from 'use-debounce';
 import {
   SelectedUiNode,
   UiGateway,
   UiGatewaysByCountry,
+  UiRegion,
   useDialog,
   useMainDispatch,
   useMainState,
@@ -32,7 +34,6 @@ function Node({ node }: { node: NodeHop }) {
 
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
-  const [search, setSearch] = useState('');
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
 
@@ -43,15 +44,31 @@ function Node({ node }: { node: NodeHop }) {
   useEffect(() => {
     setUiNodes(nodes);
     setUiGateways([]);
-    setSearch('');
   }, [nodes, gateways]);
 
   const filter = (value: string) => {
     if (value.length > 0) {
-      const filteredNodes = nodes.filter((node) => {
+      let usRegions: UiRegion[] = [];
+      const filteredNodes = structuredClone(nodes).filter((node) => {
+        if (node.country.code.toLowerCase() === 'us') {
+          usRegions = node.regions.filter((region) => {
+            return region.name.toLowerCase().includes(value.toLowerCase());
+          });
+          if (usRegions.length > 0) {
+            return true;
+          }
+        }
         // toLowerCase() is used to make it case-insensitive
         return node.i18n.toLowerCase().includes(value.toLowerCase());
       });
+      if (usRegions.length > 0) {
+        const index = filteredNodes.findIndex(
+          (n) => n.country.code.toLowerCase() === 'us',
+        );
+        if (index !== -1) {
+          filteredNodes[index].regions = usRegions;
+        }
+      }
       const filteredGw = gateways.filter((gw) => {
         return gw.name.toLowerCase().includes(value.toLowerCase());
       });
@@ -61,8 +78,11 @@ function Node({ node }: { node: NodeHop }) {
       setUiNodes(nodes);
       setUiGateways([]);
     }
-    setSearch(value);
   };
+
+  const debounceFilter = useDebounce((value: string) => {
+    filter(value);
+  }, 200);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -155,8 +175,8 @@ function Node({ node }: { node: NodeHop }) {
             </p>
           )}
           <TextInput
-            value={search}
-            onChange={filter}
+            defaultValue=""
+            onChange={debounceFilter}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
