@@ -134,6 +134,12 @@ impl ConnectingState {
             firewall_policy_params
         };
 
+        // Tell the Account Controller that the firewall is blocking it.
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_up()
+            .await;
+
         let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
             let wait_delay = wait_delay(retry_attempt);
@@ -277,9 +283,10 @@ impl ConnectingState {
             }
         }
 
+        // Tell the Account Controller that the firewall is no longer blocking it.
         if let Err(err) = shared_state
             .account_command_tx
-            .set_vpn_api_firewall_up()
+            .set_vpn_api_firewall_down()
             .await
         {
             trace_err_chain!(err, "Failed to set VPN API firewall up");
