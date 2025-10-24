@@ -41,7 +41,7 @@ impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
         min_mixnode_performance: 0,
         min_gateway_performance: 0,
-        use_extended_topology: true,
+        use_extended_topology: false,
         ignore_egress_epoch_role: true,
     };
 
