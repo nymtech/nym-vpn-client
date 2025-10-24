@@ -2,36 +2,29 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{collections::HashMap, env, fmt::Display};
+
 use sha2::{Digest, Sha256};
-use std::{env, fmt::Display};
 use sysinfo::System;
 
-#[cfg(target_os = "linux")]
-#[path = "linux.rs"]
-mod imp;
-
-#[cfg(any(target_os = "macos", target_os = "ios"))]
-#[path = "apple.rs"]
-mod imp;
-
-#[cfg(windows)]
-#[path = "windows.rs"]
-mod imp;
+#[cfg(any(target_os = "android", target_os = "linux"))]
+mod command;
 
 #[cfg(target_os = "android")]
-#[path = "android.rs"]
-mod imp;
+mod android;
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
-pub use imp::AppleVersion;
-#[cfg(windows)]
-pub use imp::WindowsVersion;
-pub use imp::{extra_metadata, short_version, version};
+mod apple;
+
+#[cfg(target_os = "linux")]
+mod linux;
+
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub use apple::AppleVersion;
 
 #[derive(Debug, Clone)]
 pub struct SysInfo {
     pub os_version: String,
-    pub kernel_version: String,
     pub arch: String,
     pub extra: Vec<String>,
 }
@@ -39,15 +32,14 @@ pub struct SysInfo {
 impl SysInfo {
     pub fn new() -> Self {
         let os_version = System::long_os_version().unwrap_or_else(|| env::consts::OS.into());
-        let kernel_version = System::kernel_version().unwrap_or_else(|| "unknown".to_string());
         let arch = std::env::consts::ARCH.to_string();
-        let extra_metadata = extra_metadata()
+        let extra_metadata = Self::extra_metadata()
+            .into_iter()
             .map(|(k, v)| format!("{k}: {v}"))
             .collect::<Vec<_>>();
 
         SysInfo {
             os_version,
-            kernel_version,
             arch,
             extra: extra_metadata,
         }
@@ -69,11 +61,28 @@ impl SysInfo {
         let hash = Sha256::digest(os_name.as_bytes());
         format!("{hash:x}")
     }
+
+    fn extra_metadata() -> HashMap<String, String> {
+        #[cfg(target_os = "android")]
+        {
+            android::extra_metadata()
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            linux::extra_metadata()
+        }
+
+        #[cfg(not(any(target_os = "android", target_os = "linux")))]
+        {
+            HashMap::new()
+        }
+    }
 }
 
 impl Display for SysInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "os_version: {}, arch: {}", self.os_version, self.arch)?;
+        write!(f, "{} ({})", self.os_version, self.arch)?;
         if !self.extra.is_empty() {
             write!(f, ", {}", self.extra.join(", "))?;
         }

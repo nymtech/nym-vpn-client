@@ -11,26 +11,6 @@ use std::{
 
 use objc2_foundation::NSProcessInfo;
 
-#[cfg(target_os = "macos")]
-static OS_NAME: &str = "macOS";
-
-#[cfg(target_os = "ios")]
-static OS_NAME: &str = "iOS";
-
-pub fn version() -> String {
-    let version = AppleVersion::current().version();
-    format!("{OS_NAME} {version}")
-}
-
-pub fn short_version() -> String {
-    let version = AppleVersion::current().short_version();
-    format!("{OS_NAME} {version}")
-}
-
-pub fn extra_metadata() -> impl Iterator<Item = (String, String)> {
-    std::iter::empty()
-}
-
 #[derive(Debug, Clone)]
 pub struct AppleVersion {
     raw_version: String,

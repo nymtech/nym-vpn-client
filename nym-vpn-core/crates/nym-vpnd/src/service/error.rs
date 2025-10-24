@@ -4,7 +4,6 @@
 use nym_http_api_client::HttpClientError;
 use nym_vpn_lib::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
 use nym_vpn_lib_types::GatewayType;
-use tracing::error;
 
 use super::config::ConfigSetupError;
 
