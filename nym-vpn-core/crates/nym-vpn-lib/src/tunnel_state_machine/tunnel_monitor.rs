@@ -70,15 +70,14 @@ use super::tunnel::wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOp
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-#[cfg(not(target_os = "linux"))]
-use crate::tunnel_state_machine::tunnel::transports::TransportError;
 use crate::{
     VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
-            mixnet, transports,
+            mixnet,
+            transports::{self, TransportError},
             wireguard::{
                 self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
             },
