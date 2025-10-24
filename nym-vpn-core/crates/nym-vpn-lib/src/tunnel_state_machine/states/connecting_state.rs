@@ -79,7 +79,7 @@ impl ConnectingState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // This prevents hickory resolver from getting confused when system DNS points to 
+        // This prevents hickory resolver from getting confused when system DNS points to
         // local forwarder but it expects responses from upstream DNS servers.
         #[cfg(target_os = "macos")]
         if retry_attempt > FAST_RETRY_ATTEMPTS {
