@@ -3,13 +3,13 @@ package net.nymtech.vpn.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nym_vpn_lib_types.AsnKind
-import nym_vpn_lib_types.BridgeInformation as SdkBridgeInformation
-import nym_vpn_lib_types.BridgeParameters as SdkBridgeParameter
 import nym_vpn_lib_types.Gateway
 import nym_vpn_lib_types.Ipv4Addr
 import nym_vpn_lib_types.Ipv6Addr
 import nym_vpn_lib_types.NodeIdentity
 import nym_vpn_lib_types.Score
+import nym_vpn_lib_types.BridgeInformation as SdkBridgeInformation
+import nym_vpn_lib_types.BridgeParameters as SdkBridgeParameter
 
 @Serializable
 data class NymGateway(

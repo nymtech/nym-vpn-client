@@ -95,20 +95,7 @@ impl Discovery {
             .map_err(|source| Error::GetFileStaleness { path, source })
     }
 
-    pub async fn fetch(network_name: &str) -> Result<Self> {
-        // allow panic because a broken bootstrap url means everything will fail anyways.
-        let api_urls = Self::default_vpn_api_urls();
-
-        let urls = api_urls_to_urls(api_urls).map_err(Error::CreateVpnApiClient)?;
-
-        let resolver_overrides = ResolverOverrides::from_urls(&urls)
-            .await
-            .map_err(Error::CreateVpnApiClient)?;
-
-        let client = VpnApiClient::new(urls, empty_user_agent(), Some(&resolver_overrides))
-            .await
-            .map_err(Error::CreateVpnApiClient)?;
-
+    pub async fn fetch(client: &VpnApiClient, network_name: &str) -> Result<Self> {
         tracing::debug!("Fetching nym network discovery");
         let discovery = client
             .get_wellknown_discovery(network_name)
@@ -151,7 +138,9 @@ impl Discovery {
                     trace_err_chain!(e, "Failed to read discovery file");
                 }
 
-                let discovery = Self::fetch(network_name).await.or_else(|e| {
+                let client = Self::create_client(None).await?;
+
+                let discovery = Self::fetch(&client, network_name).await.or_else(|e| {
                     match Self::default_discovery(network_name) {
                         Some(default_discovery) => {
                             tracing::warn!(
@@ -257,6 +246,17 @@ impl Discovery {
                 .collect()
         }
     }
+
+    pub async fn create_client(
+        resolver_overrides: Option<&ResolverOverrides>,
+    ) -> Result<VpnApiClient> {
+        let urls =
+            api_urls_to_urls(Self::default_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
+
+        VpnApiClient::new(urls, empty_user_agent(), resolver_overrides)
+            .await
+            .map_err(Error::CreateVpnApiClient)
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -330,7 +330,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
     }
 }
 
-fn empty_user_agent() -> UserAgent {
+pub fn empty_user_agent() -> UserAgent {
     UserAgent {
         application: String::new(),
         version: String::new(),
@@ -384,7 +384,8 @@ mod tests {
     #[tokio::test]
     async fn test_discovery_fetch() {
         let network_name = "mainnet";
-        let discovery = Discovery::fetch(network_name).await.unwrap();
+        let client = Discovery::create_client(None).await.unwrap();
+        let discovery = Discovery::fetch(&client, network_name).await.unwrap();
         assert_eq!(discovery.network_name, network_name);
     }
 
@@ -411,7 +412,10 @@ mod tests {
     }
 
     async fn test_discovery_equality(discovery: Discovery) {
-        let fetched = Discovery::fetch(&discovery.network_name).await.unwrap();
+        let client = Discovery::create_client(None).await.unwrap();
+        let fetched = Discovery::fetch(&client, &discovery.network_name)
+            .await
+            .unwrap();
 
         // Only compare the base fields
         assert_eq!(discovery.network_name, fetched.network_name);

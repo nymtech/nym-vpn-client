@@ -45,7 +45,7 @@ export type ConnectingProgress =
   | 'awaiting-account-readiness'
   | 'refreshing-gateways'
   | 'selecting-gateways'
-  | 'connecting-mixnet-client'
+  | 'registering-with-gateways'
   | 'connecting-tunnel';
 
 export type ConnectingState = {
@@ -204,7 +204,7 @@ export type OsInfo = {
    * long version
    */
   version: string;
-  kernel: string | null;
+  kernel: string;
   arch: string;
   displayServer: DisplayServer;
   gpu: GpuType;

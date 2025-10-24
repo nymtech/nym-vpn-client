@@ -1,9 +1,10 @@
 package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.model.StateMessage.*
+import net.nymtech.nymvpn.ui.model.StateMessage.Status
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.nymvpn.util.StringValue.*
+import net.nymtech.nymvpn.util.StringValue.Empty
+import net.nymtech.nymvpn.util.StringValue.StringResource
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EstablishConnectionState
 
@@ -63,7 +64,7 @@ sealed class ConnectionState(val status: StringValue) {
 							EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> R.string.connection_state_awaiting_readiness
 							EstablishConnectionState.REFRESHING_GATEWAYS -> R.string.connection_state_refreshing_gateways
 							EstablishConnectionState.SELECTING_GATEWAYS -> R.string.connection_state_selecting_gateways
-							EstablishConnectionState.CONNECTING_MIXNET_CLIENT -> R.string.connection_state_connecting_mixnet_client
+							EstablishConnectionState.REGISTERING_WITH_GATEWAYS -> R.string.connection_state_connecting_mixnet_client
 							EstablishConnectionState.CONNECTING_TUNNEL -> R.string.connection_state_connecting_tunnel
 						}
 					} ?: R.string.establishing_connection

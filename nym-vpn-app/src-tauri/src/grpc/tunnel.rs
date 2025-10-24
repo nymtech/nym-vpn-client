@@ -82,7 +82,7 @@ pub enum ConnectingProgress {
     AwaitingAccountReadiness,
     RefreshingGateways,
     SelectingGateways,
-    ConnectingMixnetClient,
+    RegisteringWithGateways,
     ConnectingTunnel,
 }
 
@@ -343,8 +343,8 @@ impl From<p::EstablishConnectionState> for ConnectingProgress {
                 ConnectingProgress::RefreshingGateways
             }
             p::EstablishConnectionState::SelectingGateways => ConnectingProgress::SelectingGateways,
-            p::EstablishConnectionState::ConnectingMixnetClient => {
-                ConnectingProgress::ConnectingMixnetClient
+            p::EstablishConnectionState::RegisteringWithGateways => {
+                ConnectingProgress::RegisteringWithGateways
             }
             p::EstablishConnectionState::ConnectingTunnel => ConnectingProgress::ConnectingTunnel,
         }

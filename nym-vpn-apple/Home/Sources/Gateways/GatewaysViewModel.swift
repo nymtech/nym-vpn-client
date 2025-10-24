@@ -1,16 +1,22 @@
+import Combine
 import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManagerTypes
+import FeatureFlagsManager
 import GatewayManager
 import UIComponents
 
 @MainActor public class GatewaysViewModel: ObservableObject {
+    private var cancellables = Set<AnyCancellable>()
+
     let gatewayManager: GatewayManager
     let type: HopType
     let minimumSearchSymbols = 2
 
+    @ObservedObject var appSettings: AppSettings
     @ObservedObject var connectionManager: ConnectionManager
+    @ObservedObject var featureFlagsManager: FeatureFlagsManager
     @Binding var path: NavigationPath
     @Published var isGeolocationModalDisplayed = false
     @Published var gateways = [GatewayNode]()
@@ -19,22 +25,34 @@ import UIComponents
     @Published var foundUSRegions = [String]()
     @Published var foundGateways = [GatewayNode]()
     @Published var scrollToModel: GatewayScrollToModel
+    @Published var shouldScroll = false
     @Published var searchText: String = "" {
         didSet {
             searchCountriesGateways()
         }
     }
 
+    var shouldShowQuic: Bool {
+        featureFlagsManager.isQuicEnabled
+        && type == .entry
+        && connectionManager.connectionType == .wireguard
+        && appSettings.isQuicEnabled
+    }
+
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
+        appSettings: AppSettings,
         connectionManager: ConnectionManager,
-        gatewayManager: GatewayManager
+        gatewayManager: GatewayManager,
+        featureFlagsManager: FeatureFlagsManager
     ) {
         _path = path
         self.type = type
+        self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.gatewayManager = gatewayManager
+        self.featureFlagsManager = featureFlagsManager
 
         switch type {
         case .entry:
@@ -58,6 +76,16 @@ extension GatewaysViewModel {
 private extension GatewaysViewModel {
     func setup() {
         updateGateways()
+        setupQuicToggleObserver()
+    }
+
+    func setupQuicToggleObserver() {
+        appSettings.$isQuicEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.updateGateways()
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -88,7 +116,11 @@ private extension GatewaysViewModel {
                     gateways = gatewayManager.exit
                 }
             case .wireguard:
-                gateways = gatewayManager.vpn
+                if shouldShowQuic {
+                    gateways = gatewayManager.vpn.filter { $0.isQuicAvailable }
+                } else {
+                    gateways = gatewayManager.vpn
+                }
             }
             let result = Array(Set(gateways.map { $0.location?.twoLetterIsoCountryCode }))
                 .compactMap { self.gatewayManager.localizedCountry(with: $0) }
@@ -102,6 +134,7 @@ private extension GatewaysViewModel {
                 }
             await MainActor.run {
                 self.countries = result
+                self.shouldScroll = true
             }
         }
     }

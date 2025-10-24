@@ -29,7 +29,9 @@ pub async fn fronted_http_client_builder(
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
 
-    let mut builder = ClientBuilder::new_with_urls(urls);
+    let mut builder = ClientBuilder::new_with_urls(urls)
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
     if let Some(user_agent) = user_agent {
         builder = builder.with_user_agent(user_agent.clone());

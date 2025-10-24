@@ -71,21 +71,28 @@ import CountriesManagerTypes
     public var isQuicEnabled = false {
         didSet { isQuicEnabledPublisher = isQuicEnabled }
     }
+    @AppStorage(AppSettingKey.shouldReconnect.rawValue)
+    public var shouldReconnect = false {
+        didSet { shouldReconnectPublisher = shouldReconnect }
+    }
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
     @Published public var isCredentialImportedPublisher: Bool
     @Published public var isQuicEnabledPublisher: Bool
+    @Published public var shouldReconnectPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
         self.isErrorReportingOnPublisher = false
         self.isCredentialImportedPublisher = false
         self.isQuicEnabledPublisher = false
+        self.shouldReconnectPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
+        self.shouldReconnect = self.shouldReconnect
     }
 }
 
@@ -121,4 +128,5 @@ public enum AppSettingKey: String {
     case statistics
     case statisticsConnectionCount
     case quic
+    case shouldReconnect
 }

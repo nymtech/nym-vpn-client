@@ -212,6 +212,22 @@ import GRPCManager
             return nil
         }
     }
+
+    public func containsQuic(with gateway: EntryGateway) -> Bool {
+        switch gateway {
+        case let .country(countryCode), let .lowLatencyCountry(countryCode):
+            return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.isQuicAvailable }
+        case let .region(countryCode, region):
+            return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region }
+        case .city:
+            print("TODO: city")
+            return false
+        case let .gateway(identifier):
+            return vpn.contains { $0.id == identifier && $0.isQuicAvailable }
+        case .random:
+            return false
+        }
+    }
 }
 
 // MARK: Updating countries

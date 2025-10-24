@@ -4,11 +4,9 @@
 use std::{result::Result, time::Duration};
 
 use bytes::{Bytes, BytesMut};
-use futures::{FutureExt, StreamExt, channel::mpsc, future::Fuse, pin_mut};
-use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{
-    IpPair,
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
 };
@@ -25,23 +23,11 @@ use super::{MixnetError, backpressure::MixnetBackpressureMonitor};
 /// How much time to wait for ipr disconnect before proceeding to shutdown.
 const IPR_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// How much time to wait for the mixnet listener to finish
+const MIXNET_LISTENER_TIMEOUT: Duration = Duration::from_secs(5);
+
 /// Interval between attempts to send ipr disconnect
 const IPR_DISCONNECT_RETRY_DELAY: Duration = Duration::from_millis(500);
-
-#[derive(Debug)]
-pub struct MixnetProcessorConfig {
-    pub ip_packet_router_address: IpPacketRouterAddress,
-    pub our_ips: IpPair,
-}
-
-impl MixnetProcessorConfig {
-    pub fn new(ip_packet_router_address: IpPacketRouterAddress, our_ips: IpPair) -> Self {
-        MixnetProcessorConfig {
-            ip_packet_router_address,
-            our_ips,
-        }
-    }
-}
 
 struct MessageCreator {
     recipient: Recipient,
@@ -72,18 +58,8 @@ struct MixnetProcessor {
     // The mixnet client for sending and receiving messages from the mixnet
     mixnet_client: MixnetClient,
 
-    // The connection monitor for sending connection events
-    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-
     // The address of the IP packet router we're sending messages to
     ip_packet_router_address: IpPacketRouterAddress,
-
-    // Our IP addresses
-    our_ips: IpPair,
-
-    // Identifier for ICMP beacon, so we can check incoming ICMP packets to see if we should
-    // forward them to the connection monitor
-    icmp_beacon_identifier: u16,
 
     // Listen for when we should disconnect from the IPR and being shutting down
     cancel_token: CancellationToken,
@@ -93,25 +69,22 @@ struct MixnetProcessor {
 }
 
 impl MixnetProcessor {
-    fn new(
+    pub fn spawn(
         device: AsyncDevice,
         mixnet_client: MixnetClient,
-        connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
-        our_ips: IpPair,
         cancel_token: CancellationToken,
         event_rx: EventReceiver,
-    ) -> Self {
-        MixnetProcessor {
+    ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
+        let processor = MixnetProcessor {
             device,
             mixnet_client,
-            connection_event_tx: connection_monitor.event_sender(),
             ip_packet_router_address,
-            our_ips,
-            icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             cancel_token,
             event_rx,
-        }
+        };
+
+        tokio::spawn(processor.run())
     }
 
     async fn run(self) -> Result<AsyncDevice, MixnetError> {
@@ -141,15 +114,13 @@ impl MixnetProcessor {
         let mut mixnet_listener_handle = super::mixnet_listener::MixnetListener::spawn(
             self.mixnet_client,
             tun_device_sink,
-            self.icmp_beacon_identifier,
-            self.our_ips,
-            self.connection_event_tx.clone(),
             mixnet_listener_cancel_token.clone(),
             self.event_rx,
         );
 
         // Keeps track of whether ipr disconnect timeout has been activated.
-        let mut is_disconnect_timeout_active = false;
+        let mut is_disconnect_timeout_set = false;
+        let mut started_sleep_timeout = false;
 
         // Ipr disconnect timeout future set upon cancellation
         let ipr_disconnect_timeout = Fuse::terminated();
@@ -192,10 +163,10 @@ impl MixnetProcessor {
                 // make sure we've fully disconnected before we return.
                 _ = self.cancel_token.cancelled() => {
                     // Start disconnect timeout upon receiving cancellation in the very first time.
-                    if is_disconnect_timeout_active {
+                    if is_disconnect_timeout_set {
                         tracing::debug!("Re-sending disconnect message");
                     } else {
-                        is_disconnect_timeout_active = true;
+                        is_disconnect_timeout_set = true;
                         ipr_disconnect_timeout.set(tokio::time::sleep(IPR_DISCONNECT_TIMEOUT).fuse());
                         tracing::debug!("Cancel token triggered, sending disconnect message");
                     }
@@ -205,12 +176,14 @@ impl MixnetProcessor {
                         Err(err) => {
                             tracing::error!("Failed to create disconnect message: {err}");
                             tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
+                            started_sleep_timeout = true;
                             continue;
                         }
                     };
                     if let Err(err) = mixnet_sender.send(input_message).await {
                         tracing::error!("Failed to send disconnect message: {err}");
                         tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
+                        started_sleep_timeout = true;
                         continue;
                     }
 
@@ -291,13 +264,20 @@ impl MixnetProcessor {
 
         tracing::info!("Waiting for mixnet listener to finish");
 
+        // if loop terminates for some other reason without sending disconnect OR
+        // we already started waiting some time, we force shutdown so we don't wait even more
+        if !is_disconnect_timeout_set || started_sleep_timeout {
+            mixnet_listener_cancel_token.cancel();
+        }
+
         // Wait for the mixnet listener to finish, or force finish
         let mix_listener_result = tokio::select! {
             biased;
             tun_device = &mut mixnet_listener_handle => {
                 tun_device
             },
-            _ = ipr_disconnect_timeout => {
+            // backup timeout, just in case cancel didn't somehow get properly sent
+            _ = tokio::time::sleep(MIXNET_LISTENER_TIMEOUT) => {
                     tracing::warn!("Timed out waiting for mixnet listener to finish");
                     mixnet_listener_cancel_token.cancel();
                     mixnet_listener_handle.await
@@ -380,27 +360,18 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
 }
 
 pub async fn start_processor(
-    config: MixnetProcessorConfig,
+    ip_packet_router_address: IpPacketRouterAddress,
     dev: AsyncDevice,
     mixnet_client: MixnetClient,
-    connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
     event_rx: EventReceiver,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     tracing::info!("Creating mixnet processor");
-    let processor = MixnetProcessor::new(
+    MixnetProcessor::spawn(
         dev,
         mixnet_client,
-        connection_monitor,
-        config.ip_packet_router_address,
-        config.our_ips,
+        ip_packet_router_address,
         cancel_token,
         event_rx,
-    );
-
-    tokio::spawn(async move {
-        processor.run().await.inspect_err(|err| {
-            tracing::error!("Mixnet processor error: {err}");
-        })
-    })
+    )
 }

@@ -374,7 +374,7 @@ enum EstablishConnectionState {
   AWAITING_ACCOUNT_READINESS = 1;
   REFRESHING_GATEWAYS = 2;
   SELECTING_GATEWAYS = 3;
-  CONNECTING_MIXNET_CLIENT = 4;
+  REGISTERING_WITH_GATEWAYS = 4;
   CONNECTING_TUNNEL = 5;
 }
 
@@ -654,6 +654,7 @@ message GatewayFilter {
     string country = 2;
     string region = 3;
     google.protobuf.Empty residential = 4;
+    google.protobuf.Empty quic_enabled = 7;
     google.protobuf.Empty exit = 5;
     google.protobuf.Empty vpn = 6;
   }

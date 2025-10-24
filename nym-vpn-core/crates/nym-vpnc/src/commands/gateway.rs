@@ -138,6 +138,10 @@ pub struct FilterArgs {
     /// Filter for residential gateways only
     #[arg(long)]
     pub residential: bool,
+
+    /// Filter for QUIC enabled gateways only
+    #[arg(long)]
+    pub quic_enabled: bool,
 }
 
 impl Args {
@@ -261,6 +265,10 @@ impl Args {
 
         if filters.residential {
             gateway_filters.filters.push(GatewayFilter::Residential);
+        }
+
+        if filters.quic_enabled {
+            gateway_filters.filters.push(GatewayFilter::QuicEnabled);
         }
 
         gateway_filters

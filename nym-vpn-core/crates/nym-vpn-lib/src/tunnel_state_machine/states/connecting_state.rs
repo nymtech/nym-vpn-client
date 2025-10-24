@@ -15,15 +15,6 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_dns::DnsConfig;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_firewall::{
-    AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
-    TransportProtocol,
-};
-use nym_gateway_directory::ResolvedConfig;
-use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
@@ -39,6 +30,19 @@ use crate::tunnel_state_machine::{
         TunnelMonitorHandle, TunnelParameters,
     },
 };
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_dns::DnsConfig;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_firewall::{
+    AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, FirewallPolicy,
+    TransportProtocol,
+};
+use nym_gateway_directory::ResolvedConfig;
+use nym_vpn_lib_types::{
+    EstablishConnectionData, EstablishConnectionState, GatewayId, TunnelConnectionData,
+};
+use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent};
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -71,6 +75,13 @@ impl ConnectingState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Pause Discovery Refresher until we have resolved all the domains
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(true))
+            .await
+            .ok();
+
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
@@ -276,25 +287,48 @@ impl ConnectingState {
             tracing::warn!(
                 "There are no resolver overrides, which may result in the firewall blocking API requests"
             );
-        } else if let Err(e) = shared_state
-            .account_command_tx
-            .set_resolver_overrides(Some(
-                resolved_gateway_config
-                    .nym_vpn_api_resolver_overrides
-                    .clone(),
-            ))
-            .await
-        {
-            trace_err_chain!(e, "Failed to set static API addresses");
-            return NextTunnelState::NewState(
-                ErrorState::enter(
-                    ErrorStateReason::Internal(
-                        "Failed to set static NYM API addresses to account controller".to_owned(),
+        } else {
+            // Tell the Account Controller about the resolver overrrides
+            if let Err(e) = shared_state
+                .account_command_tx
+                .set_resolver_overrides(Some(
+                    resolved_gateway_config
+                        .nym_vpn_api_resolver_overrides
+                        .clone(),
+                ))
+                .await
+            {
+                trace_err_chain!(e, "Failed to set resolver overrides for account controller");
+                return NextTunnelState::NewState(
+                    ErrorState::enter(
+                        ErrorStateReason::Internal(
+                            "Failed to set static NYM API addresses to account controller"
+                                .to_owned(),
+                        ),
+                        shared_state,
+                    )
+                    .await,
+                );
+            }
+
+            // Tell the Discovery Refresher about the resolver overrides and resume it
+            shared_state
+                .discovery_refresher_command_tx
+                .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
+                    Box::new(
+                        resolved_gateway_config
+                            .nym_vpn_api_resolver_overrides
+                            .clone(),
                     ),
-                    shared_state,
-                )
-                .await,
-            );
+                )))
+                .await
+                .ok();
+
+            shared_state
+                .discovery_refresher_command_tx
+                .send(DiscoveryRefresherCommand::Pause(false))
+                .await
+                .ok();
         }
 
         let _ = shared_state
@@ -340,6 +374,32 @@ impl ConnectingState {
         self.tunnel_monitor_handle = Some(tunnel_monitor_handle);
 
         NextTunnelState::SameState(self)
+    }
+
+    async fn handle_registered_with_gateways(
+        &mut self,
+        connection_data: Box<EstablishConnectionData>,
+        _shared_state: &mut SharedState,
+    ) -> Result<()> {
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            // Only allow entry wg endpoint in firewall when bridges are not enabled.
+            // Because all bridges are already added to firewall exceptions.
+            let wg_entry_endpoint = if let Some(TunnelConnectionData::Wireguard(ref wg)) =
+                connection_data.tunnel
+                && !_shared_state.tunnel_settings.bridges_enabled()
+            {
+                Some(wg.entry.endpoint)
+            } else {
+                None
+            };
+            self.firewall_policy_params.wg_entry_endpoint = wg_entry_endpoint;
+            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)?;
+        }
+
+        self.connection_data = Some(*connection_data);
+
+        Ok(())
     }
 
     async fn handle_interface_up(
@@ -436,8 +496,8 @@ impl TunnelStateHandler for ConnectingState {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
-                    TunnelMonitorEvent::ConnectingMixnetClient => {
-                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingMixnetClient);
+                    TunnelMonitorEvent::RegisteringWithGateways => {
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RegisteringWithGateways);
                         NextTunnelState::NewState((self, new_state))
                     }
                     TunnelMonitorEvent::SelectingGateways => {
@@ -450,6 +510,28 @@ impl TunnelStateHandler for ConnectingState {
                     let next_state = match self.handle_selected_gateways(gateways, shared_state).await {
                             Ok(()) => {
                                 NextTunnelState::SameState(self)
+                            }
+                            Err(e) => {
+                                trace_err_chain!(e, "Failed to set firewall policy");
+                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                                    NextTunnelState::NewState(DisconnectingState::enter(
+                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
+                                        tunnel_monitor_handle,
+                                        shared_state
+                                    ))
+                                } else {
+                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
+                                }
+                            }
+                        };
+                        _ = reply_tx.send(());
+                        next_state
+                    }
+                    TunnelMonitorEvent::RegisteredWithGateways { connection_data, reply_tx } => {
+                        let next_state = match self.handle_registered_with_gateways(connection_data, shared_state).await {
+                            Ok(()) => {
+                                let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
+                                NextTunnelState::NewState((self, new_state))
                             }
                             Err(e) => {
                                 trace_err_chain!(e, "Failed to set firewall policy");
@@ -522,24 +604,6 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::NewNetworkEnv { network } => {
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        {
-                            self.firewall_policy_params.api_endpoints = network.vpn_api_addresses().await;
-                            shared_state.nym_config.network_env = *network;
-                            if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                trace_err_chain!(e, "failed to set firewall policy");
-                                return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                            }
-                        }
-
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
-                        {
-                            shared_state.nym_config.network_env = *network;
-                        }
-
-                        NextTunnelState::SameState(self)
-                    }
                 }
            }
             Some(command) = command_rx.recv() => {
@@ -611,6 +675,18 @@ impl TunnelStateHandler for ConnectingState {
                     }
                 } else {
                     NextTunnelState::SameState(self)
+                }
+            }
+            Some(discovery_event) = shared_state.discovery_refresher_event_rx.recv() => {
+                match discovery_event {
+                   DiscoveryRefresherEvent::NewNetwork(network) => {
+                        shared_state.nym_config.network_env = *network;
+                        NextTunnelState::SameState(self)
+                    }
+                    DiscoveryRefresherEvent::Error(error) => {
+                        trace_err_chain!(error, "Discovery refresher reported an error");
+                        NextTunnelState::SameState(self)
+                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

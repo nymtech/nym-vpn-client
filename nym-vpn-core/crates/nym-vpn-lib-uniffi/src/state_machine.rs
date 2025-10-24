@@ -16,7 +16,7 @@ use nym_vpn_lib::{
     },
 };
 use nym_vpn_lib_types::TunnelType;
-use nym_vpn_network_config::Network;
+use nym_vpn_network_config::{Network, start_discovery_refresher};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -77,7 +77,7 @@ pub(super) async fn start_state_machine(
     let gateway_config = gateway_cache::get_gateway_config().await?;
 
     let nym_config = NymConfig {
-        config_path: config.config_path,
+        config_path: config.config_path.clone(),
         data_path: config.credential_data_path,
         gateway_config,
         network_env: network_env.clone(),
@@ -110,7 +110,7 @@ pub(super) async fn start_state_machine(
     let (event_sender, mut event_receiver) = mpsc::unbounded_channel();
 
     let state_listener = config.tun_status_listener;
-    let event_broadcaster_handler = tokio::spawn(async move {
+    let event_broadcaster_handle = tokio::spawn(async move {
         while let Some(event) = event_receiver.recv().await {
             if let Some(ref state_listener) = state_listener {
                 (*state_listener).on_event(event);
@@ -144,6 +144,29 @@ pub(super) async fn start_state_machine(
     );
     topology_provider.fetch().await;
 
+    let Some(config_path) = config.config_path.clone() else {
+        return Err(VpnError::Storage {
+            details: "Config path is not set and is required for Discovery Refresher".to_string(),
+        });
+    };
+
+    let (discovery_refresher_events_tx, discovery_refresher_events_rx) = mpsc::channel(1);
+    let (discovery_refresher_commands_tx, discovery_refresher_commands_rx) = mpsc::channel(1);
+    let discovery_refresher_handle = start_discovery_refresher(
+        config_path,
+        network_env.clone(),
+        discovery_refresher_commands_rx,
+        discovery_refresher_events_tx,
+        shutdown_token.child_token(),
+    )
+    .await
+    .map_err(|err| {
+        tracing::error!("Failed to start Discovery Refresher: {err:?}");
+        VpnError::Initialization {
+            details: format!("Failed to start Discovery Refresher: {err}"),
+        }
+    })?;
+
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
         event_sender,
@@ -156,6 +179,8 @@ pub(super) async fn start_state_machine(
         gateway_cache_handle,
         topology_provider,
         connectivity_handle,
+        discovery_refresher_commands_tx,
+        discovery_refresher_events_rx,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,
         #[cfg(target_os = "ios")]
@@ -170,7 +195,8 @@ pub(super) async fn start_state_machine(
 
     Ok(StateMachineHandle {
         state_machine_handle,
-        event_broadcaster_handler,
+        event_broadcaster_handle,
+        discovery_refresher_handle,
         command_sender,
         shutdown_token,
     })
@@ -178,7 +204,8 @@ pub(super) async fn start_state_machine(
 
 pub(super) struct StateMachineHandle {
     state_machine_handle: JoinHandle<()>,
-    event_broadcaster_handler: JoinHandle<()>,
+    event_broadcaster_handle: JoinHandle<()>,
+    discovery_refresher_handle: JoinHandle<()>,
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
     shutdown_token: CancellationToken,
 }
@@ -197,8 +224,12 @@ impl StateMachineHandle {
             tracing::error!("Failed to join on state machine handle: {}", e);
         }
 
-        if let Err(e) = self.event_broadcaster_handler.await {
+        if let Err(e) = self.event_broadcaster_handle.await {
             tracing::error!("Failed to join on event broadcaster handle: {}", e);
+        }
+
+        if let Err(e) = self.discovery_refresher_handle.await {
+            tracing::error!("Failed to join on discovery refresher handle: {}", e);
         }
     }
 }

@@ -46,7 +46,7 @@ import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.GatewayType
-import java.util.*
+import java.util.Locale
 
 @Composable
 fun CountryItem(
@@ -166,7 +166,7 @@ fun CountryItem(
 						},
 						description = {
 							Text(
-								gateway.identity,
+								gateway.city ?: gateway.identity,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis,
 								style = MaterialTheme.typography.bodySmall,

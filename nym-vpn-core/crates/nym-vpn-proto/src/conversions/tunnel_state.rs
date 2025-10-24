@@ -247,7 +247,9 @@ impl From<proto::EstablishConnectionState> for EstablishConnectionState {
             proto::EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             proto::EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             proto::EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
-            proto::EstablishConnectionState::ConnectingMixnetClient => Self::ConnectingMixnetClient,
+            proto::EstablishConnectionState::RegisteringWithGateways => {
+                Self::RegisteringWithGateways
+            }
             proto::EstablishConnectionState::ConnectingTunnel => Self::ConnectingTunnel,
         }
     }
@@ -260,7 +262,7 @@ impl From<EstablishConnectionState> for proto::EstablishConnectionState {
             EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
-            EstablishConnectionState::ConnectingMixnetClient => Self::ConnectingMixnetClient,
+            EstablishConnectionState::RegisteringWithGateways => Self::RegisteringWithGateways,
             EstablishConnectionState::ConnectingTunnel => Self::ConnectingTunnel,
         }
     }

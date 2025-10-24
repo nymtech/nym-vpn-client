@@ -200,6 +200,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
         shared_state: &'async_trait mut SharedAccountState<C>,
     ) -> NextAccountControllerState<C> {
         tokio::select! {
+            biased;
+            _ = shutdown_token.cancelled() => {
+                self.syncing_state_handle.abort();
+                NextAccountControllerState::Finished
+            }
             syncing_result = &mut self.syncing_state_handle => {
                 match syncing_result {
                     Ok(result) => {
@@ -291,10 +296,6 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                 } else {
                     NextAccountControllerState::SameState(self)
                 }
-            }
-            _ = shutdown_token.cancelled() => {
-                self.syncing_state_handle.abort();
-                NextAccountControllerState::Finished
             }
         }
     }
