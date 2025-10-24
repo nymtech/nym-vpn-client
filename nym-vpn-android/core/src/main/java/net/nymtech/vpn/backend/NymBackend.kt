@@ -26,10 +26,10 @@ import net.nymtech.vpn.util.exceptions.BackendException
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
+import nym_vpn_lib.AccountRegistrationArgs
 import nym_vpn_lib.AndroidConnectivityMonitor
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.NymVpnLibConfig
-import nym_vpn_lib.RegistrationArgs
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
@@ -363,7 +363,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun registerAccount(token: String): String {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			val response = nym_vpn_lib.registerAccount(RegistrationArgs(token))
+			val response = nym_vpn_lib.registerAccount(AccountRegistrationArgs(token))
 			nym_vpn_lib.updateAccountState()
 			response.accountToken
 		}
