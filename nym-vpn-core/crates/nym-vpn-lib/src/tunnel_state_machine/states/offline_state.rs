@@ -7,13 +7,13 @@ use tokio_util::sync::CancellationToken;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
+use crate::tunnel_state_machine::{states::error_state::BlockedPolicyParameters, Error, Result};
 #[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
+use crate::tunnel_state_machine::{states::ErrorState, ErrorStateReason};
 use crate::tunnel_state_machine::{
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState},
-    tunnel::SelectedGateways,
+    states::{ConnectingState, DisconnectedState}, tunnel::SelectedGateways, NextTunnelState, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelStateHandler,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
@@ -38,7 +38,7 @@ impl OfflineState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
+        // Configure Discovery Referesher to not use any resolver overrides and to pause operation
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
@@ -46,7 +46,7 @@ impl OfflineState {
             .ok();
         shared_state
             .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(false))
+            .send(DiscoveryRefresherCommand::Pause(true))
             .await
             .ok();
 
