@@ -52,7 +52,7 @@ fn get_display_server() -> DisplayServer {
 pub struct OsInfo {
     /// long version
     pub version: String,
-    pub kernel: Option<String>,
+    pub kernel: String,
     pub arch: String,
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub display_server: DisplayServer,
@@ -65,9 +65,10 @@ impl OsInfo {
     pub fn new() -> Self {
         let system = SysInfo::new();
         let hash = system.hash_identifier();
+        let kernel = sysinfo::System::kernel_version().unwrap_or_else(|| "unknown".to_string());
         Self {
             version: system.os_version,
-            kernel: Some(system.kernel_version),
+            kernel,
             arch: system.arch,
             #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             display_server: get_display_server(),
@@ -125,13 +126,7 @@ fn gpu_info() -> GpuType {
 
 impl std::fmt::Display for OsInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} {} {}",
-            self.version,
-            self.kernel.as_deref().unwrap_or("unknown"),
-            self.arch
-        )
+        write!(f, "{} {} {}", self.version, self.kernel, self.arch)
     }
 }
 
