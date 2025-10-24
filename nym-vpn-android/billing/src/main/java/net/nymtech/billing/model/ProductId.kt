@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.manager.billing.model
+package net.nymtech.billing.model
 
 enum class ProductId(val value: String) {
 	Monthly("nym.monthly"),

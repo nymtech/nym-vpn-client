@@ -22,8 +22,8 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.model.ProductData
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
@@ -106,15 +106,22 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 @Preview
 @Composable
 private fun SubscriptionBottomSheetContentPreview() {
-	val previewProducts = listOf(
-		ProductData(id = "", name = "Basic Plan", price = "$4.99 / month"),
-		ProductData(id = "", name = "Pro Plan", price = "$9.99 / month"),
-		ProductData(id = "", name = "Premium Plan", price = "$14.99 / month"),
+	val mockProducts = listOf(
+		object : ProductData {
+			override val id = "1"
+			override val name = "Monthly Plan"
+			override val price = "$4.99 / month"
+		},
+		object : ProductData {
+			override val id = "2"
+			override val name = "Yearly Plan"
+			override val price = "$49.99 / year"
+		},
 	)
 
 	NymVPNTheme(Theme.default()) {
 		SubscriptionBottomSheetContent(
-			products = previewProducts,
+			products = mockProducts,
 			onDismiss = {},
 			onSelect = {},
 		)

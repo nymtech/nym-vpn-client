@@ -1,0 +1,7 @@
+package net.nymtech.billing.model
+
+interface ProductData {
+	val id: String
+	val name: String
+	val price: String
+}

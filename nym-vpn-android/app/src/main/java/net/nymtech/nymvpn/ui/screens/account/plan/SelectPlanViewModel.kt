@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.manager.billing.BillingManager
-import net.nymtech.nymvpn.ui.model.ProductData
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,13 +23,13 @@ class SelectPlanViewModel @Inject constructor(
 		viewModelScope.launch {
 			billingManager.initialize()
 			billingManager.products.collectLatest { productList ->
-				_subscriptions.value = productList.map { ProductData.from(it) }.toList()
+				_subscriptions.value = productList
 			}
 		}
 	}
 
 	fun isBillingAvailable(): Boolean {
-		return billingManager.isReady()
+		return billingManager.isReady() && billingManager.isAvailable()
 	}
 
 	fun fetchSubscriptions() {

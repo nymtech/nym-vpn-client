@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.manager.billing
+package net.nymtech.billing
 
 import android.app.Activity
 import kotlinx.coroutines.flow.Flow
@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import net.nymtech.billing.model.ProductData
 import net.nymtech.billing.model.PurchaseInfo
 
-interface BillingManager {
+interface Billing {
 	fun isAvailable(): Boolean
 	fun isReady(): Boolean
 	val uiState: StateFlow<PurchaseInfo>

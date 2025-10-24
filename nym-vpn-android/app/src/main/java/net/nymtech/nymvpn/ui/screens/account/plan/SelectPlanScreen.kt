@@ -41,11 +41,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.model.ProductData
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
@@ -172,8 +172,16 @@ fun SelectPlanScreen(
 internal fun PreviewSelectPlanScreen() {
 	NymVPNTheme(Theme.default()) {
 		val mockProducts = listOf(
-			ProductData(id = "1", name = "Monthly Plan", price = "$4.99 / month"),
-			ProductData(id = "2", name = "Yearly Plan", price = "$49.99 / year"),
+			object : ProductData {
+				override val id = "1"
+				override val name = "Monthly Plan"
+				override val price = "$4.99 / month"
+			},
+			object : ProductData {
+				override val id = "2"
+				override val name = "Yearly Plan"
+				override val price = "$49.99 / year"
+			},
 		)
 		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})
 	}

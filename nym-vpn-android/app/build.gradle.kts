@@ -183,6 +183,7 @@ dependencies {
 	implementation(project(":core"))
 	implementation(project(":connectivity"))
 	implementation(project(":logcatter"))
+	implementation(project(":billing"))
 	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
@@ -240,9 +241,6 @@ dependencies {
 
 	// sentry
 	implementation(libs.sentry)
-
-	// billing
-	add("generalImplementation", libs.billing.client)
 
 	// okhttp for testing
 	implementation(libs.okhttp)

@@ -3,8 +3,6 @@ package net.nymtech.nymvpn.ui.screens.account.payment
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.Purchase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,6 +10,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import net.nymtech.billing.model.BillingCode
+import net.nymtech.billing.model.PurchaseState
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -45,16 +45,16 @@ constructor(
 		billingManager.initialize()
 		viewModelScope.launch {
 			billingManager.uiState.collectLatest { state ->
-				if (state.purchases.isNotEmpty()) {
-					val pending = state.purchases.any { it.purchaseState == Purchase.PurchaseState.PENDING }
+				if (state.billingPurchase.isNotEmpty()) {
+					val pending = state.billingPurchase.any { it.state == PurchaseState.PENDING }
 					if (pending) {
 						_events.tryEmit(PaymentUiEvent.PaymentPending)
 					}
-					val purchased = state.purchases.firstOrNull {
-						it.purchaseState == Purchase.PurchaseState.PURCHASED
+					val purchased = state.billingPurchase.firstOrNull {
+						it.state == PurchaseState.PURCHASED
 					}
 					purchased?.let { purchase ->
-						val token = purchase.purchaseToken
+						val token = purchase.token
 						if (processedTokens.add(token)) {
 							viewModelScope.launch {
 								runCatching {
@@ -71,28 +71,28 @@ constructor(
 						}
 					}
 				}
-				state.billingResult?.let { br ->
+				state.billingInfo?.let { br ->
 					when (br.responseCode) {
-						BillingClient.BillingResponseCode.OK -> {
+						BillingCode.OK -> {
 							Timber.d("Billing OK: code=${br.responseCode}, msg=${br.debugMessage}")
 						}
-						BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> {
+						BillingCode.ITEM_ALREADY_OWNED -> {
 							Timber.d("Item already owned: ${br.debugMessage}")
 							_events.tryEmit(PaymentUiEvent.SubscriptionOwned)
 						}
-						BillingClient.BillingResponseCode.USER_CANCELED -> {
+						BillingCode.USER_CANCELED -> {
 							Timber.w("User canceled: ${br.debugMessage}")
 							_events.tryEmit(PaymentUiEvent.UserCanceled)
 						}
-						BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> {
+						BillingCode.SERVICE_DISCONNECTED -> {
 							Timber.w("Billing service disconnected: ${br.debugMessage}")
 						}
-						BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE,
-						BillingClient.BillingResponseCode.BILLING_UNAVAILABLE,
-						BillingClient.BillingResponseCode.ERROR,
-						BillingClient.BillingResponseCode.NETWORK_ERROR,
-						BillingClient.BillingResponseCode.DEVELOPER_ERROR,
-						BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED,
+						BillingCode.SERVICE_UNAVAILABLE,
+						BillingCode.BILLING_UNAVAILABLE,
+						BillingCode.ERROR,
+						BillingCode.NETWORK_ERROR,
+						BillingCode.DEVELOPER_ERROR,
+						BillingCode.FEATURE_NOT_SUPPORTED,
 						-> {
 							Timber.e("Billing error ${br.responseCode}: ${br.debugMessage}")
 							_events.tryEmit(PaymentUiEvent.PaymentError(br.debugMessage))
