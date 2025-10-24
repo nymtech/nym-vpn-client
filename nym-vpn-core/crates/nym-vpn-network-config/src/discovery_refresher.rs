@@ -4,8 +4,8 @@
 use std::{path::PathBuf, time::Duration};
 
 use crate::{
-    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
-    network_from_discovery,
+    discovery::Discovery, envs::RegisteredNetworks, network_from_discovery, Error, Network, NymNetwork,
+    Result,
 };
 use nym_common::trace_err_chain;
 use nym_vpn_api_client::{ResolverOverrides, VpnApiClient};
@@ -43,7 +43,7 @@ impl DiscoveryRefresher {
             events_tx,
             cancel_token,
             current_resolver_overrides: current_resolver_overrides.cloned(),
-            paused: true,
+            paused: false,
         })
     }
 
@@ -74,7 +74,7 @@ impl DiscoveryRefresher {
     }
 
     async fn run(mut self, mut network: Network) {
-        tracing::debug!("Discovery Refresher running");
+        tracing::debug!("Discovery Refresher started");
 
         let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
@@ -89,9 +89,9 @@ impl DiscoveryRefresher {
                     match command {
                         DiscoveryRefresherCommand::Pause(pause) => {
                             if self.paused == pause {
-                                tracing::debug!("Discovery Refresher already {}", if pause {"paused"} else {"running"} );
+                                tracing::debug!("Discovery Refresher already {}", if pause {"paused"} else {"resumed"} );
                             } else {
-                                tracing::debug!("Discovery Refresher {}", if pause {"pausing"} else {"running"} );
+                                tracing::debug!("Discovery Refresher {}", if pause {"pausing"} else {"resuming"} );
                                 self.paused = pause;
                             }
                         }
