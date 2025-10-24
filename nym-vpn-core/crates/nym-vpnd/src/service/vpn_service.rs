@@ -4,8 +4,8 @@
 use std::{path::PathBuf, pin::Pin};
 
 use bip39::Mnemonic;
-use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
@@ -16,18 +16,18 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
 use nym_statistics::{
-    events::{StatisticsEvent, StatisticsSender}, StatisticsController,
-    StatisticsControllerConfig,
+    StatisticsController, StatisticsControllerConfig,
+    events::{StatisticsEvent, StatisticsSender},
 };
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::{api_urls_to_urls, fronted_http_client};
+use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
-    UserAgent,
-    VpnTopologyProvider,
+    UserAgent, VpnTopologyProvider,
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
@@ -36,7 +36,7 @@ use nym_vpn_lib_types::{
     NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
     SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_network_config::{start_discovery_refresher, Network};
+use nym_vpn_network_config::{Network, start_discovery_refresher};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
@@ -438,29 +438,13 @@ impl NymVpnService {
             }
         })?;
 
-        let validator_client =
-            fronted_http_client(urls, Some(parameters.user_agent.clone()), None, None)
-                .await
-                .map_err(|err| {
-                    tracing::error!("Failed to create HTTP client: {err:?}");
-                    AccountControllerError::Initialization {
-                        reason: err.to_string(),
-                    }
-                })?;
-
-        let urls = parameters.network_env.nym_api_urls_as_urls().ok_or(
-            AccountControllerError::Initialization {
-                reason: "Nym API URLs are empty".to_string(),
-            },
-        )?;
-
         let topology_provider = VpnTopologyProvider::new(
             urls,
-            None,
-            validator_client,
+            parameters.user_agent.clone(),
             false,
             services_shutdown_token.child_token(),
-        );
+        )
+        .await?;
         topology_provider.fetch().await;
 
         let (discovery_refresher_events_tx, discovery_refresher_events_rx) = mpsc::channel(1);

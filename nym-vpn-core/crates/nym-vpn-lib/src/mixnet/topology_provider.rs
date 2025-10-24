@@ -3,6 +3,7 @@
 
 use std::sync::Arc;
 
+use crate::mixnet::error::MixnetError;
 use async_trait::async_trait;
 use nym_http_api_client::{Url, UserAgent};
 use nym_vpn_api_client::{ResolverOverrides, fronted_http_client};
@@ -34,8 +35,7 @@ enum FetcherCommand {
 struct Fetcher {
     topology_provider: NymApiTopologyProvider,
     nym_api_urls: Vec<Url>,
-    user_agent: Option<UserAgent>,
-    validator_client: nym_http_api_client::Client,
+    user_agent: UserAgent,
     command_rx: UnboundedReceiver<FetcherCommand>,
     cancel_token: CancellationToken,
 }
@@ -48,25 +48,30 @@ impl Fetcher {
         ignore_egress_epoch_role: true,
     };
 
-    fn new(
+    async fn new(
         nym_api_urls: Vec<Url>,
-        user_agent: Option<UserAgent>,
-        validator_client: nym_http_api_client::Client,
+        user_agent: UserAgent,
         command_rx: UnboundedReceiver<FetcherCommand>,
         cancel_token: CancellationToken,
-    ) -> Self {
-        Self {
-            topology_provider: NymApiTopologyProvider::new(
-                Self::DEFAULT_CONFIG,
-                nym_api_urls.clone().into_iter().map(Into::into).collect(),
-                validator_client.clone(),
-            ),
+    ) -> Result<Self, MixnetError> {
+        let validator_client =
+            fronted_http_client(nym_api_urls.clone(), Some(user_agent.clone()), None, None)
+                .await
+                .map_err(MixnetError::CreateHTTPClient)?;
+
+        let topology_provider = NymApiTopologyProvider::new(
+            Self::DEFAULT_CONFIG,
+            nym_api_urls.clone().into_iter().map(Into::into).collect(),
+            validator_client,
+        );
+
+        Ok(Self {
+            topology_provider,
             nym_api_urls,
             user_agent,
-            validator_client,
             command_rx,
             cancel_token,
-        }
+        })
     }
 
     async fn fetch_topology(&mut self) -> Option<NymTopology> {
@@ -78,7 +83,7 @@ impl Fetcher {
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
         resolver_overrides: &ResolverOverrides,
-    ) {
+    ) -> Result<(), MixnetError> {
         let mut config = Self::DEFAULT_CONFIG;
         if let Some(min_mixnode_performance) = min_mixnode_performance {
             config.min_mixnode_performance = min_mixnode_performance;
@@ -86,19 +91,16 @@ impl Fetcher {
         if let Some(min_gateway_performance) = min_gateway_performance {
             config.min_gateway_performance = min_gateway_performance;
         }
+
         let validator_client = fronted_http_client(
             self.nym_api_urls.clone(),
-            self.user_agent.clone(),
+            Some(self.user_agent.clone()),
             None,
             Some(resolver_overrides),
         )
         .await
-        .inspect_err(|err| {
-            tracing::warn!(
-                "Could not update topology provider with domain fronting HTTP client: {err}"
-            )
-        })
-        .unwrap_or(self.validator_client.clone());
+        .map_err(MixnetError::CreateHTTPClient)?;
+
         self.topology_provider = NymApiTopologyProvider::new(
             config,
             self.nym_api_urls
@@ -108,9 +110,11 @@ impl Fetcher {
                 .collect(),
             validator_client,
         );
+
+        Ok(())
     }
 
-    async fn handle_command(&mut self, cmd: FetcherCommand) {
+    async fn handle_command(&mut self, cmd: FetcherCommand) -> Result<(), MixnetError> {
         match cmd {
             FetcherCommand::Fetch { response } => {
                 let latest_topology = self.fetch_topology().await;
@@ -127,10 +131,12 @@ impl Fetcher {
                     min_gateway_performance,
                     &resolver_overrides,
                 )
-                .await;
+                .await?;
                 let _ = response.send(());
             }
         }
+
+        Ok(())
     }
 
     async fn run(mut self) {
@@ -141,7 +147,10 @@ impl Fetcher {
                    tracing::trace!("Topology Fetcher: Received shutdown");
                 }
                 Some(cmd) = self.command_rx.recv() => {
-                    self.handle_command(cmd).await;
+                    if let Err(err) = self.handle_command(cmd).await {
+                        tracing::error!("Topology Fetcher: error handling command: {err:?}");
+                        // Carry on
+                    }
                 }
             }
         }
@@ -162,31 +171,24 @@ pub struct VpnTopologyProvider {
 }
 
 impl VpnTopologyProvider {
-    pub fn new(
+    pub async fn new(
         nym_api_urls: Vec<Url>,
-        user_agent: Option<UserAgent>,
-        validator_client: nym_http_api_client::Client,
+        user_agent: UserAgent,
         use_network: bool,
         cancel_token: CancellationToken,
-    ) -> Self {
+    ) -> Result<Self, MixnetError> {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
-        let refresher = Fetcher::new(
-            nym_api_urls,
-            user_agent,
-            validator_client,
-            command_rx,
-            cancel_token,
-        );
+        let refresher = Fetcher::new(nym_api_urls, user_agent, command_rx, cancel_token).await?;
         tokio::spawn(refresher.run());
 
-        Self {
+        Ok(Self {
             cached_topology: Arc::new(RwLock::new(CachedNymTopology {
                 latest_topology: None,
                 use_network,
             })),
             in_progress_fetch: Arc::new(Mutex::new(None)),
             command_tx,
-        }
+        })
     }
 
     /// Get topology from network asynchronously, regardless of the set value of use_network
