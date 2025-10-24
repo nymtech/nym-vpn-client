@@ -106,7 +106,7 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
     let account_token = shared_state
         .vpn_api_client
-        .post_account(&vpn_account, platform)
+        .register_account(&vpn_account, platform)
         .await?
         .account_token;
 

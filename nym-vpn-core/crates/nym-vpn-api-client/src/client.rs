@@ -16,9 +16,9 @@ use crate::{
     error::{Result, VpnApiClientError},
     fronted_http_client,
     request::{
-        ApplyFreepassRequestBody, CreateAccountRequestBody, CreateSubscriptionKind,
-        CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
-        UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        ApplyFreepassRequestBody, CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody,
+        CreateSubscriptionKind, CreateSubscriptionRequestBody, RegisterDeviceRequestBody,
+        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
@@ -536,31 +536,65 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetAccount)
     }
 
-    pub async fn post_account(
+    async fn post_account<B>(
         &self,
-        account: &VpnAccount,
-        platform: Platform,
-    ) -> Result<NymVpnRegisterAccountResponse> {
-        let body = CreateAccountRequestBody {
-            account_addr: account.id().to_string(),
-            pub_key: account.pub_key().to_string(),
-            signature_base64: account.signature_base64().to_string(),
-            purchase_token: platform.purchase_token(),
-        };
-
+        platform_path: &str,
+        body: &B,
+    ) -> Result<NymVpnRegisterAccountResponse>
+    where
+        B: Serialize + ?Sized + Sync,
+    {
         self.post_json_with_retry(
-            &[
-                routes::PUBLIC,
-                routes::V1,
-                routes::ACCOUNT,
-                platform.api_path_component(),
-            ],
+            &[routes::PUBLIC, routes::V1, routes::ACCOUNT, platform_path],
             NO_PARAMS,
             &body,
         )
         .await
         .map_err(Box::new)
         .map_err(VpnApiClientError::PostAccount)
+    }
+
+    async fn register_apple_account<B>(&self, body: &B) -> Result<NymVpnRegisterAccountResponse>
+    where
+        B: Serialize + ?Sized + Sync,
+    {
+        self.post_account(routes::APPLE, body).await
+    }
+
+    async fn register_android_account<B>(&self, body: &B) -> Result<NymVpnRegisterAccountResponse>
+    where
+        B: Serialize + ?Sized + Sync,
+    {
+        self.post_account(routes::ANDROID, body).await
+    }
+
+    pub async fn register_account(
+        &self,
+        account: &VpnAccount,
+        platform: Platform,
+    ) -> Result<NymVpnRegisterAccountResponse> {
+        let account_addr = account.id().to_string();
+        let pub_key = account.pub_key().to_string();
+        let signature_base64 = account.signature_base64().to_string();
+        match platform {
+            Platform::Apple => {
+                self.register_apple_account(&CreateAppleAccountRequestBody {
+                    account_addr,
+                    pub_key,
+                    signature_base64,
+                })
+                .await
+            }
+            Platform::Android { purchase_token } => {
+                self.register_android_account(&CreateAndroidAccountRequestBody {
+                    account_addr,
+                    pub_key,
+                    signature_base64,
+                    purchase_token,
+                })
+                .await
+            }
+        }
     }
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {

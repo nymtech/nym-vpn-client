@@ -4,11 +4,18 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateAccountRequestBody {
+pub struct CreateAndroidAccountRequestBody {
     pub account_addr: String,
     pub pub_key: String,
     pub signature_base64: String,
-    pub purchase_token: Option<String>,
+    pub purchase_token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateAppleAccountRequestBody {
+    pub account_addr: String,
+    pub pub_key: String,
+    pub signature_base64: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
