@@ -10,6 +10,9 @@ pub enum VpnError {
     #[error("internal error:{details}")]
     InternalError { details: String },
 
+    #[error("initialization error: {details}")]
+    Initialization { details: String },
+
     #[error("storage error: {details}")]
     Storage { details: String },
 

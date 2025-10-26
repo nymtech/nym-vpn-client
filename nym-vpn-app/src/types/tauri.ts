@@ -204,7 +204,7 @@ export type OsInfo = {
    * long version
    */
   version: string;
-  kernel: string | null;
+  kernel: string;
   arch: string;
   displayServer: DisplayServer;
   gpu: GpuType;

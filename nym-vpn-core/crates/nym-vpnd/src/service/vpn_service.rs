@@ -23,7 +23,7 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::{api_urls_to_urls, fronted_http_client};
+use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
     UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
@@ -36,7 +36,7 @@ use nym_vpn_lib_types::{
     NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
     SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_network_config::Network;
+use nym_vpn_network_config::{Network, start_discovery_refresher};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
@@ -206,6 +206,9 @@ pub struct NymVpnService {
 
     // Gateway cache handle
     gateway_cache_handle: GatewayCacheHandle,
+
+    // Discovery Refresher join handle
+    discovery_refresher_join_handle: JoinHandle<()>,
 
     // VPN service shutdown token.
     shutdown_token: CancellationToken,
@@ -407,7 +410,7 @@ impl NymVpnService {
                 })?;
 
         let nym_config = NymConfig {
-            config_path: Some(config_dir),
+            config_path: Some(config_dir.clone()),
             data_path: Some(network_data_dir.clone()),
             gateway_config: gateway_config.clone(),
             network_env: *parameters.network_env.clone(),
@@ -435,29 +438,31 @@ impl NymVpnService {
             }
         })?;
 
-        let validator_client =
-            fronted_http_client(urls, Some(parameters.user_agent.clone()), None, None)
-                .await
-                .map_err(|err| {
-                    tracing::error!("Failed to create HTTP client: {err:?}");
-                    AccountControllerError::Initialization {
-                        reason: err.to_string(),
-                    }
-                })?;
-
-        let urls = parameters.network_env.nym_api_urls_as_urls().ok_or(
-            AccountControllerError::Initialization {
-                reason: "Nym API URLs are empty".to_string(),
-            },
-        )?;
-
         let topology_provider = VpnTopologyProvider::new(
             urls,
-            validator_client,
+            parameters.user_agent.clone(),
             false,
             services_shutdown_token.child_token(),
-        );
+        )
+        .await?;
         topology_provider.fetch().await;
+
+        let (discovery_refresher_events_tx, discovery_refresher_events_rx) = mpsc::channel(1);
+        let (discovery_refresher_commands_tx, discovery_refresher_commands_rx) = mpsc::channel(1);
+        let discovery_refresher_join_handle = start_discovery_refresher(
+            config_dir.clone(),
+            *parameters.network_env.clone(),
+            discovery_refresher_commands_rx,
+            discovery_refresher_events_tx,
+            services_shutdown_token.child_token(),
+        )
+        .await
+        .map_err(|err| {
+            tracing::error!("Failed to start Discovery Refresher: {err:?}");
+            AccountControllerError::Initialization {
+                reason: err.to_string(),
+            }
+        })?;
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -471,6 +476,8 @@ impl NymVpnService {
             gateway_cache_handle.clone(),
             topology_provider,
             connectivity_handle,
+            discovery_refresher_commands_tx,
+            discovery_refresher_events_rx,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             state_machine_shutdown_token.child_token(),
@@ -502,6 +509,7 @@ impl NymVpnService {
             state_machine_shutdown_token,
             gateway_cache_handle,
             gateway_cache_join_handle,
+            discovery_refresher_join_handle,
             sentry_enabled: parameters.sentry_enabled,
             network_statistics_enabled: parameters.netstats_enabled,
             statistics_event_sender,
@@ -564,15 +572,19 @@ impl NymVpnService {
         self.services_shutdown_token.cancel();
 
         if let Err(e) = self.account_controller_handle.await {
-            tracing::error!("Failed to join on account controller handle: {}", e);
+            tracing::error!("Failed to join on account controller handle: {e}");
         }
 
         if let Err(e) = self.statistics_controller_handle.await {
-            tracing::error!("Failed to join on statistics controller handle: {}", e);
+            tracing::error!("Failed to join on statistics controller handle: {e}");
         }
 
         if let Err(e) = self.gateway_cache_join_handle.await {
-            tracing::error!("Failed to join on gateway cache handle: {}", e);
+            tracing::error!("Failed to join on gateway cache handle: {e}");
+        }
+
+        if let Err(e) = self.discovery_refresher_join_handle.await {
+            tracing::error!("Failed to join on discovery refresher handle: {e}");
         }
 
         tracing::info!("Exiting vpn service run loop");

@@ -7,22 +7,24 @@ pub mod system_messages;
 
 mod account_management;
 mod discovery;
+mod discovery_refresher;
 mod envs;
 mod filetime;
 mod nym_network;
 mod nym_vpn_network;
-mod refresh;
 mod serialization;
 mod system_configuration;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
+pub use discovery_refresher::{
+    DiscoveryRefresherCommand, DiscoveryRefresherEvent, start_discovery_refresher,
+};
 pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
-use nym_vpn_api_client::str_to_socket_addr;
+use nym_vpn_api_client::{ResolverOverrides, str_to_socket_addr};
 pub use nym_vpn_network::NymVpnNetwork;
-pub use refresh::start_background_file_refresh;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
@@ -30,7 +32,6 @@ use discovery::Discovery;
 use envs::RegisteredNetworks;
 use nym_network_defaults::NymNetworkDetails;
 use tokio::join;
-use url::Url;
 
 use crate::{
     discovery::DiscoveryFromNymWellknownDiscoveryError,
@@ -57,7 +58,7 @@ pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
 #[derive(Clone, Debug)]
 pub struct Network {
     pub nym_network: NymNetwork,
-    pub nyxd_url: Url,
+    pub nyxd_url: url::Url,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
@@ -117,7 +118,7 @@ impl Network {
         Ok(network_name == vpn_network_name)
     }
 
-    pub fn nyxd_url(&self) -> Url {
+    pub fn nyxd_url(&self) -> url::Url {
         self.nyxd_url.clone()
     }
 
@@ -217,6 +218,12 @@ impl Network {
         }
 
         unique.into_iter().collect()
+    }
+
+    pub async fn resolver_overrides(&self) -> Result<ResolverOverrides> {
+        ResolverOverrides::from_api_urls(&self.nym_vpn_network.nym_vpn_api_urls)
+            .await
+            .map_err(Error::CreateResolverOverrides)
     }
 }
 
@@ -337,6 +344,9 @@ pub enum Error {
 
     #[error("failed to bootstrap api client")]
     CreateBootstrapApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
+
+    #[error("failed to create resolver overrides")]
+    CreateResolverOverrides(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to create vpn api client")]
     CreateVpnApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
