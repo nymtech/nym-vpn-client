@@ -6,18 +6,18 @@ use std::sync::Arc;
 use crate::mixnet::error::MixnetError;
 use async_trait::async_trait;
 use nym_http_api_client::{Url, UserAgent};
-use nym_vpn_api_client::{ResolverOverrides, fronted_http_client};
+use nym_vpn_api_client::{fronted_http_client, ResolverOverrides};
 use tokio::{
     sync::{
-        Mutex, RwLock,
-        mpsc::{UnboundedReceiver, UnboundedSender},
-        oneshot,
+        mpsc::{UnboundedReceiver, UnboundedSender}, oneshot,
+        Mutex,
+        RwLock,
     },
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
 
-use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::Config};
+use nym_client_core::{client::topology_control::nym_api_provider::Config, NymTopology};
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider};
 
 enum FetcherCommand {
@@ -42,8 +42,8 @@ struct Fetcher {
 
 impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
-        min_mixnode_performance: 0,
-        min_gateway_performance: 0,
+        min_mixnode_performance: 50,
+        min_gateway_performance: 50,
         use_extended_topology: false,
         ignore_egress_epoch_role: true,
     };
@@ -89,6 +89,7 @@ impl Fetcher {
         resolver_overrides: &ResolverOverrides,
     ) -> Result<(), MixnetError> {
         let mut config = Self::DEFAULT_CONFIG;
+
         if let Some(min_mixnode_performance) = min_mixnode_performance {
             config.min_mixnode_performance = min_mixnode_performance;
         }
