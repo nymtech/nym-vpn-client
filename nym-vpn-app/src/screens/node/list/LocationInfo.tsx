@@ -1,16 +1,17 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { UiCountry } from '../../../contexts';
+import { UiCountry, UiRegion } from '../../../contexts';
 import { FlagIcon, countryCode } from '../../../ui';
 
-type CountryInfoProps = {
-  country: UiCountry;
+type LocationInfoProps = {
+  node: UiCountry | UiRegion;
   name: string;
   gwCount: number;
 };
 
-const CountryInfo = ({ country, name, gwCount }: CountryInfoProps) => {
+const LocationInfo = ({ node, name, gwCount }: LocationInfoProps) => {
   const { t } = useTranslation('glossary');
+  const country = node.nodeType === 'country' ? node : node.country;
 
   return (
     <div
@@ -33,10 +34,7 @@ const CountryInfo = ({ country, name, gwCount }: CountryInfoProps) => {
         >
           {name}
         </div>
-        <div
-          className="text-iron dark:text-bombay text-sm"
-          data-testid={`country-server-count-${country.code}`}
-        >
+        <div className="text-iron dark:text-bombay text-sm">
           {`${gwCount} ${t('server', { count: gwCount })}`}
         </div>
       </div>
@@ -44,4 +42,4 @@ const CountryInfo = ({ country, name, gwCount }: CountryInfoProps) => {
   );
 };
 
-export default CountryInfo;
+export default LocationInfo;

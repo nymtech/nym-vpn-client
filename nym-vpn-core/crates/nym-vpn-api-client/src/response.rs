@@ -540,6 +540,7 @@ pub struct WgProbeResults {
     pub can_register: bool,
     pub can_handshake: bool,
     pub can_resolve_dns: bool,
+    pub can_query_metadata_v4: bool,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
 }

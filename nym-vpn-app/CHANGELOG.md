@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   entry node only
 - Add QUIC tags in server list and in home screen on the entry node input
 - Add server description and QUIC support to server details screen
+- Add US state as selectable location for entry and exit nodes
+- Add US states level in server list
+- Add search by US state in server list
 
 ## [1.17.1] - 2025-10-20
 

@@ -12,13 +12,6 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-#[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
-use nym_common::trace_err_chain;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_vpn_lib_types::TunnelConnectionData;
-
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -28,6 +21,12 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
+use nym_common::trace_err_chain;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_vpn_lib_types::TunnelConnectionData;
+use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent};
 
 use super::ErrorState;
 
@@ -50,6 +49,18 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .await
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .await
+            .ok();
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
@@ -275,10 +286,6 @@ impl TunnelStateHandler for ConnectedState {
                         _ = reply_tx.send(());
                         self.handle_tunnel_down(error_state_reason, shared_state).await
                     }
-                    TunnelMonitorEvent::NewNetworkEnv { network } => {
-                        shared_state.nym_config.network_env = *network;
-                        NextTunnelState::SameState(self)
-                    }
                     _ => {
                         NextTunnelState::SameState(self)
                     }
@@ -293,6 +300,18 @@ impl TunnelStateHandler for ConnectedState {
                     self.disconnect(after_disconnect, shared_state).await
                 } else {
                     NextTunnelState::SameState(self)
+                }
+            }
+            Some(discovery_event) = shared_state.discovery_refresher_event_rx.recv() => {
+                match discovery_event {
+                   DiscoveryRefresherEvent::NewNetwork(network) => {
+                        shared_state.nym_config.network_env = *network;
+                        NextTunnelState::SameState(self)
+                    }
+                    DiscoveryRefresherEvent::Error(error) => {
+                        trace_err_chain!(error, "Discovery refresher reported an error");
+                        NextTunnelState::SameState(self)
+                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

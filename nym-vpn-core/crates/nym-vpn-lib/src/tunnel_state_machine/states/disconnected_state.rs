@@ -4,13 +4,13 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use nym_common::trace_err_chain;
-
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
     states::{ConnectingState, OfflineState},
     tunnel::Tombstone,
 };
+use nym_common::trace_err_chain;
+use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct DisconnectedState;
 
@@ -19,6 +19,18 @@ impl DisconnectedState {
         tombstone: Option<Tombstone>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Configure Discovery Refresher to not use any resolver overrides and to resume operation
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .await
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .await
+            .ok();
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_dns(shared_state).await;
 

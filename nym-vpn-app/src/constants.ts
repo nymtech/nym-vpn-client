@@ -1,4 +1,4 @@
-import { Country } from './types';
+import { SelectedNode } from './types';
 
 export const AppName = 'NymVPN';
 export const TunnelStateEvent = 'tunnel-state';
@@ -10,9 +10,12 @@ export const DefaultRootFontSize = 14; // in px
 // NOTE: when fresh country data is get from daemon, the selected countries
 // are checked against it and if needed it is automatically switched to
 // available ones
-export const DefaultCountry: Country = {
-  name: 'Switzerland',
-  code: 'CH',
+export const DefaultNode: SelectedNode = {
+  type: 'country',
+  node: {
+    name: 'Switzerland',
+    code: 'CH',
+  },
 };
 export const DefaultThemeMode = 'system';
 // ⚠ keep those in sync with the theme definition in `styles.css`

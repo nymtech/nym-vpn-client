@@ -6,7 +6,7 @@ use std::{
     net::SocketAddr,
 };
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolverOverrides {
     overrides: HashMap<String, HashSet<SocketAddr>>,
 }

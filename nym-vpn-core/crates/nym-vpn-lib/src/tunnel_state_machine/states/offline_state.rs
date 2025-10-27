@@ -16,6 +16,7 @@ use crate::tunnel_state_machine::{
     states::{ConnectingState, DisconnectedState},
     tunnel::SelectedGateways,
 };
+use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct OfflineState {
     /// Whether to connect the tunnel once online
@@ -34,6 +35,18 @@ impl OfflineState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Configure Discovery Refresher to not use any resolver overrides and to pause operation
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .await
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(true))
+            .await
+            .ok();
+
         // On macOS, disable forwarding and reset DNS to allow API resolution during reconnection
         #[cfg(target_os = "macos")]
         {
