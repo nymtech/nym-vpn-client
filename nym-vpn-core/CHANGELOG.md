@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent account controller from networking while state machine is in offline state (https://github.com/nymtech/nym-vpn-client/pull/3723)
 - [macOS] Log error instead of failing when removing keys from dynamic store during DNS reset. (https://github.com/nymtech/nym-vpn-client/pull/3711)
 - CLI: fix hang when calling `nym-vpnc disconnect --wait` in disconnected state. (https://github.com/nymtech/nym-vpn-client/pull/3743)
+- Don't log a warning on some expected value from the API (https://github.com/nymtech/nym-vpn-client/pull/3763)
 
 ## [1.17.0] - 2025-10-17
 
