@@ -203,6 +203,9 @@ pub async fn select_gateways(
         .exit_keypair()
         .clone();
 
+    tracing::debug!("Using entry public key: {}", entry_keys.public_key());
+    tracing::debug!("Using exit public key: {}", exit_keys.public_key());
+
     tracing::info!(
         "Using entry gateway: {}, location: {}, performance: {}",
         entry_gateway.identity(),
