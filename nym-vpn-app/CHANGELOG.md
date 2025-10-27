@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add US state as selectable location for entry and exit nodes
 - Add US states level in server list
 - Add search by US state in server list
+- Show server location like country, state and city in various places in the UI
 
 ## [1.17.1] - 2025-10-20
 
