@@ -95,7 +95,7 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
 
       - name: Determine if we should publish
         id: determine-ok-to-publish
