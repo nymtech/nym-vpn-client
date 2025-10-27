@@ -7,6 +7,8 @@ import {
   useNodeList,
 } from '../../../contexts';
 
+const debounceDelay = 200; // ms
+
 export function useFilterList() {
   const { nodes, gateways } = useNodeList();
 
@@ -30,18 +32,19 @@ export function useFilterList() {
         return;
       }
 
+      const lowCaseValue = value.toLowerCase();
       let usRegions: UiRegion[] = [];
       const filteredNodes = structuredClone(nodes).filter((node) => {
         if (node.country.code.toLowerCase() === 'us') {
           usRegions = node.regions.filter((region) => {
-            return region.name.toLowerCase().includes(value.toLowerCase());
+            return region.name.toLowerCase().includes(lowCaseValue);
           });
           if (usRegions.length > 0) {
             return true;
           }
         }
         // toLowerCase() is used to make it case-insensitive
-        return node.i18n.toLowerCase().includes(value.toLowerCase());
+        return node.i18n.toLowerCase().includes(lowCaseValue);
       });
       if (usRegions.length > 0) {
         const index = filteredNodes.findIndex(
@@ -52,7 +55,11 @@ export function useFilterList() {
         }
       }
       const filteredGw = gateways.filter((gw) => {
-        return gw.name.toLowerCase().includes(value.toLowerCase());
+        return (
+          gw.name.toLowerCase().includes(lowCaseValue) ||
+          gw.location.city.toLowerCase().includes(lowCaseValue) ||
+          gw.id.toLowerCase().includes(lowCaseValue)
+        );
       });
       setFilteredNodes(filteredNodes);
       setFilteredGateways(filteredGw);
@@ -62,7 +69,7 @@ export function useFilterList() {
 
   const debounced = useDebounce((value: string) => {
     filter(value);
-  }, 200);
+  }, debounceDelay);
 
   return {
     filter: debounced,

@@ -35,13 +35,6 @@ const GatewayItem = ({
     onSelect(gateway);
   };
 
-  const truncateId = (id: string) => {
-    if (id.length < 10) {
-      return id;
-    }
-    return `${id.slice(0, 5)}…${id.slice(-5)}`;
-  };
-
   return (
     <div
       ref={ref}
@@ -80,11 +73,8 @@ const GatewayItem = ({
             >
               {gateway.name}
             </p>
-            <p
-              className="text-sm text-iron dark:text-bombay truncate"
-              data-testid={`gateway-id-${gateway.id.substring(0, 8)}`}
-            >
-              {truncateId(gateway.id)}
+            <p className="text-sm text-iron dark:text-bombay truncate">
+              {gateway.location.city}
             </p>
           </div>
         </div>

@@ -48,3 +48,4 @@ export const IpInfoIoUrl = 'https://ipinfo.io';
 export const SupportServerLocationUrl =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const NetworkExplorerNodeUrl = 'https://nym.com/explorer/nym-node';
+export const countriesWithRegions = ['US', 'CA', 'AU', 'MX', 'BR', 'IN', 'CN'];

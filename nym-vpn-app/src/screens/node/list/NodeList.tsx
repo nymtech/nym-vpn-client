@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { Accordion } from '@base-ui-components/react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import clsx from 'clsx';
 import {
   SelectedKind,
   SelectedUiNode,
@@ -39,6 +39,8 @@ function NodeList({
     entry: entryState,
     setExpanded,
   } = useNodeListState();
+  const { t } = useTranslation('nodeLocation');
+
   const expanded = hop === 'entry' ? entryState.expanded : exitState.expanded;
   const focused = hop === 'entry' ? entryState.focused : exitState.focused;
   const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
@@ -235,9 +237,12 @@ function NodeList({
           </Accordion.Item>
         ))}
       </Accordion.Root>
-      <div className={clsx('mt-6')} data-testid="standalone-gateways-container">
-        {gateways.length > 0 &&
-          gateways.map((gateway) => (
+      {gateways.length > 0 && (
+        <div className="mt-2" data-testid="standalone-gateways-container">
+          <h3 className="text-iron dark:text-bombay px-4 py-6 truncate">
+            {t('search-other-nodes')}
+          </h3>
+          {gateways.map((gateway) => (
             <motion.div
               key={gateway.id}
               initial={{ opacity: 0, translateX: -4 }}
@@ -256,7 +261,8 @@ function NodeList({
               />
             </motion.div>
           ))}
-      </div>
+        </div>
+      )}
     </>
   );
 }
