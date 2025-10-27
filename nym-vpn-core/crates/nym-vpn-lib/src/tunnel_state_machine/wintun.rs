@@ -32,6 +32,12 @@ pub enum SetupWintunAdapterError {
 
     #[error("failed to obtain interface luid from alias")]
     GetInterfaceLuidFromAlias(#[source] std::io::Error),
+
+    #[error("failed to wait for ip interfaces to attach on network interface")]
+    WaitForInterfaces(#[source] std::io::Error),
+
+    #[error("failed to wait for addresses to be usable on an network adapter")]
+    WaitForInterfaceAddresses(#[source] nym_windows::net::Error),
 }
 
 /// Struct holding wintun adapter IP configuration.
@@ -49,11 +55,10 @@ pub struct WintunAdapterConfig {
     pub gateway_ipv6: Option<Ipv6Addr>,
 }
 
+pub type Result<T, E = SetupWintunAdapterError> = std::result::Result<T, E>;
+
 /// Configure wintun adapter
-pub fn setup_wintun_adapter(
-    luid: NET_LUID_LH,
-    adapter_config: WintunAdapterConfig,
-) -> Result<(), SetupWintunAdapterError> {
+pub fn setup_wintun_adapter(luid: NET_LUID_LH, adapter_config: WintunAdapterConfig) -> Result<()> {
     wnet::add_ip_address_for_interface(luid, IpAddr::V4(adapter_config.interface_ipv4))
         .map_err(SetupWintunAdapterError::SetIpv4Addr)?;
 
@@ -76,10 +81,7 @@ pub fn setup_wintun_adapter(
 }
 
 /// Set IPv6 address only on network interface
-pub fn add_ipv6_address(
-    luid: NET_LUID_LH,
-    interface_ipv6: Ipv6Addr,
-) -> Result<(), SetupWintunAdapterError> {
+pub fn add_ipv6_address(luid: NET_LUID_LH, interface_ipv6: Ipv6Addr) -> Result<()> {
     wnet::add_ip_address_for_interface(luid, IpAddr::V6(interface_ipv6))
         .map_err(SetupWintunAdapterError::SetIpv6Addr)
 }
@@ -90,7 +92,7 @@ pub fn initialize_interfaces(
     luid: NET_LUID_LH,
     ipv4_mtu: Option<u16>,
     ipv6_mtu: Option<u16>,
-) -> Result<(), SetupWintunAdapterError> {
+) -> Result<()> {
     for (family, mtu) in &[
         (AddressFamily::Ipv4, ipv4_mtu),
         (AddressFamily::Ipv6, ipv6_mtu),
@@ -127,9 +129,25 @@ pub fn initialize_interfaces(
 }
 
 /// Returns interface LUID for alias upon success, otherwise error.
-pub fn get_interface_luid_for_alias(
-    interface_alias: &str,
-) -> Result<NET_LUID_LH, SetupWintunAdapterError> {
+pub fn get_interface_luid_for_alias(interface_alias: &str) -> Result<NET_LUID_LH> {
     wnet::luid_from_alias(interface_alias)
         .map_err(SetupWintunAdapterError::GetInterfaceLuidFromAlias)
+}
+
+/// Waits until the specified IP interfaces have attached to a given network interface.
+pub async fn wait_for_interfaces(
+    interface_luid: NET_LUID_LH,
+    ipv4: bool,
+    ipv6: bool,
+) -> Result<()> {
+    wnet::wait_for_interfaces(interface_luid, ipv4, ipv6)
+        .await
+        .map_err(SetupWintunAdapterError::WaitForInterfaces)
+}
+
+/// Wait for addresses to be usable on an network adapter.
+pub async fn wait_for_addresses(interface_luid: NET_LUID_LH) -> Result<()> {
+    wnet::wait_for_addresses(interface_luid)
+        .await
+        .map_err(|error| SetupWintunAdapterError::WaitForInterfaceAddresses(error))
 }
