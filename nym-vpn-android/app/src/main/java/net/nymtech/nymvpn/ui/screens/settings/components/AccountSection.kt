@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Launch
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -74,6 +77,31 @@ fun AccountSection(appUiState: AppUiState, context: Context) {
 				),
 			),
 		)
+		SelectionItem(
+			leading = {
+				Icon(
+					Icons.Outlined.Key,
+					stringResource(R.string.settings_passphrase_title),
+					modifier = Modifier.size(iconSize.scaledWidth()),
+				)
+			},
+			trailing = {
+				Icon(
+					Icons.AutoMirrored.Outlined.ArrowRight,
+					stringResource(R.string.go),
+					modifier = Modifier.size(iconSize),
+				)
+			},
+			title = {
+				Text(
+					stringResource(R.string.settings_passphrase_title),
+					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+				)
+			},
+			onClick = {
+				navController.navigate(Route.Passphrase)
+			},
+		)
 // 		SettingsGroup(
 // 			items = listOf(
 // 				SelectionItem(
@@ -105,32 +133,6 @@ fun AccountSection(appUiState: AppUiState, context: Context) {
 // 					},
 // 				),
 //
-// 				SelectionItem(
-// 					leading = {
-// 						Icon(
-// 							Icons.Outlined.Key,
-// 							stringResource(R.string.settings_passphrase_title),
-// 							modifier = Modifier.size(iconSize.scaledWidth()),
-// 						)
-// 					},
-// 					trailing = {
-// 						Icon(
-// 							Icons.AutoMirrored.Outlined.ArrowRight,
-// 							stringResource(R.string.go),
-// 							modifier = Modifier.size(iconSize),
-// 						)
-// 					},
-// 					title = {
-// 						Text(
-// 							stringResource(R.string.settings_passphrase_title),
-// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-// 						)
-// 					},
-// 					onClick = {
-// 						navController.navigate(Route.Passphrase)
-// 					},
-// 				),
-// 			),
 // 		)
 	}
 }
