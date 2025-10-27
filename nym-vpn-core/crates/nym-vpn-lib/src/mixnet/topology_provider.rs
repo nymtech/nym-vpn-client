@@ -27,7 +27,7 @@ enum FetcherCommand {
     UpdateConfig {
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
-        resolver_overrides: ResolverOverrides,
+        resolver_overrides: Option<ResolverOverrides>,
         response: oneshot::Sender<()>,
     },
 }
@@ -86,7 +86,7 @@ impl Fetcher {
         &mut self,
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
-        resolver_overrides: &ResolverOverrides,
+        resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<(), MixnetError> {
         let mut config = Self::DEFAULT_CONFIG;
 
@@ -102,7 +102,7 @@ impl Fetcher {
             self.nym_api_urls.clone(),
             Some(self.user_agent.clone()),
             None,
-            Some(resolver_overrides),
+            resolver_overrides,
         )
         .await
         .map_err(MixnetError::CreateHTTPClient)?;
@@ -135,7 +135,7 @@ impl Fetcher {
                 self.update_config(
                     min_mixnode_performance,
                     min_gateway_performance,
-                    &resolver_overrides,
+                    resolver_overrides.as_ref(),
                 )
                 .await?;
                 let _ = response.send(());
@@ -244,7 +244,7 @@ impl VpnTopologyProvider {
         &self,
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
-        resolver_overrides: ResolverOverrides,
+        resolver_overrides: Option<ResolverOverrides>,
     ) {
         let (signal_finished_tx, signal_finished_rx) = oneshot::channel();
         if self

@@ -431,10 +431,12 @@ impl TunnelMonitor {
             .update_config(
                 mixnet_client_config.min_mixnode_performance,
                 mixnet_client_config.min_gateway_performance,
-                self.tunnel_parameters
-                    .resolved_gateway_config
-                    .nym_api_resolver_overrides
-                    .clone(),
+                Some(
+                    self.tunnel_parameters
+                        .resolved_gateway_config
+                        .nym_api_resolver_overrides
+                        .clone(),
+                ),
             )
             .await;
 
