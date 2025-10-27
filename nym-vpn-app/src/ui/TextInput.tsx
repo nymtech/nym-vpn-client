@@ -5,7 +5,10 @@ import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
 
 export type TextInputProps = {
-  value: string;
+  // default value for uncontrolled input
+  defaultValue?: string;
+  // value for controlled input
+  value?: string;
   onChange: (value: string) => void;
   label?: string;
   placeholder?: string;
@@ -19,6 +22,7 @@ export type TextInputProps = {
 };
 
 function TextInput({
+  defaultValue,
   value,
   onChange,
   spellCheck,
@@ -47,6 +51,7 @@ function TextInput({
         id="passphrase"
         name="passphrase"
         type="text"
+        defaultValue={defaultValue}
         value={value}
         aria-multiline={true}
         className={clsx([

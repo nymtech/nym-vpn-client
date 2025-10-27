@@ -51,6 +51,9 @@
   /* quic tag */
   --color-ozone: #00a3f5;
   --color-azur: #98ddff;
+  /* [L] region node bg & hover */
+  --color-gainsboro: #e1e5ee;
+  --color-nordic-breeze: #d5dae7;
 
   /* daemon dot (dev mode) */
   --color-vert-menthe: #2bc761;

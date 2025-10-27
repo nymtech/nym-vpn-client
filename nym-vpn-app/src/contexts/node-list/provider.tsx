@@ -1,10 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Country, Gateway, GatewaysByCountry, NodeHop } from '../../types';
+import {
+  Country,
+  Gateway,
+  GatewaysByCountry,
+  NodeHop,
+  SelectedNode,
+} from '../../types';
 import { useMainState } from '../main';
 import { useGateways } from '../gateways';
 import { useLang } from '../../hooks';
 import { NodeListContext } from './context';
-import { GwSelectedKind, UiGateway, UiGatewaysByCountry } from './types';
+import {
+  GwSelectedKind,
+  UiCountry,
+  UiGateway,
+  UiGatewaysByCountry,
+  UiRegion,
+} from './types';
 import { isSelectedNodeType } from './util';
 
 export type NodesStateProviderProps = {
@@ -33,46 +45,101 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
 
   const { compare, getCountryName } = useLang();
 
+  const countryToUi: (
+    country: Country,
+    selectedEntry: SelectedNode,
+    selectedExit: SelectedNode,
+  ) => UiCountry = useCallback(
+    (
+      country: Country,
+      selectedEntry: SelectedNode,
+      selectedExit: SelectedNode,
+    ) => {
+      const isCountrySelected = isSelectedNodeType(
+        country,
+        selectedEntry,
+        selectedExit,
+      );
+      return {
+        ...country,
+        nodeType: 'country',
+        isSelected: isCountrySelected,
+      };
+    },
+    [],
+  );
+
+  const gatewaysToUi = useCallback(
+    (
+      gateways: Gateway[],
+      selectedEntry: SelectedNode,
+      selectedExit: SelectedNode,
+    ) => {
+      return gateways.reduce<UiGateway[]>((gwAcc, gw) => {
+        if (quicFilter && !gw.quic) {
+          return gwAcc;
+        }
+        const uiGw: UiGateway = {
+          ...gw,
+          nodeType: 'gateway',
+          isSelected: isSelectedNodeType(
+            gw,
+            selectedEntry,
+            selectedExit,
+          ) as GwSelectedKind,
+        };
+        gwAcc.push(uiGw);
+        return gwAcc;
+      }, []);
+    },
+    [quicFilter],
+  );
+
   const uifyGateways = useCallback(
     (
       list: GatewaysByCountry[],
-      selectedEntry: Country | Gateway,
-      selectedExit: Country | Gateway,
+      selectedEntry: SelectedNode,
+      selectedExit: SelectedNode,
     ) => {
       return list
         .reduce<UiGatewaysByCountry[]>((countryAcc, country) => {
           if (quicFilter && !country.quic) {
             return countryAcc;
           }
-          const isCountrySelected = isSelectedNodeType(
+          const mappedCountry = countryToUi(
             country.country,
             selectedEntry,
             selectedExit,
           );
-          const gateways = country.gateways.reduce<UiGateway[]>((gwAcc, gw) => {
-            if (quicFilter && !gw.quic) {
-              return gwAcc;
-            }
-            const uiGw: UiGateway = {
-              ...gw,
+          const gateways = gatewaysToUi(
+            country.gateways,
+            selectedEntry,
+            selectedExit,
+          );
+          const regions: UiRegion[] = country.regions.map((region) => {
+            const regionGateways = gatewaysToUi(
+              region.gateways,
+              selectedEntry,
+              selectedExit,
+            );
+            return {
+              ...region,
+              nodeType: 'region',
+              gateways: regionGateways,
               isSelected: isSelectedNodeType(
-                gw,
+                region,
                 selectedEntry,
                 selectedExit,
               ) as GwSelectedKind,
             };
-            gwAcc.push(uiGw);
-            return gwAcc;
-          }, []);
+          });
 
           const uiCountry: UiGatewaysByCountry = {
-            country: {
-              ...country.country,
-              isSelected: isCountrySelected,
-            },
-            type: country.type,
+            country: mappedCountry,
+            regions,
             gateways,
-            isSelected: isCountrySelected,
+            type: country.type,
+            isSelected: mappedCountry.isSelected,
             i18n: getCountryName(country.country.code) || country.country.name,
           };
           countryAcc.push(uiCountry);
@@ -80,7 +147,7 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
         }, [])
         .sort((a, b) => compare(a.i18n, b.i18n));
     },
-    [compare, getCountryName, quicFilter],
+    [quicFilter, countryToUi, gatewaysToUi, getCountryName, compare],
   );
 
   const toGatewayList = useCallback(
