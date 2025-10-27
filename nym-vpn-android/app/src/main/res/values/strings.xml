@@ -256,6 +256,7 @@
 	<string name="details_server_load">Server load</string>
 	<string name="details_speed">Speed</string>
 	<string name="details_uptime">Uptime</string>
+	<string name="not_applicable">N/A</string>
 	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update %1$s.</string>
 	<string name="details_exit_ipv4">Exit IPv4</string>
 	<string name="details_exit_ipv6">Exit IPv6</string>
