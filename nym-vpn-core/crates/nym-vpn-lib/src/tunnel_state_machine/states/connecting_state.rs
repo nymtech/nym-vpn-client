@@ -81,6 +81,11 @@ impl ConnectingState {
             .send(DiscoveryRefresherCommand::Pause(true))
             .await
             .ok();
+        shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_up()
+            .await
+            .ok();
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
@@ -133,12 +138,6 @@ impl ConnectingState {
             }
             firewall_policy_params
         };
-
-        // If that fails, it's not really important
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_up()
-            .await;
 
         let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
