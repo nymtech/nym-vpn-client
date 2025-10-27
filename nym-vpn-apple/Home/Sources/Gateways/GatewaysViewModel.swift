@@ -22,7 +22,7 @@ import UIComponents
     @Published var gateways = [GatewayNode]()
     @Published var countries = [NymCountry]()
     @Published var foundCountries = [NymCountry]()
-    @Published var foundUSRegions = [String]()
+    @Published var foundRegions = [(country: NymCountry, region: String)]()
     @Published var foundGateways = [GatewayNode]()
     @Published var scrollToModel: GatewayScrollToModel
     @Published var shouldScroll = false
@@ -112,8 +112,10 @@ private extension GatewaysViewModel {
                 switch type {
                 case .entry:
                     gateways = gatewayManager.entry
+                    countries = gatewayManager.entryCountries
                 case .exit:
                     gateways = gatewayManager.exit
+                    countries = gatewayManager.exitCountries
                 }
             case .wireguard:
                 if shouldShowQuic {
@@ -121,21 +123,9 @@ private extension GatewaysViewModel {
                 } else {
                     gateways = gatewayManager.vpn
                 }
+                countries = gatewayManager.vpnCountries
             }
-            let result = Array(Set(gateways.map { $0.location?.twoLetterIsoCountryCode }))
-                .compactMap { self.gatewayManager.localizedCountry(with: $0) }
-                .sorted {
-                    $0.name.compare(
-                        $1.name,
-                        options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
-                        range: nil,
-                        locale: Locale.current
-                    ) == .orderedAscending
-                }
-            await MainActor.run {
-                self.countries = result
-                self.shouldScroll = true
-            }
+            shouldScroll = true
         }
     }
 
@@ -154,15 +144,27 @@ private extension GatewaysViewModel {
                 || $0.code.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
             }
 
+            // TODO: city update to use new country with found regions or cities
             var seen = Set<String>()
-            let newRegions = gateways
-                .filter { $0.location?.twoLetterIsoCountryCode.caseInsensitiveCompare("US") == .orderedSame }
-                .compactMap { $0.location?.region.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter {
-                    !$0.isEmpty
-                    && $0.range(of: self.searchText, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+            let newCountryRegionPairs: [(country: NymCountry, region: String)] = gateways
+                .compactMap { gateway -> (NymCountry, String)? in
+                    guard let location = gateway.location,
+                          self.gatewayManager.countriesSupportingRegions.contains(
+                            where: {
+                                $0.caseInsensitiveCompare(location.twoLetterIsoCountryCode) == .orderedSame
+                            }
+                          ),
+                          !location.region.isEmpty,
+                          location.region.range(
+                            of: self.searchText, options: [.caseInsensitive, .diacriticInsensitive]
+                          ) != nil,
+                          let country = self.gatewayManager.localizedCountry(with: location.twoLetterIsoCountryCode),
+                          seen.insert(location.region).inserted
+                    else {
+                        return nil
+                    }
+                    return (country, location.region)
                 }
-                .filter { seen.insert($0).inserted }
 
             let newGateways = gateways.filter {
                 $0.name?.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased()) ?? false
@@ -170,7 +172,7 @@ private extension GatewaysViewModel {
             }
             await MainActor.run {
                 self.foundCountries = newCountries
-                self.foundUSRegions = newRegions
+                self.foundRegions = newCountryRegionPairs
                 self.foundGateways = newGateways
             }
         }

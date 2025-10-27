@@ -153,7 +153,7 @@ private extension GatewayCell {
            let country = gatewayManager.localizedCountry(with: countryCode) {
             "\(country.name), \(server.id)"
         } else {
-            server.id
+            server.location?.city ?? server.id
         }
     }
 

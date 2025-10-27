@@ -7,7 +7,7 @@ import ImpactGenerator
 import Theme
 import UIComponents
 
-public struct GatewaysRegionCell: View {
+public struct GatewayRegionCell: View {
     private let hopType: HopType
     private let country: NymCountry
     private let region: String
@@ -76,7 +76,7 @@ public struct GatewaysRegionCell: View {
     }
 }
 
-public extension GatewaysRegionCell {
+public extension GatewayRegionCell {
     @ViewBuilder
     func regionCell() -> some View {
         HStack(spacing: 0) {
@@ -120,7 +120,7 @@ public extension GatewaysRegionCell {
             isHovered = newValue
         }
         .background {
-            isHovered ? NymColor.elevationHover : NymColor.elevation.opacity(0.4)
+            isHovered ? NymColor.elevationHover : NymColor.elevation.opacity(0.6)
         }
     }
 
@@ -159,7 +159,7 @@ public extension GatewaysRegionCell {
     }
 }
 
-public extension GatewaysRegionCell {
+public extension GatewayRegionCell {
     func updateIsRegionSelected() {
         switch scrollToModel {
         case let .region(countryCode: _, region: countryRegion):

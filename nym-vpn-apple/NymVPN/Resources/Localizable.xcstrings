@@ -37618,6 +37618,17 @@
         }
       }
     },
+    "tunnelConnectingState.registeringWithGateways" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registering with gateways"
+          }
+        }
+      }
+    },
     "tunnelConnectingState.resolvingApiAddresses" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -37816,17 +37827,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在选择网关"
-          }
-        }
-      }
-    },
-    "tunnelConnetingState.registeringWithGateways" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registering with gateways"
           }
         }
       }
