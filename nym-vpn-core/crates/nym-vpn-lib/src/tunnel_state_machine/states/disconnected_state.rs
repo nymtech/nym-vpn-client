@@ -37,11 +37,6 @@ impl DisconnectedState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_firewall_policy(shared_state);
 
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_down()
-            .await;
-
         if let Err(e) = shared_state
             .account_command_tx
             .set_resolver_overrides(None)
@@ -49,6 +44,10 @@ impl DisconnectedState {
         {
             trace_err_chain!(e, "Failed to unset static API addresses");
         }
+        let _ = shared_state
+            .account_command_tx
+            .set_vpn_api_firewall_down()
+            .await;
 
         // Drop tombstone to close tunnel devices.
         let _ = tombstone;

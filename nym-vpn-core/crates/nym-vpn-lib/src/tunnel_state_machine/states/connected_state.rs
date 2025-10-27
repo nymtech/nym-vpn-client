@@ -60,6 +60,11 @@ impl ConnectedState {
             .send(DiscoveryRefresherCommand::Pause(false))
             .await
             .ok();
+        shared_state
+            .account_command_tx
+            .set_resolver_overrides(None)
+            .await
+            .ok();
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
