@@ -125,6 +125,9 @@ pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// Timeout for starting the registration client
+const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
+
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
     /// Checking account
@@ -508,25 +511,30 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
-        let rc_builder_config = RegistrationClientBuilderConfig {
-            entry_node,
-            exit_node,
-            data_path: self.tunnel_parameters.nym_config.data_path.clone(),
-            mixnet_client_config,
-            two_hops: self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard,
-            user_agent,
-            custom_topology_provider: Box::new(self.custom_topology_provider.clone()),
-            network_env: self
-                .tunnel_parameters
-                .nym_config
-                .network_env
-                .nym_network
-                .network
-                .clone(),
-            cancel_token: self.shutdown_token.child_token(),
-            #[cfg(unix)]
-            connection_fd_callback: Arc::new(connection_fd_callback),
-        };
+        let rcb_config_builder = RegistrationClientBuilderConfig::builder()
+            .entry_node(entry_node)
+            .exit_node(exit_node)
+            .data_path(self.tunnel_parameters.nym_config.data_path.clone())
+            .mixnet_client_config(mixnet_client_config)
+            .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
+            .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
+            .user_agent(user_agent)
+            .custom_topology_provider(Box::new(self.custom_topology_provider.clone()))
+            .network_env(
+                self.tunnel_parameters
+                    .nym_config
+                    .network_env
+                    .nym_network
+                    .network
+                    .clone(),
+            )
+            .cancel_token(self.shutdown_token.child_token());
+
+        #[cfg(unix)]
+        let rcb_config_builder =
+            rcb_config_builder.connection_fd_callback(Arc::new(connection_fd_callback));
+
+        let rc_builder_config = rcb_config_builder.build();
 
         // Setup shutdown guard to cancel pending tasks that otherwise may continue running upon return
         let shutdown_guard = self.shutdown_token.clone().drop_guard();
