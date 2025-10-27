@@ -18,11 +18,11 @@ pub enum GatewayDirectoryError {
     #[error("failed to select entry gateway")]
     SelectEntryGateway(#[source] nym_gateway_directory::Error),
 
-    #[error("no performant entry gateway available")]
-    PerformantEntryGatewayUnavailable(#[source] nym_gateway_directory::Error),
+    #[error("failed to select any entry gateway after trying all performance tiers")]
+    EntryGatewayUnavailable(#[source] nym_gateway_directory::Error),
 
-    #[error("no performant exit gateway available")]
-    PerformantExitGatewayUnavailable(#[source] nym_gateway_directory::Error),
+    #[error("failed to select any exit gateway after trying all performance tiers")]
+    ExitGatewayUnavailable(#[source] nym_gateway_directory::Error),
 
     #[error("failed to select exit gateway")]
     SelectExitGateway(#[source] nym_gateway_directory::Error),

@@ -125,3 +125,64 @@ impl EntryPoint {
         base_filters
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Gateway, GatewayList, GatewayType, ScoreValue};
+
+    fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gateway {
+        Gateway {
+            identity: NodeIdentity::from_base58_string(identity).unwrap(),
+            name: format!("Test Gateway {}", country),
+            description: None,
+            location: Some(crate::Location {
+                two_letter_iso_country_code: country.to_string(),
+                ..Default::default()
+            }),
+            ipr_address: None,
+            authenticator_address: None,
+            bridge_params: None,
+            last_probe: None,
+            ips: Vec::new(),
+            host: None,
+            clients_ws_port: None,
+            clients_wss_port: None,
+            mixnet_performance: None,
+            performance: Some(crate::Performance {
+                last_updated_utc: "2025-10-22T00:00:00Z".to_string(),
+                score,
+                mixnet_score: ScoreValue::High,
+                load: ScoreValue::Low,
+                uptime_percentage_last_24_hours: 0.99,
+            }),
+            version: None,
+        }
+    }
+
+    #[test]
+    fn test_low_performance_fallback_for_country_selection() {
+        // Previously High -> Medium before failing
+        // Now tries High -> Medium -> Low which allows connection to more gateways
+        let entry_point = EntryPoint::Country {
+            two_letter_iso_country_code: "VN".to_string(),
+        };
+
+        let gateways = GatewayList::new(
+            Some(GatewayType::Wg),
+            vec![create_test_gateway(
+                "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
+                "VN",
+                ScoreValue::Low,
+            )],
+        );
+
+        // Without Low fallback, this would fail
+        let result = entry_point.lookup_gateway(&gateways, Some(ScoreValue::Low));
+        assert!(result.is_ok());
+        assert_eq!(
+            result.unwrap().performance.as_ref().unwrap().score,
+            ScoreValue::Low
+        );
+    }
+}
