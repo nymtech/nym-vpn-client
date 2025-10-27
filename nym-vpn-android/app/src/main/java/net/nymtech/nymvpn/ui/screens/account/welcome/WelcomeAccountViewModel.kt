@@ -33,11 +33,17 @@ class WelcomeAccountViewModel @Inject constructor(
 						checkSubscription()
 					} else {
 						billingManager.initialize()
-						billingManager.uiState
-							.map { it.billingInfo?.responseCode ?: 0 }
-							.filter { it == BillingCode.OK }
+						val response = billingManager.uiState
+							.map { it.billingInfo?.responseCode ?: BillingCode.UNKNOWN }
 							.first()
-						checkSubscription()
+
+						if (response == BillingCode.BILLING_UNAVAILABLE || response == BillingCode.UNKNOWN) {
+							_loading.emit(false)
+							return@launch
+						}
+						if (response == BillingCode.OK) {
+							checkSubscription()
+						}
 					}
 				} finally {
 					_loading.emit(false)
