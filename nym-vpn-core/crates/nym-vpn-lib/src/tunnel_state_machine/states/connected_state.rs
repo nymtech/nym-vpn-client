@@ -167,10 +167,13 @@ impl ConnectedState {
 
     #[cfg(target_os = "macos")]
     async fn reset_dns(shared_state: &mut SharedState) {
-        // On macOS, configure only the local DNS resolver
+        // Disable forwarding (Blocking mode for captive portal support)
         if *LOCAL_DNS_RESOLVER {
             shared_state.filtering_resolver.disable_forward().await;
-        } else if let Err(error) = shared_state.dns_handler.reset().await {
+        }
+
+        // Reset system DNS to pre-VPN backup to allow API hostname resolution during reconnection
+        if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Failed to reset DNS");
         }
     }
