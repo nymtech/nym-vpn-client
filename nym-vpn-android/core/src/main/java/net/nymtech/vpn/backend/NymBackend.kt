@@ -270,6 +270,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return nym_vpn_lib.currentEnvironment()
 	}
 
+	override suspend fun updateAccountState() {
+		nym_vpn_lib.updateAccountState()
+	}
+
 	override suspend fun getSystemMessages(): List<SystemMessage> {
 		return withContext(ioDispatcher) {
 			initialized.await()

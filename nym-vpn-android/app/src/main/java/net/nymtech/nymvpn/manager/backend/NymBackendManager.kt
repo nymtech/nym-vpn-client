@@ -129,6 +129,7 @@ class NymBackendManager @Inject constructor(
 
 	override suspend fun startTunnel() {
 		runCatching {
+			backend.await().updateAccountState()
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
 				entryPoint = getEntryPoint(),

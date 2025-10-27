@@ -29,6 +29,8 @@ interface Backend {
 
 	suspend fun getCurrentEnvironment(): Network
 
+	suspend fun updateAccountState()
+
 	suspend fun start(tunnel: Tunnel, userAgent: UserAgent)
 
 	suspend fun stop()
