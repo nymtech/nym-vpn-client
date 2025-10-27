@@ -28,7 +28,10 @@ pub use nym_sdk::{
 
 pub use crate::{
     error::GatewayDirectoryError,
-    mixnet::{MixnetError, VpnTopologyProvider},
+    mixnet::{
+        DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
+        VpnTopologyProvider,
+    },
 };
 
 /// Default DNS servers.

@@ -4,9 +4,12 @@
 use super::error::{Error, Result};
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib::tunnel_state_machine::{
-    DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
-    WireguardMultihopMode, WireguardTunnelOptions,
+use nym_vpn_lib::{
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE,
+    tunnel_state_machine::{
+        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
+        WireguardMultihopMode, WireguardTunnelOptions,
+    },
 };
 use nym_vpn_lib_types::{
     EntryPoint, ExitPoint, NodeIdentity, Recipient, TunnelEvent, TunnelType, VpnServiceConfig,
@@ -357,8 +360,14 @@ impl VpnServiceConfigManager {
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: self.config.disable_poisson_rate,
             disable_background_cover_traffic: self.config.disable_background_cover_traffic,
-            min_mixnode_performance: self.config.min_mixnode_performance,
-            min_gateway_performance: self.config.min_gateway_mixnet_performance,
+            min_mixnode_performance: self
+                .config
+                .min_mixnode_performance
+                .unwrap_or(DEFAULT_MIN_MIXNODE_PERFORMANCE),
+            min_gateway_performance: self
+                .config
+                .min_gateway_mixnet_performance
+                .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
         };
 
         let tunnel_type = if self.config.enable_two_hop {

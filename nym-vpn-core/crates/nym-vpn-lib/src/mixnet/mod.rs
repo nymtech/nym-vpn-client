@@ -11,3 +11,6 @@ pub use processor::start_processor;
 
 pub use error::MixnetError;
 pub use topology_provider::VpnTopologyProvider;
+
+pub const DEFAULT_MIN_MIXNODE_PERFORMANCE: u8 = 50;
+pub const DEFAULT_MIN_GATEWAY_PERFORMANCE: u8 = 50;
