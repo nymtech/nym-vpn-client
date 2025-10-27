@@ -8,9 +8,8 @@ use nym_connection_monitor::{
     TimingConfig,
 };
 use nym_registration_client::{
-    MixnetRegistrationResult, RegistrationClientBuilder,
-    RegistrationClientBuilderConfigBuilder as RcbConfigBuilder, RegistrationNymNode,
-    RegistrationResult, WireguardRegistrationResult,
+    MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
+    RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
@@ -125,6 +124,9 @@ pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent
 
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Timeout for starting the registration clien
+const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
@@ -509,12 +511,12 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
-        let mut rcb_config_builder = RcbConfigBuilder::default()
+        let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
             .data_path(self.tunnel_parameters.nym_config.data_path.clone())
             .mixnet_client_config(mixnet_client_config)
-            // Here goes desired timeout .mixnet_client_startup_timeout()
+            .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(self.custom_topology_provider.clone()))
@@ -529,17 +531,10 @@ impl TunnelMonitor {
             .cancel_token(self.shutdown_token.child_token());
 
         #[cfg(unix)]
-        {
-            rcb_config_builder =
-                rcb_config_builder.connection_fd_callback(Arc::new(connection_fd_callback));
-        }
+        let rcb_config_builder =
+            rcb_config_builder.connection_fd_callback(Arc::new(connection_fd_callback));
 
-        #[allow(clippy::expect_used)]
-        // SAFETY : We have to assign all the needed fields above. If we don't it's a critical code error and has to be fixed.
-        // With correct code, this cannot fail
-        let rc_builder_config = rcb_config_builder
-            .build()
-            .expect("Missing fields when creating the config");
+        let rc_builder_config = rcb_config_builder.build();
 
         // Setup shutdown guard to cancel pending tasks that otherwise may continue running upon return
         let shutdown_guard = self.shutdown_token.clone().drop_guard();
