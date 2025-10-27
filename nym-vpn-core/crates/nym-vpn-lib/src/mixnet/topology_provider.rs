@@ -6,18 +6,18 @@ use std::sync::Arc;
 use crate::mixnet::error::MixnetError;
 use async_trait::async_trait;
 use nym_http_api_client::{Url, UserAgent};
-use nym_vpn_api_client::{fronted_http_client, ResolverOverrides};
+use nym_vpn_api_client::{ResolverOverrides, fronted_http_client};
 use tokio::{
     sync::{
-        mpsc::{UnboundedReceiver, UnboundedSender}, oneshot,
-        Mutex,
-        RwLock,
+        Mutex, RwLock,
+        mpsc::{UnboundedReceiver, UnboundedSender},
+        oneshot,
     },
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
 
-use nym_client_core::{client::topology_control::nym_api_provider::Config, NymTopology};
+use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::Config};
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider};
 
 enum FetcherCommand {
