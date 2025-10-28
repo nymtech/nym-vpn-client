@@ -1,0 +1,2 @@
+-keep class net.nymtech.billing.** { *; }
+-dontwarn java.lang.invoke.StringConcatFactory

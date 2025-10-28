@@ -19,6 +19,7 @@ fun MainStyledButton(
 	content: @Composable () -> Unit,
 	color: Color = MaterialTheme.colorScheme.primary,
 	modifier: Modifier = Modifier,
+	enabled: Boolean = true,
 ) {
 	Button(
 		onClick = { onClick() },
@@ -26,6 +27,7 @@ fun MainStyledButton(
 		ButtonDefaults.buttonColors(
 			containerColor = color,
 		),
+		enabled = enabled,
 		contentPadding = PaddingValues(),
 		modifier =
 		modifier.testTag(testTag ?: "").defaultMinSize(1.dp, 1.dp),

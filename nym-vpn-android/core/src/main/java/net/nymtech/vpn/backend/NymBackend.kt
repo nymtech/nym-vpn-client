@@ -26,6 +26,7 @@ import net.nymtech.vpn.util.exceptions.BackendException
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
+import nym_vpn_lib.AccountRegistrationArgs
 import nym_vpn_lib.AndroidConnectivityMonitor
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.NymVpnLibConfig
@@ -237,8 +238,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				return@withContext true
 			}
 			Timber.d(
-				"Client is incompatible with current network version. " +
-					"Client: $currentVersion, Network: $compatibleVersion",
+				"Client is incompatible with current network version. " + "Client: $currentVersion, Network: $compatibleVersion",
 			)
 			return@withContext false
 		}
@@ -268,6 +268,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	override suspend fun getCurrentEnvironment(): Network {
 		return nym_vpn_lib.currentEnvironment()
+	}
+
+	override suspend fun updateAccountState() {
+		nym_vpn_lib.updateAccountState()
 	}
 
 	override suspend fun getSystemMessages(): List<SystemMessage> {
@@ -352,6 +356,23 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
+	override suspend fun createAccount() {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			nym_vpn_lib.createAccount()
+			nym_vpn_lib.updateAccountState()
+		}
+	}
+
+	override suspend fun registerAccount(token: String): String {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			val response = nym_vpn_lib.registerAccount(AccountRegistrationArgs(token))
+			nym_vpn_lib.updateAccountState()
+			response.accountToken
+		}
+	}
+
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
 	)
@@ -406,6 +427,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return state
 	}
 
+	override suspend fun getStoredMnemonic() = nym_vpn_lib.getStoredMnemonic()
+
 	override fun onEvent(event: TunnelEvent) {
 		when (event) {
 			is TunnelEvent.MixnetState -> {
@@ -420,6 +443,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			is TunnelEvent.AccountState -> {
 				tunnel?.onBackendEvent(BackendEvent.AccountState(event.v1))
 			}
+
 			is TunnelEvent.ConfigChanged -> {
 				tunnel?.onBackendEvent(BackendEvent.ConfigChanged(event.v1))
 			}

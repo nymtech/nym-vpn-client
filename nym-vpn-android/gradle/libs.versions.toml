@@ -33,6 +33,7 @@ desugar = "2.1.5"
 zxingAndroidEmbedded = "4.3.0"
 sentry = "8.13.2"
 billing-client = "8.0.0"
+okhttp = "4.12.0"
 
 gradlePlugins-licensee = "1.13.0"
 gradlePlugins-detekt = "1.23.8"
@@ -40,6 +41,7 @@ gradlePlugins-gross = "0.4.4"
 material = "1.12.0"
 gradlePlugins-ktlint="12.2.0"
 gradlePlugins-grgit="5.3.2"
+appcompat = "1.7.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -106,6 +108,10 @@ sentry = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 
 #billing
 billing-client = { module = "com.android.billingclient:billing-ktx", version.ref = "billing-client" }
+
+#sentry
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 
 [plugins]
