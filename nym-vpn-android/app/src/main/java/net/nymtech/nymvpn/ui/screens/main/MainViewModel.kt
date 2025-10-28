@@ -60,6 +60,10 @@ constructor(
 		settingsRepository.setStatsDialogSkipped(true)
 	}
 
+	fun onStreamingServerBannerDisplayed() = viewModelScope.launch {
+		settingsRepository.setIsStreamServerBannerDisplayed(true)
+	}
+
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {
 		if (tunnelState == Tunnel.State.Up && connectedAt != null) {
 			startConnectionTimer(connectedAt)

@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -41,6 +42,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 	var navBarState by remember { mutableStateOf(NavBarState()) }
 	var showLocationTooltip by remember { mutableStateOf(false) }
+	var showExitServerTooltip by remember { mutableStateOf(false) }
 
 	LaunchedEffect(navBackStackEntry) {
 		keyboardController?.hide()
@@ -82,7 +84,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				title = { NavTitle(stringResource(R.string.exit)) },
 				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
-				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
+				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showExitServerTooltip = true } },
 			)
 			currentRoute.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.logs)) },
@@ -211,6 +213,12 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 		showLocationTooltip = showLocationTooltip,
 		onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) },
 		onDismiss = { showLocationTooltip = false },
+	)
+
+	ExitServerDetailsModal(
+		showModal = showExitServerTooltip,
+		onClick = { context.openWebUrl(it) },
+		onDismiss = { showExitServerTooltip = false },
 	)
 
 	AnimatedVisibility(

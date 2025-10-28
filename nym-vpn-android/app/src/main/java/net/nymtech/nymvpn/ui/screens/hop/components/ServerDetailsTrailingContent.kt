@@ -1,0 +1,61 @@
+package net.nymtech.nymvpn.ui.screens.hop.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.VerticalDivider
+import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
+import net.nymtech.nymvpn.ui.theme.iconSize
+import nym_vpn_lib_types.AsnKind
+
+@Composable
+internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnKind: AsnKind?, onInfoIconClick: () -> Unit) {
+	Box(
+		modifier = Modifier.fillMaxHeight(),
+		contentAlignment = Alignment.Center,
+	) {
+		val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && asnKind == AsnKind.RESIDENTIAL
+		Row(
+			horizontalArrangement = Arrangement.spacedBy(if (showStreamDisplay) 12.dp else 16.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier
+				.padding(end = 16.dp)
+				.clickable {
+					onInfoIconClick()
+				},
+		) {
+			if (showStreamDisplay) {
+				Icon(
+					imageVector = ImageVector.vectorResource(R.drawable.smart_display),
+					contentDescription = stringResource(R.string.stream_display),
+					modifier = Modifier.size(iconSize),
+					tint = Color.Unspecified,
+				)
+			} else {
+				VerticalDivider(modifier = Modifier.height(42.dp))
+			}
+			Icon(
+				Icons.Outlined.Info,
+				contentDescription = stringResource(R.string.info),
+				modifier = Modifier.size(iconSize),
+			)
+		}
+	}
+}
