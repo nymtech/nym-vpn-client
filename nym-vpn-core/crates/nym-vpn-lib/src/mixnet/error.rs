@@ -17,4 +17,7 @@ pub enum MixnetError {
 
     #[error("failed to join on mixnet listener")]
     JoinMixnetListener(#[source] tokio::task::JoinError),
+
+    #[error("failed to create Topology Provider HTTP client")]
+    CreateHTTPClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
 }

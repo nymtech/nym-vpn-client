@@ -8,7 +8,7 @@ import {
 } from '../../types';
 import { useMainDispatch, useMainState } from '../main';
 import { CCache } from '../../cache';
-import { DefaultCountry, GatewaysCacheDuration } from '../../constants';
+import { DefaultNode, GatewaysCacheDuration } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { exists, getStateProps, gwTypeToCacheKey } from './util';
 import { GatewaysContext, initialState } from './context';
@@ -36,10 +36,10 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
           type: 'set-node',
           payload: {
             hop: nodeType,
-            node: DefaultCountry,
+            node: DefaultNode,
           },
         });
-        await kvSet(`${nodeType}-node`, DefaultCountry);
+        await kvSet(`${nodeType}-node`, DefaultNode);
         // TODO notify user
       }
     },

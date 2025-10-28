@@ -426,10 +426,20 @@ impl GatewayClient {
 
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         debug!("Fetching {gw_type} gateways from nym-vpn-api...");
-        let gateways: Vec<_> = self
+        let raw_gateways = self
             .vpn_api_client
             .get_gateways_by_type(gw_type.into(), self.min_gateway_performance)
-            .await?
+            .await?;
+
+        let raw_gateways_vec = raw_gateways.into_inner();
+
+        tracing::debug!(
+            "VPN-API returned {} raw gateways for {:?}",
+            raw_gateways_vec.len(),
+            gw_type
+        );
+
+        let gateways: Vec<_> = raw_gateways_vec
             .into_iter()
             .filter_map(|gw| {
                 Gateway::try_from(gw)
@@ -437,6 +447,13 @@ impl GatewayClient {
                     .ok()
             })
             .collect();
+
+        tracing::debug!(
+            "Successfully parsed {} gateways for {:?}",
+            gateways.len(),
+            gw_type
+        );
+
         Ok(GatewayList::new(Some(gw_type), gateways))
     }
 }

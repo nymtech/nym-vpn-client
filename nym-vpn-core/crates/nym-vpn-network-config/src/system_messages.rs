@@ -157,19 +157,27 @@ impl From<SystemMessageResponse> for SystemMessage {
             })
             .ok();
 
-        let display_until = OffsetDateTime::parse(&response.display_until, &Rfc3339)
-            .inspect_err(|e| {
-                tracing::warn!(
-                    "Failed to parse display_until ({}): {}",
-                    response.display_until,
-                    e
-                )
-            })
-            .ok();
+        let display_until = if !response.display_until.is_empty() {
+            OffsetDateTime::parse(&response.display_until, &Rfc3339)
+                .inspect_err(|e| {
+                    tracing::warn!(
+                        "Failed to parse display_until ({}): {}",
+                        response.display_until,
+                        e
+                    )
+                })
+                .ok()
+        } else {
+            None
+        };
 
-        let properties = Properties::deserialize(response.properties)
-            .inspect_err(|e| tracing::warn!("Failed to parse properties: {}", e))
-            .ok();
+        let properties = if !response.properties.is_null() {
+            Properties::deserialize(response.properties)
+                .inspect_err(|e| tracing::warn!("Failed to parse properties: {}", e))
+                .ok()
+        } else {
+            None
+        };
 
         Self {
             name: response.name,

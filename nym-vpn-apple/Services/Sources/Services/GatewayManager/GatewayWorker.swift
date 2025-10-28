@@ -50,23 +50,33 @@ actor GatewayWorker {
 #endif
 
     func countries(from nodes: [GatewayNode]) -> [NymCountry] {
-        var regionsByCode: [String: Set<String>] = [:]
+        // countryCode → regionName → Set<cityName>
+        var citiesByRegionByCountry: [String: [String: Set<String>]] = [:]
         nodes.compactMap(\.location).forEach { location in
             let code = location.twoLetterIsoCountryCode.uppercased()
             let region = location.region.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !region.isEmpty else { return }
-            regionsByCode[code, default: []].insert(region)
+            let city = location.city.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            guard !region.isEmpty, !city.isEmpty else { return }
+
+            citiesByRegionByCountry[code, default: [:]][region, default: []].insert(city)
         }
+
         var result: [NymCountry] = []
-        result.reserveCapacity(regionsByCode.count)
+        result.reserveCapacity(citiesByRegionByCountry.count)
 
-        for (code, regionsSet) in regionsByCode {
-            let regions = regionsSet.sorted {
-                $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
-            }
-            result.append(NymCountry(name: code, code: code, regions: regions)) // name will be localized on main
+        for (code, regionsDict) in citiesByRegionByCountry {
+            let regions: [NymCountry.Region] = regionsDict
+                .map { regionName, citiesSet in
+                    let cities = citiesSet.sorted {
+                        $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
+                    }
+                    return NymCountry.Region(name: regionName, cities: cities)
+                }
+                .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+            result.append(NymCountry(name: code, code: code, regions: regions)) // name localized later
         }
-
         result.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         return result
     }

@@ -15,8 +15,6 @@ extension EntryGateway {
             .random
         case let .region(countryCode: _, region: region):
             .region(region: region)
-        case let .city(city):
-            .random
         }
     }
 }

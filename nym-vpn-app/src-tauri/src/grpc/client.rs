@@ -2,7 +2,7 @@ pub use super::{
     account_links::AccountLinks,
     error::VpndError,
     feature_flags::FeatureFlags,
-    node::NodeConnect,
+    node::Node,
     system_message::SystemMessage,
     vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
 };
@@ -276,8 +276,8 @@ impl GrpcClient {
     #[allow(clippy::too_many_arguments)]
     pub async fn vpn_connect(
         &self,
-        entry_node: NodeConnect,
-        exit_node: NodeConnect,
+        entry_node: Node,
+        exit_node: Node,
         two_hop_mod: bool,
         credentials_mode: bool,
         netstack: bool,
