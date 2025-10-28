@@ -19,6 +19,7 @@ use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
+use crate::types::AvailableBandwidth;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
 const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
@@ -205,17 +206,31 @@ impl TemporaryBandwidthClient {
         }
     }
 
-    pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, String> {
+    pub(crate) async fn query_bandwidth(&mut self) -> Result<AvailableBandwidth, String> {
         match self {
-            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
-                .query_bandwidth()
-                .await
-                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
-                .ok_or("No such peer on the gateway".to_string()),
-            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
-                .query_bandwidth()
-                .await
-                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth")),
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+                let response = authenticator_client
+                    .query_bandwidth()
+                    .await
+                    .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?;
+                let Some(bandwidth_bytes) = response.available_bandwidth_bytes else {
+                    return Err("No such peer on the gateway".to_string());
+                };
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes,
+                    upgrade_mode: response.current_upgrade_mode_status.into(),
+                })
+            }
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                let response = metadata_client
+                    .query_bandwidth()
+                    .await
+                    .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?;
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes: response.bandwidth_bytes,
+                    upgrade_mode: response.upgrade_mode,
+                })
+            }
         }
     }
 
@@ -232,24 +247,37 @@ impl TemporaryBandwidthClient {
         &mut self,
         credential: nym_credentials_interface::CredentialSpendingData,
         ticketbook_type: TicketType,
-    ) -> Result<i64, SpecificGatewayError> {
+    ) -> Result<AvailableBandwidth, SpecificGatewayError> {
         match self {
-            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
-                .top_up(credential)
-                .await
-                .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
-                    gateway_id: self.gateway_id().to_string(),
-                    ticketbook_type,
-                    source: Box::new(source),
-                }),
-            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
-                .topup_bandwidth(credential)
-                .await
-                .map_err(|source| SpecificGatewayError::TopUpWireguard {
-                    gateway_id: self.gateway_id().to_string(),
-                    ticketbook_type,
-                    source: Box::new(source),
-                }),
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+                let response = authenticator_client
+                    .top_up(credential)
+                    .await
+                    .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
+                        gateway_id: self.gateway_id().to_string(),
+                        ticketbook_type,
+                        source: Box::new(source),
+                    })?;
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes: response.remaining_bandwidth_bytes,
+                    upgrade_mode: response.current_upgrade_mode_status.into(),
+                })
+            }
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                let response =
+                    metadata_client
+                        .topup_bandwidth(credential)
+                        .await
+                        .map_err(|source| SpecificGatewayError::TopUpWireguard {
+                            gateway_id: self.gateway_id().to_string(),
+                            ticketbook_type,
+                            source: Box::new(source),
+                        })?;
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes: response.bandwidth_bytes,
+                    upgrade_mode: response.upgrade_mode,
+                })
+            }
         }
     }
 }
@@ -317,6 +345,30 @@ impl BandwidthController {
         )
     }
 
+    fn wg_metadata_client(&mut self, entry: bool) -> &mut TemporaryBandwidthClient {
+        if entry {
+            &mut self.wg_entry_gateway_client
+        } else {
+            &mut self.wg_exit_gateway_client
+        }
+    }
+
+    fn gateway_id(&self, entry: bool) -> nym_gateway_directory::NodeIdentity {
+        if entry {
+            self.wg_entry_gateway_client.gateway_id()
+        } else {
+            self.wg_exit_gateway_client.gateway_id()
+        }
+    }
+
+    fn depletion_rate(&mut self, entry: bool) -> &mut DepletionRate {
+        if entry {
+            &mut self.entry_depletion_rate
+        } else {
+            &mut self.exit_depletion_rate
+        }
+    }
+
     pub(crate) fn is_using_latest_client(&self) -> bool {
         matches!(
             self.wg_entry_gateway_client,
@@ -366,11 +418,18 @@ impl BandwidthController {
     }
 
     pub(crate) async fn top_up_bandwidth(
-        ticket_provider: &dyn BandwidthTicketProvider,
+        &mut self,
+        entry: bool,
         ticketbook_type: TicketType,
-        bw_client: &mut TemporaryBandwidthClient,
-    ) -> Result<i64, SpecificGatewayError> {
-        let credential = ticket_provider
+    ) -> Result<AvailableBandwidth, SpecificGatewayError> {
+        let bw_client = if entry {
+            &mut self.wg_entry_gateway_client
+        } else {
+            &mut self.wg_exit_gateway_client
+        };
+
+        let credential = self
+            .ticket_provider
             .get_ecash_ticket(
                 ticketbook_type,
                 bw_client.gateway_id(),
@@ -389,77 +448,96 @@ impl BandwidthController {
         Ok(remaining_bandwidth)
     }
 
-    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
-        let (wg_metadata_client, current_depletion_rate) = if entry {
-            (
-                &mut self.wg_entry_gateway_client,
-                &mut self.entry_depletion_rate,
-            )
+    async fn handle_bandwidth_query_error(&mut self, entry: bool, err: String) {
+        tracing::warn!("{err}");
+        let gateway_id = self.gateway_id(entry);
+        if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query)
+        {
+            tracing::error!("gateway {gateway_id} is erroring out",);
+            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
+            if self.successful_checks != 0 {
+                self.shutdown_token.cancel();
+            }
         } else {
-            (
-                &mut self.wg_exit_gateway_client,
-                &mut self.exit_depletion_rate,
-            )
-        };
+            if entry {
+                self.entry_previous_error_query = true;
+            } else {
+                self.exit_previous_error_query = true;
+            }
+            tracing::info!(
+                "Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway",
+                if entry {
+                    "entry".to_string()
+                } else {
+                    "exit".to_string()
+                }
+            );
+        }
+    }
 
+    async fn handle_bandwidth_query(
+        &mut self,
+        entry: bool,
+        current_period: Duration,
+        query_result: AvailableBandwidth,
+    ) -> Option<Duration> {
+        let remaining_bandwidth = query_result.bandwidth_bytes;
+        // todo!("if un upgrade mode -> don't change anything");
+        // todo!("if change in upgrade mode state -> inform AC");
+
+        self.successful_checks += 1;
+
+        if entry {
+            self.entry_previous_error_query = false;
+        } else {
+            self.exit_previous_error_query = false;
+        }
+
+        let current_depletion_rate = self.depletion_rate(entry);
+        match current_depletion_rate
+            .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
+        {
+            Err(e) => tracing::warn!("Error while updating query coefficients: {:?}", e),
+            Ok(Some(new_duration)) => {
+                tracing::debug!(
+                    "Adjusting check interval to {} seconds",
+                    new_duration.as_secs()
+                );
+                return Some(new_duration);
+            }
+            Ok(None) => {
+                let ticketbook_type = if entry {
+                    TicketType::V1WireguardEntry
+                } else {
+                    TicketType::V1WireguardExit
+                };
+                tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
+
+                if let Err(e) = self.top_up_bandwidth(entry, ticketbook_type).await {
+                    tracing::warn!("Error topping up with more bandwidth {:?}", e);
+                    // TODO: try to return this error in the JoinHandle instead
+                    // For now let's keep the old behavior of stopping
+                    self.shutdown_token.cancel();
+                }
+            }
+        }
+        None
+    }
+
+    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
+        let wg_metadata_client = if entry {
+            &mut self.wg_entry_gateway_client
+        } else {
+            &mut self.wg_exit_gateway_client
+        };
         tokio::select! {
             _ = self.shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
             ret = wg_metadata_client.query_bandwidth() => {
                 match ret {
-                    Ok(remaining_bandwidth) => {
-                        self.successful_checks += 1;
-
-                        if entry {
-                            self.entry_previous_error_query = false;
-                        } else {
-                            self.exit_previous_error_query = false;
-                        }
-                        match current_depletion_rate
-                            .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
-                        {
-                            Err(e) => tracing::warn!("Error while updating query coefficients: {:?}", e),
-                            Ok(Some(new_duration)) => {
-                                tracing::debug!("Adjusting check interval to {} seconds", new_duration.as_secs());
-                                return Some(new_duration);
-                            }
-                            Ok(None) => {
-                                let ticketbook_type = if entry {
-                                    TicketType::V1WireguardEntry
-                                } else {
-                                    TicketType::V1WireguardExit
-                                };
-                                tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
-                                if let Err(e) = Self::top_up_bandwidth(&*self.ticket_provider, ticketbook_type, wg_metadata_client)
-                                    .await
-                                {
-                                    tracing::warn!("Error topping up with more bandwidth {:?}", e);
-                                    // TODO: try to return this error in the JoinHandle instead
-                                    // For now let's keep the old behavior of stopping
-                                    self.shutdown_token.cancel();
-                                }
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        tracing::warn!("{e}");
-                        if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query) {
-                            tracing::error!("gateway {} is erroring out", wg_metadata_client.gateway_id());
-                            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
-                            if self.successful_checks != 0 {
-                                self.shutdown_token.cancel();
-                            }
-                        } else {
-                            if entry {
-                                self.entry_previous_error_query = true;
-                            } else {
-                                self.exit_previous_error_query = true;
-                            }
-                            tracing::info!("Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
-                        }
-
-                    }
+                    Ok(query_res) => return self.handle_bandwidth_query(entry, current_period, query_res).await,
+                    Err(err) => self.handle_bandwidth_query_error(entry, err).await,
                 }
             }
         }
