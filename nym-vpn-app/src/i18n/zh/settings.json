@@ -49,7 +49,9 @@
       "warning": "更改将在重新连接后应用",
       "content": "伪装API请求，允许域绕过VPN 块。当标准连接尝试失败时，NymVPN 会自动使用。",
       "link": "SteomAPI连接模式工作方式"
-    }
+    },
+    "snackbar-switch-on": "增强连接 (QUIC 协议) 将在您重新连接时激活。",
+    "snackbar-switch-off": "增强连接 (QUIC 协议) 将在您重新连接时停用。"
   },
   "faq": "FAQ-常见问题",
   "display-theme": "显示模式",

@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "Aguardando a prontidão da conta…",
     "refreshing-gateways": "Atualizando gateways…",
     "selecting-gateways": "Selecionando gateways…",
-    "connecting-mixnet-client": "Conectando-se ao cliente do mixnet…",
+    "registering-with-gateways": "Registrando com gateways…",
     "connecting-tunnel": "Conectando-se ao túnel VPN…"
   },
   "connection-attempt_one": "tentando novamente… tentativa {{count}}",

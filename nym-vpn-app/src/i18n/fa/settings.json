@@ -36,20 +36,22 @@
     "daemon": "گزارش‌های دیمون"
   },
   "anti-censorship": {
-    "title": "Anti-censorship",
+    "title": "مقابله با سانسور اینترنتی",
     "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
     "quic": {
-      "label": "Enhanced connection (QUIC)",
-      "warning": "Changes will apply after reconnect",
-      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
-      "link": "How QUIC improves connections"
+      "label": "اتصال بهبود یافته (QUIC)",
+      "warning": "تغییرات پس از اتصال مجدد اعمال خواهند شد",
+      "content": "قابلیت اطمینان حالت سریع (Fast Mode) را در شبکه‌های محدود بهبود می‌بخشد؛ با پوشاندن ترافیک WireGuard در پروتکل QUIC ‏(HTTP/3) تا شبیه ترافیک معمول در وب گردی به‌نظر برسد.\n\nنکته: گزینه‌های سرور ورودی را فقط به گِت‌وی سازگار با QUIC محدود می‌کند.",
+      "link": "QUIC چگونه کیفیت اتصال‌ها را بهتر می‌کند"
     },
     "stealth-api": {
-      "label": "Stealth API connect",
-      "warning": "Changes will apply after reconnect",
-      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
-      "link": "How the Stealth API connect mode works"
-    }
+      "label": "اتصال Stealth API",
+      "warning": "تغییرات پس از اتصال مجدد اعمال خواهند شد",
+      "content": "درخواست‌های API را پشت دامنه‌های محبوب و مجاز مخفی می‌کند تا از مسدود شدن VPN جلوگیری کند. هنگامی که تلاش‌های اتصال استاندارد ناموفق باشند، NymVPN به‌صورت خودکار از این روش استفاده می‌کند.",
+      "link": "چگونه حالت اتصال Stealth API کار می‌کند"
+    },
+    "snackbar-switch-on": "ارتباط بهبود یافته (پروتکل QUIC) هنگام اتصال مجدد فعال خواهد شد.",
+    "snackbar-switch-off": "ارتباط بهبود یافته (پروتکل QUIC) هنگام اتصال مجدد غیرفعال خواهد شد."
   },
   "faq": "پرسش‌های متداول",
   "display-theme": "حالت نمایش",
@@ -85,7 +87,7 @@
     "network-stats": {
       "label": "آمار ناشناس شبکه",
       "sublabel": "تغییرات پس از راه‌اندازی مجدد daemon اعمال خواهند شد.",
-      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "desc": "با اشتراک‌گذاری ناشناس دادهای عملکردی منطقه‌ی خودتان به ما در ساختن شبکه‌ای سریع‌تر کمک کنید.\nما از این داده‌ها برای بهینه‌سازی سرعت، کاهش قطعی‌ها و گسترش پوشش سرورها در مناطقی که بیشترین نیاز وجود دارد استفاده می‌کنیم.\n\nفقط داده‌های مربوط به عملکرد شبکه به اشتراک گذاشته می‌شود — هرگز فعالیت وب‌گردی شما یا اطلاعات شخصی‌تان منتقل نخواهد شد.",
       "link": "دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است"
     }
   },

@@ -5,6 +5,7 @@
   "selected": "選択中",
   "search-country": "国を検索",
   "input-label": "検索",
+  "quic-filter-note": "QUICプロトコルをサポートするファストモードの場所とサーバーのみを表示します。すべてのサーバーを表示するには、QUIC <here /> をオフにします。",
   "location-details": {
     "title": "サーバーの場所に関する詳細",
     "description": "サーバーの位置はIPアドレスに基づいて推測していますが、実際の位置とはわずかに異なる場合があります。",

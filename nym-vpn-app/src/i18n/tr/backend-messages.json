@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "Hesabın hazır olması bekleniyor…",
     "refreshing-gateways": "Gateway'ler yenileniyor…",
     "selecting-gateways": "Gateway'ler seçiliyor…",
-    "connecting-mixnet-client": "Mixnet istemcisine bağlanılıyor…",
+    "registering-with-gateways": "Registering with gateways…",
     "connecting-tunnel": "VPN tüneline bağlanıyor…"
   },
   "connection-attempt_one": "tekrar deneniyor… {{count}}. deneme",
