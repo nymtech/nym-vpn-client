@@ -38,7 +38,7 @@ export const LocationDetailsArticle =
 export const ModesDetailsArticle =
   'https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode';
 export const SentryHomePage = 'https://sentry.io/';
-export const GatewaysCacheDuration = 300; // 5min
+export const GatewaysCacheDuration = 120; // 2min
 export const NymVpnPricingUrl = 'https://nym.com/pricing';
 export const SentryPrivacyPolicyUrl = 'https://sentry.io/privacy/';
 export const AnonNetworkStatsUrl = 'https://nym.com/anonymous-stats';
@@ -48,3 +48,4 @@ export const IpInfoIoUrl = 'https://ipinfo.io';
 export const SupportServerLocationUrl =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const NetworkExplorerNodeUrl = 'https://nym.com/explorer/nym-node';
+export const countriesWithRegions = ['US', 'CA', 'AU', 'MX', 'BR', 'IN', 'CN'];

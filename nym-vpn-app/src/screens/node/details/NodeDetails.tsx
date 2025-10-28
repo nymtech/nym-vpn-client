@@ -49,7 +49,14 @@ function NodeDetails() {
   const { reset: resetSaved } = useNodeListState();
 
   const { gateway, hop } = location.state;
-  const { country, exitIpv4, exitIpv6, asn, buildVersion } = gateway;
+  const {
+    country,
+    exitIpv4,
+    exitIpv6,
+    asn,
+    buildVersion,
+    location: gwLocation,
+  } = gateway;
   const isGoodIp = asn?.type === 'residential';
   const serverLoad = gateway?.wgPerformance?.load;
   const uptime = gateway?.wgPerformance?.uptime24h;
@@ -281,6 +288,18 @@ function NodeDetails() {
       })
     : t('node-details.notes.performance');
 
+  const serverLocation = () => {
+    const components = [];
+    if (gwLocation.city.length > 0) {
+      components.push(gwLocation.city);
+    }
+    if (gwLocation.region.length > 0) {
+      components.push(gwLocation.region);
+    }
+    components.push(getCountryName(country.code) || country.name);
+    return components.join(', ');
+  };
+
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 cursor-default">
       <h1 className="text-lg font-medium dark:text-white break-words">
@@ -293,7 +312,7 @@ function NodeDetails() {
           className="h-6"
         />
         <div className="text-lg" data-testid="node-details-country-name">
-          {getCountryName(country.code) || country.name}
+          {serverLocation()}
         </div>
       </div>
       {gateway.description && (
