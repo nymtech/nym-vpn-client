@@ -75,32 +75,32 @@ fun AccountSection(appUiState: AppUiState, context: Context) {
 						}
 					},
 				),
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.Key,
+							stringResource(R.string.settings_passphrase_title),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.settings_passphrase_title),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = {
+						navController.navigate(Route.Passphrase)
+					},
+				),
 			),
-		)
-		SelectionItem(
-			leading = {
-				Icon(
-					Icons.Outlined.Key,
-					stringResource(R.string.settings_passphrase_title),
-					modifier = Modifier.size(iconSize.scaledWidth()),
-				)
-			},
-			trailing = {
-				Icon(
-					Icons.AutoMirrored.Outlined.ArrowRight,
-					stringResource(R.string.go),
-					modifier = Modifier.size(iconSize),
-				)
-			},
-			title = {
-				Text(
-					stringResource(R.string.settings_passphrase_title),
-					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-				)
-			},
-			onClick = {
-				navController.navigate(Route.Passphrase)
-			},
 		)
 // 		SettingsGroup(
 // 			items = listOf(

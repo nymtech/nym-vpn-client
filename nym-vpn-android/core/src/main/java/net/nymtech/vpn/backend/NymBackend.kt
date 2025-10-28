@@ -427,6 +427,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return state
 	}
 
+	override suspend fun getStoredMnemonic() = nym_vpn_lib.getStoredMnemonic()
+
 	override fun onEvent(event: TunnelEvent) {
 		when (event) {
 			is TunnelEvent.MixnetState -> {

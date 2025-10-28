@@ -40,4 +40,6 @@ interface Backend {
 	suspend fun registerAccount(token: String): String
 
 	fun getState(): Tunnel.State
+
+	suspend fun getStoredMnemonic(): String
 }
