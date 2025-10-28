@@ -13,7 +13,7 @@ use nym_registration_client::{
 };
 use nym_registration_common::NymNode;
 use nym_sdk::UserAgent;
-use nym_vpn_account_controller::AccountStateReceiver;
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -58,8 +58,9 @@ use super::{
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
-    ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId, MixnetConnectionData,
-    NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    AccountControllerError, ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId,
+    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
+    WireguardNode,
 };
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
@@ -225,6 +226,7 @@ pub struct TunnelMonitor {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_controller_state: AccountStateReceiver,
+    account_command_tx: AccountCommandSender,
     gateway_cache_handle: GatewayCacheHandle,
     custom_topology_provider: VpnTopologyProvider,
     wg_keys_db: WireguardKeysDb,
@@ -232,9 +234,11 @@ pub struct TunnelMonitor {
 }
 
 impl TunnelMonitor {
+    #[allow(clippy::too_many_arguments)]
     pub fn start(
         tunnel_parameters: TunnelParameters,
         account_controller_state: AccountStateReceiver,
+        account_command_tx: AccountCommandSender,
         gateway_cache_handle: GatewayCacheHandle,
         custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
@@ -252,6 +256,7 @@ impl TunnelMonitor {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_controller_state,
+            account_command_tx,
             gateway_cache_handle,
             custom_topology_provider,
             wg_keys_db,
@@ -293,10 +298,27 @@ impl TunnelMonitor {
 
         self.send_event(TunnelMonitorEvent::AwaitingAccountReadiness);
 
-        self.account_controller_state
+        match self
+            .account_controller_state
             .wait_for_account_ready_to_connect()
             .await
-            .map_err(|e| Error::Account(account::Error::ControllerState(e)))?;
+        {
+            Ok(()) => Ok(()),
+            Err(AccountControllerError::ErrorState(reason)) if reason.is_retryable() => {
+                tracing::debug!(
+                    "Account controller is in a retryable error state : {reason}. Forcing a refresh"
+                );
+                self.account_command_tx
+                    .background_refresh_account_state()
+                    .await
+                    .map_err(|e| Error::Account(account::Error::Command(e)))?;
+                self.account_controller_state
+                    .wait_for_account_ready_to_connect()
+                    .await
+            }
+            Err(e) => Err(e),
+        }
+        .map_err(|e| Error::Account(account::Error::ControllerState(e)))?;
 
         self.send_event(TunnelMonitorEvent::RefreshingGateways);
 

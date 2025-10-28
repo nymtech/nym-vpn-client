@@ -46,6 +46,12 @@ pub enum AccountControllerErrorStateReason {
     DeviceTimeDesynced,
 }
 
+impl AccountControllerErrorStateReason {
+    pub fn is_retryable(&self) -> bool {
+        matches!(self, Self::ApiFailure { .. } | Self::Internal { .. })
+    }
+}
+
 impl std::fmt::Display for AccountControllerErrorStateReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
