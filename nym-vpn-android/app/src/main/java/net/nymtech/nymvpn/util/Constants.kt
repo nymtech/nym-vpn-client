@@ -5,6 +5,8 @@ object Constants {
 	const val FDROID = "fdroid"
 	const val APP_PROJECT_NAME = "nym-vpn-android"
 
+	const val APP_ID = "net.nymtech.nymvpn"
+
 	const val SUBSCRIPTION_TIMEOUT = 5_000L
 	const val LOG_BUFFER_SIZE = 5_000L
 

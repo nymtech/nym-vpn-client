@@ -241,9 +241,6 @@ dependencies {
 
 	// sentry
 	implementation(libs.sentry)
-
-	// okhttp for testing
-	implementation(libs.okhttp)
 }
 
 fun determineVersionName(): String {

@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.ProductData
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,7 +31,7 @@ class SelectPlanViewModel @Inject constructor(
 	}
 
 	fun isBillingAvailable(): Boolean {
-		return billingManager.isReady() && billingManager.isAvailable()
+		return billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
 	}
 
 	fun fetchSubscriptions() {
