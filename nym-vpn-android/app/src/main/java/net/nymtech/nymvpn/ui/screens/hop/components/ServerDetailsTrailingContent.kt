@@ -26,7 +26,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import nym_vpn_lib_types.AsnKind
 
 @Composable
-internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnKind: AsnKind?, onInfoIconClicked: () -> Unit) {
+internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnKind: AsnKind?, onInfoIconClick: () -> Unit) {
 	Box(
 		modifier = Modifier.fillMaxHeight(),
 		contentAlignment = Alignment.Center,
@@ -38,7 +38,7 @@ internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnK
 			modifier = Modifier
 				.padding(end = 16.dp)
 				.clickable {
-					onInfoIconClicked()
+					onInfoIconClick()
 				},
 		) {
 			if (showStreamDisplay) {
