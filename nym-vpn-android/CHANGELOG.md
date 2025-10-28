@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Android: On Entry/Exit screens, display city instead of server key ID (https://github.com/nymtech/nym-vpn-client/pull/3733)
 - In "Gateway details", use relative time in last update. (https://github.com/nymtech/nym-vpn-client/pull/3748)
 - Display server up-time. (https://github.com/nymtech/nym-vpn-client/pull/3749)
+- Add streaming icon on home and Exit + update tooltip (https://github.com/nymtech/nym-vpn-client/pull/3774)
 
 ## [2.1.0]
 
