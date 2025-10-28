@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show server location like country, state and city in various places in the UI
 - Sort server list by score when searching or filtering
 - Search by city, region and server ID in server list
+- Optimize server list filtering, searching and rendering performance
 
 ## [1.17.1] - 2025-10-20
 

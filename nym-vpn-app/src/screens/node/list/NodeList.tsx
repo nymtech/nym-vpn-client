@@ -1,4 +1,5 @@
-import { ReactNode, useCallback, useEffect, useRef } from 'react';
+import { ReactNode, memo, useCallback, useEffect, useRef } from 'react';
+import { dequal } from 'dequal';
 import { Accordion } from '@base-ui-components/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -25,7 +26,7 @@ export type NodeListProps = {
   vpnMode: VpnMode;
 };
 
-function NodeList({
+const NodeList = memo(function NodeList({
   nodes,
   gateways,
   onSelect,
@@ -266,6 +267,19 @@ function NodeList({
       )}
     </>
   );
-}
+}, arePropsEqual);
 
 export default NodeList;
+
+function arePropsEqual(
+  oldProps: NodeListProps,
+  newProps: NodeListProps,
+): boolean {
+  if (oldProps.hop !== newProps.hop) return false;
+  if (oldProps.vpnMode !== newProps.vpnMode) return false;
+  if (oldProps.gateways.length !== newProps.gateways.length) return false;
+  if (oldProps.nodes.length !== newProps.nodes.length) return false;
+  if (!dequal(oldProps.gateways, newProps.gateways)) return false;
+  if (!dequal(oldProps.nodes, newProps.nodes)) return false;
+  return true;
+}

@@ -38,7 +38,7 @@ export const LocationDetailsArticle =
 export const ModesDetailsArticle =
   'https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode';
 export const SentryHomePage = 'https://sentry.io/';
-export const GatewaysCacheDuration = 300; // 5min
+export const GatewaysCacheDuration = 120; // 2min
 export const NymVpnPricingUrl = 'https://nym.com/pricing';
 export const SentryPrivacyPolicyUrl = 'https://sentry.io/privacy/';
 export const AnonNetworkStatsUrl = 'https://nym.com/anonymous-stats';
