@@ -70,6 +70,15 @@
     <string name="language">Language</string>
     <string name="gateway_modal_description">We infer server locations based on their IP addresses, but the actual locations may vary slightly.</string>
     <string name="gateway_locations_title">Details on server locations</string>
+    <string name="exit_gateway_locations_title">Choosing exit locations</string>
+    <string name="exit_gateway_locations_sub_item_1">Streaming</string>
+    <string name="exit_gateway_locations_sub_item_1_desc_link_text">Residential IP servers optimized</string>
+    <string name="exit_gateway_locations_sub_item_1_desc">for streaming and content access. May experience slower speeds due to higher demand and hardware limitations.</string>
+	<string name="exit_gateway_locations_sub_item_2">Location accuracy</string>
+	<string name="exit_gateway_locations_sub_item_2_desc">Displayed locations are</string>
+	<string name="exit_gateway_locations_sub_item_2_desc_link_text">determined from IP addresses</string>
+	<string name="exit_gateway_locations_sub_item_2_desc_after_link">and may not reflect exact physical locations.</string>
+	<string name="ok">OK</string>
 	<string translatable="false" name="mode_support_link">https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
     <string name="vpn_connection">VPN Connection</string>
     <string name="vpn_permission_message">Attest to the VPN connection request by trying to reconnect.</string>
@@ -169,6 +178,9 @@
 	<string name="join_telegram">Join us on Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Done</string>
+	<string name="stream_display">Stream display</string>
+	<string name="streaming_server_banner_title">⏯️ Streaming-optimized servers now labelled</string>
+	<string name="streaming_server_banner_action">Browse exit\nservers now</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
