@@ -2,7 +2,7 @@
 /*/target
 target/
 build/
-android/
+/android/
 bin/
 .env/
 .env.dev/
