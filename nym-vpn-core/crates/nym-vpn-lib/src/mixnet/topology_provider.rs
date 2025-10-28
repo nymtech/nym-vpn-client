@@ -3,7 +3,9 @@
 
 use std::sync::Arc;
 
-use crate::mixnet::error::MixnetError;
+use crate::mixnet::{
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, error::MixnetError,
+};
 use async_trait::async_trait;
 use nym_http_api_client::{Url, UserAgent};
 use nym_vpn_api_client::{ResolverOverrides, fronted_http_client};
@@ -25,9 +27,9 @@ enum FetcherCommand {
         response: oneshot::Sender<Option<NymTopology>>,
     },
     UpdateConfig {
-        min_mixnode_performance: Option<u8>,
-        min_gateway_performance: Option<u8>,
-        resolver_overrides: ResolverOverrides,
+        min_mixnode_performance: u8,
+        min_gateway_performance: u8,
+        resolver_overrides: Option<ResolverOverrides>,
         response: oneshot::Sender<()>,
     },
 }
@@ -42,8 +44,8 @@ struct Fetcher {
 
 impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
-        min_mixnode_performance: 50,
-        min_gateway_performance: 50,
+        min_mixnode_performance: DEFAULT_MIN_MIXNODE_PERFORMANCE,
+        min_gateway_performance: DEFAULT_MIN_GATEWAY_PERFORMANCE,
         use_extended_topology: false,
         ignore_egress_epoch_role: true,
     };
@@ -75,29 +77,31 @@ impl Fetcher {
     }
 
     async fn fetch_topology(&mut self) -> Option<NymTopology> {
-        self.topology_provider.get_new_topology().await
+        let topology = self.topology_provider.get_new_topology().await;
+        if topology.is_none() {
+            tracing::error!("VpnTopologyProvider: Failed to fetch topology from nym-api");
+        }
+        topology
     }
 
     async fn update_config(
         &mut self,
-        min_mixnode_performance: Option<u8>,
-        min_gateway_performance: Option<u8>,
-        resolver_overrides: &ResolverOverrides,
+        min_mixnode_performance: u8,
+        min_gateway_performance: u8,
+        resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<(), MixnetError> {
-        let mut config = Self::DEFAULT_CONFIG;
-        if let Some(min_mixnode_performance) = min_mixnode_performance {
-            config.min_mixnode_performance = min_mixnode_performance;
-        }
-
-        if let Some(min_gateway_performance) = min_gateway_performance {
-            config.min_gateway_performance = min_gateway_performance;
-        }
+        let config = Config {
+            min_mixnode_performance,
+            min_gateway_performance,
+            use_extended_topology: false,
+            ignore_egress_epoch_role: true,
+        };
 
         let validator_client = fronted_http_client(
             self.nym_api_urls.clone(),
             Some(self.user_agent.clone()),
             None,
-            Some(resolver_overrides),
+            resolver_overrides,
         )
         .await
         .map_err(MixnetError::CreateHTTPClient)?;
@@ -130,7 +134,7 @@ impl Fetcher {
                 self.update_config(
                     min_mixnode_performance,
                     min_gateway_performance,
-                    &resolver_overrides,
+                    resolver_overrides.as_ref(),
                 )
                 .await?;
                 let _ = response.send(());
@@ -237,9 +241,9 @@ impl VpnTopologyProvider {
 
     pub async fn update_config(
         &self,
-        min_mixnode_performance: Option<u8>,
-        min_gateway_performance: Option<u8>,
-        resolver_overrides: ResolverOverrides,
+        min_mixnode_performance: u8,
+        min_gateway_performance: u8,
+        resolver_overrides: Option<ResolverOverrides>,
     ) {
         let (signal_finished_tx, signal_finished_rx) = oneshot::channel();
         if self

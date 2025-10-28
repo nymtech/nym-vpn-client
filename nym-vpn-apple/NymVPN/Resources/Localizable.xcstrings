@@ -37232,7 +37232,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Awaiting account readiness"
+            "value" : "Setting up your account (2/6)"
           }
         },
         "es" : {
@@ -37333,7 +37333,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting mixnet client"
+            "value" : "Registering anonymously with servers (5/6)"
           }
         },
         "es" : {
@@ -37434,7 +37434,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting tunnel"
+            "value" : "Establishing server connection (6/6)"
           }
         },
         "es" : {
@@ -37535,7 +37535,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refreshing gateways"
+            "value" : "Updating server list (3/6)"
           }
         },
         "es" : {
@@ -37636,7 +37636,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resolving API IP addresses"
+            "value" : "Initializing NymVPN (1/6)"
           }
         },
         "es" : {
@@ -37737,7 +37737,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecting gateways"
+            "value" : "Choosing best servers (4/6)"
           }
         },
         "es" : {

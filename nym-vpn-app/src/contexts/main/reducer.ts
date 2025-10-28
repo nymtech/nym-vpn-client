@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import {
-  DefaultCountry,
+  DefaultNode,
   DefaultRootFontSize,
   DefaultThemeMode,
 } from '../../constants';
@@ -11,14 +11,13 @@ import {
   AppState,
   CodeDependency,
   ConnectingState,
-  Country,
   DaemonStatus,
   FeatureFlags,
-  Gateway,
   NetworkCompat,
   NetworkEnv,
   NodeHop,
   ProgressMsg,
+  SelectedNode,
   ThemeMode,
   Tunnel,
   TunnelAction,
@@ -56,7 +55,7 @@ export type StateAction =
   | { type: 'system-theme-changed'; theme: UiTheme }
   | {
       type: 'set-node';
-      payload: { hop: NodeHop; node: Country | Gateway };
+      payload: { hop: NodeHop; node: SelectedNode };
     }
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
@@ -94,8 +93,8 @@ export const initialState: AppState = {
   autoConnect: false,
   monitoring: false,
   desktopNotifications: true,
-  entryNode: DefaultCountry,
-  exitNode: DefaultCountry,
+  entryNode: DefaultNode,
+  exitNode: DefaultNode,
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],

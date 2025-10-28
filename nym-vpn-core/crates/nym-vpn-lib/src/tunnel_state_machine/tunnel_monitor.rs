@@ -71,7 +71,7 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    VpnTopologyProvider,
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
@@ -124,6 +124,9 @@ pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent
 
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Timeout for starting the registration client
+const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
@@ -419,16 +422,45 @@ impl TunnelMonitor {
             .mixnet_client_config
             .clone()
             .unwrap_or_default();
-        self.custom_topology_provider
+
+        tracing::debug!(
+            "Mixnet client performance thresholds: min_mixnode={:?}, min_gateway={:?}",
+            mixnet_client_config.min_mixnode_performance,
+            mixnet_client_config.min_gateway_performance
+        );
+
+        let custom_topology_provider = self.custom_topology_provider.clone();
+        custom_topology_provider
             .update_config(
-                mixnet_client_config.min_mixnode_performance,
-                mixnet_client_config.min_gateway_performance,
-                self.tunnel_parameters
-                    .resolved_gateway_config
-                    .nym_api_resolver_overrides
-                    .clone(),
+                mixnet_client_config
+                    .min_mixnode_performance
+                    .unwrap_or(DEFAULT_MIN_MIXNODE_PERFORMANCE),
+                mixnet_client_config
+                    .min_gateway_performance
+                    .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
+                Some(
+                    self.tunnel_parameters
+                        .resolved_gateway_config
+                        .nym_api_resolver_overrides
+                        .clone(),
+                ),
             )
             .await;
+
+        tracing::debug!(
+            "Connecting to entry gateway: {}",
+            selected_gateways
+                .entry_gateway()
+                .identity()
+                .to_base58_string()
+        );
+        tracing::debug!(
+            "Connecting to exit gateway: {}",
+            selected_gateways
+                .exit_gateway()
+                .identity()
+                .to_base58_string()
+        );
 
         let entry_ip = selected_gateways
             .entry_gateway()
@@ -483,25 +515,30 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
-        let rc_builder_config = RegistrationClientBuilderConfig {
-            entry_node,
-            exit_node,
-            data_path: self.tunnel_parameters.nym_config.data_path.clone(),
-            mixnet_client_config,
-            two_hops: self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard,
-            user_agent,
-            custom_topology_provider: Box::new(self.custom_topology_provider.clone()),
-            network_env: self
-                .tunnel_parameters
-                .nym_config
-                .network_env
-                .nym_network
-                .network
-                .clone(),
-            cancel_token: self.shutdown_token.child_token(),
-            #[cfg(unix)]
-            connection_fd_callback: Arc::new(connection_fd_callback),
-        };
+        let rcb_config_builder = RegistrationClientBuilderConfig::builder()
+            .entry_node(entry_node)
+            .exit_node(exit_node)
+            .data_path(self.tunnel_parameters.nym_config.data_path.clone())
+            .mixnet_client_config(mixnet_client_config)
+            .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
+            .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
+            .user_agent(user_agent)
+            .custom_topology_provider(Box::new(self.custom_topology_provider.clone()))
+            .network_env(
+                self.tunnel_parameters
+                    .nym_config
+                    .network_env
+                    .nym_network
+                    .network
+                    .clone(),
+            )
+            .cancel_token(self.shutdown_token.child_token());
+
+        #[cfg(unix)]
+        let rcb_config_builder =
+            rcb_config_builder.connection_fd_callback(Arc::new(connection_fd_callback));
+
+        let rc_builder_config = rcb_config_builder.build();
 
         // Setup shutdown guard to cancel pending tasks that otherwise may continue running upon return
         let shutdown_guard = self.shutdown_token.clone().drop_guard();
@@ -775,7 +812,8 @@ impl TunnelMonitor {
             self.enable_ipv6()
                 .then_some(assigned_addresses.interface_addresses.ipv6),
             mtu,
-        )?;
+        )
+        .await?;
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_device = {
@@ -1131,11 +1169,18 @@ impl TunnelMonitor {
         tracing::info!("Created wintun device: {}", wintun_exit_interface.name);
 
         wintun::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
+        wintun::wait_for_interfaces(
+            wintun_exit_interface.windows_luid(),
+            true,
+            self.enable_ipv6(),
+        )
+        .await?;
         wintun::initialize_interfaces(
             wintun_exit_interface.windows_luid(),
             Some(exit_mtu),
             self.enable_ipv6().then_some(exit_mtu),
         )?;
+        wintun::wait_for_addresses(wintun_exit_interface.windows_luid()).await?;
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: wintun_exit_interface.name.clone(),
@@ -1377,6 +1422,18 @@ impl TunnelMonitor {
         wintun::setup_wintun_adapter(wintun_entry_interface.windows_luid(), entry_adapter_config)?;
         wintun::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
 
+        wintun::wait_for_interfaces(
+            wintun_entry_interface.windows_luid(),
+            true,
+            self.enable_ipv6(),
+        )
+        .await?;
+        wintun::wait_for_interfaces(
+            wintun_exit_interface.windows_luid(),
+            true,
+            self.enable_ipv6(),
+        )
+        .await?;
         wintun::initialize_interfaces(
             wintun_entry_interface.windows_luid(),
             Some(entry_tun_mtu),
@@ -1387,6 +1444,8 @@ impl TunnelMonitor {
             Some(exit_tun_mtu),
             self.enable_ipv6().then_some(exit_tun_mtu),
         )?;
+        wintun::wait_for_addresses(wintun_entry_interface.windows_luid()).await?;
+        wintun::wait_for_addresses(wintun_exit_interface.windows_luid()).await?;
 
         // Update interface names in tunnel metadata
         entry_tunnel_metadata.interface = wintun_entry_interface.name.clone();
@@ -1528,25 +1587,27 @@ impl TunnelMonitor {
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn create_mixnet_device(
+    async fn create_mixnet_device(
         interface_ipv4: Ipv4Addr,
         interface_ipv6: Option<Ipv6Addr>,
         mtu: u16,
     ) -> Result<AsyncDevice> {
-        let mut tun_config = tun::Configuration::default();
+        let tun_device = {
+            let mut tun_config = tun::Configuration::default();
 
-        // rust-tun uses the same name for tunnel type.
-        #[cfg(windows)]
-        tun_config.name(MIXNET_WINTUN_NAME);
+            // rust-tun uses the same name for tunnel type.
+            #[cfg(windows)]
+            tun_config.name(MIXNET_WINTUN_NAME);
 
-        tun_config.address(interface_ipv4).mtu(i32::from(mtu)).up();
+            tun_config.address(interface_ipv4).mtu(i32::from(mtu)).up();
 
-        #[cfg(target_os = "linux")]
-        tun_config.platform(|platform_config| {
-            platform_config.packet_information(false);
-        });
+            #[cfg(target_os = "linux")]
+            tun_config.platform(|platform_config| {
+                platform_config.packet_information(false);
+            });
 
-        let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
+            tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?
+        };
 
         let tun_name = tun_device
             .get_ref()
@@ -1567,11 +1628,13 @@ impl TunnelMonitor {
                 wintun::add_ipv6_address(interface_luid, interface_ipv6)?;
             }
 
+            wintun::wait_for_interfaces(interface_luid, true, interface_ipv6.is_some()).await?;
             wintun::initialize_interfaces(
                 interface_luid,
                 Some(mtu),
                 interface_ipv6.is_some().then_some(mtu),
             )?;
+            wintun::wait_for_addresses(interface_luid).await?;
         }
 
         Ok(tun_device)
