@@ -71,7 +71,7 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    VpnTopologyProvider,
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
@@ -429,8 +429,12 @@ impl TunnelMonitor {
         let custom_topology_provider = self.custom_topology_provider.clone();
         custom_topology_provider
             .update_config(
-                mixnet_client_config.min_mixnode_performance,
-                mixnet_client_config.min_gateway_performance,
+                mixnet_client_config
+                    .min_mixnode_performance
+                    .unwrap_or(DEFAULT_MIN_MIXNODE_PERFORMANCE),
+                mixnet_client_config
+                    .min_gateway_performance
+                    .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
                 Some(
                     self.tunnel_parameters
                         .resolved_gateway_config
