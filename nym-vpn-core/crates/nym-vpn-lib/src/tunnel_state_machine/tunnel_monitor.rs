@@ -917,7 +917,7 @@ impl TunnelMonitor {
             registration_result.mixnet_client,
             assigned_addresses,
             tun_device,
-            self.shutdown_token.clone(),
+            self.shutdown_token.child_token(),
             registration_result.event_rx,
         )
         .await
@@ -971,7 +971,7 @@ impl TunnelMonitor {
                 .nym_config
                 .network_env
                 .gw_update_version(),
-            self.shutdown_token.clone(),
+            self.shutdown_token.child_token(),
         )
         .await
         .map_err(|e| Box::new(tunnel::Error::from(e)))?;
@@ -1009,15 +1009,16 @@ impl TunnelMonitor {
 
             let bridge_conn = transports::BridgeConn::try_connect(
                 entry_bridge_params,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
-            .await
-            .inspect_err(|_| self.shutdown_token.cancel())?;
+            .await?;
             connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
-            let (local_fwd_listen_addr, fwd_handle) =
-                transports::UdpForwarder::launch(bridge_conn, None, self.shutdown_token.clone())
-                    .await
-                    .inspect_err(|_| self.shutdown_token.cancel())?;
+            let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
+                bridge_conn,
+                None,
+                self.shutdown_token.child_token(),
+            )
+            .await?;
             tracing::info!(
                 "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
             );
