@@ -3,6 +3,8 @@ import clsx from 'clsx';
 import { UiGateway } from '../../../contexts';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
+import { useLang } from '../../../hooks';
+import { countriesWithRegions } from '../../../constants';
 import QuicTag from '../QuicTag';
 import { getScoreIcon } from './util';
 
@@ -14,6 +16,7 @@ type GatewayRowProps = {
   node: NodeHop;
   vpnMode: VpnMode;
   quicLabel: boolean;
+  inSearchResult?: boolean;
 };
 
 const GatewayItem = ({
@@ -24,15 +27,29 @@ const GatewayItem = ({
   onSelect,
   onNodeDetails,
   quicLabel,
+  inSearchResult,
 }: GatewayRowProps) => {
   const { isSelected } = gateway;
   const scoreIcon = getScoreIcon(gateway, vpnMode);
+  const { getCountryName } = useLang();
 
   const handleSelect = () => {
     if (isSelected) {
       return;
     }
     onSelect(gateway);
+  };
+
+  const location = () => {
+    if (inSearchResult) {
+      const countryName =
+        getCountryName(gateway.country.code) || gateway.country.name;
+      if (countriesWithRegions.includes(gateway.country.code)) {
+        return `${gateway.location.city}, ${gateway.location.region}, ${countryName}`;
+      }
+      return `${gateway.location.city}, ${countryName}`;
+    }
+    return gateway.location.city;
   };
 
   return (
@@ -74,7 +91,7 @@ const GatewayItem = ({
               {gateway.name}
             </p>
             <p className="text-sm text-iron dark:text-bombay truncate">
-              {gateway.location.city}
+              {location()}
             </p>
           </div>
         </div>

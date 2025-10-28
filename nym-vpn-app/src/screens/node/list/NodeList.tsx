@@ -258,6 +258,7 @@ function NodeList({
                 vpnMode={vpnMode}
                 onNodeDetails={onNodeDetails}
                 quicLabel={quicFilter}
+                inSearchResult
               />
             </motion.div>
           ))}

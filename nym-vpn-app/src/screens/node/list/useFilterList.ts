@@ -6,11 +6,12 @@ import {
   UiRegion,
   useNodeList,
 } from '../../../contexts';
+import { sortByScore } from './util';
 
 const debounceDelay = 200; // ms
 
 export function useFilterList() {
-  const { nodes, gateways } = useNodeList();
+  const { nodes, gateways, vpnMode } = useNodeList();
 
   const [filteredNodes, setFilteredNodes] =
     useState<UiGatewaysByCountry[]>(nodes);
@@ -61,10 +62,18 @@ export function useFilterList() {
           gw.id.toLowerCase().includes(lowCaseValue)
         );
       });
+      filteredGw.sort((a, b) => {
+        if (vpnMode === 'mixnet') {
+          return sortByScore(a.mxScore, b.mxScore);
+        } else {
+          return sortByScore(a.wgScore, b.wgScore);
+        }
+      });
+
       setFilteredNodes(filteredNodes);
       setFilteredGateways(filteredGw);
     },
-    [gateways, nodes],
+    [gateways, nodes, vpnMode],
   );
 
   const debounced = useDebounce((value: string) => {
