@@ -30,7 +30,7 @@ public struct GatewaysView: View {
                     countriesGatewaysList()
                     noSearchResultsView()
                     foundCountriesList()
-                    foundUSRegionsList()
+                    foundRegionsList()
                     foundGatewaysList()
                 }
                 .scrollDismissesKeyboard(.immediately)
@@ -122,7 +122,7 @@ private extension GatewaysView {
     func countriesGatewaysList() -> some View {
         if viewModel.searchText.count < viewModel.minimumSearchSymbols {
             ForEach(viewModel.countries, id: \.name) { country in
-                GatewayCountryDropDown(
+                GatewayCountryCell(
                     country: country,
                     servers: viewModel.gatewaysInCountry(with: country.code),
                     type: viewModel.type,
@@ -203,7 +203,7 @@ private extension GatewaysView {
     @ViewBuilder
     func foundCountriesList() -> some View {
         ForEach(viewModel.foundCountries, id: \.name) { country in
-            GatewayCountryDropDown(
+            GatewayCountryCell(
                 country: country,
                 servers: viewModel.gatewaysInCountry(with: country.code),
                 type: viewModel.type,
@@ -237,21 +237,19 @@ private extension GatewaysView {
     }
 
     @ViewBuilder
-    func foundUSRegionsList() -> some View {
-        if let usCountry = viewModel.gatewayManager.localizedCountry(with: "US") {
-            ForEach(viewModel.foundUSRegions, id: \.self) { region in
-                GatewaysRegionCell(
-                    hopType: viewModel.type,
-                    country: usCountry,
-                    region: region,
-                    servers: viewModel.gatewayManager.vpn.filter { $0.location?.region == region },
-                    infoButtonTapCompletion: { _ in },
-                    path: $viewModel.path,
-                    entryGateway: $viewModel.connectionManager.entryGateway,
-                    exitRouter: $viewModel.connectionManager.exitRouter,
-                    scrollToModel: .constant(.empty)
-                )
-            }
+    func foundRegionsList() -> some View {
+        ForEach(viewModel.foundRegions, id: \.region) { (country: NymCountry, region: String) in
+            GatewayRegionCell(
+                hopType: viewModel.type,
+                country: country,
+                region: region,
+                servers: viewModel.gatewayManager.vpn.filter { $0.location?.region == region },
+                infoButtonTapCompletion: { _ in },
+                path: $viewModel.path,
+                entryGateway: $viewModel.connectionManager.entryGateway,
+                exitRouter: $viewModel.connectionManager.exitRouter,
+                scrollToModel: .constant(.empty)
+            )
         }
     }
 }

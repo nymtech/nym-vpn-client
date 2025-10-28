@@ -15,7 +15,7 @@ public enum GatewayScrollToModel: Equatable {
             self = .region(countryCode: countryCode, region: region)
         case let .gateway(identifier):
             self = .server(id: identifier)
-        case .city, .random, .lowLatencyCountry:
+        case .random, .lowLatencyCountry:
             self = .empty
         }
     }

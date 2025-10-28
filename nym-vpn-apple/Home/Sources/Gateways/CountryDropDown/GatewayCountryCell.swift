@@ -7,9 +7,8 @@ import ImpactGenerator
 import Theme
 import UIComponents
 
-public struct GatewayCountryDropDown: View {
+public struct GatewayCountryCell: View {
     private let country: NymCountry
-    private let regions: [String]
     private let servers: [GatewayNode]
     private let hopType: HopType
     private let isSearching: Bool
@@ -40,7 +39,6 @@ public struct GatewayCountryDropDown: View {
         self.hopType = type
         self.isSearching = isSearching
         self.infoButtonTapCompletion = infoButtonTapCompletion
-        self.regions = Array(Set(servers.compactMap { $0.location?.region })).sorted()
         _path = path
         _scrollToModel = scrollToModel
         _entryGateway = entryGateway
@@ -63,22 +61,28 @@ public struct GatewayCountryDropDown: View {
             countryCell()
                 .id(GatewayScrollToModel.country(code: country.code).scrollToIdentifier)
             if isExpanded {
-                if !regions.isEmpty && country.code == "US" {
-                    ForEach(regions, id: \.self) { region in
+                if !country.regions.isEmpty && gatewayManager.shouldDisplayRegion(with: country.code) {
+                    ForEach(country.regions, id: \.self) { region in
                         Spacer()
                             .frame(height: 6)
-                        GatewaysRegionCell(
+                        GatewayRegionCell(
                             hopType: hopType,
                             country: country,
-                            region: region,
-                            servers: servers.filter { $0.location?.region == region },
+                            region: region.name,
+                            servers: servers.filter { $0.location?.region == region.name },
                             infoButtonTapCompletion: infoButtonTapCompletion,
                             path: $path,
                             entryGateway: $entryGateway,
                             exitRouter: $exitRouter,
                             scrollToModel: $scrollToModel
                         )
-                        .id(GatewayScrollToModel.region(countryCode: country.code, region: region).scrollToIdentifier)
+                        .id(
+                            GatewayScrollToModel.region(
+                                countryCode: country.code,
+                                region: region.name
+                            )
+                            .scrollToIdentifier
+                        )
                     }
                 } else {
                     ForEach(servers, id: \.id) { server in
@@ -99,7 +103,7 @@ public struct GatewayCountryDropDown: View {
     }
 }
 
-private extension GatewayCountryDropDown {
+private extension GatewayCountryCell {
     @ViewBuilder
     func countryCell() -> some View {
         HStack(spacing: 0) {
@@ -182,7 +186,7 @@ private extension GatewayCountryDropDown {
     }
 }
 
-private extension GatewayCountryDropDown {
+private extension GatewayCountryCell {
     func countryTapAction() {
         ImpactGenerator.shared.softImpact()
         switch hopType {

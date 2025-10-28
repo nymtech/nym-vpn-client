@@ -127,8 +127,6 @@ private extension ConnectionConfig {
             EntryPoint.random
         case let .region(countryCode: _, region: region):
             EntryPoint.region(region: region)
-        case .city:
-            EntryPoint.random
         }
     }
 
