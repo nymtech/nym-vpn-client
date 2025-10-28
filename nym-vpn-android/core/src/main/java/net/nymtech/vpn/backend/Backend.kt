@@ -29,9 +29,17 @@ interface Backend {
 
 	suspend fun getCurrentEnvironment(): Network
 
+	suspend fun updateAccountState()
+
 	suspend fun start(tunnel: Tunnel, userAgent: UserAgent)
 
 	suspend fun stop()
 
+	suspend fun createAccount()
+
+	suspend fun registerAccount(token: String): String
+
 	fun getState(): Tunnel.State
+
+	suspend fun getStoredMnemonic(): String
 }

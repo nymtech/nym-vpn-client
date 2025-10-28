@@ -65,7 +65,22 @@ sealed class Route {
 	data object Welcome : Route()
 
 	@Serializable
+	data object WelcomeAccount : Route()
+
+	@Serializable
 	data object SelectPlan : Route()
+
+	@Serializable
+	data object Generating : Route()
+
+	@Serializable
+	data class Payment(val productId: String) : Route()
+
+	@Serializable
+	data object Passphrase : Route()
+
+	@Serializable
+	data object Account : Route()
 
 	@Serializable
 	data class ServerDetails(

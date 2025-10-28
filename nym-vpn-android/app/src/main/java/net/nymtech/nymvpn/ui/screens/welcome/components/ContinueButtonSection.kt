@@ -10,8 +10,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
@@ -31,8 +29,7 @@ fun ContinueButtonSection(onContinueClick: () -> Unit) {
 		content = {
 			Text(
 				stringResource(R.string.welcome_continue),
-				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				style = CustomTypography.buttonMain,
 			)
 		},
 		color = MaterialTheme.colorScheme.primary,

@@ -70,6 +70,15 @@
     <string name="language">Language</string>
     <string name="gateway_modal_description">We infer server locations based on their IP addresses, but the actual locations may vary slightly.</string>
     <string name="gateway_locations_title">Details on server locations</string>
+    <string name="exit_gateway_locations_title">Choosing exit locations</string>
+    <string name="exit_gateway_locations_sub_item_1">Streaming</string>
+    <string name="exit_gateway_locations_sub_item_1_desc_link_text">Residential IP servers optimized</string>
+    <string name="exit_gateway_locations_sub_item_1_desc">for streaming and content access. May experience slower speeds due to higher demand and hardware limitations.</string>
+	<string name="exit_gateway_locations_sub_item_2">Location accuracy</string>
+	<string name="exit_gateway_locations_sub_item_2_desc">Displayed locations are</string>
+	<string name="exit_gateway_locations_sub_item_2_desc_link_text">determined from IP addresses</string>
+	<string name="exit_gateway_locations_sub_item_2_desc_after_link">and may not reflect exact physical locations.</string>
+	<string name="ok">OK</string>
 	<string translatable="false" name="mode_support_link">https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
     <string name="vpn_connection">VPN Connection</string>
     <string name="vpn_permission_message">Attest to the VPN connection request by trying to reconnect.</string>
@@ -120,7 +129,6 @@
     <string name="get_in_touch">Contact support</string>
     <string name="device_id">Device ID:</string>
     <string name="location_support_link" translatable="false">https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
-
 	<string name="loading">Loading</string>
     <string name="offline">No internet</string>
 	<string name="no_internet">Your device has no internet connection</string>
@@ -168,6 +176,11 @@
 	<string name="get_help">Get help</string>
 	<string name="telegram_url">https://nym.com/go/telegram</string>
 	<string name="join_telegram">Join us on Telegram</string>
+	<!-- Common -->
+	<string name="button_done">Done</string>
+	<string name="stream_display">Stream display</string>
+	<string name="streaming_server_banner_title">⏯️ Streaming-optimized servers now labelled</string>
+	<string name="streaming_server_banner_action">Browse exit\nservers now</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -202,6 +215,7 @@
 	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
+	<string name="settings_passphrase_title">Passphrase</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -239,6 +253,7 @@
 	<string name="select_plan_title">Choose your \nprotection level 🛡️</string>
 	<string name="select_plan_descr">Select a plan now to activate your \nprotection\n\nYour upcoming payment cannot be linked \nto your future browsing activity</string>
 	<string name="select_plan_button">Choose my NymVPN plan</string>
+	<string name="select_plan_modal_title">Choose your plan</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Server details</string>
 	<string name="details_select_server_button">Select server</string>
@@ -281,4 +296,57 @@
 	<string name="censorship_stealth_description">Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail.</string>
 	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<!-- Account Welcome screen -->
+	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
+	<string name="account_welcome_countries">50+ countries worldwide</string>
+	<string name="account_welcome_payments">Payments and activity stay unlinked</string>
+	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
+	<string name="account_welcome_button">Start protecting my privacy</string>
+	<string name="account_welcome_have_account">Already have account?</string>
+	<!-- Existing subscription -->
+	<string name="account_subscription_title">Subscription already active</string>
+	<string name="account_subscription_description">It looks like your Google account already has an active subscription. You don’t need to create a new account — just sign in to continue using your subscription.</string>
+	<string name="account_subscription_info">This account won\'t be connected to Google.</string>
+	<!-- Account Generating screen -->
+	<string name="account_generating_creating">Creating your anonymous identity…</string>
+	<string name="account_generating_establishing">Establishing anonymous network credentials</string>
+	<string name="account_generating_securing">Securing your credentials locally…</string>
+	<string name="account_generating_encrypting">Encrypting credentials with your device key; \nonly you can unlock them</string>
+	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<!-- Account Payment screen -->
+	<string name="account_payment_processing">Processing your payment securely…</string>
+	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>
+	<string name="account_payment_retrieving">Retrieving your anonymous account credentials (zk-nyms)…</string>
+	<string name="account_payment_credentials">These zero-knowledge credentials prove you have access without revealing who you are</string>
+	<string name="account_payment_saving">Saving your zk-nyms on the device…</string>
+	<string name="account_payment_anonymous">Your anonymous access credentials are now safely stored, private, encrypted, and in your control</string>
+	<string name="account_payment_welcome">Welcome to true privacy 🎉</string>
+	<string name="account_payment_protected">You\'re now fully protected</string>
+	<string name="account_payment_error">Failed to purchase a subscription. Please, try again later</string>
+	<!-- Passphrase screen -->
+	<string name="passphrase_title">Your account passphrase</string>
+	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>
+	<string name="passphrase_show">Show my passphrase</string>
+	<string name="passphrase_copy">Copy passphrase</string>
+	<string name="passphrase_save">Save to manager</string>
+	<string name="passphrase_lose">⚠️ Lose these words = lose your account forever.</string>
+	<string name="passphrase_never">Never share them with anyone, including Nym Support.</string>
+	<string name="passphrase_saved">I have saved these 24 words securely and will never share them</string>
+	<string name="passphrase_info_title">What is passphrase</string>
+	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery. ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
+	<string name="passphrase_info_privacy_removed">For your privacy, we’ve removed:</string>
+	<string name="passphrase_info_stored_accounts">Centrally-stored accounts</string>
+	<string name="passphrase_info_personal_logins">Personal data-based logins</string>
+	<string name="passphrase_info_access_resets">Admin-controlled access resets</string>
+	<string name="passphrase_info_use">You’ll use a 24-word passphrase that:</string>
+	<string name="passphrase_info_secure_login">Works as your secure login</string>
+	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
+	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
+	<!-- Account screen -->
+	<string name="account_info_plan">Plan</string>
+	<string name="account_info_payments">Payments</string>
+	<string name="account_info_devices">Devices</string>
+	<string name="account_info_id_title">Account ID</string>
+	<string name="account_info_id_description">Use this ID for support requests</string>
+	<string name="account_info_id_important">⚠️ Important: Nym support will never ask for your 24-word passphrase. Never share it with anyone.</string>
 </resources>

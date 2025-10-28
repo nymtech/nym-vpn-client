@@ -75,5 +75,9 @@ interface SettingsRepository {
 
 	suspend fun setQUICEnabled(enabled: Boolean)
 
+	suspend fun getIsStreamServerBannerDisplayed(): Boolean
+
+	suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean)
+
 	val settingsFlow: Flow<Settings>
 }

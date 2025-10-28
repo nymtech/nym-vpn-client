@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-	const val VERSION_NAME = "v2.2.0"
-    const val VERSION_CODE = 22000
+	const val VERSION_NAME = "v2.2.1"
+    const val VERSION_CODE = 22100
     const val TARGET_SDK = 35
     const val COMPILE_SDK = 35
     const val MIN_SDK = 24

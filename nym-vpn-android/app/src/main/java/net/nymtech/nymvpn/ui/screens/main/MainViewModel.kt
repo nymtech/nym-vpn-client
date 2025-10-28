@@ -45,7 +45,7 @@ constructor(
 
 	fun onDisconnect() = viewModelScope.launch {
 		backendManager.stopTunnel()
-		stopConnectionTimer() // stop on manual disconnect
+		stopConnectionTimer()
 	}
 
 	fun onBatteryOptSkipped() = viewModelScope.launch {
@@ -58,6 +58,10 @@ constructor(
 
 	fun onNetworkStatsSkipped() = viewModelScope.launch {
 		settingsRepository.setStatsDialogSkipped(true)
+	}
+
+	fun onStreamingServerBannerDisplayed() = viewModelScope.launch {
+		settingsRepository.setIsStreamServerBannerDisplayed(true)
 	}
 
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {

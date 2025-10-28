@@ -20,5 +20,11 @@ object Constants {
 	const val KOTLIN_LICENSES_ASSET_FILE_NAME = "artifacts.json"
 	const val RUST_LICENSES_ASSET_FILE_NAME = "licenses_rust.json"
 
+	const val URL_STREAMING_SERVICES_ARTICLE = "https://support.nym.com/hc/en-us/articles/35279486714641" +
+		"-Why-can-t-I-access-streaming-services-while-using-NymVPN"
+
+	const val URL_GATEWAYS_LOCATION = "https://support.nymvpn.com/hc/en-us/articles/26448676449297" +
+		"-How-is-server-location-determined-by-NymVPN"
+
 	val countryCodesForRegionSupport = listOf("us", "ca", "au", "mx", "br", "in", "cn")
 }
