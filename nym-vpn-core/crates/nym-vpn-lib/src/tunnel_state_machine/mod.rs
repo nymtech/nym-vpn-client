@@ -484,6 +484,17 @@ pub struct TunnelStateMachine {
     shutdown_token: CancellationToken,
 }
 
+fn log_build_info() {
+    let build_info = nym_bin_common::bin_info_local_vergen!();
+    tracing::info!(
+        "{} {} ({})",
+        build_info.binary_name,
+        build_info.build_version,
+        build_info.commit_sha
+    );
+    tracing::debug!("{:?}", build_info);
+}
+
 impl TunnelStateMachine {
     #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
@@ -590,6 +601,8 @@ impl TunnelStateMachine {
     }
 
     async fn run(mut self) {
+        log_build_info();
+
         loop {
             let next_state = self
                 .current_state_handler
