@@ -1,4 +1,4 @@
-import * as _ from 'lodash-es';
+import { dequal } from 'dequal';
 import { AppError, GatewayType, GatewaysByCountry } from '../../types';
 import { getStateProps } from './util';
 import { GatewaysState } from './types';
@@ -29,7 +29,7 @@ export function reducer(
 
   switch (action.type) {
     case 'set-gateways': {
-      if (!_.isEqual(action.payload.gateways, state[gateways])) {
+      if (!dequal(action.payload.gateways, state[gateways])) {
         return {
           ...state,
           [gateways]: action.payload.gateways,

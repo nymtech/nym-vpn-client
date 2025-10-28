@@ -12,6 +12,7 @@ import {
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
 import { useGateways, useMainState } from '../../contexts';
+import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../node';
 import { useActionToast } from './util';
 
@@ -48,74 +49,115 @@ export default function HopSelect({
     }
   };
 
-  const nodeRow = (
+  const nodeData = (
     { type, node: selected }: SelectedNode,
     gateway: Gateway | null,
   ) => {
     switch (type) {
       case 'country':
-        return SelectedCountry(selected, gateway);
-      case 'gateway':
-        return SelectedGateway(selected);
+        return getLocationInfo(selected, gateway);
       case 'region':
-        return SelectedCountry(selected.country, gateway, selected.name);
+        return getLocationInfo(selected.country, gateway, selected.name);
+      case 'gateway':
+        return getGatewayInfo(selected);
     }
   };
 
-  const SelectedCountry = (
+  type SelectedNodeProps = {
+    countryCode: countryCode;
+    name: string;
+    subInfo?: string | null;
+    animate?: boolean;
+  };
+
+  const getLocationInfo = (
     country: Country,
     gateway: Gateway | null,
     region?: string,
-  ) => (
-    <div
-      className="flex flex-row items-center gap-3 overflow-hidden"
-      data-testid={`hop-select-country-${nodeHop}`}
-    >
-      <FlagIcon
-        code={country.code.toLowerCase() as countryCode}
-        alt={country.code}
-        data-testid={`hop-select-flag-${nodeHop}`}
-      />
+  ): SelectedNodeProps => {
+    let location = getCountryName(country.code) || country.name;
+    let subInfo = null;
+    if (region && region.length > 0) {
+      location = `${location}, ${region}`;
+    }
+    if (gateway) {
+      const components = [];
+      if (gateway.location.city.length > 0) {
+        components.push(gateway.location.city);
+      }
+      if (!region && countriesWithRegions.includes(country.code)) {
+        components.push(gateway.location.region);
+      }
+      subInfo = `${components.join(', ')} (${gateway.name})`;
+    }
+
+    return {
+      countryCode: country.code.toLowerCase() as countryCode,
+      name: location,
+      subInfo,
+      animate: true,
+    };
+  };
+
+  const getGatewayInfo = (gateway: GatewayNode): SelectedNodeProps => {
+    const components = [];
+    if (gateway.city.length > 0) {
+      components.push(gateway.city);
+    }
+    if (
+      countriesWithRegions.includes(gateway.country.code) &&
+      gateway.region.length > 0
+    ) {
+      components.push(gateway.region);
+    }
+    components.push(
+      getCountryName(gateway.country.code) || gateway.country.name,
+    );
+
+    return {
+      countryCode: gateway.country.code.toLowerCase() as countryCode,
+      name: gateway.name,
+      subInfo: components.join(', '),
+    };
+  };
+
+  const SelectedNode = ({
+    countryCode,
+    name,
+    subInfo,
+    animate,
+  }: SelectedNodeProps) => (
+    <div className="flex flex-row items-center gap-3 overflow-hidden">
+      <FlagIcon code={countryCode} alt={countryCode} />
       <div className={clsx('flex flex-col justify-center truncate')}>
         <div
           className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-          data-testid={`hop-select-country-name-${nodeHop}`}
         >
-          {getCountryName(country.code) || country.name}
-          {region && `, ${region}`}
+          {name}
         </div>
-        <AnimatePresence>
-          {gateway && (
-            <motion.div
-              initial={{ opacity: 0, x: '-1rem' }}
-              exit={{ opacity: 0, x: '1rem' }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="text-sm text-iron dark:text-bombay truncate"
-            >
-              {gateway.name}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-
-  const SelectedGateway = (gateway: GatewayNode) => (
-    <div
-      className="flex flex-row items-center gap-3 overflow-hidden"
-      data-testid={`hop-select-gateway-${nodeHop}`}
-    >
-      <FlagIcon
-        code={gateway.country.code.toLowerCase() as countryCode}
-        alt={gateway.country.code}
-        data-testid={`hop-select-gateway-flag-${nodeHop}`}
-      />
-      <div
-        className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-        data-testid={`hop-select-gateway-name-${nodeHop}`}
-      >
-        {gateway.name}
+        {animate ? (
+          <AnimatePresence>
+            {subInfo && (
+              <motion.div
+                initial={{ opacity: 0, x: '-1rem' }}
+                exit={{ opacity: 0, x: '1rem' }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="text-sm text-iron dark:text-bombay truncate"
+              >
+                {subInfo}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        ) : (
+          <>
+            {subInfo && (
+              <div className="text-sm text-iron dark:text-bombay truncate">
+                {subInfo}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
@@ -162,7 +204,7 @@ export default function HopSelect({
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      {nodeRow(node, gateway)}
+      <SelectedNode {...nodeData(node, gateway)} />
       <div className="flex items-center">
         {quicTag && gateway?.quic && <QuicTag className="mx-2" />}
         <MsIcon

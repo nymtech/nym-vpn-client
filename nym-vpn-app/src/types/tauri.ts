@@ -138,7 +138,13 @@ export type Gateway = {
   quic: boolean;
 };
 
-export type GatewayNode = { id: string; name: string; country: Country };
+export type GatewayNode = {
+  id: string;
+  name: string;
+  country: Country;
+  region: string;
+  city: string;
+};
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 

@@ -79,6 +79,10 @@ fn group_by_region(
                 })
                 .into_values()
                 .sorted_by_key(|region| region.name.clone())
+                .map(|mut region| {
+                    sort_by_perf(&mut region.gateways);
+                    region
+                })
                 .collect();
             country.regions = by_region;
             country
@@ -119,12 +123,16 @@ fn group_by_country(gateways: Vec<Gateway>, gw_type: GatewayType) -> Vec<Gateway
         .collect()
 }
 
-fn sort_by_perf(mut gw_by_countries: Vec<GatewaysByCountry>) -> Vec<GatewaysByCountry> {
-    for group in gw_by_countries.iter_mut() {
-        group.gateways.sort_by(|a, b| match a.kind {
-            GatewayType::Wg => a.wg_score.cmp(&b.wg_score).reverse(),
-            _ => a.mx_score.cmp(&b.mx_score).reverse(),
-        });
+fn sort_by_perf(gateways: &mut [Gateway]) {
+    gateways.sort_by(|a, b| match a.kind {
+        GatewayType::Wg => a.wg_score.cmp(&b.wg_score).reverse(),
+        _ => a.mx_score.cmp(&b.mx_score).reverse(),
+    });
+}
+
+fn sort_countries_gw(mut gw_by_countries: Vec<GatewaysByCountry>) -> Vec<GatewaysByCountry> {
+    for country in gw_by_countries.iter_mut() {
+        sort_by_perf(&mut country.gateways);
     }
     gw_by_countries
 }
@@ -153,7 +161,7 @@ pub async fn get_gateways(
     gateways
         .map(|gws| group_by_country(gws, node_type))
         .map(|countries| group_by_region(countries, node_type))
-        .map(sort_by_perf)
+        .map(sort_countries_gw)
         .inspect(|list| {
             debug!("countries #{}", list.len());
             for country in list {

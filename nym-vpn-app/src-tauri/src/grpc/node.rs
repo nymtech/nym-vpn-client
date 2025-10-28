@@ -21,6 +21,8 @@ pub struct GatewayNode {
     pub id: String,
     pub name: String,
     pub country: Country,
+    pub region: String,
+    pub city: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
