@@ -13,7 +13,6 @@ use dispatch2::{DispatchQueue, DispatchQueueAttr};
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "ios")]
 use nym_apple_network::PathMonitor;
-use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_routing::{Callback, CallbackHandle, EventType};
@@ -61,9 +60,6 @@ pub struct ConnectedTunnel {
     entry_wg_keypair: Arc<x25519::KeyPair>,
     exit_wg_keypair: Arc<x25519::KeyPair>,
     connection_data: ConnectionData,
-    bandwidth_controller_handle: JoinHandle<()>,
-    transport_fwd_handle: Option<JoinHandle<()>>,
-    auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
 }
 
 impl ConnectedTunnel {
@@ -71,17 +67,11 @@ impl ConnectedTunnel {
         entry_wg_keypair: Arc<x25519::KeyPair>,
         exit_wg_keypair: Arc<x25519::KeyPair>,
         connection_data: ConnectionData,
-        bandwidth_controller_handle: JoinHandle<()>,
-        transport_fwd_handle: Option<JoinHandle<()>>,
-        auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
     ) -> Self {
         Self {
             entry_wg_keypair,
             exit_wg_keypair,
             connection_data,
-            bandwidth_controller_handle,
-            transport_fwd_handle,
-            auth_client_mixnet_listener_handle,
         }
     }
 
@@ -250,9 +240,6 @@ impl ConnectedTunnel {
         Ok(TunnelHandle {
             shutdown_token,
             event_handler_task,
-            bandwidth_controller_handle: self.bandwidth_controller_handle,
-            transport_fwd_handle: self.transport_fwd_handle,
-            auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
             #[cfg(windows)]
@@ -467,9 +454,6 @@ impl ConnectedTunnel {
         Ok(TunnelHandle {
             shutdown_token,
             event_handler_task,
-            bandwidth_controller_handle: self.bandwidth_controller_handle,
-            transport_fwd_handle: self.transport_fwd_handle,
-            auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: None,
             #[cfg(windows)]
@@ -596,9 +580,6 @@ pub struct NetstackTunnelOptions {
 pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
-    bandwidth_controller_handle: JoinHandle<()>,
-    transport_fwd_handle: Option<JoinHandle<()>>,
-    auth_client_mixnet_listener_handle: Option<AuthClientMixnetListenerHandle>,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
     #[cfg(windows)]
@@ -611,29 +592,10 @@ impl TunnelHandle {
         self.shutdown_token.cancel();
     }
 
-    pub fn mixnet_cancel_token(&self) -> Option<CancellationToken> {
-        self.auth_client_mixnet_listener_handle
-            .as_ref()
-            .map(|listener| listener.mixnet_cancel_token())
-    }
-
     /// Wait until the tunnel finished execution.
     ///
     /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
     pub async fn wait(self) -> Result<Tombstone, JoinError> {
-        if let Err(e) = self.bandwidth_controller_handle.await {
-            tracing::error!("Failed to join on bandwidth controller: {}", e);
-        }
-        if let Some(auth_client_handle) = self.auth_client_mixnet_listener_handle {
-            auth_client_handle.stop().await;
-        }
-
-        if let Some(handle) = self.transport_fwd_handle
-            && let Err(e) = handle.await
-        {
-            tracing::error!("Failed to join on transport forwarder: {}", e);
-        }
-
         self.event_handler_task.await
     }
 

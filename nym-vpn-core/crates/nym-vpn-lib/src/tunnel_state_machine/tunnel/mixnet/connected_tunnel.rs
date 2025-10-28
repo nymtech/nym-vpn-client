@@ -22,7 +22,6 @@ pub async fn start_mixnet_tunnel(
     cancel_token: CancellationToken,
     event_rx: EventReceiver,
 ) -> Result<TunnelHandle> {
-    let mixnet_cancellation_token = mixnet_client.cancellation_token().clone();
     let processor_handle = crate::mixnet::start_processor(
         IpPacketRouterAddress::from(assigned_addresses.exit_mix_address),
         tun_device,
@@ -35,7 +34,6 @@ pub async fn start_mixnet_tunnel(
     Ok(TunnelHandle {
         processor_handle,
         cancel_token,
-        mixnet_cancellation_token,
     })
 }
 
@@ -45,17 +43,12 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 pub struct TunnelHandle {
     processor_handle: ProcessorHandle,
     cancel_token: CancellationToken,
-    mixnet_cancellation_token: CancellationToken,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
     pub fn cancel(&self) {
         self.cancel_token.cancel();
-    }
-
-    pub fn mixnet_cancel_token(&self) -> CancellationToken {
-        self.mixnet_cancellation_token.clone()
     }
 
     /// Wait until the tunnel finished execution.
