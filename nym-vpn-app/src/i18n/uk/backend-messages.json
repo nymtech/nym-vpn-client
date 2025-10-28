@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "Очікування готовності облікового запису…",
     "refreshing-gateways": "Оновлення шлюзів…",
     "selecting-gateways": "Вибір шлюзів…",
-    "connecting-mixnet-client": "Підключення до клієнта mixnet…",
+    "registering-with-gateways": "Реєстрація на шлюзах…",
     "connecting-tunnel": "Підключення до VPN-тунелю…"
   },
   "connection-attempt_one": "Повторна спроба… спроба {{count}}",

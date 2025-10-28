@@ -49,7 +49,9 @@
       "warning": "Los cambios se aplicarán después de la reconexión",
       "content": "Disfraza las solicitudes de API detrás de los dominios populares, permitidos para eludir el bloqueo de VPN. Utilizado automáticamente por NymVPN cuando fallan los intentos de conexión estándar.",
       "link": "Cómo funciona el modo de conexión de API de sigilo"
-    }
+    },
+    "snackbar-switch-on": "La conexión mejorada (protocolo QUIC) se activará cuando vuelva a conectar.",
+    "snackbar-switch-off": "La conexión mejorada (protocolo QUIC) se desactivará cuando vuelva a conectar."
   },
   "faq": "Preguntas Frecuentes",
   "display-theme": "Tema",

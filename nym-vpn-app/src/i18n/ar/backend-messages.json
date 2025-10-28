@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "في انتظار استعداد الحساب…",
     "refreshing-gateways": "تحديث البوابات…",
     "selecting-gateways": "تحديد البوابات…",
-    "connecting-mixnet-client": "جارٍ الاتصال بعميل mixnet…",
+    "registering-with-gateways": "التسجيل باستخدام البوابات…",
     "connecting-tunnel": "جارٍ الاتصال بنفق VPN…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",

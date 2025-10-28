@@ -5,6 +5,7 @@
   "selected": "انتخاب‌شده",
   "search-country": "جستجوی منطقه",
   "input-label": "جست‌وجو",
+  "quic-filter-note": "فقط مکان‌ها و سرورهایی را نمایش می‌دهد که از حالت سریع (Fast Mode) و پروتکل QUIC پشتیبانی می‌کنند.\nبرای نمایش تمام سرورها، گزینه‌ی QUIC را غیرفعال کنید.<here />.",
   "location-details": {
     "title": "جزئیات مربوط به موقعیت مکانی سرورها",
     "description": "ما موقعیت مکانی سرورها را بر اساس آدرس‌ IP آنها تشخیص می‌دهیم، اما ممکن است مکان حقیقی اندکی تفاوت داشته باشد.",
@@ -17,46 +18,46 @@
   "node-details": {
     "id-label": "کلید شناسایی هویت:",
     "data": {
-      "advanced-privacy": "Advanced privacy",
-      "with-mixnet": "With mixnet (5-hop)",
-      "ip-type": "Streaming & content",
-      "ip-residential": "Residential IP",
-      "ip-datacenter": "Datacenter IP",
-      "anti-censorship": "Anti-censorship",
-      "quic-protocol": "QUIC protocol",
-      "standard-protocol": "Standard protocol",
-      "overall-performance": "Overall performance",
-      "server-load": "Server load",
-      "speed": "Speed",
-      "uptime": "Uptime",
-      "exit-ipv4": "Exit IPv4",
-      "exit-ipv6": "Exit IPv6",
+      "advanced-privacy": "حریم خصوصی پیشرفته",
+      "with-mixnet": "با میکس‌نت (۵ پرشی)",
+      "ip-type": "پخش زنده & محتوا",
+      "ip-residential": "آدرس آی‌پی مسکونی",
+      "ip-datacenter": "آی‌پی مرکز داده",
+      "anti-censorship": "مقابله با سانسور اینترنتی",
+      "quic-protocol": "بروتوكول QUIC",
+      "standard-protocol": "پروتکل استاندارد",
+      "overall-performance": "عملکرد کلی",
+      "server-load": "بارگذاری سرور",
+      "speed": "سرعت",
+      "uptime": "مدت زمان فعالیت",
+      "exit-ipv4": "خروج از IPv4",
+      "exit-ipv6": "خروج از IPv6",
       "asn": "ASN",
-      "asn-name": "ASN name",
-      "build-version": "Nym build version",
-      "identity-key": "Identity key:"
+      "asn-name": "نام ASN",
+      "build-version": "نسخه ساخت Nym",
+      "identity-key": "کلید شناسایی هویت:"
     },
     "perf-score": {
-      "high": "Good",
-      "medium": "Mid",
-      "low": "Low",
-      "offline": "Offline"
+      "high": "خوب",
+      "medium": "متوسط",
+      "low": "پایین",
+      "offline": "آفلاین"
     },
     "server-load-score": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low",
-      "offline": "Offline"
+      "high": "بالا",
+      "medium": "متوسط",
+      "low": "پایین",
+      "offline": "آفلاین"
     },
     "notes": {
       "anti-censorship": "Enable “QUIC protocol” in Anti-censorship Settings to use this feature",
-      "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
-      "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
+      "performance_with_time": "امتیاز عملکرد از بارگذاری سرور و مدت زمان فعال بودن محاسبه میگردد. مدت زمان فعال بودن به صورت میانگین ۲۴ ساعت آخر است. آخرین به‌روزرسانی {{relativeTime}}.",
+      "performance": "امتیاز عملکرد از بارگذاری سرور و مدت زمان فعال بودن محاسبه میگردد. مدت زمان فعال بودن به صورت میانگین ۲۴ ساعت آخر است."
     },
     "links": {
-      "missing-info": "Why is there missing or incorrect info",
-      "explorer": "More details in the Nym <networkExplorerLink />"
+      "missing-info": "چرا اطلاعات ناقص یا نادرست وجود دارد",
+      "explorer": "جزئیات بیشتر در Nym <networkExplorerLink />"
     },
-    "select-button": "Select server"
+    "select-button": "انتخاب سرور"
   }
 }

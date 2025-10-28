@@ -5,6 +5,7 @@
   "selected": "Ausgewählt",
   "search-country": "Standortsuche",
   "input-label": "Suche",
+  "quic-filter-note": "Nur die Anzeige von schnellen Standorten und Servern, die das QUIC-Protokoll unterstützen. Um alle Server freizugeben, schalten Sie QUIC <here /> aus.",
   "location-details": {
     "title": "Details zum Serverstandort",
     "description": "Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann leicht abweichen.",

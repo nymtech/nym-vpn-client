@@ -49,7 +49,9 @@
       "warning": "Değişiklikler yeniden bağlandıktan sonra uygulanacak",
       "content": "API isteklerini popüler ve izinli alan adlarının arkasına gizleyerek VPN engellemelerini aşar. Standart bağlantı denemeleri başarısız olduğunda NymVPN bunu otomatik olarak devreye alır.",
       "link": "Stealth API bağlantı modu nasıl çalışır"
-    }
+    },
+    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
+    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
   },
   "faq": "SSS",
   "display-theme": "Ekran modu",
