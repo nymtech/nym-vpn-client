@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "खाते की तैयारी की प्रतीक्षा हो रही है…",
     "refreshing-gateways": "गेटवे लिस्ट को ताज़ा किया जा रहा है…",
     "selecting-gateways": "गेटवे का चयन हो रहा हैं…",
-    "connecting-mixnet-client": "Mixnet क्लाइंट से कनेक्ट हो रहा है…",
+    "registering-with-gateways": "Registering with gateways…",
     "connecting-tunnel": "VPN टनल से जुड़ रहा है…"
   },
   "connection-attempt_one": "फिरसे प्रयास कर रहे हैं… {{count}}",

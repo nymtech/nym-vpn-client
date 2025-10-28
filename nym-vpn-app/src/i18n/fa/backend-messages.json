@@ -1,12 +1,12 @@
 {
   "connection-progress": {
-    "canceling": "Canceling…",
-    "resolving-api-addresses": "Resolving API addresses…",
-    "awaiting-account-readiness": "Awaiting for account readiness…",
-    "refreshing-gateways": "Refreshing gateways…",
-    "selecting-gateways": "Selecting gateways…",
-    "connecting-mixnet-client": "Connecting to the mixnet client…",
-    "connecting-tunnel": "Connecting to the VPN tunnel…"
+    "canceling": "درحال انصراف دادن…",
+    "resolving-api-addresses": "در حال تفکیک نشانی‌های API…",
+    "awaiting-account-readiness": "در انتظار آماده شدن حساب کاربری…",
+    "refreshing-gateways": "در حال رفرش‌کردن گِیت‌وی‌ها…",
+    "selecting-gateways": "در حال انتخاب گِیت‌وی‌ها…",
+    "registering-with-gateways": "در حال ثبت‌نام در گِیت‌وی‌ها…",
+    "connecting-tunnel": "در حال اتصال به تونل VPN…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",
   "connection-attempt_other": "retrying… attempts {{count}}"

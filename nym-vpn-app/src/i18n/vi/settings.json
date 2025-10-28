@@ -49,7 +49,9 @@
       "warning": "Thay đổi sẽ có hiệu lực sau khi kết nối lại",
       "content": "Ẩn yêu cầu API phía sau các tên miền phổ biến, được phép để vượt qua chặn VPN. Tự động được NymVPN sử dụng khi các lần thử kết nối tiêu chuẩn thất bại.",
       "link": "Cách chế độ kết nối API Ẩn danh hoạt động"
-    }
+    },
+    "snackbar-switch-on": "Kết nối nâng cao (giao thức QUIC) sẽ được kích hoạt khi bạn kết nối lại.",
+    "snackbar-switch-off": "Kết nối nâng cao (giao thức QUIC) sẽ bị vô hiệu khi bạn kết nối lại."
   },
   "faq": "Câu hỏi thường gặp",
   "display-theme": "Chế độ hiển thị",

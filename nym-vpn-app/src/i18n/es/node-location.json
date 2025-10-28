@@ -5,6 +5,7 @@
   "selected": "Seleccionado",
   "search-country": "Buscar ubicación",
   "input-label": "Buscar",
+  "quic-filter-note": "Solo mostrando ubicaciones en modo rápido y servidores que soportan el protocolo QUIC. Para revelar todos los servidores, desactiva QUIC <here />.",
   "location-details": {
     "title": "Datos sobre la ubicación de los servidores",
     "description": "Inferimos la ubicación de los servidores basándonos en sus direcciones IP, pero las ubicaciones reales pueden variar ligeramente.",

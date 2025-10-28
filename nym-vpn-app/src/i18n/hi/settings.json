@@ -49,7 +49,9 @@
       "warning": "Changes will apply after reconnect",
       "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
       "link": "How the Stealth API connect mode works"
-    }
+    },
+    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
+    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
   },
   "faq": "अक्सर पूछे जाने वाले प्रश्न",
   "display-theme": "डिस्प्ले मोड",
