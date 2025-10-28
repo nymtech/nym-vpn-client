@@ -10,9 +10,13 @@ use sqlx::{
     ConnectOptions,
     sqlite::{SqliteAutoVacuum, SqliteSynchronous},
 };
+use time::OffsetDateTime;
 
 use crate::{
-    keys::wireguard::{WireguardKeyStore, WireguardKeys, persistence::random_keys},
+    keys::wireguard::{
+        WireguardKeyStore, WireguardKeys,
+        persistence::{is_expired, random_keys, random_timestamp_from},
+    },
     types::RawWireguardKeys,
 };
 
@@ -53,14 +57,18 @@ impl WireguardKeyStore for OnDiskKeys {
         &self,
         gateway_id: &str,
     ) -> Result<WireguardKeys, Self::StorageError> {
-        let keys = if let Some(raw_keys) = self.get_keys(gateway_id).await? {
+        let keys = if let Some(raw_keys) = self.get_keys(gateway_id).await?
+            && !is_expired(raw_keys.expiration_time)
+        {
             WireguardKeys::try_from(raw_keys)?
         } else {
             let keys = random_keys();
+            let expiration_time = random_timestamp_from(OffsetDateTime::now_utc());
             let raw_keys = RawWireguardKeys {
                 gateway_id_bs58: gateway_id.to_string(),
                 entry_private_key_bs58: keys.entry_keypair().private_key().to_base58_string(),
                 exit_private_key_bs58: keys.exit_keypair().private_key().to_base58_string(),
+                expiration_time,
             };
             self.set_keys(&raw_keys).await?;
             keys
@@ -122,12 +130,22 @@ impl OnDiskKeys {
     pub(crate) async fn set_keys(&self, keys: &RawWireguardKeys) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
-                INSERT INTO wireguard_gateway_keys(gateway_id_bs58, entry_private_key_bs58, exit_private_key_bs58)
-                VALUES (?, ?, ?)
+                INSERT OR IGNORE INTO wireguard_gateway_keys(gateway_id_bs58, entry_private_key_bs58, exit_private_key_bs58, expiration_time) VALUES (?, ?, ?, ?);
+                UPDATE wireguard_gateway_keys
+                    SET
+                        entry_private_key_bs58 = ?,
+                        exit_private_key_bs58 = ?,
+                        expiration_time = ?
+                    WHERE gateway_id_bs58 = ?
             "#,
             keys.gateway_id_bs58,
             keys.entry_private_key_bs58,
             keys.exit_private_key_bs58,
+            keys.expiration_time,
+            keys.entry_private_key_bs58,
+            keys.exit_private_key_bs58,
+            keys.expiration_time,
+            keys.gateway_id_bs58,
         )
         .execute(&self.connection_pool)
         .await?;

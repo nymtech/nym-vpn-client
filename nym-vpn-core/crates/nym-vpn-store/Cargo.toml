@@ -27,6 +27,7 @@ sqlx = { workspace = true, features = [
     "migrate",
 ] }
 thiserror.workspace = true
+time.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 zeroize.workspace = true
