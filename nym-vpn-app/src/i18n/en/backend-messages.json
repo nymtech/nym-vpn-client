@@ -1,12 +1,12 @@
 {
   "connection-progress": {
     "canceling": "Canceling…",
-    "resolving-api-addresses": "Resolving API addresses…",
-    "awaiting-account-readiness": "Awaiting for account readiness…",
-    "refreshing-gateways": "Refreshing gateways…",
-    "selecting-gateways": "Selecting gateways…",
-    "registering-with-gateways": "Registering with gateways…",
-    "connecting-tunnel": "Connecting to the VPN tunnel…"
+    "resolving-api-addresses": "Initializing NymVPN (1/6)",
+    "awaiting-account-readiness": "Setting up your account (2/6)",
+    "refreshing-gateways": "Updating server list (3/6)",
+    "selecting-gateways": "Choosing best servers (4/6)",
+    "registering-with-gateways": "Registering anonymously with servers (5/6)",
+    "connecting-tunnel": "Establishing server connection (6/6)"
   },
   "connection-attempt_one": "Retrying… attempt {{count}}",
   "connection-attempt_other": "Retrying… attempt {{count}}"
