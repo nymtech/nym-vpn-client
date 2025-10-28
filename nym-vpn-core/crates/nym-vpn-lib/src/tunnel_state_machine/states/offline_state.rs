@@ -46,13 +46,15 @@ impl OfflineState {
             .await
             .ok();
 
-        // On macOS, disable forwarding and reset DNS to allow API resolution during reconnection
+        // On macOS, configure DNS for offline state
         #[cfg(target_os = "macos")]
         {
             if *LOCAL_DNS_RESOLVER {
+                // Keep system DNS pointing to local resolver, just disable forwarding for captive portal
                 shared_state.filtering_resolver.disable_forward().await;
+            } else {
+                Self::reset_dns(shared_state).await;
             }
-            Self::reset_dns(shared_state).await;
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]

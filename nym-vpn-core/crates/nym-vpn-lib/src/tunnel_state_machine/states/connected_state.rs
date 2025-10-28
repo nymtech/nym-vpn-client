@@ -49,23 +49,6 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .await
-            .ok();
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(false))
-            .await
-            .ok();
-        shared_state
-            .account_command_tx
-            .set_resolver_overrides(None)
-            .await
-            .ok();
-
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
@@ -116,6 +99,27 @@ impl ConnectedState {
                 shared_state,
             );
         }
+
+        // Configure Discovery Refresher to not use any resolver overrides and to resume operation
+        // This must happen AFTER firewall and DNS are configured
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .await
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .await
+            .ok();
+
+        // Remove resolver overrides from Account Controller
+        // This must happen AFTER Discovery Refresher is configured
+        shared_state
+            .account_command_tx
+            .set_resolver_overrides(None)
+            .await
+            .ok();
 
         // We can use slower network fetches now
         shared_state.topology_provider.use_network(true).await;
@@ -187,10 +191,8 @@ impl ConnectedState {
         // Disable forwarding (Blocking mode for captive portal support)
         if *LOCAL_DNS_RESOLVER {
             shared_state.filtering_resolver.disable_forward().await;
-        }
-
-        // Reset system DNS to pre-VPN backup to allow API hostname resolution during reconnection
-        if let Err(error) = shared_state.dns_handler.reset().await {
+        } else if let Err(error) = shared_state.dns_handler.reset().await {
+            // Only reset system DNS if NOT using local resolver
             trace_err_chain!(error, "Failed to reset DNS");
         }
     }
