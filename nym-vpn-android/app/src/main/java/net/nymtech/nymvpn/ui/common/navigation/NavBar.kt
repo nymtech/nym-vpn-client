@@ -51,9 +51,6 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(
 				show = false,
 			)
-			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
-				show = false,
-			)
 			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> {
 				NavBarState(
 					title = { MainTitle() },
@@ -168,6 +165,27 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+			currentRoute.startsWith(Route.WelcomeAccount::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle("") },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+			currentRoute.startsWith(Route.Generating::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle("") },
+				show = true,
+				leading = {
+				},
+			)
+			currentRoute.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle("") },
+				show = true,
+				leading = {
+				},
+			)
 			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				show = true,
@@ -198,6 +216,18 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			)
 			currentRoute.startsWith(Route.ServerDetails::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.details_title)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
+				show = false,
+			)
+			currentRoute.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.settings_passphrase_title)) },
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {

@@ -42,18 +42,24 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
+import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
+import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
+import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
-import net.nymtech.nymvpn.ui.screens.plan.SelectPlanScreen
+import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
+import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
@@ -86,6 +92,9 @@ class MainActivity : AppCompatActivity() {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var billingManager: BillingManager
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val appViewModel by viewModels<AppViewModel>()
@@ -260,17 +269,42 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.SelectPlan> {
 									SelectPlanScreen()
 								}
+								composable<Route.WelcomeAccount> {
+									WelcomeAccountScreen()
+								}
+								composable<Route.Generating> {
+									GeneratingScreen()
+								}
 								composable<Route.ServerDetails> {
 									val args = it.toRoute<Route.ServerDetails>()
 									runCatching {
 										DetailsScreen(appState, args.id, args.type, args.location)
 									}
 								}
+								composable<Route.Payment> {
+									val args = it.toRoute<Route.Payment>()
+									runCatching {
+										PaymentScreen(appState, args.productId)
+									}
+								}
+								composable<Route.Passphrase> {
+									PassphraseScreen(appState)
+								}
+								composable<Route.Account> {
+									AccountInfoScreen(appState)
+								}
 							}
 						}
 					}
 				}
 			}
+		}
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		if (isFinishing) {
+			billingManager.endConnection()
 		}
 	}
 }
