@@ -781,8 +781,12 @@ impl TunnelMonitor {
                         }
                     }
                 }
-                _ = bridge_close_rx.recv() => {
-                    tracing::info!("Bridge channel is closed. Exiting");
+                close_event = bridge_close_rx.recv() => {
+                    if close_event.is_some() {
+                        tracing::info!("Bridge close signal received. Exiting");
+                    } else {
+                        tracing::info!("Bridge channel is closed. Exiting");
+                    }
                     break;
                 }
                 _  = &mut mixnet_monitoring_token => {
