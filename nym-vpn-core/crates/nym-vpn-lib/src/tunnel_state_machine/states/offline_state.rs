@@ -8,8 +8,6 @@ use tokio_util::sync::CancellationToken;
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
     states::{ConnectingState, DisconnectedState},
@@ -17,8 +15,6 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
-#[cfg(target_os = "macos")]
-use nym_dns::DnsConfig;
 use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct OfflineState {
@@ -38,7 +34,7 @@ impl OfflineState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to pause operation
+        // Configure Discovery Refresher to not use any resolver overrides and to pause operation
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
@@ -50,9 +46,13 @@ impl OfflineState {
             .await
             .ok();
 
+        // On macOS, disable forwarding and reset DNS to allow API resolution during reconnection
         #[cfg(target_os = "macos")]
-        if Self::set_local_dns_resolver(shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
+        {
+            if *LOCAL_DNS_RESOLVER {
+                shared_state.filtering_resolver.disable_forward().await;
+            }
+            Self::reset_dns(shared_state).await;
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -106,23 +106,6 @@ impl OfflineState {
         if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Unable to reset DNS");
         }
-    }
-
-    #[cfg(target_os = "macos")]
-    async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
-        // Set system DNS to our local DNS resolver
-        let system_dns = DnsConfig::default().resolve(
-            &[shared_state.filtering_resolver.listen_addr().ip()],
-            shared_state.filtering_resolver.listen_addr().port(),
-        );
-        shared_state
-            .dns_handler
-            .set("lo".to_owned(), system_dns)
-            .await
-            .inspect_err(|err| {
-                trace_err_chain!(err, "Failed to configure system to use filtering resolver");
-            })
-            .map_err(Error::SetDns)
     }
 }
 
@@ -181,14 +164,11 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
-                    #[cfg(target_os = "macos")]
-                    if !*LOCAL_DNS_RESOLVER {
-                        // This is probably unnecessary, since DNS is already configured on the
-                        // primary interface.
-                        Self::reset_dns(shared_state).await;
-                    }
+                    tracing::info!("Network connectivity restored, preparing to reconnect");
 
-                    #[cfg(any(target_os = "linux", target_os = "windows"))]
+                    // Reset DNS to allow ConnectingState to resolve API hostnames.
+                    // The local filtering resolver will be reconfigured by ConnectingState once connection is established.
+                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {

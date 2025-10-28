@@ -19,7 +19,7 @@ impl DisconnectedState {
         tombstone: Option<Tombstone>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
+        // Configure Discovery Refresher to not use any resolver overrides and to resume operation
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
@@ -31,7 +31,7 @@ impl DisconnectedState {
             .await
             .ok();
 
-        #[cfg(target_os = "macos")]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_dns(shared_state).await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
