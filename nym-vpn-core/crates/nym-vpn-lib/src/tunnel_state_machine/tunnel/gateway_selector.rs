@@ -130,11 +130,26 @@ pub async fn select_gateways(
                     &exit_gateways,
                     Some(ScoreValue::Medium),
                     tunnel_settings.residential_exit
-                ).map_err(GatewayDirectoryError::PerformantExitGatewayUnavailable)
+                )
             } else {
-                Err(GatewayDirectoryError::SelectExitGateway(err))
+                Err(err)
             }
-        })?;
+        })
+        .or_else(|err| {
+            // When still no gateways found, try low performance as last resort
+            if err.is_unmatched_non_specific_gateway() {
+                tracing::debug!("Could not locate medium quality exit gateway. Lowering performance filter to low and trying again");
+
+                exit_point.lookup_gateway(
+                    &exit_gateways,
+                    Some(ScoreValue::Low),
+                    tunnel_settings.residential_exit
+                )
+            } else {
+                Err(err)
+            }
+        })
+        .map_err(GatewayDirectoryError::ExitGatewayUnavailable)?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
@@ -149,11 +164,25 @@ pub async fn select_gateways(
                 entry_point.lookup_gateway(
                     &entry_gateways,
                     Some(ScoreValue::Medium)
-                ).map_err(GatewayDirectoryError::PerformantEntryGatewayUnavailable)
+                )
             } else {
-                 Err(GatewayDirectoryError::SelectEntryGateway(err))
+                Err(err)
             }
-        })?;
+        })
+        .or_else(|err| {
+            // When still no gateways found, try low performance as last resort
+            if err.is_unmatched_non_specific_gateway() {
+                tracing::debug!("Could not locate medium quality entry gateway. Lowering performance filter to low and trying again");
+
+                entry_point.lookup_gateway(
+                    &entry_gateways,
+                    Some(ScoreValue::Low)
+                )
+            } else {
+                Err(err)
+            }
+        })
+        .map_err(GatewayDirectoryError::EntryGatewayUnavailable)?;
 
     let entry_keys = wg_keys_db
         .load_or_create_keys(&entry_gateway.identity().to_string())
@@ -173,6 +202,9 @@ pub async fn select_gateways(
         })?
         .exit_keypair()
         .clone();
+
+    tracing::debug!("Using entry public key: {}", entry_keys.public_key());
+    tracing::debug!("Using exit public key: {}", exit_keys.public_key());
 
     tracing::info!(
         "Using entry gateway: {}, location: {}, performance: {}",

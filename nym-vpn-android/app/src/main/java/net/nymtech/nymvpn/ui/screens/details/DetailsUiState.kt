@@ -39,7 +39,7 @@ data class DetailsUiState(
 				mixnetScore = gateway.mixnetScore,
 				score = gateway.wgScore,
 				load = gateway.wgLoad,
-				uptime = gateway.wgUptime,
+				uptime = gateway.wgUptime?.let { it * 100 },
 				lastUpdated = gateway.lastUpdated,
 				asn = gateway.asn,
 				asnName = gateway.asnName,

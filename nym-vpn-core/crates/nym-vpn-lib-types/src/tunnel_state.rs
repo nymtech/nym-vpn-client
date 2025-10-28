@@ -241,10 +241,10 @@ pub enum ErrorStateReason {
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
-    /// Failure to select the entry gateway that meets the performance requirements.
+    /// Failure to select any entry gateway after trying all performance tiers.
     PerformantEntryGatewayUnavailable,
 
-    /// Failure to select the exit gateway that meets the performance requirements.
+    /// Failure to select any exit gateway after trying all performance tiers.
     PerformantExitGatewayUnavailable,
 
     /// Invalid identity set for entry gateway

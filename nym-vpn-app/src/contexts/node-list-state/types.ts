@@ -1,5 +1,5 @@
 export type Focused = {
-  type: 'gateway' | 'country';
-  // country 2-letter codes | gateway ID
+  type: 'gateway' | 'region' | 'country';
+  // country 2-letter code | region name + country 2-letter code | gateway ID
   key: string;
 };

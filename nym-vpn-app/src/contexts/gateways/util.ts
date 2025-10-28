@@ -1,11 +1,5 @@
 import { CKey } from '../../cache';
-import {
-  Country,
-  Gateway,
-  GatewayType,
-  GatewaysByCountry,
-  isCountry,
-} from '../../types';
+import { GatewayType, GatewaysByCountry, SelectedNode } from '../../types';
 import { GatewaysState } from './types';
 
 export function gwTypeToCacheKey(type: GatewayType): CKey {
@@ -50,9 +44,18 @@ export function getStateProps(type: GatewayType): {
 }
 
 // Check if a node exists in the gateways list
-export function exists(node: Country | Gateway, gateways: GatewaysByCountry[]) {
-  if (isCountry(node)) {
-    return gateways.some((g) => g.country.code === node.code);
+export function exists(
+  { type, node }: SelectedNode,
+  gateways: GatewaysByCountry[],
+) {
+  switch (type) {
+    case 'country':
+      return gateways.some((g) => g.country.code === node.code);
+    case 'region':
+      return gateways.some((g) => g.regions.some((r) => r.name === node.name));
+    case 'gateway':
+      return gateways.some((g) => g.gateways.some((gw) => gw.id === node.id));
+    default:
+      return false;
   }
-  return gateways.some((g) => g.gateways.some((gw) => gw.id === node.id));
 }

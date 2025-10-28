@@ -206,12 +206,12 @@
 	<string name="error_invalid_exit_gateway_identity">Exit server offline. Choose another and reconnect.</string>
 	<!-- Main Screen -->
 	<string name="main_get_started_button">Get started</string>
-	<string name="connection_state_resolving_addresses">Resolving API IP addresses</string>
-	<string name="connection_state_awaiting_readiness">Awaiting account readiness</string>
-	<string name="connection_state_refreshing_gateways">Refreshing servers</string>
-	<string name="connection_state_selecting_gateways">Selecting servers</string>
-	<string name="connection_state_connecting_mixnet_client">Connecting mixnet client</string>
-	<string name="connection_state_connecting_tunnel">Connecting tunnel</string>
+	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/6)</string>
+	<string name="connection_state_awaiting_readiness">Setting up your account (2/6)</string>
+	<string name="connection_state_refreshing_gateways">Updating server list (3/6)</string>
+	<string name="connection_state_selecting_gateways">Choosing best servers (4/6)</string>
+	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (5/6)</string>
+	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<!-- Battery optimization -->
@@ -268,6 +268,7 @@
 	<string name="details_server_load">Server load</string>
 	<string name="details_speed">Speed</string>
 	<string name="details_uptime">Uptime</string>
+	<string name="not_applicable">N/A</string>
 	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update %1$s.</string>
 	<string name="details_exit_ipv4">Exit IPv4</string>
 	<string name="details_exit_ipv6">Exit IPv6</string>
