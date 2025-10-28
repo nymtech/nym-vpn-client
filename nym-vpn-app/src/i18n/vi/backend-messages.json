@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "Đang chờ tài khoản sẵn sàng…",
     "refreshing-gateways": "Đang làm mới các cổng kết nối…",
     "selecting-gateways": "Đang chọn cổng kết nối…",
-    "connecting-mixnet-client": "Đang kết nối đến máy khách mixnet…",
+    "registering-with-gateways": "Đang đăng ký với các cổng...",
     "connecting-tunnel": "Đang kết nối với VPN tunnel…"
   },
   "connection-attempt_one": "đang thử lại… lần thử {{count}}",

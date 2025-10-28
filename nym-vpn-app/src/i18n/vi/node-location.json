@@ -5,6 +5,7 @@
   "selected": "Đã chọn",
   "search-country": "Tìm kiếm vị trí",
   "input-label": "Tìm kiếm",
+  "quic-filter-note": "Chỉ hiển thị các vị trí chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, tắt QUIC <here />.",
   "location-details": {
     "title": "Chi tiết về vị trí máy chủ",
     "description": "Chúng tôi suy luận vị trí máy chủ dựa trên địa chỉ IP, nhưng vị trí thực tế có thể chênh lệch đôi chút.",
@@ -49,7 +50,7 @@
       "offline": "Ngoại tuyến"
     },
     "notes": {
-      "anti-censorship": "Bật “giao thức QUIC” trong Cài đặt Chống kiểm duyệt để sử dụng tính năng này",
+      "anti-censorship": "<0>Bật “giao thức QUIC”</0> trong Cài đặt Chống kiểm duyệt để sử dụng tính năng này",
       "performance_with_time": "Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua. Cập nhật lần cuối {{relativeTime}}.",
       "performance": "Điểm hiệu suất được tính dựa trên tải máy chủ và thời gian hoạt động. Thời gian hoạt động được tính trung bình trong 24 giờ qua."
     },

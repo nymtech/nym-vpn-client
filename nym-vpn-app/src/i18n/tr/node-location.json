@@ -5,6 +5,7 @@
   "selected": "Seçildi",
   "search-country": "Konum ara",
   "input-label": "Ara",
+  "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
     "title": "Sunucu konumları hakkında detaylar",
     "description": "Sunucu konumlarını IP adreslerine dayanarak tahmin ediyoruz, ancak gerçek konumlar biraz farklı olabilir.",

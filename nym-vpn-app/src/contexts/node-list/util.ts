@@ -50,6 +50,8 @@ export function uiNodeToSelectedNode(uiNode: SelectedUiNode): SelectedNode {
           id: uiNode.id,
           name: uiNode.name,
           country: uiNode.country,
+          city: uiNode.location.city,
+          region: uiNode.location.region,
         },
       };
     }

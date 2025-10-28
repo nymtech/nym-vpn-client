@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "Warte auf Kontoreife…",
     "refreshing-gateways": "Gateways… aktualisieren",
     "selecting-gateways": "Gateways… auswählen",
-    "connecting-mixnet-client": "Verbinde mit dem Mixnet-Client…",
+    "registering-with-gateways": "Registrierung mit Gateways…",
     "connecting-tunnel": "Verbindung zum VPN-Tunnel…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",

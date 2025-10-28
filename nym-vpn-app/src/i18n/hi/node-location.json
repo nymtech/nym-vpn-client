@@ -5,6 +5,7 @@
   "selected": "चयनित",
   "search-country": "सर्च लोकेशन",
   "input-label": "खोजें",
+  "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
     "title": "सर्वर स्थानों की जानकारी",
     "description": "हम IP पतों के आधार पर सर्वर स्थानों का अनुमान लगाते हैं, लेकिन वास्तविक स्थानों में थोड़ा बदलाव हो सकता है।",
