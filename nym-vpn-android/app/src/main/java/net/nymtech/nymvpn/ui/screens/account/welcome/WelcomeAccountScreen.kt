@@ -58,6 +58,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
@@ -78,10 +79,14 @@ fun WelcomeAccountScreen(viewModel: WelcomeAccountViewModel = hiltViewModel()) {
 		},
 		onStartClick = {
 			if (!loading) {
-				if (activeSubscription) {
-					showSubscriptionDialog = true
+				if(viewModel.isBillingAvailable()) {
+					if (activeSubscription) {
+						showSubscriptionDialog = true
+					} else {
+						navController.replaceCurrentWith(Route.Generating)
+					}
 				} else {
-					navController.replaceCurrentWith(Route.Generating)
+					context.openWebUrl(context.getString(R.string.pricing_url))
 				}
 			}
 		},
