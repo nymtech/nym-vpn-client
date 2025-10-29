@@ -8,10 +8,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.environment.EnvironmentManager
+import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
@@ -22,14 +25,25 @@ class MainViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val backendManager: BackendManager,
+	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
 	private val _connectionTime = MutableStateFlow<String?>(null)
 	val connectionTime: StateFlow<String?> = _connectionTime.asStateFlow()
 
+	private val _isQuicFeatureFlagEnabled = MutableStateFlow(false)
+	val isQuicFeatureFlagEnabled: StateFlow<Boolean> = _isQuicFeatureFlagEnabled.asStateFlow()
+
 	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
+
+	init {
+		viewModelScope.launch {
+			val isQuicFeatureFlagEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
+			_isQuicFeatureFlagEnabled.update { isQuicFeatureFlagEnabled }
+		}
+	}
 
 	fun onTwoHopSelected() = viewModelScope.launch {
 		settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)

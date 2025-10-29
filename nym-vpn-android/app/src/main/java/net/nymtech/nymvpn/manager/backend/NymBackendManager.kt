@@ -24,6 +24,7 @@ import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.manager.backend.model.toInfo
+import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
@@ -45,6 +46,7 @@ import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.EstablishConnectionData
 import nym_vpn_lib_types.EstablishConnectionState
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.FlagValue
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.MixnetEvent
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -52,6 +54,7 @@ import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelState
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.text.equals
 
 class NymBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
@@ -139,7 +142,8 @@ class NymBackendManager @Inject constructor(
 				backendEvent = ::onBackendEvent,
 				bypassLan = settingsRepository.isBypassLanEnabled(),
 			)
-			backend.await().start(tunnel, context.toUserAgent())
+			val enableBridges = isQuicEnabled()
+			backend.await().start(tunnel, context.toUserAgent(), enableBridges)
 		}.onFailure {
 			if (it is BackendException) {
 				when (it) {
@@ -153,6 +157,12 @@ class NymBackendManager @Inject constructor(
 				Timber.e(it)
 			}
 		}
+	}
+
+	private suspend fun isQuicEnabled(): Boolean {
+		return settingsRepository.getQUICEnabled() &&
+			getBackend().isFeatureFlagEnabled(FeatureFlagKeys.QUIC) &&
+			settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
 	}
 
 	private suspend fun getEntryPoint(): EntryPoint {
@@ -376,5 +386,25 @@ class NymBackendManager @Inject constructor(
 			title = context.getString(R.string.connection_failed),
 			description = reason.toUserMessage(context),
 		)
+	}
+}
+
+suspend fun Backend.isFeatureFlagEnabled(flag: String): Boolean {
+	return try {
+		val featureFlags = this.getCurrentEnvironment().featureFlags ?: return false
+		val flagValue = featureFlags.flags[flag] ?: return false
+
+		when (flagValue) {
+			is FlagValue.Value -> {
+				flagValue.v1.equals("true", ignoreCase = true)
+			}
+			is FlagValue.Group -> {
+				val enabled = flagValue.v1["enabled"]
+				enabled?.equals("true", ignoreCase = true) ?: flagValue.v1.isNotEmpty()
+			}
+		}
+	} catch (e: Exception) {
+		Timber.e(e)
+		false
 	}
 }

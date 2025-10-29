@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.screens.hop.components.QuickLabel
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -43,6 +44,7 @@ fun LocationField(
 	enabled: Boolean,
 	modifier: Modifier = Modifier,
 	showGatewayStreamIcon: Boolean = false,
+	showQuicLabel: Boolean = false,
 ) {
 	val context = LocalContext.current
 	val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
@@ -69,7 +71,7 @@ fun LocationField(
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
 				modifier = Modifier.then(
-					if (showGatewayStreamIcon) {
+					if (showGatewayStreamIcon || showQuicLabel) { // Need to push left due to big size of trailing content in basic textField
 						Modifier.padding(horizontal = 12.dp)
 					} else {
 						Modifier
@@ -84,6 +86,8 @@ fun LocationField(
 						tint = Color.Unspecified,
 					)
 					Spacer(modifier = Modifier.width(4.dp))
+				} else if (showQuicLabel) {
+					QuickLabel()
 				}
 				Icon(trailingIcon, stringResource(R.string.go), tint = MaterialTheme.colorScheme.onSurface)
 			}

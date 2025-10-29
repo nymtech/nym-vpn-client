@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.theme
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
 sealed class ThemeColors(
@@ -70,3 +71,19 @@ object CustomColors {
 	val buttonRedTransparent = Color(0x1AED5060)
 	val buttonRedTransparentBorder = Color(0xFFED5060)
 }
+
+@Immutable
+data class CustomColorsPalette(
+	val borderCyan: Color = Color.Unspecified,
+	val labelCyan: Color = Color.Unspecified,
+)
+
+val LightCustomColorsPalette = CustomColorsPalette(
+	borderCyan = Color(0x8000A3F5),
+	labelCyan = Color(0xFF00A3F5),
+)
+
+val DarkCustomColorsPalette = CustomColorsPalette(
+	borderCyan = Color(0x8098DDFF),
+	labelCyan = Color(0xFF98DDFF),
+)

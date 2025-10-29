@@ -8,12 +8,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
+import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
 
 @HiltViewModel
 class CensorshipViewModel @Inject constructor(
+	private val backendManager: BackendManager,
 	private val settingsRepository: SettingsRepository,
 	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
@@ -24,12 +27,20 @@ class CensorshipViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			val domainFronting = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.DOMAIN_FRONTING)
-			val quic = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
-			_uiState.update { it.copy(showQUICSection = quic, showDomainSection = domainFronting) }
+			val isQuicFeatureFlagEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
+			val isFastTunnel = settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
+			_uiState.update { it.copy(showQUICSection = isQuicFeatureFlagEnabled && isFastTunnel, showDomainSection = domainFronting) }
 		}
 	}
 
 	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setQUICEnabled(enabled)
+		_uiState.update { it.copy() }
+	}
+
+	fun disconnect() {
+		viewModelScope.launch {
+			backendManager.stopTunnel()
+		}
 	}
 }
