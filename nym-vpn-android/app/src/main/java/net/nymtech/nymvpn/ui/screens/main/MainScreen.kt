@@ -214,14 +214,18 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		}
 	}
 
-	Box {
+	Box(
+		modifier = Modifier
+			.fillMaxSize()
+			.verticalScroll(rememberScrollState())
+			.padding(bottom = padding.calculateBottomPadding()),
+	) {
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier
-				.verticalScroll(rememberScrollState())
-				.fillMaxSize()
-				.padding(bottom = padding.calculateBottomPadding()),
+				.align(Alignment.BottomCenter)
+				.fillMaxSize(),
 		) {
 			SnackbarHost(hostState = screenSnackbar, Modifier)
 			ConnectionStatus(
