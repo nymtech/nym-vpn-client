@@ -10,7 +10,7 @@ use crate::MAX_FILE_AGE;
 
 use super::{Error, NETWORKS_SUBDIR, Result, discovery::Discovery};
 
-#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {
     pub network: NymNetworkDetails,
 }

@@ -10,7 +10,7 @@ use crate::{
     account_management::AccountLinksConversionError, discovery::Discovery,
 };
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct NymVpnNetwork {
     pub nym_vpn_api_urls: Vec<ApiUrl>,
     pub account_management: Option<AccountManagement>,

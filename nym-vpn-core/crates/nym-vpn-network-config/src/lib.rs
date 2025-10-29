@@ -17,7 +17,7 @@ mod system_configuration;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
 pub use discovery_refresher::{
-    DiscoveryRefresherCommand, DiscoveryRefresherEvent, start_discovery_refresher,
+    DiscoveryRefresher, DiscoveryRefresherCommand, DiscoveryRefresherEvent,
 };
 pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
@@ -55,7 +55,7 @@ const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60);
 
 pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Network {
     pub nym_network: NymNetwork,
     pub nyxd_url: url::Url,

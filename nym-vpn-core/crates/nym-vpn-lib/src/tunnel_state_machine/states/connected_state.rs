@@ -26,7 +26,7 @@ use nym_common::trace_err_chain;
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent};
+use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 use super::ErrorState;
 
@@ -104,12 +104,10 @@ impl ConnectedState {
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .await
             .ok();
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
-            .await
             .ok();
         shared_state
             .account_command_tx
@@ -302,18 +300,6 @@ impl TunnelStateHandler for ConnectedState {
                     self.disconnect(after_disconnect, shared_state).await
                 } else {
                     NextTunnelState::SameState(self)
-                }
-            }
-            Some(discovery_event) = shared_state.discovery_refresher_event_rx.recv() => {
-                match discovery_event {
-                   DiscoveryRefresherEvent::NewNetwork(network) => {
-                        shared_state.nym_config.network_env = *network;
-                        NextTunnelState::SameState(self)
-                    }
-                    DiscoveryRefresherEvent::Error(error) => {
-                        trace_err_chain!(error, "Discovery refresher reported an error");
-                        NextTunnelState::SameState(self)
-                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

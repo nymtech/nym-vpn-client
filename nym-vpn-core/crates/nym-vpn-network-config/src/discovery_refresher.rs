@@ -10,33 +10,35 @@ use crate::{
 use nym_common::trace_err_chain;
 use nym_vpn_api_client::{ResolverOverrides, VpnApiClient};
 use tokio::{
-    sync::mpsc::{Receiver, Sender},
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
-struct DiscoveryRefresher {
+pub struct DiscoveryRefresher {
     client: VpnApiClient,
     config_path: PathBuf,
-    commands_rx: Receiver<DiscoveryRefresherCommand>,
-    events_tx: Sender<DiscoveryRefresherEvent>,
+    commands_rx: UnboundedReceiver<DiscoveryRefresherCommand>,
+    events_tx: UnboundedSender<DiscoveryRefresherEvent>,
     cancel_token: CancellationToken,
     current_resolver_overrides: Option<ResolverOverrides>,
     paused: bool,
 }
 
 impl DiscoveryRefresher {
-    async fn new(
+    pub async fn spawn(
         config_path: PathBuf,
-        commands_rx: Receiver<DiscoveryRefresherCommand>,
-        events_tx: Sender<DiscoveryRefresherEvent>,
+        network: Box<Network>,
+        commands_rx: UnboundedReceiver<DiscoveryRefresherCommand>,
+        events_tx: UnboundedSender<DiscoveryRefresherEvent>,
         cancel_token: CancellationToken,
-    ) -> Result<Self> {
+    ) -> Result<JoinHandle<()>> {
         let current_resolver_overrides = None;
         let client = Discovery::create_client(current_resolver_overrides).await?;
-        Ok(Self {
+
+        let refresher = Self {
             client,
             config_path,
             commands_rx,
@@ -44,36 +46,12 @@ impl DiscoveryRefresher {
             cancel_token,
             current_resolver_overrides: current_resolver_overrides.cloned(),
             paused: false,
-        })
+        };
+
+        Ok(tokio::spawn(refresher.run(network)))
     }
 
-    async fn refresh_discovery_file(&self, network_name: &str) -> Result<Option<Discovery>> {
-        if Discovery::path_is_stale(self.config_path.as_path(), network_name)? {
-            let discovery = Discovery::fetch(&self.client, network_name).await?;
-            discovery.write_to_file(self.config_path.as_path())?;
-            Ok(Some(discovery))
-        } else {
-            Ok(None)
-        }
-    }
-
-    async fn refresh_nym_network_file(
-        &self,
-        network_name: &str,
-        discovery: &Discovery,
-    ) -> Result<()> {
-        if NymNetwork::path_is_stale(self.config_path.as_path(), network_name)? {
-            discovery.update_nym_network_file(&self.config_path).await?;
-        }
-
-        Ok(())
-    }
-
-    async fn refresh_envs_file(&self) -> Result<()> {
-        RegisteredNetworks::try_update_file(&self.config_path).await
-    }
-
-    async fn run(mut self, mut network: Network) {
+    async fn run(mut self, mut network: Box<Network>) {
         tracing::debug!("Discovery Refresher started");
 
         let mut interval = tokio::time::interval(CHECK_INTERVAL);
@@ -108,7 +86,6 @@ impl DiscoveryRefresher {
                                         tracing::error!("Failed to create new client with {enabled} resolver overrides: {err:?}");
                                         self.events_tx
                                             .send(DiscoveryRefresherEvent::Error(err))
-                                            .await
                                             .ok();
                                     }
                                 }
@@ -123,7 +100,6 @@ impl DiscoveryRefresher {
                                 tracing::error!("Inconsistent network");
                                 self.events_tx
                                     .send(DiscoveryRefresherEvent::Error(Error::InconsistentNetwork))
-                                    .await
                                     .ok();
                             }
                             Ok(true) => {
@@ -144,7 +120,6 @@ impl DiscoveryRefresher {
                             trace_err_chain!(err, "Failed to refresh discovery file");
                             self.events_tx
                                 .send(DiscoveryRefresherEvent::Error(Error::RefreshDiscoveryFile))
-                                .await
                                 .ok();
                         }
                         Ok(Some(discovery)) => {
@@ -163,17 +138,18 @@ impl DiscoveryRefresher {
                                     trace_err_chain!(err, "Failed to parse refreshed discovery file");
                                     self.events_tx
                                         .send(DiscoveryRefresherEvent::Error(Error::ParseDiscoveryFile))
-                                        .await
                                         .ok();
                                 }
                                 Ok(new_network) => {
-                                    network = new_network.clone();
-                                    self.events_tx
-                                        .send(DiscoveryRefresherEvent::NewNetwork(Box::new(
-                                            new_network,
-                                        )))
-                                        .await
-                                        .ok();
+                                    // Only propagate new network environment when it really changed.
+                                    if *network == new_network {
+                                        tracing::info!("Network environment is up to date");
+                                    } else {
+                                        network = Box::new(new_network);
+                                        self.events_tx
+                                            .send(DiscoveryRefresherEvent::NewNetwork(network.clone()))
+                                            .ok();
+                                    }
                                 }
                             }
                         }
@@ -185,21 +161,32 @@ impl DiscoveryRefresher {
 
         tracing::debug!("Discovery Refresher exiting");
     }
-}
 
-pub async fn start_discovery_refresher(
-    config_path: PathBuf,
-    network: Network,
-    commands_rx: Receiver<DiscoveryRefresherCommand>,
-    events_tx: Sender<DiscoveryRefresherEvent>,
-    cancel_token: CancellationToken,
-) -> Result<JoinHandle<()>> {
-    let refresher =
-        DiscoveryRefresher::new(config_path, commands_rx, events_tx, cancel_token).await?;
+    async fn refresh_discovery_file(&self, network_name: &str) -> Result<Option<Discovery>> {
+        if Discovery::path_is_stale(self.config_path.as_path(), network_name)? {
+            let discovery = Discovery::fetch(&self.client, network_name).await?;
+            discovery.write_to_file(self.config_path.as_path())?;
+            Ok(Some(discovery))
+        } else {
+            Ok(None)
+        }
+    }
 
-    let join_handle = tokio::spawn(refresher.run(network));
+    async fn refresh_nym_network_file(
+        &self,
+        network_name: &str,
+        discovery: &Discovery,
+    ) -> Result<()> {
+        if NymNetwork::path_is_stale(self.config_path.as_path(), network_name)? {
+            discovery.update_nym_network_file(&self.config_path).await?;
+        }
 
-    Ok(join_handle)
+        Ok(())
+    }
+
+    async fn refresh_envs_file(&self) -> Result<()> {
+        RegisteredNetworks::try_update_file(&self.config_path).await
+    }
 }
 
 #[derive(Debug)]
