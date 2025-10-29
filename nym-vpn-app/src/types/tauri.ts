@@ -80,8 +80,6 @@ export type DbKey =
   | 'cache-device-id'
   | 'streaming-optimized-label-seen';
 
-export type DisplayServer = 'x11' | 'wayland' | 'unknown';
-
 export type DownloadUpdateEvent =
   | { event: 'started'; data: { contentLength: bigint } }
   | { event: 'progress'; data: { chunkLength: number } }
@@ -145,7 +143,6 @@ export type GatewayNode = {
   country: Country;
   region: string;
   city: string;
-  asnType?: AsnType;
 };
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
@@ -157,8 +154,6 @@ export type GatewaysByCountry = {
   type: GatewayType;
   quic: boolean;
 };
-
-export type GpuType = 'nvidia' | 'amd' | 'intel' | { unknown: string | null };
 
 export type Hop = 'entry' | 'exit';
 
@@ -215,8 +210,6 @@ export type OsInfo = {
   version: string;
   kernel: string;
   arch: string;
-  displayServer: DisplayServer;
-  gpu: GpuType;
   hash: string;
 };
 

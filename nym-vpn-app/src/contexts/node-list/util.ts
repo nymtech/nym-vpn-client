@@ -52,7 +52,6 @@ export function uiNodeToSelectedNode(uiNode: SelectedUiNode): SelectedNode {
           country: uiNode.country,
           city: uiNode.location.city,
           region: uiNode.location.region,
-          asnType: uiNode.asn?.type,
         },
       };
     }
