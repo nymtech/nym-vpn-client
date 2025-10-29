@@ -75,13 +75,21 @@ pub async fn system_messages(
 pub async fn feature_flags(
     grpc_client: State<'_, GrpcClient>,
 ) -> Result<FeatureFlags, BackendError> {
-    grpc_client
+    let mut feature_flags = grpc_client
         .feature_flags()
         .await
         .inspect_err(|e| {
             warn!("failed to get feature flags: {:?}", e);
         })
-        .map_err(|e| e.into())
+        .map_err(|e| e.into());
+
+    // TODO revert this for final release
+    warn!("enabling QUIC and domain fronting FF for testing purposes");
+    if let Ok(ff) = feature_flags.as_mut() {
+        ff.quic = true;
+        ff.domain_fronting = true;
+    };
+    feature_flags
 }
 
 #[instrument(skip_all)]
