@@ -23,6 +23,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.BridgeParameter
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.VpnException
 import nym_vpn_lib_types.EntryPoint
@@ -179,6 +180,12 @@ fun EntryPoint.Country.toDisplayCountry(): String {
 
 fun ExitPoint.Country.toDisplayCountry(): String {
 	return toDisplayCountry(twoLetterIsoCountryCode)
+}
+
+internal fun NymGateway.isQuicSupported(): Boolean = run {
+	return bridgeInformation?.transports?.find {
+		it is BridgeParameter.QuicPlain
+	} != null
 }
 
 @Composable

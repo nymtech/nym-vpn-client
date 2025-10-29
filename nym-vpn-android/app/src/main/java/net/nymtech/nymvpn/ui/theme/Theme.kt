@@ -9,7 +9,9 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -62,6 +64,8 @@ private val LightColorScheme =
 		outline = ThemeColors.Light.outline,
 	)
 
+val LocalCustomColorsPalette = staticCompositionLocalOf { CustomColorsPalette() }
+
 @Composable
 fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 	val context = LocalContext.current
@@ -93,9 +97,15 @@ fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 		}
 	}
 
-	MaterialTheme(
-		colorScheme = colorScheme,
-		typography = Typography,
-		content = content,
-	)
+	val customColorsPalette = if (isDark) DarkCustomColorsPalette else LightCustomColorsPalette
+
+	CompositionLocalProvider(
+		LocalCustomColorsPalette provides customColorsPalette,
+	) {
+		MaterialTheme(
+			colorScheme = colorScheme,
+			typography = Typography,
+			content = content,
+		)
+	}
 }
