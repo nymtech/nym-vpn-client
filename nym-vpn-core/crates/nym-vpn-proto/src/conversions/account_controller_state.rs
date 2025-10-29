@@ -144,6 +144,11 @@ impl From<AccountControllerState> for proto::AccountControllerState {
                     proto::account_controller_state::Decentralised {},
                 )
             }
+            AccountControllerState::UpgradeMode => {
+                proto::account_controller_state::State::UpgradeMode(
+                    proto::account_controller_state::UpgradeMode {},
+                )
+            }
             AccountControllerState::Error(reason) => proto::account_controller_state::State::Error(
                 proto::account_controller_state::Error::from(reason),
             ),
@@ -185,6 +190,9 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::Decentralised(
                 proto::account_controller_state::Decentralised {},
             ) => Self::Decentralised,
+            proto::account_controller_state::State::UpgradeMode(
+                proto::account_controller_state::UpgradeMode {},
+            ) => Self::UpgradeMode,
         })
     }
 }

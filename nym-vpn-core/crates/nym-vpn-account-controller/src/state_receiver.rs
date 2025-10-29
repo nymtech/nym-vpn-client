@@ -40,7 +40,9 @@ impl AccountStateReceiver {
                         )
                     })?;
                 }
-                AccountControllerState::ReadyToConnect | AccountControllerState::Decentralised => {
+                AccountControllerState::ReadyToConnect
+                | AccountControllerState::Decentralised
+                | AccountControllerState::UpgradeMode => {
                     return Ok(());
                 }
             }

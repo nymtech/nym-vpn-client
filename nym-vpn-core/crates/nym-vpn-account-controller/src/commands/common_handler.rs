@@ -1,5 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
+
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     ResolverOverrides,
@@ -9,10 +10,11 @@ use nym_vpn_lib_types::AccountCommandError;
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
-    commands::{ReturnSender, dispatch::CommonCommand},
+    commands::{ReturnSender, UpgradeModeCommand, dispatch::CommonCommand},
     storage::AccountStorageOp,
 };
 use nym_vpn_store::account::StorableAccount;
+use tracing::warn;
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,

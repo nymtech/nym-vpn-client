@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::VpnApiError;
-use nym_vpn_api_client::response::UpgradeModeAttestation;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
@@ -16,6 +15,7 @@ pub enum RequestZkNymError {
 
     #[error("failed to construct withdrawal request: {0}")]
     ConstructWithdrawalRequest(String),
+
     #[error("{response}, {ticket_type}")]
     RequestZkNymEndpointFailure {
         ticket_type: String,
@@ -90,6 +90,9 @@ pub enum RequestZkNymError {
 
     #[error("polled zk nym has been revoked or is in the process of getting revoked")]
     ZkNymRevoked,
+
+    #[error("the upgrade mode JWT is malformed")]
+    MalformedUpgradeModeJWT,
 
     #[error("received response is inconsistent: {reason}")]
     InconsistentResponse { reason: String },
@@ -214,7 +217,7 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
             | RequestZkNymError::ImportZkNym { .. }
             | RequestZkNymError::AggregateWallets(_)
             | RequestZkNymError::MissingPendingRequest(_)
-            | RequestZkNymError::Internal(_)
+            | RequestZkNymError::Internal(_) | RequestZkNymError::MalformedUpgradeModeJWT
             // TODO: not entirely sure if revocation fits here the best
             | RequestZkNymError::ZkNymRevoked => Self::Internal(err.to_string()),
         }
@@ -222,21 +225,6 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
 }
 
 pub type ZkNymId = String;
-
-#[derive(Clone, Debug)]
-pub struct UpgradeModeData {
-    pub attestation: UpgradeModeAttestation,
-    pub jwt: String,
-}
-
-impl From<nym_vpn_api_client::response::UpgradeModeResponseData> for UpgradeModeData {
-    fn from(data: nym_vpn_api_client::response::UpgradeModeResponseData) -> Self {
-        UpgradeModeData {
-            attestation: data.upgrade_mode_attestation,
-            jwt: data.upgrade_mode_jwt,
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
@@ -247,6 +235,5 @@ pub enum RequestZkNymSuccess {
     },
     UpgradeMode {
         id: ZkNymId,
-        upgrade_mode_data: Box<UpgradeModeData>,
     },
 }

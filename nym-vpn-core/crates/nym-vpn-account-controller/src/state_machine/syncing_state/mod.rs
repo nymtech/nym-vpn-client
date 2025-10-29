@@ -1,6 +1,14 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    SharedAccountState,
+    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    state_machine::{
+        AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
+        OfflineState, PrivateAccountControllerState, decentralised_state::DecentralisedState,
+    },
+};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -9,18 +17,10 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+use requesting_zknym_state::RequestingZkNymsState;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-
-use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, common_handler, handler},
-    state_machine::{
-        AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState, decentralised_state::DecentralisedState,
-    },
-};
-use requesting_zknym_state::RequestingZkNymsState;
+use tracing::warn;
 
 mod requesting_zknym_state;
 
@@ -267,6 +267,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
 
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
+                    },
+                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                            return_sender.send(Ok(false))
+                        }
+                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
+                            warn!(
+                                "received unexpected command to disable upgrade mode while in 'SyncingState' state"
+                            );
+                            return_sender.send(Ok(()))
+                        }
                     },
                 }
                 NextAccountControllerState::SameState(self)

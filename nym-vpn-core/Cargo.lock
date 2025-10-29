@@ -1867,7 +1867,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.61.1",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3775,21 +3775,16 @@ name = "nym-bandwidth-controller"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "bip39",
  "log",
  "nym-credential-storage",
  "nym-credentials",
  "nym-credentials-interface",
  "nym-crypto",
- "nym-ecash-contract-common",
  "nym-ecash-time",
- "nym-network-defaults",
  "nym-task",
  "nym-validator-client",
  "rand 0.8.5",
  "thiserror 2.0.17",
- "url",
- "zeroize",
 ]
 
 [[package]]
@@ -5238,6 +5233,7 @@ dependencies = [
  "nym-network-defaults",
  "nym-offline-monitor",
  "nym-sdk",
+ "nym-upgrade-mode-check",
  "nym-validator-client",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
@@ -6620,26 +6616,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ref-cast"
-version = "1.0.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f354300ae66f76f1c85c5f84693f0ce81d747e2c3f21a45fef496d89c960bf7d"
-dependencies = [
- "ref-cast-impl",
-]
-
-[[package]]
-name = "ref-cast-impl"
-version = "1.0.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7186006dcb21920990093f30e3dea63b7d6e977bf1256be20c3563a5db070da"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.106",
-]
-
-[[package]]
 name = "regex"
 version = "1.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7449,9 +7425,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "3.15.0"
+version = "3.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6093cd8c01b25262b84927e0f7151692158fab02d961e04c979d3903eba7ecc5"
+checksum = "aa66c845eee442168b2c8134fec70ac50dc20e760769c8ba0ad1319ca1959b04"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -7468,9 +7444,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with_macros"
-version = "3.15.0"
+version = "3.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7e6c180db0816026a61afa1cff5344fb7ebded7e4d3062772179f2501481c27"
+checksum = "b91a903660542fced4e99881aa481bdbaec1634568ee02e0b8bd57c64cb38955"
 dependencies = [
  "darling 0.21.3",
  "proc-macro2",

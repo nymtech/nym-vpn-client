@@ -8,26 +8,29 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 
-use crate::state_machine::upgrade_mode_state::UpgradeModeState;
 use crate::{
     SharedAccountState,
     commands::{
-        AccountCommand, common_handler, handler, zknym_handler::RequestZkNymCommandHandler,
+        AccountCommand, UpgradeModeCommand, common_handler, handler,
+        zknym_handler::RequestZkNymCommandHandler,
     },
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
         OfflineState, PrivateAccountControllerState, ReadyState, SyncingState,
+        upgrade_mode_state::UpgradeModeState,
     },
     storage::VpnCredentialStorage,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
-    RequestZkNymSuccess, UpgradeModeData,
+    AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
+    RequestZkNymErrorReason, RequestZkNymSuccess,
 };
-use tokio::task::JoinError;
-use tokio::{sync::mpsc, task::JoinHandle};
+use tokio::{
+    sync::mpsc,
+    task::{JoinError, JoinHandle},
+};
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 // The maximum number of zk-nym requests that can fail in a row
 const ZK_NYM_MAX_FAILS: u32 = 10;
@@ -128,7 +131,7 @@ impl RequestingZkNymsState {
             RequestZkNymCommandHandler::new(vpn_api_account, device, storage, vpn_api_client);
 
         let mut fetched_tickets: Option<Vec<_>> = None;
-        let mut upgrade_mode = None;
+        let mut upgrade_mode = false;
         for partial_result in request_handler
             .request_zk_nyms(ticket_types_to_request)
             .await
@@ -175,11 +178,8 @@ impl RequestingZkNymsState {
                         .push(ticketbook_type);
                     id
                 }
-                RequestZkNymSuccess::UpgradeMode {
-                    upgrade_mode_data,
-                    id,
-                } => {
-                    upgrade_mode = Some(upgrade_mode_data);
+                RequestZkNymSuccess::UpgradeMode { id } => {
+                    upgrade_mode = true;
                     id
                 }
             };
@@ -187,25 +187,25 @@ impl RequestingZkNymsState {
         }
 
         match (fetched_tickets, upgrade_mode) {
-            (Some(tickets), Some(upgrade_mode_data)) => {
+            (Some(tickets), true) => {
                 // edge case where upgrade mode has been triggered in between concurrent ticket requests
                 // incredibly unlikely, but always fallback to the upgrade mode
                 info!(
                     "we managed to fetch the following tickets just before upgrade mode has been triggered: {tickets:?}"
                 );
-                Ok(ZkNymFetchResult::UpgradeMode { upgrade_mode_data })
+                Ok(ZkNymFetchResult::UpgradeMode)
             }
-            (Some(tickets), None) => {
+            (Some(tickets), false) => {
                 debug!("managed to retrieve ticketbooks of the following types: {tickets:?}");
                 Ok(ZkNymFetchResult::FetchedTickets { types: tickets })
             }
-            (None, Some(upgrade_mode_data)) => {
+            (None, true) => {
                 info!(
                     "upgrade mode has been triggered while attempting to fetch additional zk-nym tickets"
                 );
-                Ok(ZkNymFetchResult::UpgradeMode { upgrade_mode_data })
+                Ok(ZkNymFetchResult::UpgradeMode)
             }
-            (None, None) => {
+            (None, false) => {
                 // this branch should be impossible, given that we did have more than one result
                 // and on any errors, we would have returned.
                 // however, it's better to return a nonsense error than crashing in case something changes in the impl in the future
@@ -295,8 +295,8 @@ impl RequestingZkNymsState {
             | ZkNymFetchResult::FetchedTickets { .. } => {
                 NextAccountControllerState::NewState(ReadyState::enter())
             }
-            ZkNymFetchResult::UpgradeMode { upgrade_mode_data } => {
-                NextAccountControllerState::NewState(UpgradeModeState::enter(upgrade_mode_data))
+            ZkNymFetchResult::UpgradeMode => {
+                NextAccountControllerState::NewState(UpgradeModeState::enter())
             }
         }
     }
@@ -369,6 +369,17 @@ impl RequestingZkNymsState {
             AccountCommand::Common(common_command) => {
                 common_handler::handle_common_command(common_command, shared_state).await
             }
+            AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                    return_sender.send(Ok(false))
+                }
+                UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
+                    warn!(
+                        "received unexpected command to disable upgrade mode while in 'RequestingZkNymsState' state"
+                    );
+                    return_sender.send(Ok(()))
+                }
+            },
         }
         NextAccountControllerState::SameState(self)
     }
@@ -445,7 +456,5 @@ enum ZkNymFetchResult {
         #[allow(unused)]
         types: Vec<String>,
     },
-    UpgradeMode {
-        upgrade_mode_data: Box<UpgradeModeData>,
-    },
+    UpgradeMode,
 }

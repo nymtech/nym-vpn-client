@@ -1,13 +1,14 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::commands::AccountCommand;
-use crate::shared_state::SharedAccountState;
-use crate::state_machine::{
-    AccountControllerStateHandler, NextAccountControllerState, PrivateAccountControllerState,
+use crate::{
+    commands::AccountCommand,
+    shared_state::SharedAccountState,
+    state_machine::{
+        AccountControllerStateHandler, NextAccountControllerState, PrivateAccountControllerState,
+    },
 };
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::UpgradeModeData;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -18,21 +19,17 @@ use tokio_util::sync::CancellationToken;
 /// Possible next state:
 /// - ErrorState : An error happened, preventing us to proceed.
 /// - LoggedOutState : A successful forget account command was handled
-pub struct UpgradeModeState {
-    data: Box<UpgradeModeData>,
-}
+pub struct UpgradeModeState;
 
 impl UpgradeModeState {
-    pub fn enter<C: ConnectivityMonitor>(
-        upgrade_mode_data: Box<UpgradeModeData>,
-    ) -> (
+    pub fn enter<C: ConnectivityMonitor>() -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
+        todo!("check and refresh storage");
+
         (
-            Box::new(UpgradeModeState {
-                data: upgrade_mode_data,
-            }),
+            Box::new(UpgradeModeState),
             PrivateAccountControllerState::UpgradeMode,
         )
     }

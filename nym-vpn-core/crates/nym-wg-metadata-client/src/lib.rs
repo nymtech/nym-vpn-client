@@ -176,4 +176,29 @@ impl MetadataClient {
         Self::print_remaining_bandwidth(self.gateway_id, available_bandwidth);
         Ok(available_bandwidth)
     }
+
+    pub async fn check_upgrade_mode(&mut self, upgrade_mode_jwt: String) -> Result<bool> {
+        let client = self
+            .lazy_client()
+            .await
+            .as_ref()
+            .map_err(|err| MetadataClientError::Internal(err.to_string()))?;
+
+        let request = match client.version {
+            Version::V1 => return Err(MetadataClientError::UnsupportedMetadataEndpointVersion),
+            Version::V2 => v2::UpgradeModeCheckRequest {
+                request_type: v2::UpgradeModeCheckRequestType::UpgradeModeJwt {
+                    token: upgrade_mode_jwt,
+                },
+            }
+            .try_into()?,
+        };
+        let response = client.inner.request_upgrade_mode_check(&request).await?;
+        let upgrade_mode_enabled = match client.version {
+            Version::V1 => return Err(MetadataClientError::UnsupportedMetadataEndpointVersion),
+            Version::V2 => v2::UpgradeModeCheckResponse::try_from(response)?.upgrade_mode,
+        };
+
+        Ok(upgrade_mode_enabled)
+    }
 }
