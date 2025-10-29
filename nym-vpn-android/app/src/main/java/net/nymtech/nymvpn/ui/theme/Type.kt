@@ -2,9 +2,12 @@ package net.nymtech.nymvpn.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaled
 
 // Set of Material typography styles to start with
@@ -84,6 +87,13 @@ object CustomTypography {
 	val titleMediumPlus = TextStyle(
 		fontSize = 20.sp.scaled(),
 		lineHeight = 24.sp.scaled(),
+		fontWeight = FontWeight(500),
+	)
+
+	val buttonMain = TextStyle(
+		fontSize = 16.sp.scaled(),
+		lineHeight = 22.4.sp.scaled(),
+		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		fontWeight = FontWeight(500),
 	)
 }

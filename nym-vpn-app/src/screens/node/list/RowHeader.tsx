@@ -51,11 +51,7 @@ function RowHeader({
         {node.nodeType === 'country' ? (
           <LocationInfo node={node} name={i18n} gwCount={gwCount} />
         ) : (
-          <LocationInfo
-            node={node}
-            name={`${i18n}, ${node.name}`}
-            gwCount={gwCount}
-          />
+          <LocationInfo node={node} name={node.name} gwCount={gwCount} />
         )}
       </div>
       <Accordion.Header className="flex py-2">

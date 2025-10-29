@@ -35,6 +35,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
 	private val welcomeScreenCompleted = booleanPreferencesKey("WELCOME_SCREEN_COMPLETE")
 	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
+	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -186,6 +187,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.quicEnabled, enabled)
 	}
 
+	override suspend fun getIsStreamServerBannerDisplayed(): Boolean {
+		return dataStoreManager.getFromStore(isStreamingServerBannerDisplayed) ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED
+	}
+
+	override suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean) {
+		dataStoreManager.saveToDataStore(this.isStreamingServerBannerDisplayed, displayed)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -213,6 +222,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
 						welcomeScreenCompleted = pref[welcomeScreenCompleted] ?: Settings.FLAG_WELCOME_SCREEN_COMPLETED,
 						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
+						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

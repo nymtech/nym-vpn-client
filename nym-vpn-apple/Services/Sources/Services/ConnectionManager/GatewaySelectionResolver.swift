@@ -85,8 +85,6 @@ actor GatewaySelectionResolver {
 
         case let .region(countryCode: code, region: region):
             return .region(countryCode: code, region: region)
-        case let .city(city):
-            return .city(city)
         case .random:
             return .random
         }

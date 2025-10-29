@@ -5,7 +5,7 @@
     "awaiting-account-readiness": "正在准备您的账号…",
     "refreshing-gateways": "正在更新网关…",
     "selecting-gateways": "选择网关…",
-    "connecting-mixnet-client": "正在连接到 mixnet 客户端…",
+    "registering-with-gateways": "用网关注册…",
     "connecting-tunnel": "正在连接到VPN…"
   },
   "connection-attempt_one": "重试中… 第 {{count}} 次尝试",

@@ -49,7 +49,9 @@
       "warning": "Änderungen werden nach der erneuten Verbindung angewendet",
       "content": "Verschleiert API-Anfragen hinter populären, erlaubten Domains, VPN-Blockierungen zu umgehen. Wird automatisch von NymVPN verwendet, wenn Standardverbindungsversuche fehlschlagen.",
       "link": "Wie der Stealth-API-Verbindungsmodus funktioniert"
-    }
+    },
+    "snackbar-switch-on": "Erweiterte Verbindung (QUIC-Protokoll) wird aktiviert, wenn Sie sich neu verbinden.",
+    "snackbar-switch-off": "Erweiterte Verbindung (QUIC-Protokoll) wird deaktiviert, wenn Sie sich neu verbinden."
   },
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",

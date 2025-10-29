@@ -15,6 +15,8 @@ extension GatewayManager {
             entry = loadedGatewayStore.entry
             exit = loadedGatewayStore.exit
             vpn = loadedGatewayStore.vpn
+
+            updateCountriesFromGateways()
         }
     }
 
@@ -42,6 +44,8 @@ extension GatewayManager {
                 exit = prebundledExitServers
                 vpn = prebundledVPNServers
 
+                updateCountriesFromGateways()
+
                 logger.info("Loading prebundled servers")
                 logger.info("entry: \(gatewayStore.entry.count)")
                 logger.info("exit: \(gatewayStore.exit.count)")
@@ -53,6 +57,7 @@ extension GatewayManager {
         }
     }
 
+    // swiftlint:disable:next function_body_length
     func loadPrebundledServers(from fileURL: URL) throws -> [GatewayNode] {
         do {
             let data = try Data(contentsOf: fileURL)
@@ -82,7 +87,7 @@ extension GatewayManager {
             }
 
             let nodes = try decoder.decode(Node.self, from: data)
-
+            // swiftlint:disable:next closure_body_length
             return nodes.map { node in
                 let perfV2 = node.performanceV2
                 let performance = GatewayNodePerformance(

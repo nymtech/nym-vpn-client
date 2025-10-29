@@ -28,7 +28,6 @@ import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
-import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserAgent
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
@@ -39,7 +38,6 @@ import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.VpnException
-import nym_vpn_lib_types.BandwidthEvent
 import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.ConnectionEvent
 import nym_vpn_lib_types.EntryPoint
@@ -131,6 +129,7 @@ class NymBackendManager @Inject constructor(
 
 	override suspend fun startTunnel() {
 		runCatching {
+			backend.await().updateAccountState()
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
 				entryPoint = getEntryPoint(),
@@ -245,6 +244,26 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
+	override suspend fun createAccount() {
+		backend.await().createAccount()
+		emitMnemonicStored(true)
+		refreshAccount()
+	}
+
+	override suspend fun registerAccount(purchaseToken: String): String {
+		return backend.await().registerAccount(purchaseToken)
+	}
+
+	override suspend fun refreshAccount() {
+		updateAccountIds()
+		refreshAccountLinks()
+	}
+
+	override suspend fun getMnemonic(): List<String> {
+		val mnemonic = backend.await().getStoredMnemonic()
+		return mnemonic.split(" ")
+	}
+
 	private fun emitMnemonicStored(stored: Boolean) {
 		_state.update {
 			it.copy(isMnemonicStored = stored)
@@ -342,20 +361,6 @@ class NymBackendManager @Inject constructor(
 			}
 		} catch (ex: Exception) {
 			Timber.e(ex)
-		}
-	}
-
-	private fun launchBandwidthNotification(bandwidthEvent: BandwidthEvent) {
-		when (bandwidthEvent) {
-			BandwidthEvent.NoBandwidth -> notificationService.showNotification(
-				title = context.getString(R.string.bandwidth_alert),
-				description = context.getString(R.string.no_bandwidth),
-			)
-
-			is BandwidthEvent.RemainingBandwidth -> notificationService.showNotification(
-				title = context.getString(R.string.bandwidth_alert),
-				description = context.getString(R.string.low_bandwidth) + " ${bandwidthEvent.v1.toMB()} MB",
-			)
 		}
 	}
 

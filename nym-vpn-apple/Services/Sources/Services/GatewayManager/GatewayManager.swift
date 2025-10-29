@@ -34,6 +34,8 @@ import GRPCManager
     @Published public var vpnCountries: [NymCountry]
     @Published public var lastError: Error?
 
+    public let countriesSupportingRegions = ["US"]
+
     lazy var iso8601Flexible: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -118,16 +120,6 @@ import GRPCManager
         }
     }
 
-    public func localizedCountry(with countryCode: String?) -> NymCountry? {
-        guard let countryCode,
-              !countryCode.isEmpty,
-              let countryName = Locale.current.localizedString(forRegionCode: countryCode)
-        else {
-            return nil
-        }
-        return NymCountry(name: countryName, code: countryCode, regions: [])
-    }
-
     public func country(with gatewayId: String?, nodeType: NodeType) -> NymCountry? {
         guard let gatewayId else { return nil }
         switch nodeType {
@@ -149,8 +141,6 @@ import GRPCManager
             return code
         case let .region(countryCode: code, region: _):
             return localizedCountry(with: code)?.code
-        case .city:
-            return nil
         case let .gateway(identifier):
             return country(with: identifier, nodeType: .entry)?.code
             ?? country(with: identifier, nodeType: .vpn)?.code
@@ -185,8 +175,6 @@ import GRPCManager
             } else {
                 return region
             }
-        case .city:
-            return nil
         case let .gateway(identifier):
             return moniker(with: identifier) ?? identifier
         case .random:
@@ -219,9 +207,6 @@ import GRPCManager
             return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.isQuicAvailable }
         case let .region(countryCode, region):
             return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region }
-        case .city:
-            print("TODO: city")
-            return false
         case let .gateway(identifier):
             return vpn.contains { $0.id == identifier && $0.isQuicAvailable }
         case .random:
@@ -230,7 +215,38 @@ import GRPCManager
     }
 }
 
-// MARK: Updating countries
+// MARK: - Country -
+extension GatewayManager {
+    public func shouldDisplayRegion(with countryCode: String) -> Bool {
+        countriesSupportingRegions.contains(countryCode)
+    }
+
+    public func localizedCountry(with countryCode: String?) -> NymCountry? {
+        guard let countryCode,
+              !countryCode.isEmpty,
+              let countryName = Locale.current.localizedString(forRegionCode: countryCode)
+        else {
+            return nil
+        }
+        return NymCountry(name: countryName, code: countryCode, regions: [])
+    }
+}
+
+// MARK: - Gateway -
+extension GatewayManager {
+    public func gateway(with gatewayId: String?, gatewayType: NodeType) -> GatewayNode? {
+        switch gatewayType {
+        case .entry:
+            return entry.first(where: { $0.id == gatewayId })
+        case .exit:
+            return exit.first(where: { $0.id == gatewayId })
+        case .vpn:
+            return vpn.first(where: { $0.id == gatewayId })
+        }
+    }
+}
+
+// MARK: - Updating countries -
 extension GatewayManager {
     func fetchGateways() async {
         do {

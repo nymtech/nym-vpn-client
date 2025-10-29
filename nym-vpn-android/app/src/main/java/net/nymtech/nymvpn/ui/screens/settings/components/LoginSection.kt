@@ -7,8 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -23,7 +21,7 @@ fun LoginSection(appUiState: AppUiState, onLoginClick: () -> Unit) {
 		MainStyledButton(
 			onClick = onLoginClick,
 			content = {
-				Text(stringResource(R.string.log_in).uppercase(), style = CustomTypography.labelHuge, fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)))
+				Text(stringResource(R.string.log_in).uppercase(), style = CustomTypography.buttonMain)
 			},
 			color = MaterialTheme.colorScheme.primary,
 			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),

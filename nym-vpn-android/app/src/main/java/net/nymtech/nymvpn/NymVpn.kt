@@ -78,23 +78,22 @@ class NymVpn : Application() {
 			Timber.plant(ReleaseTree())
 		}
 
-		logReader.start()
-		backendManager.initialize()
-
-		NymBackend.setAlwaysOnCallback {
-			applicationScope.launch {
-				backendManager.startTunnel()
-			}
-		}
-		applicationScope.launch {
-			settingsRepository.getLocale()?.let {
-				withContext(mainDispatcher) {
-					LocaleUtil.changeLocale(it)
+		applicationScope.launch(ioDispatcher) {
+			logReader.start()
+			backendManager.initialize()
+			NymBackend.setAlwaysOnCallback {
+				applicationScope.launch {
+					backendManager.startTunnel()
 				}
 			}
-		}
-		requestTileServiceStateUpdate()
-		applicationScope.launch {
+			applicationScope.launch {
+				settingsRepository.getLocale()?.let {
+					withContext(mainDispatcher) {
+						LocaleUtil.changeLocale(it)
+					}
+				}
+			}
+			requestTileServiceStateUpdate()
 			if (settingsRepository.getSentryMonitoringEnabled()) {
 				initSentry()
 			}

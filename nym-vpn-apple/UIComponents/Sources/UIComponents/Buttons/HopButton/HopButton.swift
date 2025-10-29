@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
+import CountriesManagerTypes
 import FeatureFlagsManager
 import GatewayManager
 import Theme
@@ -13,6 +14,20 @@ public struct HopButton: View {
     @EnvironmentObject private var gatewayManager: GatewayManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @State private var isHovered = false
+
+    private var gatewayType: NodeType {
+        switch connectionManager.connectionType {
+        case .wireguard:
+            .vpn
+        case .mixnet5hop:
+            switch hopType {
+            case .entry:
+                .entry
+            case .exit:
+                .exit
+            }
+        }
+    }
 
     private var shouldShowQuic: Bool {
         featureFlagsManager.isQuicEnabled
@@ -41,21 +56,36 @@ public struct HopButton: View {
     }
 
     private var subtitleText: String? {
+        let gateway = gatewayManager.gateway(with: gatewayId, gatewayType: gatewayType)
+        guard let location = gateway?.location
+        else {
+            return nameOrId(gateway: gateway)
+        }
+
         switch hopType {
         case .entry:
-            guard connectionManager.entryGateway.isCountry
-                    || connectionManager.entryGateway.isRegion
-            else {
+            switch connectionManager.entryGateway {
+            case let .country(countryCode), let .lowLatencyCountry(countryCode):
+                return countrySubtitle(gateway: gateway, countryCode: countryCode, location: location)
+            case .region:
+                return regionSubtitle(gateway: gateway, location: location)
+            case .gateway:
+                return serverSubtitle(location: location, countryCode: location.twoLetterIsoCountryCode)
+            case .random:
                 return nil
             }
         case .exit:
-            guard connectionManager.exitRouter.isCountry
-                    || connectionManager.exitRouter.isRegion
-            else {
+            switch connectionManager.exitRouter {
+            case let .country(countryCode):
+                return countrySubtitle(gateway: gateway, countryCode: countryCode, location: location)
+            case .gateway:
+                return serverSubtitle(location: location, countryCode: location.twoLetterIsoCountryCode)
+            case .region:
+                return regionSubtitle(gateway: gateway, location: location)
+            case .random, .address:
                 return nil
             }
         }
-        return gatewayManager.moniker(with: gatewayId) ?? gatewayId
     }
 
     private var hopCountryCode: String? {
@@ -111,6 +141,48 @@ public struct HopButton: View {
 
     public init(hopType: HopType) {
         self.hopType = hopType
+    }
+}
+
+// MARK: - Subtitle -
+private extension HopButton {
+    func countrySubtitle(gateway: GatewayNode?, countryCode: String, location: GatewayNodeLocation) -> String? {
+        if gatewayManager.shouldDisplayRegion(with: countryCode) {
+            "\(location.city), \(location.region) \(nameOrId(gateway: gateway))"
+        } else {
+            "\(location.city) \(nameOrId(gateway: gateway))"
+        }
+    }
+
+    func regionSubtitle(gateway: GatewayNode?, location: GatewayNodeLocation) -> String? {
+        "\(location.city) \(nameOrId(gateway: gateway))"
+    }
+
+    func citySubtitle(gateway: GatewayNode?, location: GatewayNodeLocation) -> String? {
+        if let country = gatewayManager.localizedCountry(with: location.twoLetterIsoCountryCode) {
+            "\(location.region), \(country.name) \(nameOrId(gateway: gateway))"
+        } else {
+            "\(location.region) \(nameOrId(gateway: gateway))"
+        }
+    }
+
+    func serverSubtitle(location: GatewayNodeLocation, countryCode: String) -> String? {
+        let country = gatewayManager.localizedCountry(with: countryCode)
+        if gatewayManager.shouldDisplayRegion(with: countryCode) {
+            return "\(location.city), \(location.region), \(country?.name ?? "")"
+        } else {
+            return "\(location.city), \(country?.name ?? "")"
+        }
+    }
+
+    func nameOrId(gateway: GatewayNode?) -> String {
+        if let name = gateway?.name {
+            "(\(name))"
+        } else if let identifier = gateway?.id {
+            "(\(identifier))"
+        } else {
+            ""
+        }
     }
 }
 

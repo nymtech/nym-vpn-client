@@ -49,7 +49,9 @@
       "warning": "Le modifiche verranno applicate dopo la riconnessione",
       "content": "Travestisce le richieste API dietro i domini popolari, permessi per bypassare il blocco VPN. Usato automaticamente da NymVPN quando i tentativi di connessione standard falliscono.",
       "link": "Come funziona la modalità di connessione Stealth API"
-    }
+    },
+    "snackbar-switch-on": "La connessione migliorata (protocollo QUIC) si attiverà quando ti riconnetterai.",
+    "snackbar-switch-off": "La connessione migliorata (protocollo QUIC) disattiverà quando ti riconnetterai."
   },
   "faq": "FAQ",
   "display-theme": "Tema",

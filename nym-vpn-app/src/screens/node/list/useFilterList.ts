@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useDebouncedCallback as useDebounce } from 'use-debounce';
 import {
   UiGateway,
   UiGatewaysByCountry,
   UiRegion,
   useNodeList,
 } from '../../../contexts';
+import { sortByScore } from './util';
 
 export function useFilterList() {
-  const { nodes, gateways } = useNodeList();
+  const { nodes, gateways, vpnMode } = useNodeList();
 
   const [filteredNodes, setFilteredNodes] =
     useState<UiGatewaysByCountry[]>(nodes);
@@ -30,18 +30,19 @@ export function useFilterList() {
         return;
       }
 
+      const lowCaseValue = value.toLowerCase();
       let usRegions: UiRegion[] = [];
       const filteredNodes = structuredClone(nodes).filter((node) => {
         if (node.country.code.toLowerCase() === 'us') {
           usRegions = node.regions.filter((region) => {
-            return region.name.toLowerCase().includes(value.toLowerCase());
+            return region.name.toLowerCase().includes(lowCaseValue);
           });
           if (usRegions.length > 0) {
             return true;
           }
         }
         // toLowerCase() is used to make it case-insensitive
-        return node.i18n.toLowerCase().includes(value.toLowerCase());
+        return node.i18n.toLowerCase().includes(lowCaseValue);
       });
       if (usRegions.length > 0) {
         const index = filteredNodes.findIndex(
@@ -52,20 +53,28 @@ export function useFilterList() {
         }
       }
       const filteredGw = gateways.filter((gw) => {
-        return gw.name.toLowerCase().includes(value.toLowerCase());
+        return (
+          gw.name.toLowerCase().includes(lowCaseValue) ||
+          gw.location.city.toLowerCase().includes(lowCaseValue) ||
+          gw.id.toLowerCase().includes(lowCaseValue)
+        );
       });
+      filteredGw.sort((a, b) => {
+        if (vpnMode === 'mixnet') {
+          return sortByScore(a.mxScore, b.mxScore);
+        } else {
+          return sortByScore(a.wgScore, b.wgScore);
+        }
+      });
+
       setFilteredNodes(filteredNodes);
       setFilteredGateways(filteredGw);
     },
-    [gateways, nodes],
+    [gateways, nodes, vpnMode],
   );
 
-  const debounced = useDebounce((value: string) => {
-    filter(value);
-  }, 200);
-
   return {
-    filter: debounced,
+    filter,
     nodes: filteredNodes,
     gateways: filteredGateways,
   };

@@ -139,7 +139,7 @@ export function toSelectedNode(node: SelectableNode): SelectedNode {
   if (isGateway(node)) {
     return {
       type: 'gateway',
-      node,
+      node: { ...node, region: node.location.region, city: node.location.city },
     };
   } else if (isCountry(node)) {
     return {

@@ -49,7 +49,9 @@
       "warning": "Les modifications s'appliqueront après la reconnexion",
       "content": "Déguiser les requêtes API derrière des domaines populaires et autorisés pour contourner le blocage du VPN. Utilisé automatiquement par NymVPN lorsque les tentatives de connexion standard échouent.",
       "link": "Comment fonctionne le mode de connexion de l'API furtive"
-    }
+    },
+    "snackbar-switch-on": "La connexion améliorée (protocole QUIC) sera activée lorsque vous vous reconnecterez.",
+    "snackbar-switch-off": "La connexion améliorée (protocole QUIC) sera désactivée lorsque vous vous reconnecterez."
   },
   "faq": "F.A.Q.",
   "display-theme": "Affichage",
