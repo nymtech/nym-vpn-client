@@ -79,7 +79,7 @@ fun WelcomeAccountScreen(viewModel: WelcomeAccountViewModel = hiltViewModel()) {
 		},
 		onStartClick = {
 			if (!loading) {
-				if(viewModel.isBillingAvailable()) {
+				if (viewModel.isBillingAvailable()) {
 					if (activeSubscription) {
 						showSubscriptionDialog = true
 					} else {
