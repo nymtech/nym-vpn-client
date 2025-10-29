@@ -14,7 +14,6 @@ import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
-import { kvSet } from '../../kvStore/index';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
@@ -177,7 +176,11 @@ function Home() {
     } else {
       resetNodeList('exit');
       navigate(routes.exitNodeLocation);
-      kvSet(STREAMING_OPTIMIZED_LABEL_FEATURE_KEY, true);
+      setFeatureSeen(
+        dispatch,
+        STREAMING_OPTIMIZED_LABEL_ACTION_TYPE,
+        STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
+      );
     }
   };
 
@@ -235,14 +238,7 @@ function Home() {
                 <HopSelect
                   node={exitNode}
                   gatewayId={exitGwId}
-                  onClick={() => {
-                    setFeatureSeen(
-                      dispatch,
-                      STREAMING_OPTIMIZED_LABEL_ACTION_TYPE,
-                      STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
-                    );
-                    goToNodeList('exit');
-                  }}
+                  onClick={() => goToNodeList('exit')}
                   nodeHop="exit"
                   disabled={hopSelectDisabled}
                   locked={daemonStatus === 'down'}
