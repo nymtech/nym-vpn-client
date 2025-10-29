@@ -217,41 +217,41 @@ platform :mac do
     sh "echo 'archive_path=#{archive_path}' >> $GITHUB_OUTPUT" if ENV['GITHUB_OUTPUT']
   end
 
-  desc "Notarize and staple a macOS DMG via App Store Connect API key"
-  lane :notarize_dmg do
-    UI.message("📤 Submitting DMG for notarization via notarytool...")
+  # desc "Notarize and staple a macOS DMG via App Store Connect API key"
+  # lane :notarize_dmg do
+  #   UI.message("📤 Submitting DMG for notarization via notarytool...")
 
-    release_type = ENV['RELEASE_TYPE'] || "qa"
-    dmg_name = case release_type
-              when "qa" then "NymVPN_QA.dmg"
-              when "ship" then "NymVPN.dmg"
-              else "NymVPN_#{release_type}.dmg"
-              end
+  #   release_type = ENV['RELEASE_TYPE'] || "qa"
+  #   dmg_name = case release_type
+  #             when "qa" then "NymVPN_QA.dmg"
+  #             when "ship" then "NymVPN.dmg"
+  #             else "NymVPN_#{release_type}.dmg"
+  #             end
 
-    dmg_path = File.expand_path("../build/dmg/#{dmg_name}", __dir__)
-    UI.user_error!("DMG not found at #{dmg_path}") unless File.exist?(dmg_path)
+  #   dmg_path = File.expand_path("../build/dmg/#{dmg_name}", __dir__)
+  #   UI.user_error!("DMG not found at #{dmg_path}") unless File.exist?(dmg_path)
 
-    api_key = app_store_connect_api_key(
-      key_id: ENV['ASC_KEY_ID'],
-      issuer_id: ENV['ASC_ISSUER_ID'],
-      key_content: ENV['ASC_KEY_BASE64'],
-      is_key_content_base64: true
-    )
+  #   api_key = app_store_connect_api_key(
+  #     key_id: ENV['ASC_KEY_ID'],
+  #     issuer_id: ENV['ASC_ISSUER_ID'],
+  #     key_content: ENV['ASC_KEY_BASE64'],
+  #     is_key_content_base64: true
+  #   )
 
-    notarize(
-      package: dmg_path,
-      bundle_id: "net.nymtech.vpn",
-      api_key: api_key,
-      use_notarytool: true,
-      print_log: true,
-    )
+  #   notarize(
+  #     package: dmg_path,
+  #     bundle_id: "net.nymtech.vpn",
+  #     api_key: api_key,
+  #     use_notarytool: true,
+  #     print_log: true,
+  #   )
 
-    UI.message("📎 Stapling notarization ticket to DMG...")
-    sh("xcrun stapler staple '#{dmg_path}'")
-    sh("xcrun stapler validate '#{dmg_path}'")
+  #   UI.message("📎 Stapling notarization ticket to DMG...")
+  #   sh("xcrun stapler staple '#{dmg_path}'")
+  #   sh("xcrun stapler validate '#{dmg_path}'")
 
-    UI.success("✅ DMG notarized and stapled successfully at #{dmg_path}")
-  end
+  #   UI.success("✅ DMG notarized and stapled successfully at #{dmg_path}")
+  # end
 end
 
 platform :ios do
