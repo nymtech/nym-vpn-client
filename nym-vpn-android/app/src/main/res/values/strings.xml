@@ -87,13 +87,6 @@
     <string name="always_on_message">Not working? Make sure Always-on VPN is disable for other apps in</string>
     <string name="vpn_settings">VPN system settings</string>
     <string name="try_again">and try to reconnect</string>
-    <string name="share">Share</string>
-    <string name="download">Download</string>
-    <string name="delete">Delete</string>
-    <string name="delete_logs_title">Are you sure you want to delete all logs?</string>
-    <string name="delete_logs_description">Once deleted, the logs will not be recoverable.</string>
-	<string name="yes">Yes</string>
-	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Alerts Channel</string>
     <string name="vpn_alerts_channel_description">A channel for app related alert notifications.</string>
@@ -360,4 +353,18 @@
 	<string name="account_info_id_title">Account ID</string>
 	<string name="account_info_id_description">Use this ID for support requests</string>
 	<string name="account_info_id_important">⚠️ Important: Nym support will never ask for your 24-word passphrase. Never share it with anyone.</string>
+	<!-- Logs screen -->
+	<string name="logs_share">Share</string>
+	<string name="logs_download">Download</string>
+	<string name="logs_delete">Delete</string>
+	<string name="logs_delete_title">Delete NymVPN logs?</string>
+	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
+	<string name="logs_delete_button">Delete logs</string>
+	<string name="logs_share_title">Share NymVPN logs?</string>
+	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
+	<string name="logs_share_button">Share anyway</string>
+	<string name="logs_download_title">Save NymVPN logs as file?</string>
+	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
+	<string name="logs_download_button">Save as file anyway</string>
+	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 </resources>

@@ -67,12 +67,7 @@
     <string name="always_on_message">کار نمی‌کند؟ مطمئن شوید که حالت اتصال پیوسته وی‌پی‌ان سایر نرم‌افزارهای وی‌پی‌ان غیر فعال می‌باشد</string>
     <string name="vpn_settings">تنظیمات وی‌پی‌ان دستگاه</string>
     <string name="try_again">و دوباره وصل شوید</string>
-    <string name="share">اشتراک‌گذاری</string>
-    <string name="delete">حذف</string>
-    <string name="delete_logs_title">آیا از حذف تمام گزارشها مطمئن هستید؟</string>
-    <string name="delete_logs_description">زمانی که گزارشها را حذف کردید دیگر قابل بازگشت نمی‌باشد.</string>
-	<string name="yes">بله</string>
-	<string name="network_error">مشکلی در اتصال شبکه رخ داده است. لطفاً اتصال شبکه خود را بررسی کرده و دوباره تلاش کنید.</string>
+    <string name="network_error">مشکلی در اتصال شبکه رخ داده است. لطفاً اتصال شبکه خود را بررسی کرده و دوباره تلاش کنید.</string>
 	<string name="vpn_alerts_channel_id">کانال اطلاع رسانی هشدارها و اطلاعیه‌های NymVPN</string>
     <string name="vpn_alerts_channel_description">کانال اطلاع رسانی اعلانات هشداری نرم‌افزار.</string>
     <string name="bandwidth_alert">‌هشدار حجمی‌ترافیک</string>

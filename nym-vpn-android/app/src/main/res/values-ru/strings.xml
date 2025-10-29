@@ -67,12 +67,7 @@
     <string name="always_on_message">VPN не работает? Убедитесь, что функция постоянного VPN отключена для других приложений</string>
     <string name="vpn_settings">Настройки системы VPN</string>
     <string name="try_again">попробуйте переподключиться</string>
-    <string name="share">Поделиться</string>
-    <string name="delete">Удалить</string>
-    <string name="delete_logs_title">Вы уверены что хотите удалить логи?</string>
-    <string name="delete_logs_description">После удаления логи будет невозможно восстановить.</string>
-	<string name="yes">Да</string>
-	<string name="network_error">Возникла проблема с сетевым подключением. Пожалуйста, проверьте ваше сетевое подключение и повторите попытку.</string>
+    <string name="network_error">Возникла проблема с сетевым подключением. Пожалуйста, проверьте ваше сетевое подключение и повторите попытку.</string>
 	<string name="vpn_alerts_channel_id">Канал оповещений NymVPN</string>
     <string name="vpn_alerts_channel_description">Канал для получения уведомлений, связанных с приложением.</string>
     <string name="bandwidth_alert">Предупреждение о пропускной способности</string>

@@ -67,12 +67,7 @@
     <string name="always_on_message">Não está a funcionar? Certifique-se de que a VPN sempre ativa está desactivada para outras aplicações em</string>
     <string name="vpn_settings">Definições do sistema VPN</string>
     <string name="try_again">e tentar restabelecer a ligação</string>
-    <string name="share">Partilhar</string>
-    <string name="delete">Apagar</string>
-    <string name="delete_logs_title">Tem a certeza de que pretende apagar todos os logs?</string>
-    <string name="delete_logs_description">Uma vez eliminados, os logs não poderão ser recuperados.</string>
-	<string name="yes">Sim</string>
-	<string name="network_error">Ocorreu um problema de ligação de rede. Verifique a sua ligação de rede e tente novamente.</string>
+    <string name="network_error">Ocorreu um problema de ligação de rede. Verifique a sua ligação de rede e tente novamente.</string>
 	<string name="vpn_alerts_channel_id">Canal de alertas NymVPN</string>
     <string name="vpn_alerts_channel_description">Um canal para notificações de alerta relacionadas com a aplicação.</string>
     <string name="bandwidth_alert">Alerta de banda larga</string>
