@@ -616,7 +616,7 @@ impl TunnelMonitor {
         let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
 
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
-        let (bridge_close_tx, mut bridge_close_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
+        let (bridge_close_tx, mut bridge_close_rx) = tokio::sync::mpsc::unbounded_channel();
 
         // todo: refactor
         let (
@@ -627,6 +627,7 @@ impl TunnelMonitor {
             },
             wg_tunnel_runtime,
             mixnet_client_token,
+            _bridge_close_tx,
         ) = match registration_result {
             RegistrationResult::Mixnet(inner_result) => {
                 let mixnet_client_token = inner_result.mixnet_client.cancellation_token();
@@ -635,6 +636,8 @@ impl TunnelMonitor {
                     self.start_mixnet_tunnel(*inner_result).await?,
                     None,
                     Some(mixnet_client_token),
+                    // Return sender back to avoid it being dropped
+                    Some(bridge_close_tx),
                 )
             }
             RegistrationResult::Wireguard(inner_result) => {
@@ -679,6 +682,7 @@ impl TunnelMonitor {
                     start_tunnel_result,
                     Some(wg_tunnel_runtime),
                     mixnet_client_token,
+                    None,
                 )
             }
         };
