@@ -178,7 +178,7 @@ impl DiscoveryRefresher {
     async fn refresh_discovery_file(&self, network_name: &str) -> Result<Option<Discovery>> {
         if Discovery::path_is_stale(self.config_path.as_path(), network_name)? {
             let discovery = Discovery::fetch(&self.client, network_name).await?;
-            discovery.write_to_file(self.config_path.as_path())?;
+            discovery.write_to_file(self.config_path.as_path(), None)?;
             Ok(Some(discovery))
         } else {
             Ok(None)
