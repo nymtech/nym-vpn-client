@@ -57,4 +57,8 @@ class WelcomeAccountViewModel @Inject constructor(
 		val subscribed = billingManager.hasActiveSubscription()
 		_activeSubscription.value = subscribed
 	}
+
+	fun isBillingAvailable(): Boolean {
+		return billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
+	}
 }

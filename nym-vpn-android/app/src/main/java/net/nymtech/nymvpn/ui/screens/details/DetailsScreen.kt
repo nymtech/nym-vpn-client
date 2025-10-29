@@ -85,8 +85,7 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 		horizontalAlignment = Alignment.Start,
 		modifier = Modifier
 			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background)
-			.padding(WindowInsets.systemBars.asPaddingValues()),
+			.background(MaterialTheme.colorScheme.background),
 	) {
 		Column(
 			modifier = Modifier
