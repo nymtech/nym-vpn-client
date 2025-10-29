@@ -67,12 +67,7 @@
     <string name="always_on_message">Ne fonctionne pas ? Assurez-vous que le VPN permanent est désactivé pour les autres applications dans</string>
     <string name="vpn_settings">Paramètres du système VPN</string>
     <string name="try_again">et essayez de vous reconnecter</string>
-    <string name="share">Partager</string>
-    <string name="delete">Supprimez</string>
-    <string name="delete_logs_title">Êtes-vous sûr de vouloir supprimer tous les logs ?</string>
-    <string name="delete_logs_description">Une fois supprimés, les logs ne seront pas récupérables.</string>
-	<string name="yes">Oui</string>
-	<string name="network_error">Un problème de connexion réseau est survenu. Veuillez vérifier votre connexion réseau et réessayer.</string>
+    <string name="network_error">Un problème de connexion réseau est survenu. Veuillez vérifier votre connexion réseau et réessayer.</string>
 	<string name="vpn_alerts_channel_id">Canal d\'alerte NymVPN</string>
     <string name="vpn_alerts_channel_description">Un canal pour les notifications d\'alerte liées aux applications.</string>
     <string name="bandwidth_alert">Alerte bande passante</string>

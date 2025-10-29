@@ -67,4 +67,6 @@ object CustomColors {
 	val warning = Color(0xFFFFB400)
 	val iconBorder = Color(0x4014E76F)
 	val iconBackground = Color(0x2611C55F)
+	val buttonRedTransparent = Color(0x1AED5060)
+	val buttonRedTransparentBorder = Color(0xFFED5060)
 }

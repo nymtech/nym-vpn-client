@@ -42,7 +42,7 @@ fun Modal(
 ) {
 	if (show) {
 		AlertDialog(
-			containerColor = MaterialTheme.colorScheme.surfaceContainer,
+			containerColor = MaterialTheme.colorScheme.surface,
 			onDismissRequest = { onDismiss() },
 			tonalElevation = 0.dp,
 			dismissButton = dismissButton,
