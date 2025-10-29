@@ -3,11 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
-import {
-  DefaultNode,
-  DefaultRootFontSize,
-  DefaultThemeMode,
-} from '../constants';
+import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
@@ -16,7 +12,6 @@ import {
   FeatureFlags,
   InitState,
   NetworkCompat,
-  SelectedNode,
   StateDispatch,
   TAccountState,
   TTunnelState,
@@ -50,42 +45,6 @@ export async function initFirstBatch(
     request: () => getInitialTunnelState(),
     onFulfilled: (state) => {
       updateTunnel(state, dispatch);
-    },
-  };
-
-  const getEntryNodeRq: TauriReq<() => Promise<SelectedNode | undefined>> = {
-    name: 'getEntryNode',
-    request: () => kvGet<SelectedNode>('entry-node'),
-    onFulfilled: (node) => {
-      if (node) {
-        dispatch({
-          type: 'set-node',
-          payload: {
-            hop: 'entry',
-            node,
-          },
-        });
-      } else {
-        console.info('no entry node saved, using default country', DefaultNode);
-      }
-    },
-  };
-
-  const getExitNodeRq: TauriReq<() => Promise<SelectedNode | undefined>> = {
-    name: 'getExitNode',
-    request: () => kvGet<SelectedNode>('exit-node'),
-    onFulfilled: (node) => {
-      if (node) {
-        dispatch({
-          type: 'set-node',
-          payload: {
-            hop: 'exit',
-            node,
-          },
-        });
-      } else {
-        console.info('no exit node saved, using default country', DefaultNode);
-      }
     },
   };
 
@@ -246,8 +205,6 @@ export async function initFirstBatch(
   };
 
   let requests: TauriReq<never>[] = [
-    getEntryNodeRq,
-    getExitNodeRq,
     getVersionRq,
     getThemeRq,
     getRootFontSizeRq,

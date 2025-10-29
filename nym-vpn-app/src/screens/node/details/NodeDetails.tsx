@@ -274,9 +274,9 @@ function NodeDetails() {
   const Card1Footer = (
     <p className="text-iron dark:text-bombay">
       <Trans i18nKey="node-details.notes.anti-censorship" ns="nodeLocation">
-        <span className="text-black dark:text-white underline">
+        <Link className="text-black dark:text-white" to={routes.antiCensorship}>
           Enable “QUIC protocol”
-        </span>
+        </Link>
         in Anti-censorship Settings to use this feature
       </Trans>
     </p>
