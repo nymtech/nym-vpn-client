@@ -288,7 +288,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	override suspend fun start(tunnel: Tunnel, userAgent: UserAgent) {
+	override suspend fun start(tunnel: Tunnel, userAgent: UserAgent, enableBridges: Boolean) {
 		withContext(ioDispatcher) {
 			initialized.await()
 			val state = getState()
@@ -296,7 +296,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			this@NymBackend.tunnel = tunnel
 			onStateChange(Tunnel.State.InitializingClient)
 			if (android.net.VpnService.prepare(context) != null) throw BackendException.VpnPermissionDenied()
-			startVpn(tunnel, userAgent)
+			startVpn(tunnel, userAgent, enableBridges)
 		}
 	}
 
@@ -309,7 +309,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		stateMachineService.owner = this
 	}
 
-	private suspend fun startVpn(tunnel: Tunnel, userAgent: UserAgent) {
+	private suspend fun startVpn(tunnel: Tunnel, userAgent: UserAgent, enableBridges: Boolean) {
 		withContext(ioDispatcher) {
 			startServices()
 			ensureNotificationAndStartForeground()
@@ -319,7 +319,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 						tunnel.entryPoint,
 						tunnel.exitPoint,
 						tunnel.mode.isTwoHop(),
-						false,
+						enableBridges,
 						false,
 						vpnService.await(),
 						storagePath,
