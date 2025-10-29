@@ -39,7 +39,6 @@ import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.VpnException
-import nym_vpn_lib.currentEnvironment
 import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.ConnectionEvent
 import nym_vpn_lib_types.EntryPoint
@@ -162,22 +161,8 @@ class NymBackendManager @Inject constructor(
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&
-			isFeatureFlagEnabled(FeatureFlagKeys.QUIC) &&
+			getBackend().isFeatureFlagEnabled(FeatureFlagKeys.QUIC) &&
 			settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
-	}
-
-	private fun isFeatureFlagEnabled(flag: String): Boolean {
-		val flagValue = currentEnvironment().featureFlags?.flags[flag] ?: return false
-
-		return when (flagValue) {
-			is FlagValue.Value -> {
-				flagValue.v1.equals("true", ignoreCase = true)
-			}
-			is FlagValue.Group -> {
-				val enabled = flagValue.v1["enabled"]
-				enabled?.equals("true", ignoreCase = true) ?: flagValue.v1.isNotEmpty()
-			}
-		}
 	}
 
 	private suspend fun getEntryPoint(): EntryPoint {
@@ -401,5 +386,25 @@ class NymBackendManager @Inject constructor(
 			title = context.getString(R.string.connection_failed),
 			description = reason.toUserMessage(context),
 		)
+	}
+}
+
+suspend fun Backend.isFeatureFlagEnabled(flag: String): Boolean {
+	return try {
+		val featureFlags = this.getCurrentEnvironment().featureFlags ?: return false
+		val flagValue = featureFlags.flags[flag] ?: return false
+
+		when (flagValue) {
+			is FlagValue.Value -> {
+				flagValue.v1.equals("true", ignoreCase = true)
+			}
+			is FlagValue.Group -> {
+				val enabled = flagValue.v1["enabled"]
+				enabled?.equals("true", ignoreCase = true) ?: flagValue.v1.isNotEmpty()
+			}
+		}
+	} catch (e: Exception) {
+		Timber.e(e)
+		false
 	}
 }
