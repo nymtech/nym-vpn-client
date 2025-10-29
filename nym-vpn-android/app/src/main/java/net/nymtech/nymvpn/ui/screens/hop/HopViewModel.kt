@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.environment.EnvironmentManager
+import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
+import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.toLocale
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
@@ -24,6 +28,7 @@ class HopViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val gatewayRepository: GatewayRepository,
+	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(HopUiState())
@@ -31,9 +36,13 @@ class HopViewModel @Inject constructor(
 
 	private var gatewayType: GatewayType? = null
 	private var allGateways: List<NymGateway> = emptyList()
+	private var isQuicOnlyGatewaysFilterRequired = false
+	private var isExitScreen = false
 
 	init {
 		viewModelScope.launch {
+			updateQuicState()
+
 			gatewayRepository.gatewayFlow.collect { gateways ->
 				val type = gatewayType ?: return@collect
 				val filteredGateways = when (type) {
@@ -47,9 +56,22 @@ class HopViewModel @Inject constructor(
 		}
 	}
 
-	fun initializeGateways(initialGateways: List<NymGateway>) {
-		allGateways = initialGateways
-		updateFilteredData(initialGateways, _uiState.value.query)
+	private suspend fun updateQuicState() {
+		val isQuicFeatureFlagEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
+		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
+		val isFastVpn = settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
+		isQuicOnlyGatewaysFilterRequired = isQuicFeatureFlagEnabled && isQuicToggleEnabled && isFastVpn && !isExitScreen
+
+		_uiState.update { it.copy(isQuicFeatureFlagEnabled = isQuicFeatureFlagEnabled) }
+	}
+
+	fun initializeGateways(initialGateways: List<NymGateway>, isExitScreen: Boolean = false) {
+		viewModelScope.launch {
+			allGateways = initialGateways
+			this@HopViewModel.isExitScreen = isExitScreen
+			updateQuicState()
+			updateFilteredData(initialGateways, _uiState.value.query)
+		}
 	}
 
 	fun onQueryChange(query: String) {
@@ -68,7 +90,7 @@ class HopViewModel @Inject constructor(
 			}.getOrThrow()
 		}.onFailure {
 			Timber.e(it)
-			_uiState.update { it.copy(error = true) }
+			_uiState.update { state -> state.copy(error = true) }
 		}
 	}
 
@@ -79,6 +101,9 @@ class HopViewModel @Inject constructor(
 		val filteredCountries = gateways.asSequence()
 			.distinctBy { it.twoLetterCountryISO }
 			.filter { it.twoLetterCountryISO != null }
+			.filter {
+				!isQuicOnlyGatewaysFilterRequired || it.isQuicSupported()
+			} // if @isQuicOnlyGatewaysFilterRequired is true than only check for if it supported by Quic
 			.mapNotNull { it.toLocale() }
 			.filter {
 				it.displayCountry.lowercase().contains(lowercaseQuery) ||
@@ -89,10 +114,13 @@ class HopViewModel @Inject constructor(
 			.toList()
 
 		val filteredGateways = if (query.isNotBlank()) {
-			gateways.filter {
-				it.identity.lowercase().contains(lowercaseQuery) ||
-					it.name.lowercase().contains(lowercaseQuery)
-			}.sortedWith(compareBy(collator) { it.identity })
+			gateways
+				.filter {
+					it.identity.lowercase().contains(lowercaseQuery) ||
+						it.name.lowercase().contains(lowercaseQuery)
+				}
+				.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
+				.sortedWith(compareBy(collator) { it.identity })
 		} else {
 			emptyList()
 		}

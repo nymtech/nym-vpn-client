@@ -21,24 +21,21 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.VerticalDivider
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.iconSize
-import nym_vpn_lib_types.AsnKind
 
 @Composable
-internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnKind: AsnKind?, onInfoIconClick: () -> Unit) {
+internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLabel: Boolean, onInfoIconClicked: () -> Unit) {
 	Box(
 		modifier = Modifier.fillMaxHeight(),
 		contentAlignment = Alignment.Center,
 	) {
-		val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && asnKind == AsnKind.RESIDENTIAL
 		Row(
 			horizontalArrangement = Arrangement.spacedBy(if (showStreamDisplay) 12.dp else 16.dp),
 			verticalAlignment = Alignment.CenterVertically,
 			modifier = Modifier
 				.padding(end = 16.dp)
 				.clickable {
-					onInfoIconClick()
+					onInfoIconClicked()
 				},
 		) {
 			if (showStreamDisplay) {
@@ -48,6 +45,8 @@ internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnK
 					modifier = Modifier.size(iconSize),
 					tint = Color.Unspecified,
 				)
+			} else if (showQuicLabel) {
+				QuickLabel()
 			} else {
 				VerticalDivider(modifier = Modifier.height(42.dp))
 			}

@@ -31,7 +31,7 @@ data class AppUiState(
 	}
 
 	val entryPointGateway = when (val entry = settings.entryPoint) {
-		is EntryPoint.Country -> {
+		is EntryPoint.Country, is EntryPoint.Region -> {
 			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
 					gateways.entryGateways.firstOrNull { it.identity == data.entryGateway.id }
@@ -40,6 +40,7 @@ data class AppUiState(
 				null
 			}
 		}
+		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }
 		else -> null
 	}
 

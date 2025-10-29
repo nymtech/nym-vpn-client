@@ -38,10 +38,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,14 +60,17 @@ import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -102,8 +110,15 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 		}
 	}
 
+	val canShowQuicLabel = remember(uiState.isQuicFeatureFlagEnabled) {
+		uiState.isQuicFeatureFlagEnabled &&
+			gatewayLocation == GatewayLocation.ENTRY &&
+			appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET &&
+			appUiState.settings.quicEnabled
+	}
+
 	LaunchedEffect(gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways)
+		viewModel.initializeGateways(initialGateways, gatewayLocation == GatewayLocation.EXIT)
 		viewModel.updateCountryCache(gatewayType)
 	}
 
@@ -133,6 +148,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 						.padding(horizontal = 24.dp.scaledWidth())
 						.padding(top = 24.dp.scaledHeight()),
 				) {
+					if (canShowQuicLabel) {
+						QuicInfoMessage {
+							navController.navigate(Route.Censorship)
+						}
+					}
 					CustomTextField(
 						value = uiState.query,
 						onValueChange = { viewModel.onQueryChange(it) },
@@ -194,14 +214,28 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 							buildAnnotatedString {
 								append(stringResource(R.string.try_another_server_name))
 								append(" ")
-								withLink(LinkAnnotation.Url(stringResource(R.string.contact_url))) {
-									append(stringResource(R.string.contact_for_help))
+								withStyle(
+									style = SpanStyle(
+										color = MaterialTheme.colorScheme.onBackground,
+										textDecoration = TextDecoration.Underline,
+									),
+								) {
+									withLink(LinkAnnotation.Url(stringResource(R.string.contact_url))) {
+										append(stringResource(R.string.contact_for_help))
+									}
 								}
 								append(" ")
 								append(stringResource(R.string.or_learn))
 								append(" ")
-								withLink(LinkAnnotation.Url(stringResource(R.string.docs_url))) {
-									append(stringResource(R.string.how_to_run_gateway))
+								withStyle(
+									style = SpanStyle(
+										color = MaterialTheme.colorScheme.onBackground,
+										textDecoration = TextDecoration.Underline,
+									),
+								) {
+									withLink(LinkAnnotation.Url(stringResource(R.string.docs_url))) {
+										append(stringResource(R.string.how_to_run_gateway))
+									}
 								}
 							},
 							textAlign = TextAlign.Center,
@@ -220,9 +254,9 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 						GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 						GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
 						GatewayType.WG -> appUiState.gateways.wgGateways
-						else -> emptyList()
 					}
 						.filter { it.twoLetterCountryISO == country.country.lowercase() }
+						.filter { !canShowQuicLabel || it.isQuicSupported() }
 						.scoreSorted(appUiState.settings.vpnMode),
 					selectedKey = selectedKey,
 					onSelectionChange = { id ->
@@ -235,6 +269,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 					modifier = Modifier
 						.padding(top = if (uiState.countries.indexOf(country) == 0) 24.dp.scaledHeight() else 0.dp)
 						.padding(vertical = 4.dp),
+					isQuicSettingsEnabled = canShowQuicLabel,
 				)
 			}
 
@@ -244,6 +279,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 					key = { _, gateway -> gateway.identity },
 				) { index, gateway ->
 					val locale = gateway.twoLetterCountryISO?.let { Locale(it, it) }
+					val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
 					SurfaceSelectionGroupButton(
 						listOf(
 							SelectionItem(
@@ -262,7 +298,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 									}
 								},
 								trailing = {
-									ServerDetailsTrailingContent(gatewayLocation, gateway.asnKind) {
+									ServerDetailsTrailingContent(showStreamDisplay = showStreamDisplay, showQuicLabel = canShowQuicLabel && gateway.isQuicSupported()) {
 										navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
 									}
 								},
@@ -296,4 +332,35 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 			}
 		}
 	}
+}
+
+@Composable
+internal fun QuicInfoMessage(navigateToQuicSettings: () -> Unit) {
+	val annotatedText = buildAnnotatedString {
+		append(stringResource(R.string.quic_gatway_filter_info_msg))
+		append(" ")
+		withStyle(
+			style = SpanStyle(
+				color = MaterialTheme.colorScheme.onBackground,
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			withLink(
+				LinkAnnotation.Clickable("quic", linkInteractionListener = {
+					navigateToQuicSettings()
+				}),
+			) {
+				append(stringResource(R.string.here))
+			}
+		}
+		append(".")
+	}
+
+	Text(
+		text = annotatedText,
+		style = Typography.bodyMedium.copy(
+			color = MaterialTheme.colorScheme.outline,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		),
+	)
 }

@@ -181,6 +181,8 @@
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">⏯️ Streaming-optimized servers now labelled</string>
 	<string name="streaming_server_banner_action">Browse exit\nservers now</string>
+	<string name="quic_gatway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+	<string name="here">here</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -289,13 +291,22 @@
 	<string name="censorship_description">Enable these features if you\'re experiencing connection issues or NymVPN blocking in your location.</string>
 	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
 	<string name="censorship_quic_changes">Changes will apply after reconnect</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing. Note: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
 	<string name="censorship_quic_link_text">How QUIC improves connections</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail.</string>
 	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="quic">QUIC</string>
+	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
+	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
+	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
+	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
+	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
+	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
+	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
+	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
 	<string name="account_welcome_countries">50+ countries worldwide</string>
