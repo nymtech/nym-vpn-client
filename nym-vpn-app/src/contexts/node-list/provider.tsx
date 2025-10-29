@@ -116,13 +116,20 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
             selectedEntry,
             selectedExit,
           );
-          const regions: UiRegion[] = country.regions.map((region) => {
+          if (gateways.length === 0) {
+            return countryAcc;
+          }
+
+          const regions = country.regions.reduce<UiRegion[]>((acc, region) => {
             const regionGateways = gatewaysToUi(
               region.gateways,
               selectedEntry,
               selectedExit,
             );
-            return {
+            if (regionGateways.length === 0) {
+              return acc;
+            }
+            acc.push({
               ...region,
               nodeType: 'region',
               gateways: regionGateways,
@@ -131,8 +138,9 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
                 selectedEntry,
                 selectedExit,
               ) as GwSelectedKind,
-            };
-          });
+            });
+            return acc;
+          }, []);
 
           const uiCountry: UiGatewaysByCountry = {
             country: mappedCountry,

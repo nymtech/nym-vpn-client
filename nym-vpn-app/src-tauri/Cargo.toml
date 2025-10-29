@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.18.0-fig-rc1"
+version = "1.18.0-fig-rc2"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",

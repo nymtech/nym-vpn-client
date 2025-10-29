@@ -111,7 +111,7 @@ function Node({ node }: { node: NodeHop }) {
           data-testid="node-search-container"
         >
           {quicFilter && (
-            <p className="text-xs text-iron dark:text-bombay mb-6 select-none">
+            <p className="text-sm text-iron dark:text-bombay mb-6 select-none">
               <Trans
                 i18nKey="quic-filter-note"
                 ns="nodeLocation"
