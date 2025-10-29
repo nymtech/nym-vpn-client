@@ -83,7 +83,6 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		modifier = Modifier
 			.fillMaxSize()
-			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
 		Text(
