@@ -98,7 +98,7 @@ function Home() {
       invoke('connect', {
         entry: entryNode,
         exit: exitNode,
-        quic: backendFlags?.quic && savedQuic,
+        quic: backendFlags.quic && savedQuic,
       })
         .then((result) => {
           console.log(result);
