@@ -30,8 +30,8 @@ fun LogsBottomBar(onEvent: (LogsBottomBarEvent) -> Unit) {
 				),
 				selected = false,
 				onClick = { onEvent(LogsBottomBarEvent.Download) },
-				label = { Text(stringResource(R.string.download), style = MaterialTheme.typography.labelMedium) },
-				icon = { Icon(Icons.Outlined.Download, stringResource(R.string.download)) },
+				label = { Text(stringResource(R.string.logs_download), style = MaterialTheme.typography.labelMedium) },
+				icon = { Icon(Icons.Outlined.Download, stringResource(R.string.logs_download)) },
 			),
 			NavigationBarItem(
 				colors = NavigationBarItemDefaults.colors().copy(
@@ -40,8 +40,8 @@ fun LogsBottomBar(onEvent: (LogsBottomBarEvent) -> Unit) {
 				),
 				selected = false,
 				onClick = { onEvent(LogsBottomBarEvent.Share) },
-				label = { Text(stringResource(R.string.share), style = MaterialTheme.typography.labelMedium) },
-				icon = { Icon(Icons.Outlined.Share, stringResource(R.string.share)) },
+				label = { Text(stringResource(R.string.logs_share), style = MaterialTheme.typography.labelMedium) },
+				icon = { Icon(Icons.Outlined.Share, stringResource(R.string.logs_share)) },
 			),
 			NavigationBarItem(
 				colors = NavigationBarItemDefaults.colors().copy(
@@ -50,8 +50,8 @@ fun LogsBottomBar(onEvent: (LogsBottomBarEvent) -> Unit) {
 				),
 				selected = false,
 				onClick = { onEvent(LogsBottomBarEvent.Delete) },
-				label = { Text(stringResource(R.string.delete), style = MaterialTheme.typography.labelMedium) },
-				icon = { Icon(Icons.Outlined.Delete, stringResource(R.string.delete)) },
+				label = { Text(stringResource(R.string.logs_delete), style = MaterialTheme.typography.labelMedium) },
+				icon = { Icon(Icons.Outlined.Delete, stringResource(R.string.logs_delete)) },
 			),
 		)
 	}

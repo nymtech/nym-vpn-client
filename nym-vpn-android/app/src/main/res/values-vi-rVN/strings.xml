@@ -67,12 +67,7 @@
     <string name="always_on_message">Không hoạt động? Hãy đảm bảo rằng chế độ VPN luôn bật đã được tắt cho các ứng dụng khác trong cài đặt</string>
     <string name="vpn_settings">Cài đặt hệ thống VPN</string>
     <string name="try_again">và cố gắng kết nối lại</string>
-    <string name="share">Chia sẻ</string>
-    <string name="delete">Xóa</string>
-    <string name="delete_logs_title">Bạn có chắc chắn muốn xóa tất cả nhật ký không?</string>
-    <string name="delete_logs_description">Sau khi xóa, nhật ký sẽ không thể phục hồi được.</string>
-	<string name="yes">Có</string>
-	<string name="network_error">Đã xảy ra sự cố kết nối mạng. Vui lòng kiểm tra kết nối mạng của bạn và thử lại.</string>
+    <string name="network_error">Đã xảy ra sự cố kết nối mạng. Vui lòng kiểm tra kết nối mạng của bạn và thử lại.</string>
 	<string name="vpn_alerts_channel_id">Kênh Cảnh Báo NymVPN</string>
     <string name="vpn_alerts_channel_description">Kênh thông báo cảnh báo liên quan đến ứng dụng.</string>
     <string name="bandwidth_alert">Cảnh báo băng thông</string>

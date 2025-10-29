@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.common.buttons
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.Button
@@ -20,6 +21,7 @@ fun MainStyledButton(
 	color: Color = MaterialTheme.colorScheme.primary,
 	modifier: Modifier = Modifier,
 	enabled: Boolean = true,
+	borderStroke: BorderStroke? = null,
 ) {
 	Button(
 		onClick = { onClick() },
@@ -27,6 +29,7 @@ fun MainStyledButton(
 		ButtonDefaults.buttonColors(
 			containerColor = color,
 		),
+		border = borderStroke,
 		enabled = enabled,
 		contentPadding = PaddingValues(),
 		modifier =

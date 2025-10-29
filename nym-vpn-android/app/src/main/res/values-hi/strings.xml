@@ -67,12 +67,7 @@
     <string name="always_on_message">VPN काम नहीं कर रहा? सुनिश्चित करें कि अन्य ऐप्स के लिए Always-on VPN बंद है।</string>
     <string name="vpn_settings">VPN सिस्टम सेटिंग्स</string>
     <string name="try_again">और पुनः कनेक्ट करने का प्रयास करें</string>
-    <string name="share">साझा करें</string>
-    <string name="delete">हटाएं</string>
-    <string name="delete_logs_title">क्या आप निश्चित हैं कि आप सभी लॉग्स हटाना चाहते हैं?</string>
-    <string name="delete_logs_description">क बार डिलीट करने के बाद, इन लॉग्स को फिर से प्राप्त (रिकवर) नहीं किया जा सकेगा।</string>
-	<string name="yes">हाँ</string>
-	<string name="network_error">नेटवर्क कनेक्शन में समस्या हुई। कृपया अपना नेटवर्क कनेक्शन जाँचें और फिर से प्रयास करें।</string>
+    <string name="network_error">नेटवर्क कनेक्शन में समस्या हुई। कृपया अपना नेटवर्क कनेक्शन जाँचें और फिर से प्रयास करें।</string>
 	<string name="vpn_alerts_channel_id">NymVPN अलर्ट्स चैनल</string>
     <string name="vpn_alerts_channel_description">ऐप से संबंधित अलर्ट सूचनाओं के लिए एक चैनल।</string>
     <string name="bandwidth_alert">बैंडविड्थ अलर्ट</string>
