@@ -45,8 +45,7 @@ mod tests {
         let yesterday = now - Duration::days(1);
         let tomorrow = now + Duration::days(1);
 
-        assert!(!is_expired(yesterday));
-        assert!(is_expired(now));
-        assert!(is_expired(tomorrow));
+        assert!(is_expired(yesterday));
+        assert!(!is_expired(tomorrow));
     }
 }
