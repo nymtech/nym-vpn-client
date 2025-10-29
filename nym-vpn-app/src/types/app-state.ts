@@ -32,6 +32,8 @@ export type InitState = {
   welcomeChecked: boolean;
   vpnMode: VpnMode;
   vpnd: VpndStatus;
+  entryNode: SelectedNode;
+  exitNode: SelectedNode;
 };
 
 export type AppState = {

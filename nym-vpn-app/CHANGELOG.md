@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Search by city, region and server ID in server list
 - Optimize server list filtering, searching and rendering performance
 
+### Fixed
+
+- Fix a race condition at app startup that could lead to
+  selected nodes to be reset to default
+
 ## [1.17.1] - 2025-10-20
 
 ### Fixed

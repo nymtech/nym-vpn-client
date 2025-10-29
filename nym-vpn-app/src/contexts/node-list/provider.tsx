@@ -120,27 +120,30 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
             return countryAcc;
           }
 
-          const regions = country.regions.reduce<UiRegion[]>((acc, region) => {
-            const regionGateways = gatewaysToUi(
-              region.gateways,
-              selectedEntry,
-              selectedExit,
-            );
-            if (regionGateways.length === 0) {
-              return acc;
-            }
-            acc.push({
-              ...region,
-              nodeType: 'region',
-              gateways: regionGateways,
-              isSelected: isSelectedNodeType(
-                region,
+          const regions = country.regions.reduce<UiRegion[]>(
+            (regionAcc, region) => {
+              const regionGateways = gatewaysToUi(
+                region.gateways,
                 selectedEntry,
                 selectedExit,
-              ) as GwSelectedKind,
-            });
-            return acc;
-          }, []);
+              );
+              if (regionGateways.length === 0) {
+                return regionAcc;
+              }
+              regionAcc.push({
+                ...region,
+                nodeType: 'region',
+                gateways: regionGateways,
+                isSelected: isSelectedNodeType(
+                  region,
+                  selectedEntry,
+                  selectedExit,
+                ) as GwSelectedKind,
+              });
+              return regionAcc;
+            },
+            [],
+          );
 
           const uiCountry: UiGatewaysByCountry = {
             country: mappedCountry,
@@ -160,14 +163,12 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
 
   const toGatewayList = useCallback(
     (list: UiGatewaysByCountry[]) => {
-      return (
-        list
-          .reduce<UiGateway[]>((acc, cur) => {
-            return [...acc, ...cur.gateways];
-          }, [])
-          // TODO instead sort by score?
-          .sort((a, b) => compare(a.name, b.name))
-      );
+      const gateways: UiGateway[] = [];
+      for (const country of list) {
+        gateways.push(...country.gateways);
+      }
+      // TODO not sure if this sort is relevant
+      return gateways.sort((a, b) => compare(a.name, b.name));
     },
     [compare],
   );

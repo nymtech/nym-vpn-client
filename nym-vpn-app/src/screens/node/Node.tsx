@@ -122,7 +122,6 @@ function Node({ node }: { node: NodeHop }) {
                       to={routes.antiCensorship}
                       className="text-black dark:text-white"
                       textClassName="underline-offset-2"
-                      data-testid="welcome-tos-link"
                     />
                   ),
                 }}
