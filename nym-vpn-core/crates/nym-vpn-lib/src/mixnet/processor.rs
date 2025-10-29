@@ -180,6 +180,7 @@ impl MixnetProcessor {
                             continue;
                         }
                     };
+                    //Fixme : bandaid, the disconnect logic has to be taken out of that loop and properly upper bounded
                     if let Err(err) = tokio::time::timeout(Duration::from_secs(2),mixnet_sender.send(input_message)).await {
                         tracing::error!("Failed to send disconnect message: {err}");
                         tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
