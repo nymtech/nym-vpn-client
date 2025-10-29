@@ -24,7 +24,6 @@ import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.manager.backend.model.toInfo
-import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
@@ -39,7 +38,6 @@ import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.VpnException
-import nym_vpn_lib.currentEnvironment
 import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.ConnectionEvent
 import nym_vpn_lib_types.EntryPoint
@@ -47,7 +45,6 @@ import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.EstablishConnectionData
 import nym_vpn_lib_types.EstablishConnectionState
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.FlagValue
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.MixnetEvent
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -55,7 +52,6 @@ import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelState
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.text.equals
 
 class NymBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
@@ -161,22 +157,8 @@ class NymBackendManager @Inject constructor(
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&
-			isFeatureFlagEnabled(FeatureFlagKeys.QUIC) &&
+			getBackend().getCurrentEnvironment().featureFlags?.isQuicEnabled() ?: false &&
 			settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
-	}
-
-	private fun isFeatureFlagEnabled(flag: String): Boolean {
-		val flagValue = currentEnvironment().featureFlags?.flags[flag] ?: return false
-
-		return when (flagValue) {
-			is FlagValue.Value -> {
-				flagValue.v1.equals("true", ignoreCase = true)
-			}
-			is FlagValue.Group -> {
-				val enabled = flagValue.v1["enabled"]
-				enabled?.equals("true", ignoreCase = true) ?: flagValue.v1.isNotEmpty()
-			}
-		}
 	}
 
 	private suspend fun getEntryPoint(): EntryPoint {

@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
-import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.toLocale
@@ -57,7 +56,7 @@ class HopViewModel @Inject constructor(
 	}
 
 	private suspend fun updateQuicState() {
-		val isQuicFeatureFlagEnabled = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
+		val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
 		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
 		val isFastVpn = settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
 		isQuicOnlyGatewaysFilterRequired = isQuicFeatureFlagEnabled && isQuicToggleEnabled && isFastVpn && !isExitScreen
