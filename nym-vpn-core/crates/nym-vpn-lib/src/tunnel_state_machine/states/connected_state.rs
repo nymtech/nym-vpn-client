@@ -49,23 +49,6 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .await
-            .ok();
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(false))
-            .await
-            .ok();
-        shared_state
-            .account_command_tx
-            .set_resolver_overrides(None)
-            .await
-            .ok();
-
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
@@ -116,6 +99,23 @@ impl ConnectedState {
                 shared_state,
             );
         }
+
+        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .await
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .await
+            .ok();
+        shared_state
+            .account_command_tx
+            .set_resolver_overrides(None)
+            .await
+            .ok();
 
         // We can use slower network fetches now
         shared_state.topology_provider.use_network(true).await;
