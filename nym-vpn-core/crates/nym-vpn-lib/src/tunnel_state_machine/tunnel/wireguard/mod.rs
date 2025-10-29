@@ -14,6 +14,7 @@ pub mod dns64;
 pub mod fd;
 pub mod two_hop_config;
 
+#[derive(Debug, Clone)]
 pub struct ConnectionData {
     pub entry_bridge_addr: Option<SocketAddr>,
     pub entry: GatewayData,
