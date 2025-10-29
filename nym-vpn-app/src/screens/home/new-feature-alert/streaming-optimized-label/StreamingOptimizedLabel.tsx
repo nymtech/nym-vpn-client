@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ButtonText, Toast } from '../../../../ui/index';
 import { routes } from '../../../../router';
 import { kvSet } from '../../../../kvStore/kv';
@@ -11,6 +12,7 @@ export function StreamingOptimizedLabel() {
   const navigate = useNavigate();
   const { streamingOptimizedLabelSeen } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const { t } = useTranslation('notifications');
 
   const handleClick = () => {
     navigate(routes.exitNodeLocation);
@@ -39,14 +41,14 @@ export function StreamingOptimizedLabel() {
       content={
         <div className="flex flex-row justify-between gap-5 items-center">
           <span className="dark:text-white text-baltic-sea">
-            ⏯️ Streaming-optimized servers now labelled
+            {t('streaming-optimized-label')}
           </span>
           <ButtonText
             color="transparent"
             className="!text-malachite"
             onClick={handleClick}
           >
-            <span className="">Browse exit servers now</span>
+            <span className="">{t('streaming-optimized-label-button')}</span>
           </ButtonText>
         </div>
       }
