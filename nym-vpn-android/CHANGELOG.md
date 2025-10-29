@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added In App purchases (https://github.com/nymtech/nym-vpn-client/pull/3754)
 - Passphrase screen added (https://github.com/nymtech/nym-vpn-client/pull/3754)
 - Account creation flow added (https://github.com/nymtech/nym-vpn-client/pull/3754)
+- Android QUIC feature support (https://github.com/nymtech/nym-vpn-client/pull/3798)
 
 ### Changed
 - Android: On Entry/Exit screens, display city instead of server key ID (https://github.com/nymtech/nym-vpn-client/pull/3733)
