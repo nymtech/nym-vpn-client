@@ -146,7 +146,7 @@ fun CountryItem(
 							ServerDetailsTrailingContent(
 								showStreamDisplay = showStreamDisplay,
 								showQuicLabel = isQuicSettingsEnabled && gateway.isQuicSupported(),
-								onInfoIconClicked = { onGatewayDetails(gateway) },
+								onInfoIconClick = { onGatewayDetails(gateway) },
 							)
 						},
 						title = {

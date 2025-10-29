@@ -24,7 +24,7 @@ import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.theme.iconSize
 
 @Composable
-internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLabel: Boolean, onInfoIconClicked: () -> Unit) {
+internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLabel: Boolean, onInfoIconClick: () -> Unit) {
 	Box(
 		modifier = Modifier.fillMaxHeight(),
 		contentAlignment = Alignment.Center,
@@ -35,7 +35,7 @@ internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLa
 			modifier = Modifier
 				.padding(end = 16.dp)
 				.clickable {
-					onInfoIconClicked()
+					onInfoIconClick()
 				},
 		) {
 			if (showStreamDisplay) {
