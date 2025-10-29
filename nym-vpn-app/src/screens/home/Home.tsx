@@ -20,9 +20,12 @@ import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
-import StreamingOptimizedLabel, {
+import {
+  ACTION_TYPE as STREAMING_OPTIMIZED_LABEL_ACTION_TYPE,
   FEATURE_KEY as STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
-} from './new-feature-alert/features/StreamingOptimizedLabel';
+  StreamingOptimizedLabel,
+} from './new-feature-alert/streaming-optimized-label';
+import { setFeatureSeen } from './new-feature-alert/utils';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -233,7 +236,11 @@ function Home() {
                   node={exitNode}
                   gatewayId={exitGwId}
                   onClick={() => {
-                    kvSet(STREAMING_OPTIMIZED_LABEL_FEATURE_KEY, true);
+                    setFeatureSeen(
+                      dispatch,
+                      STREAMING_OPTIMIZED_LABEL_ACTION_TYPE,
+                      STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
+                    );
                     goToNodeList('exit');
                   }}
                   nodeHop="exit"

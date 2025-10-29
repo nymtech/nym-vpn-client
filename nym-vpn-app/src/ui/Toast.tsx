@@ -14,13 +14,15 @@ export type ToastProps = {
   // The time in ms that should elapse before automatically closing the toast
   duration?: number;
   title?: string;
-  message: string;
+  message?: string;
   // Show a button to dismiss the toast before its duration has elapsed
   close?: boolean;
   action?: React.ReactNode;
   type?: 'error' | 'warn' | 'info';
   clickAway?: boolean;
   'data-testid'?: string;
+  className?: string;
+  content?: React.ReactNode;
 };
 
 function Toast({
@@ -33,6 +35,8 @@ function Toast({
   close,
   type = 'info',
   clickAway = false,
+  className,
+  content,
   ...rest
 }: ToastProps) {
   const [open, setOpen] = useState(() => {
@@ -102,6 +106,7 @@ function Toast({
                   'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
                 type === 'warn' && 'border-2 border-king-nacho',
                 type === 'info' && 'border-2 border-iron dark:border-bombay',
+                className,
               )}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -113,8 +118,13 @@ function Toast({
               data-test-duration={duration}
               data-test-open={open ? 'true' : 'false'}
             >
-              {title && <div data-testid={`${testId}-title`}>{title}</div>}
-              <div data-testid={`${testId}-message`}>{message}</div>
+              {!content && title && (
+                <div data-testid={`${testId}-title`}>{title}</div>
+              )}
+              {!content && message && (
+                <div data-testid={`${testId}-message`}>{message}</div>
+              )}
+              {content && content}
               {close && <CloseButton />}
             </motion.ul>
           </Root>
