@@ -124,7 +124,10 @@ pub(crate) enum RouteManagerCommand {
 /// Event that is sent when interface details may have changed for some interface.
 #[cfg(target_os = "macos")]
 pub struct InterfaceEvent {
+    /// Interface index.
     pub interface_index: u16,
+
+    /// Interface MTU.
     pub mtu: u16,
 }
 

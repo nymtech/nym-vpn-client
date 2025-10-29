@@ -28,7 +28,7 @@ mod imp;
 use netlink_packet_route::route::RouteHeader;
 
 #[cfg(target_os = "macos")]
-pub use imp::{DefaultRouteEvent, PlatformError, imp::RouteError};
+pub use imp::{DefaultRouteEvent, InterfaceEvent, PlatformError, imp::RouteError};
 
 pub use imp::{Error, RouteManagerHandle};
 
