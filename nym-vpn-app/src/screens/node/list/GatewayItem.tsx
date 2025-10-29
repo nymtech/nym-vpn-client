@@ -97,7 +97,13 @@ const GatewayItem = ({
         </div>
       </Button>
       {quicLabel && gateway.quic && <QuicTag />}
-      <div className="flex py-2 self-stretch">
+      <div className="flex py-2 self-stretch items-center">
+        {gateway.asn?.type === 'residential' && (
+          <MsIcon
+            icon="smart_display"
+            className="font-icon text-2xl select-none text-cornflower"
+          />
+        )}
         <Button
           className={clsx(
             'w-14 flex justify-center items-center mr-3 shrink-0',

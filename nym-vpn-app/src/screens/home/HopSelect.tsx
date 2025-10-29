@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import {
+  AsnType,
   Country,
   Gateway,
   GatewayNode,
@@ -68,6 +69,7 @@ export default function HopSelect({
     name: string;
     subInfo?: string | null;
     animate?: boolean;
+    asnType?: AsnType | null;
   };
 
   const getLocationInfo = (
@@ -118,6 +120,7 @@ export default function HopSelect({
       countryCode: gateway.country.code.toLowerCase() as countryCode,
       name: gateway.name,
       subInfo: components.join(', '),
+      asnType: gateway.asnType,
     };
   };
 
@@ -126,8 +129,9 @@ export default function HopSelect({
     name,
     subInfo,
     animate,
+    asnType,
   }: SelectedNodeProps) => (
-    <div className="flex flex-row items-center gap-3 overflow-hidden">
+    <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
       <FlagIcon code={countryCode} alt={countryCode} />
       <div className={clsx('flex flex-col justify-center truncate')}>
         <div
@@ -159,6 +163,14 @@ export default function HopSelect({
           </>
         )}
       </div>
+      {asnType === 'residential' && (
+        <div className="flex items-center justify-end flex-1 p-2">
+          <MsIcon
+            icon="smart_display"
+            className="font-icon text-2xl select-none text-cornflower"
+          />
+        </div>
+      )}
     </div>
   );
 

@@ -14,11 +14,15 @@ import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
+import { kvSet } from '../../kvStore/index';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
+import StreamingOptimizedLabel, {
+  FEATURE_KEY as STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
+} from './new-feature-alert/features/StreamingOptimizedLabel';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -170,6 +174,7 @@ function Home() {
     } else {
       resetNodeList('exit');
       navigate(routes.exitNodeLocation);
+      kvSet(STREAMING_OPTIMIZED_LABEL_FEATURE_KEY, true);
     }
   };
 
@@ -191,6 +196,8 @@ function Home() {
         className="sm:max-w-lg h-full flex flex-col"
         data-testid="home-container"
       >
+        <StreamingOptimizedLabel />
+
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
@@ -225,7 +232,10 @@ function Home() {
                 <HopSelect
                   node={exitNode}
                   gatewayId={exitGwId}
-                  onClick={() => goToNodeList('exit')}
+                  onClick={() => {
+                    kvSet(STREAMING_OPTIMIZED_LABEL_FEATURE_KEY, true);
+                    goToNodeList('exit');
+                  }}
                   nodeHop="exit"
                   disabled={hopSelectDisabled}
                   locked={daemonStatus === 'down'}
