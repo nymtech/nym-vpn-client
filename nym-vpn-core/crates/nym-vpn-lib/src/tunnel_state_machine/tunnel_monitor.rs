@@ -641,15 +641,31 @@ impl TunnelMonitor {
                 )
             }
             RegistrationResult::Wireguard(inner_result) => {
-                let (connection_data, wg_tunnel_runtime) = self
+                let (mut connection_data, mut wg_tunnel_runtime) = self
                     .setup_wireguard_tunnel(
                         *inner_result,
                         entry_metadata_rx,
                         exit_metadata_rx,
-                        bridge_close_tx,
-                        selected_gateways.clone(),
+                        &selected_gateways,
                     )
                     .await?;
+
+                let (transport_fwd_handle, bridge_close_tx) = if self
+                    .tunnel_parameters
+                    .tunnel_settings
+                    .bridges_enabled()
+                {
+                    let transport_fwd_handle = self
+                        .start_bridges(&selected_gateways, &mut connection_data, bridge_close_tx)
+                        .await?;
+
+                    (Some(transport_fwd_handle), None)
+                } else {
+                    // Return bridge_close_tx back to avoid it being dropped
+                    (None, Some(bridge_close_tx))
+                };
+
+                wg_tunnel_runtime.transport_fwd_handle = transport_fwd_handle;
 
                 let connected_tunnel = ConnectedTunnel::new(
                     selected_gateways.entry_keypair().clone(),
@@ -682,7 +698,7 @@ impl TunnelMonitor {
                     start_tunnel_result,
                     Some(wg_tunnel_runtime),
                     mixnet_client_token,
-                    None,
+                    bridge_close_tx,
                 )
             }
         };
@@ -994,8 +1010,7 @@ impl TunnelMonitor {
         registration_result: WireguardRegistrationResult,
         entry_metadata_rx: MetadataReceiver,
         exit_metadata_rx: MetadataReceiver,
-        bridge_close_tx: mpsc::UnboundedSender<()>,
-        selected_gateways: SelectedGateways,
+        selected_gateways: &SelectedGateways,
     ) -> Result<(WgConnectionData, WgTunnelRuntime)> {
         let (entry_signal_tx, entry_signal_rx) = tokio::sync::oneshot::channel();
         let (exit_signal_tx, exit_signal_rx) = tokio::sync::oneshot::channel();
@@ -1020,7 +1035,7 @@ impl TunnelMonitor {
 
         let bw = BandwidthController::create(
             bw_controller,
-            &selected_gateways,
+            selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
             entry_gateway_data.clone(),
@@ -1048,54 +1063,55 @@ impl TunnelMonitor {
         };
         let bandwidth_controller_handle = tokio::spawn(bw.run());
 
-        let mut connection_data = WgConnectionData {
+        let rt = WgTunnelRuntime {
+            bandwidth_controller_handle,
+            transport_fwd_handle: None,
+            authenticator_listener_handle,
+        };
+
+        let connection_data = WgConnectionData {
             entry_bridge_addr: None,
             entry: entry_gateway_data,
             exit: exit_gateway_data,
         };
 
-        let transport_fwd_handle = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
-            let entry_bridge_params = selected_gateways
-                .entry_gateway()
-                .get_bridge_params()
-                .ok_or(TransportError::config_err(
-                    "attempted to open transport connection without bridge params",
-                ))?;
-
-            // Attempt transport Connection. If successful a listening UDP connection is created
-            // and the bind address of that UDP listener is provided to the entry wireguard tunnel
-            // as the endpoint address.
-            tracing::info!("Establishing DVPN QUIC transport tunnel");
-
-            let bridge_conn = transports::BridgeConn::try_connect(
-                entry_bridge_params,
-                self.shutdown_token.child_token(),
-            )
-            .await?;
-            connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
-            let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
-                bridge_conn,
-                None,
-                bridge_close_tx,
-                self.shutdown_token.child_token(),
-            )
-            .await?;
-            tracing::info!(
-                "quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}"
-            );
-            connection_data.entry.endpoint = local_fwd_listen_addr;
-            Some(fwd_handle)
-        } else {
-            None
-        };
-
-        let rt = WgTunnelRuntime {
-            bandwidth_controller_handle,
-            transport_fwd_handle,
-            authenticator_listener_handle,
-        };
-
         Ok((connection_data, rt))
+    }
+
+    async fn start_bridges(
+        &self,
+        selected_gateways: &SelectedGateways,
+        connection_data: &mut WgConnectionData,
+        bridge_close_tx: mpsc::UnboundedSender<()>,
+    ) -> Result<JoinHandle<()>> {
+        let entry_bridge_params = selected_gateways
+            .entry_gateway()
+            .get_bridge_params()
+            .ok_or(TransportError::config_err(
+                "attempted to open transport connection without bridge params",
+            ))?;
+
+        // Attempt transport Connection. If successful a listening UDP connection is created
+        // and the bind address of that UDP listener is provided to the entry wireguard tunnel
+        // as the endpoint address.
+        tracing::info!("Establishing DVPN QUIC transport tunnel");
+
+        let bridge_conn = transports::BridgeConn::try_connect(
+            entry_bridge_params,
+            self.shutdown_token.child_token(),
+        )
+        .await?;
+        connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
+        let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
+            bridge_conn,
+            None,
+            bridge_close_tx,
+            self.shutdown_token.child_token(),
+        )
+        .await?;
+        tracing::info!("quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}");
+        connection_data.entry.endpoint = local_fwd_listen_addr;
+        Ok(fwd_handle)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
