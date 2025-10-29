@@ -23,6 +23,7 @@ function MainStateProvider({ children, init }: Props) {
     vpnMode: init.vpnMode,
     uiTheme: init.uiTheme,
     welcomeChecked: init.welcomeChecked,
+    streamingOptimizedLabelSeen: init.streamingOptimizedLabelSeen,
   });
 
   const { push } = useInAppNotify();

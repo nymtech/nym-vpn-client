@@ -145,7 +145,7 @@ export type GatewayNode = {
   country: Country;
   region: string;
   city: string;
-  asnType: AsnType | null;
+  asnType?: AsnType;
 };
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
