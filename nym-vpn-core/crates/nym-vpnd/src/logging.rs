@@ -38,7 +38,7 @@ static INFO_CRATES: &[&str; 14] = &[
     "nym_client_core::client::received_buffer",
 ];
 
-static WARN_CRATES: &[&str; 1] = &["hickory_server"];
+static WARN_CRATES: &[&str; 2] = &["hickory_server", "quinn::connection"];
 
 pub struct Options {
     pub verbosity_level: Level,
