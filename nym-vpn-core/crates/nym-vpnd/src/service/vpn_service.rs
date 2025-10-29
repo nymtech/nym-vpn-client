@@ -460,6 +460,7 @@ impl NymVpnService {
             parameters.network_env,
             discovery_refresher_command_rx,
             discovery_refresher_event_tx,
+            connectivity_handle.clone(),
             services_shutdown_token.child_token(),
         )
         .await

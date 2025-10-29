@@ -164,6 +164,7 @@ pub(super) async fn start_state_machine(
         network_env.clone(),
         discovery_refresher_command_rx,
         discovery_refresher_event_tx,
+        connectivity_handle.clone(),
         shutdown_token.child_token(),
     )
     .await

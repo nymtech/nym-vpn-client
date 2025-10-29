@@ -3,17 +3,20 @@
 
 use std::{path::PathBuf, time::Duration};
 
-use crate::{
-    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
-    network_from_discovery,
-};
-use nym_common::trace_err_chain;
-use nym_vpn_api_client::{ResolverOverrides, VpnApiClient};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
+
+use nym_common::trace_err_chain;
+use nym_offline_monitor::ConnectivityMonitor;
+use nym_vpn_api_client::{ResolverOverrides, VpnApiClient};
+
+use crate::{
+    Error, Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks,
+    network_from_discovery,
+};
 
 const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
@@ -33,6 +36,7 @@ impl DiscoveryRefresher {
         network: Box<Network>,
         commands_rx: UnboundedReceiver<DiscoveryRefresherCommand>,
         events_tx: UnboundedSender<DiscoveryRefresherEvent>,
+        connectivity_monitor: impl ConnectivityMonitor + 'static,
         cancel_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         let current_resolver_overrides = None;
@@ -48,14 +52,20 @@ impl DiscoveryRefresher {
             paused: false,
         };
 
-        Ok(tokio::spawn(refresher.run(network)))
+        Ok(tokio::spawn(refresher.run(network, connectivity_monitor)))
     }
 
-    async fn run(mut self, mut network: Box<Network>) {
+    async fn run(
+        mut self,
+        mut network: Box<Network>,
+        mut connectivity_monitor: impl ConnectivityMonitor + 'static,
+    ) {
         tracing::debug!("Discovery Refresher started");
 
         let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
+
+        let mut current_connectivity = connectivity_monitor.connectivity().await;
 
         loop {
             tokio::select! {
@@ -92,7 +102,10 @@ impl DiscoveryRefresher {
                         }
                     }
                 }
-                _ = interval.tick(), if !self.paused => {
+                Some(connectivity) = connectivity_monitor.next() => {
+                    current_connectivity = connectivity;
+                }
+                _ = interval.tick(), if !self.paused && current_connectivity.is_online() => {
                     if !checked_consistency {
                         match network.check_consistency().await {
                             Err(e) => tracing::warn!("Discovery refresher could not check consistency: {e:?}"),
@@ -116,12 +129,6 @@ impl DiscoveryRefresher {
                         .refresh_discovery_file(&network.nym_network.network.network_name)
                         .await
                     {
-                        Err(err) => {
-                            trace_err_chain!(err, "Failed to refresh discovery file");
-                            self.events_tx
-                                .send(DiscoveryRefresherEvent::Error(Error::RefreshDiscoveryFile))
-                                .ok();
-                        }
                         Ok(Some(discovery)) => {
                             if let Err(err) = self
                                 .refresh_nym_network_file(
@@ -134,12 +141,6 @@ impl DiscoveryRefresher {
                             }
 
                             match network_from_discovery(&self.config_path, discovery).await {
-                                Err(err) => {
-                                    trace_err_chain!(err, "Failed to parse refreshed discovery file");
-                                    self.events_tx
-                                        .send(DiscoveryRefresherEvent::Error(Error::ParseDiscoveryFile))
-                                        .ok();
-                                }
                                 Ok(new_network) => {
                                     // Only propagate new network environment when it really changed.
                                     if *network == new_network {
@@ -151,7 +152,19 @@ impl DiscoveryRefresher {
                                             .ok();
                                     }
                                 }
+                                Err(err) => {
+                                    trace_err_chain!(err, "Failed to parse refreshed discovery file");
+                                    self.events_tx
+                                        .send(DiscoveryRefresherEvent::Error(Error::ParseDiscoveryFile))
+                                        .ok();
+                                }
                             }
+                        }
+                        Err(err) => {
+                            trace_err_chain!(err, "Failed to refresh discovery file");
+                            self.events_tx
+                                .send(DiscoveryRefresherEvent::Error(Error::RefreshDiscoveryFile))
+                                .ok();
                         }
                         _ => {}
                     }
