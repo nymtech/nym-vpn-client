@@ -29,8 +29,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
-  TMP_KEYCHAIN_NAME: build.keychain-db
-  BUNDLE_ID: net.nymtech.vpn
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
 
 concurrency:
@@ -109,14 +107,21 @@ jobs:
         with:
           crate: cargo-edit
 
-      - name: Add Homebrew and user Python tools to PATH
+      - name: Add Homebrew, Ruby, and user Python tools to PATH
         run: |
           set -euxo pipefail
+
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
+          RUBY_PREFIX="$(brew --prefix ruby)"
+          echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
+          export PATH="${RUBY_PREFIX}/bin:$PATH"
+
+          # Show versions for debugging
           brew --version
-          codemagic-cli-tools --version
+          ruby --version
+          gem --version
 
       - name: Update prebundled servers
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -140,59 +145,43 @@ jobs:
             --avoid-build-deps \
             > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
 
-      - name: Generate temporary keychain password
-        id: gen_keychain_pass
-        run: |
-          set -euo pipefail
-          echo "TMP_KEYCHAIN_PASS=$(uuidgen | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-          echo "🔑 Generated random keychain password."
-
       - name: Prepare Keychain and import Developer ID certificate
-        if: env.RELEASE_TYPE != 'pr'
         working-directory: nym-vpn-apple
         env:
           DEVELOPER_ID_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
           DEVELOPER_ID_CERT_PASS:   ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
-          TMP_KEYCHAIN_NAME: ${{ env.TMP_KEYCHAIN_NAME }}
-          TMP_KEYCHAIN_PASS: ${{ env.TMP_KEYCHAIN_PASS }}
         run: |
           set -euo pipefail
 
           echo "🔐 Initializing Codemagic keychain..."
-          keychain initialize "$TMP_KEYCHAIN_NAME" -p "$TMP_KEYCHAIN_PASS"
+          keychain initialize
 
           echo "📥 Importing Developer ID certificate..."
           echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --keychain "$TMP_KEYCHAIN_NAME" \
-            --keychain-password "$TMP_KEYCHAIN_PASS"
 
           echo "✅ Keychain and certificate imported successfully."
 
       - name: Fetch and import signing files
-        if: env.RELEASE_TYPE != 'pr'
         working-directory: nym-vpn-apple
         env:
-          TMP_KEYCHAIN_NAME: ${{ env.TMP_KEYCHAIN_NAME }}
-          TMP_KEYCHAIN_PASS: ${{ env.TMP_KEYCHAIN_PASS }}
           DEVELOPER_ID_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
         run: |
           set -euo pipefail
 
           echo "📦 Fetching signing files from App Store Connect..."
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --platform IOS \
-            --type IOS_APP_STORE \
+          app-store-connect fetch-signing-files net.nymtech.vpn \
+            --type IOS_APP_ADHOC \
             --create \
-            --keychain "$TMP_KEYCHAIN_NAME" \
-            --keychain-password "$TMP_KEYCHAIN_PASS" \
-            --p12-password "$DEVELOPER_ID_CERT_PASS" \
             --delete-stale-profiles
+
+          keychain add-certificates
 
           echo "✅ Signing files successfully fetched and imported."
 
@@ -247,111 +236,47 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sccache-
 
-      - name: Build iOS (PR, unsigned Debug)
-        if: env.RELEASE_TYPE == 'pr'
-        working-directory: nym-vpn-apple
-        run: |
-          set -euo pipefail
-
-          echo "🚀 Building iOS Debug with Codemagic CLI (no signing)..."
-          xcode-project build-ipa \
-            --workspace "NymVPN.xcworkspace" \
-            --scheme "NymVPN" \
-            --configuration "Debug" \
-            --ios \
-            --skip-signing \
-            --output "./build/Debug-iphoneos"
-
-          echo "✅ Debug build finished"
-
       - name: Build iOS (Release, signed)
-        if: env.RELEASE_TYPE != 'pr'
         working-directory: nym-vpn-apple
         env:
-          TMP_KEYCHAIN_NAME: ${{ env.TMP_KEYCHAIN_NAME }}
-          TMP_KEYCHAIN_PASS: ${{ env.TMP_KEYCHAIN_PASS }}
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
+          echo "🚜 Bump build number"
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)
+          NEXT_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
+          echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
+
+          fastlane mac bump_build build:$NEXT_BUILD_NUMBER
+
+          echo "🚜 Update signing"
+          xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
 
           echo "🚀 Building signed iOS Release with Codemagic CLI..."
           xcode-project build-ipa \
             --workspace "NymVPN.xcworkspace" \
             --scheme "NymVPN" \
-            --configuration "Release" \
-            --ios \
-            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
-            --keychain "$TMP_KEYCHAIN_NAME" \
-            --keychain-password "$TMP_KEYCHAIN_PASS" \
-            --archive-path "./build/NymVPN.xcarchive" \
-            --output "./build/Release-iphoneos"
+            --config "Release"
 
           echo "✅ Signed archive + .ipa exported"
 
-          # Expose the IPA path for upload step
-          IPA=$(find ./build/Release-iphoneos -name '*.ipa' -print -quit)
-          if [[ -z "$IPA" ]]; then
-            echo "❌ No IPA produced by Codemagic CLI"
-            exit 1
-          fi
-          echo "IPA_PATH=$IPA" >> "$GITHUB_ENV"
-          echo "📦 IPA_PATH=$IPA"
-
       - name: Upload to TestFlight
         if: env.RELEASE_TYPE != 'pr'
+        working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-          IPA_PATH: ${{ env.IPA_PATH }}
         run: |
           set -euo pipefail
+
           echo "🚀 Uploading to TestFlight..."
           app-store-connect publish \
-            --path "$IPA_PATH" \
-            --platform IOS \
-            --submit-for-review false \
-            --release-type TESTFLIGHT
+            --testflight
 
           echo "✅ Upload completed successfully."
-
-      # - name: Archive + Export iOS (QA/Ship, Automatic signing)
-      #   if: env.RELEASE_TYPE != 'pr'
-      #   working-directory: nym-vpn-apple
-      #   env:
-      #     DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
-      #     ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-      #     ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-      #     ASC_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
-      #     RELEASE_TYPE: ${{ env.RELEASE_TYPE }}
-      #   run: |
-      #     set -euo pipefail
-      #     echo "🚀 Building and exporting IPA via Fastlane..."
-      #     fastlane ios build_and_export_release
-
-      # - name: Upload to TestFlight
-      #   if: env.RELEASE_TYPE != 'pr'
-      #   working-directory: nym-vpn-apple
-      #   env:
-      #     ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-      #     ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-      #     ASC_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
-      #   run: |
-      #     set -euo pipefail
-
-      #     IPA=$(find fastlane/build/export-qa -name '*.ipa' -print -quit)
-      #     if [[ -z "$IPA" ]]; then
-      #       echo "❌ No IPA found in fastlane/build/export-qa. Check Fastlane export path."
-      #       exit 1
-      #     fi
-
-      #     BRANCH_NAME=$(echo "${GITHUB_REF_NAME:-unknown}" | sed 's#refs/heads/##')
-      #     CURRENT_DATE=$(date +"%Y-%m-%d %H:%M")
-      #     CHANGELOG="Build ${GITHUB_SHA::7} — ${BRANCH_NAME} @ ${CURRENT_DATE}"
-
-      #     echo "🚀 Uploading $IPA to TestFlight..."
-      #     echo "📝 Changelog: $CHANGELOG"
-
-      #     fastlane ios upload_testflight ipa_path:"$IPA" changelog:"$CHANGELOG"
 
       # - name: Build macOS (PR, unsigned Debug)
       #   if: env.RELEASE_TYPE == 'pr'
@@ -534,4 +459,4 @@ jobs:
         run: |
           set -euo pipefail
           echo "🧹 Cleaning up Codemagic keychain..."
-          keychain remove "$TMP_KEYCHAIN_NAME"
+          keychain delete
