@@ -165,25 +165,29 @@ jobs:
 
           echo "✅ Keychain and certificate imported successfully."
 
-      - name: Fetch and import signing files
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
+      # - name: Fetch and import signing files
+      #   working-directory: nym-vpn-apple
+      #   env:
+      #     APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+      #     CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
+      #   run: |
+      #     set -euo pipefail
 
-          echo "📦 Fetching signing files from App Store Connect..."
-          app-store-connect fetch-signing-files net.nymtech.vpn \
-            --type IOS_APP_ADHOC \
-            --create \
-            --delete-stale-profiles
+      #     echo "📦 Fetching signing files from App Store Connect..."
+      #     app-store-connect fetch-signing-files net.nymtech.vpn \
+      #       --type IOS_APP_ADHOC \
+      #       --create \
+      #       --delete-stale-profiles
 
-          keychain add-certificates
+      #     app-store-connect fetch-signing-files net.nymtech.vpn \
+      #       --type MAC_APP_DIRECT \
+      #       --delete-stale-profiles
 
-          echo "✅ Signing files successfully fetched and imported."
+      #     keychain add-certificates
+
+      #     echo "✅ Signing files successfully fetched and imported."
 
       - name: Configure sccache
         if: ${{ env.RELEASE_TYPE != 'ship' }}
@@ -218,48 +222,236 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-      - name: Build iOS (Release, signed)
+      # - name: Build iOS (Release, signed)
+      #   working-directory: nym-vpn-apple
+      #   env:
+      #     APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+      #   run: |
+      #     set -euo pipefail
+      #     echo "🚜 Bump build number"
+      #     LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)
+      #     NEXT_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
+      #     echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
+
+      #     fastlane mac bump_build build:$NEXT_BUILD_NUMBER
+
+      #     echo "🚜 Update signing"
+      #     xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
+
+      #     echo "🚀 Building signed iOS Release with Codemagic CLI..."
+      #     xcode-project build-ipa \
+      #       --workspace "NymVPN.xcworkspace" \
+      #       --scheme "NymVPN" \
+      #       --config "Release" \
+      #       --clean
+
+      #     echo "✅ Signed archive + .ipa exported"
+
+      # - name: Upload to TestFlight
+      #   if: env.RELEASE_TYPE != 'pr'
+      #   working-directory: nym-vpn-apple
+      #   env:
+      #     APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+      #   run: |
+      #     set -euo pipefail
+
+      #     echo "🚀 Uploading to TestFlight..."
+      #     app-store-connect publish \
+      #       --testflight
+
+      #     echo "✅ Upload completed successfully."
+
+    ############################################################# MACOS 
+
+      - name: Archive macOS
+        id: archive-macos
         working-directory: nym-vpn-apple
         env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          MACOSX_DEPLOYMENT_TARGET: 13.0
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
-          echo "🚜 Bump build number"
-          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)
-          NEXT_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
-          echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
+          
+          ARCHIVE_PATH="$PWD/build/NymVPN.xcarchive"
+          EXPORT_PATH="$PWD/builds"
+          EXPORT_PLIST="$PWD/export_options.plist"
+          
+          mkdir -p "$EXPORT_PATH"
+          
+          # Create export options plist
+          cat > "$EXPORT_PLIST" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>developer-id</string>
+            <key>teamID</key><string>${DEVELOPMENT_TEAM}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Developer ID Application</string>
+            <key>stripSwiftSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          
+          echo "Debug: Checking workspace and scheme..."
+          ls -la NymVPN.xcworkspace
+          ls -la NymVPN.xcodeproj/xcshareddata/xcschemes/
+          
+          echo "Debug: Code signing identity: ${DEVELOPER_ID_APP_IDENTITY}"
+          echo "Debug: Development team: ${DEVELOPMENT_TEAM}"
+          
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning
+          
+          echo "Archiving macOS app..."
+          xcodebuild archive \
+            -workspace "NymVPN.xcworkspace" \
+            -scheme "NymVPNDaemon" \
+            -configuration "Release" \
+            -archivePath "$ARCHIVE_PATH" \
+            -destination "generic/platform=macOS" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp"
+          
+          # Verify archive was created
+          if [[ ! -d "$ARCHIVE_PATH" ]]; then
+            echo "Archive not created at $ARCHIVE_PATH"
+            exit 1
+          fi
+          
+          echo "Exporting macOS app..."
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_PLIST"
+          
+          # Find the exported app
+          APP_PATH="$(find "$EXPORT_PATH" -maxdepth 1 -type d -name 'NymVPN*.app' -print -quit)"
+          if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
+            echo "❌ Could not find exported app in $EXPORT_PATH"
+            ls -la "$EXPORT_PATH"
+            exit 1
+          fi
+          
+          echo "✅ App exported to: $APP_PATH"
+          echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
-          fastlane mac bump_build build:$NEXT_BUILD_NUMBER
+      - name: Create DMG
+        id: make-dmg
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+          
+          APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
+          
+          if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
+            echo "❌ Invalid app path: $APP_PATH" >&2
+            exit 1
+          fi
+          echo "✅ Using app: $APP_PATH"
 
-          echo "🚜 Update signing"
-          xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
+          BG="$PWD/NymVPN/Resources/background_dmg.png"
+          ICON="$PWD/NymVPN/Resources/macDmgIcon.icns"
+          OUT_DIR="$PWD/build/dmg"
+          mkdir -p "$OUT_DIR"
 
-          echo "🚀 Building signed iOS Release with Codemagic CLI..."
-          xcode-project build-ipa \
-            --workspace "NymVPN.xcworkspace" \
-            --scheme "NymVPN" \
-            --config "Release" \
-            --clean
+          case "${RELEASE_TYPE:-pr}" in
+            qa)   DMG_NAME="NymVPN_QA.dmg" ;;
+            ship) DMG_NAME="NymVPN.dmg" ;;
+            *)    DMG_NAME="NymVPN_${RELEASE_TYPE}.dmg" ;;
+          esac
+          DMG_PATH="$OUT_DIR/$DMG_NAME"
 
-          echo "✅ Signed archive + .ipa exported"
+          cat > appdmg.json <<'JSON'
+          {
+            "title": "NymVPN Installer",
+            "background": "__BG__",
+            "icon": "__ICON__",
+            "contents": [
+              { "x": 607, "y": 290, "type": "link", "path": "/Applications" },
+              { "x": 192, "y": 290, "type": "file", "path": "__APP__" }
+            ],
+            "icon-size": 160,
+            "window": { "size": { "width": 800, "height": 600 } }
+          }
+          JSON
 
-      - name: Upload to TestFlight
-        if: env.RELEASE_TYPE != 'pr'
+          # BSD sed (macOS) in-place edits
+          sed -i '' "s#__BG__#${BG//\//\\/}#g" appdmg.json
+          sed -i '' "s#__ICON__#${ICON//\//\\/}#g" appdmg.json
+          sed -i '' "s#__APP__#${APP_PATH//\//\\/}#g" appdmg.json
+
+          appdmg appdmg.json "$DMG_PATH"
+
+          echo "dmg_path=$DMG_PATH" >> "$GITHUB_OUTPUT"
+          echo "✅ DMG created at: $DMG_PATH"
+
+      - name: Write App Store Connect API key
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        id: asc-key
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          KEY_DIR="$HOME/private_keys"
+          mkdir -p "$KEY_DIR"
+          KEY_PATH="$KEY_DIR/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8"
+          echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
+          echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+          echo "✅ ASC API key written to $KEY_PATH"
+
+      - name: Notarize DMG (Developer ID)
+        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        id: notarize-dmg
         working-directory: nym-vpn-apple
         env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_KEY_ID:    ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ASC_KEY_PATH:  ${{ steps.asc-key.outputs.key_path }}
         run: |
-          set -euo pipefail
+          set -euxo pipefail
 
-          echo "🚀 Uploading to TestFlight..."
-          app-store-connect publish \
-            --testflight
+          DMG="${{ steps.make-dmg.outputs.dmg_path }}"
+          test -f "$DMG" || { echo "❌ DMG not found at $DMG"; exit 1; }
+          test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
 
-          echo "✅ Upload completed successfully."
+          OUT_JSON="$PWD/build/dmg/notarytool-log.json"
+          echo "📤 Submitting $DMG for notarization…"
+
+          xcrun notarytool submit "$DMG" \
+            --key "$ASC_KEY_PATH" \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
+            --wait \
+            --output-format json | tee "$OUT_JSON"
+
+          STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
+          [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; exit 1; }
+
+          echo "✅ Notarization status: Accepted"
+          echo "📎 Stapling DMG…"
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+
+          echo "dmg_path=$DMG" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifacts (QA / Ship)
+        if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
+          path: ${{ steps.notarize-dmg.outputs.dmg_path || steps.make-dmg.outputs.dmg_path }}
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Cleanup Keychain
         if: always()
