@@ -400,10 +400,15 @@ message MixnetConnectionData {
   string exit_ip = 6;
 }
 
+message BridgeAddress {
+  SocketAddr listen_addr = 1;
+  SocketAddr remote_addr = 2;
+}
+
 message WireguardConnectionData {
   WireguardNode entry = 1;
   WireguardNode exit = 2;
-  optional string entry_bridge_addr = 3;
+  optional BridgeAddress entry_bridge_addr = 3;
 }
 
 message WireguardNode {

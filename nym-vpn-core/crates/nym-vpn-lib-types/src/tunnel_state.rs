@@ -116,8 +116,8 @@ impl std::fmt::Display for TunnelState {
                             connection_data.exit_gateway.id,
                         )?;
 
-                        if let Some(bridge_addr) = data.entry_bridge_addr {
-                            write!(f, " via bridge {bridge_addr}")?;
+                        if let Some(bridge_addr) = data.entry_bridge_addr.as_ref() {
+                            write!(f, " via bridge {}", bridge_addr.remote_addr,)?;
                         }
 
                         write!(f, ", {}, try #{}", state, retry_attempt)
@@ -165,8 +165,8 @@ impl std::fmt::Display for TunnelState {
                         connection_data.exit_gateway.id,
                     )?;
 
-                    if let Some(bridge_addr) = data.entry_bridge_addr {
-                        write!(f, " via bridge {bridge_addr}")
+                    if let Some(bridge_addr) = data.entry_bridge_addr.as_ref() {
+                        write!(f, " via bridge {}", bridge_addr.remote_addr)
                     } else {
                         Ok(())
                     }

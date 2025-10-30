@@ -236,8 +236,26 @@ pub struct MixnetConnectionData {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct BridgeAddress {
+    /// Local forwarder listen address
+    pub listen_addr: SocketAddr,
+
+    /// Remote bridge address
+    pub remote_addr: SocketAddr,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct WireguardConnectionData {
-    pub entry_bridge_addr: Option<SocketAddr>,
+    pub entry_bridge_addr: Option<BridgeAddress>,
     pub entry: WireguardNode,
     pub exit: WireguardNode,
 }

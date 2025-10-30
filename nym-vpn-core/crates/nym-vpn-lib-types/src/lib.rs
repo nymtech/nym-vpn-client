@@ -54,7 +54,7 @@ pub use account::{
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
-    ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
+    BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
     MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};

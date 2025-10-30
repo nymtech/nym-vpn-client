@@ -6,6 +6,8 @@ use std::net::SocketAddr;
 use crate::tunnel_state_machine::TunnelMetadata;
 use nym_registration_common::GatewayData;
 
+use nym_vpn_lib_types::BridgeAddress;
+
 pub mod connected_tunnel;
 
 #[cfg(target_os = "ios")]
@@ -36,15 +38,6 @@ impl ConnectionData {
         gateway_data.endpoint = self.effective_entry_endpoint();
         gateway_data
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct BridgeAddress {
-    /// Local listening endpoint used for forwarding traffic
-    pub listen_addr: SocketAddr,
-
-    /// Remote bridge endpoint
-    pub remote_address: SocketAddr,
 }
 
 pub enum MetadataEvent {
