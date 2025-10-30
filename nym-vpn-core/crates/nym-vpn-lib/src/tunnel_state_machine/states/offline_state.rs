@@ -42,12 +42,10 @@ impl OfflineState {
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .await
             .ok();
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
-            .await
             .ok();
 
         #[cfg(target_os = "macos")]

@@ -4,6 +4,7 @@
 use std::{
     path::{Path, PathBuf},
     sync::LazyLock,
+    time::SystemTime,
 };
 
 use crate::{
@@ -121,11 +122,23 @@ impl Discovery {
         crate::serialization::deserialize_from_json_file(path)
     }
 
-    pub(super) fn write_to_file(&self, config_dir: &Path) -> Result<()> {
+    pub(super) fn write_to_file(
+        &self,
+        config_dir: &Path,
+        modified_at: Option<SystemTime>,
+    ) -> Result<()> {
         let path = Self::path(config_dir, &self.network_name);
         tracing::debug!("Writing discovery file to: {}", path.display());
 
-        crate::serialization::serialize_to_json_file(path, self)
+        let file = crate::serialization::serialize_to_json_file(path, self)?;
+
+        if let Some(modified_at) = modified_at
+            && let Err(e) = file.set_modified(modified_at)
+        {
+            tracing::error!("Failed to set modified time for discovery file: {e}");
+        }
+
+        Ok(())
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path, network_name: &str) -> Result<Self> {
@@ -140,12 +153,28 @@ impl Discovery {
 
                 let client = Self::create_client(None).await?;
 
-                let discovery = Self::fetch(&client, network_name).await.or_else(|e| {
-                    match Self::default_discovery(network_name) {
+                match Self::fetch(&client, network_name).await {
+                    Ok(discovery) => {
+                        discovery
+                            .write_to_file(config_dir, None)
+                            .inspect_err(|err| {
+                                trace_err_chain!(err, "Failed to write discovery file");
+                            })?;
+                        Ok(discovery)
+                    }
+                    Err(e) => match Self::default_discovery(network_name) {
                         Some(default_discovery) => {
                             tracing::warn!(
                                 "Failed to fetch remote discovery file: {e}, creating a default one"
                             );
+                            // Ensure that discovery cache created from default discovery is always considered stale.
+                            let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
+
+                            default_discovery
+                                .write_to_file(config_dir, modified_at)
+                                .inspect_err(|err| {
+                                    trace_err_chain!(err, "Failed to write default discovery file");
+                                })?;
                             Ok(default_discovery)
                         }
                         None => {
@@ -154,14 +183,8 @@ impl Discovery {
                             );
                             Err(e)
                         }
-                    }
-                })?;
-
-                discovery.write_to_file(config_dir).inspect_err(|err| {
-                    trace_err_chain!(err, "Failed to write discovery file");
-                })?;
-
-                Ok(discovery)
+                    },
+                }
             }
             Err(e) => {
                 trace_err_chain!(e, "Failed to read discovery file");
@@ -200,7 +223,7 @@ impl Discovery {
     pub async fn update_nym_network_file(&self, config_dir: &Path) -> Result<()> {
         self.fetch_nym_network_details()
             .await?
-            .write_to_file(config_dir)
+            .write_to_file(config_dir, None)
     }
 
     fn default_discovery(network_name: &str) -> Option<Self> {
