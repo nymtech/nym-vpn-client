@@ -20,6 +20,11 @@ public struct GatewayNode: Codable, Hashable {
         }
     }
 
+    public var isResidentialAvailable: Bool {
+        guard let location = location else { return false }
+        return location.asn?.type == .residential
+    }
+
     public init(
         id: String,
         location: GatewayNodeLocation?,

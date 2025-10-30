@@ -23983,6 +23983,39 @@
         }
       }
     },
+    "locationModal.accuracy.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displayed locations are"
+          }
+        }
+      }
+    },
+    "locationModal.accuracy.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "determined from IP addresses"
+          }
+        }
+      }
+    },
+    "locationModal.accuracy.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and may not reflect exact physical locations."
+          }
+        }
+      }
+    },
     "locationModal.message" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -24185,102 +24218,135 @@
         }
       }
     },
+    "locationModal.streaming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming"
+          }
+        }
+      }
+    },
+    "locationModal.streaming.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Residential IP servers"
+          }
+        }
+      }
+    },
+    "locationModal.streaming.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+          }
+        }
+      }
+    },
     "locationModal.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تفاصيل حول مواقع الخادم"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Details zum Serverstandort"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Details on server locations"
+            "value" : "Choosing exit locations"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Detalles sobre las ubicaciones del servidor"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "جزئیات مربوط به مکان‌های سرورها"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Détails sur l'emplacement des passerelles"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "सर्वर स्थानों की जानकारी"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Dettagli sulla posizione dei server"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "サーバーの位置に関する詳細"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Detalhes sobre a localização dos servidores"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Detalhes sobre os locais dos servidores"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Подробности о местоположении серверов"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Sunucu konumları hakkında detaylar"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Детальна інформація про розташування серверів"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Chi tiết về vị trí máy chủ"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "服务器位置详情"
           }
         }

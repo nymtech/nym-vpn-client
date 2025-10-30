@@ -1,9 +1,11 @@
 import SwiftUI
+import Constants
 import ExternalLinkManager
 import UIComponents
 import Theme
 
 struct LocationInfoView: View {
+    @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @State private var isContinueReadingLinkHovered = false
 
     private let viewModel: LocationInfoViewModel
@@ -27,10 +29,15 @@ struct LocationInfoView: View {
                 VStack {
                     icon()
                     title()
-                    message()
-                    continueReadingLink()
+                    streamingSectionTitle()
+                    streamingSubtitle()
+                    Spacer()
+                        .frame(height: 16)
+                    locationAccuracySectionTitle()
+                    locationAccuracySubtitle()
                     okButton()
                 }
+                .padding(.horizontal, 24)
                 .background(NymColor.elevation)
                 .cornerRadius(16)
 
@@ -65,49 +72,95 @@ private extension LocationInfoView {
             .frame(height: 16)
     }
 
-    @ViewBuilder
-    func message() -> some View {
-        HStack {
-            Text(viewModel.messageLocalizedString)
+    func streamingSectionTitle() -> some View {
+        HStack(spacing: 0) {
+            GenericImage(systemImageName: "play.rectangle")
+                .frame(width: 16, height: 16)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+                .frame(width: 8)
+            Text("locationModal.streaming".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+                .frame(height: 8)
+        }
+    }
+
+    func streamingSubtitle() -> some View {
+        HStack(spacing: 0) {
+            Text(streamingAttributtedString())
+                .tint(NymColor.gray1)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
-                .multilineTextAlignment(.center)
 
             Spacer()
         }
-        .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
-
-        Spacer()
-            .frame(height: 16)
+        .environment(\.openURL, OpenURLAction { url in
+            if url == URL(string: Constants.streamingServicesURL.rawValue) {
+                externalLinkManager.openExternalURL(url)
+                return .handled
+            }
+            return .systemAction
+        })
     }
 
-    @ViewBuilder
-    func continueReadingLink() -> some View {
-        HStack {
-            Text(viewModel.readMoreLocalizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.accent)
+    func streamingAttributtedString() -> AttributedString {
+        var first = AttributedString("locationModal.streaming.subtitle1".localizedString)
+        let second = AttributedString("locationModal.streaming.subtitle2".localizedString)
+        first.underlineStyle = .single
+        first.foregroundColor = NymColor.primary
+        first.link = URL(string: Constants.streamingServicesURL.rawValue)
+        return first + AttributedString(" ") + second
+    }
 
-            GenericImage(imageName: viewModel.readMoreLinkImageName)
+    func locationAccuracySectionTitle() -> some View {
+        HStack(spacing: 0) {
+            GenericImage(imageName: "pin")
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.accent)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+                .frame(width: 8)
+            Text("locationModal.streaming".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+                .frame(height: 8)
         }
-        .onTapGesture {
-            viewModel.openContinueReading()
-        }
-        .onHover { newValue in
-            isContinueReadingLinkHovered = newValue
-        }
-        .opacity(isContinueReadingLinkHovered ? 0.7 : 1)
+    }
 
-        Spacer()
-            .frame(height: 24)
+    func locationAccuracySubtitle() -> some View {
+        HStack(spacing: 0) {
+            Text(locationAccuracyAttributtedString())
+                .tint(NymColor.gray1)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
+
+            Spacer()
+        }
+        .environment(\.openURL, OpenURLAction { url in
+            if url == URL(string: Constants.locationAccuracyURL.rawValue) {
+                externalLinkManager.openExternalURL(url)
+                return .handled
+            }
+            return .systemAction
+        })
+    }
+
+    func locationAccuracyAttributtedString() -> AttributedString {
+        let first = AttributedString("locationModal.accuracy.subtitle1".localizedString)
+        var second = AttributedString("locationModal.accuracy.subtitle2".localizedString)
+        let third = AttributedString("locationModal.accuracy.subtitle3".localizedString)
+        second.underlineStyle = .single
+        second.foregroundColor = NymColor.primary
+        second.link = URL(string: Constants.locationAccuracyURL.rawValue)
+        return first + AttributedString(" ") + second + AttributedString(" ") + third
     }
 
     @ViewBuilder
     func okButton() -> some View {
         GenericButton(title: viewModel.okLocalizedString)
-            .padding(EdgeInsets(top: 0, leading: 24, bottom: 24, trailing: 24))
+            .padding(.vertical, 24)
             .onTapGesture {
                 viewModel.isDisplayed.toggle()
             }

@@ -7,6 +7,8 @@ public enum Constants: String {
 
     case supportURL = "https://support.nym.com/hc"
     case serverLocationURL = "https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN"
+    case streamingServicesURL = "https://support.nym.com/hc/en-us/articles/35279486714641-Why-can-t-I-access-streaming-services-while-using-NymVPN"
+    case locationAccuracyURL = "https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN"
     case termsOfUseURL = "https://nym.com/vpn-terms"
     case privacyPolicyURL = "https://nym.com/vpn-privacy-statement"
     case newSupportRequest = "https://support.nym.com/hc/requests/new"
