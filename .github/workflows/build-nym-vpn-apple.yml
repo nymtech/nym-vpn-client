@@ -353,7 +353,7 @@ jobs:
           fi
           echo "✅ Using app: $APP_PATH"
 
-          BG="$PWD/NymVPN/Resources/background_dmg.png"
+          BG="$PWD/NymVPN/Resources/background_dmg@2x.png"
           ICON="$PWD/NymVPN/Resources/macDmgIcon.icns"
           OUT_DIR="$PWD/build/dmg"
           mkdir -p "$OUT_DIR"

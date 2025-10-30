@@ -37,6 +37,12 @@ public struct HopButton: View {
         && gatewayManager.containsQuic(with: connectionManager.entryGateway)
     }
 
+    private var shouldShowStreaming: Bool {
+        hopType == .exit
+        && connectionManager.connectionType == .wireguard
+        && gatewayManager.containsStreaming(with: connectionManager.exitRouter)
+    }
+
     private var gatewayId: String? {
         switch hopType {
         case .entry:
@@ -126,11 +132,13 @@ public struct HopButton: View {
                 Spacer()
                 if shouldShowQuic {
                     QuicLabel()
+                } else if shouldShowStreaming {
+                    StreamingIcon()
                 }
                 Image("arrowRight", bundle: .module)
                     .resizable()
                     .frame(width: 24, height: 24)
-                    .padding(16)
+                    .padding(EdgeInsets(top: 16, leading: 4, bottom: 16, trailing: 16))
             }
         }
         .accessibilityElement(children: .combine)
