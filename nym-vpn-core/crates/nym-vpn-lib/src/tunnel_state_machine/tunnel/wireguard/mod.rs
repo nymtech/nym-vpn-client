@@ -24,7 +24,7 @@ pub struct ConnectionData {
 }
 
 impl ConnectionData {
-    /// Returns effective entry endpoint set to bridge listen endpoint when entry bridge address is available.
+    /// Returns effective entry endpoint set to bridge listen endpoint when entry bridge address is available. Otherwise, returns the wireguard entry endpoint.
     pub fn effective_entry_endpoint(&self) -> SocketAddr {
         self.entry_bridge_addr
             .as_ref()
@@ -37,6 +37,14 @@ impl ConnectionData {
         let mut gateway_data = self.entry.clone();
         gateway_data.endpoint = self.effective_entry_endpoint();
         gateway_data
+    }
+
+    /// Returns effective *remote* entry endpoint set to bridge remote endpoint when entry bridge address is available. Otherwise, returns the wireguard entry endpoint.
+    pub fn effective_remote_entry_endpoint(&self) -> SocketAddr {
+        self.entry_bridge_addr
+            .as_ref()
+            .map(|addr| addr.remote_addr)
+            .unwrap_or(self.entry.endpoint)
     }
 }
 
