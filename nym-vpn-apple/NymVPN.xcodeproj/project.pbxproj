@@ -209,7 +209,7 @@
 		D955FA002B73CF6F005BA27D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunneProvider+Messaging.swift"; sourceTree = "<group>"; };
 		D9643C6D2CEBC53A00F6B9A7 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/System/Library/Frameworks/UserNotifications.framework; sourceTree = DEVELOPER_DIR; };
-		D977F1F02EA2D11F00E8A6C0 /* background_dmg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = background_dmg.png; sourceTree = "<group>"; };
+		D977F1F02EA2D11F00E8A6C0 /* background_dmg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "background_dmg@2x.png"; sourceTree = "<group>"; };
 		D977F1F12EA2D13200E8A6C0 /* macDmgIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = macDmgIcon.icns; sourceTree = "<group>"; };
 		D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D98B32F12C58F682005A15A3 /* Package.resolved */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Package.resolved; path = NymVPN.xcworkspace/xcshareddata/swiftpm/Package.resolved; sourceTree = SOURCE_ROOT; };
@@ -389,7 +389,7 @@
 			isa = PBXGroup;
 			children = (
 				D977F1F12EA2D13200E8A6C0 /* macDmgIcon.icns */,
-				D977F1F02EA2D11F00E8A6C0 /* background_dmg.png */,
+				D977F1F02EA2D11F00E8A6C0 /* background_dmg@2x.png */,
 				D9DE89442CFE54F7006C4071 /* LaunchLogo */,
 				D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */,
 				D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */,
