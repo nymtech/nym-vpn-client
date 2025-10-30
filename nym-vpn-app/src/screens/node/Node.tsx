@@ -1,4 +1,3 @@
-import { useDeferredValue } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -26,7 +25,18 @@ function Node({ node }: { node: NodeHop }) {
 
   const { isOpen, close } = useDialog();
   const { loading, error } = useNodeList();
-  const { setFocused, reset: resetSaved, addToExpanded } = useNodeListState();
+  const {
+    setFocused,
+    exit: exitNodeList,
+    entry: entryNodeList,
+    reset: resetSaved,
+    addToExpanded,
+  } = useNodeListState();
+  const expanded =
+    node === 'entry' ? entryNodeList.expanded : exitNodeList.expanded;
+  const focused =
+    node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
+
   const { tE } = useI18nError();
 
   const quicFilter =
@@ -36,8 +46,6 @@ function Node({ node }: { node: NodeHop }) {
   const { t } = useTranslation('nodeLocation');
 
   const { filter, nodes, gateways } = useFilterList();
-  const deferredNodes = useDeferredValue(nodes);
-  const deferredGws = useDeferredValue(gateways);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -150,12 +158,14 @@ function Node({ node }: { node: NodeHop }) {
         )}
         {!loading && (
           <NodeList
-            nodes={deferredNodes}
-            gateways={deferredGws}
+            nodes={nodes}
+            gateways={gateways}
             onSelect={handleSelect}
             onNodeDetails={handleNodeDetails}
             hop={node}
             vpnMode={vpnMode}
+            expanded={expanded}
+            focused={focused}
           />
         )}
       </PageAnim>
