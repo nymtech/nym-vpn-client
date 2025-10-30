@@ -23,6 +23,8 @@ function MainStateProvider({ children, init }: Props) {
     vpnMode: init.vpnMode,
     uiTheme: init.uiTheme,
     welcomeChecked: init.welcomeChecked,
+    entryNode: init.entryNode,
+    exitNode: init.exitNode,
   });
 
   const { push } = useInAppNotify();
