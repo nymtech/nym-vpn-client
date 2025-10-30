@@ -67,6 +67,11 @@ impl WireguardKeyStore for OnDiskKeys {
         };
         Ok(keys)
     }
+
+    async fn clear_keys(&self) -> Result<(), Self::StorageError> {
+        self.delete_keys().await?;
+        Ok(())
+    }
 }
 
 // all SQL goes here
@@ -128,6 +133,17 @@ impl OnDiskKeys {
             keys.gateway_id_bs58,
             keys.entry_private_key_bs58,
             keys.exit_private_key_bs58,
+        )
+        .execute(&self.connection_pool)
+        .await?;
+        Ok(())
+    }
+
+    pub(crate) async fn delete_keys(&self) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            r#"
+                DELETE FROM wireguard_gateway_keys;
+            "#,
         )
         .execute(&self.connection_pool)
         .await?;

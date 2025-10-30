@@ -63,4 +63,14 @@ impl WireguardKeyStore for WireguardKeysDb {
         };
         Ok(ret)
     }
+
+    async fn clear_keys(&self) -> Result<(), Self::StorageError> {
+        match self {
+            WireguardKeysDb::OnDisk(on_disk_keys) => on_disk_keys.clear_keys().await?,
+            WireguardKeysDb::Ephemeral(in_mem_ephemeral_keys) => {
+                in_mem_ephemeral_keys.clear_keys().await?
+            }
+        };
+        Ok(())
+    }
 }

@@ -10,7 +10,10 @@ use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse};
 use nym_vpn_network_config::Network;
-use nym_vpn_store::{account::Mnemonic, keys::device::DeviceKeyStore};
+use nym_vpn_store::{
+    account::Mnemonic,
+    keys::{device::DeviceKeyStore, wireguard::WireguardKeysDb},
+};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
@@ -99,11 +102,13 @@ async fn start_account_controller(
 
     let command_sender = account_controller.get_command_sender();
     let state_receiver = account_controller.get_state_receiver();
+    let wireguard_key_db = account_controller.get_wireguard_keys_storage();
     let account_controller_handle = tokio::spawn(account_controller.run());
 
     Ok(AccountControllerHandle {
         command_sender,
         state_receiver,
+        wireguard_key_db,
         handle: account_controller_handle,
         shutdown_token,
     })
@@ -112,6 +117,7 @@ async fn start_account_controller(
 pub(super) struct AccountControllerHandle {
     command_sender: AccountCommandSender,
     state_receiver: AccountStateReceiver,
+    wireguard_key_db: WireguardKeysDb,
     handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
@@ -153,6 +159,16 @@ pub(super) async fn get_command_sender() -> Result<AccountCommandSender, VpnErro
 pub(super) async fn get_state_receiver() -> Result<AccountStateReceiver, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         Ok(guard.state_receiver.clone())
+    } else {
+        Err(VpnError::InvalidStateError {
+            details: "Account controller is not running.".to_owned(),
+        })
+    }
+}
+
+pub(super) async fn get_wireguard_key_db() -> Result<WireguardKeysDb, VpnError> {
+    if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
+        Ok(guard.wireguard_key_db.clone())
     } else {
         Err(VpnError::InvalidStateError {
             details: "Account controller is not running.".to_owned(),
@@ -478,7 +494,7 @@ pub(crate) mod raw {
         remove_credential_storage_raw(&path_buf).await?;
 
         // Then remove the rest of the files, that we own indirectly
-        nym_vpn_account_controller::remove_files_for_account(&path_buf)
+        nym_vpn_account_controller::remove_files_for_account(&path_buf, true)
             .await
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),

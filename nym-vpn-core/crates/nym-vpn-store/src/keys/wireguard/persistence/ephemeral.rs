@@ -34,4 +34,9 @@ impl WireguardKeyStore for InMemEphemeralKeys {
             Ok(keys)
         }
     }
+
+    async fn clear_keys(&self) -> Result<(), Self::StorageError> {
+        self.keys.lock().await.clear();
+        Ok(())
+    }
 }

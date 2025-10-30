@@ -7,6 +7,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 
+use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
 
 use crate::{
@@ -27,6 +28,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     // This is bound to live in the bandwidth controller in a near future
     /// Zk-nym storage
     pub(crate) credential_storage: VpnCredentialStorage,
+
+    /// Wireguard keys database storage
+    pub(crate) wireguard_keys_storage: WireguardKeysDb,
 
     /// VPN API client
     pub(crate) vpn_api_client: VpnApiClient,
@@ -53,6 +57,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         connectivity_handle: C,
         config: AccountControllerConfig,
         credential_storage: VpnCredentialStorage,
+        wireguard_keys_storage: WireguardKeysDb,
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
         vpn_api_account: Option<VpnAccount>,
@@ -63,6 +68,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             connectivity_handle,
             config,
             credential_storage,
+            wireguard_keys_storage,
             vpn_api_client,
             nyxd_client,
             vpn_api_account,

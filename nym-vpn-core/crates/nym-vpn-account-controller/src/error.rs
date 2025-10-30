@@ -23,6 +23,9 @@ pub enum Error {
     CredentialStorage(#[from] nym_credential_storage::error::StorageError),
 
     #[error(transparent)]
+    WireguardKeysStorage(#[from] nym_vpn_store::keys::wireguard::KeysDbError),
+
+    #[error(transparent)]
     PendingCredentialRequestsStorage(#[from] crate::storage::PendingCredentialRequestsStorageError),
 
     #[error("failed to setup credential storage")]
