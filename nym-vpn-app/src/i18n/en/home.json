@@ -23,7 +23,7 @@
   },
   "fast-mode": {
     "title": "Fast (WireGuard)",
-    "desc": "Streaming, general browsing, downloads"
+    "desc": "Browsing, streaming, downloads"
   },
   "last-node-select": {
     "label": "Last hop",
