@@ -243,7 +243,6 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
 allow-git = [
     "git+https://github.com/jstuczyn/bls12_381?branch=temp/experimental-serdect-updated",
-    "git+https://github.com/pronebird/surge-ping.git?rev=d5d973b50eb75d5908f88cb0b98dafa6979f4c8a",
 ]
 
 [sources.allow-org]
