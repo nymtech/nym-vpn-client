@@ -453,7 +453,7 @@ async fn start_vpn_inner(config: Box<VPNConfig>) -> Result<(), VpnError> {
     // Once we have established that the account is ready, we can start the state machine.
     state_machine::init_state_machine(
         config,
-        network_env,
+        Box::new(network_env),
         account_controller_tx,
         account_controller_state,
         statistics_event_sender,

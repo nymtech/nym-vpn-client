@@ -35,10 +35,10 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
-use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent, Network};
+use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
-    sync::{mpsc, oneshot},
+    sync::{mpsc, oneshot, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -444,8 +444,7 @@ pub struct SharedState {
     statistics_event_sender: StatisticsSender,
     gateway_cache_handle: GatewayCacheHandle,
     topology_provider: VpnTopologyProvider,
-    discovery_refresher_command_tx: mpsc::Sender<DiscoveryRefresherCommand>,
-    discovery_refresher_event_rx: mpsc::Receiver<DiscoveryRefresherEvent>,
+    discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     wg_keys_db: WireguardKeysDb,
 }
 
@@ -467,7 +466,7 @@ pub struct NymConfig {
     pub config_path: Option<PathBuf>,
     pub data_path: Option<PathBuf>,
     pub gateway_config: GatewayDirectoryConfig,
-    pub network_env: Network,
+    pub network_rx: watch::Receiver<Box<Network>>,
 }
 
 pub struct TunnelStateMachine {
@@ -498,8 +497,7 @@ impl TunnelStateMachine {
         gateway_cache_handle: GatewayCacheHandle,
         topology_provider: VpnTopologyProvider,
         connectivity_handle: ConnectivityHandle,
-        discovery_refresher_command_tx: mpsc::Sender<DiscoveryRefresherCommand>,
-        discovery_refresher_event_rx: mpsc::Receiver<DiscoveryRefresherEvent>,
+        discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -557,7 +555,6 @@ impl TunnelStateMachine {
             gateway_cache_handle,
             topology_provider,
             discovery_refresher_command_tx,
-            discovery_refresher_event_rx,
             wg_keys_db,
         };
 

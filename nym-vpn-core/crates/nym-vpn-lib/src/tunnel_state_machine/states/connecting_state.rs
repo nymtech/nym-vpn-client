@@ -42,7 +42,7 @@ use nym_gateway_directory::ResolvedConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
-use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent};
+use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -79,7 +79,6 @@ impl ConnectingState {
         shared_state
             .discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
-            .await
             .ok();
         shared_state
             .account_command_tx
@@ -320,13 +319,11 @@ impl ConnectingState {
                             .clone(),
                     ),
                 )))
-                .await
                 .ok();
 
             shared_state
                 .discovery_refresher_command_tx
                 .send(DiscoveryRefresherCommand::Pause(false))
-                .await
                 .ok();
         }
 
@@ -675,18 +672,6 @@ impl TunnelStateHandler for ConnectingState {
                     }
                 } else {
                     NextTunnelState::SameState(self)
-                }
-            }
-            Some(discovery_event) = shared_state.discovery_refresher_event_rx.recv() => {
-                match discovery_event {
-                   DiscoveryRefresherEvent::NewNetwork(network) => {
-                        shared_state.nym_config.network_env = *network;
-                        NextTunnelState::SameState(self)
-                    }
-                    DiscoveryRefresherEvent::Error(error) => {
-                        trace_err_chain!(error, "Discovery refresher reported an error");
-                        NextTunnelState::SameState(self)
-                    }
                 }
             }
             _ = shutdown_token.cancelled() => {
