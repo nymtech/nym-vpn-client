@@ -10,12 +10,13 @@
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
 	<uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
-	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
 	<!--start vpn on boot permission-->
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
 	<uses-permission android:name="android.permission.CAMERA" />
+
 	<application
 		android:name=".NymVpn"
 		android:allowBackup="false"
@@ -41,8 +42,7 @@
 			android:screenOrientation="portrait"
 			android:theme="@style/Theme.NymVPN.Starting"
 			android:windowSoftInputMode="adjustResize"
-			android:configChanges="orientation|screenSize|keyboardHidden"
-			>
+			android:configChanges="orientation|screenSize|keyboardHidden">
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -84,6 +84,7 @@
 				android:name="autoStoreLocales"
 				android:value="true" />
 		</service>
+
 		<receiver
 			android:name=".receiver.BootReceiver"
 			android:enabled="true"
@@ -113,13 +114,11 @@
 		<!-- Add data like request headers, user ip address and device name, see https://docs.sentry.io/platforms/android/data-management/data-collected/ for more info -->
 		<meta-data
 			android:name="io.sentry.send-default-pii"
-			android:value="true"
-			/>
+			android:value="true" />
 		<!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
 		<meta-data
 			android:name="io.sentry.traces.user-interaction.enable"
-			android:value="true"
-			/>
+			android:value="true" />
 		<!-- enable screenshot for crashes -->
 		<meta-data
 			android:name="io.sentry.attach-screenshot"
@@ -131,13 +130,11 @@
 		<!-- Set profiling mode. For more info see https://docs.sentry.io/platforms/android/profiling/#enabling-ui-profiling -->
 		<meta-data
 			android:name="io.sentry.traces.profiling.lifecycle"
-			android:value="trace"
-			/>
+			android:value="trace" />
 		<!-- Enable profiling on app start. The app start profile will be stopped automatically when the app start root span finishes -->
 		<meta-data
 			android:name="io.sentry.traces.profiling.start-on-app-start"
-			android:value="true"
-			/>
+			android:value="true" />
 		<meta-data
 			android:name="io.sentry.release"
 			android:value="@string/fullVersionName" />

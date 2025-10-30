@@ -59,8 +59,16 @@ fun LogsModal(
 		confirmButton = {
 			MainStyledButton(
 				onClick = onConfirm,
-				content = { Text(buttonText, fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface) },
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				content = {
+					Text(
+						buttonText,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onSurface,
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 				color = CustomColors.buttonRedTransparent,
 				borderStroke = BorderStroke(width = 1.dp, color = CustomColors.buttonRedTransparentBorder),
 			)
@@ -69,9 +77,15 @@ fun LogsModal(
 			TransparentButton(
 				onClick = onDismiss,
 				content = {
-					Text(stringResource(R.string.cancel), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
+					Text(
+						stringResource(R.string.cancel),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onSurface,
+					)
 				},
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 	)

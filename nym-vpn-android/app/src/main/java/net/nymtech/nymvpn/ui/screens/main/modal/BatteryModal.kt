@@ -45,17 +45,31 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickSettings,
-				content = { Text(stringResource(R.string.settings), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				content = {
+					Text(
+						stringResource(R.string.settings),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = Color.Black,
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 		dismissButton = {
 			TransparentButton(
 				onClick = onDismiss,
 				content = {
-					Text(stringResource(R.string.skip), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
+					Text(
+						stringResource(R.string.skip),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onSurface,
+					)
 				},
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 	)

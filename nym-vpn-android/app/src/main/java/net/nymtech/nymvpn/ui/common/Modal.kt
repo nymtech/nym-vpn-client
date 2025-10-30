@@ -38,7 +38,9 @@ fun Modal(
 			content = {
 				Text(text = stringResource(id = R.string.okay), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)))
 			},
-			modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+			modifier = Modifier
+				.fillMaxWidth()
+				.height(40.dp.scaledHeight()),
 		)
 	},
 	dismissButton: @Composable () -> Unit = {},

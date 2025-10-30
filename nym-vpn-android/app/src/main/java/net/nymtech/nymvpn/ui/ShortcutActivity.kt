@@ -35,10 +35,12 @@ class ShortcutActivity : ComponentActivity() {
 						settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
 						backendManager.startTunnel()
 					}
+
 					ShortcutAction.START_WG.name -> {
 						settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)
 						backendManager.startTunnel()
 					}
+
 					ShortcutAction.STOP.name -> backendManager.stopTunnel()
 				}
 			} else {

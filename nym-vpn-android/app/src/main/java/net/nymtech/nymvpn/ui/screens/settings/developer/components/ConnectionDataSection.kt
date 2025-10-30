@@ -31,7 +31,9 @@ fun ConnectionDataSection(appUiState: AppUiState) {
 					title = {
 						Row(
 							verticalAlignment = Alignment.CenterVertically,
-							modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp.scaledHeight()),
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(vertical = 4.dp.scaledHeight()),
 						) {
 							Row(
 								verticalAlignment = Alignment.CenterVertically,

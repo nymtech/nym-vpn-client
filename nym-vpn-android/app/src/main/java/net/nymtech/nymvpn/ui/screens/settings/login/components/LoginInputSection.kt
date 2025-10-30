@@ -88,10 +88,12 @@ fun LoginInputSection(
 				if (success == false) viewModel.resetSuccess()
 				mnemonic = it
 			},
-			keyboardActions = KeyboardActions(onDone = {
-				keyboardController?.hide()
-				onSubmit()
-			}),
+			keyboardActions = KeyboardActions(
+				onDone = {
+					keyboardController?.hide()
+					onSubmit()
+				},
+			),
 			modifier = Modifier
 				.width(358.dp.scaledWidth())
 				.height(212.dp.scaledHeight()),
@@ -140,7 +142,9 @@ fun LoginInputSection(
 						}
 					},
 					color = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(56.dp.scaledHeight()),
 				)
 				// Scanner button (disabled for now)
 				/*

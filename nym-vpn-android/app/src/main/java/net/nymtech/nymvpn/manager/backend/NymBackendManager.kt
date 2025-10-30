@@ -338,6 +338,7 @@ class NymBackendManager @Inject constructor(
 			is BackendEvent.AccountState -> {
 				Timber.d("AccountState: ${backendEvent.event}")
 			}
+
 			is BackendEvent.ConfigChanged -> {
 				Timber.d("ConfigChanged")
 			}
@@ -397,6 +398,7 @@ suspend fun Backend.isFeatureFlagEnabled(flag: String): Boolean {
 			is FlagValue.Value -> {
 				flagValue.v1.equals("true", ignoreCase = true)
 			}
+
 			is FlagValue.Group -> {
 				val enabled = flagValue.v1["enabled"]
 				enabled?.equals("true", ignoreCase = true) ?: flagValue.v1.isNotEmpty()
