@@ -9,7 +9,7 @@
     <string name="connecting">Connecting</string>
     <string name="five_hop_mixnet">Anonymous (mixnet)</string>
     <string name="five_hop_description">Maximum privacy for sensitive tasks</string>
-	<string name="two_hop_description">Streaming, general browsing, downloads</string>
+	<string name="two_hop_description">Browsing, streaming, downloads</string>
 	<string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="init_client">Initializing client…</string>
@@ -64,7 +64,7 @@
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
 	<string name="kill_switch">Kill switch</string>
 	<string name="mode_selection">Mode selection</string>
-    <string name="five_hop_explanation">Maximum privacy through 5–hop routing (up to 1–5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.</string>
+    <string name="five_hop_explanation">Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.</string>
 	<string name="continue_reading">Continue reading</string>
 	<string name="appearance">Appearance</string>
     <string name="language">Language</string>
@@ -163,7 +163,6 @@
 	<string name="bars_2">2 bars</string>
 	<string name="bars_1">1 bar</string>
     <string name="bypass_lan">Bypass LAN</string>
-	<string name="pricing_url">https://nym.com/pricing</string>
 	<string name="account_id">Account ID:</string>
 	<string name="developer">Developer</string>
 	<string name="get_help">Get help</string>
@@ -308,9 +307,9 @@
 	<string name="account_welcome_button">Start protecting my privacy</string>
 	<string name="account_welcome_have_account">Already have account?</string>
 	<!-- Existing subscription -->
-	<string name="account_subscription_title">Subscription already active</string>
-	<string name="account_subscription_description">It looks like your Google account already has an active subscription. You don’t need to create a new account — just sign in to continue using your subscription.</string>
-	<string name="account_subscription_info">This account won\'t be connected to Google.</string>
+	<string name="account_subscription_title">You’re already subscribed!</string>
+	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
+	<string name="account_subscription_button">Log in with Nym passphrase</string>
 	<!-- Account Generating screen -->
 	<string name="account_generating_creating">Creating your anonymous identity…</string>
 	<string name="account_generating_establishing">Establishing anonymous network credentials</string>
