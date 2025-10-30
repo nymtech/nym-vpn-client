@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity() {
 									}
 								}
 								composable<Route.Passphrase> {
-									PassphraseScreen(appState)
+									PassphraseScreen()
 								}
 								composable<Route.Account> {
 									AccountInfoScreen(appState)
