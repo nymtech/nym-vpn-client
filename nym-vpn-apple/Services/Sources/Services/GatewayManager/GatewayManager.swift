@@ -213,6 +213,15 @@ import GRPCManager
             return false
         }
     }
+
+    public func containsStreaming(with gateway: ExitRouter) -> Bool {
+        switch gateway {
+        case .address, .country, .region, .random:
+            false
+        case let .gateway(identifier):
+            vpn.contains { $0.id == identifier && $0.isResidentialAvailable }
+        }
+    }
 }
 
 // MARK: - Country -
