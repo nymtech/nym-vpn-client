@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.account.welcome.modal
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +46,9 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickLogin,
-				content = { Text(stringResource(R.string.log_in), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
+				content = {
+					Text(stringResource(R.string.account_subscription_button), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black)
+				},
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},
@@ -53,7 +56,7 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 			TransparentButton(
 				onClick = onClickCancel,
 				content = {
-					Text(stringResource(R.string.cancel), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
+					Text(stringResource(R.string.close), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
 				},
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
@@ -61,7 +64,7 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 	)
 }
 
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun BatteryModalPreview() {
 	NymVPNTheme(Theme.default()) {
