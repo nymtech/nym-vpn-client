@@ -59,9 +59,9 @@ use super::{
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
-    AccountControllerError, ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId,
-    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
-    WireguardNode,
+    AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
+    EstablishConnectionData, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
+    TunnelType, WireguardConnectionData, WireguardNode,
 };
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
@@ -81,8 +81,8 @@ use crate::{
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                self, BridgeAddress, ConnectionData as WgConnectionData, MetadataEvent,
-                MetadataReceiver, connected_tunnel::ConnectedTunnel,
+                self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+                connected_tunnel::ConnectedTunnel,
             },
         },
     },
@@ -1101,7 +1101,7 @@ impl TunnelMonitor {
             self.shutdown_token.child_token(),
         )
         .await?;
-        let remote_address = bridge_conn.endpoint;
+        let remote_addr = bridge_conn.endpoint;
         let (listen_addr, join_handle) = transports::UdpForwarder::launch(
             bridge_conn,
             None,
@@ -1114,7 +1114,7 @@ impl TunnelMonitor {
 
         let bridge_addr = BridgeAddress {
             listen_addr,
-            remote_address,
+            remote_addr,
         };
 
         Ok((bridge_addr, join_handle))
@@ -1145,10 +1145,10 @@ impl TunnelMonitor {
             conn_data
                 .entry_bridge_addr
                 .as_ref()
+                .map(|bridge_addr| bridge_addr.remote_addr)
                 .ok_or(TransportError::other(
                     "missing bridge address after connect", // this should not be possible
                 ))?
-                .remote_address
         } else {
             conn_data.entry.endpoint
         };
@@ -1163,11 +1163,7 @@ impl TunnelMonitor {
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            // todo: provide QUIC endpoint too
-            entry_bridge_addr: conn_data
-                .entry_bridge_addr
-                .as_ref()
-                .map(|addr| addr.listen_addr),
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
@@ -1249,9 +1245,13 @@ impl TunnelMonitor {
 
         #[cfg(not(target_os = "linux"))]
         let entry_endpoint = if use_bridges {
-            conn_data.entry_bridge_addr.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?
+            conn_data
+                .entry_bridge_addr
+                .as_ref()
+                .map(|bridge_addr| bridge_addr.remote_addr)
+                .ok_or(TransportError::other(
+                    "missing bridge address after connect", // this should not be possible
+                ))?
         } else {
             conn_data.entry.endpoint
         };
@@ -1383,10 +1383,10 @@ impl TunnelMonitor {
             conn_data
                 .entry_bridge_addr
                 .as_ref()
+                .map(|bridge_addr| bridge_addr.remote_addr)
                 .ok_or(TransportError::other(
                     "missing bridge address after connect", // this should not be possible
                 ))?
-                .remote_address
         } else {
             conn_data.entry.endpoint
         };
@@ -1407,11 +1407,7 @@ impl TunnelMonitor {
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            // todo: provide QUIC endpoint too
-            entry_bridge_addr: conn_data
-                .entry_bridge_addr
-                .as_ref()
-                .map(|addr| addr.listen_addr),
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
