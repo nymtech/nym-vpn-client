@@ -8,8 +8,8 @@
     <string name="disconnecting">Disconnecting</string>
     <string name="connecting">Connecting</string>
     <string name="five_hop_mixnet">Anonymous (mixnet)</string>
-    <string name="five_hop_description">For payments, emails, messages</string>
-	<string name="two_hop_description">Best for browsing, streaming, sharing</string>
+    <string name="five_hop_description">Maximum privacy for sensitive tasks</string>
+	<string name="two_hop_description">Browsing, streaming, downloads</string>
 	<string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="init_client">Initializing client…</string>
@@ -64,7 +64,7 @@
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
 	<string name="kill_switch">Kill switch</string>
 	<string name="mode_selection">Mode selection</string>
-    <string name="five_hop_explanation">Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.</string>
+    <string name="five_hop_explanation">Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.</string>
 	<string name="continue_reading">Continue reading</string>
 	<string name="appearance">Appearance</string>
     <string name="language">Language</string>
@@ -133,8 +133,8 @@
     <string name="offline">No internet</string>
 	<string name="no_internet">Your device has no internet connection</string>
 	<string name="waiting_for_connection">Will connect once the device goes online</string>
-	<string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.</string>
-	<string name="two_hop_title">Fast (WireGuard<small>*</small>)</string>
+	<string name="two_hop_explanation">High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.</string>
+	<string name="two_hop_title">Fast (WireGuard)</string>
 	<string name="disabled_while_connecting">Disabled while connecting to VPN</string>
     <string name="exit">Exit</string>
 	<string name="entry">Entry</string>
