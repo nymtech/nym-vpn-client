@@ -120,21 +120,18 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 		}
 	}
 
-	suspend fun savePasswordToManager(
-		context: Context,
-		password: String
-	) {
+	suspend fun savePasswordToManager(context: Context, password: String) {
 		val credentialManager = CredentialManager.create(context)
 
 		val passwordCredential = CreatePasswordRequest(
 			id = "nym-passphrase",
-			password = password
+			password = password,
 		)
 
 		try {
 			credentialManager.createCredential(
 				request = passwordCredential,
-				context = context
+				context = context,
 			)
 		} catch (e: Exception) {
 			Timber.d(e)
@@ -154,7 +151,7 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 			scope.launch {
 				savePasswordToManager(
 					context = context,
-					password = passphrase.joinToString(" ")
+					password = passphrase.joinToString(" "),
 				)
 			}
 		},
@@ -211,12 +208,12 @@ fun PassphraseScreen(
 					horizontalArrangement = Arrangement.spacedBy(16.dp),
 					modifier = Modifier
 						.fillMaxWidth()
-						.clickable { confirmed = !confirmed }
+						.clickable { confirmed = !confirmed },
 				) {
 					Checkbox(
 						checked = confirmed,
 						onCheckedChange = { confirmed = it },
-						modifier = Modifier.size(20.dp)
+						modifier = Modifier.size(20.dp),
 					)
 					Text(
 						text = stringResource(R.string.passphrase_saved),
