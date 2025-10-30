@@ -54,7 +54,6 @@ import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelState
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.text.equals
 
 class NymBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
