@@ -332,12 +332,12 @@
 	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Show my passphrase</string>
 	<string name="passphrase_copy">Copy passphrase</string>
-	<string name="passphrase_save">Save to manager</string>
+	<string name="passphrase_save">Save to password manager</string>
 	<string name="passphrase_lose">⚠️ Lose these words = lose your account forever.</string>
 	<string name="passphrase_never">Never share them with anyone, including Nym Support.</string>
 	<string name="passphrase_saved">I have saved these 24 words securely and will never share them</string>
 	<string name="passphrase_info_title">What is passphrase</string>
-	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery. ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
+	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
 	<string name="passphrase_info_privacy_removed">For your privacy, we’ve removed:</string>
 	<string name="passphrase_info_stored_accounts">Centrally-stored accounts</string>
 	<string name="passphrase_info_personal_logins">Personal data-based logins</string>

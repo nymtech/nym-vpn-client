@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
 import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.util.extensions.goFromRoot
@@ -43,6 +44,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 	var navBarState by remember { mutableStateOf(NavBarState()) }
 	var showLocationTooltip by remember { mutableStateOf(false) }
 	var showExitServerTooltip by remember { mutableStateOf(false) }
+	var showPassphraseModal by remember { mutableStateOf(false) }
 
 	LaunchedEffect(navBackStackEntry) {
 		keyboardController?.hide()
@@ -51,6 +53,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(
 				show = false,
 			)
+
 			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> {
 				NavBarState(
 					title = { MainTitle() },
@@ -62,6 +65,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					},
 				)
 			}
+
 			currentRoute.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.settings)) },
 				show = true,
@@ -71,18 +75,21 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
 				title = { NavTitle(stringResource(R.string.entry)) },
 				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
 			)
+
 			currentRoute.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
 				title = { NavTitle(stringResource(R.string.exit)) },
 				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showExitServerTooltip = true } },
 			)
+
 			currentRoute.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.logs)) },
 				show = true,
@@ -92,6 +99,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Support::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.support)) },
 				show = true,
@@ -101,6 +109,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Legal::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.legal)) },
 				show = true,
@@ -110,6 +119,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState(show = false)
 			currentRoute.startsWith(Route.Licenses::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.licenses)) },
@@ -120,6 +130,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Censorship::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.settings_censorship_title)) },
 				show = true,
@@ -129,6 +140,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Appearance::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.appearance)) },
 				show = true,
@@ -138,6 +150,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Privacy::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.privacy_title)) },
 				show = true,
@@ -147,6 +160,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Display::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.display_theme)) },
 				show = true,
@@ -156,6 +170,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.SelectPlan::class.qualifiedName!!) -> NavBarState(
 				title = { MainTitle() },
 				show = true,
@@ -165,6 +180,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.WelcomeAccount::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle("") },
 				show = true,
@@ -174,18 +190,21 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Generating::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle("") },
 				show = true,
 				leading = {
 				},
 			)
+
 			currentRoute.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle("") },
 				show = true,
 				leading = {
 				},
 			)
+
 			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				show = true,
@@ -195,6 +214,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Developer::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.developer)) },
 				show = true,
@@ -204,6 +224,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.LoginScanner::class.qualifiedName!!) -> NavBarState(show = false)
 			currentRoute.startsWith(Route.Permission::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.permission_required)) },
@@ -214,6 +235,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.ServerDetails::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.details_title)) },
 				show = true,
@@ -223,9 +245,11 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
 				show = false,
 			)
+
 			currentRoute.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.settings_passphrase_title)) },
 				show = true,
@@ -234,7 +258,9 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 						navController.safePopBackStack()
 					}
 				},
+				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showPassphraseModal = true } },
 			)
+
 			else -> NavBarState(show = false)
 		}
 	}
@@ -249,6 +275,11 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 		showModal = showExitServerTooltip,
 		onClick = { context.openWebUrl(it) },
 		onDismiss = { showExitServerTooltip = false },
+	)
+
+	PassphraseInfo(
+		show = showPassphraseModal,
+		onDismiss = { showPassphraseModal = false },
 	)
 
 	AnimatedVisibility(

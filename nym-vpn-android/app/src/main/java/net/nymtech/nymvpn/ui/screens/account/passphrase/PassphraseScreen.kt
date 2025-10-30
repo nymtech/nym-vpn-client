@@ -1,6 +1,10 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
+import android.content.Context
 import android.content.res.Configuration
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,10 +22,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
@@ -29,9 +35,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.credentials.CreatePasswordRequest
+import androidx.credentials.CredentialManager
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
@@ -43,24 +53,108 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import timber.log.Timber
 
 @Composable
-fun PassphraseScreen(appUiState: AppUiState, viewModel: PassphraseViewModel = hiltViewModel()) {
+fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 	val clipboardManager = LocalClipboardManager.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
+	val context = LocalContext.current
+	val scope = rememberCoroutineScope()
+	val activity = context as? FragmentActivity
+	val executor = remember(context) { ContextCompat.getMainExecutor(context) }
+
+	val biometricPrompt = remember(activity, executor) {
+		activity?.let {
+			BiometricPrompt(
+				it,
+				executor,
+				object : BiometricPrompt.AuthenticationCallback() {
+					override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+						showSheet = true
+					}
+				},
+			)
+		}
+	}
+
+	val promptInfo = remember {
+		BiometricPrompt.PromptInfo.Builder()
+			.setTitle(context.getString(R.string.passphrase_title))
+			.setSubtitle(context.getString(R.string.passphrase_description))
+			.setAllowedAuthenticators(
+				BiometricManager.Authenticators.BIOMETRIC_STRONG or
+					BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+			)
+			.build()
+	}
+
+	fun requestAuthOrReveal() {
+		val manager = BiometricManager.from(context)
+		val authenticators =
+			BiometricManager.Authenticators.BIOMETRIC_STRONG or
+				BiometricManager.Authenticators.DEVICE_CREDENTIAL
+
+		when (manager.canAuthenticate(authenticators)) {
+			BiometricManager.BIOMETRIC_SUCCESS,
+			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
+			-> {
+				val prompt = biometricPrompt
+				if (prompt != null) {
+					prompt.authenticate(promptInfo)
+				} else {
+					showSheet = true
+				}
+			}
+			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
+			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE,
+			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
+			BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED,
+			BiometricManager.BIOMETRIC_STATUS_UNKNOWN,
+			-> {
+				showSheet = true
+			}
+			else -> showSheet = true
+		}
+	}
+
+	suspend fun savePasswordToManager(context: Context, password: String) {
+		val credentialManager = CredentialManager.create(context)
+
+		val passwordCredential = CreatePasswordRequest(
+			id = "nym-passphrase",
+			password = password,
+		)
+
+		try {
+			credentialManager.createCredential(
+				request = passwordCredential,
+				context = context,
+			)
+		} catch (e: Exception) {
+			Timber.d(e)
+		}
+	}
 
 	PassphraseScreen(
 		passphrase = passphrase,
 		show = showSheet,
 		onShowClick = {
-			showSheet = true
+			requestAuthOrReveal()
 		},
 		onCopyClick = {
 			clipboardManager.setText(AnnotatedString(passphrase.joinToString(" ")))
 		},
-		onSaveClick = {},
+		onSaveClick = {
+			scope.launch {
+				savePasswordToManager(
+					context = context,
+					password = passphrase.joinToString(" "),
+				)
+			}
+		},
 		onContinueClick = {
 			navController.safePopBackStack()
 		},
@@ -110,11 +204,17 @@ fun PassphraseScreen(
 		if (show) {
 			Column(modifier = Modifier.fillMaxWidth()) {
 				Row(
-					verticalAlignment = Alignment.Top,
-					horizontalArrangement = Arrangement.spacedBy(12.dp),
-					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(16.dp),
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable { confirmed = !confirmed },
 				) {
-					Checkbox(checked = confirmed, onCheckedChange = { confirmed = it }, modifier = Modifier.size(20.dp).padding(top = 8.dp))
+					Checkbox(
+						checked = confirmed,
+						onCheckedChange = { confirmed = it },
+						modifier = Modifier.size(20.dp),
+					)
 					Text(
 						text = stringResource(R.string.passphrase_saved),
 						style = MaterialTheme.typography.bodyMedium,
@@ -136,7 +236,7 @@ fun PassphraseScreen(
 					color = MaterialTheme.colorScheme.primary,
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(top = 16.dp, bottom = 16.dp)
+						.padding(top = 24.dp, bottom = 16.dp)
 						.height(54.dp.scaledHeight()),
 				)
 			}

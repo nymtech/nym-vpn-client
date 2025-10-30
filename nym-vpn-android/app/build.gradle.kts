@@ -241,6 +241,12 @@ dependencies {
 
 	// sentry
 	implementation(libs.sentry)
+
+	// biometric
+	implementation(libs.biometric)
+
+	// credentials
+	implementation(libs.credentials)
 }
 
 fun determineVersionName(): String {
