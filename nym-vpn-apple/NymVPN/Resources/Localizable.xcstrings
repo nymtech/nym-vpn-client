@@ -213,7 +213,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast (WireGuard*)"
+            "value" : "Fast (WireGuard)"
           }
         },
         "es" : {
@@ -314,7 +314,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Best for browsing, streaming, sharing"
+            "value" : "Streaming, general browsing, downloads"
           }
         },
         "es" : {
@@ -415,7 +415,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Best for payments, emails, messages"
+            "value" : "Maximum privacy for sensitive tasks"
           }
         },
         "es" : {
@@ -25516,7 +25516,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
+            "value" : "Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages."
           }
         },
         "es" : {
@@ -25718,7 +25718,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
+            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.."
           }
         },
         "es" : {
