@@ -132,7 +132,7 @@ impl ConnectedTunnel {
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
         let mut wg_entry_config = WgNodeConfig::with_gateway_data(
-            self.connection_data.entry.clone(),
+            self.connection_data.effective_entry_gateway_data(),
             self.entry_wg_keypair.private_key(),
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
@@ -256,7 +256,7 @@ impl ConnectedTunnel {
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
         let mut wg_entry_config = WgNodeConfig::with_gateway_data(
-            self.connection_data.entry.clone(),
+            self.connection_data.effective_entry_gateway_data(),
             self.entry_wg_keypair.private_key(),
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
