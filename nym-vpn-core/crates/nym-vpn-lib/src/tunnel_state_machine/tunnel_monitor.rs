@@ -1228,7 +1228,7 @@ impl TunnelMonitor {
         };
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
@@ -1421,7 +1421,7 @@ impl TunnelMonitor {
         let exit_tun_mtu = connected_tunnel.exit_mtu();
 
         let exit_gateway_address = conn_data.exit.endpoint.ip();
-        let entry_gateway_address = conn_data.effective_remote_entry_endpoint();
+        let entry_gateway_address = conn_data.effective_remote_entry_endpoint().ip();
 
         let entry_adapter_config = WintunAdapterConfig {
             interface_ipv4: conn_data.entry.private_ipv4,
@@ -1459,7 +1459,7 @@ impl TunnelMonitor {
         };
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
@@ -1610,7 +1610,7 @@ impl TunnelMonitor {
         tracing::info!("Created tun device: {}", tunnel_metadata.interface);
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
