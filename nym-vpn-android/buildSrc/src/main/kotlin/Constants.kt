@@ -3,13 +3,12 @@ import org.gradle.api.JavaVersion
 object Constants {
 	const val VERSION_NAME = "v2.3.0"
     const val VERSION_CODE = 23000
-    const val TARGET_SDK = 35
-    const val COMPILE_SDK = 35
+    const val TARGET_SDK = 36
+    const val COMPILE_SDK = 36
     const val MIN_SDK = 24
 
     const val JVM_TARGET = "17"
     val JAVA_VERSION = JavaVersion.VERSION_17
-
 
 	const val APP_NAME = "nymvpn"
 	const val NAMESPACE = "net.nymtech"
