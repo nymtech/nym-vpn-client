@@ -15,7 +15,7 @@ import { GatewaysContext, initialState } from './context';
 import { reducer } from './reducer';
 import { GatewaysState } from './types';
 
-let initialized = false;
+let init = false;
 
 type GatewaysStateProviderProps = {
   children: React.ReactNode;
@@ -24,7 +24,8 @@ type GatewaysStateProviderProps = {
 function GatewaysProvider({ children }: GatewaysStateProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { entryNode, exitNode, daemonStatus, vpnMode } = useMainState();
+  const { initialized, entryNode, exitNode, daemonStatus, vpnMode } =
+    useMainState();
   const mainDispatch = useMainDispatch() as StateDispatch;
 
   const checkSelectedNode = useCallback(
@@ -152,10 +153,10 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
 
   // init gateways on app start
   useEffect(() => {
-    if (initialized || daemonStatus === 'down') {
+    if (!initialized || init || daemonStatus === 'down') {
       return;
     }
-    initialized = true;
+    init = true;
     if (vpnMode === 'wg') {
       fetchGateways('wg').then(() => {
         console.info('[wg] gateways initialized');
@@ -168,7 +169,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
         console.info('[mx-exit] gateways initialized');
       });
     }
-  }, [fetchGateways, daemonStatus, vpnMode]);
+  }, [initialized, fetchGateways, daemonStatus, vpnMode]);
 
   const ctx = useMemo<GatewaysState>(
     () => ({

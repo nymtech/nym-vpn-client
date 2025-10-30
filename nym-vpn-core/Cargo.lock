@@ -5485,6 +5485,7 @@ dependencies = [
  "nym-common",
  "nym-http-api-client",
  "nym-network-defaults",
+ "nym-offline-monitor",
  "nym-sdk",
  "nym-validator-client",
  "nym-vpn-api-client",

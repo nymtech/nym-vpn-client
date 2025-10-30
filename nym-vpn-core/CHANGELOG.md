@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - TBD
+
 ### Added
 
 - Add new CLI commands to manage sentry and anonymous network statistics collection (https://github.com/nymtech/nym-vpn-client/pull/3695)
@@ -27,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't log a warning on some expected value from the API (https://github.com/nymtech/nym-vpn-client/pull/3763)
 - Fix no gateway id problem (https://github.com/nymtech/nym-vpn-client/pull/3768)
 - [Windows] Wait for network interface addresses become usable before starting the tunnel (https://github.com/nymtech/nym-vpn-client/pull/3773)
+- Fix network environment updates not being made available for grpc clients (https://github.com/nymtech/nym-vpn-client/pull/3805)
+- Ensure that default discovery when written to disk is always considered stale (https://github.com/nymtech/nym-vpn-client/pull/3805)
+- Make discovery refresh aware of network connectivity (https://github.com/nymtech/nym-vpn-client/pull/3805)
 
 ## [1.17.0] - 2025-10-17
 

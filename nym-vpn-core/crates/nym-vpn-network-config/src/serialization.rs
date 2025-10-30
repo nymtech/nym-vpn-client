@@ -4,7 +4,7 @@
 use serde::{de::DeserializeOwned, ser::Serialize};
 
 use crate::{Error, Result};
-use std::path::Path;
+use std::{fs::File, path::Path};
 
 /// Deserialize a value from JSON file.
 pub fn deserialize_from_json_file<S, T>(path: S) -> Result<T>
@@ -26,7 +26,7 @@ where
 
 /// Serialize a value to a JSON file.
 /// Creates parent directories if they do not exist.
-pub fn serialize_to_json_file<S, T>(path: S, value: &T) -> Result<()>
+pub fn serialize_to_json_file<S, T>(path: S, value: &T) -> Result<File>
 where
     T: ?Sized + Serialize,
     S: AsRef<Path>,
@@ -51,5 +51,7 @@ where
     serde_json::to_writer_pretty(&file, &value).map_err(|source| Error::Serialize {
         path: path.as_ref().to_path_buf(),
         source,
-    })
+    })?;
+
+    Ok(file)
 }

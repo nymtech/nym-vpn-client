@@ -344,7 +344,6 @@ mod tests {
         let events = collect_events(&mut event_rx, (PROBE_RETRY_COUNT + 1) as usize).await;
         let relative_pace = events
             .windows(2)
-            .into_iter()
             .map(|w| w[1].start_timestamp.duration_since(w[0].start_timestamp))
             .collect::<Vec<_>>();
 
@@ -369,7 +368,6 @@ mod tests {
         let events = collect_events(&mut event_rx, 4).await;
         let relative_pace = events
             .windows(2)
-            .into_iter()
             .map(|w| w[1].start_timestamp.duration_since(w[0].end_timestamp))
             .collect::<Vec<_>>();
 

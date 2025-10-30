@@ -24,6 +24,8 @@ function MainStateProvider({ children, init }: Props) {
     uiTheme: init.uiTheme,
     welcomeChecked: init.welcomeChecked,
     streamingOptimizedLabelSeen: init.streamingOptimizedLabelSeen,
+    entryNode: init.entryNode,
+    exitNode: init.exitNode,
   });
 
   const { push } = useInAppNotify();

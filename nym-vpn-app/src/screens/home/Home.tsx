@@ -14,6 +14,7 @@ import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
+import { kvGet } from '../../kvStore';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
@@ -28,6 +29,7 @@ import { setFeatureSeen } from './new-feature-alert/utils';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
+const defaultQuic = window._APP.defaultQuic;
 const os = type();
 let welcomeInit = false;
 let compatChecked = false;
@@ -44,6 +46,7 @@ function Home() {
     account,
     networkCompat,
     welcomeChecked,
+    backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { reset: resetNodeList } = useNodeListState();
@@ -63,7 +66,7 @@ function Home() {
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (state === 'disconnected' && !account) {
       navigate(routes.login);
       return;
@@ -94,7 +97,15 @@ function Home() {
       console.info('connect');
       dispatch({ type: 'reset-error' });
       dispatch({ type: 'connect' });
-      invoke('connect', { entry: entryNode, exit: exitNode })
+      let savedQuic = await kvGet<boolean>('quic-enabled');
+      if (savedQuic === undefined) {
+        savedQuic = defaultQuic;
+      }
+      invoke('connect', {
+        entry: entryNode,
+        exit: exitNode,
+        quic: backendFlags.quic && savedQuic,
+      })
         .then((result) => {
           console.log(result);
         })

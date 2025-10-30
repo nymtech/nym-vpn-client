@@ -33,6 +33,8 @@ export type InitState = {
   vpnMode: VpnMode;
   vpnd: VpndStatus;
   streamingOptimizedLabelSeen: boolean;
+  entryNode: SelectedNode;
+  exitNode: SelectedNode;
 };
 
 export type AppState = {

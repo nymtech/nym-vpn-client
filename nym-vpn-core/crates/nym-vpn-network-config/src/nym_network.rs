@@ -1,7 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    time::SystemTime,
+};
 
 use nym_common::trace_err_chain;
 use nym_network_defaults::NymNetworkDetails;
@@ -10,7 +13,7 @@ use crate::MAX_FILE_AGE;
 
 use super::{Error, NETWORKS_SUBDIR, Result, discovery::Discovery};
 
-#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {
     pub network: NymNetworkDetails,
 }
@@ -42,11 +45,22 @@ impl NymNetwork {
         Ok(Self { network })
     }
 
-    pub(super) fn write_to_file(&self, config_dir: &Path) -> Result<()> {
+    pub(super) fn write_to_file(
+        &self,
+        config_dir: &Path,
+        modified_at: Option<SystemTime>,
+    ) -> Result<()> {
         let network = &self.network;
         let path = Self::path(config_dir, &network.network_name);
 
-        crate::serialization::serialize_to_json_file(path, network)
+        let file = crate::serialization::serialize_to_json_file(path, network)?;
+        if let Some(modified_at) = modified_at
+            && let Err(e) = file.set_modified(modified_at)
+        {
+            tracing::error!("Failed to set modified time for nym network file: {e}");
+        }
+
+        Ok(())
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> Result<Self> {
@@ -57,23 +71,38 @@ impl NymNetwork {
                     trace_err_chain!(e, "Failed to read nym network file");
                 }
 
-                let nym_network = discovery.fetch_nym_network_details().await.or_else(|e| {
-                    if discovery.network_name == "mainnet" {
-                        tracing::warn!(
-                            "Failed to fetch remote nym network file: {e}, creating a default one"
-                        );
-                        Ok(Self::default())
-                    } else {
-                        trace_err_chain!(e, "Failed to fetch remote nym network file, no default one for {} environment", discovery.network_name);
-                        Err(e)
+                match discovery.fetch_nym_network_details().await {
+                    Ok(nym_network) => {
+                        nym_network
+                            .write_to_file(config_dir, None)
+                            .inspect_err(|err| {
+                                trace_err_chain!(err, "Failed to write nym network file");
+                            })?;
+                        Ok(nym_network)
                     }
-                })?;
-
-                nym_network.write_to_file(config_dir).inspect_err(|err| {
-                    trace_err_chain!(err, "Failed to write nym network file");
-                })?;
-
-                Ok(nym_network)
+                    Err(e) => {
+                        if discovery.network_name == "mainnet" {
+                            tracing::warn!(
+                                "Failed to fetch remote nym network file: {e}, creating a default one"
+                            );
+                            let default_nym_network = Self::default();
+                            let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
+                            default_nym_network
+                                .write_to_file(config_dir, modified_at)
+                                .inspect_err(|err| {
+                                    trace_err_chain!(err, "Failed to write nym network file");
+                                })?;
+                            Ok(default_nym_network)
+                        } else {
+                            trace_err_chain!(
+                                e,
+                                "Failed to fetch remote nym network file, no default one for {} environment",
+                                discovery.network_name
+                            );
+                            Err(e)
+                        }
+                    }
+                }
             }
             Err(e) => {
                 trace_err_chain!(e, "Failed to read nym network file");

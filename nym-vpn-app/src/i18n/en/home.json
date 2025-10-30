@@ -19,11 +19,11 @@
   "select-node-title": "Connect to",
   "privacy-mode": {
     "title": "Anonymous (mixnet)",
-    "desc": "Best for payments, emails, messages"
+    "desc": "Maximum privacy for sensitive tasks"
   },
   "fast-mode": {
-    "title": "Fast (WireGuard*)",
-    "desc": "Best for browsing, streaming, sharing"
+    "title": "Fast (WireGuard)",
+    "desc": "Streaming, general browsing, downloads"
   },
   "last-node-select": {
     "label": "Last hop",
@@ -38,8 +38,8 @@
   },
   "modes-dialog": {
     "title": "Mode selection",
-    "privacy-description": "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.",
-    "fast-description": "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.",
+    "privacy-description": "Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.",
+    "fast-description": "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.",
     "link": "Continue reading"
   },
   "update-dialog": {

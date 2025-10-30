@@ -7,11 +7,12 @@ use std::{
     sync::{Arc, LazyLock},
 };
 
+use tokio::sync::watch;
+use tokio_util::sync::{CancellationToken, DropGuard};
+
 use nym_common::ErrorExt;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_routing::RouteManagerHandle;
-use tokio::sync::watch;
-use tokio_util::sync::{CancellationToken, DropGuard};
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 #[path = "apple/mod.rs"]

@@ -10,6 +10,7 @@ use futures::{Sink, SinkExt, Stream, StreamExt};
 use tokio::{
     io::{AsyncRead, AsyncWrite},
     net::UdpSocket,
+    sync::mpsc::UnboundedSender,
     task::JoinHandle,
 };
 use tokio_util::{codec::LengthDelimitedCodec, sync::CancellationToken};
@@ -103,6 +104,7 @@ impl UdpForwarder {
     pub async fn launch(
         egress_conn: BridgeConn,
         bind_addr: Option<SocketAddr>,
+        close_tx: UnboundedSender<()>,
         token: CancellationToken,
     ) -> Result<(SocketAddr, JoinHandle<()>), TransportError> {
         let bind_addr = bind_addr.unwrap_or(match egress_conn.endpoint.is_ipv4() {
@@ -122,6 +124,7 @@ impl UdpForwarder {
                 egress_conn.writer,
                 socket.clone(),
                 ETHERNET_V2_MTU,
+                close_tx,
                 token,
             )),
         ))
@@ -134,6 +137,7 @@ pub async fn process_udp<R, W>(
     sock: Arc<UdpSocket>,
     mtu: u16,
     // close_hook: Option<fn(SocketAddr)>,
+    close_tx: UnboundedSender<()>,
     token: CancellationToken,
 ) where
     R: AsyncRead + Unpin + Send + 'static,
@@ -154,41 +158,45 @@ pub async fn process_udp<R, W>(
     // receive (and forward) a first message to establish a consistent peer address
     let fwd_initial_recv_fut =
         tokio::time::timeout(INITIAL_CONNECTION_TIMEOUT, sock.recv_buf_from(&mut dn_buf));
-    let fwd_addr = tokio::select!(
-        _ = token.cancelled() => {
-            debug!("forwarder cancelled before initial receive");
-            return;
-        }
-        res = fwd_initial_recv_fut => {
+
+    let fwd_addr = match token.run_until_cancelled(fwd_initial_recv_fut).await {
+        Some(res) => {
             match res {
                 Ok(Ok((len, src))) => {
                     trace!(" <- [fw] read {len}B");
                     if let Err(e) = framed_writer.send(dn_buf.copy_to_bytes(len)).await {
                         debug!("error sending to transport connection: {e}");
-                        token.cancel();
-                        return;
-                    };
-                    trace!("[tr] <- wrote {len}B");
-                    // keep track of the address of the sender for the initial write
-                    src
+                        None
+                    } else {
+                        trace!("[tr] <- wrote {len}B");
+                        // keep track of the address of the sender for the initial write
+                        Some(src)
+                    }
                 }
                 Ok(Err(e)) => {
                     debug!("error receiving from egress socket: {e}");
-                    token.cancel();
-                    return;
+                    None
                 }
                 Err(_) => {
                     debug!("forwarder timed out");
-                    token.cancel();
-                    return;
+                    None
                 }
             }
         }
-    );
+        None => {
+            debug!("forwarder cancelled before initial receive");
+            None
+        }
+    };
+
+    let Some(fwd_addr) = fwd_addr else {
+        close_tx.send(()).ok();
+        return;
+    };
 
     if let Err(e) = sock.connect(fwd_addr).await {
         error!("udp sock config failure: {e}");
-        token.cancel();
+        close_tx.send(()).ok();
         return;
     }
 
@@ -198,21 +206,33 @@ pub async fn process_udp<R, W>(
         framed_writer,
         fwd_addr,
         mtu,
-        token.clone(),
+        token.child_token(),
     ));
     tasks.spawn(transport_to_udp_task(
         framed_reader,
         sock.clone(),
         fwd_addr,
-        token.clone(),
+        token.child_token(),
     ));
 
-    // Wait for both tasks to complete, if either one exits it _should_ cancel the other as well.
-    for res in tasks.join_all().await {
-        if let Err(e) = res {
-            tracing::error!("bridge udp forwarder error: {e}");
+    let mut token = Some(token);
+
+    // Wait for both tasks to complete, if either one exits, make sure to cancel the other as well.
+    while let Some(res) = tasks.join_next().await {
+        if let Err(err) = res {
+            tracing::error!("bridge udp forwarder join error: {err}");
+        } else if let Ok(Err(err)) = res {
+            tracing::error!("bridge udp forwarder error: {err}");
+        }
+
+        // Cancel all tasks if any of sub-tasks exit for any reason
+        if let Some(token) = token.take() {
+            token.cancel();
         }
     }
+
+    close_tx.send(()).ok();
+
     info!("transport udp forwarder shutdown");
 }
 
@@ -235,14 +255,12 @@ where
             res = sock.recv_buf(&mut dn_buf) => {
                 let len = res.map_err(|e| {
                     error!("error receiving from forward socket: {e}");
-                    token.cancel();
                     e
                 })?;
 
                 trace!(" <-{fwd_addr} read {len}B");
                 framed_writer.send(dn_buf.copy_to_bytes(len)).await.map_err(|e| {
                     error!("error sending to transport connection: {e}");
-                    token.cancel();
                     e
                 })?;
                 trace!(" [tr]<- wrote {len}B");
@@ -288,7 +306,6 @@ where
                         while sent < len {
                             let len_sent = sock.send(&buf[sent..len]).await.map_err(|e| {
                                 error!("error sending to egress socket: {e}");
-                                token.cancel();
                                 e
                             })?;
                             sent += len_sent;
@@ -298,7 +315,6 @@ where
                     }
                     Some(Err(e)) => {
                         error!("error reading from transport conn: {e}");
-                        token.cancel();
                         return Err(e);
                     }
                 }

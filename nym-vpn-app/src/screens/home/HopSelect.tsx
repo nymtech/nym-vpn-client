@@ -185,11 +185,11 @@ export default function HopSelect({
   };
 
   const gateway = useMemo(() => {
-    if (!gatewayId) {
-      return null;
-    }
     if (node.type === 'gateway') {
       return lookupGw(node.node.id, node.node.country.code, nodeHop);
+    }
+    if (!gatewayId) {
+      return null;
     }
     const countryCode =
       node.type === 'country' ? node.node.code : node.node.country.code;

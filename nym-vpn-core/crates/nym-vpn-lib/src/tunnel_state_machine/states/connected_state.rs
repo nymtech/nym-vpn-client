@@ -21,12 +21,13 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_network_config::{DiscoveryRefresherCommand, DiscoveryRefresherEvent};
+use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 use super::ErrorState;
 
@@ -49,23 +50,6 @@ impl ConnectedState {
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .await
-            .ok();
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(false))
-            .await
-            .ok();
-        shared_state
-            .account_command_tx
-            .set_resolver_overrides(None)
-            .await
-            .ok();
-
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
@@ -116,6 +100,21 @@ impl ConnectedState {
                 shared_state,
             );
         }
+
+        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .ok();
+        shared_state
+            .discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .ok();
+        shared_state
+            .account_command_tx
+            .set_resolver_overrides(None)
+            .await
+            .ok();
 
         // We can use slower network fetches now
         shared_state.topology_provider.use_network(true).await;
@@ -302,18 +301,6 @@ impl TunnelStateHandler for ConnectedState {
                     self.disconnect(after_disconnect, shared_state).await
                 } else {
                     NextTunnelState::SameState(self)
-                }
-            }
-            Some(discovery_event) = shared_state.discovery_refresher_event_rx.recv() => {
-                match discovery_event {
-                   DiscoveryRefresherEvent::NewNetwork(network) => {
-                        shared_state.nym_config.network_env = *network;
-                        NextTunnelState::SameState(self)
-                    }
-                    DiscoveryRefresherEvent::Error(error) => {
-                        trace_err_chain!(error, "Discovery refresher reported an error");
-                        NextTunnelState::SameState(self)
-                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

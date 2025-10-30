@@ -1,3 +1,4 @@
+import React from 'react';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { Button } from '@headlessui/react';
@@ -6,7 +7,8 @@ import { Routes } from '../types';
 import MsIcon from './MsIcon';
 
 type LinkProps = {
-  text: string;
+  text?: string;
+  children?: React.ReactNode;
   url?: string;
   to?: Routes;
   icon?: boolean | string;
@@ -20,6 +22,7 @@ type LinkProps = {
 
 function Link({
   text,
+  children,
   url,
   to,
   icon,
@@ -31,7 +34,8 @@ function Link({
   ...rest
 }: LinkProps) {
   const testId =
-    rest['data-testid'] || `link-${text.replace(/\s+/g, '-').toLowerCase()}`;
+    rest['data-testid'] ||
+    `link-${(text || 'unknown').replace(/\s+/g, '-').toLowerCase()}`;
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -68,7 +72,7 @@ function Link({
             ])}
             data-testid={`${testId}-text`}
           >
-            {text}
+            {children ? children : text}
           </span>
           {icon && (
             <MsIcon

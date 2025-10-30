@@ -8,11 +8,12 @@ import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
-import { InitState, VpnMode, VpndStatus } from './types';
+import { InitState, SelectedNode, VpnMode, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { getTheme } from './util';
 import { FEATURE_KEY as STREAMING_OPTIMIZED_LABEL_FEATURE_KEY } from './screens/home/new-feature-alert/streaming-optimized-label/constants';
+import { DefaultNode } from './constants';
 
 // needed locales to load for dayjs
 import 'dayjs/locale/es';
@@ -85,6 +86,8 @@ dayjs.extend(duration);
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
     streamingOptimizedLabelSeen:
       (await kvGet<boolean>(STREAMING_OPTIMIZED_LABEL_FEATURE_KEY)) || false,
+    entryNode: (await kvGet<SelectedNode>('entry-node')) || DefaultNode,
+    exitNode: (await kvGet<SelectedNode>('exit-node')) || DefaultNode,
   };
   console.log('initial state:', initState);
 
