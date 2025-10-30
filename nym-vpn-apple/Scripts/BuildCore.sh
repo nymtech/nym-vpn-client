@@ -11,6 +11,17 @@ echo "[BuildCore] CORE_ROOT=${CORE_ROOT}"
 echo "[BuildCore] APPLE_ROOT=${APPLE_ROOT}"
 echo "[BuildCore] CLIENT_ROOT=${CLIENT_ROOT}"
 
+# Configure sccache if available
+if command -v sccache &>/dev/null; then
+  export RUSTC_WRAPPER="$(which sccache)"
+  export SCCACHE_DIR="${HOME}/.cache/sccache"
+  export SCCACHE_CACHE_SIZE="50G"
+  export SCCACHE_IDLE_TIMEOUT="0"
+  echo "[BuildCore] Using sccache at ${RUSTC_WRAPPER}"
+else
+  echo "[BuildCore] ⚠️ sccache not found, skipping cache setup"
+fi
+
 # 1) Build iOS
 cd "${CORE_ROOT}"
 make -f iOS.mk
@@ -44,5 +55,11 @@ mkdir -p "${VPND_DEST_DIR}"
 cp -f "${VPND_SRC}" "${VPND_DEST}"
 chmod +x "${VPND_DEST}"
 echo "[BuildCore] Copied nym-vpnd → ${VPND_DEST}"
+
+# Print sccache stats
+if command -v sccache &>/dev/null; then
+  echo "[BuildCore] 🧱 sccache stats:"
+  sccache --show-stats || true
+fi
 
 echo "[BuildCore] ✅ Finished."
