@@ -55,7 +55,7 @@ impl ConnectedState {
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
                 if shared_state.tunnel_settings.bridges_enabled() {
                     // this will be `Some` if we get to the connected state with bridges enabled.
-                    wg.entry_bridge_addr
+                    wg.entry_bridge_addr.as_ref().map(|addr| addr.remote_addr)
                 } else {
                     Some(wg.entry.endpoint)
                 }

@@ -108,15 +108,19 @@ impl std::fmt::Display for TunnelState {
                     Some(TunnelConnectionData::Wireguard(ref data)) => {
                         write!(
                             f,
-                            "Connecting {} to {} [{}] → {} [{}], {}, try #{}",
+                            "Connecting {} to {} [{}] → {} [{}]",
                             tunnel_type.short_name(),
                             data.entry.endpoint,
                             connection_data.entry_gateway.id,
                             data.exit.endpoint,
                             connection_data.exit_gateway.id,
-                            state,
-                            retry_attempt,
-                        )
+                        )?;
+
+                        if let Some(bridge_addr) = data.entry_bridge_addr.as_ref() {
+                            write!(f, " via bridge {}", bridge_addr.remote_addr,)?;
+                        }
+
+                        write!(f, ", {state}, try #{retry_attempt}")
                     }
                     None => {
                         write!(
@@ -159,7 +163,13 @@ impl std::fmt::Display for TunnelState {
                         connection_data.entry_gateway.id,
                         data.exit.endpoint,
                         connection_data.exit_gateway.id,
-                    )
+                    )?;
+
+                    if let Some(bridge_addr) = data.entry_bridge_addr.as_ref() {
+                        write!(f, " via bridge {}", bridge_addr.remote_addr)
+                    } else {
+                        Ok(())
+                    }
                 }
             },
             Self::Disconnecting { after_disconnect } => match after_disconnect {
