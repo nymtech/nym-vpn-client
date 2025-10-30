@@ -90,7 +90,7 @@ fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewMo
 						Timber.d("Create url: $it")
 						context.openWebUrl(it)
 					}
-					navController.navigateAndForget(Route.Login)
+					navController.replaceCurrentWith(Route.Login)
 				}
 			}
 		},
