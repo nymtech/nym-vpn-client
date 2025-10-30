@@ -5,6 +5,7 @@ use std::{
     collections::HashSet,
     fmt,
     path::{Path, PathBuf},
+    time::SystemTime,
 };
 
 use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
@@ -98,16 +99,24 @@ impl RegisteredNetworks {
         crate::serialization::deserialize_from_json_file(path)
     }
 
-    fn write_to_file(&self, config_dir: &Path) -> Result<()> {
+    fn write_to_file(&self, config_dir: &Path, modified_at: Option<SystemTime>) -> Result<()> {
         let path = Self::path(config_dir);
         tracing::debug!("Writing registered networks to file: {}", path.display());
 
-        crate::serialization::serialize_to_json_file(&path, self)
+        let file = crate::serialization::serialize_to_json_file(&path, self)?;
+
+        if let Some(modified_at) = modified_at
+            && let Err(e) = file.set_modified(modified_at)
+        {
+            tracing::error!("Failed to set modified time for registered networks file: {e}");
+        }
+
+        Ok(())
     }
 
     pub(super) async fn try_update_file(config_dir: &Path) -> Result<()> {
         if Self::path_is_stale(config_dir)? {
-            Self::fetch().await?.write_to_file(config_dir)?;
+            Self::fetch().await?.write_to_file(config_dir, None)?;
         }
 
         Ok(())
@@ -122,9 +131,12 @@ impl RegisteredNetworks {
                 }
 
                 let default_envs = Self::default();
-                default_envs.write_to_file(config_dir).inspect_err(|err| {
-                    trace_err_chain!(err, "Failed to write default envs file");
-                })?;
+                let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
+                default_envs
+                    .write_to_file(config_dir, modified_at)
+                    .inspect_err(|err| {
+                        trace_err_chain!(err, "Failed to write default envs file");
+                    })?;
 
                 Ok(default_envs)
             }
@@ -179,7 +191,7 @@ mod tests {
         let config_dir = temp_dir.path();
 
         let registered_networks = RegisteredNetworks::default();
-        registered_networks.write_to_file(config_dir).unwrap();
+        registered_networks.write_to_file(config_dir, None).unwrap();
 
         let read_registered_networks = RegisteredNetworks::read_from_file(config_dir).unwrap();
         assert_eq!(registered_networks, read_registered_networks);

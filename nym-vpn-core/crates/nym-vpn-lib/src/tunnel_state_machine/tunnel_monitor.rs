@@ -539,6 +539,13 @@ impl TunnelMonitor {
             keys: selected_gateways.exit_keypair().clone(),
         };
 
+        let network_env = self
+            .tunnel_parameters
+            .nym_config
+            .network_rx
+            .borrow()
+            .clone();
+        let nym_network = network_env.nym_network.network.clone();
         let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
@@ -548,14 +555,7 @@ impl TunnelMonitor {
             .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(self.custom_topology_provider.clone()))
-            .network_env(
-                self.tunnel_parameters
-                    .nym_config
-                    .network_env
-                    .nym_network
-                    .network
-                    .clone(),
-            )
+            .network_env(nym_network)
             .cancel_token(self.shutdown_token.child_token());
 
         #[cfg(unix)]
@@ -1033,6 +1033,13 @@ impl TunnelMonitor {
             bw_controller,
         } = registration_result;
 
+        let gw_update_version = self
+            .tunnel_parameters
+            .nym_config
+            .network_rx
+            .borrow()
+            .gw_update_version();
+
         let bw = BandwidthController::create(
             bw_controller,
             selected_gateways,
@@ -1042,10 +1049,7 @@ impl TunnelMonitor {
             exit_gateway_data.clone(),
             entry_signal_rx,
             exit_signal_rx,
-            self.tunnel_parameters
-                .nym_config
-                .network_env
-                .gw_update_version(),
+            gw_update_version,
             self.shutdown_token.child_token(),
         )
         .await

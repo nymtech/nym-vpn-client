@@ -22,6 +22,7 @@ nym-network-defaults.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client.workspace = true
+nym-offline-monitor.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
