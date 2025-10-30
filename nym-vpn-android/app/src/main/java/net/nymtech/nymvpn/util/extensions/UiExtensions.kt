@@ -205,7 +205,7 @@ fun getScoreIcon(score: Score): Pair<ImageVector, String> {
 		Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
 		Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 		Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
-		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
 	}
 }
 
@@ -242,7 +242,7 @@ fun formatUtcString(utcString: String?): String {
 				.withZone(ZoneId.systemDefault())
 			formatter.format(instant)
 		} ?: "--"
-	} catch (e: Exception) {
+	} catch (_: Exception) {
 		"--"
 	}
 }
