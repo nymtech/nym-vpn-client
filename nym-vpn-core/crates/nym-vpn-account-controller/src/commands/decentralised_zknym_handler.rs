@@ -73,9 +73,14 @@ pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
     for i in 0..amount {
         for ticket_type in TICKET_TYPES {
             info!("obtaining ticketbook set {}/{amount}: {ticket_type}", i + 1);
-            issue_credential(client, credential_storage, &ecash_seed, *ticket_type)
-                .await
-                .map_err(|err| AccountCommandError::ZkNymAcquisitionFailure(err.to_string()))?;
+            issue_credential(
+                client,
+                &*credential_storage.lock().await,
+                &ecash_seed,
+                *ticket_type,
+            )
+            .await
+            .map_err(|err| AccountCommandError::ZkNymAcquisitionFailure(err.to_string()))?;
         }
     }
 
