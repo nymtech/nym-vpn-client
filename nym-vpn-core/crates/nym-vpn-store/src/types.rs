@@ -3,12 +3,14 @@
 
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use time::OffsetDateTime;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct RawWireguardKeys {
     pub gateway_id_bs58: String,
     pub entry_private_key_bs58: String,
     pub exit_private_key_bs58: String,
+    pub expiration_time: OffsetDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
