@@ -120,7 +120,7 @@ impl std::fmt::Display for TunnelState {
                             write!(f, " via bridge {}", bridge_addr.remote_addr,)?;
                         }
 
-                        write!(f, ", {}, try #{}", state, retry_attempt)
+                        write!(f, ", {state}, try #{retry_attempt}")
                     }
                     None => {
                         write!(
