@@ -11,6 +11,9 @@ use crate::error::{Result, VpnApiClientError};
 // be generous with the resolution timeout
 const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// Quick connectivity probe timeout - used to verify DNS is actually working
+const CONNECTIVITY_PROBE_TIMEOUT: Duration = Duration::from_secs(2);
+
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
     let mut resolver = HickoryDnsResolver::default();
@@ -118,6 +121,27 @@ pub async fn domain_to_socket_addr(
     } else {
         str_to_socket_addr(&format!("https://{domain}"), limit).await
     }
+}
+
+/// Quick connectivity probe to verify DNS is actually working.
+/// Returns true if we can resolve a well-known domain quickly.
+/// This is useful after network transitions to verify connectivity before
+/// attempting full connection setup.
+///
+/// Uses the same DNS configuration as the main resolver (Quad9 + Cloudflare over TLS/HTTPS).
+/// System resolver fallback is disabled to match the behavior of hostname resolution during VPN operation.
+pub async fn probe_connectivity() -> bool {
+    let mut resolver = HickoryDnsResolver::default();
+    // Disable system resolver because it's typically blocked by firewall anyway.
+    resolver.disable_system_fallback();
+
+    let probe_result = tokio::time::timeout(
+        CONNECTIVITY_PROBE_TIMEOUT,
+        resolver.resolve_str("dns.quad9.net"),
+    )
+    .await;
+
+    matches!(probe_result, Ok(Ok(_)))
 }
 
 #[cfg(test)]

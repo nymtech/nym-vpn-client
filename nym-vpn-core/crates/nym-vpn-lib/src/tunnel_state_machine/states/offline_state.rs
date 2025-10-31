@@ -19,6 +19,7 @@ use crate::tunnel_state_machine::{
 use nym_common::trace_err_chain;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
+use nym_vpn_api_client::probe_connectivity;
 use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct OfflineState {
@@ -179,6 +180,24 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
+                    // Network reports online - verify DNS is actually working before proceeding.
+                    // This prevents wasted connection attempts when network reports as "online"
+                    // but isn't fully functional yet (e.g., immediately after device sleep).
+                    tracing::info!("Network came online, probing connectivity");
+
+                    if !probe_connectivity().await {
+                        tracing::warn!("Connectivity probe failed, network not fully ready yet");
+                        return NextTunnelState::SameState(self);
+                    }
+
+                    // Verify we're still online after probe
+                    if shared_state.connectivity_handle.connectivity().await.is_offline() {
+                        tracing::warn!("Network went offline during connectivity probe");
+                        return NextTunnelState::SameState(self);
+                    }
+
+                    tracing::info!("Connectivity verified, proceeding with connection");
+
                     #[cfg(target_os = "macos")]
                     if !*LOCAL_DNS_RESOLVER {
                         // This is probably unnecessary, since DNS is already configured on the
