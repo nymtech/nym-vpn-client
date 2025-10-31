@@ -59,9 +59,9 @@ use super::{
 };
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
-    AccountControllerError, ConnectionData, ErrorStateReason, EstablishConnectionData, GatewayId,
-    MixnetConnectionData, NymAddress, TunnelConnectionData, TunnelType, WireguardConnectionData,
-    WireguardNode,
+    AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
+    EstablishConnectionData, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
+    TunnelType, WireguardConnectionData, WireguardNode,
 };
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
@@ -650,22 +650,19 @@ impl TunnelMonitor {
                     )
                     .await?;
 
-                let (transport_fwd_handle, bridge_close_tx) = if self
-                    .tunnel_parameters
-                    .tunnel_settings
-                    .bridges_enabled()
-                {
-                    let transport_fwd_handle = self
-                        .start_bridges(&selected_gateways, &mut connection_data, bridge_close_tx)
+                let bridge_close_tx = if self.tunnel_parameters.tunnel_settings.bridges_enabled() {
+                    let (entry_bridge_addr, transport_fwd_handle) = self
+                        .start_bridges(&selected_gateways, bridge_close_tx)
                         .await?;
 
-                    (Some(transport_fwd_handle), None)
+                    wg_tunnel_runtime.transport_fwd_handle = Some(transport_fwd_handle);
+                    connection_data.entry_bridge_addr = Some(entry_bridge_addr);
+
+                    None
                 } else {
                     // Return bridge_close_tx back to avoid it being dropped
-                    (None, Some(bridge_close_tx))
+                    Some(bridge_close_tx)
                 };
-
-                wg_tunnel_runtime.transport_fwd_handle = transport_fwd_handle;
 
                 let connected_tunnel = ConnectedTunnel::new(
                     selected_gateways.entry_keypair().clone(),
@@ -1085,9 +1082,8 @@ impl TunnelMonitor {
     async fn start_bridges(
         &self,
         selected_gateways: &SelectedGateways,
-        connection_data: &mut WgConnectionData,
         bridge_close_tx: mpsc::UnboundedSender<()>,
-    ) -> Result<JoinHandle<()>> {
+    ) -> Result<(BridgeAddress, JoinHandle<()>)> {
         let entry_bridge_params = selected_gateways
             .entry_gateway()
             .get_bridge_params()
@@ -1105,17 +1101,23 @@ impl TunnelMonitor {
             self.shutdown_token.child_token(),
         )
         .await?;
-        connection_data.entry_bridge_addr = Some(bridge_conn.endpoint);
-        let (local_fwd_listen_addr, fwd_handle) = transports::UdpForwarder::launch(
+        let remote_addr = bridge_conn.endpoint;
+        let (listen_addr, join_handle) = transports::UdpForwarder::launch(
             bridge_conn,
             None,
             bridge_close_tx,
             self.shutdown_token.child_token(),
         )
         .await?;
-        tracing::info!("quic transport connected, udp forwarder open on {local_fwd_listen_addr:?}");
-        connection_data.entry.endpoint = local_fwd_listen_addr;
-        Ok(fwd_handle)
+
+        tracing::info!("quic transport connected, udp forwarder open on {listen_addr}");
+
+        let bridge_addr = BridgeAddress {
+            listen_addr,
+            remote_addr,
+        };
+
+        Ok((bridge_addr, join_handle))
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -1139,13 +1141,7 @@ impl TunnelMonitor {
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         #[cfg(not(target_os = "linux"))]
-        let entry_endpoint = if use_bridges {
-            conn_data.entry_bridge_addr.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?
-        } else {
-            conn_data.entry.endpoint
-        };
+        let entry_endpoint = conn_data.effective_remote_entry_endpoint();
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: exit_tun_name.clone(),
@@ -1157,7 +1153,7 @@ impl TunnelMonitor {
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
@@ -1232,19 +1228,13 @@ impl TunnelMonitor {
         };
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
 
         #[cfg(not(target_os = "linux"))]
-        let entry_endpoint = if use_bridges {
-            conn_data.entry_bridge_addr.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?
-        } else {
-            conn_data.entry.endpoint
-        };
+        let entry_endpoint = conn_data.effective_remote_entry_endpoint();
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
@@ -1369,13 +1359,7 @@ impl TunnelMonitor {
         };
 
         #[cfg(not(target_os = "linux"))]
-        let entry_endpoint = if use_bridges {
-            conn_data.entry_bridge_addr.ok_or(TransportError::other(
-                "missing bridge address after connect", // this should not be possible
-            ))?
-        } else {
-            conn_data.entry.endpoint
-        };
+        let entry_endpoint = conn_data.effective_remote_entry_endpoint();
 
         let routing_config = RoutingConfig::Wireguard {
             entry_tun_name: entry_tunnel_metadata.interface.clone(),
@@ -1393,7 +1377,7 @@ impl TunnelMonitor {
         self.set_routes(routing_config, self.enable_ipv6()).await?;
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
@@ -1437,16 +1421,7 @@ impl TunnelMonitor {
         let exit_tun_mtu = connected_tunnel.exit_mtu();
 
         let exit_gateway_address = conn_data.exit.endpoint.ip();
-        let entry_gateway_address = if use_bridges {
-            conn_data
-                .entry_bridge_addr
-                .ok_or(TransportError::other(
-                    "missing bridge address after connect", // this should not be possible
-                ))?
-                .ip()
-        } else {
-            conn_data.entry.endpoint.ip()
-        };
+        let entry_gateway_address = conn_data.effective_remote_entry_endpoint().ip();
 
         let entry_adapter_config = WintunAdapterConfig {
             interface_ipv4: conn_data.entry.private_ipv4,
@@ -1484,7 +1459,7 @@ impl TunnelMonitor {
         };
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });
@@ -1604,16 +1579,7 @@ impl TunnelMonitor {
             )));
         }
 
-        let entry_endpoint = if use_bridges {
-            conn_data
-                .entry_bridge_addr
-                .ok_or(TransportError::other(
-                    "missing bridge address after connect", // this should not be possible
-                ))?
-                .ip()
-        } else {
-            conn_data.entry.endpoint.ip()
-        };
+        let entry_endpoint = conn_data.effective_remote_entry_endpoint().ip();
 
         let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
             dns_servers: self
@@ -1644,7 +1610,7 @@ impl TunnelMonitor {
         tracing::info!("Created tun device: {}", tunnel_metadata.interface);
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
-            entry_bridge_addr: conn_data.entry_bridge_addr,
+            entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
             entry: WireguardNode::from(conn_data.entry.clone()),
             exit: WireguardNode::from(conn_data.exit.clone()),
         });

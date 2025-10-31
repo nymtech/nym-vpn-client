@@ -6,6 +6,8 @@ use std::net::SocketAddr;
 use crate::tunnel_state_machine::TunnelMetadata;
 use nym_registration_common::GatewayData;
 
+use nym_vpn_lib_types::BridgeAddress;
+
 pub mod connected_tunnel;
 
 #[cfg(target_os = "ios")]
@@ -16,9 +18,34 @@ pub mod two_hop_config;
 
 #[derive(Debug, Clone)]
 pub struct ConnectionData {
-    pub entry_bridge_addr: Option<SocketAddr>,
+    pub entry_bridge_addr: Option<BridgeAddress>,
     pub entry: GatewayData,
     pub exit: GatewayData,
+}
+
+impl ConnectionData {
+    /// Returns effective entry endpoint set to bridge listen endpoint when entry bridge address is available. Otherwise, returns the wireguard entry endpoint.
+    pub fn effective_entry_endpoint(&self) -> SocketAddr {
+        self.entry_bridge_addr
+            .as_ref()
+            .map(|addr| addr.listen_addr)
+            .unwrap_or(self.entry.endpoint)
+    }
+
+    /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available.
+    pub fn effective_entry_gateway_data(&self) -> GatewayData {
+        let mut gateway_data = self.entry.clone();
+        gateway_data.endpoint = self.effective_entry_endpoint();
+        gateway_data
+    }
+
+    /// Returns effective *remote* entry endpoint set to bridge remote endpoint when entry bridge address is available. Otherwise, returns the wireguard entry endpoint.
+    pub fn effective_remote_entry_endpoint(&self) -> SocketAddr {
+        self.entry_bridge_addr
+            .as_ref()
+            .map(|addr| addr.remote_addr)
+            .unwrap_or(self.entry.endpoint)
+    }
 }
 
 pub enum MetadataEvent {

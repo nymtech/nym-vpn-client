@@ -7,9 +7,9 @@ use std::{
 };
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, EstablishConnectionData,
-    EstablishConnectionState, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, BridgeAddress, ConnectionData, ErrorStateReason,
+    EstablishConnectionData, EstablishConnectionState, GatewayId, MixnetConnectionData, NymAddress,
+    TunnelConnectionData, TunnelState, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -465,8 +465,35 @@ impl TryFrom<proto::WireguardConnectionData> for WireguardConnectionData {
             )?,
             entry_bridge_addr: value
                 .entry_bridge_addr
-                .and_then(|str| SocketAddr::from_str(&str).ok()),
+                .map(BridgeAddress::try_from)
+                .transpose()?,
         })
+    }
+}
+
+impl TryFrom<proto::BridgeAddress> for BridgeAddress {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::BridgeAddress) -> Result<Self, Self::Error> {
+        let listen_addr = value
+            .listen_addr
+            .ok_or(ConversionError::NoValueSet("BridgeAddress.local_addr"))?;
+        let remote_addr = value
+            .remote_addr
+            .ok_or(ConversionError::NoValueSet("BridgeAddress.remote_addr"))?;
+        Ok(Self {
+            listen_addr: SocketAddr::try_from(listen_addr)?,
+            remote_addr: SocketAddr::try_from(remote_addr)?,
+        })
+    }
+}
+
+impl From<BridgeAddress> for proto::BridgeAddress {
+    fn from(value: BridgeAddress) -> Self {
+        Self {
+            listen_addr: Some(proto::SocketAddr::from(value.listen_addr)),
+            remote_addr: Some(proto::SocketAddr::from(value.remote_addr)),
+        }
     }
 }
 
@@ -475,7 +502,7 @@ impl From<WireguardConnectionData> for proto::WireguardConnectionData {
         proto::WireguardConnectionData {
             entry: Some(proto::WireguardNode::from(value.entry)),
             exit: Some(proto::WireguardNode::from(value.exit)),
-            entry_bridge_addr: value.entry_bridge_addr.map(|s| s.to_string()),
+            entry_bridge_addr: value.entry_bridge_addr.map(proto::BridgeAddress::from),
         }
     }
 }
