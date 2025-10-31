@@ -21,19 +21,21 @@ use crate::Error;
 // TODO: implement functionality where the owning code of these files delete them instead. To
 // protect us against the names drifting out of sync.
 
-pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
+pub async fn remove_files_for_account(
+    data_dir: &Path,
+    remove_wireguard_keys_db: bool,
+) -> Result<(), Error> {
     // Files specific to the VPN client
-    let device_key = [
+    let mut vpn_paths = vec![
         DEFAULT_PRIVATE_DEVICE_KEY_FILENAME,
         DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
     ];
 
-    let wireguard_keys = [DB_NAME];
+    if remove_wireguard_keys_db {
+        vpn_paths.push(DB_NAME);
+    }
 
-    let vpn_paths = device_key
-        .iter()
-        .chain(wireguard_keys.iter())
-        .map(|file| data_dir.join(file));
+    let vpn_paths = vpn_paths.iter().map(|file| data_dir.join(file));
 
     // Files specific to the mixnet client
     let storage_paths =

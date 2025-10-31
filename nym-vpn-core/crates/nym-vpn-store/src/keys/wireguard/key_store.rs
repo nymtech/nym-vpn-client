@@ -13,4 +13,6 @@ pub trait WireguardKeyStore {
         &self,
         gateway_id: &str,
     ) -> Result<WireguardKeys, Self::StorageError>;
+
+    async fn clear_keys(&self) -> Result<(), Self::StorageError>;
 }
