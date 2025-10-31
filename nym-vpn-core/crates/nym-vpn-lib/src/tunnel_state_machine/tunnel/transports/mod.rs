@@ -564,8 +564,6 @@ use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use std::os::fd::AsFd;
 #[cfg(target_os = "android")]
 use std::os::fd::AsRawFd;
-#[cfg(target_os = "android")]
-use std::sync::Arc;
 
 use std::io;
 
@@ -577,11 +575,16 @@ fn make_socket(
     let addr = addr.unwrap_or((Ipv4Addr::UNSPECIFIED, 0).into());
     let socket = std::net::UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
-
+    
+    let fd = socket.as_raw_fd();
+    let local_addr = socket.local_addr().unwrap_or_else(|_| SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0)));
+    
     if let Some(provider) = tun_provider {
-        let fd = socket.as_raw_fd();
-        tracing::debug!("Bypassing QUIC socket fd: {}", fd);
+        tracing::info!("QUIC socket created: fd={}, addr={}, bypassing...", fd, local_addr);
         provider.bypass(fd);
+        tracing::info!("QUIC socket fd={} bypassed successfully", fd);
+    } else {
+        tracing::warn!("QUIC socket created: fd={}, addr={}, but NO tun_provider - socket NOT bypassed!", fd, local_addr);
     }
 
     Ok(socket)
