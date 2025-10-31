@@ -1,4 +1,10 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+#[cfg(any(target_os = "linux", target_os = "android"))]
+use std::os::fd::{AsRawFd, RawFd};
 use std::{
+    io,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     sync::Arc,
     time::{Duration, Instant},
@@ -19,6 +25,8 @@ use tracing::*;
 mod certs;
 use certs::*;
 pub use nym_vpn_api_client::response::{BridgeInformation, BridgeParameters, QuicClientOptions};
+
+use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
 const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
@@ -68,6 +76,7 @@ impl BridgeConn {
     pub async fn try_connect(
         params: BridgeParameters,
         token: CancellationToken,
+        #[cfg(any(target_os = "linux", target_os = "android"))] on_socket_open: impl FnOnce(RawFd),
     ) -> Result<Self, TransportError> {
         let start = Instant::now();
 
@@ -76,7 +85,11 @@ impl BridgeConn {
                 let opts = ClientOptions::try_from(opts)?;
 
                 let conn = token
-                    .run_until_cancelled(transport_conn(&opts))
+                    .run_until_cancelled(transport_conn(
+                        &opts,
+                        #[cfg(any(target_os = "linux", target_os = "android"))]
+                        on_socket_open,
+                    ))
                     .await
                     .ok_or(TransportError::Cancelled)??;
                 let endpoint = conn.remote_address();
@@ -379,7 +392,10 @@ pub const ALPN_QUIC_HTTP: &[&[u8]] = &[b"hq-29"];
 use ed25519_dalek::VerifyingKey;
 use quinn_proto::crypto::rustls::QuicClientConfig;
 
-pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection, TransportError> {
+pub async fn transport_conn(
+    options: &ClientOptions,
+    #[cfg(any(target_os = "linux", target_os = "android"))] on_socket_open: impl FnOnce(RawFd),
+) -> Result<quinn::Connection, TransportError> {
     info!("initializing from transport identity pubkey");
 
     let transport_endpoint = options
@@ -405,6 +421,9 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         false => (Ipv6Addr::UNSPECIFIED, 0).into(),
     };
     let socket = make_socket(Some(bind_addr)).map_err(TransportError::SocketIo)?;
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    on_socket_open(socket.as_raw_fd());
+
     let runtime =
         quinn::default_runtime().ok_or_else(|| TransportError::other("no async runtime found"))?;
     let mut endpoint = quinn::Endpoint::new_with_abstract_socket(
@@ -428,26 +447,9 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
         .map_err(TransportError::QuicProto)
 }
 
-#[cfg(target_os = "linux")]
-use crate::TUNNEL_FWMARK;
-use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
-#[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-#[cfg(target_os = "linux")]
-use std::os::fd::AsFd;
-
-use std::io;
-
 fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {
     let addr = addr.unwrap_or((Ipv4Addr::UNSPECIFIED, 0).into());
     let socket = std::net::UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
-    #[cfg(target_os = "linux")]
-    {
-        tracing::debug!("set fwmark for socket");
-        Mark.set(&socket.as_fd(), &TUNNEL_FWMARK)
-            .inspect_err(|err| tracing::error!("Could not set fwmark for websocket fd: {err}"))?;
-    }
-
     Ok(socket)
 }
