@@ -497,8 +497,12 @@ impl LocalResolver {
             NameServerConfigGroup::from_ips_clear(&dns_servers, DNS_LISTEN_PORT, true);
 
         let forward_config = ResolverConfig::from_parts(None, vec![], forward_server_config);
+        let mut opts = ResolverOpts::default();
+        // Set a 30 min minimum TTL for caching DNS responses.
+        opts.positive_min_ttl = Some(Duration::from_secs(1800));
         let resolver =
             TokioResolver::builder_with_config(forward_config, TokioConnectionProvider::default())
+                .with_options(opts)
                 .build();
 
         self.inner_resolver = Resolver::Forwarding(Box::new(resolver));
