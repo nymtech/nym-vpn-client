@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.manager.environment
 
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import nym_vpn_lib_types.FeatureFlags
-import nym_vpn_lib_types.FlagValue
 import timber.log.Timber
 import javax.inject.Inject
 
