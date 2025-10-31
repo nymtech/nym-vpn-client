@@ -96,6 +96,11 @@ impl BridgeConn {
                     endpoint,
                 })
             }
+            // Exhaustive match: BridgeParameters only has QuicPlain variant
+            #[allow(unreachable_patterns)]
+            _ => Err(TransportError::config_err(
+                "unsupported bridge parameter type",
+            )),
         }
     }
 }
@@ -463,8 +468,8 @@ pub async fn transport_conn(
         .ok_or(TransportError::config_err("No IPv4 endpoint provided"))?;
 
     let alt_names = options.host.clone().map(|h| vec![h]);
-    let verifier =
-        IdentityBasedVerifier::new_with_alt_names(&options.id_pubkey, alt_names).unwrap();
+    let verifier = IdentityBasedVerifier::new_with_alt_names(&options.id_pubkey, alt_names)
+        .map_err(|e| TransportError::config_err(format!("failed to create certificate verifier: {e}")))?;
 
     let mut client_crypto = rustls::ClientConfig::builder()
         .dangerous()
@@ -577,12 +582,13 @@ fn make_socket(
     socket.set_nonblocking(true)?;
     
     let fd = socket.as_raw_fd();
-    let local_addr = socket.local_addr().unwrap_or_else(|_| SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0)));
+    let local_addr = socket.local_addr()
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("failed to get socket local address: {e}")))?;
     
     if let Some(provider) = tun_provider {
-        tracing::info!("QUIC socket created: fd={}, addr={}, bypassing...", fd, local_addr);
+        tracing::debug!("QUIC socket created: fd={}, addr={}, bypassing...", fd, local_addr);
         provider.bypass(fd);
-        tracing::info!("QUIC socket fd={} bypassed successfully", fd);
+        tracing::debug!("QUIC socket fd={} bypassed successfully", fd);
     } else {
         tracing::warn!("QUIC socket created: fd={}, addr={}, but NO tun_provider - socket NOT bypassed!", fd, local_addr);
     }
