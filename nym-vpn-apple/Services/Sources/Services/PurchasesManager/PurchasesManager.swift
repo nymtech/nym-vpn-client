@@ -8,6 +8,7 @@ import AppSettings
     private var updates: Task<Void, Never>?
 
     @Published public var products: [Product] = []
+    @Published public var isEligibleForIntroOffer: [String] = []
 
     public init() { setup() }
     deinit { updates?.cancel() }
@@ -23,6 +24,7 @@ import AppSettings
             guard !fetched.isEmpty else { return }
             products = fetched
             productsLoaded = true
+            await fetchIntroOfferEligibility()
         } catch {
             print(error)
             throw error
@@ -58,6 +60,22 @@ private extension PurchasesManager {
     func observeTransactionUpdates() -> Task<Void, Never> {
         Task(priority: .background) {
             for await _ in Transaction.updates {}
+        }
+    }
+
+    func fetchIntroOfferEligibility() async {
+        var eligible: [String] = []
+
+        for plan in products {
+            guard let subscription = plan.subscription else { continue }
+
+            if await subscription.isEligibleForIntroOffer {
+                eligible.append(plan.id)
+            }
+        }
+
+        await MainActor.run {
+            self.isEligibleForIntroOffer = eligible
         }
     }
 }
