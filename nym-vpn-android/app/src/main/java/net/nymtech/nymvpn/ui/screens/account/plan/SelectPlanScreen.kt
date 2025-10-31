@@ -181,11 +181,13 @@ internal fun PreviewSelectPlanScreen() {
 				override val id = "1"
 				override val name = "Monthly Plan"
 				override val price = "$4.99 / month"
+				override val freeTrialDays = null
 			},
 			object : ProductData {
 				override val id = "2"
 				override val name = "Yearly Plan"
 				override val price = "$49.99 / year"
+				override val freeTrialDays = null
 			},
 		)
 		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})

@@ -33,6 +33,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 import timber.log.Timber
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -256,4 +257,10 @@ fun relativeTimeSpan(utcString: String?): String {
 	} catch (_: Exception) {
 		"--"
 	}
+}
+
+fun Int.addDaysToToday(): String {
+	val targetDate = LocalDate.now().plusDays(this.toLong())
+	val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+	return targetDate.format(formatter)
 }
