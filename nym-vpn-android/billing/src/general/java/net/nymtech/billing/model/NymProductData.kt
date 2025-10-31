@@ -16,7 +16,7 @@ data class NymProductData(
 				price = product.oneTimePurchaseOfferDetails?.formattedPrice
 					?: product.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
 					?: "",
-				freeTrialDays = product.getFreeTrialDays()
+				freeTrialDays = product.getFreeTrialDays(),
 			)
 		}
 

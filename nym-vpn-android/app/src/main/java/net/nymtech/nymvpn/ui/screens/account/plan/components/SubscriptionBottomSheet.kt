@@ -16,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -73,9 +72,9 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 				.fillMaxWidth()
 				.border(
 					BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-					RoundedCornerShape(8.dp)
+					RoundedCornerShape(8.dp),
 				)
-				.background(MaterialTheme.colorScheme.surface)
+				.background(MaterialTheme.colorScheme.surface),
 		) {
 			products.forEachIndexed { index, product ->
 				Column(
@@ -96,7 +95,7 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 							style = MaterialTheme.typography.bodySmall,
 							color = MaterialTheme.colorScheme.onSurfaceVariant,
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-							modifier = Modifier.padding(bottom = 4.dp)
+							modifier = Modifier.padding(bottom = 4.dp),
 						)
 					}
 					Text(
@@ -125,7 +124,14 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 
 		MainStyledButton(
 			onClick = onDismiss,
-			content = { Text(stringResource(R.string.cancel), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium,) },
+			content = {
+				Text(
+					stringResource(R.string.cancel),
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onSurface,
+					style = MaterialTheme.typography.titleMedium,
+				)
+			},
 			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			color = MaterialTheme.colorScheme.surface,
 			borderStroke = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onSurface),
