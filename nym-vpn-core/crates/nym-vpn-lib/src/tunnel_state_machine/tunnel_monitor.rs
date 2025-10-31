@@ -1096,9 +1096,32 @@ impl TunnelMonitor {
         // as the endpoint address.
         tracing::info!("Establishing DVPN QUIC transport tunnel");
 
+        #[cfg(target_os = "linux")]
+        let fwmark = self.tunnel_parameters.tunnel_constants.fwmark;
+        #[cfg(target_os = "android")]
+        let tun_provider = self.tun_provider.clone();
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        let on_quic_socket_open = move |fd| {
+            #[cfg(target_os = "android")]
+            {
+                tracing::debug!("Bypass quic socket");
+                tun_provider.bypass(fd);
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                tracing::debug!("Bypass quic socket");
+                let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(fd) };
+                if let Err(err) = Mark.set(borrowed_fd, &fwmark) {
+                    tracing::error!("Could not set fwmark for quic socket fd: {err}");
+                }
+            }
+        };
         let bridge_conn = transports::BridgeConn::try_connect(
             entry_bridge_params,
             self.shutdown_token.child_token(),
+            #[cfg(any(target_os = "linux", target_os = "android"))]
+            on_quic_socket_open,
         )
         .await?;
         let remote_addr = bridge_conn.endpoint;
