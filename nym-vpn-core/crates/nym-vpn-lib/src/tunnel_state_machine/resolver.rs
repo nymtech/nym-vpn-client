@@ -31,7 +31,7 @@ use hickory_server::{
     },
     resolver::{
         ResolveError, TokioResolver,
-        config::{NameServerConfigGroup, ResolverConfig},
+        config::{NameServerConfigGroup, ResolverConfig, ResolverOpts},
         lookup::Lookup,
         name_server::TokioConnectionProvider,
     },
