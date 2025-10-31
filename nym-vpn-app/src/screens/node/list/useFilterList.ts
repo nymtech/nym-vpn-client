@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useDebouncedCallback as useDebounce } from 'use-debounce';
 import {
   UiGateway,
   UiGatewaysByCountry,
@@ -7,8 +6,6 @@ import {
   useNodeList,
 } from '../../../contexts';
 import { sortByScore } from './util';
-
-const debounceDelay = 200; // ms
 
 export function useFilterList() {
   const { nodes, gateways, vpnMode } = useNodeList();
@@ -75,10 +72,6 @@ export function useFilterList() {
     },
     [gateways, nodes, vpnMode],
   );
-
-  const debounced = useDebounce((value: string) => {
-    filter(value);
-  }, debounceDelay);
 
   return {
     filter,
