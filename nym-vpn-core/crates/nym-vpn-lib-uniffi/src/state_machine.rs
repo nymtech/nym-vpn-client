@@ -17,6 +17,7 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::TunnelType;
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
+use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -32,6 +33,7 @@ pub(super) async fn init_state_machine(
     network_env: Box<Network>,
     account_controller_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
+    wireguard_key_db: WireguardKeysDb,
     statistics_event_sender: StatisticsSender,
 ) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
@@ -45,6 +47,7 @@ pub(super) async fn init_state_machine(
             network_env,
             account_controller_tx,
             account_controller_state,
+            wireguard_key_db,
             statistics_event_sender,
         )
         .await?;
@@ -63,6 +66,7 @@ pub(super) async fn start_state_machine(
     network_env: Box<Network>,
     account_controller_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
+    wireguard_key_db: WireguardKeysDb,
     statistics_event_sender: StatisticsSender,
 ) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
@@ -210,6 +214,7 @@ pub(super) async fn start_state_machine(
         topology_provider,
         connectivity_handle,
         discovery_refresher_command_tx,
+        wireguard_key_db,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,
         #[cfg(target_os = "ios")]

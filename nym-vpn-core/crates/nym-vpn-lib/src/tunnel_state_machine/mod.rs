@@ -498,6 +498,7 @@ impl TunnelStateMachine {
         topology_provider: VpnTopologyProvider,
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
+        wg_keys_db: WireguardKeysDb,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -519,10 +520,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
-
-        let wg_keys_db = WireguardKeysDb::init(nym_config.data_path.clone())
-            .await
-            .map_err(Error::WireguardKeyDb)?;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
