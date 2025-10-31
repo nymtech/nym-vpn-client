@@ -1,10 +1,14 @@
 use crate::{api_urls_to_urls, error::VpnApiClientError, url_to_socket_addr};
+use futures::future::{self, BoxFuture};
 use nym_http_api_client::Url;
 use nym_network_defaults::ApiUrl;
 use std::{
     collections::{HashMap, HashSet},
     net::SocketAddr,
 };
+
+/// A boxed future that resolves to an optional domain name and its resolved socket addresses.
+type ResolutionTask<'a> = BoxFuture<'a, Option<(String, Vec<SocketAddr>)>>;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolverOverrides {
@@ -13,8 +17,10 @@ pub struct ResolverOverrides {
 
 impl ResolverOverrides {
     /// Create a new set of resolver overrides from the provided URLs.
+    /// Resolves all domains in parallel for faster startup and reconnection.
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
-        let mut overrides = HashMap::new();
+        // Collect all resolution tasks to run in parallel
+        let mut resolution_tasks: Vec<ResolutionTask<'_>> = Vec::new();
 
         for url in urls {
             let Some(domain) = url.inner_url().domain() else {
@@ -25,12 +31,20 @@ impl ResolverOverrides {
                 continue;
             };
 
-            let addresses = url_to_socket_addr(url.inner_url(), Some((1, 1))).await?;
-            overrides.insert(
-                domain.to_string(),
-                HashSet::from_iter(addresses.into_iter()),
-            );
+            // Task for main domain
+            let main_url = url.inner_url().clone();
+            let main_domain = domain.to_string();
+            resolution_tasks.push(Box::pin(async move {
+                match url_to_socket_addr(&main_url, Some((1, 1))).await {
+                    Ok(addresses) => Some((main_domain.clone(), addresses)),
+                    Err(e) => {
+                        tracing::warn!("Failed to resolve domain {}: {}", main_domain, e);
+                        None
+                    }
+                }
+            }));
 
+            // Tasks for front URLs
             if let Some(fronts) = url.fronts() {
                 for front_url in fronts {
                     let Some(front_domain) = front_url.domain() else {
@@ -40,14 +54,49 @@ impl ResolverOverrides {
                         );
                         continue;
                     };
-                    let front_addresses = url_to_socket_addr(front_url, Some((1, 1))).await?;
-                    overrides.insert(
-                        front_domain.to_string(),
-                        HashSet::from_iter(front_addresses.into_iter()),
-                    );
+                    let front_url_clone = front_url.clone();
+                    let front_domain_str = front_domain.to_string();
+                    resolution_tasks.push(Box::pin(async move {
+                        match url_to_socket_addr(&front_url_clone, Some((1, 1))).await {
+                            Ok(addresses) => Some((front_domain_str.clone(), addresses)),
+                            Err(e) => {
+                                tracing::warn!(
+                                    "Failed to resolve front domain {}: {}",
+                                    front_domain_str,
+                                    e
+                                );
+                                None
+                            }
+                        }
+                    }));
                 }
             }
         }
+
+        // Execute all resolution tasks in parallel
+        let total_tasks = resolution_tasks.len();
+        let results = future::join_all(resolution_tasks).await;
+
+        // Collect successful resolutions
+        let mut overrides = HashMap::new();
+        let mut successful_resolutions = 0;
+
+        for (domain, addresses) in results.into_iter().flatten() {
+            overrides.insert(domain, HashSet::from_iter(addresses.into_iter()));
+            successful_resolutions += 1;
+        }
+
+        if overrides.is_empty() {
+            return Err(VpnApiClientError::HostnameResolutionTimeout {
+                hostname: "all domains".to_string(),
+            });
+        }
+
+        tracing::debug!(
+            "Successfully resolved {}/{} domains in parallel",
+            successful_resolutions,
+            total_tasks
+        );
 
         Ok(Self { overrides })
     }

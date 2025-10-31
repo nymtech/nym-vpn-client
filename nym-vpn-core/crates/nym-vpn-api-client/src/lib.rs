@@ -20,5 +20,5 @@ pub use fronted_http_client::{
     fronted_http_client_builder,
 };
 pub use network_compatibility::NetworkCompatibility;
-pub use resolve_host::{str_to_socket_addr, url_to_socket_addr};
+pub use resolve_host::{probe_connectivity, str_to_socket_addr, url_to_socket_addr};
 pub use types::ResolverOverrides;
