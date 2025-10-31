@@ -4,6 +4,7 @@ import { Accordion } from '@base-ui-components/react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import {
+  Focused,
   SelectedKind,
   SelectedUiNode,
   UiCountry,
@@ -24,6 +25,8 @@ export type NodeListProps = {
   onNodeDetails: (node: UiGateway) => void;
   hop: NodeHop;
   vpnMode: VpnMode;
+  expanded: string[];
+  focused: Focused | null;
 };
 
 const NodeList = memo(function NodeList({
@@ -33,17 +36,13 @@ const NodeList = memo(function NodeList({
   hop,
   vpnMode,
   onNodeDetails,
+  expanded,
+  focused,
 }: NodeListProps) {
   const { backendFlags, quic } = useMainState();
-  const {
-    exit: exitState,
-    entry: entryState,
-    setExpanded,
-  } = useNodeListState();
+  const { setExpanded } = useNodeListState();
   const { t } = useTranslation('nodeLocation');
 
-  const expanded = hop === 'entry' ? entryState.expanded : exitState.expanded;
-  const focused = hop === 'entry' ? entryState.focused : exitState.focused;
   const countriesRef = useRef<Map<string, HTMLDivElement>>(null);
   const regionsRef = useRef<Map<string, HTMLDivElement>>(null);
   const gatewaysRef = useRef<Map<string, HTMLDivElement>>(null);
@@ -154,7 +153,7 @@ const NodeList = memo(function NodeList({
         data-testid="node-list-accordion"
         value={expanded}
         onValueChange={onValueChange}
-        openMultiple
+        multiple
       >
         {nodes.map(({ i18n, isSelected, gateways, country, regions }) => (
           <Accordion.Item
@@ -279,6 +278,8 @@ function arePropsEqual(
   if (oldProps.vpnMode !== newProps.vpnMode) return false;
   if (oldProps.gateways.length !== newProps.gateways.length) return false;
   if (oldProps.nodes.length !== newProps.nodes.length) return false;
+  if (!dequal(oldProps.expanded, newProps.expanded)) return false;
+  if (!dequal(oldProps.focused, newProps.focused)) return false;
   if (!dequal(oldProps.gateways, newProps.gateways)) return false;
   if (!dequal(oldProps.nodes, newProps.nodes)) return false;
   return true;

@@ -7,10 +7,12 @@ import { DbKey } from '../types';
  * @param k - Key
  * @returns The value for that key if any
  */
-export async function kvGet<V>(k: DbKey): Promise<V | undefined> {
+export async function kvGet<V>(k: DbKey): Promise<V | null> {
   try {
     return await invoke<V>('db_get', { key: k });
-  } catch {}
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -20,10 +22,12 @@ export async function kvGet<V>(k: DbKey): Promise<V | undefined> {
  * @param v - Value
  * @returns The last value if it was set
  */
-export async function kvSet<V>(k: DbKey, v: V): Promise<V | undefined> {
+export async function kvSet<V>(k: DbKey, v: V): Promise<V | null> {
   try {
     return await invoke<V>('db_set', { key: k, value: v });
-  } catch {}
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -32,10 +36,12 @@ export async function kvSet<V>(k: DbKey, v: V): Promise<V | undefined> {
  * @param k - Key
  * @returns The previous value if any
  */
-export async function kvDel<V>(k: DbKey): Promise<V | undefined> {
+export async function kvDel<V>(k: DbKey): Promise<V | null> {
   try {
     return await invoke<V>('db_del', { key: k });
-  } catch {}
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -45,8 +51,10 @@ export async function kvDel<V>(k: DbKey): Promise<V | undefined> {
  *
  * @returns The number of bytes flushed during this call
  */
-export async function kvFlush(): Promise<number | undefined> {
+export async function kvFlush(): Promise<number | null> {
   try {
     return await invoke<number>('db_flush');
-  } catch {}
+  } catch {
+    return null;
+  }
 }
