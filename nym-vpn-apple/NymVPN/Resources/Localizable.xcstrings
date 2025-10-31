@@ -201,13 +201,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "سريع (WireGuard)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "Schnell (WireGuard)"
           }
         },
         "en" : {
@@ -219,19 +219,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rápido (WireGuard*)"
+            "value" : "Rápido (WireGuard)"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "سریع (*WireGuard)"
+            "state" : "new",
+            "value" : "Fast (WireGuard)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rapide (WireGuard*)"
+            "value" : "Rapide (WireGuard)"
           }
         },
         "hi" : {
@@ -243,55 +243,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "Veloce (WireGuard)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "高速 (WireGuard*)"
+            "value" : "高速 (WireGuard)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rápido (WireGuard*)"
+            "value" : "Rápido (Guarda-Wire)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rápido (WireGuard*)"
+            "value" : "Rápido (Guarda-Wire)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Быстрый (WireGuard*)"
+            "value" : "Быстрый (WireGuard)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hızlı (WireGuard*)"
+            "state" : "new",
+            "value" : "Fast (WireGuard)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Швидкий (WireGuard*)"
+            "value" : "Швидкий (WireGuard)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nhanh (WireGuard*)"
+            "value" : "Nhanh (WireGuard)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "快速 (WireGuard*)"
+            "value" : "快速(Wire护盾)"
           }
         }
       }
@@ -302,13 +302,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "الأفضل للتصفح والبث والمشاركة"
+            "value" : "التصفح، البث، التنزيلات"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ideal zum browsen, streamen, file-sharing"
+            "value" : "Surfen, streamen, Downloads"
           }
         },
         "en" : {
@@ -320,19 +320,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mejor para navegar, streaming, compartir"
+            "value" : "Navegación, streaming, descargas"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری"
+            "state" : "new",
+            "value" : "Browsing, streaming, downloads"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour la navigation ou le streaming"
+            "value" : "Parcourir, streaming, téléchargements"
           }
         },
         "hi" : {
@@ -344,37 +344,37 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ideale per la navigazione, lo streaming e la condivisione"
+            "value" : "Esplorazione, streaming, download"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ブラウジング、ストリーミング、ファイル共有に最適"
+            "value" : "ブラウジング、ストリーミング、ダウンロード"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ideal para navegar, transmitir e partilhar"
+            "value" : "Navegação, streaming, downloads"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Melhor para a navegação, streaming, compartilhamento"
+            "value" : "Navegação, streaming, downloads"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Лучше всего подходит для просмотра страниц, стриминга и обмена файлами"
+            "value" : "Браузинг, стриминг, загрузки"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tarama, yayın izleme ve dosya paylaşımı için ideal"
+            "state" : "new",
+            "value" : "Browsing, streaming, downloads"
           }
         },
         "uk" : {
@@ -386,13 +386,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phù hợp cho duyệt web, phát trực tuyến, chia sẻ dữ liệu"
+            "value" : "Phù hợp cho duyệt web, phát trực tuyến, tải xuống"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "适用于浏览、流媒体和共享"
+            "value" : "浏览、流、下载"
           }
         }
       }
@@ -403,13 +403,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "الأفضل للمدفوعات، الرسائل الإلكترونية، والمراسلات"
+            "value" : "الخصوصية القصوى للمهام الحساسة"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ideal für Zahlungen, E-Mails, Nachrichten"
+            "value" : "Maximale Privatsphäre für sensible Aufgaben"
           }
         },
         "en" : {
@@ -421,19 +421,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mejor para pagos, correos electrónicos, mensajes"
+            "value" : "Máxima privacidad para tareas sensibles"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "ایده‌آل برای پرداخت‌ها، ایمیل‌ها و پیام‌ها"
+            "state" : "new",
+            "value" : "Maximum privacy for sensitive tasks"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pour les paiements, emails et messages"
+            "value" : "Confidentialité maximale pour les tâches sensibles"
           }
         },
         "hi" : {
@@ -445,37 +445,37 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Migliore per pagamenti, email, messaggi"
+            "value" : "Massima privacy per attività sensibili"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "支払い、Eメール、メッセージに最適"
+            "value" : "機密タスクのプライバシーの最大値"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ideal para pagamentos, correio eletrónico, mensagens"
+            "value" : "Privacidade máxima para tarefas sensíveis"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Melhor para pagamentos, emails, mensagens"
+            "value" : "Privacidade máxima para tarefas sensíveis"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Лучше всего подходит для платежей, электронной почты и сообщений"
+            "value" : "Максимальная приватность для важных задач"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeler, e-postalar ve mesajlar için ideal"
+            "state" : "new",
+            "value" : "Maximum privacy for sensitive tasks"
           }
         },
         "uk" : {
@@ -487,13 +487,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phù hợp cho thanh toán, gửi mail, nhắn tin"
+            "value" : "Quyền riêng tư tối đa cho các tác vụ nhạy cảm"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "适用于付款、电子邮件和信息"
+            "value" : "敏感任务的最大隐私"
           }
         }
       }
@@ -3533,14 +3533,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "لكي تصبح التغييرات سارية المفعول، تحتاج إلى إعادة الاتصال."
+            "state" : "new",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Damit die Änderungen wirksam werden, müssen Sie sich neu verbinden."
+            "state" : "translated",
+            "value" : "Dies wird dich wieder verbinden, ohne dass das QUIC-Protokoll aktiviert ist. Du wirst \ndeine aktuellen Gateways behalten."
           }
         },
         "en" : {
@@ -3551,80 +3551,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Para que los cambios surtan efecto, es necesario volver a conectar."
+            "state" : "new",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For changes to take effect, you need to reconnect."
+            "state" : "translated",
+            "value" : "این گزینه، شما را بدون فعال بودن پروتکل QUIC دوباره متصل می‌کند.\nدر این حالت، درگاه‌های فعلی (gateways) شما حفظ خواهند شد."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Pour que les changements prennent effet, vous devez vous reconnecter."
+            "state" : "translated",
+            "value" : "Cela vous reconnectera sans le protocole QUIC activé. Vous conserverez vos passerelles actuelles."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "For changes to take effect, you need to reconnect."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Affinché le modifiche abbiano effetto, è necessario riconnettersi."
+            "state" : "translated",
+            "value" : "Questo ti ricollegherà senza il protocollo QUIC abilitato. \nmanterrà i tuoi gateway correnti."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "変更を有効にするには、再接続する必要があります。"
+            "state" : "new",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Para que as alterações tenham efeito, você precisa reconectar."
+            "state" : "new",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Para que as alterações tenham efeito, você precisa reconectar."
+            "state" : "new",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Чтобы изменения вступили в силу, необходимо переподключиться."
+            "state" : "translated",
+            "value" : "Это переподключит вас без включенного протокола QUIC. Вы \nсохраните свои текущие шлюзы."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "For changes to take effect, you need to reconnect."
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Щоб зміни набули чинності, необхідно повторно підключитися."
+            "state" : "translated",
+            "value" : "Це дозволить вам знову підключитися без увімкненого протоколу QUIC. Ви \nзбережете свої поточні шлюзи."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Để các thay đổi có hiệu lực, bạn cần kết nối lại."
+            "state" : "translated",
+            "value" : "Thao tác này sẽ kết nối lại mà không bật giao thức QUIC. Bạn sẽ giữ nguyên các cổng hiện tại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "要使更改生效，您需要重新连接。"
+            "state" : "new",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
           }
         }
       }
@@ -3632,10 +3632,100 @@
     "censorship.quic.disable.alert.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "البيانات الخاصة بك تبقى محمية أثناء إعادة الاتصال"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihre Daten bleiben bei einer Neuverbindung geschützt"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your data stays protected during reconnection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sus datos permanecen protegidos durante la reconexión"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "داده‌های شما در هنگام اتصال مجدد محافظت می‌شوند"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos données restent protégées pendant la reconnexion"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your data stays protected during reconnection"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I tuoi dati rimangono protetti durante la riconnessione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再接続中にデータは保護されたままです"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seus dados permanecem protegidos durante a reconexão"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seus dados permanecem protegidos durante a reconexão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваши данные остаются защищены во время переподключения"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your data stays protected during reconnection"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваші дані залишаються захищеними під час повторного підключення"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu của bạn vẫn được bảo vệ trong quá trình kết nối lại"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的数据在重新连接时保持保护"
           }
         }
       }
@@ -3643,10 +3733,100 @@
     "censorship.quic.disable.alert.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعطيل الاتصال المحسن (QUIC)؟"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterte Verbindung deaktivieren (QUIC)?"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disable enhanced connection (QUIC)?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Deshabilitar conexión mejorada (QUIC)?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غیرفعال‌سازی اتصال بهبود یافته (QUIC)؟"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactiver la connexion améliorée (QUIC) ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disable enhanced connection (QUIC)?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabilita la connessione avanzata (QUIC)?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拡張接続（QUIC）を無効にしますか？"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativar a conexão aprimorada (QUIC)?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativar a conexão aprimorada (QUIC)?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отключить расширенное соединение (QUIC)?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disable enhanced connection (QUIC)?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вимкнути розширене з'єднання (QUIC)?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt kết nối nâng cao (QUIC)?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "禁用增强连接(QUIC)？"
           }
         }
       }
@@ -3654,10 +3834,100 @@
     "censorship.quic.disableAndReconnect" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الاتصال بدون QUIC الآن"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt ohne QUIC wieder verbinden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconnect without QUIC now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a conectar sin QUIC ahora"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هم‌اکنون بدون QUIC مجدداً اتصال برقرار شود"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se reconnecter sans QUIC maintenant"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect without QUIC now"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riconnetti senza QUIC ora"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUICなしで今再接続する"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar sem QUIC agora"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar sem QUIC agora"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переподключиться без QUIC"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect without QUIC now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Підключитися знову без QUIC зараз"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối lại ngay bây giờ mà không dùng QUIC"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在重新连接，没有QUIC"
           }
         }
       }
@@ -3665,10 +3935,100 @@
     "censorship.quic.enable.alert.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمكين الاتصال المعزز (QUIC)؟"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterte Verbindung aktivieren (QUIC)?"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable enhanced connection (QUIC)?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Habilitar conexión mejorada (QUIC)?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فعالسازی اتصال بهبود یافته (QUIC)؟"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer la connexion améliorée (QUIC) ?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enable enhanced connection (QUIC)?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abilitare una connessione avanzata (QUIC)?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拡張接続を有効にしますか？"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar conexão aprimorada (QUIC)?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar conexão aprimorada (QUIC)?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить расширенное соединение (QUIC)?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enable enhanced connection (QUIC)?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкнути розширене з'єднання (QUIC)?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật kết nối nâng cao (QUIC)?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用增强连接(QUIC)？"
           }
         }
       }
@@ -3676,10 +4036,100 @@
     "censorship.quic.enableAndReconnect" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة الاتصال مع QUIC الآن"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt mit QUIC verbinden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconnect with QUIC now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a conectar con QUIC ahora"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اکنون اتصال مجدد با QUIC"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnecter avec QUIC maintenant"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect with QUIC now"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riconnetti con QUIC ora"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUICで今すぐ再接続する"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar com QUIC agora"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconectar com QUIC agora"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переподключиться с помощью QUIC"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Reconnect with QUIC now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відновіть з'єднання з QUIC зараз"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kết nối lại với QUIC ngay bây giờ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在重新连接QUIC"
           }
         }
       }
@@ -3713,8 +4163,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How QUIC improves connections"
+            "state" : "translated",
+            "value" : "QUIC چگونه کیفیت اتصال‌ها را بهتر می‌کند"
           }
         },
         "fr" : {
@@ -3788,10 +4238,100 @@
     "censorship.quic.offAndNext" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إيقاف تشغيل QUIC عند الاتصال التالي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC bei der nächsten Verbindung ausschalten"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn off QUIC on next connection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivar QUIC en la siguiente conexión"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غیرفعال‌کردن QUIC در اتصال بعدی"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactiver QUIC lors de la prochaine connexion"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Turn off QUIC on next connection"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattiva QUIC alla prossima connessione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次回接続時にQUICをオフにする"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desative o QUIC na próxima conexão"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desative o QUIC na próxima conexão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключить QUIC при следующем подключении"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Turn off QUIC on next connection"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вимкнути QUIC при наступному з'єднанні"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt QUIC trong kết nối tiếp theo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下次连接时关闭 QUIC"
           }
         }
       }
@@ -3799,10 +4339,100 @@
     "censorship.quic.onAndNext" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تطبيق QUIC على الاتصال التالي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC bei der nächsten Verbindung anwenden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apply QUIC on next connection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicar QUIC en la siguiente conexión"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اعمال کردن QUIC در اتصال بعدی"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appliquer le QUIC à la prochaine connexion"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Apply QUIC on next connection"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applica QUIC alla prossima connessione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次の接続時にQUICを適用する"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicar QUIC na próxima conexão"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplicar QUIC na próxima conexão"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Применить QUIC при следующем подключении"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Apply QUIC on next connection"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Застосувати QUIC при наступному з'єднанні"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áp dụng QUIC cho kết nối tiếp theo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对下次连接应用QUIC"
           }
         }
       }
@@ -3836,8 +4466,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+            "state" : "translated",
+            "value" : "قابلیت اطمینان حالت سریع (Fast Mode) را در شبکه‌های محدود بهبود می‌بخشد؛ با پوشاندن ترافیک WireGuard در پروتکل QUIC ‏(HTTP/3) تا شبیه ترافیک معمول در وب گردی به‌نظر برسد."
           }
         },
         "fr" : {
@@ -3937,8 +4567,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+            "state" : "translated",
+            "value" : "توجه: گزینه‌های سرور ورودی را به گِیت‌وی‌هایی که با QUIC سازگار هستند محدود می‌کند."
           }
         },
         "fr" : {
@@ -4038,8 +4668,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enhanced connection (QUIC)"
+            "state" : "translated",
+            "value" : "اتصال بهبود یافته (QUIC)"
           }
         },
         "fr" : {
@@ -4139,8 +4769,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How the Stealth API connect mode works"
+            "state" : "translated",
+            "value" : "چگونه حالت اتصال Stealth API کار می‌کند"
           }
         },
         "fr" : {
@@ -4240,8 +4870,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+            "state" : "translated",
+            "value" : "به‌صورت خودکار زمانی استفاده می‌شود که تلاش‌های اتصال معمولی API در NymVPN با شکست مواجه شوند."
           }
         },
         "fr" : {
@@ -4341,8 +4971,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stealth API connect"
+            "state" : "translated",
+            "value" : "اتصال Stealth API"
           }
         },
         "fr" : {
@@ -5149,8 +5779,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "همانند ورود به حساب کاربری شما عمل می‌کند"
           }
         },
         "fr" : {
@@ -5351,8 +5981,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "به‌طور ذاتی برای ناشناس‌بودن طراحی شده است"
           }
         },
         "fr" : {
@@ -6462,8 +7092,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "کاربرد ایمیل"
           }
         },
         "fr" : {
@@ -6563,8 +7193,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "به شما اجازه می‌دهد دارایی‌هایتان را خودتان نگه‌داری کنید"
           }
         },
         "fr" : {
@@ -7169,8 +7799,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "ایجاد رمز عبور"
           }
         },
         "fr" : {
@@ -7270,8 +7900,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved my passphrase"
+            "state" : "translated",
+            "value" : "من عبارت عبورم را ذخیره کرده‌ام"
           }
         },
         "fr" : {
@@ -7472,8 +8102,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "اعتماد به شخص ثالث"
           }
         },
         "fr" : {
@@ -8247,6 +8877,107 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "黑夜模式"
+          }
+        }
+      }
+    },
+    "day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يوم"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tag"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "día"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "day"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jour"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "day"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "giorno"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dia"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "день"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "day"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "day"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "day"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天"
           }
         }
       }
@@ -9391,8 +10122,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry server is offline. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "سرور ورودی آفلاین است. سرور دیگری انتخاب کرده و دوباره متصل شوید."
           }
         },
         "fr" : {
@@ -9492,8 +10223,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account decentralized."
+            "state" : "translated",
+            "value" : "حساب کاربری غیرمتمرکز شده است."
           }
         },
         "fr" : {
@@ -9559,7 +10290,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "帐户分散。"
+            "value" : "帐户去中心化。"
           }
         }
       }
@@ -9593,8 +10324,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account does not exist on chain."
+            "state" : "translated",
+            "value" : "حساب کاربری در زنجیره وجود ندارد."
           }
         },
         "fr" : {
@@ -9694,8 +10425,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account not decentralized."
+            "state" : "translated",
+            "value" : "حساب کاربری غیرمتمرکز نشده است."
           }
         },
         "fr" : {
@@ -9761,7 +10492,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "账户未分散。"
+            "value" : "账户未去中心化。"
           }
         }
       }
@@ -10098,8 +10829,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
+            "state" : "translated",
+            "value" : "محدودیت ترافیک ماهانه شما به اتمام رسیده. برای افزایش سریع ترافیک، با پشتیبانی تماس بگیرید."
           }
         },
         "fr" : {
@@ -10300,8 +11031,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry server is not responding or responding badly to a bandwidth increase."
+            "state" : "translated",
+            "value" : "سرور ورودی پاسخ نمی‌دهد یا به افزایش پهنای باند به درستی پاسخ نمی‌دهد."
           }
         },
         "fr" : {
@@ -10401,8 +11132,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit server is not responding or responding badly to a bandwidth increase."
+            "state" : "translated",
+            "value" : "سرور خروجی پاسخ نمی‌دهد یا به افزایش پهنای باند به درستی پاسخ نمی‌دهد."
           }
         },
         "fr" : {
@@ -10502,8 +11233,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device logged out."
+            "state" : "translated",
+            "value" : "دستگاه از حساب کاربری خارج شده است."
           }
         },
         "fr" : {
@@ -11209,8 +11940,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The account is not active."
+            "state" : "translated",
+            "value" : "حساب کاربری فعال نیست."
           }
         },
         "fr" : {
@@ -11310,8 +12041,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Insufficient funds."
+            "state" : "translated",
+            "value" : "موجودی کافی نیست."
           }
         },
         "fr" : {
@@ -11512,8 +12243,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid country for entry server. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "کشور ورودی نامعتبر است، کشور دیگری را انتخاب و دوباره متصل شوید."
           }
         },
         "fr" : {
@@ -11613,8 +12344,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid country for exit server. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "گره کشور خروجی نامعتبر است، کشور دیگری را انتخاب و دوباره متصل شوید."
           }
         },
         "fr" : {
@@ -11714,8 +12445,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit server is offline. Choose another and reconnect."
+            "state" : "translated",
+            "value" : "سرور خروجی آفلاین است. سرور دیگری انتخاب کرده و دوباره متصل شوید."
           }
         },
         "fr" : {
@@ -12219,8 +12950,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Can't reach entry server. Try another!"
+            "state" : "translated",
+            "value" : "نمی‌توان به سرور ورودی دسترسی پیدا کرد. سرور دیگری را امتحان کنید!"
           }
         },
         "fr" : {
@@ -12320,8 +13051,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Can't reach exit server. Try another!"
+            "state" : "translated",
+            "value" : "نمی‌توان به سرور خروجی دسترسی پیدا کرد. سرور دیگری را امتحان کنید!"
           }
         },
         "fr" : {
@@ -14340,8 +15071,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Advanced privacy"
+            "state" : "translated",
+            "value" : "حریم خصوصی پیشرفته"
           }
         },
         "fr" : {
@@ -14441,8 +15172,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "With mixnet (5-hop)"
+            "state" : "translated",
+            "value" : "با میکس‌نت (۵ پرشی)"
           }
         },
         "fr" : {
@@ -14542,7 +15273,7 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "ASN"
           }
         },
@@ -14643,8 +15374,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ASN name"
+            "state" : "translated",
+            "value" : "نام ASN"
           }
         },
         "fr" : {
@@ -14718,10 +15449,100 @@
     "gatewayInfo.bridges" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مكافحة الرقابة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-Zensur"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anti-censorship"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقابل با سانسور اینترنتی"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censure"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anti-censorship"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検閲対策"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anti-censura"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Антицензура"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sansür Karşıtı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проти цензури"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chống kiểm duyệt"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "反检查"
           }
         }
       }
@@ -14755,8 +15576,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Nym build version"
+            "state" : "translated",
+            "value" : "نسخه ساخت Nym"
           }
         },
         "fr" : {
@@ -14856,8 +15677,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Datacenter IP"
+            "state" : "translated",
+            "value" : "آی‌پی مرکز داده"
           }
         },
         "fr" : {
@@ -14931,10 +15752,100 @@
     "gatewayInfo.enableQuic1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمكين \"بروتوكول QUIC \""
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiviere „QUIC-Protokoll“"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enable “QUIC protocol”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar “Protocolo QUIC”"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فعال‌کردن \"پروتکل QUIC\""
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer le « protocole QUIC»"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enable “QUIC protocol”"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abilita “Protocollo QUIC”"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「QUICプロトコル」を有効にする"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar o \"protocolo QUIC\""
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar o \"protocolo QUIC\""
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включите «Протокол QUIC»"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Enable “QUIC protocol”"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкнути «Протокол QUIC»"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bật \"giao thức QUIC\""
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用“QUIC协议”"
           }
         }
       }
@@ -14942,10 +15853,100 @@
     "gatewayInfo.enableQuic2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "في إعدادات مكافحة الرقابة لاستخدام هذه الميزة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in Anti-Zensur-Einstellungen, um diese Funktion zu nutzen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "in Anti-censorship Settings to use this feature"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en Ajustes Anticensura para usar esta función"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در تنظیمات تقابل با سانسور اینترنتی، جهت استفاده از این قابلیت"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dans les paramètres anti-censure pour utiliser cette fonctionnalité"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "in Anti-censorship Settings to use this feature"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nelle impostazioni anti-censura per utilizzare questa funzione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この機能を使用する検閲対策設定"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nas Configurações de Anti-censura para usar este recurso"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nas Configurações de Anti-censura para usar este recurso"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "в настройках антицензуры для использования этой функции"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "in Anti-censorship Settings to use this feature"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "в налаштуваннях проти цензури, щоб використовувати цю функцію"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trong Cài đặt Chống kiểm duyệt để sử dụng tính năng này"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在反审查设置中使用此功能"
           }
         }
       }
@@ -14979,8 +15980,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key"
+            "state" : "translated",
+            "value" : "کلید شناسایی هویت"
           }
         },
         "fr" : {
@@ -15080,8 +16081,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit IPv4"
+            "state" : "translated",
+            "value" : "خروج از IPv4"
           }
         },
         "fr" : {
@@ -15181,8 +16182,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit IPv6"
+            "state" : "translated",
+            "value" : "خروج از IPv6"
           }
         },
         "fr" : {
@@ -15282,8 +16283,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update"
+            "state" : "translated",
+            "value" : "امتیاز عملکرد از بارگذاری سرور و مدت زمان فعال بودن محاسبه میگردد. مدت زمان فعال بودن به صورت میانگین ۲۴ ساعت آخر است. آخرین به‌روزرسانی"
           }
         },
         "fr" : {
@@ -15383,8 +16384,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Why is there missing or incorrect info"
+            "state" : "translated",
+            "value" : "چرا اطلاعات ناقص یا نادرست وجود دارد"
           }
         },
         "fr" : {
@@ -15484,8 +16485,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "More details in the Nym"
+            "state" : "translated",
+            "value" : "جزئیات بیشتر در Nym"
           }
         },
         "fr" : {
@@ -15551,7 +16552,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尼姆的更多详细信息"
+            "value" : "Nym的更多详细信息"
           }
         }
       }
@@ -15585,8 +16586,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Network Explorer"
+            "state" : "translated",
+            "value" : "کاوشگر شبکه"
           }
         },
         "fr" : {
@@ -15686,8 +16687,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Overall performance"
+            "state" : "translated",
+            "value" : "عملکرد کلی"
           }
         },
         "fr" : {
@@ -15761,10 +16762,100 @@
     "gatewayInfo.quicProtocol" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بروتوكول QUIC"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC-Protokoll"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "QUIC protocol"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protocolo QUIC"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بروتوكول QUIC"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protocole QUIC"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "QUIC protocol"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protocollo QUIC"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUICプロトコル"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protocolo QUIC"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protocolo QUIC"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Протокол QUIC"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "QUIC protocol"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Протокол QUIC"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao thức QUIC"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC 协议"
           }
         }
       }
@@ -15798,8 +16889,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Residential IP"
+            "state" : "translated",
+            "value" : "آی‌پی مسکونی"
           }
         },
         "fr" : {
@@ -15899,8 +16990,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select server"
+            "state" : "translated",
+            "value" : "انتخاب سرور"
           }
         },
         "fr" : {
@@ -16000,8 +17091,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server details"
+            "state" : "translated",
+            "value" : "جزئیات سرور"
           }
         },
         "fr" : {
@@ -16101,8 +17192,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Server load"
+            "state" : "translated",
+            "value" : "بارگذاری سرور"
           }
         },
         "fr" : {
@@ -16176,7 +17267,97 @@
     "gatewayInfo.standardProtocol" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پروتکل استاندارد"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Standard protocol"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard protocol"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стандартный протокол"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Standard protocol"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стандартний протокол"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao thức tiêu chuẩn"
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Standard protocol"
@@ -16213,8 +17394,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Streaming and content"
+            "state" : "translated",
+            "value" : "پخش زنده & محتوا"
           }
         },
         "fr" : {
@@ -16314,8 +17495,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uptime"
+            "state" : "translated",
+            "value" : "مدت زمان فعالیت"
           }
         },
         "fr" : {
@@ -16591,10 +17772,100 @@
     "gatewaysView.quic1" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC "
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur die Anzeige von schnellen Standorten und Servern, die das QUIC-Protokoll unterstützen. Um alle Server freizugeben, schalten Sie QUIC aus "
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sólo mostrando ubicaciones en modo rápido y servidores que soportan el protocolo QUIC. Para revelar todos los servidores, desactiva QUIC "
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فقط مکان‌ها و سرورهایی را نمایش می‌دهد که از حالت سریع (Fast Mode) و پروتکل QUIC پشتیبانی می‌کنند. برای نمایش تمام سرورها، گزینه‌ی QUIC را غیرفعال کنید "
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher uniquement les emplacements du mode rapide et les serveurs prenant en charge le protocole QUIC. Pour révéler tous les serveurs, désactiver QUIC "
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra solo posizioni e server in modalità veloce che supportano il protocollo QUIC. Per rivelare tutti i server, disattiva QUIC "
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUICプロトコルをサポートするファストモードの場所とサーバーのみを表示します。すべてのサーバーを表示するには、QUICをオフにしてください。 "
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar apenas localizações e servidores rápidos que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC "
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar apenas localizações e servidores rápidos que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC "
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC "
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC "
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відображаються лише локації та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC "
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ hiển thị các vị trí chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, tắt QUIC "
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅显示支持QUIC 协议的快速模式位置和服务器。要关闭所有服务器，请关闭 QUIC "
           }
         }
       }
@@ -16602,10 +17873,100 @@
     "gatewaysView.quic2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hier"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aqui"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اینجا"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ici"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "here"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "qui"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここ"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aqui"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aqui"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "здесь"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "here"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "тут"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tại đây"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这里"
           }
         }
       }
@@ -17447,8 +18808,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating keys that never leave your device"
+            "state" : "translated",
+            "value" : "ساخت کلیدهایی که هرگز از دستگاه شما خارج نمی‌شوند"
           }
         },
         "fr" : {
@@ -17548,8 +18909,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing anonymous network credentials"
+            "state" : "translated",
+            "value" : "ایجاد گواهی‌ اتصال شبکه ناشناس"
           }
         },
         "fr" : {
@@ -17649,8 +19010,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+            "state" : "translated",
+            "value" : "رمزگذاری اعتبارنامه‌ها با کلید دستگاه شما. فقط شما می‌توانید آن‌ها را باز کنید"
           }
         },
         "fr" : {
@@ -17750,8 +19111,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Generating cryptographic keypairs..."
+            "state" : "translated",
+            "value" : "در حال تولید جفت‌کلید رمزنگاری..."
           }
         },
         "fr" : {
@@ -17851,8 +19212,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Creating your anonymous identity..."
+            "state" : "translated",
+            "value" : "در حال ساخت هویت ناشناس شما..."
           }
         },
         "fr" : {
@@ -17952,8 +19313,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "ایمن‌سازی مدارک شما به صورت محلی..."
           }
         },
         "fr" : {
@@ -21487,8 +22848,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "High"
+            "state" : "translated",
+            "value" : "بالا"
           }
         },
         "fr" : {
@@ -23983,6 +25344,309 @@
         }
       }
     },
+    "locationModal.accuracy.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المواقع المعروضة هي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angezeigte Standorte sind"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displayed locations are"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las ubicaciones mostradas son"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Displayed locations are"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les emplacements affichés sont"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Displayed locations are"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le posizioni visualizzate sono"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示される場所は"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locais exibidos são"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locais exibidos são"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отображаемые локации"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Displayed locations are"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відображаються такі місця:"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các vị trí được hiển thị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示的位置是"
+          }
+        }
+      }
+    },
+    "locationModal.accuracy.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدد من عناوين IP"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "von IP-Adressen bestimmt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "determined from IP addresses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "determinado a partir de direcciones IP"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "determined from IP addresses"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "déterminé à partir d'adresses IP"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "determined from IP addresses"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "determinato da indirizzi IP"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPアドレスから決定"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "determinado a partir de endereços IP"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "determinado a partir de endereços IP"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "определены с IP адресов"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "determined from IP addresses"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "визначено за IP-адресами"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "xác định từ địa chỉ IP"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 IP 地址确定"
+          }
+        }
+      }
+    },
+    "locationModal.accuracy.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وقد لا تعكس المواقع المادية بدقة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "und kann keine exakten physikalischen Standorte wiedergeben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and may not reflect exact physical locations."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "y puede no reflejar ubicaciones físicas exactas."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and may not reflect exact physical locations."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "et peut ne pas refléter des lieux physiques exacts."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and may not reflect exact physical locations."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e può non riflettere luoghi fisici esatti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正確な物理的位置を反映していないかもしれません"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e pode não refletir localizações físicas exatas."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e pode não refletir localizações físicas exatas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "и могут не отражать точные физические местоположения."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "and may not reflect exact physical locations."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "і можуть не відповідати точним фізичним розташуваннями."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "và có thể không phản ánh chính xác vị trí vật lý thực tế."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "而且可能不反映确切的实际位置。"
+          }
+        }
+      }
+    },
     "locationModal.message" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -24185,43 +25849,346 @@
         }
       }
     },
+    "locationModal.streaming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "البث"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmisión"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Streaming"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming en cours"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Streaming"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streaming"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストリーミング"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmitindo"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmitindo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стриминг"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Streaming"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Трансляція"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phát trực tiếp"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "流流"
+          }
+        }
+      }
+    },
+    "locationModal.streaming.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خوادم IP السكنية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wohn-IP-Server"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Residential IP servers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servidores IP residenciales"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Residential IP servers"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serveurs IP résidentiels"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Residential IP servers"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server IP residenziali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レジデンシャルIPサーバー"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servidores IP residenciais"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servidores IP residenciais"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Серверы с резидентскими IP-адресами"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Residential IP servers"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Житлові IP сервери"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ IP dân cư"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "住宅IP服务器"
+          }
+        }
+      }
+    },
+    "locationModal.streaming.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحسين للبث والوصول إلى المحتوى. قد تشهد سرعة أبطأ بسبب ارتفاع الطلب والقيود على المعدات."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "optimiert für Streaming und Content-Zugriff. Kann aufgrund höherer Nachfrage und Hardwarebeschränkungen langsamere Geschwindigkeiten aufweisen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "optimizado para streaming y acceso de contenido. Puede experimentar velocidades más lentas debido a limitaciones de demanda y hardware."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "optimisé pour le streaming et l'accès au contenu. Peut connaître des vitesses plus lentes en raison de la demande plus élevée et des limitations matérielles."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ottimizzato per lo streaming e l'accesso ai contenuti. Può sperimentare velocità più lente a causa di una maggiore domanda e limitazioni hardware."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストリーミングとコンテンツへのアクセスに最適化されています。需要とハードウェアの制限が高いため、スピードが遅くなる可能性があります。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "otimizado para acesso a streaming e conteúdo. Pode experimentar velocidades mais lentas devido a maior demanda e limitações de hardware."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "otimizado para acesso a streaming e conteúdo. Pode experimentar velocidades mais lentas devido a maior demanda e limitações de hardware."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "оптимизированы для стриминга и доступа к контенту. Возможны более низкие скорости из-за высокой нагрузки и ограничений оборудования."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "оптимізовано для потокового передавання та доступу до контенту. Можуть спостерігатися повільніші швидкості через підвищений попит і обмеження обладнання."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tối ưu cho việc phát trực tuyến và truy cập nội dung. Tốc độ có thể chậm hơn do nhu cầu cao và giới hạn về phần cứng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "优化流媒体和内容访问。由于需求和硬件限制，可能会减慢速度。"
+          }
+        }
+      }
+    },
     "locationModal.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تفاصيل حول مواقع الخادم"
+            "value" : "اختيار مواقع الخروج"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Details zum Serverstandort"
+            "value" : "Ausstiegsorte werden ausgewählt"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Details on server locations"
+            "value" : "Choosing exit locations"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Detalles sobre las ubicaciones del servidor"
+            "value" : "Elegir ubicaciones de salida"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "جزئیات مربوط به مکان‌های سرورها"
+            "state" : "new",
+            "value" : "Choosing exit locations"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Détails sur l'emplacement des passerelles"
+            "value" : "Choix des emplacements de sortie"
           }
         },
         "hi" : {
@@ -24233,55 +26200,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dettagli sulla posizione dei server"
+            "value" : "Scegliere le posizioni di uscita"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "サーバーの位置に関する詳細"
+            "value" : "終了位置の選択"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Detalhes sobre a localização dos servidores"
+            "value" : "Escolhendo locais de saída"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Detalhes sobre os locais dos servidores"
+            "value" : "Escolhendo locais de saída"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подробности о местоположении серверов"
+            "value" : "Выбор выходных локаций"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sunucu konumları hakkında detaylar"
+            "state" : "new",
+            "value" : "Choosing exit locations"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Детальна інформація про розташування серверів"
+            "value" : "Вибір місця виходу"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chi tiết về vị trí máy chủ"
+            "value" : "Chọn vị trí thoát"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器位置详情"
+            "value" : "选择退出地点"
           }
         }
       }
@@ -25224,8 +27191,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Low"
+            "state" : "translated",
+            "value" : "پایین"
           }
         },
         "fr" : {
@@ -25325,8 +27292,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Medium"
+            "state" : "translated",
+            "value" : "متوسط"
           }
         },
         "fr" : {
@@ -25504,13 +27471,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تفد من أقصى درجات الخصوصية عن طريق تمرير اتصالك عبر 5 خوادم عبر الشبكة المختلطة(mixnet). مثالي للتعامل مع المدفوعات، والبريد الإلكتروني، والرسائل بشكل آمن."
+            "value" : "الحد الأقصى للخصوصية من خلال توجيه 5 هواتف (تصل إلى 1-5 ميغابايت). حركة مرور الأورام والتوقيت من أجل عدم الكشف عن الهوية. مثالي لأنشطة حساسة جدا مثل المدفوعات والبريد الإلكتروني والرسائل."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server (Mixnet) leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten."
+            "value" : "Maximale Privatsphäre durch 5-Hop Routing (bis zu 1-5 Mbps). Dummy Traffic und Timing Obfuscation für verbesserte Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten."
           }
         },
         "en" : {
@@ -25522,19 +27489,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disfruta de la máxima privacidad con enrutamiento de tu conexión a través de 5 servidores por la mixnet. Perfecto para gestionar de forma segura los pagos, correos electrónicos y mensajes."
+            "value" : "Máxima privacidad a través de ruta de 5 saltos (hasta 1-5 Mbps). Dummy tráfico y timing obfuscación para mejorar el anonimato. Perfecto para actividades muy sensibles como pagos, correos electrónicos y mensajes."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "مسیریابی اتصال از طریق ۵ سرور با میکس‌نت‌ِناشناس، از ایمنی حریم خصوصی خود در بالاترین حد لذت ببرید. بهترین گزینه برای مدیریت امن پرداخت‌ها، ایمیل‌ها و پیام‌ها."
+            "state" : "new",
+            "value" : "Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bénéficiez d'une confidentialité maximale via les 5 passerelles du mixnet. Parfait transmettre vos instructions de paiement, vos emails et vos messages."
+            "value" : "Confidentialité maximale à travers le routage à 5 sauts (jusqu'à 1-5 Mbps). Trafic factice et obfuscation de timing pour un anonymat amélioré. Idéal pour des activités très sensibles telles que les paiements, les e-mails et les messages."
           }
         },
         "hi" : {
@@ -25546,55 +27513,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Goditi il massimo livello di privacy mandando la tua connessione attraverso 5 server sulla mixnet. Perfetto per gestire in modo sicuro pagamenti, e-mail e messaggi."
+            "value" : "Massima privacy attraverso il routing a 5 hop (fino a 1-5 Mbps). Traffico e offuscamento temporali per un miglioramento dell'anonimato. Perfetto per attività altamente sensibili come pagamenti, e-mail e messaggi."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "5つのサーバーを通じてmixnet経由で接続をルーティングすることで、最高レベルのプライバシーをお楽しみいただけます。安全に支払い、メール、メッセージ処理を行うのに最適です。"
+            "value" : "5ホップルーティング(最大1~5Mbps)による最大のプライバシー。匿名性を高めるために、ダミートラフィックとタイミングの難読化。 支払い、電子メール、メッセージなどの非常に敏感な活動に最適です。"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desfrute de um nível máximo de privacidade, encaminhando a sua ligação através de 5 servidores via mixnet. Perfeito para tratar pagamentos, emails e mensagens de forma segura."
+            "value" : "Privacidade máxima através de roteamento de 5 saltos (até 1 a 5 Mbps). Tráfego de boatos e ultrapassagem de tempo para maior anonimato. Perfeito para atividades altamente sensíveis, como pagamentos, e-mails e mensagens."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens."
+            "value" : "Privacidade máxima através de roteamento de 5 saltos (até 1 a 5 Mbps). Tráfego de boatos e ultrapassagem de tempo para maior anonimato. Perfeito para atividades altamente sensíveis, como pagamentos, e-mails e mensagens."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Наслаждайтесь максимальной конфиденциальностью, направляя ваше соединение через 5 серверов с помощью микснета. Идеально для безопасной обработки платежей, электронной почты и сообщений."
+            "value" : "Максимальная конфиденциальность благодаря 5-ступенчатой маршрутизации (до 1-5 Мбит/с). Фиктивный трафик и маскировка времени передачи для повышенной анонимности. Идеально для высоко конфиденциальных операций, таких как платежи, электронная почта и сообщения."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek en yüksek düzeyde gizliliğin tadını çıkarın. Ödemeler, e-postalar ve mesajlar için güvenli bir şekilde işlem yapmaya mükemmel bir çözümdür."
+            "state" : "new",
+            "value" : "Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Насолоджуйтесь максимальним рівнем конфіденційності завдяки маршрутизації вашого з'єднання за допомогою 5 серверів mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень."
+            "value" : "Максимальна конфіденційність завдяки 5-ступеневій маршрутизації (до 1-5 Мбіт/с). Фальшивий трафік і заплутування часу для підвищення анонімності. Ідеально підходить для дуже конфіденційних дій, таких як платежі, електронні листи та повідомлення."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tận hưởng quyền riêng tư ở mức tối đa bằng cách định tuyến kết nối của bạn qua 5 máy chủ thông qua mixnet. Hoàn hảo để xử lý thanh toán, email và tin nhắn một cách an toàn."
+            "value" : "Tận hưởng quyền riêng tư tối đa thông qua định tuyến 5 bước (lên đến 1-5 Mbps). Lưu lượng giả và che giấu thời gian để nâng cao tính ẩn danh. Hoàn hảo cho các hoạt động nhạy cảm cao như thanh toán, email và tin nhắn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通过混合网络将连接路由到5台服务器，您将享受最高级别的隐私保障。这是安全处理付款、邮件和消息的最佳选择。"
+            "value" : "通过 5 节点连接路由的最大隐私(最多1-5 Mbps). 虚拟流量和时间混淆以加强匿名。 完美适用于高度敏感的活动，如付款、电子邮件和消息。"
           }
         }
       }
@@ -25706,13 +27673,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "استمتع بأقصى سرعة مع خادمين. مثالي للتصفح السريع والبث المباشر ومشاركة الملفات."
+            "value" : "تصفح عالي السرعة (250+ ميغابايت ) مع مسار 2 هوب . يستخدم AmneziaWG، نسخة مقاومة للرقابة من WireGuard، مثالية للبث والتصفح السريع والتنزيلات.."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing."
+            "value" : "Highspeed browsing (250+ Mbps) mit 2-Hop-Routing und verwendet AmneziaWG, eine zensurgeschützte Version von WireGuard, ideal zum Streamen, schnelles Surfen und Downloaden."
           }
         },
         "en" : {
@@ -25724,19 +27691,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez."
+            "value" : "Navegación a alta velocidad (250+ Mbps) con enrutamiento de 2 saltos. Utiliza AmneziaWG, una versión resistente a la censura de WireGuard, ideal para streaming, navegación rápida y descargas."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "تجربه بالاترین سرعت با اتصال دو سروره. این حالت از AmneziaWG استفاده میکند، نسخه‌ای از WireGuard که برای دور زدن فیلترینگ طراحی شده است، ایده‌آل برای وب‌گردی با سرعت زیاد، تماشای آنلاین و اشتراک گذاری فایل."
+            "state" : "new",
+            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bénéficiez d'une vitesse maximale avec le mode VPN (via 2 passerelles). Ce mode repose sur AmneziaWG, une version résistante à la censure du protocole WireGuard. Parfait pour la navigation, le streaming et les téléchargements."
+            "value" : "La navigation à haute vitesse (250Mbps) avec routage à 2 sauts utilise AmneziaWG, une version résistante à la censure de WireGuard, idéale pour le streaming, la navigation rapide et les téléchargements..."
           }
         },
         "hi" : {
@@ -25748,55 +27715,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prova la massima velocità con la connettività a 2 server. Questa modalità sfrutta AmneziaWG, una versione resistente alla censura di WireGuard, ideale per la navigazione veloce, lo streaming e la condivisione di file."
+            "value" : "Navigazione ad alta velocità (250 + Mbps) con routing 2-hop. Utilizza AmneziaWG, una versione resistente alla censura di WireGuard, ideale per lo streaming, la navigazione veloce e il download.."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2サーバー接続で最高速度を体験できます。このモードでは、検閲に強いバージョンのWireGuardを使用するAmneziaWGを採用しており、高速ブラウジング、ストリーミング、ファイル共有に最適です。"
+            "value" : "2ホップルーティング付きの高速ブラウジング(250+Mbps)。検閲に強いWireGuardのAmneziaWGを使用しており、ストリーミング、高速ブラウジング、ダウンロードに最適です。"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experimente a velocidade máxima com a conetividade de 2 servidores. Este modo utiliza o AmneziaWG, uma versão do WireGuard resistente à censura, ideal para navegação rápida, transmissão e partilha de ficheiros."
+            "value" : "Navegação de alta velocidade (250+ Mbps) com roteamento de 2 hop. Usa AmneziaWG, uma versão resistente à censura do WireGuard, ideal para streaming, navegação rápida e downloads.."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experimente a velocidade máxima com a conectividade de 2 servidores. Esse modo aproveita o AmneziaWG, uma versão resistente à censura do WireGuard, ideal para navegação rápida, streaming e compartilhamento de arquivos."
+            "value" : "Navegação de alta velocidade (250+ Mbps) com roteamento de 2 hop. Usa AmneziaWG, uma versão resistente à censura do WireGuard, ideal para streaming, navegação rápida e downloads.."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Получите максимальную скорость благодаря подключению к двум серверам. В этом режиме используется AmneziaWG, защищенная от цензуры версия WireGuard, которая идеально подходит для быстрого просмотра страниц, стриминга и обмена файлами."
+            "value" : "Высокоскоростной браузинг (250+ Мбит/с) с 2-ступенчатой маршрутизацией. Использует AmneziaWG — устойчивую к цензуре версию WireGuard, идеальную для стриминга, быстрого просмотра и загрузок.."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maksimum hız için 2 sunucu bağlantısıyla deneyimleyin. Bu mod, hızlı gezinme, yayın yapma ve dosya paylaşımı için ideal olan, sansüre dayanıklı WireGuard sürümü AmneziaWG'yi kullanır."
+            "state" : "new",
+            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Відчуйте максимальну швидкість завдяки підключенню до 2 серверів. У цьому режимі використовується AmneziaWG, захищена від цензури версія WireGuard, що ідеально підходить для швидкого перегляду веб-сторінок, потокового передавання даних і обміну файлами."
+            "value" : "Високошвидкісний перегляд веб-сторінок (250+ Мбіт/с) із 2-ступеневою маршрутизацією. Використовує AmneziaWG, версію WireGuard, стійку до цензури, яка ідеально підходить для потокового передавання, швидкого перегляду веб-сторінок та завантаження файлів.."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trải nghiệm tốc độ tối đa với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho việc duyệt web, phát trực tuyến và chia sẻ tệp nhanh."
+            "value" : "Trải nghiệm tốc độ duyệt web nhanh (250+ Mbps) với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho phát trực tuyến, việc duyệt web và tải xuống nhanh.."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通过2台服务器连接，您将体验最快速度。此模式使用 AmneziaWG，即 WireGuard 的防审查版本，是快速浏览、流媒体和文件共享的理想选择。"
+            "value" : "高速浏览(250+Mbps) 带有双节连接路径。使用 AmneziaWG, 一个防检查版本的 WireGuard, 理想的流、快速浏览和下载。"
           }
         }
       }
@@ -25898,6 +27865,107 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "模式选择"
+          }
+        }
+      }
+    },
+    "month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شهر"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "monat"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "month"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mes"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "month"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mois"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "month"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mese"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "月"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mês"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mês"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "месяц"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "month"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "month"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "月"
           }
         }
       }
@@ -26234,8 +28302,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data"
+            "state" : "translated",
+            "value" : "داده‌ای موجود نیست"
           }
         },
         "fr" : {
@@ -26840,8 +28908,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "عبارت عبور من را نمایش بده"
           }
         },
         "fr" : {
@@ -26941,8 +29009,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share them with anyone, including Nym Support."
+            "state" : "translated",
+            "value" : "هرگز آن‌ها را با هیچ‌کس به اشتراک نگذارید، حتی با پشتیبانی Nym."
           }
         },
         "fr" : {
@@ -27143,8 +29211,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy passphrase"
+            "state" : "translated",
+            "value" : "کپی کردن عبارت عبور"
           }
         },
         "fr" : {
@@ -27244,8 +29312,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Face ID to access the passphrase"
+            "state" : "translated",
+            "value" : "استفاده از شناسه چهره برای دسترسی به عبارت عبور"
           }
         },
         "fr" : {
@@ -27345,8 +29413,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I have saved these 24 words securely and will never share them"
+            "state" : "translated",
+            "value" : "من این ۲۴ کلمه را به‌صورت ایمن ذخیره کرده‌ام و هرگز آن‌ها را با کسی به اشتراک نخواهم گذاشت"
           }
         },
         "fr" : {
@@ -27446,8 +29514,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "⚠️ Lose these words = lose your account forever."
+            "state" : "translated",
+            "value" : "⚠️ گم کردن این کلمات = از دست دادن همیشگی حساب کاربری خود."
           }
         },
         "fr" : {
@@ -27547,8 +29615,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+            "state" : "translated",
+            "value" : "🔒عبارت رمز اصلی حساب کاربری شما: ۲۴ کلمه که به شما امکان دسترسی به حساب کاربری خود را از هر دستگاهی می‌دهد."
           }
         },
         "fr" : {
@@ -27648,8 +29716,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Optic ID to access the passphrase"
+            "state" : "translated",
+            "value" : "استفاده از شناسه دیداری برای دسترسی به عبارت عبور"
           }
         },
         "fr" : {
@@ -27749,8 +29817,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your passcode to access the passphrase"
+            "state" : "translated",
+            "value" : "برای دسترسی به عبارت عبور، کددسترسی خود را وارد کنید"
           }
         },
         "fr" : {
@@ -27850,8 +29918,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter your password to access the passphrase"
+            "state" : "translated",
+            "value" : "برای دسترسی به عبارت عبور، رمز عبور خود را وارد کنید"
           }
         },
         "fr" : {
@@ -27951,8 +30019,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save to keychain"
+            "state" : "translated",
+            "value" : "ذخیره در زنجیره کلید"
           }
         },
         "fr" : {
@@ -28052,8 +30120,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Show my passphrase"
+            "state" : "translated",
+            "value" : "نمایش عبارت عبور"
           }
         },
         "fr" : {
@@ -28153,8 +30221,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use Touch ID to access the passphrase"
+            "state" : "translated",
+            "value" : "استفاده از شناسه اثر انگشت برای دسترسی به عبارت عبور"
           }
         },
         "fr" : {
@@ -28254,8 +30322,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your account passphrase"
+            "state" : "translated",
+            "value" : "عبارت عبور حساب کاربری شما"
           }
         },
         "fr" : {
@@ -28322,6 +30390,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的账户密码口令"
+          }
+        }
+      }
+    },
+    "period" : {
+      "comment" : "Unknown intro offer format period",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الفترة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "period"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "período"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "period"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Période"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "period"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "term."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "期間"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menstruação"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "menstruação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "период"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "period"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "period"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "period"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经期"
           }
         }
       }
@@ -28860,8 +31030,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "state" : "translated",
+            "value" : "اطلاعات خرابی را ارسال کنید تا به ما در رفع سریع‌تر باگ‌ها کمک کنید.\nگزارش‌ها از طریق سیستم امن Sentry ارسال می‌شوند و فقط شامل داده‌های فنی جهت اشکال‌زدایی هستند."
           }
         },
         "fr" : {
@@ -28926,8 +31096,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "state" : "translated",
+            "value" : "发送崩溃信息以帮助我们更快修复错误。\n报告将通过Sentry的安全系统传输，仅包含技术调试数据。"
           }
         }
       }
@@ -29062,7 +31232,7 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " "
           }
         },
@@ -29163,8 +31333,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
+            "state" : "translated",
+            "value" : "ما در حال تأیید اشتراک شما هستیم—هیچ اطلاعات شخصی هرگز به هویت شما مرتبط نمی‌شود"
           }
         },
         "fr" : {
@@ -29264,8 +31434,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
+            "state" : "translated",
+            "value" : "این مدارک دانش صفر اثبات می‌کنند که شما بدون اینکه هویت خود را فاش کنید دسترسی دارید"
           }
         },
         "fr" : {
@@ -29365,8 +31535,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
+            "state" : "translated",
+            "value" : "اطلاعات دسترسی ناشناس شما اکنون به صورت ایمن ذخیره شده‌اند، خصوصی، رمزنگاری شده و تحت کنترل شما هستند"
           }
         },
         "fr" : {
@@ -29567,8 +31737,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment confirmed"
+            "state" : "translated",
+            "value" : "پرداخت تأیید شد"
           }
         },
         "fr" : {
@@ -29668,8 +31838,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Processing your payment securely..."
+            "state" : "translated",
+            "value" : "پردازش امن پرداخت شما..."
           }
         },
         "fr" : {
@@ -29769,8 +31939,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retrieving your anonymous\u2028account credentials (zk-nyms)..."
+            "state" : "translated",
+            "value" : "در حال بازیابی اطلاعات حساب ناشناس شما (شناسه‌های zk-nyms)..."
           }
         },
         "fr" : {
@@ -29870,8 +32040,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saving your zk-nyms\u2028on the device..."
+            "state" : "translated",
+            "value" : "در حال ذخیره zk-nyms روی دستگاه شما..."
           }
         },
         "fr" : {
@@ -30072,8 +32242,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You’re now fully protected"
+            "state" : "translated",
+            "value" : "شما اکنون به‌طور کامل محافظت شده‌اید"
           }
         },
         "fr" : {
@@ -30678,8 +32848,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "ارتباط شما خصوصی است."
           }
         },
         "fr" : {
@@ -30779,8 +32949,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "هویت شما متعلق به خودتان باقی می‌ماند."
           }
         },
         "fr" : {
@@ -30880,8 +33050,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "بسته فعال شد"
           }
         },
         "fr" : {
@@ -30981,8 +33151,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "translated",
+            "value" : "حساب امن NymVPN شما آماده است🎉"
           }
         },
         "fr" : {
@@ -31688,8 +33858,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reconnect"
+            "state" : "translated",
+            "value" : "اتصال مجدد"
           }
         },
         "fr" : {
@@ -31789,8 +33959,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Retry"
+            "state" : "translated",
+            "value" : "تلاش مجدد"
           }
         },
         "fr" : {
@@ -33809,8 +35979,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anti-censorship"
+            "state" : "translated",
+            "value" : "تقابل با سانسور اینترنتی"
           }
         },
         "fr" : {
@@ -35425,8 +37595,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Passphrase"
+            "state" : "translated",
+            "value" : "عبارت عبور"
           }
         },
         "fr" : {
@@ -36233,8 +38403,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help improve NymVPN by sharing anonymous network stats from your region. "
+            "state" : "translated",
+            "value" : "با اشتراک‌گذاری آمار شبکه به صورت ناشناس از منطقه خود به بهبودی عملکرد NymVPN کمک کنید "
           }
         },
         "fr" : {
@@ -37220,13 +39390,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "في انتظار جاهزية الحساب"
+            "value" : "إعداد حسابك (2/6)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Warte auf Kontoreife"
+            "value" : "Einrichtung deines Kontos (2/6)"
           }
         },
         "en" : {
@@ -37238,19 +39408,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esperando la preparación de la cuenta"
+            "value" : "Configurando tu cuenta (2/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Awaiting account readiness"
+            "value" : "Setting up your account (2/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En attente de préparation du compte"
+            "value" : "Configuration de votre compte (2/6)"
           }
         },
         "hi" : {
@@ -37262,55 +39432,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In attesa di disponibilità dell'account"
+            "value" : "Configurare il tuo account (2/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アカウントの準備を待っています"
+            "value" : "アカウントの設定 (2/6)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aguardando prontidão da conta"
+            "value" : "Configurando sua conta (2/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aguardando prontidão da conta"
+            "value" : "Configurando sua conta (2/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ожидание готовности аккаунта"
+            "value" : "Настройка вашей учётной записи (2/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hesabın kullanıma hazır hale gelmesi bekleniyor"
+            "state" : "new",
+            "value" : "Setting up your account (2/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Очікування готовності облікового запису"
+            "value" : "Налаштування облікового запису (2/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang chờ tài khoản sẵn sàng"
+            "value" : "Đang thiết lập tài khoản của bạn (2/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在准备账号"
+            "value" : "设置您的帐户 (2/6)"
           }
         }
       }
@@ -37321,13 +39491,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "توصيل عميل المزيج"
+            "value" : "تسجيل مجهول مع الخوادم (5/6)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mixnet-Client verbinden"
+            "value" : "Anonym bei Servern registrieren (5/6)"
           }
         },
         "en" : {
@@ -37339,19 +39509,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando cliente mixnet"
+            "value" : "Registrándose anónimamente con los servidores (5/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Connecting mixnet client"
+            "value" : "Registering anonymously with servers (5/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connexion du client mixnet"
+            "value" : "Inscription anonyme sur les serveurs (5/6)"
           }
         },
         "hi" : {
@@ -37363,55 +39533,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting mixnet client"
+            "value" : "Registrazione anonima con server (5/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mixnet クライアントへの接続"
+            "value" : "サーバーに匿名で登録しています (5/6)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando o cliente mixnet"
+            "value" : "Registrar-se anonimamente com servidores (5/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando o cliente mixnet"
+            "value" : "Registrar-se anonimamente com servidores (5/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подключение клиента микснета"
+            "value" : "Анонимная регистрация на серверах (5/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mixnet istemcisine bağlanılıyor"
+            "state" : "new",
+            "value" : "Registering anonymously with servers (5/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Підключення клієнта мікнет"
+            "value" : "Анонімна реєстрація на серверах (5/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang kết nối đến máy khách mixnet"
+            "value" : "Đang đăng ký ẩn danh với các máy chủ (5/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接 mixnet 客户端"
+            "value" : "匿名注册服务器(5/6)"
           }
         }
       }
@@ -37422,13 +39592,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "توصيل النفق"
+            "value" : "إنشاء اتصال بالخادم (6/6)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbindungstunnel"
+            "value" : "Serververbindung wird hergestellt (6/6)"
           }
         },
         "en" : {
@@ -37440,19 +39610,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando túnel"
+            "value" : "Estableciendo conexión con el servidor (6/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Connecting tunnel"
+            "value" : "Establishing server connection (6/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connexion au tunnel"
+            "value" : "Établissement de la connexion au serveur (6/6)"
           }
         },
         "hi" : {
@@ -37464,55 +39634,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tunnel di collegamento"
+            "value" : "Stabilimento connessione server (6/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "トンネルを接続中"
+            "value" : "サーバー接続を確立しています（6/6）"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando túnel"
+            "value" : "Estabelecendo conexão com o servidor (6/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectando túnel"
+            "value" : "Estabelecendo conexão com o servidor (6/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подключение туннеля"
+            "value" : "Установка соединения с сервером (6/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tünel'e bağlanıyor"
+            "state" : "new",
+            "value" : "Establishing server connection (6/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "З'єднувальний тунель"
+            "value" : "Встановлення з'єднання з сервером (6/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang kết nối tunnel"
+            "value" : "Đang thiết lập kết nối máy chủ (6/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在连接到VPN隧道"
+            "value" : "建立服务器连接(6/6)"
           }
         }
       }
@@ -37523,13 +39693,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحديث البوابات"
+            "value" : "تحديث قائمة الخوادم (3/6)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gateways aktualisieren"
+            "value" : "Serverliste wird aktualisiert (3/6)"
           }
         },
         "en" : {
@@ -37541,19 +39711,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pasarelas refrescantes"
+            "value" : "Actualizando lista de servidores (3/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Refreshing gateways"
+            "value" : "Updating server list (3/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rafraîchissement des passerelles"
+            "value" : "Mise à jour de la liste des serveurs (3/6)"
           }
         },
         "hi" : {
@@ -37565,55 +39735,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gateway di aggiornamento"
+            "value" : "Aggiornamento lista server (3/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ゲートウェイの更新"
+            "value" : "サーバーリストを更新しています(3/6)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atualizando gateways"
+            "value" : "Atualizando lista de servidores (3/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atualizando gateways"
+            "value" : "Atualizando lista de servidores (3/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновление шлюзов"
+            "value" : "Обновление списка серверов (3/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gateway'ler güncelleniyor"
+            "state" : "new",
+            "value" : "Updating server list (3/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Оновлення шлюзів"
+            "value" : "Оновлення списку серверів (3/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang làm mới các cổng kết nối"
+            "value" : "Đang cập nhật danh sách máy chủ (3/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在刷新网关"
+            "value" : "更新服务器列表 (3/6)"
           }
         }
       }
@@ -37621,10 +39791,100 @@
     "tunnelConnectingState.registeringWithGateways" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التسجيل بواسطة البوابات"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registrierung mit Gateways"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Registering with gateways"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registrando con pasarelas"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در حال ثبت‌نام در گِیت‌وی‌ها"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inscription aux passerelles"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Registering with gateways"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registrazione con gateway"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゲートウェイへの登録"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registrando com gateways"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registrando com gateways"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Регистрация через шлюзы"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Registering with gateways"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Реєстрація на шлюзах"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang đăng ký với các cổng kết nối"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用网关注册"
           }
         }
       }
@@ -37635,13 +39895,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "حل عناوين IP API"
+            "value" : "تهيئة NymVPN (1/6)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auflösen von API-IP-Adressen"
+            "value" : "Initialisiere NymVPN (1/6)"
           }
         },
         "en" : {
@@ -37653,19 +39913,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resolviendo direcciones IP API"
+            "value" : "Inicializando NymVPN (1/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Resolving API IP addresses"
+            "value" : "Initializing NymVPN (1/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Résolution des adresses IP de l'API"
+            "value" : "Initialisation de NymVPN (1/6)"
           }
         },
         "hi" : {
@@ -37677,55 +39937,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Risoluzione indirizzi IP API"
+            "value" : "Inizializzazione Di NymVPN (1/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "API の IP アドレスの解決"
+            "value" : "NymVPNの初期化 (1/6)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resolvendo endereços IP API"
+            "value" : "Inicializando NymVPN (1/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resolvendo endereços IP API"
+            "value" : "Inicializando NymVPN (1/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Разрешение IP-адресов API"
+            "value" : "Инициализация NymVPN (1/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "API’nin IP adresleri belirleniyor"
+            "state" : "new",
+            "value" : "Initializing NymVPN (1/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Визначення IP-адрес API"
+            "value" : "Ініціалізація NymVPN (1/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang xử lý địa chỉ IP của API"
+            "value" : "Đang khởi tạo NymVPN (1/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在解析 API IP 地址"
+            "value" : "正在初始化 NymVPN (1/6)"
           }
         }
       }
@@ -37736,13 +39996,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "اختيار البوابات"
+            "value" : "اختيار أفضل الخوادم (4/6)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gateways auswählen"
+            "value" : "Beste Server wählen (4/6)"
           }
         },
         "en" : {
@@ -37754,19 +40014,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seleccionando pasarelas"
+            "value" : "Elegir los mejores servidores (4/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Selecting gateways"
+            "value" : "Choosing best servers (4/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sélection des passerelles"
+            "value" : "Choix des meilleurs serveurs (4/6)"
           }
         },
         "hi" : {
@@ -37778,55 +40038,55 @@
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selezione dei gateway"
+            "value" : "Scegliere i migliori server (4/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ゲートウェイの選択"
+            "value" : "最適なサーバーの選択 (4/6)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecionando gateways"
+            "value" : "Escolhendo os melhores servidores (4/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selecionando gateways"
+            "value" : "Escolhendo os melhores servidores (4/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выбор шлюзов"
+            "value" : "Выбор лучших серверов (4/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gateway'ler seçiliyor"
+            "state" : "new",
+            "value" : "Choosing best servers (4/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Вибір шлюзів"
+            "value" : "Вибір кращих серверів (4/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang chọn cổng kết nối"
+            "value" : "Đang chọn máy chủ tốt nhất (4/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在选择网关"
+            "value" : "选择最佳服务器 (4/6)"
           }
         }
       }
@@ -38231,6 +40491,107 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"
+          }
+        }
+      }
+    },
+    "week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسبوع"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "woche"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "semana"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "week"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semaine"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "week"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "settimana"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semana"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semana"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "неделя"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "week"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "week"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周"
           }
         }
       }
@@ -39544,6 +41905,107 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "欢迎使用\nNymVPN"
+          }
+        }
+      }
+    },
+    "year" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سنة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jahr"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "year"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "año"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "year"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Année"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "year"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "anno"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "年"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ano"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ano"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "год"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "year"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "year"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "year"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "年"
           }
         }
       }
