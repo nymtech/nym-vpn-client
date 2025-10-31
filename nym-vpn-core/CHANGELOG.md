@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Rotate wireguard keys every 1-2 weeks, if disconnected (https://github.com/nymtech/nym-vpn-client/pull/3788)
+
 ## [1.18.0] - TBD
 
 ### Added
@@ -19,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
+- Disable system DNS resolver fallback on primary resolver failure (https://github.com/nymtech/nym-vpn-client/pull/3832)
 
 ### Fixed
 
@@ -32,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix network environment updates not being made available for grpc clients (https://github.com/nymtech/nym-vpn-client/pull/3805)
 - Ensure that default discovery when written to disk is always considered stale (https://github.com/nymtech/nym-vpn-client/pull/3805)
 - Make discovery refresh aware of network connectivity (https://github.com/nymtech/nym-vpn-client/pull/3805)
+- Fix database cleanup when forgetting account (https://github.com/nymtech/nym-vpn-client/pull/3825)
 
 ## [1.17.0] - 2025-10-17
 

@@ -3,14 +3,32 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use time::OffsetDateTime;
 use tokio::sync::Mutex;
 
-use crate::keys::wireguard::{WireguardKeyStore, WireguardKeys, persistence::random_keys};
+use crate::keys::wireguard::{
+    WireguardKeyStore, WireguardKeys,
+    persistence::{is_expired, random_keys},
+};
+
+struct KeysWithExpiration {
+    keys: WireguardKeys,
+    expiration_time: OffsetDateTime,
+}
+
+impl KeysWithExpiration {
+    fn new(keys: WireguardKeys) -> Self {
+        KeysWithExpiration {
+            keys,
+            expiration_time: OffsetDateTime::now_utc(),
+        }
+    }
+}
 
 #[allow(dead_code)]
 #[derive(Clone, Default)]
 pub struct InMemEphemeralKeys {
-    keys: Arc<Mutex<HashMap<String, WireguardKeys>>>,
+    keys: Arc<Mutex<HashMap<String, KeysWithExpiration>>>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -25,13 +43,23 @@ impl WireguardKeyStore for InMemEphemeralKeys {
         gateway_id: &str,
     ) -> Result<WireguardKeys, EphemeralKeysError> {
         let mut guard = self.keys.lock().await;
-        if let Some(keys) = guard.get(gateway_id) {
-            Ok(keys.clone())
+        if let Some(keys_with_expiration) = guard.get(gateway_id)
+            && !is_expired(keys_with_expiration.expiration_time)
+        {
+            Ok(keys_with_expiration.keys.clone())
         } else {
             let keys = random_keys();
-            guard.insert(gateway_id.to_string(), keys.clone());
+            guard.insert(
+                gateway_id.to_string(),
+                KeysWithExpiration::new(keys.clone()),
+            );
 
             Ok(keys)
         }
+    }
+
+    async fn clear_keys(&self) -> Result<(), Self::StorageError> {
+        self.keys.lock().await.clear();
+        Ok(())
     }
 }

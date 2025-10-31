@@ -50,7 +50,7 @@
       "offline": "Hors ligne"
     },
     "notes": {
-      "anti-censorship": "Activez le « protocole QUIC» dans les paramètres de lutte contre la censure pour utiliser cette fonctionnalité",
+      "anti-censorship": "<0>Activez le « protocole QUIC»</0> dans les paramètres de lutte contre la censure pour utiliser cette fonctionnalité",
       "performance_with_time": "Score de performance calculé à partir de la charge du serveur et du temps de disponibilité. Temps de disponibilité des dernières 24 heures. Dernière mise à jour {{relativeTime}}.",
       "performance": "Score de performance calculé à partir de la charge du serveur et de la durée de disponibilité comme moyenne des dernières 24 heures."
     },

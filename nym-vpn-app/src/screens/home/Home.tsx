@@ -98,7 +98,7 @@ function Home() {
       dispatch({ type: 'reset-error' });
       dispatch({ type: 'connect' });
       let savedQuic = await kvGet<boolean>('quic-enabled');
-      if (savedQuic === undefined) {
+      if (savedQuic === null) {
         savedQuic = defaultQuic;
       }
       invoke('connect', {

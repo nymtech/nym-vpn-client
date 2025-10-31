@@ -361,6 +361,7 @@ impl NymVpnService {
         // These are used to interact with the account controller
         let account_command_tx = account_controller.get_command_sender();
         let account_state_rx = account_controller.get_state_receiver();
+        let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
         // Statistics collection setup
@@ -484,6 +485,7 @@ impl NymVpnService {
             topology_provider,
             connectivity_handle,
             discovery_refresher_command_tx,
+            wireguard_keys_db,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             state_machine_shutdown_token.child_token(),

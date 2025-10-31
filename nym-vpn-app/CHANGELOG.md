@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix a race condition at app startup that could lead to
   selected nodes to be reset to default
+- Fix incorrect JS kv store API types
 
 ## [1.17.1] - 2025-10-20
 

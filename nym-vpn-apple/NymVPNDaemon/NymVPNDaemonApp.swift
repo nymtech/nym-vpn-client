@@ -6,6 +6,7 @@ import AutoUpdates
 import ConnectionManager
 import ConfigurationManager
 import Constants
+import ExternalLinkManager
 import FeatureFlagsManager
 import GatewayManager
 import GRPCManager
@@ -38,6 +39,7 @@ struct NymVPNDaemonApp: App {
 
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
+    @ObservedObject private var externalLinkManager = ExternalLinkManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
@@ -104,6 +106,7 @@ struct NymVPNDaemonApp: App {
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
+            .environmentObject(externalLinkManager)
             .environmentObject(featureFlagsManager)
             .environmentObject(gatewayManager)
             .environmentObject(grpcManager)

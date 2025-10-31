@@ -1,22 +1,9 @@
 # This file contains the fastlane.tools configuration
 # You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
 
 platform :mac do
   desc "Bump version"
   lane :bump_version do
-    # Get the app version from ARGV, assuming it's the third argument (ARGV[2])
     app_version = ARGV[2]
 
     puts "App version to set: #{app_version}"
@@ -29,40 +16,42 @@ platform :mac do
     project = Xcodeproj::Project.open(project_path)
 
     allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon"]
-    
+
     project.targets.each do |projectTarget|
       if allowTargets.include?(projectTarget.name)
         projectTarget.build_configurations.each do |configuration|
-          # Set the MARKETING_VERSION to the provided app_version
           configuration.build_settings["MARKETING_VERSION"] = app_version
-
-          # Increment CURRENT_PROJECT_VERSION
           newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
           configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
         end
       end
     end
 
-    project.save()
+    project.save
   end
-  
+
   desc "Bump build"
-  lane :bump_build do
+  lane :bump_build do |options|
+    # Optionally passed build number (string or int)
+    provided_build = options[:build].to_i if options[:build]
+
     project_path = '../NymVPN.xcodeproj'
     project = Xcodeproj::Project.open(project_path)
 
     allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon"]
-    
+
     project.targets.each do |projectTarget|
-      if allowTargets.include?(projectTarget.name)
-        projectTarget.build_configurations.each do |configuration|
-          # Increment CURRENT_PROJECT_VERSION
-          newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
-          configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
-        end
+      next unless allowTargets.include?(projectTarget.name)
+
+      projectTarget.build_configurations.each do |configuration|
+        current = configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i
+        new_build = provided_build && provided_build > 0 ? provided_build : (current + 1)
+
+        configuration.build_settings["CURRENT_PROJECT_VERSION"] = new_build.to_s
+        UI.message("✅ #{projectTarget.name}: #{current} → #{new_build}")
       end
     end
 
-    project.save()
+    project.save
   end
 end
