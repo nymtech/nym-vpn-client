@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix network environment updates not being made available for grpc clients (https://github.com/nymtech/nym-vpn-client/pull/3805)
 - Ensure that default discovery when written to disk is always considered stale (https://github.com/nymtech/nym-vpn-client/pull/3805)
 - Make discovery refresh aware of network connectivity (https://github.com/nymtech/nym-vpn-client/pull/3805)
+- Fix database cleanup when forgetting account (https://github.com/nymtech/nym-vpn-client/pull/3825)
 
 ## [1.17.0] - 2025-10-17
 

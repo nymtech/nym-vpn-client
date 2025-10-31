@@ -9,7 +9,7 @@ use nym_vpn_api_client::{
     types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnApiError};
-use nym_vpn_store::account::StorableAccount;
+use nym_vpn_store::{account::StorableAccount, keys::wireguard::WireguardKeyStore};
 use tracing::info;
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
@@ -137,11 +137,20 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
             AccountCommandError::Storage(source.to_string())
         })?;
 
+    shared_state
+        .wireguard_keys_storage
+        .clear_keys()
+        .await
+        .map_err(|source| {
+            tracing::error!("Failed to clear wireguard keys storage: {source:?}");
+            AccountCommandError::Storage(source.to_string())
+        })?;
+
     // Purge all files in the data directory that we are not explicitly deleting through it's
     // owner. Ideally we should strive for this to be removed.
     // If this fails, we still need to continue with the remaining steps
     let remove_files_result =
-        crate::storage::remove_files_for_account(&shared_state.config.data_dir)
+        crate::storage::remove_files_for_account(&shared_state.config.data_dir, false)
             .await
             .inspect_err(|err| {
                 tracing::error!("Failed to remove files for account: {err:?}");

@@ -5,7 +5,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
-use nym_vpn_store::VpnStorage;
+use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
 use tokio::sync::{
     mpsc::{self, UnboundedReceiver, UnboundedSender},
     watch,
@@ -97,11 +97,14 @@ where
         let vpn_api_account = account_storage.load_vpn_account().await?;
         let device_keys = account_storage.load_device_keys().await?;
 
+        let wireguard_keys_storage = WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
+
         // Shared_state
         let shared_state = SharedAccountState::new(
             connectivity_handle,
             config,
             credential_storage,
+            wireguard_keys_storage,
             nym_vpn_api_client,
             nyxd_client,
             vpn_api_account,
@@ -145,6 +148,11 @@ where
     /// Get the channel used to keep track of the controller state.
     pub fn get_state_receiver(&self) -> AccountStateReceiver {
         AccountStateReceiver::new(self.state_channel.1.clone())
+    }
+
+    /// Get the wireguard keys database storage
+    pub fn get_wireguard_keys_storage(&self) -> WireguardKeysDb {
+        self.shared_state.wireguard_keys_storage.clone()
     }
 
     fn print_info(&self) {
