@@ -130,7 +130,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
