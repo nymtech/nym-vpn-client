@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use two keypairs (entry & exit) per gateway (https://github.com/nymtech/nym-vpn-client/pull/3591)
+- Disable system DNS resolver fallback on primary resolver failure (https://github.com/nymtech/nym-vpn-client/pull/3832)
 
 ### Fixed
 
