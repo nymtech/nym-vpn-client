@@ -59,17 +59,17 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
           <Trans
             i18nKey="location-details.streaming.description"
             ns="nodeLocation"
-            components={{
-              residentialLink: (
-                <Link
-                  text={t('location-details.streaming.residentialLink')}
-                  url={ResidentialIpServersUrl}
-                  data-testid="location-details-residential-link"
-                  className="underline !text-black dark:!text-white"
-                />
-              ),
-            }}
-          />
+          >
+            <Link
+              url={ResidentialIpServersUrl}
+              data-testid="location-details-residential-link"
+              className="underline text-black! dark:text-white!"
+            >
+              Residential IP servers
+            </Link>
+            optimized for streaming and content access. May experience slower
+            speeds due to higher demand and hardware limitations.
+          </Trans>
         </p>
       </div>
       <div
@@ -92,17 +92,17 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
           <Trans
             i18nKey="location-details.location.description"
             ns="nodeLocation"
-            components={{
-              locationAccuracyLink: (
-                <Link
-                  text={t('location-details.location.locationAccuracyLink')}
-                  url={LocationDetailsArticle}
-                  data-testid="location-details-location-accuracy-link"
-                  className="underline !text-black dark:!text-white"
-                />
-              ),
-            }}
-          />
+          >
+            Displayed locations are
+            <Link
+              url={LocationDetailsArticle}
+              data-testid="location-details-location-accuracy-link"
+              className="underline text-black! dark:text-white!"
+            >
+              determined from IP addresses
+            </Link>
+            and may not reflect exact physical locations.
+          </Trans>
         </p>
       </div>
       <Button

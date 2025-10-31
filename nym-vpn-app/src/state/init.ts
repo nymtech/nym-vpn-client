@@ -207,6 +207,19 @@ export async function initFirstBatch(
     },
   };
 
+  const getStreamingOptimizedLabelSeenRq: TauriReq<
+    () => Promise<boolean | null>
+  > = {
+    name: 'getStreamingOptimizedLabelSeenRq',
+    request: () => kvGet<boolean>('streaming-optimized-label-seen'),
+    onFulfilled: (seen) => {
+      dispatch({
+        type: 'set-streaming-optimized-label-seen',
+        seen: seen || false,
+      });
+    },
+  };
+
   let requests: TauriReq<never>[] = [
     getVersionRq,
     getThemeRq,
@@ -219,6 +232,7 @@ export async function initFirstBatch(
     getNetworkStatsRq,
     getQuicRq,
     getDomainFrontingRq,
+    getStreamingOptimizedLabelSeenRq,
   ];
 
   if (initState.vpnd !== 'down') {

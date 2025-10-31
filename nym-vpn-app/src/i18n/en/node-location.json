@@ -9,13 +9,11 @@
   "location-details": {
     "streaming": {
       "title": "Streaming",
-      "description": "<residentialLink /> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations.",
-      "residentialLink": "Residential IP servers"
+      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
     },
     "location": {
       "title": "Location accuracy",
-      "description": "Displayed locations are <locationAccuracyLink /> and may not reflect exact physical locations.",
-      "locationAccuracyLink": "determined from IP addresses"
+      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
     "title": "Choosing exit locations"
   },

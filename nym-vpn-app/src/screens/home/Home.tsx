@@ -21,11 +21,9 @@ import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import {
-  ACTION_TYPE as STREAMING_OPTIMIZED_LABEL_ACTION_TYPE,
-  FEATURE_KEY as STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
   StreamingOptimizedLabel,
+  setStreamOptimizedLabelSeen,
 } from './new-feature-alert/streaming-optimized-label';
-import { setFeatureSeen } from './new-feature-alert/utils';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -187,11 +185,7 @@ function Home() {
     } else {
       resetNodeList('exit');
       navigate(routes.exitNodeLocation);
-      setFeatureSeen(
-        dispatch,
-        STREAMING_OPTIMIZED_LABEL_ACTION_TYPE,
-        STREAMING_OPTIMIZED_LABEL_FEATURE_KEY,
-      );
+      setStreamOptimizedLabelSeen(dispatch);
     }
   };
 

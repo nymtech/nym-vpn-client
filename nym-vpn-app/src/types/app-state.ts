@@ -32,7 +32,6 @@ export type InitState = {
   welcomeChecked: boolean;
   vpnMode: VpnMode;
   vpnd: VpndStatus;
-  streamingOptimizedLabelSeen: boolean;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
 };

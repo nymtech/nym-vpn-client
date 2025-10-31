@@ -2,11 +2,9 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ButtonText, Toast } from '../../../../ui/index';
 import { routes } from '../../../../router';
-import { kvSet } from '../../../../kvStore/kv';
 import { useMainDispatch, useMainState } from '../../../../contexts/index';
 import { StateDispatch } from '../../../../types/index';
-import { setFeatureSeen } from '../utils/index';
-import { ACTION_TYPE, FEATURE_KEY } from './constants';
+import { setStreamOptimizedLabelSeen } from './utils';
 
 export function StreamingOptimizedLabel() {
   const navigate = useNavigate();
@@ -15,13 +13,13 @@ export function StreamingOptimizedLabel() {
   const { t } = useTranslation('notifications');
 
   const handleClick = () => {
+    setStreamOptimizedLabelSeen(dispatch);
     navigate(routes.exitNodeLocation);
-    kvSet(FEATURE_KEY, true);
   };
 
   const onOpenChange = (open: boolean) => {
     if (!open) {
-      setFeatureSeen(dispatch, ACTION_TYPE, FEATURE_KEY);
+      setStreamOptimizedLabelSeen(dispatch);
     }
   };
 

@@ -1,2 +1,2 @@
-export * from './constants';
 export * from './StreamingOptimizedLabel';
+export * from './utils';

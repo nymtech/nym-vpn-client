@@ -130,8 +130,8 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
     countryCode: string,
     gateways: GatewaysByCountry[],
   ) => {
-    const cc = countryCode.toUpperCase();
-    const byCountry = gateways.find((c) => c.country.code === cc);
+    const cc = countryCode.toLowerCase();
+    const byCountry = gateways.find((c) => c.country.code.toLowerCase() === cc);
     if (byCountry) {
       return byCountry.gateways.find((gw) => gw.id === id) || null;
     }

@@ -23,7 +23,6 @@ function MainStateProvider({ children, init }: Props) {
     vpnMode: init.vpnMode,
     uiTheme: init.uiTheme,
     welcomeChecked: init.welcomeChecked,
-    streamingOptimizedLabelSeen: init.streamingOptimizedLabelSeen,
     entryNode: init.entryNode,
     exitNode: init.exitNode,
   });
