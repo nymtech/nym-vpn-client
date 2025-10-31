@@ -1,3 +1,4 @@
+import { useDeferredValue } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -46,6 +47,8 @@ function Node({ node }: { node: NodeHop }) {
   const { t } = useTranslation('nodeLocation');
 
   const { filter, nodes, gateways } = useFilterList();
+  const deferredNodes = useDeferredValue(nodes);
+  const deferredGateways = useDeferredValue(gateways);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -158,8 +161,8 @@ function Node({ node }: { node: NodeHop }) {
         )}
         {!loading && (
           <NodeList
-            nodes={nodes}
-            gateways={gateways}
+            nodes={deferredNodes}
+            gateways={deferredGateways}
             onSelect={handleSelect}
             onNodeDetails={handleNodeDetails}
             hop={node}

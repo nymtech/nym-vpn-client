@@ -153,7 +153,7 @@ const NodeList = memo(function NodeList({
         data-testid="node-list-accordion"
         value={expanded}
         onValueChange={onValueChange}
-        openMultiple
+        multiple
       >
         {nodes.map(({ i18n, isSelected, gateways, country, regions }) => (
           <Accordion.Item

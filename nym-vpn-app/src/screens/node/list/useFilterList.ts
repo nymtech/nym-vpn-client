@@ -81,7 +81,7 @@ export function useFilterList() {
   }, debounceDelay);
 
   return {
-    filter: debounced,
+    filter,
     nodes: filteredNodes,
     gateways: filteredGateways,
   };
