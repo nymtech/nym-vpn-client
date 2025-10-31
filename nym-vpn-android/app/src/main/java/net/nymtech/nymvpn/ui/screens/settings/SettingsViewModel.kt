@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
-import net.nymtech.nymvpn.manager.environment.model.FeatureFlagKeys
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,8 +24,8 @@ constructor(
 
 	init {
 		viewModelScope.launch {
-			val domainFronting = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.DOMAIN_FRONTING)
-			val quic = environmentManager.isFeatureFlagEnabled(FeatureFlagKeys.QUIC)
+			val domainFronting = environmentManager.isDomainFrontingEnabled()
+			val quic = environmentManager.isQuicEnabled()
 			_uiState.update { it.copy(showCensorshipSection = (domainFronting || quic)) }
 		}
 	}

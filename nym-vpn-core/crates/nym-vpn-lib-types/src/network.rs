@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -140,12 +140,12 @@ pub struct Network {
     pub nym_network: NymNetworkDetails,
     pub nyxd_url: String,
     pub nym_vpn_network: NymVpnNetwork,
-    pub feature_flags: Option<FeatureFlags>,
+    pub feature_flags: Option<Arc<FeatureFlags>>,
     pub system_configuration: Option<SystemConfiguration>,
 }
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Object))]
 #[cfg_attr(
     feature = "typescript-bindings",
     derive(TS),
@@ -159,17 +159,18 @@ pub struct FeatureFlags {
 }
 
 #[cfg(feature = "uniffi-bindings")]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
 impl FeatureFlags {
     /// If domain fronting is enabled or not, if set
     #[uniffi::method]
-    pub fn domain_fronting_enabled(&self) -> Option<bool> {
+    pub fn is_domain_fronting_enabled(&self) -> Option<bool> {
         // todo: harmonize with nym-vpn-network-config/src/feature_flags.rs
         self.get_group_flag("domain_fronting", "enabled")
     }
 
     /// If quic is enabled or not, if set
     #[uniffi::method]
-    pub fn quic_enabled(&self) -> Option<bool> {
+    pub fn is_quic_enabled(&self) -> Option<bool> {
         // todo: harmonize with nym-vpn-network-config/src/feature_flags.rs
         self.get_group_flag("quic", "enabled")
     }
@@ -346,7 +347,7 @@ impl From<nym_vpn_network_config::Network> for Network {
             nym_network: NymNetworkDetails::from(value.nym_network),
             nyxd_url: value.nyxd_url.to_string(),
             nym_vpn_network: NymVpnNetwork::from(value.nym_vpn_network),
-            feature_flags: value.feature_flags.map(FeatureFlags::from),
+            feature_flags: value.feature_flags.map(FeatureFlags::from).map(Arc::from),
             system_configuration: value.system_configuration.map(SystemConfiguration::from),
         }
     }

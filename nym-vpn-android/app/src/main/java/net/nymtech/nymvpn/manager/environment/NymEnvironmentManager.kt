@@ -10,32 +10,20 @@ class NymEnvironmentManager @Inject constructor(
 	private val backendManager: BackendManager,
 ) : EnvironmentManager {
 
-	override suspend fun getFeatureFlags(): FeatureFlags? {
+	override suspend fun isDomainFrontingEnabled(): Boolean {
+		return getFeatureFlags()?.isDomainFrontingEnabled() ?: false
+	}
+
+	override suspend fun isQuicEnabled(): Boolean {
+		return getFeatureFlags()?.isQuicEnabled() ?: false
+	}
+
+	suspend fun getFeatureFlags(): FeatureFlags? {
 		return try {
 			backendManager.getBackend().getCurrentEnvironment().featureFlags
 		} catch (e: Exception) {
 			Timber.e(e)
 			null
-		}
-	}
-
-	override suspend fun isFeatureFlagEnabled(flag: String): Boolean {
-		return try {
-			val featureFlags = getFeatureFlags() ?: return false
-			val flagValue = featureFlags.flags[flag] ?: return false
-
-			when (flagValue) {
-				is FlagValue.Value -> {
-					flagValue.v1.equals("true", ignoreCase = true)
-				}
-				is FlagValue.Group -> {
-					val enabled = flagValue.v1["enabled"]
-					enabled?.equals("true", ignoreCase = true) ?: flagValue.v1.isNotEmpty()
-				}
-			}
-		} catch (e: Exception) {
-			Timber.e(e)
-			false
 		}
 	}
 }
