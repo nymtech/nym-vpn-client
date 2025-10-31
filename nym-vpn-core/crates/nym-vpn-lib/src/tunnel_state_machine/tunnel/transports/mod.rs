@@ -64,6 +64,43 @@ pub struct BridgeConn {
     pub(crate) writer: Box<dyn AsyncWrite + Send + Unpin>,
 }
 
+#[cfg(target_os = "android")]
+impl BridgeConn {
+    pub async fn try_connect(
+        params: BridgeParameters,
+        token: CancellationToken,
+        tun_provider: Option<Arc<dyn AndroidTunProvider>>,
+    ) -> Result<Self, TransportError> {
+        let start = Instant::now();
+
+        match params {
+            BridgeParameters::QuicPlain(ref opts) => {
+                let opts = ClientOptions::try_from(opts)?;
+
+                let conn = token
+                    .run_until_cancelled(transport_conn(&opts, tun_provider))
+                    .await
+                    .ok_or(TransportError::Cancelled)??;
+                let endpoint = conn.remote_address();
+                // .context("failed to connect to transport conn")?;
+                let (writer, reader) = token
+                    .run_until_cancelled(conn.open_bi())
+                    .await
+                    .ok_or(TransportError::Cancelled)??;
+                // .context("failed to connect to transport stream")?;
+                info!("quic transport connected in {:?}", start.elapsed());
+                Ok(Self {
+                    reader: Box::new(reader),
+                    writer: Box::new(writer),
+                    params,
+                    endpoint,
+                })
+            }
+        }
+    }
+}
+
+#[cfg(not(target_os = "android"))]
 impl BridgeConn {
     pub async fn try_connect(
         params: BridgeParameters,
@@ -100,6 +137,41 @@ impl BridgeConn {
 
 pub struct UdpForwarder {}
 
+#[cfg(target_os = "android")]
+impl UdpForwarder {
+    pub async fn launch(
+        egress_conn: BridgeConn,
+        bind_addr: Option<SocketAddr>,
+        close_tx: UnboundedSender<()>,
+        token: CancellationToken,
+        tun_provider: Option<Arc<dyn AndroidTunProvider>>,
+    ) -> Result<(SocketAddr, JoinHandle<()>), TransportError> {
+        let bind_addr = bind_addr.unwrap_or(match egress_conn.endpoint.is_ipv4() {
+            true => (Ipv4Addr::LOCALHOST, 0).into(),
+            false => (Ipv6Addr::LOCALHOST, 0).into(),
+        });
+        let socket =
+            make_socket(Some(bind_addr), tun_provider).map_err(TransportError::SocketIo)?;
+        let socket = Arc::new(UdpSocket::from_std(socket).map_err(TransportError::SocketIo)?);
+        let local_addr = socket.local_addr().map_err(TransportError::SocketIo)?;
+
+        info!("udp forwarder started listening on: {local_addr}",);
+
+        Ok((
+            local_addr,
+            tokio::spawn(process_udp(
+                egress_conn.reader,
+                egress_conn.writer,
+                socket.clone(),
+                ETHERNET_V2_MTU,
+                close_tx,
+                token,
+            )),
+        ))
+    }
+}
+
+#[cfg(not(target_os = "android"))]
 impl UdpForwarder {
     pub async fn launch(
         egress_conn: BridgeConn,
@@ -379,6 +451,59 @@ pub const ALPN_QUIC_HTTP: &[&[u8]] = &[b"hq-29"];
 use ed25519_dalek::VerifyingKey;
 use quinn_proto::crypto::rustls::QuicClientConfig;
 
+#[cfg(target_os = "android")]
+pub async fn transport_conn(
+    options: &ClientOptions,
+    tun_provider: Option<Arc<dyn AndroidTunProvider>>,
+) -> Result<quinn::Connection, TransportError> {
+    info!("initialising from transport identity pubkey");
+
+    let transport_endpoint = options
+        .get_ipv4()
+        .ok_or(TransportError::config_err("No IPv4 endpoint provided"))?;
+
+    let alt_names = options.host.clone().map(|h| vec![h]);
+    let verifier =
+        IdentityBasedVerifier::new_with_alt_names(&options.id_pubkey, alt_names).unwrap();
+
+    let mut client_crypto = rustls::ClientConfig::builder()
+        .dangerous()
+        .with_custom_certificate_verifier(Arc::new(verifier))
+        .with_no_client_auth();
+
+    client_crypto.alpn_protocols = ALPN_QUIC_HTTP.iter().map(|&x| x.into()).collect();
+    let quic_client_config = QuicClientConfig::try_from(client_crypto)
+        .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
+
+    let client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
+    let bind_addr = match transport_endpoint.is_ipv4() {
+        true => (Ipv4Addr::UNSPECIFIED, 0).into(),
+        false => (Ipv6Addr::UNSPECIFIED, 0).into(),
+    };
+    let socket = make_socket(Some(bind_addr), tun_provider).map_err(TransportError::SocketIo)?;
+    let runtime =
+        quinn::default_runtime().ok_or_else(|| TransportError::other("no async runtime found"))?;
+    let mut endpoint = quinn::Endpoint::new_with_abstract_socket(
+        Default::default(),
+        None,
+        runtime
+            .wrap_udp_socket(socket)
+            .map_err(TransportError::SocketIo)?,
+        runtime,
+    )
+    .map_err(TransportError::SocketIo)?;
+    endpoint.set_default_client_config(client_config);
+
+    let addr_host = transport_endpoint.ip().to_string();
+    let host = options.host.as_deref().unwrap_or(&addr_host);
+
+    endpoint
+        .connect(transport_endpoint, host)?
+        .await
+        .map_err(TransportError::QuicProto)
+}
+
+#[cfg(not(target_os = "android"))]
 pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection, TransportError> {
     info!("initializing from transport identity pubkey");
 
@@ -430,14 +555,39 @@ pub async fn transport_conn(options: &ClientOptions) -> Result<quinn::Connection
 
 #[cfg(target_os = "linux")]
 use crate::TUNNEL_FWMARK;
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use std::os::fd::AsFd;
+#[cfg(target_os = "android")]
+use std::os::fd::AsRawFd;
+#[cfg(target_os = "android")]
+use std::sync::Arc;
 
 use std::io;
 
+#[cfg(target_os = "android")]
+fn make_socket(
+    addr: Option<SocketAddr>,
+    tun_provider: Option<Arc<dyn AndroidTunProvider>>,
+) -> io::Result<std::net::UdpSocket> {
+    let addr = addr.unwrap_or((Ipv4Addr::UNSPECIFIED, 0).into());
+    let socket = std::net::UdpSocket::bind(addr)?;
+    socket.set_nonblocking(true)?;
+
+    if let Some(provider) = tun_provider {
+        let fd = socket.as_raw_fd();
+        tracing::debug!("Bypassing QUIC socket fd: {}", fd);
+        provider.bypass(fd);
+    }
+
+    Ok(socket)
+}
+
+#[cfg(not(target_os = "android"))]
 fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {
     let addr = addr.unwrap_or((Ipv4Addr::UNSPECIFIED, 0).into());
     let socket = std::net::UdpSocket::bind(addr)?;

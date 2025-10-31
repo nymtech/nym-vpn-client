@@ -1079,6 +1079,52 @@ impl TunnelMonitor {
         Ok((connection_data, rt))
     }
 
+    #[cfg(target_os = "android")]
+    async fn start_bridges(
+        &self,
+        selected_gateways: &SelectedGateways,
+        bridge_close_tx: mpsc::UnboundedSender<()>,
+    ) -> Result<(BridgeAddress, JoinHandle<()>)> {
+        let entry_bridge_params = selected_gateways
+            .entry_gateway()
+            .get_bridge_params()
+            .ok_or(TransportError::config_err(
+                "attempted to open transport connection without bridge params",
+            ))?;
+
+        // Attempt transport Connection. If successful a listening UDP connection is created
+        // and the bind address of that UDP listener is provided to the entry wireguard tunnel
+        // as the endpoint address.
+        tracing::info!("Establishing DVPN QUIC transport tunnel");
+
+        let tun_provider = Some(self.tun_provider.clone());
+        let bridge_conn = transports::BridgeConn::try_connect(
+            entry_bridge_params,
+            self.shutdown_token.child_token(),
+            tun_provider.clone(),
+        )
+        .await?;
+        let remote_addr = bridge_conn.endpoint;
+        let (listen_addr, join_handle) = transports::UdpForwarder::launch(
+            bridge_conn,
+            None,
+            bridge_close_tx,
+            self.shutdown_token.child_token(),
+            tun_provider,
+        )
+        .await?;
+
+        tracing::info!("quic transport connected, udp forwarder open on {listen_addr}");
+
+        let bridge_addr = BridgeAddress {
+            listen_addr,
+            remote_addr,
+        };
+
+        Ok((bridge_addr, join_handle))
+    }
+
+    #[cfg(not(target_os = "android"))]
     async fn start_bridges(
         &self,
         selected_gateways: &SelectedGateways,
