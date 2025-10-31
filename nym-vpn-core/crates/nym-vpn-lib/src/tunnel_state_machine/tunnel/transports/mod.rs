@@ -560,7 +560,7 @@ use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_MTU;
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-#[cfg(any(target_os = "linux", target_os = "android"))]
+#[cfg(target_os = "linux")]
 use std::os::fd::AsFd;
 #[cfg(target_os = "android")]
 use std::os::fd::AsRawFd;
