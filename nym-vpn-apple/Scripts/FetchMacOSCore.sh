@@ -93,18 +93,33 @@ echo "✅ macOS file extracted successfully: $tar_file_name"
 
 extracted_folder_name="$(tar -tf "$tar_file_name" | head -n 1 | cut -f1 -d"/")"
 
-# Copy daemon -> helper and make executable
-if [[ -f "../Daemon/net.nymtech.vpn.helper" ]]; then
-  rm "../Daemon/net.nymtech.vpn.helper"
-  echo "✅ Removed old net.nymtech.vpn.helper file."
+# Copy daemon and make executable
+if [[ -f "../Daemon/nym-vpnd" ]]; then
+  rm "../Daemon/nym-vpnd"
+  echo "✅ Removed old nym-vpnd file."
+fi
+
+# Copy nym-setup and make executable
+if [[ -f "../Daemon/nym-setup" ]]; then
+  rm "../Daemon/nym-setup"
+  echo "✅ Removed old nym-setup file."
 fi
 
 if [[ -f "${extracted_folder_name}/nym-vpnd" ]]; then
-  cp "${extracted_folder_name}/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
-  chmod +x "../Daemon/net.nymtech.vpn.helper"
-  echo "✅ nym-vpnd copied and renamed to net.nymtech.vpn.helper successfully."
+  cp "${extracted_folder_name}/nym-vpnd" "../Daemon/nym-vpnd"
+  chmod +x "../Daemon/nym-vpnd"
+  echo "✅ nym-vpnd copied successfully."
 else
   echo "❌ Error: ${extracted_folder_name}/nym-vpnd not found."
+  exit 1
+fi
+
+if [[ -f "${extracted_folder_name}/nym-setup" ]]; then
+  cp "${extracted_folder_name}/nym-setup" "../Daemon/nym-setup"
+  chmod +x "../Daemon/nym-vpnd"
+  echo "✅ nym-setup copied successfully."
+else
+  echo "❌ Error: ${extracted_folder_name}/nym-setup not found."
   exit 1
 fi
 

@@ -43,10 +43,10 @@ rm -rf "${RPC_DEST}"
 cp -R "${RPC_SRC}" "${RPC_DEST}"
 echo "[BuildCore] Copied NymVPNRpc → ${RPC_DEST}"
 
-# 5) Copy the universal nym-vpnd → apple Daemon as net.nymtech.vpn.helper
+# 5) Copy the universal nym-vpnd → apple Daemon as nym-vpnd
 VPND_SRC="${CORE_ROOT}/upload/mac/nym-vpnd"
 VPND_DEST_DIR="${APPLE_ROOT}/Daemon"
-VPND_DEST="${VPND_DEST_DIR}/net.nymtech.vpn.helper"
+VPND_DEST="${VPND_DEST_DIR}/nym-vpnd"
 if [[ ! -f "${VPND_SRC}" ]]; then
   echo "[BuildCore][ERROR] ${VPND_SRC} not found. Make sure macOS.mk builds vpnd-universal."
   exit 1

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eu
+
+INSTALL_DIR=$2
+LOG_DIR=/var/log/nym-vpnd
+NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/MacOS/nym-setup"
+
+mkdir -p $LOG_DIR
+chmod 755 $LOG_DIR
+exec > $LOG_DIR/preinstall.log 2>&1
+
+echo "Running preinstall at $(date) with $@"
+
+# Stop the existing daemon
+if [ -f "$NYM_SETUP_BIN" ]; then
+    "$NYM_SETUP_BIN" prepare-restart &>/dev/null || \
+        echo "Failed to send 'prepare-restart' command to old nym-vpnd"
+elif [ -d "$INSTALL_DIR" ]; then
+    echo "Old installation of nym-vpnd detected"
+    killall nym-vpnd || true
+    sleep 1
+fi
+
+# Kill the GUI before proceeding with the upgrade.
+pkill -x "Nym VPN" && sleep 1 || echo "Unable to kill Nym VPN, not running?"
