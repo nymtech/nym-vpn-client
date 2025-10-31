@@ -45,6 +45,7 @@ pub struct VpnApiClient {
     inner: Client,
     urls: Vec<Url>,
     user_agent: UserAgent,
+    skew: Option<VpnApiTime>,
 }
 
 impl VpnApiClient {
@@ -65,6 +66,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
+            skew: None,
         })
     }
 
@@ -96,6 +98,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
+            skew: None,
         })
     }
 
@@ -189,6 +192,22 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
+    async fn update_skew(&self) -> Result<Option<VpnApiTime>> {
+        if self.skew.is_none() || self.skew.is_expired() {
+            self.sync_with_remote_time()
+            .await
+            .inspect_err(|err| tracing::error!("Failed to get remote time: {err}. Not retring anymore"))
+            .map(|remote_time| self.skew = Some(remote_time));
+        } else {
+            let skew = self.skew.local_time - self.skew.estimated_remote_time;
+
+            self.skew.local_time = OffsetDateTime::now_utc();
+            self.skew.estimated_remote_time = self.skew.local_time + skew;
+        }
+
+        Ok(self.skew)
+    }
+
     async fn get_authorized<T>(
         &self,
         path: PathSegments<'_>,
@@ -198,7 +217,9 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        match self.get_query::<T>(path, account, device, None).await {
+        self.update_skew().await;
+        
+        match self.get_query::<T>(path, account, device, self.skew).await {
             Ok(response) => Ok(response),
             Err(err) => {
                 if let HttpClientError::EndpointFailure { error, .. } = &err
@@ -212,7 +233,8 @@ impl VpnApiClient {
                     }) {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
-                        let res = self.get_query(path, account, device, Some(jwt)).await;
+                        self.skew = Some(jwt);
+                        let res = self.get_query(path, account, device, Some(self.jwt)).await;
                         if res.is_ok() {
                             return res;
                         }
