@@ -469,7 +469,9 @@ pub async fn transport_conn(
 
     let alt_names = options.host.clone().map(|h| vec![h]);
     let verifier = IdentityBasedVerifier::new_with_alt_names(&options.id_pubkey, alt_names)
-        .map_err(|e| TransportError::config_err(format!("failed to create certificate verifier: {e}")))?;
+        .map_err(|e| {
+            TransportError::config_err(format!("failed to create certificate verifier: {e}"))
+        })?;
 
     let mut client_crypto = rustls::ClientConfig::builder()
         .dangerous()
@@ -580,17 +582,29 @@ fn make_socket(
     let addr = addr.unwrap_or((Ipv4Addr::UNSPECIFIED, 0).into());
     let socket = std::net::UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
-    
+
     let fd = socket.as_raw_fd();
-    let local_addr = socket.local_addr()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("failed to get socket local address: {e}")))?;
-    
+    let local_addr = socket.local_addr().map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("failed to get socket local address: {e}"),
+        )
+    })?;
+
     if let Some(provider) = tun_provider {
-        tracing::debug!("QUIC socket created: fd={}, addr={}, bypassing...", fd, local_addr);
+        tracing::debug!(
+            "QUIC socket created: fd={}, addr={}, bypassing...",
+            fd,
+            local_addr
+        );
         provider.bypass(fd);
         tracing::debug!("QUIC socket fd={} bypassed successfully", fd);
     } else {
-        tracing::warn!("QUIC socket created: fd={}, addr={}, but NO tun_provider - socket NOT bypassed!", fd, local_addr);
+        tracing::warn!(
+            "QUIC socket created: fd={}, addr={}, but NO tun_provider - socket NOT bypassed!",
+            fd,
+            local_addr
+        );
     }
 
     Ok(socket)
