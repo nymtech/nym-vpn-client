@@ -134,7 +134,14 @@ jobs:
         if: env.RELEASE_TYPE == 'qa'
         working-directory: nym-vpn-apple
         run: |
-          sed -E ':a;N;$!ba; s|(</dict>[[:space:]]*</plist>)|    <key>EnvironmentVariables</key>\n    <dict>\n        <key>RUST_LOG</key>\n        <string>debug</string>\n    </dict>\n\1|' "Daemon/net.nymtech.vpn.helper.plist"
+          if /usr/libexec/PlistBuddy -c "Print :IsCiBuild" "NymVPNDaemon/Resources/Info.plist" >/dev/null 2>&1; then
+            /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "NymVPNDaemon/Resources/Info.plist"
+          else
+            /usr/libexec/PlistBuddy -c "Add :IsCiBuild bool true" "NymVPNDaemon/Resources/Info.plist"
+          fi
+
+          echo "✅ Updated Info.plist contents:"
+          /usr/libexec/PlistBuddy -c "Print" "NymVPNDaemon/Resources/Info.plist"
 
       - name: Update licences
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -205,6 +212,30 @@ jobs:
           echo "CARGO_INCREMENTAL=$CARGO_INCREMENTAL" >> "$GITHUB_ENV"
 
           mkdir -p "$SCCACHE_DIR"
+
+      - name: Update core version in app
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        run: |
+          set -euo pipefail
+
+          cargo install cargo-get
+
+          # Get version from Cargo.toml workspace
+          LIB_VERSION=$(cargo get workspace.package.version)
+          echo "📦 Core library version: ${LIB_VERSION}"
+
+          # Path to Swift source file
+          app_version_file="nym-vpn-apple/ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
+
+          # Validate and update
+          if [[ -f "$app_version_file" ]]; then
+            # macOS/BSD sed syntax: -i ''
+            sed -i '' -E 's|(public static let libVersion = ")[^"]*(")|\1'"$LIB_VERSION"'\2|' "$app_version_file"
+            echo "✅ libVersion updated to ${LIB_VERSION} in ${app_version_file}."
+          else
+            echo "❌ Error: AppVersionProvider.swift file not found at ${app_version_file}"
+            exit 1
+          fi
 
       - name: Build core
         working-directory: nym-vpn-apple/scripts

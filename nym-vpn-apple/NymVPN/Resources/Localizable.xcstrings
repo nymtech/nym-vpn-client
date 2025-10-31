@@ -8251,6 +8251,17 @@
         }
       }
     },
+    "day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "day"
+          }
+        }
+      }
+    },
     "disconnect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25968,6 +25979,17 @@
         }
       }
     },
+    "month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "month"
+          }
+        }
+      }
+    },
     "no" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28388,6 +28410,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的账户密码口令"
+          }
+        }
+      }
+    },
+    "period" : {
+      "comment" : "Unknown intro offer format period",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "period"
           }
         }
       }
@@ -38301,6 +38335,17 @@
         }
       }
     },
+    "week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "week"
+          }
+        }
+      }
+    },
     "welcome.acknowledgement" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -39610,6 +39655,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "欢迎使用\nNymVPN"
+          }
+        }
+      }
+    },
+    "year" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "year"
           }
         }
       }
