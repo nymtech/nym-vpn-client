@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,6 +53,7 @@ import java.util.Locale
 
 @Composable
 fun CountryItem(
+	query: String,
 	country: Locale,
 	gatewayType: GatewayType,
 	gatewayLocation: GatewayLocation,
@@ -62,117 +64,242 @@ fun CountryItem(
 	modifier: Modifier = Modifier,
 	isQuicSettingsEnabled: Boolean = false,
 ) {
-	val context = LocalContext.current
+	val countryCode = remember(country) { country.country.lowercase() }
+	val gatewaysGroupByState = remember(gateways, countryCode) {
+		gateways.filter {
+			it.region != null && it.region?.lowercase()?.contains(query) ?: false
+		}.groupBy { it.region }.takeIf { countryCode == "us" && gateways.any { it.region != null } }?.toSortedMap(compareBy { it })
+	}
 	var expanded by rememberSaveable(key = "expanded_${country.country}") {
-		mutableStateOf(gateways.any { it.identity == selectedKey })
+		mutableStateOf(
+			gateways.any {
+				it.identity == selectedKey || it.region.equals(selectedKey, true) || query.takeIf { q -> q.isNotBlank() }?.let { q ->
+					it.region?.contains(q, true)
+				} ?: false
+			},
+		)
 	}
 	val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
-	val countryCode = country.country.lowercase()
 
 	Column(modifier = modifier) {
-		SurfaceSelectionGroupButton(
-			listOf(
-				SelectionItem(
-					onClick = { onSelectionChange(countryCode) },
-					leading = {
-						val icon = ImageVector.vectorResource(context.getFlagImageVectorByName(countryCode))
-						Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-							Image(
-								icon,
-								contentDescription = stringResource(R.string.country_flag, country.displayCountry),
-								modifier = Modifier.size(iconSize),
-							)
-						}
-					},
-					trailing = {
-						Box(
-							modifier = Modifier
-								.clickable { expanded = !expanded }
-								.fillMaxHeight(),
-							contentAlignment = Alignment.Center,
-						) {
-							Row(
-								horizontalArrangement = Arrangement.spacedBy(16.dp),
-								verticalAlignment = Alignment.CenterVertically,
-								modifier = Modifier.padding(end = 16.dp),
-							) {
-								VerticalDivider(modifier = Modifier.height(42.dp))
-								Icon(
-									Icons.Filled.ArrowDropDown,
-									contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
-									modifier = Modifier
-										.graphicsLayer(rotationZ = rotationAngle)
-										.size(iconSize),
-								)
-							}
-						}
-					},
-					title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge) },
-					description = {
-						Text(
-							"${gateways.size} ${stringResource(R.string.servers)}",
-							style = MaterialTheme.typography.bodySmall,
-						)
-					},
-					selected = countryCode == selectedKey,
-				),
-			),
-			shape = RectangleShape,
-			background = MaterialTheme.colorScheme.surface,
-			anchorsPadding = 0.dp,
+		CountryDropDown(
+			title = country.displayCountry,
+			countryCode = countryCode,
+			country = country,
+			rotationAngle = rotationAngle,
+			expanded = expanded,
+			gateways = gateways,
+			isSelected = countryCode == selectedKey,
+			onDropDownClick = {
+				expanded = !expanded
+			},
+			onSelectionChange = {
+				onSelectionChange(countryCode)
+			},
 		)
-
 		AnimatedVisibility(
 			visible = expanded,
 			enter = expandVertically() + fadeIn(),
 			exit = shrinkVertically() + fadeOut(),
 		) {
-			SurfaceSelectionGroupButton(
-				gateways.map { gateway ->
-					val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
-					SelectionItem(
-						onClick = { onSelectionChange(gateway.identity) },
-						leading = {
-							val (icon, description) = gateway.getScoreIcon(gatewayType)
-							Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-								Image(
-									icon,
-									contentDescription = description,
-									modifier = Modifier.size(16.dp),
-								)
-							}
-						},
-						trailing = {
-							ServerDetailsTrailingContent(
-								showStreamDisplay = showStreamDisplay,
-								showQuicLabel = isQuicSettingsEnabled && gateway.isQuicSupported(),
-								onInfoIconClick = { onGatewayDetails(gateway) },
-							)
-						},
-						title = {
-							Text(
-								gateway.name,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis,
-								style = MaterialTheme.typography.bodyLarge,
-							)
-						},
-						description = {
-							Text(
-								gateway.city ?: gateway.identity,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis,
-								style = MaterialTheme.typography.bodySmall,
-							)
-						},
-						selected = selectedKey == gateway.identity,
-					)
-				},
-				shape = RectangleShape,
-				background = MaterialTheme.colorScheme.background,
-				divider = false,
-				anchorsPadding = 0.dp,
-			)
+			if (gatewaysGroupByState != null) {
+				StateGroupedGatewayList(
+					gatewaysGroupByState = gatewaysGroupByState,
+					countryCode = countryCode,
+					selectedKey = selectedKey,
+					country = country,
+					gatewayType = gatewayType,
+					gatewayLocation = gatewayLocation,
+					onSelectionChange = onSelectionChange,
+					onGatewayDetails = onGatewayDetails,
+					isQuicSettingsEnabled = isQuicSettingsEnabled,
+				)
+			} else {
+				GatewayCell(
+					gatewayType = gatewayType,
+					gatewayLocation = gatewayLocation,
+					selectedKey = selectedKey,
+					gateways = gateways,
+					onSelectionChange = { onSelectionChange(it) },
+					onGatewayDetails = { onGatewayDetails(it) },
+					isQuicSettingsEnabled = isQuicSettingsEnabled,
+				)
+			}
 		}
 	}
+}
+
+@Composable
+private fun CountryDropDown(
+	title: String,
+	countryCode: String,
+	rotationAngle: Float,
+	expanded: Boolean,
+	isSelected: Boolean,
+	country: Locale,
+	gateways: List<NymGateway>,
+	onDropDownClick: () -> Unit,
+	onSelectionChange: () -> Unit,
+) {
+	val context = LocalContext.current
+	SurfaceSelectionGroupButton(
+		listOf(
+			SelectionItem(
+				onClick = { onSelectionChange() },
+				leading = {
+					val icon = ImageVector.vectorResource(context.getFlagImageVectorByName(countryCode))
+					Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+						Image(
+							icon,
+							contentDescription = stringResource(R.string.country_flag, country.displayCountry),
+							modifier = Modifier.size(iconSize),
+						)
+					}
+				},
+				trailing = {
+					Box(
+						modifier = Modifier
+							.clickable { onDropDownClick() }
+							.fillMaxHeight(),
+						contentAlignment = Alignment.Center,
+					) {
+						Row(
+							horizontalArrangement = Arrangement.spacedBy(16.dp),
+							verticalAlignment = Alignment.CenterVertically,
+							modifier = Modifier.padding(end = 16.dp),
+						) {
+							VerticalDivider(modifier = Modifier.height(42.dp))
+							Icon(
+								Icons.Filled.ArrowDropDown,
+								contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
+								modifier = Modifier
+									.graphicsLayer(rotationZ = rotationAngle)
+									.size(iconSize),
+							)
+						}
+					}
+				},
+				title = { Text(text = title, style = MaterialTheme.typography.bodyLarge) },
+				description = {
+					Text(
+						"${gateways.size} ${stringResource(R.string.servers)}",
+						style = MaterialTheme.typography.bodySmall,
+					)
+				},
+				selected = isSelected,
+			),
+		),
+		shape = RectangleShape,
+		background = MaterialTheme.colorScheme.surface,
+		anchorsPadding = 0.dp,
+	)
+}
+
+@Composable
+private fun StateGroupedGatewayList(
+	countryCode: String,
+	selectedKey: String?,
+	isQuicSettingsEnabled: Boolean,
+	country: Locale,
+	gatewayType: GatewayType,
+	gatewayLocation: GatewayLocation,
+	gatewaysGroupByState: Map<String?, List<NymGateway>>,
+	onSelectionChange: (String) -> Unit,
+	onGatewayDetails: (NymGateway) -> Unit,
+) {
+	Column {
+		gatewaysGroupByState.forEach { (state, stateGateways) ->
+			if (state != null) {
+				var isStateExpanded by rememberSaveable(key = "isStateExpanded_$state") {
+					mutableStateOf(stateGateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey })
+				}
+				val stateRotationAngle by animateFloatAsState(targetValue = if (isStateExpanded) 180f else 0f, label = "StateItemRotation")
+
+				CountryDropDown(
+					title = state,
+					countryCode = countryCode,
+					rotationAngle = stateRotationAngle,
+					expanded = isStateExpanded,
+					isSelected = state.equals(selectedKey, true),
+					gateways = stateGateways,
+					onDropDownClick = { isStateExpanded = !isStateExpanded },
+					onSelectionChange = { onSelectionChange(state) },
+					country = country,
+				)
+				AnimatedVisibility(
+					visible = isStateExpanded,
+					enter = expandVertically() + fadeIn(),
+					exit = shrinkVertically() + fadeOut(),
+				) {
+					GatewayCell(
+						gateways = stateGateways,
+						selectedKey = selectedKey,
+						gatewayType = gatewayType,
+						gatewayLocation = gatewayLocation,
+						onSelectionChange = onSelectionChange,
+						onGatewayDetails = onGatewayDetails,
+						isQuicSettingsEnabled = isQuicSettingsEnabled,
+					)
+				}
+			}
+		}
+	}
+}
+
+@Composable
+private fun GatewayCell(
+	isQuicSettingsEnabled: Boolean,
+	gatewayType: GatewayType,
+	gatewayLocation: GatewayLocation,
+	selectedKey: String?,
+	gateways: List<NymGateway>,
+	onSelectionChange: (String) -> Unit,
+	onGatewayDetails: (NymGateway) -> Unit,
+) {
+	SurfaceSelectionGroupButton(
+		gateways.map { gateway ->
+			val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
+			SelectionItem(
+				onClick = { onSelectionChange(gateway.identity) },
+				leading = {
+					val (icon, description) = gateway.getScoreIcon(gatewayType)
+					Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+						Image(
+							icon,
+							contentDescription = description,
+							modifier = Modifier.size(16.dp),
+						)
+					}
+				},
+				trailing = {
+					ServerDetailsTrailingContent(
+						showStreamDisplay = showStreamDisplay,
+						showQuicLabel = isQuicSettingsEnabled && gateway.isQuicSupported(),
+						onInfoIconClick = { onGatewayDetails(gateway) },
+					)
+				},
+				title = {
+					Text(
+						gateway.name,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+						style = MaterialTheme.typography.bodyLarge,
+					)
+				},
+				description = {
+					Text(
+						gateway.city ?: gateway.identity,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+						style = MaterialTheme.typography.bodySmall,
+					)
+				},
+				selected = selectedKey == gateway.identity,
+			)
+		},
+		shape = RectangleShape,
+		background = MaterialTheme.colorScheme.background,
+		divider = false,
+		anchorsPadding = 0.dp,
+	)
 }

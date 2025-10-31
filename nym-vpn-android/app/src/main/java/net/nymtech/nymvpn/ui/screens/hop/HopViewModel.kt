@@ -99,17 +99,21 @@ class HopViewModel @Inject constructor(
 		val lowercaseQuery = query.lowercase()
 
 		val filteredCountries = gateways.asSequence()
-			.distinctBy { it.twoLetterCountryISO }
 			.filter { it.twoLetterCountryISO != null }
 			.filter {
 				!isQuicOnlyGatewaysFilterRequired || it.isQuicSupported()
 			} // if @isQuicOnlyGatewaysFilterRequired is true than only check for if it supported by Quic
-			.mapNotNull { it.toLocale() }
-			.filter {
-				it.displayCountry.lowercase().contains(lowercaseQuery) ||
-					it.country.lowercase().contains(lowercaseQuery) ||
-					it.isO3Country.lowercase().contains(lowercaseQuery)
+			.map { it.toLocale() to it }
+			.filter { (locale, gateway) ->
+				locale?.let {
+					it.displayCountry.lowercase().contains(lowercaseQuery) ||
+						it.country.lowercase().contains(lowercaseQuery) ||
+						it.isO3Country.lowercase().contains(lowercaseQuery) ||
+						gateway.region?.lowercase()?.contains(lowercaseQuery) ?: false
+				} ?: false
 			}
+			.mapNotNull { it.first }
+			.distinctBy { it.isO3Country }
 			.sortedWith(compareBy(collator) { it.displayCountry })
 			.toList()
 

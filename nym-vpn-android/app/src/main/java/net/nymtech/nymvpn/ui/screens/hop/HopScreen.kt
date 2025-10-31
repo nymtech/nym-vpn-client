@@ -247,6 +247,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 
 			items(uiState.countries, key = { it.country }) { country ->
 				CountryItem(
+					query = uiState.query,
 					country = country,
 					gatewayType = gatewayType,
 					gatewayLocation = gatewayLocation,
