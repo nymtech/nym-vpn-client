@@ -220,11 +220,7 @@ jobs:
 
           cargo install cargo-get
 
-          # Navigate into nym-vpn-core and get version
-          pushd nym-vpn-core > /dev/null
-          LIB_VERSION=$(cargo get workspace.package.version)
-          popd > /dev/null
-
+          LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core)
           echo "📦 Core library version: ${LIB_VERSION}"
 
           # Path to Swift source file
