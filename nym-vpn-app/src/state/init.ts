@@ -21,6 +21,7 @@ import {
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
+const defaultNetStats = window._APP.defaultNetstats;
 const defaultQuic = window._APP.defaultQuic;
 const defaultDomFront = window._APP.defaultDomainFronting;
 
@@ -107,9 +108,7 @@ export async function initFirstBatch(
     },
   };
 
-  const getDesktopNotificationsRq: TauriReq<
-    () => Promise<boolean | undefined>
-  > = {
+  const getDesktopNotificationsRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getDesktopNotificationsRq',
     request: () => kvGet<boolean>('desktop-notifications'),
     onFulfilled: (enabled) => {
@@ -120,7 +119,7 @@ export async function initFirstBatch(
     },
   };
 
-  const getRootFontSizeRq: TauriReq<() => Promise<number | undefined>> = {
+  const getRootFontSizeRq: TauriReq<() => Promise<number | null>> = {
     name: 'getRootFontSize',
     request: () => kvGet<number>('ui-root-font-size'),
     onFulfilled: (size) => {
@@ -165,7 +164,7 @@ export async function initFirstBatch(
     },
   };
 
-  const getIpv6SupportRq: TauriReq<() => Promise<boolean | undefined>> = {
+  const getIpv6SupportRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getIpv6Support',
     request: () => kvGet<boolean>('disable-ipv6'),
     onFulfilled: (disabled) => {
@@ -175,32 +174,36 @@ export async function initFirstBatch(
     },
   };
 
-  const getQuicRq: TauriReq<() => Promise<boolean | undefined>> = {
+  const getQuicRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getQuicRq',
     request: () => kvGet<boolean>('quic-enabled'),
     onFulfilled: (enabled) => {
-      dispatch({ type: 'set-quic', enabled: enabled || defaultQuic });
+      dispatch({
+        type: 'set-quic',
+        enabled: enabled !== null ? enabled : defaultQuic,
+      });
     },
   };
 
-  const getDomainFrontingRq: TauriReq<() => Promise<boolean | undefined>> = {
+  const getDomainFrontingRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getDomainFrontingRq',
     request: () => kvGet<boolean>('domain-fronting-enabled'),
     onFulfilled: (enabled) => {
       dispatch({
         type: 'set-domain-fronting',
-        enabled: enabled || defaultDomFront,
+        enabled: enabled !== null ? enabled : defaultDomFront,
       });
     },
   };
 
-  const getNetworkStatsRq: TauriReq<() => Promise<boolean | undefined>> = {
+  const getNetworkStatsRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getNetworkStats',
     request: () => kvGet<boolean>('network-stats-enabled'),
     onFulfilled: (enabled) => {
-      if (enabled !== undefined) {
-        dispatch({ type: 'set-network-stats', enabled });
-      }
+      dispatch({
+        type: 'set-network-stats',
+        enabled: enabled !== null ? enabled : defaultNetStats,
+      });
     },
   };
 
