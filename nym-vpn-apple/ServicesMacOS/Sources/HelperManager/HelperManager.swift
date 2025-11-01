@@ -13,14 +13,15 @@ import NymLogger
 
     private let grpcManager: GRPCManager
     private let daemon = SMAppService.daemon(plistName: "net.nymtech.vpn.helper.plist")
-    private let logger = Logger(label: "🚜 HelperManager")
-
+    private let daemonUpdater = SMAppService.daemon(plistName: "net.nymtech.vpn.updater.plist")
     private var cancellables = Set<AnyCancellable>()
     private var pollingTask: Task<Void, Never>?
 
     private var isInstalledAndUpToDate: Bool {
         daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isServing
     }
+
+    let logger = Logger(label: "🚜 HelperManager")
 
     @Published public var daemonState = DaemonState.unknown
 
@@ -39,6 +40,7 @@ import NymLogger
 
     public func uninstall() async throws {
         try await daemon.unregister()
+        try await daemonUpdater.unregister()
         try await Task.sleep(for: .seconds(1))
         updateDaemonState()
     }
@@ -62,6 +64,21 @@ import NymLogger
                 break
             }
         } catch {
+            print("Failed to register daemon: \(error)")
+            logger.error("Failed to register daemon: \(error)")
+        }
+    }
+
+    public func registerDaemonUpdaterIfNeeded() {
+        do {
+            switch daemonUpdater.status {
+            case .notRegistered, .notFound:
+                try daemonUpdater.register()
+            default:
+                break
+            }
+        } catch {
+            print("Failed to register daemon updater: \(error)")
             logger.error("Failed to register daemon: \(error)")
         }
     }
@@ -71,15 +88,14 @@ import NymLogger
 private extension HelperManager {
 
     func setup() {
-        // Entire setup runs on MainActor because the class is @MainActor.
         updateDaemonState()
         setupGrpcManagerObservers()
+        registerDaemonUpdaterIfNeeded()
         registerDaemonIfNeeded()
         try? updateDaemonIfNeeded()
     }
 
     func setupGrpcManagerObservers() {
-        // Since we're @MainActor, we can subscribe directly; ensure delivery on main.
         grpcManager.$daemonVersion
             .removeDuplicates()
             .sink { [weak self] _ in
@@ -111,7 +127,6 @@ private extension HelperManager {
                 return
             }
 
-            // FIX: this was `||` (always true). It should be `&&`.
             if grpcManager.daemonVersion != "unknown" && grpcManager.daemonVersion != "noVersion" {
                 newState = isInstalledAndUpToDate ? .running : .requiresUpdate
             } else {
@@ -153,7 +168,6 @@ private extension HelperManager {
         guard daemonState == .requiresUpdate, grpcManager.tunnelStatus != .connected else { return }
         daemonState = .updating
 
-        // Ensure all state mutations stay on MainActor:
         Task { @MainActor in
             do {
                 logger.info("Update if needed...")
@@ -161,10 +175,8 @@ private extension HelperManager {
                 logger.info("Req. v: \(AppVersionProvider.libVersion)")
                 logger.info("Cur. v: \(self.grpcManager.daemonVersion)")
 
-                logger.info("Uninstalling...")
-                try await self.uninstall()
-                logger.info("Registering...")
-                try self.daemon.register()
+                logger.info("Updating...")
+                callKillHelper()
                 logger.info("Updated")
 
                 try await Task.sleep(for: .seconds(3))
@@ -182,7 +194,6 @@ private extension HelperManager {
 // MARK: - Polling
 private extension HelperManager {
     func startPolling() {
-        // Poll on MainActor; access to grpcManager and daemonState stays safe.
         pollingTask?.cancel()
         pollingTask = Task { [weak self] in
             guard let self else { return }

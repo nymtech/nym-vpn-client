@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(path: "../NymVPNRpc"),
         .package(path: "../ServicesMutual"),
+        .package(path: "../NymVPNDaemonUpdater"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
@@ -50,6 +51,7 @@ let package = Package(
             name: "HelperManager",
             dependencies: [
                 "GRPCManager",
+                .product(name: "NymVPNDaemonUpdaterProtocol", package: "NymVPNDaemonUpdater"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Theme", package: "Theme")
             ],

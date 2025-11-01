@@ -34,4 +34,7 @@
    <FileRef
       location = "group:UIComponents">
    </FileRef>
+   <FileRef
+      location = "group:NymVPNDaemonUpdater">
+   </FileRef>
 </Workspace>

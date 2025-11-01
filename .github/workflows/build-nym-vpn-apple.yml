@@ -450,8 +450,11 @@ jobs:
           test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
 
           OUT_JSON="$PWD/build/dmg/notarytool-log.json"
+          mkdir -p "$(dirname "$OUT_JSON")"
+
           echo "📤 Submitting $DMG for notarization…"
 
+          # Submit for notarization and capture JSON output
           xcrun notarytool submit "$DMG" \
             --key "$ASC_KEY_PATH" \
             --key-id "$ASC_KEY_ID" \
@@ -459,8 +462,26 @@ jobs:
             --wait \
             --output-format json | tee "$OUT_JSON"
 
-          STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
-          [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; exit 1; }
+          # Extract status and request ID
+          STATUS="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("status",""));' "$OUT_JSON")"
+          REQUEST_ID="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("id",""));' "$OUT_JSON")"
+
+          echo "📄 Notarization Request ID: ${REQUEST_ID:-<none>}"
+          echo "📋 Notarization Status: ${STATUS:-<unknown>}"
+
+          if [[ "$STATUS" != "Accepted" ]]; then
+            echo "❌ Notarization failed ($STATUS)"
+            if [[ -n "${REQUEST_ID:-}" ]]; then
+              echo "🔍 Fetching notarization log from Apple..."
+              # ✅ Correct output format flag
+              xcrun notarytool log "$REQUEST_ID" \
+                --key "$ASC_KEY_PATH" \
+                --key-id "$ASC_KEY_ID" \
+                --issuer "$ASC_ISSUER_ID" \
+                --output-format normal || echo "⚠️ Failed to fetch notarization log"
+            fi
+            exit 1
+          fi
 
           echo "✅ Notarization status: Accepted"
           echo "📎 Stapling DMG…"
