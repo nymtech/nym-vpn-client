@@ -174,6 +174,7 @@ private extension CensorshipView {
                 appSettings.isQuicEnabled.toggle()
                 appSettings.shouldReconnect = true
                 isConfirmationDisplayed = false
+                path = .init()
             },
             noAction: {
                 appSettings.isQuicEnabled.toggle()
