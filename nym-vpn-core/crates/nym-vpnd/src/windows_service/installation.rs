@@ -9,13 +9,13 @@ use std::{
 use anyhow::Context;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
+    Error as ServiceError,
     service::{
         ServiceAccess, ServiceAction, ServiceActionType, ServiceDependency, ServiceErrorControl,
         ServiceFailureActions, ServiceFailureResetPeriod, ServiceInfo, ServiceStartType,
         ServiceState,
     },
     service_manager::{ServiceManager, ServiceManagerAccess},
-    Error as ServiceError,
 };
 
 use super::{SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME, SERVICE_TYPE};
@@ -107,7 +107,7 @@ pub async fn uninstall_service(wait_time: u32) -> windows_service::Result<()> {
                 } else {
                     Err(windows_service::Error::Winapi(e))
                 };
-            },
+            }
             Err(e) => return Err(e),
         };
 
