@@ -1,7 +1,6 @@
 import Foundation
 import Combine
 import ConfigurationManager
-import FeatureFlagModels
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -13,40 +12,31 @@ import GRPCManager
     private let grpcManager: GRPCManager
 #endif
     private let configurationManager: ConfigurationManager
-    private var featureFlags: [FeatureFlag]
+
     private var cancellables = Set<AnyCancellable>()
 
 #if os(iOS)
-    public static let shared = FeatureFlagsManager(featureFlags: [], configurationManager: .shared)
+    public static let shared = FeatureFlagsManager(configurationManager: .shared)
 #elseif os(macOS)
     public static let shared = FeatureFlagsManager(
-        featureFlags: [],
         configurationManager: .shared,
         grpcManager: .shared
     )
 #endif
 
-    public var isStealthAPIEnabled: Bool {
-        featureFlags.contains(where: { $0.name == "domain_fronting.enabled" && $0.isEnabled })
-    }
-
-    public var isQuicEnabled: Bool {
-        featureFlags.contains(where: { $0.name == "quic.enabled" && $0.isEnabled })
-    }
+    public var isStealthAPIEnabled = false
+    public var isQuicEnabled = false
 
 #if os(iOS)
-    init(featureFlags: [FeatureFlag], configurationManager: ConfigurationManager) {
-        self.featureFlags = featureFlags
+    init(configurationManager: ConfigurationManager) {
         self.configurationManager = configurationManager
         setup()
     }
 #elseif os(macOS)
     init(
-        featureFlags: [FeatureFlag],
         configurationManager: ConfigurationManager,
         grpcManager: GRPCManager
     ) {
-        self.featureFlags = featureFlags
         self.configurationManager = configurationManager
         self.grpcManager = grpcManager
         setupIsServingObserver()
@@ -88,17 +78,18 @@ private extension FeatureFlagsManager {
 private extension FeatureFlagsManager {
     func updateFeatureFlags() {
         Task {
-            let newFlags: [FeatureFlag]
+
 #if os(iOS)
             guard let flags = try? currentEnvironment().featureFlags else { return }
-            newFlags = flags.toFeatureFlagList()
+            Task { @MainActor in
+                isQuicEnabled = flags.isQuicEnabled() ?? false
+                isStealthAPIEnabled = flags.isDomainFrontingEnabled() ?? false
+            }
 #elseif os(macOS)
             guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
-            newFlags = flags
+            isQuicEnabled = flags.isQuicEnabled() ?? false
+            isStealthAPIEnabled = flags.isDomainFrontingEnabled() ?? false
 #endif
-            await MainActor.run {
-                featureFlags = newFlags
-            }
         }
     }
 }

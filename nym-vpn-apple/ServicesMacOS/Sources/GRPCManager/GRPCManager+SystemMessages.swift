@@ -1,5 +1,5 @@
 import MessageModels
-import FeatureFlagModels
+import NymVPNRpc
 
 extension GRPCManager {
     public func fetchSystemMessages() async throws -> [NymNetworkMessage] {
@@ -18,24 +18,9 @@ extension GRPCManager {
         }.value
     }
 
-    public func fetchFeatureFlags() async throws -> [FeatureFlag] {
+    public func fetchFeatureFlags() async throws -> FeatureFlags? {
         try await Task.detached { [weak self] in
-            guard let result = try await self?.rpcClient?.getFeatureFlags() else { return [] }
-
-            var list: [FeatureFlag] = []
-
-            result.flags.forEach { name, flag in
-                switch flag {
-                case let .value(value):
-                    list.append(FeatureFlag(name: name, value: value))
-                case let .group(dict):
-                    dict.forEach { key, value in
-                        list.append(FeatureFlag(name: "\(name).\(key)", value: value))
-                    }
-                }
-            }
-            list.sort { $0.name < $1.name }
-            return list
+            return try await self?.rpcClient?.getFeatureFlags()
         }.value
     }
 }
