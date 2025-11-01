@@ -1,6 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
 use std::time::Duration;
 
 use backon::Retryable;
@@ -45,7 +48,7 @@ pub struct VpnApiClient {
     inner: Client,
     urls: Vec<Url>,
     user_agent: UserAgent,
-    skew: Option<VpnApiTime>,
+    jwt: Arc<RwLock<Option<VpnApiTime>>>,
 }
 
 impl VpnApiClient {
@@ -66,7 +69,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
-            skew: None,
+            jwt: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -98,7 +101,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
-            skew: None,
+            jwt: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -192,20 +195,25 @@ impl VpnApiClient {
         nym_http_api_client::parse_response(response, false).await
     }
 
-    async fn update_skew(&self) -> Result<Option<VpnApiTime>> {
-        if self.skew.is_none() || self.skew.is_expired() {
-            self.sync_with_remote_time()
-            .await
-            .inspect_err(|err| tracing::error!("Failed to get remote time: {err}. Not retring anymore"))
-            .map(|remote_time| self.skew = Some(remote_time));
+    async fn update_jwt(&self) {
+        if let Some(s) = *self.jwt.read().await {
+            let new_skew = s.local_time - s.estimated_remote_time;
+            tracing::debug!("Updating JWT with new skew: {new_skew}");
+
+            let mut jwt = self.jwt.write().await;
+            let now = OffsetDateTime::now_utc();
+            *jwt = Some(VpnApiTime::from_estimated_remote_time(now, now + new_skew));
         } else {
-            let skew = self.skew.local_time - self.skew.estimated_remote_time;
-
-            self.skew.local_time = OffsetDateTime::now_utc();
-            self.skew.estimated_remote_time = self.skew.local_time + skew;
+            if let Ok(remote_jwt) = self.get_remote_time().await.inspect_err(|err| {
+                tracing::error!("Failed to get remote time: {err}")
+            }) {
+                tracing::debug!("Updating JWT with remote JWT");
+                let mut jwt = self.jwt.write().await;
+                *jwt = Some(remote_jwt);
+            } else {
+                tracing::error!("Failed to get remote time");
+            }
         }
-
-        Ok(self.skew)
     }
 
     async fn get_authorized<T>(
@@ -217,9 +225,9 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        self.update_skew().await;
+        self.update_jwt().await;
         
-        match self.get_query::<T>(path, account, device, self.skew).await {
+        match self.get_query::<T>(path, account, device, self.jwt.read().await.clone()).await {
             Ok(response) => Ok(response),
             Err(err) => {
                 if let HttpClientError::EndpointFailure { error, .. } = &err
@@ -228,13 +236,14 @@ impl VpnApiClient {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                    if let Ok(Some(remote_jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
                         tracing::error!("Failed to get remote time: {err}. Not retring anymore")
                     }) {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
-                        self.skew = Some(jwt);
-                        let res = self.get_query(path, account, device, Some(self.jwt)).await;
+                        let mut jwt = self.jwt.write().await;
+                        *jwt = Some(remote_jwt);
+                        let res = self.get_query(path, account, device, *jwt).await;
                         if res.is_ok() {
                             return res;
                         }

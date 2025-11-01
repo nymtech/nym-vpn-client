@@ -16,7 +16,6 @@ use zeroize::Zeroizing;
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
-pub const JWT_TTL_HOURS: i64 = 1;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -193,9 +192,6 @@ pub struct VpnApiTime {
 
     // The estimated time on the remote server. Based on RTT, it's not guaranteed to be accurate.
     pub estimated_remote_time: OffsetDateTime,
-
-    // The time to live of the JWT.
-    pub ttl: PrimitiveDateTime,
 }
 
 impl VpnApiTime {
@@ -206,7 +202,6 @@ impl VpnApiTime {
         Self {
             local_time,
             estimated_remote_time,
-            ttl: (OffsetDateTime::now_utc() + time::Duration::hours(1)),
         }
     }
 
@@ -220,7 +215,6 @@ impl VpnApiTime {
         Self {
             local_time: local_time_after_request,
             estimated_remote_time,
-            ttl: (OffsetDateTime::now_utc() + time::Duration::hours(1)),
         }
     }
 
@@ -236,10 +230,6 @@ impl VpnApiTime {
 
     pub fn is_acceptable_synced(&self) -> bool {
         self.local_time_ahead_skew().abs().whole_seconds() < MAX_ACCEPTABLE_SKEW_SECONDS
-    }
-
-    pub fn is_expired(&self) -> bool {
-        self.ttl - self.local_time > Duration::hours(JWT_TTL_HOURS)
     }
 
     pub fn is_synced(&self) -> VpnApiTimeSynced {
