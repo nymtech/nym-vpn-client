@@ -1,3 +1,6 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 //! Certificate handling implementations
 //!
 //! Nym Nodes have identity keys (ed25519) that can be used to sign and verify certificates to use

@@ -31,6 +31,7 @@ constructor(
 			backendManager.storeMnemonic(mnemonic.trim())
 			Timber.d("Imported account successfully")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
+			backendManager.refreshAccount()
 			_success.emit(true)
 		}.onFailure {
 			Timber.e(it)
