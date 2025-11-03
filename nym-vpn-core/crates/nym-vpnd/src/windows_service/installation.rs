@@ -89,7 +89,7 @@ pub fn install_service() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn uninstall_service(wait_time: u32) -> anyhow::Result<()> {
+pub async fn uninstall_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -118,7 +118,7 @@ pub async fn uninstall_service(wait_time: u32) -> anyhow::Result<()> {
 
     // Poll until service is deleted or timeout.
     let start = Instant::now();
-    let timeout = Duration::from_secs(wait_time as u64);
+    let timeout = Duration::from_secs(30);
     while start.elapsed() < timeout {
         if let Err(windows_service::Error::Winapi(e)) =
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
@@ -131,11 +131,11 @@ pub async fn uninstall_service(wait_time: u32) -> anyhow::Result<()> {
     }
 
     Err(anyhow!(
-        "{SERVICE_NAME} service failed to uninstall within {wait_time} seconds"
+        "{SERVICE_NAME} service failed to uninstall in time"
     ))
 }
 
-pub fn start_service() -> windows_service::Result<()> {
+pub fn start_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 

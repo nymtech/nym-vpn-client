@@ -60,11 +60,7 @@ pub enum Command {
 
     #[cfg(windows)]
     /// Uninstall windows service
-    UninstallService {
-        /// Time to wait, in seconds, for the Service to uninstall
-        #[arg(long, default_value = "30")]
-        wait: u32,
-    },
+    UninstallService,
 
     #[cfg(windows)]
     /// Start windows service
