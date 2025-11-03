@@ -409,7 +409,7 @@ jobs:
           MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
-          STAGING_DIRECTORY="$TMPDIR/staging"
+          STAGING_DIRECTORY="$PWD/build/pkg"
           UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
@@ -419,7 +419,7 @@ jobs:
           NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
-          SCRIPTS_DIR="$(pwd)/PkgScripts"
+          SCRIPTS_DIR="$PWD/PkgScripts"
 
           # Set up a staging directory with the contents to install.
           rm -rf "$STAGING_DIRECTORY" || true
