@@ -81,10 +81,6 @@ jobs:
         with:
           crate: cargo-license
 
-      # - name: Install appdmg
-      #   if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
-      #   run: npm install -g appdmg
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -477,56 +473,6 @@ jobs:
           echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
-      # - name: Create DMG
-      #   id: make-dmg
-      #   working-directory: nym-vpn-apple
-      #   run: |
-      #     set -euo pipefail
-
-      #     APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
-
-      #     if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
-      #       echo "❌ Invalid app path: $APP_PATH" >&2
-      #       exit 1
-      #     fi
-      #     echo "✅ Using app: $APP_PATH"
-
-      #     BG="$PWD/NymVPN/Resources/background_dmg@2x.png"
-      #     ICON="$PWD/NymVPN/Resources/macDmgIcon.icns"
-      #     OUT_DIR="$PWD/build/dmg"
-      #     mkdir -p "$OUT_DIR"
-
-      #     case "${RELEASE_TYPE:-pr}" in
-      #       qa)   DMG_NAME="NymVPN_QA.dmg" ;;
-      #       ship) DMG_NAME="NymVPN.dmg" ;;
-      #       *)    DMG_NAME="NymVPN_${RELEASE_TYPE}.dmg" ;;
-      #     esac
-      #     DMG_PATH="$OUT_DIR/$DMG_NAME"
-
-      #     cat > appdmg.json <<'JSON'
-      #     {
-      #       "title": "NymVPN Installer",
-      #       "background": "__BG__",
-      #       "icon": "__ICON__",
-      #       "contents": [
-      #         { "x": 607, "y": 290, "type": "link", "path": "/Applications" },
-      #         { "x": 192, "y": 290, "type": "file", "path": "__APP__" }
-      #       ],
-      #       "icon-size": 160,
-      #       "window": { "size": { "width": 800, "height": 600 } }
-      #     }
-      #     JSON
-
-      #     # BSD sed (macOS) in-place edits
-      #     sed -i '' "s#__BG__#${BG//\//\\/}#g" appdmg.json
-      #     sed -i '' "s#__ICON__#${ICON//\//\\/}#g" appdmg.json
-      #     sed -i '' "s#__APP__#${APP_PATH//\//\\/}#g" appdmg.json
-
-      #     appdmg appdmg.json "$DMG_PATH"
-
-      #     echo "dmg_path=$DMG_PATH" >> "$GITHUB_OUTPUT"
-      #     echo "✅ DMG created at: $DMG_PATH"
-
       - name: Write App Store Connect API key
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
         id: asc-key
@@ -540,41 +486,6 @@ jobs:
           echo "$ASC_PRIVATE_KEY" > "$KEY_PATH"
           echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
           echo "✅ ASC API key written to $KEY_PATH"
-
-      # - name: Notarize DMG (Developer ID)
-      #   if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
-      #   id: notarize-dmg
-      #   working-directory: nym-vpn-apple
-      #   env:
-      #     ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-      #     ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-      #     ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
-      #   run: |
-      #     set -euxo pipefail
-
-      #     DMG="${{ steps.make-dmg.outputs.dmg_path }}"
-      #     test -f "$DMG" || { echo "❌ DMG not found at $DMG"; exit 1; }
-      #     test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
-
-      #     OUT_JSON="$PWD/build/dmg/notarytool-log.json"
-      #     echo "📤 Submitting $DMG for notarization…"
-
-      #     xcrun notarytool submit "$DMG" \
-      #       --key "$ASC_KEY_PATH" \
-      #       --key-id "$ASC_KEY_ID" \
-      #       --issuer "$ASC_ISSUER_ID" \
-      #       --wait \
-      #       --output-format json | tee "$OUT_JSON"
-
-      #     STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
-      #     [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; exit 1; }
-
-      #     echo "✅ Notarization status: Accepted"
-      #     echo "📎 Stapling DMG…"
-      #     xcrun stapler staple "$DMG"
-      #     xcrun stapler validate "$DMG"
-
-      #     echo "dmg_path=$DMG" >> "$GITHUB_OUTPUT"
 
       - name: Notarize PKG (Developer Installer ID)
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -610,15 +521,6 @@ jobs:
           xcrun stapler validate "$PKG"
 
           echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
-
-      # - name: Upload artifacts (QA / Ship)
-      #   if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
-      #     path: ${{ steps.notarize-dmg.outputs.dmg_path || steps.make-dmg.outputs.dmg_path }}
-      #     if-no-files-found: error
-      #     retention-days: 1
 
       - name: Upload artifacts (QA / Ship)
         if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
