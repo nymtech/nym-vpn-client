@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
     Error as ServiceError,
@@ -25,7 +25,7 @@ pub fn install_service() -> anyhow::Result<()> {
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
     println!("Registering event logger {SERVICE_DISPLAY_NAME}...");
-    eventlog::register(SERVICE_DISPLAY_NAME).unwrap();
+    eventlog::register(SERVICE_DISPLAY_NAME)?;
 
     println!("Registering {SERVICE_NAME} service...");
 
@@ -84,21 +84,33 @@ pub fn install_service() -> anyhow::Result<()> {
         .set_description(SERVICE_DESCRIPTION)
         .with_context(|| "Failed to set service description")?;
 
-    println!("{SERVICE_NAME} service has been registered.");
+    println!("{SERVICE_NAME} service was installed successfully.");
 
     Ok(())
 }
 
-pub async fn uninstall_service() -> windows_service::Result<()> {
+pub async fn uninstall_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
     {
         let service_access =
             ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
-        let service = service_manager.open_service(SERVICE_NAME, service_access)?;
+
+        // If the service does not exist, then it's not an error.
+        let service = match service_manager.open_service(SERVICE_NAME, service_access) {
+            Ok(service) => service,
+            Err(ServiceError::Winapi(ref e))
+                if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) =>
+            {
+                println!("{SERVICE_NAME} service is not installed.");
+                return Ok(());
+            }
+            Err(e) => return Err(anyhow!("Failed to open service {SERVICE_NAME}: {e}")),
+        };
 
         service.delete()?;
+
         if service.query_status()?.current_state != ServiceState::Stopped {
             service.stop()?;
         }
@@ -106,23 +118,24 @@ pub async fn uninstall_service() -> windows_service::Result<()> {
 
     // Poll until service is deleted or timeout.
     let start = Instant::now();
-    let timeout = Duration::from_secs(5);
+    let timeout = Duration::from_secs(30);
     while start.elapsed() < timeout {
         if let Err(windows_service::Error::Winapi(e)) =
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
             && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32)
         {
-            println!("{SERVICE_NAME} is deleted.");
+            println!("{SERVICE_NAME} service was uninstalled successfully.");
             return Ok(());
         }
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
-    println!("{SERVICE_NAME} is marked for deletion.");
 
-    Ok(())
+    Err(anyhow!(
+        "{SERVICE_NAME} service failed to uninstall in time"
+    ))
 }
 
-pub fn start_service() -> windows_service::Result<()> {
+pub fn start_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 

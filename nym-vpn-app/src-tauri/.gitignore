@@ -1,3 +1,8 @@
 /target/
 /bindings/
 /gen/schemas/
+
+nym-vpnd.exe
+libwg.dll
+winfw.dll
+wintun.dll
