@@ -400,7 +400,6 @@ jobs:
         id: make-pkg
         working-directory: nym-vpn-apple
         env:
-          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
           INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
@@ -470,9 +469,9 @@ jobs:
           ls -la "$STAGING_DIRECTORY"
 
           # Sign separately to make it easier debug keychain login prompts
-          productsign --sign "$INSTALLER_SIGNING_IDENTITY" \
-              --timestamp \
-              --keychain "$KEYCHAIN_PATH"
+          productsign --timestamp \
+              --keychain "$KEYCHAIN_PATH" \
+              --sign "$INSTALLER_SIGNING_IDENTITY" \
               "$UNSIGNED_PKG_PATH" "$PKG_PATH"
 
           echo "✅ PKG is written to: $PKG_PATH"
