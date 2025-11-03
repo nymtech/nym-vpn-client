@@ -380,7 +380,7 @@ jobs:
 
       - name: Create PKG
         id: make-pkg
-        working-directory: nym-vpn-apple/Scripts
+        working-directory: nym-vpn-apple
         env:
           DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
           INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
@@ -403,7 +403,7 @@ jobs:
           NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
-          SCRIPTS_DIR="$SCRIPT_DIR/../Installer/Scripts"
+          SCRIPTS_DIR="$(pwd)/PkgScripts"
 
           # Set up a staging directory with the contents to install.
           rm -rf "$STAGING_DIRECTORY" || true

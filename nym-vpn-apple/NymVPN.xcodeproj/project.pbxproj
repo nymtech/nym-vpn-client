@@ -184,9 +184,6 @@
 
 /* Begin PBXFileReference section */
 		5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelSettingsConversions.swift; sourceTree = "<group>"; };
-		58B5A2A72EB524DC0079FE55 /* generatePackage.zsh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generatePackage.zsh; sourceTree = "<group>"; };
-		58B5A2A82EB524DC0079FE55 /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text; path = postinstall; sourceTree = "<group>"; };
-		58B5A2DB2EB527CF0079FE55 /* preinstall */ = {isa = PBXFileReference; lastKnownFileType = text; path = preinstall; sourceTree = "<group>"; };
 		58B5A2E22EB52A490079FE55 /* nym-setup */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-setup"; sourceTree = "<group>"; };
 		D90F19042BEED69D008D2232 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelActor.swift; sourceTree = "<group>"; };
@@ -350,24 +347,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		58B5A2A52EB523F30079FE55 /* Installer */ = {
-			isa = PBXGroup;
-			children = (
-				58B5A2A72EB524DC0079FE55 /* generatePackage.zsh */,
-				58B5A2A92EB524DC0079FE55 /* Scripts */,
-			);
-			path = Installer;
-			sourceTree = "<group>";
-		};
-		58B5A2A92EB524DC0079FE55 /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				58B5A2DB2EB527CF0079FE55 /* preinstall */,
-				58B5A2A82EB524DC0079FE55 /* postinstall */,
-			);
-			path = Scripts;
-			sourceTree = "<group>";
-		};
 		D90F19062BEED6A2008D2232 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -418,7 +397,6 @@
 				D9418D6E2E849769008B6B0A /* CHANGELOG.md */,
 				D9E9F1A12C3D51650056EB8C /* README.md */,
 				D9D336652E7A8E9300590D81 /* SharedResources */,
-				58B5A2A52EB523F30079FE55 /* Installer */,
 				D9FB33F02BEE31E2009C3419 /* Daemon */,
 				D99A14782B357E9900F2728B /* NymVPN */,
 				D9BEF2D12BEB63310036C566 /* NymVPNDaemon */,
