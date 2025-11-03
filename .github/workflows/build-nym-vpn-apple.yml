@@ -404,6 +404,7 @@ jobs:
           KEYCHAIN_PATH="${{ steps.setup-keychain.outputs.keychain_path }}"
           APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
           APP_PLIST_PATH="$APP_PATH/Contents/Info.plist"
+          PRODUCT_NAME="$(plutil -extract CFBundleName raw $APP_PLIST_PATH)"
           PRODUCT_BUNDLE_IDENTIFIER="$(plutil -extract CFBundleIdentifier raw $APP_PLIST_PATH)"
           MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
@@ -458,6 +459,12 @@ jobs:
               --append '//installer-gui-script/domains' --type attr -n 'enable_currentUserHome' --value 'false' \
               --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
               "$DIST_XML_FILE"
+
+          # Add title which acts as an app name
+          xmlstarlet edit --inplace \
+            --insert '//installer-gui-script/node()[1]' \
+            --type elem --name "title" --value "$PRODUCT_NAME" \
+            "$DIST_XML_FILE"
 
           # Synthesize the final package from the distribution.
           productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
