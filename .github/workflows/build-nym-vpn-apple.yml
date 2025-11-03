@@ -178,16 +178,18 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --allow-app /usr/bin/productbuild \
-            --allow-app /usr/bin/codesign
+            --allow-app productbuild \
+            --allow-app codesign \
+            --allow-app productsign
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            --allow-app /usr/bin/productbuild \
-            --allow-app /usr/bin/codesign
+            --allow-app productbuild \
+            --allow-app codesign \
+            --allow-app productsign
 
           echo "✅ Keychain and certificates imported successfully."
 
@@ -413,6 +415,7 @@ jobs:
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
           STAGING_DIRECTORY="$TMPDIR/staging"
+          UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
@@ -463,13 +466,15 @@ jobs:
               "$DIST_XML_FILE"
 
           # Synthesize the final package from the distribution.
-          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$PKG_PATH" \
-              --sign "$INSTALLER_SIGNING_IDENTITY" \
+          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
+
+          ls -la "$STAGING_DIRECTORY"
+
+          # Sign separately to make it easier debug keychain login prompts
+          productsign --sign "$INSTALLER_SIGNING_IDENTITY" \
               --timestamp \
               --keychain "$KEYCHAIN_PATH"
-
-          # Remove original pkg produced by pkgbuild
-          rm "$NESTED_PKG_PATH" || true
+              "$UNSIGNED_PKG_PATH" "$PKG_PATH"
 
           echo "✅ PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
