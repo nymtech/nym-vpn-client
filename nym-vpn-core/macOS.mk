@@ -69,13 +69,14 @@ vpnd-x86_64:
 	$(CARGO) build -p nym-vpnd --target x86_64-apple-darwin $(RELEASE_FLAG)
 
 # Create universal binary with lipo
-vpnd-universal: vpnd-aarch64 vpnd-x86_64
+vpnd-universal: vpnd-aarch64 # vpnd-x86_64
 	@echo "Creating universal nym-vpnd → $(UPLOAD_DIR_MAC)/nym-vpnd"
 	$(MKDIR) "$(UPLOAD_DIR_MAC)"
-	$(LIPO) -create \
-		-output "$(UPLOAD_DIR_MAC)/nym-vpnd" \
-		"$(TARGET_AARCH64_DIR)/nym-vpnd" \
-		"$(TARGET_X86_64_DIR)/nym-vpnd"
+	# $(LIPO) -create \
+	# 	-output "$(UPLOAD_DIR_MAC)/nym-vpnd" \
+	# 	"$(TARGET_AARCH64_DIR)/nym-vpnd" \
+	# 	"$(TARGET_X86_64_DIR)/nym-vpnd"
+	cp "$(TARGET_AARCH64_DIR)/nym-vpnd" "$(UPLOAD_DIR_MAC)/nym-vpnd"
 	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/nym-vpnd"
 
 
@@ -90,13 +91,14 @@ nym-setup-x86_64:
 	$(CARGO) build -p nym-setup --target x86_64-apple-darwin $(RELEASE_FLAG)
 
 # Create universal binary with lipo
-nym-setup-universal: nym-setup-aarch64 nym-setup-x86_64
+nym-setup-universal: nym-setup-aarch64 #nym-setup-x86_64
 	@echo "Creating universal nym-setup → $(UPLOAD_DIR_MAC)/nym-setup"
 	$(MKDIR) "$(UPLOAD_DIR_MAC)"
-	$(LIPO) -create \
-		-output "$(UPLOAD_DIR_MAC)/nym-setup" \
-		"$(TARGET_AARCH64_DIR)/nym-setup" \
-		"$(TARGET_X86_64_DIR)/nym-setup"
+	# $(LIPO) -create \
+	# 	-output "$(UPLOAD_DIR_MAC)/nym-setup" \
+	# 	"$(TARGET_AARCH64_DIR)/nym-setup" \
+	# 	"$(TARGET_X86_64_DIR)/nym-setup"
+	cp "$(TARGET_AARCH64_DIR)/nym-setup" "$(UPLOAD_DIR_MAC)/nym-setup"
 	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/nym-setup"
 
 clean:
