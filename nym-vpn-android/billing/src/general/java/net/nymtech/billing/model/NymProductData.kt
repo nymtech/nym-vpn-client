@@ -1,6 +1,7 @@
 package net.nymtech.billing.model
 
 import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.ProductDetails.RecurrenceMode.INFINITE_RECURRING
 
 data class NymProductData(
 	override val id: String,
@@ -13,9 +14,7 @@ data class NymProductData(
 			return NymProductData(
 				id = product.productId,
 				name = product.name,
-				price = product.oneTimePurchaseOfferDetails?.formattedPrice
-					?: product.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
-					?: "",
+				price = product.findDisplayPrice() ?: "",
 				freeTrialDays = product.getFreeTrialDays(),
 			)
 		}
@@ -34,6 +33,26 @@ data class NymProductData(
 			val days = match.groupValues[4].toIntOrNull() ?: 0
 			val totalDays = days + weeks * 7 + months * 30 + years * 365
 			return if (totalDays > 0) totalDays else null
+		}
+
+		private fun ProductDetails.findDisplayPrice(): String? {
+			oneTimePurchaseOfferDetails?.formattedPrice?.let { return it }
+			val offers = subscriptionOfferDetails ?: return null
+			val paidRecurring = offers
+				.asSequence()
+				.map { it.pricingPhases.pricingPhaseList }
+				.flatMap { it.asSequence() }
+				.firstOrNull { phase ->
+					phase.priceAmountMicros > 0L &&
+						phase.recurrenceMode ==
+						INFINITE_RECURRING
+				} ?: offers
+				.asSequence()
+				.map { it.pricingPhases.pricingPhaseList }
+				.flatMap { it.asSequence() }
+				.lastOrNull { phase -> phase.priceAmountMicros > 0L }
+
+			return paidRecurring?.formattedPrice
 		}
 	}
 }
