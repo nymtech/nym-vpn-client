@@ -194,7 +194,7 @@ jobs:
 
           echo "Set key partition list..."
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
-          echo "✅ Shared key partition with appls tools."
+          echo "✅ Shared key partition with apple tools."
 
           echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
 
@@ -466,15 +466,15 @@ jobs:
           # Synthesize the final package from the distribution.
           productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
 
-          ls -la "$STAGING_DIRECTORY"
+          echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
 
-          # Sign separately to make it easier debug keychain login prompts
+          # Sign separately since productbuild gets stuck on keychain password prompt when signing
           productsign --timestamp \
               --keychain "$KEYCHAIN_PATH" \
               --sign "$INSTALLER_SIGNING_IDENTITY" \
               "$UNSIGNED_PKG_PATH" "$PKG_PATH"
 
-          echo "✅ PKG is written to: $PKG_PATH"
+          echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       # - name: Create DMG
@@ -588,7 +588,7 @@ jobs:
           set -euxo pipefail
 
           PKG="${{ steps.make-pkg.outputs.pkg_path }}"
-          test -f "$DMG" || { echo "❌ PKG not found at $PKG"; exit 1; }
+          test -f "$PKG" || { echo "❌ PKG not found at $PKG"; exit 1; }
           test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
 
           OUT_JSON="$PWD/build/pkg/notarytool-log.json"
