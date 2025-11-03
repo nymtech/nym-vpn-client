@@ -163,6 +163,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          #KEYCHAIN_PASSPHRASE=$(echo $(date +%s%N) | sha256sum | head -c 10)
+          #echo ::add-mask::$KEYCHAIN_PASSWORD
+
           echo "🔐 Initializing Codemagic keychain..."
           keychain initialize
 
@@ -171,12 +174,18 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
+            --allow-app "/usr/bin/codesign" \
+            --allow-app "/usr/bin/productbuild"
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
+            --allow-app "/usr/bin/codesign" \
+            --allow-app "/usr/bin/productbuild"
+
+          #security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" ${{ env.KEYCHAIN_NAME }}
 
           echo "✅ Keychain and certificates imported successfully."
 
