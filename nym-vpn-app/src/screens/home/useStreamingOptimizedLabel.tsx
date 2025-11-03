@@ -23,7 +23,7 @@ const StreamingOptimizedLabelContent = () => {
         {t('streaming-optimized-label')}
       </span>
       <ButtonText color="malachite" onClick={handleClick}>
-        <span className="">{t('streaming-optimized-label-button')}</span>
+        {t('streaming-optimized-label-button')}
       </ButtonText>
     </div>
   );
@@ -47,7 +47,6 @@ function useStreamingOptimizedLabel() {
       duration: 10000, // 10 seconds
       onClose: () => setStreamOptimizedLabelSeen(dispatch),
       content: <StreamingOptimizedLabelContent />,
-      id: 'streaming-optimized-label',
       type: 'ghost',
     });
   }, [push, dispatch, streamingOptimizedLabelSeen]);

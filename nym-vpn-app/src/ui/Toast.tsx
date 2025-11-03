@@ -21,7 +21,6 @@ export type ToastProps = {
   type?: 'error' | 'warn' | 'info' | 'ghost';
   clickAway?: boolean;
   'data-testid'?: string;
-  className?: string;
   content?: React.ReactNode;
 };
 
@@ -35,7 +34,6 @@ function Toast({
   close,
   type = 'info',
   clickAway = false,
-  className,
   content,
   ...rest
 }: ToastProps) {
@@ -107,7 +105,6 @@ function Toast({
                 type === 'warn' && 'border-2 border-king-nacho',
                 type === 'info' && 'border-2 border-iron dark:border-bombay',
                 type === 'ghost' && 'border-2 border-transparent',
-                className,
               )}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
