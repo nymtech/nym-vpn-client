@@ -47,10 +47,10 @@ data class NymProductData(
 						phase.recurrenceMode ==
 						INFINITE_RECURRING
 				} ?: offers
-					.asSequence()
-					.map { it.pricingPhases.pricingPhaseList }
-					.flatMap { it.asSequence() }
-					.lastOrNull { phase -> phase.priceAmountMicros > 0L }
+				.asSequence()
+				.map { it.pricingPhases.pricingPhaseList }
+				.flatMap { it.asSequence() }
+				.lastOrNull { phase -> phase.priceAmountMicros > 0L }
 
 			return paidRecurring?.formattedPrice
 		}
