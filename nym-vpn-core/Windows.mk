@@ -103,7 +103,7 @@ libwg: create_target_dir create_version_header
 winfw: create_target_dir create_version_header
 # Setup environment and build winfw
 	$(call setup_env_path) ; #\
-	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
+	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM) /t:Rebuild
 
 # Copy winfw dll and lib to distribution directory where nym-vpn-core looks for import lib
 	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)" -Verbose
