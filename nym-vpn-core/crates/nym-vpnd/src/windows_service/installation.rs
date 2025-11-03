@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
     Error as ServiceError,
@@ -84,12 +84,12 @@ pub fn install_service() -> anyhow::Result<()> {
         .set_description(SERVICE_DESCRIPTION)
         .with_context(|| "Failed to set service description")?;
 
-    println!("{SERVICE_NAME} service has been registered.");
+    println!("{SERVICE_NAME} service was installed successfully.");
 
     Ok(())
 }
 
-pub async fn uninstall_service(wait_time: u32) -> windows_service::Result<()> {
+pub async fn uninstall_service(wait_time: u32) -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -100,15 +100,13 @@ pub async fn uninstall_service(wait_time: u32) -> windows_service::Result<()> {
         // If the service does not exist, then it's not an error.
         let service = match service_manager.open_service(SERVICE_NAME, service_access) {
             Ok(service) => service,
-            Err(windows_service::Error::Winapi(e)) => {
-                return if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) {
-                    println!("{SERVICE_NAME} service is not installed.");
-                    Ok(())
-                } else {
-                    Err(windows_service::Error::Winapi(e))
-                };
+            Err(ServiceError::Winapi(ref e))
+                if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) =>
+            {
+                println!("{SERVICE_NAME} service is not installed.");
+                return Ok(());
             }
-            Err(e) => return Err(e),
+            Err(e) => return Err(anyhow!("Failed to open service {SERVICE_NAME}: {e}")),
         };
 
         service.delete()?;
@@ -126,18 +124,15 @@ pub async fn uninstall_service(wait_time: u32) -> windows_service::Result<()> {
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
             && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32)
         {
-            println!("{SERVICE_NAME} is deleted.");
+            println!("{SERVICE_NAME} service was uninstalled successfully.");
             return Ok(());
         }
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
-    println!("{SERVICE_NAME} Service failed to uninstall within {wait_time} seconds.");
-
-    Err(windows_service::Error::Winapi(std::io::Error::new(
-        std::io::ErrorKind::TimedOut,
-        format!("{SERVICE_NAME} service failed to uninstall within {wait_time} seconds"),
-    )))
+    Err(anyhow!(
+        "{SERVICE_NAME} service failed to uninstall within {wait_time} seconds"
+    ))
 }
 
 pub fn start_service() -> windows_service::Result<()> {
