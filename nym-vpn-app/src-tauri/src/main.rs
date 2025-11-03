@@ -184,6 +184,9 @@ async fn main() -> Result<()> {
                 .ok();
             app.manage(db.clone());
 
+            // TODO after 1.18.0 release, remove this call
+            db.migrate_selected_node();
+
             let app_window = AppWindow::create_main_window(app.handle(), &cli)?;
             app_window.set_bg_color(&db).ok();
             #[cfg(target_os = "linux")]
