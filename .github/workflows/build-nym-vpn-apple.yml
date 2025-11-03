@@ -81,9 +81,9 @@ jobs:
         with:
           crate: cargo-license
 
-      - name: Install appdmg
-        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
-        run: npm install -g appdmg
+      # - name: Install appdmg
+      #   if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+      #   run: npm install -g appdmg
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3

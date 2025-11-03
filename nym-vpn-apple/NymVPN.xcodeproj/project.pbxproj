@@ -622,7 +622,6 @@
 				D9BEF2CE2BEB63310036C566 /* Resources */,
 				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
-				58B752892EB5346500B26E42 /* Generate package */,
 			);
 			buildRules = (
 			);
@@ -805,28 +804,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		58B752892EB5346500B26E42 /* Generate package */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Installer/generatePackage.zsh",
-				"$(SRCROOT)/Installer/Scripts",
-			);
-			name = "Generate package";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/NymVPN.pkg",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -eu\n. \"${SCRIPT_INPUT_FILE_0}\"\n";
-		};
 		D94127BD2C00AB2E009EDB7A /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
