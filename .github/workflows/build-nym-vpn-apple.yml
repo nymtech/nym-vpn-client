@@ -383,7 +383,7 @@ jobs:
         working-directory: nym-vpn-apple
         env:
           DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
-          INSTALLER_SIGNING_IDENTITY: "3rd Party Mac Developer Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+          INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
           which xmlstarlet || brew install xmlstarlet
