@@ -129,7 +129,7 @@ jobs:
         working-directory: nym-vpn-apple/scripts
         run: |
           sh UpdatePrebundledServers.sh
-      
+
       - name: Enable QA mode
         if: env.RELEASE_TYPE == 'qa'
         working-directory: nym-vpn-apple
@@ -157,7 +157,9 @@ jobs:
         working-directory: nym-vpn-apple
         env:
           DEVELOPER_ID_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
-          DEVELOPER_ID_CERT_PASS:   ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          DEVELOPER_ID_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+          DEVELOPER_ID_INSTALLER_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS }}
         run: |
           set -euo pipefail
 
@@ -170,7 +172,13 @@ jobs:
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
 
-          echo "✅ Keychain and certificate imported successfully."
+          echo "📥 Importing Developer ID Installer certificate..."
+          echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
+          keychain add-certificates \
+            --certificate developer_id_installer.p12 \
+            --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
+
+          echo "✅ Keychain and certificates imported successfully."
 
       - name: Fetch and import signing files
         working-directory: nym-vpn-apple
@@ -301,13 +309,13 @@ jobs:
           DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
-          
+
           ARCHIVE_PATH="$PWD/build/NymVPN.xcarchive"
           EXPORT_PATH="$PWD/builds"
           EXPORT_PLIST="$PWD/export_options.plist"
-          
+
           mkdir -p "$EXPORT_PATH"
-          
+
           # Create export options plist
           cat > "$EXPORT_PLIST" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -322,17 +330,17 @@ jobs:
           </dict>
           </plist>
           PLIST
-          
+
           echo "Debug: Checking workspace and scheme..."
           ls -la NymVPN.xcworkspace
           ls -la NymVPN.xcodeproj/xcshareddata/xcschemes/
-          
+
           echo "Debug: Code signing identity: ${DEVELOPER_ID_APP_IDENTITY}"
           echo "Debug: Development team: ${DEVELOPMENT_TEAM}"
-          
+
           echo "Available signing identities:"
           security find-identity -v -p codesigning
-          
+
           echo "Archiving macOS app..."
           xcodebuild archive \
             -workspace "NymVPN.xcworkspace" \
@@ -346,19 +354,19 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER="" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp"
-          
+
           # Verify archive was created
           if [[ ! -d "$ARCHIVE_PATH" ]]; then
             echo "Archive not created at $ARCHIVE_PATH"
             exit 1
           fi
-          
+
           echo "Exporting macOS app..."
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE_PATH" \
             -exportPath "$EXPORT_PATH" \
             -exportOptionsPlist "$EXPORT_PLIST"
-          
+
           # Find the exported app
           APP_PATH="$(find "$EXPORT_PATH" -maxdepth 1 -type d -name 'NymVPN*.app' -print -quit)"
           if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
@@ -366,59 +374,135 @@ jobs:
             ls -la "$EXPORT_PATH"
             exit 1
           fi
-          
+
           echo "✅ App exported to: $APP_PATH"
           echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
-      - name: Create DMG
-        id: make-dmg
-        working-directory: nym-vpn-apple
+      - name: Create PKG
+        id: make-pkg
+        working-directory: nym-vpn-apple/Scripts
+        env:
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
-          
+          which xmlstarlet || brew install xmlstarlet
+
+          APP_PLIST_PATH="$APP_PATH/Contents/Info.plist"
+
           APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
-          
-          if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
-            echo "❌ Invalid app path: $APP_PATH" >&2
-            exit 1
-          fi
-          echo "✅ Using app: $APP_PATH"
+          PRODUCT_BUNDLE_IDENTIFIER="$(plutil -extract CFBundleIdentifier raw $APP_PLIST_PATH)"
+          MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
+          MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
-          BG="$PWD/NymVPN/Resources/background_dmg@2x.png"
-          ICON="$PWD/NymVPN/Resources/macDmgIcon.icns"
-          OUT_DIR="$PWD/build/dmg"
-          mkdir -p "$OUT_DIR"
+          STAGING_DIRECTORY="$TMPDIR/staging"
+          PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
+          STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
-          case "${RELEASE_TYPE:-pr}" in
-            qa)   DMG_NAME="NymVPN_QA.dmg" ;;
-            ship) DMG_NAME="NymVPN.dmg" ;;
-            *)    DMG_NAME="NymVPN_${RELEASE_TYPE}.dmg" ;;
-          esac
-          DMG_PATH="$OUT_DIR/$DMG_NAME"
+          COMPONENT_PLIST_FILE="$TMPDIR/component.plist"
+          DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
+          NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
-          cat > appdmg.json <<'JSON'
-          {
-            "title": "NymVPN Installer",
-            "background": "__BG__",
-            "icon": "__ICON__",
-            "contents": [
-              { "x": 607, "y": 290, "type": "link", "path": "/Applications" },
-              { "x": 192, "y": 290, "type": "file", "path": "__APP__" }
-            ],
-            "icon-size": 160,
-            "window": { "size": { "width": 800, "height": 600 } }
-          }
-          JSON
+          # Directory with pkg scripts
+          SCRIPTS_DIR="$SCRIPT_DIR/../Installer/Scripts"
 
-          # BSD sed (macOS) in-place edits
-          sed -i '' "s#__BG__#${BG//\//\\/}#g" appdmg.json
-          sed -i '' "s#__ICON__#${ICON//\//\\/}#g" appdmg.json
-          sed -i '' "s#__APP__#${APP_PATH//\//\\/}#g" appdmg.json
+          # Set up a staging directory with the contents to install.
+          rm -rf "$STAGING_DIRECTORY" || true
+          mkdir -p "$STAGING_DIRECTORY"
+          cp -r "$APP_PATH" "$STAGING_APP_DIR"
 
-          appdmg appdmg.json "$DMG_PATH"
+          # Generate the component property list.
+          pkgbuild --analyze --root "$STAGING_APP_DIR" "$COMPONENT_PLIST_FILE"
 
-          echo "dmg_path=$DMG_PATH" >> "$GITHUB_OUTPUT"
-          echo "✅ DMG created at: $DMG_PATH"
+          # Force the installation package (.pkg) to not be relocatable.
+          # This ensures the package components install in /Applications
+          plutil -replace "0.BundleIsRelocatable" -bool NO "$COMPONENT_PLIST_FILE"
+
+          # Allow downgrades
+          plutil -replace "0.BundleIsVersionChecked" -bool NO "$COMPONENT_PLIST_FILE"
+
+          # Build a temporary package using the component property list.
+          pkgbuild --root "$STAGING_APP_DIR" \
+              --identifier "$PRODUCT_BUNDLE_IDENTIFIER" \
+              --version "$MARKETING_VERSION" \
+              --install-location "/Applications" \
+              --scripts "$SCRIPTS_DIR" \
+              --min-os-version "$MIN_OS_VERSION" \
+              --component-plist "$COMPONENT_PLIST_FILE" \
+              "$NESTED_PKG_PATH"
+
+          # Synthesize the distribution for the temporary package.
+          productbuild --synthesize --package "$NESTED_PKG_PATH" "$DIST_XML_FILE"
+
+          # Customize installer:
+          # - enable_anywhere=false - restrict installation to system volume only, i.e no installs on external drives
+          # - enable_currentUserHome=false - prevent installation into home dir
+          # - enable_localSystem=true - enable installation into root
+          xmlstarlet edit --inplace \
+              --subnode '//installer-gui-script' --type elem -n 'domains' \
+              --append '//installer-gui-script/domains' --type attr -n 'enable_anywhere' --value 'false' \
+              --append '//installer-gui-script/domains' --type attr -n 'enable_currentUserHome' --value 'false' \
+              --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
+              "$DIST_XML_FILE"
+
+          # Synthesize the final package from the distribution.
+          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$PKG_PATH" --sign "$INSTALLER_SIGNING_IDENTITY" --timestamp
+
+          # Remove original pkg produced by pkgbuild
+          rm "$NESTED_PKG_PATH" || true
+
+          echo "✅ PKG is written to: $PKG_PATH"
+          echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
+
+      # - name: Create DMG
+      #   id: make-dmg
+      #   working-directory: nym-vpn-apple
+      #   run: |
+      #     set -euo pipefail
+
+      #     APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
+
+      #     if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
+      #       echo "❌ Invalid app path: $APP_PATH" >&2
+      #       exit 1
+      #     fi
+      #     echo "✅ Using app: $APP_PATH"
+
+      #     BG="$PWD/NymVPN/Resources/background_dmg@2x.png"
+      #     ICON="$PWD/NymVPN/Resources/macDmgIcon.icns"
+      #     OUT_DIR="$PWD/build/dmg"
+      #     mkdir -p "$OUT_DIR"
+
+      #     case "${RELEASE_TYPE:-pr}" in
+      #       qa)   DMG_NAME="NymVPN_QA.dmg" ;;
+      #       ship) DMG_NAME="NymVPN.dmg" ;;
+      #       *)    DMG_NAME="NymVPN_${RELEASE_TYPE}.dmg" ;;
+      #     esac
+      #     DMG_PATH="$OUT_DIR/$DMG_NAME"
+
+      #     cat > appdmg.json <<'JSON'
+      #     {
+      #       "title": "NymVPN Installer",
+      #       "background": "__BG__",
+      #       "icon": "__ICON__",
+      #       "contents": [
+      #         { "x": 607, "y": 290, "type": "link", "path": "/Applications" },
+      #         { "x": 192, "y": 290, "type": "file", "path": "__APP__" }
+      #       ],
+      #       "icon-size": 160,
+      #       "window": { "size": { "width": 800, "height": 600 } }
+      #     }
+      #     JSON
+
+      #     # BSD sed (macOS) in-place edits
+      #     sed -i '' "s#__BG__#${BG//\//\\/}#g" appdmg.json
+      #     sed -i '' "s#__ICON__#${ICON//\//\\/}#g" appdmg.json
+      #     sed -i '' "s#__APP__#${APP_PATH//\//\\/}#g" appdmg.json
+
+      #     appdmg appdmg.json "$DMG_PATH"
+
+      #     echo "dmg_path=$DMG_PATH" >> "$GITHUB_OUTPUT"
+      #     echo "✅ DMG created at: $DMG_PATH"
 
       - name: Write App Store Connect API key
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -434,25 +518,60 @@ jobs:
           echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
           echo "✅ ASC API key written to $KEY_PATH"
 
-      - name: Notarize DMG (Developer ID)
+      # - name: Notarize DMG (Developer ID)
+      #   if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+      #   id: notarize-dmg
+      #   working-directory: nym-vpn-apple
+      #   env:
+      #     ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      #     ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      #     ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
+      #   run: |
+      #     set -euxo pipefail
+
+      #     DMG="${{ steps.make-dmg.outputs.dmg_path }}"
+      #     test -f "$DMG" || { echo "❌ DMG not found at $DMG"; exit 1; }
+      #     test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
+
+      #     OUT_JSON="$PWD/build/dmg/notarytool-log.json"
+      #     echo "📤 Submitting $DMG for notarization…"
+
+      #     xcrun notarytool submit "$DMG" \
+      #       --key "$ASC_KEY_PATH" \
+      #       --key-id "$ASC_KEY_ID" \
+      #       --issuer "$ASC_ISSUER_ID" \
+      #       --wait \
+      #       --output-format json | tee "$OUT_JSON"
+
+      #     STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
+      #     [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; exit 1; }
+
+      #     echo "✅ Notarization status: Accepted"
+      #     echo "📎 Stapling DMG…"
+      #     xcrun stapler staple "$DMG"
+      #     xcrun stapler validate "$DMG"
+
+      #     echo "dmg_path=$DMG" >> "$GITHUB_OUTPUT"
+
+      - name: Notarize PKG (Developer Installer ID)
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
-        id: notarize-dmg
+        id: notarize-pkg
         working-directory: nym-vpn-apple
         env:
           ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          ASC_KEY_ID:    ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          ASC_KEY_PATH:  ${{ steps.asc-key.outputs.key_path }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euxo pipefail
 
-          DMG="${{ steps.make-dmg.outputs.dmg_path }}"
-          test -f "$DMG" || { echo "❌ DMG not found at $DMG"; exit 1; }
+          PKG="${{ steps.make-pkg.outputs.pkg_path }}"
+          test -f "$DMG" || { echo "❌ PKG not found at $PKG"; exit 1; }
           test -f "$ASC_KEY_PATH" || { echo "❌ Missing ASC key at $ASC_KEY_PATH"; exit 1; }
 
-          OUT_JSON="$PWD/build/dmg/notarytool-log.json"
-          echo "📤 Submitting $DMG for notarization…"
+          OUT_JSON="$PWD/build/pkg/notarytool-log.json"
+          echo "📤 Submitting $PKG for notarization…"
 
-          xcrun notarytool submit "$DMG" \
+          xcrun notarytool submit "$PKG" \
             --key "$ASC_KEY_PATH" \
             --key-id "$ASC_KEY_ID" \
             --issuer "$ASC_ISSUER_ID" \
@@ -463,18 +582,27 @@ jobs:
           [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; exit 1; }
 
           echo "✅ Notarization status: Accepted"
-          echo "📎 Stapling DMG…"
-          xcrun stapler staple "$DMG"
-          xcrun stapler validate "$DMG"
+          echo "📎 Stapling PKG…"
+          xcrun stapler staple "$PKG"
+          xcrun stapler validate "$PKG"
 
-          echo "dmg_path=$DMG" >> "$GITHUB_OUTPUT"
+          echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
+
+      # - name: Upload artifacts (QA / Ship)
+      #   if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
+      #     path: ${{ steps.notarize-dmg.outputs.dmg_path || steps.make-dmg.outputs.dmg_path }}
+      #     if-no-files-found: error
+      #     retention-days: 1
 
       - name: Upload artifacts (QA / Ship)
         if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
         uses: actions/upload-artifact@v4
         with:
           name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
-          path: ${{ steps.notarize-dmg.outputs.dmg_path || steps.make-dmg.outputs.dmg_path }}
+          path: ${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}
           if-no-files-found: error
           retention-days: 1
 
