@@ -69,6 +69,9 @@ extension GatewaysViewModel {
         gateways.filter {
             $0.location?.twoLetterIsoCountryCode.caseInsensitiveCompare(countryCode) == .orderedSame
         }
+        .sorted {
+            ($0.performance?.score.rawValue ?? .max) < ($1.performance?.score.rawValue ?? .max)
+        }
     }
 }
 

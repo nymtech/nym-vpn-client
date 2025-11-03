@@ -1,9 +1,9 @@
-public enum GatewayNodeScore: Codable {
-    case noScore
-    case low
-    case medium
-    case high
-    case offline
+public enum GatewayNodeScore: Int, Codable {
+    case high = 0
+    case medium = 1
+    case low = 2
+    case offline = 3
+    case noScore = 4
 
     public var imageName: String {
         switch self {
