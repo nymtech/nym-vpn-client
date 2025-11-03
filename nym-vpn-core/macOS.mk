@@ -21,9 +21,6 @@ MKDIR ?= mkdir -p
 # ---- Paths ----
 RPC_CRATE_DIR := $(CURDIR)/crates/nym-vpn-rpc-uniffi
 
-# Path to the Daemon Info.plist
-DAEMON_INFO_PLIST ?= $(CURDIR)/../nym-vpn-apple/Daemon/Info.plist
-
 # Output dir for the final universal binary
 UPLOAD_DIR_MAC ?= $(CURDIR)/upload/mac
 
@@ -38,19 +35,14 @@ TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-# RUSTFLAGS for embedding Info.plist into the binary
-RUSTFLAGS_DAEMON := -C link-arg=-all_load \
-                    -C link-arg=-ObjC \
-                    -C link-arg=-sectcreate \
-                    -C link-arg=__TEXT \
-                    -C link-arg=__info_plist \
-                    -C link-arg=$(DAEMON_INFO_PLIST)
+# RUSTFLAGS for loading any objective-c types
+RUSTFLAGS_DAEMON := -C link-arg=-all_load -C link-arg=-ObjC
 
 .PHONY: all build-all
 
 all: build-all
 
-build-all: libwg rpc-swift-package vpnd-universal
+build-all: libwg rpc-swift-package vpnd-universal nym-setup-universal
 
 libwg: $(LIBWG_BUILD_DIR)/libwg.a
 
@@ -86,9 +78,31 @@ vpnd-universal: vpnd-aarch64 vpnd-x86_64
 		"$(TARGET_X86_64_DIR)/nym-vpnd"
 	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/nym-vpnd"
 
+
+nym-setup-aarch64:
+	@echo "Building nym-setup (aarch64)…"
+	$(ALL_IDEMPOTENT_FLAGS) \
+	$(CARGO) build -p nym-setup --target aarch64-apple-darwin $(RELEASE_FLAG)
+
+nym-setup-x86_64:
+	@echo "Building nym-setup (x86_64)…"
+	$(ALL_IDEMPOTENT_FLAGS) \
+	$(CARGO) build -p nym-setup --target x86_64-apple-darwin $(RELEASE_FLAG)
+
+# Create universal binary with lipo
+nym-setup-universal: nym-setup-aarch64 nym-setup-x86_64
+	@echo "Creating universal nym-setup → $(UPLOAD_DIR_MAC)/nym-setup"
+	$(MKDIR) "$(UPLOAD_DIR_MAC)"
+	$(LIPO) -create \
+		-output "$(UPLOAD_DIR_MAC)/nym-setup" \
+		"$(TARGET_AARCH64_DIR)/nym-setup" \
+		"$(TARGET_X86_64_DIR)/nym-setup"
+	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/nym-setup"
+
 clean:
 	cargo clean --target x86_64-apple-darwin
 	cargo clean --target aarch64-apple-darwin
 	rm -rf $(RPC_CRATE_DIR)/NymVPNRpc
 	rm -rf $(RPC_CRATE_DIR)/generated
-	rm -rf $(UPLOAD_DIR_MAC)/nym-vpnd
+	rm -f $(UPLOAD_DIR_MAC)/nym-vpnd
+	rm -f $(UPLOAD_DIR_MAC)/nym-setup
