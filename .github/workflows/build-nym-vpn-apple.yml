@@ -388,9 +388,8 @@ jobs:
           set -euo pipefail
           which xmlstarlet || brew install xmlstarlet
 
-          APP_PLIST_PATH="$APP_PATH/Contents/Info.plist"
-
           APP_PATH="${{ steps.archive-macos.outputs.app_path }}"
+          APP_PLIST_PATH="$APP_PATH/Contents/Info.plist"
           PRODUCT_BUNDLE_IDENTIFIER="$(plutil -extract CFBundleIdentifier raw $APP_PLIST_PATH)"
           MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
