@@ -37,27 +37,27 @@ const StreamingOptimizedLabelContent = () => {
   );
 };
 
+let initialized = false;
+
 function useStreamingOptimizedLabel() {
-  const { push, current } = useInAppNotify();
+  const { push } = useInAppNotify();
   const { streamingOptimizedLabelSeen } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
 
   useEffect(() => {
-    if (
-      !streamingOptimizedLabelSeen &&
-      current?.id !== 'streaming-optimized-label'
-    ) {
-      push({
-        close: true,
-        clickAway: false,
-        duration: Infinity,
-        onClose: () => setStreamOptimizedLabelSeen(dispatch),
-        content: <StreamingOptimizedLabelContent />,
-        id: 'streaming-optimized-label',
-      });
+    if (initialized || streamingOptimizedLabelSeen) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    initialized = true;
+    push({
+      close: true,
+      clickAway: false,
+      duration: 10000, // 10 seconds
+      onClose: () => setStreamOptimizedLabelSeen(dispatch),
+      content: <StreamingOptimizedLabelContent />,
+      id: 'streaming-optimized-label',
+    });
+  }, [push, dispatch, streamingOptimizedLabelSeen]);
 }
 
 export default useStreamingOptimizedLabel;
