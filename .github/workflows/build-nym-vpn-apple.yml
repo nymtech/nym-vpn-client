@@ -169,11 +169,8 @@ jobs:
           echo ::add-mask::$KEYCHAIN_PASSPHRASE
 
           echo "🔐 Initializing Codemagic keychain..."
-          keychain initialize -p "$KEYCHAIN_PATH"
-
-          # Disable auto-lock timeout
-          security set-keychain-settings "$KEYCHAIN_PATH"
-          security show-keychain-info "$KEYCHAIN_PATH"
+          keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
+          keychain show-info
 
           echo "📥 Importing Developer ID certificate..."
           echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
@@ -191,10 +188,10 @@ jobs:
             --allow-app /usr/bin/productbuild \
             --allow-app /usr/bin/codesign
 
+          echo "✅ Keychain and certificates imported successfully."
+
           echo "Set key partition list..."
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
-
-          echo "✅ Keychain and certificates imported successfully."
 
       - name: Fetch and import signing files
         working-directory: nym-vpn-apple
