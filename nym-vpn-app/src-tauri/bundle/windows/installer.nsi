@@ -192,7 +192,8 @@ FunctionEnd
         DetailPrint "vpnd version is pre 1.14, using --uninstall flag"
         ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall' $9
       ${Else}
-        ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service' $9
+        DetailPrint "Waiting 30 seconds for the vpnd service to stop and uninstall"
+        ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service --wait 30' $9
       ${EndIf}
     ${If} $9 <> 0
       ; if vpnd fails to uninstall all we can do is to notify the user
