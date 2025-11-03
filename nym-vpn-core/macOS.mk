@@ -35,9 +35,6 @@ TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-# RUSTFLAGS for loading any objective-c types
-RUSTFLAGS_DAEMON := -C link-arg=-all_load -C link-arg=-ObjC
-
 .PHONY: all build-all
 
 all: build-all
@@ -57,14 +54,12 @@ rpc-swift-package:
 # Build daemon for Apple Silicon
 vpnd-aarch64:
 	@echo "Building nym-vpnd (aarch64)…"
-	RUSTFLAGS="$(RUSTFLAGS_DAEMON)" \
 	$(ALL_IDEMPOTENT_FLAGS) \
 	$(CARGO) build -p nym-vpnd --target aarch64-apple-darwin $(RELEASE_FLAG)
 
 # Build daemon for Intel
 vpnd-x86_64:
 	@echo "Building nym-vpnd (x86_64)…"
-	RUSTFLAGS="$(RUSTFLAGS_DAEMON)" \
 	$(ALL_IDEMPOTENT_FLAGS) \
 	$(CARGO) build -p nym-vpnd --target x86_64-apple-darwin $(RELEASE_FLAG)
 
