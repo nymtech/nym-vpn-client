@@ -171,18 +171,27 @@ jobs:
           echo "🔐 Initializing Codemagic keychain..."
           keychain initialize -p "$KEYCHAIN_PATH"
 
+          # Disable auto-lock timeout
+          security set-keychain-settings "$KEYCHAIN_PATH"
+          security show-keychain-info "$KEYCHAIN_PATH"
+
           echo "📥 Importing Developer ID certificate..."
           echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
           keychain add-certificates \
             --certificate developer_id.p12 \
-            --certificate-password "$DEVELOPER_ID_CERT_PASS"
+            --certificate-password "$DEVELOPER_ID_CERT_PASS" \
+            --allow-app /usr/bin/productbuild \
+            --allow-app /usr/bin/codesign
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
-            --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS"
+            --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
+            --allow-app /usr/bin/productbuild \
+            --allow-app /usr/bin/codesign
 
+          echo "Set key partition list..."
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
 
           echo "✅ Keychain and certificates imported successfully."
