@@ -36,34 +36,19 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
           {t('location-details.title')}
         </DialogTitle>
       </div>
-      <div
-        className="flex flex-col gap-2"
-        data-testid="location-details-streaming-section"
-      >
+      <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-          <MsIcon
-            icon="smart_display"
-            data-testid="location-details-streaming-icon"
-          />
-          <h4
-            className="text-lg"
-            data-testid="location-details-streaming-title"
-          >
-            {t('location-details.streaming.title')}
-          </h4>
+          <MsIcon icon="smart_display" />
+          <h4 className="text-lg">{t('location-details.streaming.title')}</h4>
         </div>
-        <p
-          className="text-iron dark:text-bombay md:text-nowrap"
-          data-testid="location-details-streaming-description"
-        >
+        <p className="text-iron dark:text-bombay md:text-nowrap">
           <Trans
             i18nKey="location-details.streaming.description"
             ns="nodeLocation"
           >
             <Link
               url={ResidentialIpServersUrl}
-              data-testid="location-details-residential-link"
-              className="underline text-black! dark:text-white!"
+              textClassName="underline text-black dark:text-white"
             >
               Residential IP servers
             </Link>
@@ -72,23 +57,12 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
           </Trans>
         </p>
       </div>
-      <div
-        className="flex flex-col gap-2"
-        data-testid="location-details-location-section"
-      >
+      <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-          <MsIcon
-            icon="location_on"
-            data-testid="location-details-location-icon"
-          />
-          <h4 className="text-lg" data-testid="location-details-location-title">
-            {t('location-details.location.title')}
-          </h4>
+          <MsIcon icon="location_on" />
+          <h4 className="text-lg">{t('location-details.location.title')}</h4>
         </div>
-        <p
-          className="text-iron dark:text-bombay md:text-nowrap"
-          data-testid="location-details-location-description"
-        >
+        <p className="text-iron dark:text-bombay md:text-nowrap">
           <Trans
             i18nKey="location-details.location.description"
             ns="nodeLocation"
@@ -96,8 +70,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
             Displayed locations are
             <Link
               url={LocationDetailsArticle}
-              data-testid="location-details-location-accuracy-link"
-              className="underline text-black! dark:text-white!"
+              textClassName="underline text-black dark:text-white"
             >
               determined from IP addresses
             </Link>

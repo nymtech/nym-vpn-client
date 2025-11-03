@@ -21,8 +21,8 @@ import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import {
-  StreamingOptimizedLabel,
   setStreamOptimizedLabelSeen,
+  useStreamingOptimizedLabel,
 } from './new-feature-alert/streaming-optimized-label';
 
 const updaterEnabled = window._APP.updaterEnabled;
@@ -58,6 +58,8 @@ function Home() {
     account &&
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
+
+  useStreamingOptimizedLabel();
 
   const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;
   const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
@@ -207,8 +209,6 @@ function Home() {
         className="sm:max-w-lg h-full flex flex-col"
         data-testid="home-container"
       >
-        <StreamingOptimizedLabel />
-
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>

@@ -46,8 +46,8 @@ function ButtonText({
         'transition data-disabled:opacity-60 data-active:ring-0',
         'tracking-normal cursor-default',
         truncate && 'overflow-hidden',
-        className && className,
         ...colors[color],
+        className && className,
       ])}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
