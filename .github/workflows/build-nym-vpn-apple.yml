@@ -243,7 +243,7 @@ jobs:
           cargo install cargo-get
 
           # Get version from Cargo.toml workspace
-          LIB_VERSION=$(cargo get workspace.package.version)
+          LIB_VERSION=$(cargo get workspace.package.version --entry nym-vpn-core/Cargo.toml)
           echo "📦 Core library version: ${LIB_VERSION}"
 
           # Path to Swift source file
