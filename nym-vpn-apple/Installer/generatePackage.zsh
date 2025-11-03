@@ -55,7 +55,11 @@ xmlstarlet edit --inplace \
 
 # Synthesize the final package from the distribution.
 # todo: add --sign --timestamp for signing
-productbuild --distribution Distribution --package-path "${BUILT_PRODUCTS_DIR}" "${PKG_OUT_DIR}"
+BUILD_ARGS=""
+if [ "$CONFIGURATION" == "Release" ]; then
+  BUILD_ARGS="--sign --timestamp"
+fi
+productbuild --distribution Distribution --package-path "${BUILT_PRODUCTS_DIR}" "${PKG_OUT_DIR}" $BUILD_ARGS
 
 # Remove original pkg produced by pkgbuild
 rm "$NESTED_PKG_PATH" || true
