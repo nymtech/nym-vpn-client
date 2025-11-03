@@ -167,7 +167,6 @@ jobs:
           KEYCHAIN_PASSPHRASE=$(echo $(date +%s%N) | sha256sum | head -c 10)
           KEYCHAIN_NAME="$(date +%d-%m-%y)_$(echo $(date +%s%N) | sha256sum | head -c 10).keychain-db"
           KEYCHAIN_PATH="$HOME/Library/codemagic-cli-tools/keychains/$KEYCHAIN_NAME"
-          echo ::add-mask::$KEYCHAIN_PASSPHRASE
 
           echo "🔐 Initializing Codemagic keychain..."
           keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
