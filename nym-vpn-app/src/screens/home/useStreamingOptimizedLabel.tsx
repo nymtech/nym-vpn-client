@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ButtonText } from '../../ui/index';
+import { ButtonText } from '../../ui';
 import { routes } from '../../router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
-import { StateDispatch } from '../../types/index';
+import { StateDispatch } from '../../types';
 import { setStreamOptimizedLabelSeen } from './util';
 
 const StreamingOptimizedLabelContent = () => {
