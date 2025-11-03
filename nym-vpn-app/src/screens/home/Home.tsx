@@ -14,16 +14,14 @@ import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
-import { kvGet } from '../../kvStore';
+import { kvDel, kvGet } from '../../kvStore';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
-import {
-  setStreamOptimizedLabelSeen,
-  useStreamingOptimizedLabel,
-} from './new-feature-alert/streaming-optimized-label';
+import useStreamingOptimizedLabel from './useStreamingOptimizedLabel';
+import { setStreamOptimizedLabelSeen } from './util';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -212,6 +210,9 @@ function Home() {
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
+        <button onClick={() => kvDel('streaming-optimized-label-seen')}>
+          Clear KV
+        </button>
         <div
           className="flex flex-col justify-between gap-y-8 select-none"
           data-testid="home-controls-container"

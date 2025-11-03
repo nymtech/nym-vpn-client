@@ -1,15 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ButtonText } from '../../../../ui/index';
-import { routes } from '../../../../router';
-import {
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../../contexts';
-import { StateDispatch } from '../../../../types/index';
-import { setStreamOptimizedLabelSeen } from './utils';
+import { ButtonText } from '../../ui/index';
+import { routes } from '../../router';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { StateDispatch } from '../../types/index';
+import { setStreamOptimizedLabelSeen } from './util';
 
 const StreamingOptimizedLabelContent = () => {
   const { t } = useTranslation('notifications');
