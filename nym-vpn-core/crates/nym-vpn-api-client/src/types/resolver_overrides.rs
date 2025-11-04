@@ -8,7 +8,7 @@ use std::{
 };
 
 /// A boxed future that resolves to an optional domain name and its resolved socket addresses.
-type ResolutionTask<'a> = BoxFuture<'a, Option<(String, Vec<SocketAddr>)>>;
+type ResolutionTask = BoxFuture<'static, Option<(String, Vec<SocketAddr>)>>;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolverOverrides {
@@ -20,7 +20,7 @@ impl ResolverOverrides {
     /// Resolves all domains in parallel for faster startup and reconnection.
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
         // Collect all resolution tasks to run in parallel
-        let mut resolution_tasks: Vec<ResolutionTask<'_>> = Vec::new();
+        let mut resolution_tasks: Vec<ResolutionTask> = Vec::new();
 
         for url in urls {
             let Some(domain) = url.inner_url().domain() else {
