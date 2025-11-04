@@ -3,10 +3,7 @@
 
 //! Module implementing TCP connection probe
 
-use std::{
-    net::{IpAddr, SocketAddr},
-    time::Duration,
-};
+use std::{net::SocketAddr, time::Duration};
 
 #[cfg(unix)]
 use std::os::fd::{FromRawFd, IntoRawFd};
@@ -88,7 +85,7 @@ impl TcpProbe {
             .map_err(|err| TcpProbeError::from(TcpProbeInnerError::SetNonblocking(err)))?;
 
         if let Some(local_address) = self.config.local_address {
-            let sockaddr = socket2::SockAddr::from(local_address);
+            let sockaddr = SockAddr::from(local_address);
             socket
                 .bind(&sockaddr)
                 .map_err(|err| TcpProbeError::from(TcpProbeInnerError::BindAddress(err)))?;
@@ -244,10 +241,10 @@ mod tests {
     async fn test_send_loopback_tcp_v6() {
         let shutdown_token = CancellationToken::new();
         let server_addr =
-            start_tcp_listener("::1:0".parse().unwrap(), shutdown_token.child_token()).await;
+            start_tcp_listener("[::1]:0".parse().unwrap(), shutdown_token.child_token()).await;
         let _drop_guard = shutdown_token.drop_guard();
 
-        let probe = TcpProbe::new(get_config(server_addr, "::1:0".parse().unwrap()));
+        let probe = TcpProbe::new(get_config(server_addr, "[::1]:0".parse().unwrap()));
         probe
             .send(Duration::from_millis(100))
             .await
