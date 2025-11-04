@@ -12,7 +12,7 @@ pkgdesc='NymVPN daemon as a systemd service'
 arch=('x86_64')
 url='https://github.com/nymtech/nym-vpn-client'
 license=('GPL-3.0-only')
-depends=('glibc' 'gcc-libs' 'dbus')
+depends=('glibc' 'gcc-libs' 'dbus' 'libmnl' 'libnftnl')
 makedepends=('rust' 'cargo' 'go' 'protobuf')
 provides=('nym-vpnd')
 conflicts=('nym-vpnd')
@@ -25,7 +25,7 @@ _srcdir="nym-vpn-client-$_release_tag"
 prepare() {
   pushd "$_srcdir"
 
-  # rip off all useless sources
+  # rip off useless sources
   rm -rf nym-vpn-android
   rm -rf nym-vpn-apple
   rm -rf nym-vpn-app
