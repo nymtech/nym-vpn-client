@@ -504,6 +504,7 @@ jobs:
           ASC_KEY_PATH: ${{ steps.asc-key.outputs.key_path }}
         run: |
           set -euxo pipefail
+          which jq || brew install jq
 
           PKG="${{ steps.make-pkg.outputs.pkg_path }}"
           test -f "$PKG" || { echo "❌ PKG not found at $PKG"; exit 1; }
@@ -519,8 +520,24 @@ jobs:
             --wait \
             --output-format json | tee "$OUT_JSON"
 
-          STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
-          [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; cat "$OUT_JSON"; exit 1; }
+          STATUS=$(jq -r .status "$OUT_JSON")
+          REQUEST_ID=$(jq -r .id "$OUT_JSON")
+
+          if [[ "$STATUS" != "Accepted" ]]; then
+            echo "❌ Notarization failed ($STATUS)"
+            echo "🪵 Fetching detailed log for Request ID: $REQUEST_ID"
+
+            LOG_PATH="$PWD/build/pkg/notarytool-log-detailed.json"
+            xcrun notarytool log "$REQUEST_ID" \
+              --key "$ASC_KEY_PATH" \
+              --key-id "$ASC_KEY_ID" \
+              --issuer "$ASC_ISSUER_ID" \
+              --output-format json | tee "$LOG_PATH"
+
+            echo "📋 Detailed log saved at: $LOG_PATH"
+            cat "$LOG_PATH"
+            exit 1
+          fi
 
           echo "✅ Notarization status: Accepted"
           echo "📎 Stapling PKG…"
