@@ -3,16 +3,28 @@ use std::{
     time::Duration,
 };
 
+use futures::stream::{FuturesUnordered, StreamExt};
 use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;
+use tokio::net::TcpStream;
 
 use crate::error::{Result, VpnApiClientError};
 
 // be generous with the resolution timeout
 const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Quick connectivity probe timeout - used to verify DNS is actually working
-const CONNECTIVITY_PROBE_TIMEOUT: Duration = Duration::from_secs(2);
+/// Quick DNS resolution timeout for connectivity probes
+const PROBE_DNS_TIMEOUT: Duration = Duration::from_millis(500);
+
+/// Quick TCP connection timeout for connectivity probes
+const PROBE_TCP_TIMEOUT: Duration = Duration::from_millis(500);
+
+/// Probe targets
+const PROBE_TARGETS: &[(&str, u16)] = &[
+    ("vercel.app", 443),
+    ("vercel.com", 443),
+    ("yelp.global.ssl.fastly.net", 443),
+];
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
@@ -123,25 +135,58 @@ pub async fn domain_to_socket_addr(
     }
 }
 
-/// Quick connectivity probe to verify DNS is actually working.
-/// Returns true if we can resolve a well-known domain quickly.
-/// This is useful after network transitions to verify connectivity before
-/// attempting full connection setup.
-///
-/// Uses the same DNS configuration as the main resolver (Quad9 + Cloudflare over TLS/HTTPS).
-/// System resolver fallback is disabled to match the behavior of hostname resolution during VPN operation.
+/// Probes connectivity by testing DNS + TCP to f domains
+/// Returns true on first successful connection, false if all fail.
 pub async fn probe_connectivity() -> bool {
     let mut resolver = HickoryDnsResolver::default();
-    // Disable system resolver because it's typically blocked by firewall anyway.
     resolver.disable_system_fallback();
 
-    let probe_result = tokio::time::timeout(
-        CONNECTIVITY_PROBE_TIMEOUT,
-        resolver.resolve_str("dns.quad9.net"),
-    )
-    .await;
+    let mut probe_tasks = FuturesUnordered::new();
 
-    matches!(probe_result, Ok(Ok(_)))
+    for &(hostname, port) in PROBE_TARGETS {
+        let resolver_clone = resolver.clone();
+        probe_tasks.push(async move {
+            let ips =
+                match tokio::time::timeout(PROBE_DNS_TIMEOUT, resolver_clone.resolve_str(hostname))
+                    .await
+                {
+                    Ok(Ok(addrs)) => addrs.iter().collect::<Vec<_>>(),
+                    _ => return false,
+                };
+
+            if ips.is_empty() {
+                return false;
+            }
+
+            let mut connect_tasks = FuturesUnordered::new();
+            for ip in ips.iter().take(3) {
+                let addr = SocketAddr::new(*ip, port);
+                connect_tasks.push(async move {
+                    matches!(
+                        tokio::time::timeout(PROBE_TCP_TIMEOUT, TcpStream::connect(addr)).await,
+                        Ok(Ok(_))
+                    )
+                });
+            }
+
+            while let Some(success) = connect_tasks.next().await {
+                if success {
+                    tracing::info!("Connectivity probe succeeded to {hostname}:{port}");
+                    return true;
+                }
+            }
+            false
+        });
+    }
+
+    while let Some(success) = probe_tasks.next().await {
+        if success {
+            return true;
+        }
+    }
+
+    tracing::warn!("All connectivity probes failed");
+    false
 }
 
 #[cfg(test)]
