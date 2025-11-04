@@ -1,7 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
@@ -9,7 +12,8 @@ use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use time::OffsetDateTime;
+use time::{Duration as TimeDuration, OffsetDateTime};
+use tokio::sync::RwLock;
 
 use crate::{
     ResolverOverrides, api_urls_to_urls,
@@ -40,11 +44,42 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 
+const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
+
+#[derive(Default, Debug)]
+struct SkewState {
+    skew: Option<TimeDuration>,
+    expires_at: Option<Instant>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SkewStatus {
+    Missing,
+    Expired(TimeDuration),
+    Valid(TimeDuration),
+}
+
+impl SkewState {
+    fn update(&mut self, skew: TimeDuration, now: Instant) {
+        self.skew = Some(skew);
+        self.expires_at = Some(now + SKEW_CACHE_TTL);
+    }
+
+    fn status(&self, now: Instant) -> SkewStatus {
+        match (self.skew, self.expires_at) {
+            (Some(skew), Some(expires_at)) if expires_at > now => SkewStatus::Valid(skew),
+            (Some(skew), Some(_)) => SkewStatus::Expired(skew),
+            _ => SkewStatus::Missing,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: Client,
     urls: Vec<Url>,
     user_agent: UserAgent,
+    skew_state: Arc<RwLock<SkewState>>,
 }
 
 impl VpnApiClient {
@@ -65,6 +100,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
+            skew_state: Arc::new(RwLock::new(SkewState::default())),
         })
     }
 
@@ -96,6 +132,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
+            skew_state: Arc::new(RwLock::new(SkewState::default())),
         })
     }
 
@@ -153,8 +190,66 @@ impl VpnApiClient {
         }
     }
 
-    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
+    async fn refresh_skew(&self) -> Result<VpnApiTime> {
         let remote_time = self.get_remote_time().await?;
+        let skew = remote_time.local_time_ahead_skew();
+        let now = Instant::now();
+
+        {
+            let mut state = self.skew_state.write().await;
+            state.update(skew, now);
+        }
+
+        tracing::debug!(skew = ?skew, "Refreshed VPN API time skew");
+
+        Ok(remote_time)
+    }
+
+    async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
+        let now = Instant::now();
+        let status = {
+            let state = self.skew_state.read().await;
+            state.status(now)
+        };
+
+        match status {
+            SkewStatus::Valid(skew) => {
+                let local_time = OffsetDateTime::now_utc();
+                let estimated_remote_time = local_time - skew;
+                let cached_remote_time = VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
+
+                if Self::use_remote_time(cached_remote_time) {
+                    Ok(Some(cached_remote_time))
+                } else {
+                    Ok(None)
+                }
+            }
+            SkewStatus::Expired(skew) => {
+                tracing::debug!(
+                    skew = ?skew,
+                    "Cached VPN API time skew expired, refreshing"
+                );
+                let refreshed_time = self.refresh_skew().await?;
+                if Self::use_remote_time(refreshed_time) {
+                    Ok(Some(refreshed_time))
+                } else {
+                    Ok(None)
+                }
+            }
+            SkewStatus::Missing => {
+                tracing::debug!("No cached VPN API time skew present, refreshing");
+                let refreshed_time = self.refresh_skew().await?;
+                if Self::use_remote_time(refreshed_time) {
+                    Ok(Some(refreshed_time))
+                } else {
+                    Ok(None)
+                }
+            }
+        }
+    }
+
+    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
+        let remote_time = self.refresh_skew().await?;
 
         if Self::use_remote_time(remote_time) {
             Ok(Some(remote_time))
@@ -198,7 +293,21 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        match self.get_query::<T>(path, account, device, None).await {
+        let jwt = match self.current_remote_time().await {
+            Ok(remote_time) => remote_time,
+            Err(err) => {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time"
+                );
+                None
+            }
+        };
+
+        match self
+            .get_query::<T>(path, account, device, jwt)
+            .await
+        {
             Ok(response) => Ok(response),
             Err(err) => {
                 if let HttpClientError::EndpointFailure { error, .. } = &err
@@ -364,8 +473,19 @@ impl VpnApiClient {
         T: DeserializeOwned,
         B: Serialize,
     {
+        let jwt = match self.current_remote_time().await {
+            Ok(remote_time) => remote_time,
+            Err(err) => {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time"
+                );
+                None
+            }
+        };
+
         match self
-            .post_query::<T, B>(path, json_body, account, device, None)
+            .post_query::<T, B>(path, json_body, account, device, jwt)
             .await
         {
             Ok(response) => Ok(response),
