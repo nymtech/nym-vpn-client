@@ -1,26 +1,28 @@
-// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: GPL-3.0-only
-
-//! HTTP RPC proxy server that forwards requests through the lazy SOCKS5 wrapper
-//!
-//! This module implements an HTTP proxy that accepts HTTP requests,
-//! extracts the target URL from the '?p=' query parameter,
-//! and forwards them through the lazy SOCKS5 wrapper.
+//! HTTP RPC proxy server that forwards requests through the SOCKS5 wrapper
+//! Requests to http://localhost:8545/?p=TARGET_URL are forwarded to TARGET_URL
+//! through the mixnet.
 
 use super::socks5_wrapper::LazySocks5Wrapper;
 use bytes::Bytes;
+use http_body_util::{BodyExt, Full};
+use hyper::body::Incoming;
+use hyper::server::conn::http1;
+use hyper::service::service_fn;
+use hyper::{Method, Request, Response, StatusCode};
+use hyper_util::rt::TokioIo;
 use reqwest::Client;
+use std::convert::Infallible;
+use std::error::Error;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
 /// HTTP RPC proxy server
 pub struct HttpRpcProxy {
-    /// Listen address (e.g., "127.0.0.1:8545")
+    /// Listen address ex: 127.0.0.1:8545
     listen_address: String,
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
@@ -31,7 +33,7 @@ pub struct HttpRpcProxy {
 /// Errors from the HTTP RPC proxy
 #[derive(Debug, thiserror::Error)]
 pub enum HttpRpcProxyError {
-    #[error("Failed to bind to address {0}: {1}")]
+    #[error("Failed to bind to {0}: {1}")]
     BindError(String, std::io::Error),
 
     #[error("Internal error: {0}")]
@@ -65,7 +67,11 @@ impl HttpRpcProxy {
 
         let http_client = Client::builder()
             .proxy(proxy)
-            .timeout(Duration::from_secs(60))
+            .timeout(Duration::from_secs(60)) // Total request timeout
+            .connect_timeout(Duration::from_secs(30)) // Connection establishment timeout
+            .pool_idle_timeout(Duration::from_secs(10)) // Very short idle timeout
+            .pool_max_idle_per_host(0) // Disable connection pooling entirely
+            .tcp_keepalive(Duration::from_secs(10)) // Aggressive TCP keepalive
             .build()
             .map_err(|e| {
                 HttpRpcProxyError::Internal(format!("Failed to build HTTP client: {}", e))
@@ -92,11 +98,23 @@ impl HttpRpcProxy {
                         Ok((stream, addr)) => {
                             debug!("Accepted HTTP RPC connection from {}", addr);
                             let http_client = self.http_client.clone().unwrap();
-                            let cancel_token = self.cancel_token.clone();
 
                             // Spawn a task to handle this connection
                             tokio::spawn(async move {
-                                Self::handle_connection(stream, addr, http_client, cancel_token).await;
+                                let io = TokioIo::new(stream);
+
+                                // Create a service function for this connection
+                                let service = service_fn(move |req| {
+                                    Self::handle_request(req, http_client.clone(), addr)
+                                });
+
+                                // Serve HTTP/1 on this connection
+                                if let Err(e) = http1::Builder::new()
+                                    .serve_connection(io, service)
+                                    .await
+                                {
+                                    error!("Error serving connection from {}: {}", addr, e);
+                                }
                             });
                         }
                         Err(e) => {
@@ -115,157 +133,88 @@ impl HttpRpcProxy {
         Ok(())
     }
 
-    /// Handle a single HTTP connection
-    async fn handle_connection(
-        mut stream: TcpStream,
-        addr: SocketAddr,
+    /// Handle a single HTTP request
+    async fn handle_request(
+        req: Request<Incoming>,
         http_client: Arc<Client>,
-        _cancel_token: CancellationToken,
-    ) {
-        // Parse incoming HTTP request
-        let incoming_request = match Self::parse_incoming_request(&mut stream, &addr).await {
-            Ok(req) => req,
-            Err(e) => {
-                error!("Failed to parse incoming request from {}: {}", addr, e);
-                Self::send_error_response(&mut stream, 400, "Bad Request").await;
-                return;
-            }
-        };
+        client_addr: SocketAddr,
+    ) -> Result<Response<Full<Bytes>>, Infallible> {
+        let start_time = std::time::Instant::now();
 
-        // Extract the 'p' parameter (target URL)
-        let target_url = match Self::extract_target_url(&incoming_request.path) {
+        // Extract method and URI
+        let method = req.method().clone();
+        let uri = req.uri().clone();
+
+        // Extract target URL from query parameter
+        let target_url = match Self::extract_target_url(uri.query()) {
             Ok(url) => url,
             Err(e) => {
-                error!("Failed to extract target URL from {}: {}", addr, e);
-                Self::send_error_response(&mut stream, 400, "Missing or invalid 'p' parameter")
-                    .await;
-                return;
+                error!("Failed to extract target URL from {}: {}", client_addr, e);
+                return Ok(Self::error_response(
+                    StatusCode::BAD_REQUEST,
+                    "Missing or invalid 'p' parameter",
+                ));
             }
         };
 
+        // Log the incoming request
         info!(
-            "Proxying {} request from {} to: {}",
-            incoming_request.method, addr, target_url
+            "Attempting to proxy {} request from {} to: {}",
+            method, client_addr, target_url
+        );
+
+        // Collect request headers and body
+        let (parts, body) = req.into_parts();
+        let body_bytes = match body.collect().await {
+            Ok(collected) => collected.to_bytes(),
+            Err(e) => {
+                error!("Failed to read request body from {}: {}", client_addr, e);
+                return Ok(Self::error_response(
+                    StatusCode::BAD_REQUEST,
+                    "Failed to read request body",
+                ));
+            }
+        };
+
+        debug!(
+            "Building {} request to {} with body size: {}",
+            method,
+            target_url,
+            body_bytes.len()
         );
 
         // Forward the request through SOCKS5
         match Self::forward_request(
             &http_client,
-            &incoming_request.method,
+            &method,
             &target_url,
-            incoming_request.headers,
-            incoming_request.body,
+            parts.headers,
+            body_bytes,
         )
         .await
         {
-            Ok(response_data) => {
-                if let Err(e) = Self::send_response(&mut stream, response_data).await {
-                    error!("Failed to send response to {}: {}", addr, e);
-                }
+            Ok(response_bytes) => {
+                let elapsed = start_time.elapsed();
+                info!(
+                    "Successfully proxied {} request to {} in {:?}",
+                    method, target_url, elapsed
+                );
+                Ok(response_bytes)
             }
             Err(e) => {
-                error!("Failed to forward request through SOCKS5: {}", e);
-                Self::send_error_response(&mut stream, 502, "Bad Gateway").await;
+                let elapsed = start_time.elapsed();
+                error!(
+                    "Failed to forward {} request to {} after {:?}: {}",
+                    method, target_url, elapsed, e
+                );
+                Ok(Self::error_response(StatusCode::BAD_GATEWAY, "Proxy error"))
             }
         }
-    }
-
-    /// Parse the incoming HTTP request from the TCP stream
-    async fn parse_incoming_request(
-        stream: &mut TcpStream,
-        addr: &SocketAddr,
-    ) -> Result<IncomingRequest, String> {
-        let mut reader = BufReader::new(stream);
-        let mut request_line = String::new();
-
-        // Read the request line
-        reader
-            .read_line(&mut request_line)
-            .await
-            .map_err(|e| format!("Failed to read request line: {}", e))?;
-
-        if request_line.is_empty() {
-            return Err("Empty request".to_string());
-        }
-
-        // Parse request line (e.g., "GET /?p=https://example.com HTTP/1.1")
-        let parts: Vec<&str> = request_line.trim().split_whitespace().collect();
-        if parts.len() < 3 {
-            return Err(format!("Malformed request line: {}", request_line));
-        }
-
-        let method = parts[0].to_string();
-        let path = parts[1].to_string();
-
-        // Parse headers
-        let mut headers = Vec::new();
-        let mut content_length = 0;
-        loop {
-            let mut header_line = String::new();
-            reader
-                .read_line(&mut header_line)
-                .await
-                .map_err(|e| format!("Failed to read header: {}", e))?;
-
-            // Empty line indicates end of headers
-            if header_line.trim().is_empty() {
-                break;
-            }
-
-            // Parse header (e.g., "Content-Type: application/json")
-            if let Some(colon_pos) = header_line.find(':') {
-                let name = header_line[..colon_pos].trim().to_string();
-                let value = header_line[colon_pos + 1..].trim().to_string();
-
-                // Track content-length for body reading
-                if name.eq_ignore_ascii_case("content-length") {
-                    content_length = value.parse::<usize>().unwrap_or(0);
-                }
-
-                // Skip Host header as we'll set it based on target URL
-                if !name.eq_ignore_ascii_case("host") {
-                    headers.push((name, value));
-                }
-            }
-        }
-
-        // Read body if present
-        let body = if content_length > 0 {
-            let mut body_buf = vec![0u8; content_length];
-            reader
-                .read_exact(&mut body_buf)
-                .await
-                .map_err(|e| format!("Failed to read body: {}", e))?;
-            Bytes::from(body_buf)
-        } else {
-            Bytes::new()
-        };
-
-        debug!(
-            "Parsed HTTP RPC request from {}: {} {} with {} headers and {} byte body",
-            addr,
-            method,
-            path,
-            headers.len(),
-            body.len()
-        );
-
-        Ok(IncomingRequest {
-            method,
-            path,
-            headers,
-            body,
-        })
     }
 
     /// Extract the target URL from the 'p' query parameter
-    fn extract_target_url(path: &str) -> Result<String, String> {
-        // Find the query string
-        let query = if let Some(pos) = path.find('?') {
-            &path[pos + 1..]
-        } else {
-            return Err("Missing query string".to_string());
-        };
+    fn extract_target_url(query: Option<&str>) -> Result<String, String> {
+        let query = query.ok_or("Missing query string")?;
 
         // Parse query parameters
         for param in query.split('&') {
@@ -285,132 +234,97 @@ impl HttpRpcProxy {
     /// Forward the request through SOCKS5
     async fn forward_request(
         client: &Client,
-        method: &str,
+        method: &Method,
         target_url: &str,
-        headers: Vec<(String, String)>,
+        headers: hyper::HeaderMap,
         body: Bytes,
-    ) -> Result<ResponseData, String> {
-        // Build the request
-        let mut request_builder = match method {
-            "GET" => client.get(target_url),
-            "POST" => client.post(target_url),
-            "PUT" => client.put(target_url),
-            "DELETE" => client.delete(target_url),
-            "HEAD" => client.head(target_url),
-            "PATCH" => client.patch(target_url),
-            _ => {
-                return Err(format!("Unsupported HTTP method: {}", method));
-            }
-        };
+    ) -> Result<Response<Full<Bytes>>, Box<dyn Error + Send + Sync>> {
+        let send_start = std::time::Instant::now();
 
-        // Add all headers from the original request
-        for (name, value) in headers {
-            request_builder = request_builder.header(name, value);
+        // Build the reqwest request
+        let mut request_builder = client.request(method.clone(), target_url);
+
+        // Copy headers from hyper to reqwest
+        for (name, value) in headers.iter() {
+            if let Ok(value_str) = value.to_str() {
+                request_builder = request_builder.header(name.as_str(), value_str);
+            }
         }
 
         // Add body if present
         if !body.is_empty() {
-            request_builder = request_builder.body(body);
+            request_builder = request_builder.body(body.clone());
         }
-
-        // Send the request through SOCKS5
-        let response = request_builder
-            .send()
-            .await
-            .map_err(|e| format!("Request failed: {}", e))?;
-
-        let status = response.status();
-        let response_headers: Vec<(String, String)> = response
-            .headers()
-            .iter()
-            .map(|(name, value)| {
-                (
-                    name.as_str().to_string(),
-                    value.to_str().unwrap_or("").to_string(),
-                )
-            })
-            .collect();
-
-        let body = response
-            .bytes()
-            .await
-            .map_err(|e| format!("Failed to read response body: {}", e))?;
-
-        Ok(ResponseData {
-            status: status.as_u16(),
-            reason: status.canonical_reason().unwrap_or("Unknown").to_string(),
-            headers: response_headers,
-            body,
-        })
-    }
-
-    /// Send the HTTP response back to the client
-    async fn send_response(stream: &mut TcpStream, response: ResponseData) -> Result<(), String> {
-        // Build response status line
-        let mut response_str = format!("HTTP/1.1 {} {}\r\n", response.status, response.reason);
-
-        // Add all headers from the response
-        for (name, value) in response.headers {
-            response_str.push_str(&format!("{}: {}\r\n", name, value));
-        }
-
-        // End headers
-        response_str.push_str("\r\n");
-
-        // Write response headers
-        stream
-            .write_all(response_str.as_bytes())
-            .await
-            .map_err(|e| format!("Failed to write response headers: {}", e))?;
-
-        // Write response body
-        stream
-            .write_all(&response.body)
-            .await
-            .map_err(|e| format!("Failed to write response body: {}", e))?;
-
-        stream
-            .flush()
-            .await
-            .map_err(|e| format!("Failed to flush stream: {}", e))?;
 
         debug!(
-            "Successfully sent HTTP RPC response: {} bytes",
-            response.body.len()
+            "Sending request through SOCKS5 to {} with {} headers",
+            target_url,
+            headers.len()
         );
 
-        Ok(())
-    }
+        // Send the request through SOCKS5
+        let response = request_builder.send().await.map_err(|e| {
+            let send_elapsed = send_start.elapsed();
+            error!("Request failed after {:?}: {}", send_elapsed, e);
 
-    /// Send an HTTP error response
-    async fn send_error_response(stream: &mut TcpStream, status: u16, reason: &str) {
-        let response = format!(
-            "HTTP/1.1 {} {}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
-            status, reason
+            // Log specific error types
+            if e.is_timeout() {
+                error!(
+                    "Request timeout for {} after {:?}",
+                    target_url, send_elapsed
+                );
+            } else if e.is_connect() {
+                error!(
+                    "Connection error for {} after {:?}",
+                    target_url, send_elapsed
+                );
+            }
+
+            // Log error source chain
+            if let Some(source) = e.source() {
+                error!("Error source: {}", source);
+            }
+
+            e
+        })?;
+
+        let status = response.status();
+        debug!("Received response from {}: status={}", target_url, status);
+
+        // Build hyper response
+        let mut hyper_response = Response::builder().status(status);
+
+        // Copy headers from reqwest to hyper
+        for (name, value) in response.headers().iter() {
+            hyper_response = hyper_response.header(name, value);
+        }
+
+        // Read response body
+        debug!("Reading response body from {}", target_url);
+        let response_bytes = response.bytes().await.map_err(|e| {
+            error!("Failed to read response body: {}", e);
+            if let Some(source) = e.source() {
+                error!("Error source when reading body: {}", source);
+            }
+            e
+        })?;
+
+        debug!(
+            "Successfully read {} bytes from {}",
+            response_bytes.len(),
+            target_url
         );
-        let _ = stream.write_all(response.as_bytes()).await;
+
+        // Build final response
+        let response_body = Full::new(response_bytes);
+        Ok(hyper_response.body(response_body).unwrap())
     }
-}
 
-/// Represents a parsed incoming HTTP request
-struct IncomingRequest {
-    method: String,
-    path: String,
-    headers: Vec<(String, String)>,
-    body: Bytes,
-}
-
-/// Represents the response data to send back
-struct ResponseData {
-    status: u16,
-    reason: String,
-    headers: Vec<(String, String)>,
-    body: Bytes,
-}
-
-impl Drop for HttpRpcProxy {
-    fn drop(&mut self) {
-        debug!("Dropping HTTP RPC proxy");
-        self.cancel_token.cancel();
+    /// Create an error response
+    fn error_response(status: StatusCode, message: &str) -> Response<Full<Bytes>> {
+        Response::builder()
+            .status(status)
+            .body(Full::new(Bytes::from(message.to_string())))
+            .unwrap()
     }
 }

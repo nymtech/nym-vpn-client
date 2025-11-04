@@ -19,6 +19,9 @@ clap.workspace = true
 futures.workspace = true
 log-panics.workspace = true
 reqwest = { version = "0.12", features = ["socks"] }
+hyper = { version = "1.5", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
 bytes = "1.5"
 urlencoding = "2.1"
 serde.workspace = true
