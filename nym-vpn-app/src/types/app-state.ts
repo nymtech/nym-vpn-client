@@ -84,4 +84,6 @@ export type AppState = {
   quic: boolean;
   // current user setting
   domainFronting: boolean;
+  // whether the user has seen the streaming optimized label feature alert
+  streamingOptimizedLabelSeen: boolean;
 };

@@ -10,7 +10,7 @@ export type ButtonTextProps = {
   className?: string;
   textClassName?: string;
   truncate?: boolean;
-  color?: 'rain' | 'transparent';
+  color?: 'rain' | 'transparent' | 'malachite';
   'data-testid'?: string;
 };
 
@@ -34,6 +34,7 @@ function ButtonText({
       'text-black dark:text-white',
       'data-hover:underline decoration-2 text-lg font-medium',
     ],
+    malachite: ['text-malachite', 'data-hover:text-malachite/80'],
   };
 
   const testId = rest['data-testid'] || 'button-text';
@@ -46,8 +47,8 @@ function ButtonText({
         'transition data-disabled:opacity-60 data-active:ring-0',
         'tracking-normal cursor-default',
         truncate && 'overflow-hidden',
-        className && className,
         ...colors[color],
+        className && className,
       ])}
       onClick={onClick}
       onDoubleClick={onDoubleClick}

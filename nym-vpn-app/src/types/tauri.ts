@@ -77,7 +77,8 @@ export type DbKey =
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
   | 'cache-account-id'
-  | 'cache-device-id';
+  | 'cache-device-id'
+  | 'streaming-optimized-label-seen';
 
 export type DisplayServer = 'x11' | 'wayland' | 'unknown';
 
