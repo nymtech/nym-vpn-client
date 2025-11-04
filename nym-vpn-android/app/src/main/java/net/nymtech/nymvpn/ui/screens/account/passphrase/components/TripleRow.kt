@@ -49,7 +49,7 @@ fun TripleRow(items: List<InfoItem>, spacing: Dp = 16.dp) {
 					Icon(
 						imageVector = item.icon,
 						contentDescription = null,
-						tint = Color.White,
+						tint = MaterialTheme.colorScheme.onBackground,
 						modifier = Modifier.size(22.dp),
 					)
 					if (item.negative) {
