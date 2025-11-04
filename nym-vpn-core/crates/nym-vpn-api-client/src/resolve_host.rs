@@ -13,17 +13,20 @@ use crate::error::{Result, VpnApiClientError};
 // be generous with the resolution timeout
 const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Quick DNS resolution timeout for connectivity probes
-const PROBE_DNS_TIMEOUT: Duration = Duration::from_millis(500);
+/// DNS resolution timeout for connectivity probes (1s for mobile networks)
+const PROBE_DNS_TIMEOUT: Duration = Duration::from_secs(1);
 
-/// Quick TCP connection timeout for connectivity probes
-const PROBE_TCP_TIMEOUT: Duration = Duration::from_millis(500);
+/// TCP connection timeout for connectivity probes (1s for mobile networks)
+const PROBE_TCP_TIMEOUT: Duration = Duration::from_secs(1);
+
+/// Overall probe timeout - fail fast if network is not ready
+const PROBE_OVERALL_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Probe targets
 const PROBE_TARGETS: &[(&str, u16)] = &[
-    ("vercel.app", 443),
-    ("vercel.com", 443),
-    ("yelp.global.ssl.fastly.net", 443),
+    ("nymvpn.com", 443),
+    ("validator.nymtech.net", 443),
+    ("nym.com", 443),
 ];
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
@@ -135,9 +138,22 @@ pub async fn domain_to_socket_addr(
     }
 }
 
-/// Probes connectivity by testing DNS + TCP to f domains
-/// Returns true on first successful connection, false if all fail.
+/// Probes connectivity by testing DNS + TCP
+/// Returns true on first successful connection, false if all fail or timeout.
 pub async fn probe_connectivity() -> bool {
+    match tokio::time::timeout(PROBE_OVERALL_TIMEOUT, probe_connectivity_inner()).await {
+        Ok(result) => result,
+        Err(_) => {
+            tracing::warn!(
+                "Connectivity probe timed out after {:?}",
+                PROBE_OVERALL_TIMEOUT
+            );
+            false
+        }
+    }
+}
+
+async fn probe_connectivity_inner() -> bool {
     let mut resolver = HickoryDnsResolver::default();
     resolver.disable_system_fallback();
 
