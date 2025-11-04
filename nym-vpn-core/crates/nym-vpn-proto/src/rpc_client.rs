@@ -312,6 +312,17 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    pub async fn rotate_keys(&mut self) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .rotate_keys(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
     pub async fn get_account_identity(&mut self) -> Result<Option<String>> {
         self.0
             .get_account_identity(())

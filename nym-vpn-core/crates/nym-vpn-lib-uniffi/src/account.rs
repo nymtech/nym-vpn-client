@@ -245,6 +245,14 @@ pub(super) async fn forget_account() -> Result<(), VpnError> {
         .map_err(VpnError::from)
 }
 
+pub(super) async fn rotate_keys() -> Result<(), VpnError> {
+    get_command_sender()
+        .await?
+        .rotate_keys()
+        .await
+        .map_err(VpnError::from)
+}
+
 pub(super) async fn get_account_id() -> Result<Option<String>, VpnError> {
     Ok(get_command_sender().await?.get_account_id().await?)
 }
@@ -294,7 +302,7 @@ pub(crate) mod raw {
         response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
         types::{Device, DeviceStatus, VpnAccountMode},
     };
-    use nym_vpn_store::account::AccountInformationStorage;
+    use nym_vpn_store::{account::AccountInformationStorage, keys::wireguard::DB_NAME};
 
     async fn setup_account_storage(path: &str) -> Result<VpnClientOnDiskStorage, VpnError> {
         assert_account_controller_not_running().await?;
@@ -405,6 +413,24 @@ pub(crate) mod raw {
         Ok(())
     }
 
+    async fn remove_wireguard_keys_storage_raw(data_dir: &Path) -> Result<(), VpnError> {
+        let db_path = data_dir.join(DB_NAME);
+        match tokio::fs::remove_file(&db_path).await {
+            Ok(_) => tracing::trace!("Removed file: {}", db_path.display()),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                tracing::trace!("File not found: {}", db_path.display())
+            }
+            Err(e) => {
+                trace_err_chain!(e, "Failed to remove file: {}", db_path.display());
+
+                return Err(VpnError::InternalError {
+                    details: e.to_string(),
+                });
+            }
+        }
+        Ok(())
+    }
+
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
         let network_env = environment::current_environment_details().await?;
         let user_agent = crate::user_agent::construct_user_agent();
@@ -499,6 +525,16 @@ pub(crate) mod raw {
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
             })?;
+
+        Ok(())
+    }
+
+    pub(crate) async fn rotate_keys_raw(path: &str) -> Result<(), VpnError> {
+        let path_buf =
+            PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
+                details: err.to_string(),
+            })?;
+        remove_wireguard_keys_storage_raw(&path_buf).await?;
 
         Ok(())
     }

@@ -357,6 +357,21 @@ pub fn forgetAccountRaw(path: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::raw::forget_account_raw(&path))
 }
 
+/// Force a rotation of the wireguard keys
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn rotateKeys() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::rotate_keys())
+}
+
+/// Force a rotation of the wireguard keys
+/// This is a version that can be called when the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn rotateKeysRaw(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::rotate_keys_raw(&path))
+}
+
 /// Get the device identity
 #[allow(non_snake_case)]
 #[uniffi::export]

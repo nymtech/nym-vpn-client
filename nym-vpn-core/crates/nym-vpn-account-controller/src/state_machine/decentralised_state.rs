@@ -67,6 +67,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             return NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
+                    AccountCommand::RotateKeys(return_sender) => {
+                        let res = handler::handle_rotate_keys(shared_state).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::AccountBalance(return_sender) => {
                         return_sender.send(decentralised_zknym_handler::handle_account_balance(shared_state).await);
                     }
