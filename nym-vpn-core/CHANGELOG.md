@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add tunnel connection monitoring (https://github.com/nymtech/nym-vpn-client/pull/3724)
 - Backend QUIC filtering for desktop (https://github.com/nymtech/nym-vpn-client/pull/3746)
 - Fallback on mixnet channel if metadata endpoint is not available (https://github.com/nymtech/nym-vpn-client/pull/3747)
+- Library exposing the command for manual wireguard key rotation (https://github.com/nymtech/nym-vpn-client/pull/3870)
 
 ### Changed
 
