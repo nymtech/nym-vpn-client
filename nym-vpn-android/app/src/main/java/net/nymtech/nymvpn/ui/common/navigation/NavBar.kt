@@ -120,7 +120,18 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				},
 			)
 
-			currentRoute.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState(show = false)
+			currentRoute.startsWith(Route.LoginScanner::class.qualifiedName!!) -> NavBarState(show = false)
+
+			currentRoute.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle("") },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+
 			currentRoute.startsWith(Route.Licenses::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.licenses)) },
 				show = true,
@@ -224,8 +235,6 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
-
-			currentRoute.startsWith(Route.LoginScanner::class.qualifiedName!!) -> NavBarState(show = false)
 			currentRoute.startsWith(Route.Permission::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.permission_required)) },
 				show = true,
