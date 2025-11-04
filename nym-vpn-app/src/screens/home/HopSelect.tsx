@@ -178,10 +178,7 @@ export default function HopSelect({
         {(showQuic || showStreamOptimized) && (
           <div className="flex items-center justify-end gap-3 flex-1 mr-1">
             {showStreamOptimized && (
-              <MsIcon
-                icon="smart_display"
-                className="font-icon text-2xl select-none text-cornflower"
-              />
+              <MsIcon icon="smart_display" className="text-cornflower" />
             )}
             {showQuic && <QuicTag />}
           </div>
