@@ -520,7 +520,7 @@ jobs:
             --output-format json | tee "$OUT_JSON"
 
           STATUS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status",""))' "$OUT_JSON")"
-          [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; exit 1; }
+          [[ "$STATUS" == "Accepted" ]] || { echo "❌ Notarization failed ($STATUS)"; cat "$OUT_JSON"; exit 1; }
 
           echo "✅ Notarization status: Accepted"
           echo "📎 Stapling PKG…"
