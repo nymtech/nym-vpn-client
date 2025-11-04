@@ -128,6 +128,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/socks5': {
+        title: t('app-proxy.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/feedback': {
         title: t('feedback'),
         leftIcon: 'arrow_back',

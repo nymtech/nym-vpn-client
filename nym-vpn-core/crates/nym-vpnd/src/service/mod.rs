@@ -3,6 +3,7 @@
 
 mod config;
 mod error;
+mod socks5;
 mod vpn_service;
 
 pub use config::{
@@ -11,4 +12,7 @@ pub use config::{
     read_toml_config_file, write_json_config_file,
 };
 pub use error::SetNetworkError;
+pub use socks5::{
+    HttpRpcSettings, LazySocks5Error, LazySocks5Service, Socks5Settings, Socks5State, Socks5Status,
+};
 pub use vpn_service::{NymVpnService, NymVpnServiceParameters, VpnServiceCommand};

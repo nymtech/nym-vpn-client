@@ -5,9 +5,10 @@ use std::path::PathBuf;
 
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
-    LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
+    ListGatewaysOptions, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage,
+    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
@@ -536,6 +537,48 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
+    }
+
+    pub async fn enable_socks5(
+        &mut self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_point: ExitPoint,
+    ) -> Result<()> {
+        let request = proto::EnableSocks5Request {
+            socks5_settings: Some(proto::Socks5Settings {
+                listen_address: socks5_settings.listen_address,
+            }),
+            http_rpc_settings: Some(proto::HttpRpcSettings {
+                listen_address: http_rpc_settings.listen_address,
+            }),
+            exit: Some(proto::ExitNode::from(exit_point)),
+        };
+
+        self.0
+            .enable_socks5(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn disable_socks5(&mut self) -> Result<()> {
+        self.0
+            .disable_socks5(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn get_socks5_status(&mut self) -> Result<Socks5Status> {
+        let response = self
+            .0
+            .get_socks5_status(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Socks5Status::try_from(response).map_err(Error::InvalidResponse)
     }
 }
 
