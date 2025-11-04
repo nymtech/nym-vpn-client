@@ -3,7 +3,10 @@
 
 //! Module implementing TCP connection probe
 
-use std::{net::SocketAddr, time::Duration};
+use std::{
+    net::{IpAddr, SocketAddr},
+    time::Duration,
+};
 
 #[cfg(unix)]
 use std::os::fd::{FromRawFd, IntoRawFd};
@@ -13,7 +16,10 @@ use std::os::windows::io::{FromRawSocket, IntoRawSocket};
 use socket2::{Domain, SockAddr, Socket, Type};
 use tokio::net::TcpSocket;
 
-use crate::{BoxedProbeError, ConnectionProbe, ProbeError};
+use super::{
+    BoxedProbeError, ConnectionProbe, DEFAULT_IPV4_PROBE_IP, DEFAULT_IPV6_PROBE_IP,
+    DEFAULT_TCP_PROBE_PORT, ProbeError,
+};
 
 /// ICMP probe configuration
 #[derive(Debug, Clone)]
@@ -35,10 +41,33 @@ pub struct TcpProbeConfig {
 }
 
 impl TcpProbeConfig {
+    /// Returns default configuration for probing over IPv4
+    pub fn default_v4() -> Self {
+        Self::new(SocketAddr::new(
+            IpAddr::from(DEFAULT_IPV4_PROBE_IP),
+            DEFAULT_TCP_PROBE_PORT,
+        ))
+    }
+
+    /// Returns default configuration for probing over IPv6
+    pub fn default_v6() -> Self {
+        Self::new(SocketAddr::new(
+            IpAddr::from(DEFAULT_IPV6_PROBE_IP),
+            DEFAULT_TCP_PROBE_PORT,
+        ))
+    }
+
+    /// Create new configuration with the given probe IP address and port
     pub fn new(probe_address: impl Into<SocketAddr>) -> Self {
         Self {
             probe_address: probe_address.into(),
             local_address: None,
+            #[cfg(any(
+                target_os = "linux",
+                target_os = "android",
+                target_os = "ios",
+                target_os = "macos"
+            ))]
             interface: None,
         }
     }
@@ -112,7 +141,7 @@ impl TcpProbe {
                 SocketAddr::V4(_) => socket.bind_device_by_index_v4(Some(index)),
                 SocketAddr::V6(_) => socket.bind_device_by_index_v6(Some(index)),
             }
-            .map_err(|err| TcpProbeInnerError::BindInterface(err))?;
+            .map_err(TcpProbeInnerError::BindInterface)?;
         }
 
         #[cfg(windows)]
