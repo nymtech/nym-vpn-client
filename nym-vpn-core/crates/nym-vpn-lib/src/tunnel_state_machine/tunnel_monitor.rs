@@ -1874,7 +1874,7 @@ impl TunnelMonitor {
                 .iter()
                 .find(|v| v.is_ipv4())
                 .ok_or(Error::ProbeRequiresIPv4Addr)?;
-            tcp_probe_config = tcp_probe_config.with_local_address(*local_addr);
+            tcp_probe_config = tcp_probe_config.with_local_address(SocketAddr::new(*local_addr, 0));
         }
 
         Ok(TcpProbe::new(tcp_probe_config))
