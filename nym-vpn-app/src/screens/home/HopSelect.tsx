@@ -59,16 +59,17 @@ export default function HopSelect({
       case 'region':
         return getLocationInfo(selected.country, gateway, selected.name);
       case 'gateway':
-        return getGatewayInfo(selected);
+        return getGatewayInfo(selected, gateway);
     }
   };
 
   type SelectedNodeProps = {
-    id?: string;
     countryCode: countryCode;
     name: string;
     subInfo?: string | null;
     animate?: boolean;
+    quic?: boolean;
+    streamOptimized?: boolean;
   };
 
   const getLocationInfo = (
@@ -93,48 +94,50 @@ export default function HopSelect({
     }
 
     return {
-      id: gateway?.id,
       countryCode: country.code.toLowerCase() as countryCode,
       name: location,
       subInfo,
       animate: true,
+      quic: gateway?.quic,
+      streamOptimized: gateway?.asn?.type === 'residential',
     };
   };
 
-  const getGatewayInfo = (gateway: GatewayNode): SelectedNodeProps => {
+  const getGatewayInfo = (
+    node: GatewayNode,
+    gateway: Gateway | null,
+  ): SelectedNodeProps => {
     const components = [];
-    if (gateway.city.length > 0) {
-      components.push(gateway.city);
+    if (node.city.length > 0) {
+      components.push(node.city);
     }
     if (
-      countriesWithRegions.includes(gateway.country.code) &&
-      gateway.region.length > 0
+      countriesWithRegions.includes(node.country.code) &&
+      node.region.length > 0
     ) {
-      components.push(gateway.region);
+      components.push(node.region);
     }
-    components.push(
-      getCountryName(gateway.country.code) || gateway.country.name,
-    );
+    components.push(getCountryName(node.country.code) || node.country.name);
 
     return {
-      id: gateway.id,
-      countryCode: gateway.country.code.toLowerCase() as countryCode,
-      name: gateway.name,
+      countryCode: node.country.code.toLowerCase() as countryCode,
+      name: node.name,
       subInfo: components.join(', '),
+      quic: gateway?.quic,
+      streamOptimized: gateway?.asn?.type === 'residential',
     };
   };
 
   const SelectedNode = ({
-    id = '',
     countryCode,
     name,
     subInfo,
     animate,
+    quic,
+    streamOptimized,
   }: SelectedNodeProps) => {
-    const lookup = useMemo(
-      () => lookupGw(id, countryCode, nodeHop),
-      [id, countryCode],
-    );
+    const showQuic = quicTag && quic;
+    const showStreamOptimized = nodeHop === 'exit' && streamOptimized;
 
     return (
       <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
@@ -172,12 +175,15 @@ export default function HopSelect({
             </>
           )}
         </div>
-        {lookup?.asn?.type === 'residential' && (
-          <div className="flex items-center justify-end flex-1 p-2">
-            <MsIcon
-              icon="smart_display"
-              className="font-icon text-2xl select-none text-cornflower"
-            />
+        {(showQuic || showStreamOptimized) && (
+          <div className="flex items-center justify-end gap-3 flex-1 mr-1">
+            {showStreamOptimized && (
+              <MsIcon
+                icon="smart_display"
+                className="font-icon text-2xl select-none text-cornflower"
+              />
+            )}
+            {showQuic && <QuicTag />}
           </div>
         )}
       </div>
@@ -227,14 +233,11 @@ export default function HopSelect({
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
       <SelectedNode {...nodeData(node, gateway)} />
-      <div className="flex items-center">
-        {quicTag && gateway?.quic && <QuicTag className="mx-2" />}
-        <MsIcon
-          icon="arrow_right"
-          className="pointer-events-none"
-          data-testid={`hop-select-arrow-${nodeHop}`}
-        />
-      </div>
+      <MsIcon
+        icon="arrow_right"
+        className="pointer-events-none"
+        data-testid={`hop-select-arrow-${nodeHop}`}
+      />
     </div>
   );
 }
