@@ -162,11 +162,11 @@ async fn probe_connectivity_inner() -> bool {
     for &(hostname, port) in PROBE_TARGETS {
         let resolver_clone = resolver.clone();
         probe_tasks.push(async move {
-            let ips =
+            let ips: Vec<IpAddr> =
                 match tokio::time::timeout(PROBE_DNS_TIMEOUT, resolver_clone.resolve_str(hostname))
                     .await
                 {
-                    Ok(Ok(addrs)) => addrs.iter().collect::<Vec<_>>(),
+                    Ok(Ok(addrs)) => addrs.into_iter().collect(),
                     _ => return false,
                 };
 
@@ -175,8 +175,8 @@ async fn probe_connectivity_inner() -> bool {
             }
 
             let mut connect_tasks = FuturesUnordered::new();
-            for ip in ips.iter().take(3) {
-                let addr = SocketAddr::new(*ip, port);
+            for ip in ips.into_iter().take(3) {
+                let addr = SocketAddr::new(ip, port);
                 connect_tasks.push(async move {
                     matches!(
                         tokio::time::timeout(PROBE_TCP_TIMEOUT, TcpStream::connect(addr)).await,
