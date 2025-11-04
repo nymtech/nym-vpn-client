@@ -92,18 +92,19 @@ impl Socks5Backend {
             self.internal_listen_address
         );
 
-        // Setup storage paths for credential storage (shared with main VPN client)
-        let storage_paths = StoragePaths::new_from_dir(&self.data_path)
-            .map_err(|e| Socks5BackendError::StorageError(e.to_string()))?;
+        // TODO: custom storage path for socks5
+        // // Setup storage paths for credential storage (shared with main VPN client)
+        // let storage_paths = StoragePaths::new_from_dir(&self.data_path)
+        //     .map_err(|e| Socks5BackendError::StorageError(e.to_string()))?;
 
         info!("Building mixnet client with SOCKS5 configuration...");
         // Build the mixnet client with SOCKS5 configuration
-        let mixnet_client = MixnetClientBuilder::new_with_default_storage(storage_paths)
-            .await
-            .map_err(|e| {
-                error!("Failed to create mixnet client builder: {}", e);
-                Socks5BackendError::MixnetInitError(e.to_string())
-            })?
+        let mixnet_client = MixnetClientBuilder::new_ephemeral()
+            // .await
+            // .map_err(|e| {
+            //     error!("Failed to create mixnet client builder: {}", e);
+            //     Socks5BackendError::MixnetInitError(e.to_string())
+            // })?
             .socks5_config(socks5_config)
             .build()
             .map_err(|e| {

@@ -1,6 +1,3 @@
-// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: GPL-3.0-only
-
 //! Service wrapper for the lazy SOCKS5 wrapper
 
 use super::http_rpc_proxy::HttpRpcProxy;
@@ -13,7 +10,6 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
-// Re-export shared types from nym-vpn-lib-types
 pub use nym_vpn_lib_types::{Socks5Settings, Socks5State, Socks5Status};
 
 /// SOCKS5 service errors
