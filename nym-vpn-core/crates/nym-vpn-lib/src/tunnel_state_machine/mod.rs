@@ -717,8 +717,11 @@ pub enum Error {
     #[error("failed to create icmp probe")]
     CreateIcmpProbe(#[source] nym_connection_monitor::IcmpProbeError),
 
-    #[error("failed to configure icmp probe due to missing IPv4 interface address")]
-    IcmpProbeRequiresIPv4Addr,
+    #[error("failed to create tcp probe")]
+    CreateTcpProbe(#[source] nym_connection_monitor::TcpProbeError),
+
+    #[error("failed to configure probe due to missing IPv4 interface address")]
+    ProbeRequiresIPv4Addr,
 }
 
 impl Error {
@@ -759,7 +762,8 @@ impl Error {
             Self::WireguardKeyDb(e) => ErrorStateReason::Internal(e.to_string()),
             Self::GatewayDirectoryClient(e) => ErrorStateReason::Internal(e.to_string()),
             Self::CreateIcmpProbe(e) => ErrorStateReason::Internal(e.to_string()),
-            Self::IcmpProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
+            Self::CreateTcpProbe(e) => ErrorStateReason::Internal(e.to_string()),
+            Self::ProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
         })
     }
 }
