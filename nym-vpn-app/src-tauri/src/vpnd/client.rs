@@ -3,6 +3,7 @@ pub use super::{
     error::VpndError,
     feature_flags::FeatureFlags,
     node::Node,
+    socks5::{HttpRpcSettings, Socks5Settings, Socks5Status},
     system_message::SystemMessage,
     vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
 };
@@ -549,6 +550,80 @@ impl VpndClient {
         debug!("enabled vpnd sentry");
         info!("restart vpnd (service) required for the change to take effect");
         Ok(())
+    }
+
+    /// Enable SOCKS5 proxy
+    #[instrument(skip_all)]
+    pub async fn enable_socks5(
+        &self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_node: Node,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let exit_point: lib::ExitPoint = exit_node.try_into()?;
+
+        let lib_socks5_settings = lib::Socks5Settings {
+            listen_address: socks5_settings.listen_address,
+        };
+
+        let lib_http_rpc_settings = lib::HttpRpcSettings {
+            listen_address: http_rpc_settings.listen_address,
+        };
+
+        vpnd.enable_socks5(lib_socks5_settings, lib_http_rpc_settings, exit_point)
+            .await
+            .map_err(|e| {
+                error!("failed to enable SOCKS5 proxy: {}", e);
+                VpndError::RpcClient(e)
+            })?;
+
+        info!("SOCKS5 proxy enabled");
+        Ok(())
+    }
+
+    /// Disable SOCKS5 proxy
+    #[instrument(skip_all)]
+    pub async fn disable_socks5(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.disable_socks5().await.map_err(|e| {
+            error!("failed to disable SOCKS5 proxy: {}", e);
+            VpndError::RpcClient(e)
+        })?;
+
+        info!("SOCKS5 proxy disabled");
+        Ok(())
+    }
+
+    /// Get SOCKS5 proxy status
+    #[instrument(skip_all)]
+    pub async fn get_socks5_status(&self) -> Result<Socks5Status, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response = vpnd
+            .get_socks5_status()
+            .await
+            .map_err(|e| {
+                error!("failed to get SOCKS5 status: {}", e);
+                VpndError::RpcClient(e)
+            })?;
+
+        debug!("SOCKS5 status: {:?}", response);
+        
+        // Convert from lib::Socks5Status to crate::vpnd::socks5::Socks5Status
+        Ok(Socks5Status {
+            state: response.state.into(),
+            socks5_settings: Some(crate::vpnd::socks5::Socks5Settings {
+                listen_address: response.socks5_settings.listen_address,
+            }),
+            http_rpc_settings: Some(crate::vpnd::socks5::HttpRpcSettings {
+                listen_address: response.http_rpc_settings.listen_address,
+            }),
+            error_message: response.error_message,
+            active_connections: response.active_connections,
+        })
     }
 
     /// Disable sentry at daemon level

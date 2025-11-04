@@ -39,6 +39,7 @@ use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Networ
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
+    HttpRpcSettings, LazySocks5Error, LazySocks5Service, Socks5Settings, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
@@ -79,6 +80,12 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         GatewayFilters,
     ),
+    EnableSocks5(
+        oneshot::Sender<Result<(), LazySocks5Error>>,
+        (Socks5Settings, HttpRpcSettings, ExitPoint),
+    ),
+    DisableSocks5(oneshot::Sender<Result<(), LazySocks5Error>>, ()),
+    GetSocks5Status(oneshot::Sender<Result<Socks5Status, LazySocks5Error>>, ()),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
     SetTargetState(oneshot::Sender<bool>, TargetState),
@@ -232,6 +239,9 @@ pub struct NymVpnService {
 
     // The statistics channel sender
     statistics_event_sender: StatisticsSender,
+
+    // Lazy SOCKS5 proxy service handle
+    socks5_service: LazySocks5Service,
 }
 
 impl NymVpnService {
@@ -386,6 +396,9 @@ impl NymVpnService {
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
+        // Initialize lazy SOCKS5 service (disabled by default)
+        let socks5_service = LazySocks5Service::new(services_shutdown_token.child_token());
+
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
@@ -525,6 +538,7 @@ impl NymVpnService {
             sentry_enabled: parameters.sentry_enabled,
             network_statistics_enabled: parameters.netstats_enabled,
             statistics_event_sender,
+            socks5_service,
         })
     }
 
@@ -585,6 +599,9 @@ impl NymVpnService {
 
         // Cancel all other services and wait for them to complete
         self.services_shutdown_token.cancel();
+
+        // Shutdown SOCKS5 service
+        self.socks5_service.shutdown().await;
 
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {e}");
@@ -855,6 +872,23 @@ impl NymVpnService {
                 let result = self.handle_toggle_collect_network_stats(enable).await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::EnableSocks5(
+                tx,
+                (socks5_settings, http_rpc_settings, exit_point),
+            ) => {
+                let result = self
+                    .handle_enable_socks5(socks5_settings, http_rpc_settings, exit_point)
+                    .await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::DisableSocks5(tx, ()) => {
+                let result = self.handle_disable_socks5().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetSocks5Status(tx, ()) => {
+                let result = self.handle_get_socks5_status().await;
+                let _ = tx.send(result);
+            }
         }
     }
 
@@ -1032,6 +1066,211 @@ impl NymVpnService {
 
             completion_tx.send(result).ok();
         });
+    }
+
+    async fn handle_enable_socks5(
+        &mut self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_point: ExitPoint,
+    ) -> Result<(), LazySocks5Error> {
+        tracing::info!("Enabling SOCKS5 client");
+
+        // Log warning if VPN is connected in 5-hop mode
+        if matches!(self.tunnel_state, TunnelState::Connected { .. })
+            && !self.config_manager.config().enable_two_hop
+        {
+            tracing::warn!(
+                "Both VPN tunnel (5-hop) and SOCKS5 proxy are active. \
+                This will generate dual cover traffic streams and consume more bandwidth."
+            );
+        }
+
+        // Get exit gateway network requester address from exit point and validate SOCKS5 support
+        let exit_network_requester_address = match &exit_point {
+            ExitPoint::Gateway { identity } => {
+                // Fetch gateway list to validate SOCKS5 support
+                let exit_gateways = self
+                    .gateway_cache_handle
+                    .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+                    .await
+                    .map_err(|e| {
+                        LazySocks5Error::InvalidConfig(format!(
+                            "Failed to lookup exit gateways: {}",
+                            e
+                        ))
+                    })?;
+
+                // Convert nym_vpn_lib_types::NodeIdentity to nym_sdk::mixnet::NodeIdentity
+                let identity_base58 = identity.to_base58_string();
+                let sdk_identity = nym_sdk::mixnet::NodeIdentity::from_base58_string(
+                    &identity_base58,
+                )
+                .map_err(|e| {
+                    LazySocks5Error::InvalidConfig(format!(
+                        "Failed to parse gateway identity {}: {}",
+                        identity_base58, e
+                    ))
+                })?;
+
+                // Look up the specific gateway
+                let gateway = exit_gateways
+                    .gateway_with_identity(&sdk_identity)
+                    .ok_or_else(|| {
+                        LazySocks5Error::InvalidConfig(format!(
+                            "Gateway {} not found in exit gateways",
+                            identity
+                        ))
+                    })?;
+
+                // Verify gateway supports SOCKS5 (has network requester)
+                let ipr_address = gateway
+                    .ipr_address
+                    .ok_or(LazySocks5Error::GatewayNotSupported)?;
+
+                ipr_address.to_string()
+            }
+            ExitPoint::Address { address } => {
+                // For Address, we already have the full network requester address
+                // Convert nym_vpn_lib_types::Recipient to nym_gateway_directory::Recipient
+                let gateway_dir_recipient: gateway_directory::Recipient =
+                    (**address).clone().into();
+                let ipr_address =
+                    gateway_directory::IpPacketRouterAddress::from(gateway_dir_recipient);
+                let gateway_identity = ipr_address.gateway();
+
+                // Fetch gateway list to validate that the gateway exists
+                let exit_gateways = self
+                    .gateway_cache_handle
+                    .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+                    .await
+                    .map_err(|e| {
+                        LazySocks5Error::InvalidConfig(format!(
+                            "Failed to lookup exit gateways: {}",
+                            e
+                        ))
+                    })?;
+
+                // Look up the specific gateway to verify it exists
+                let _gateway = exit_gateways
+                    .gateway_with_identity(&gateway_identity)
+                    .ok_or_else(|| {
+                        LazySocks5Error::InvalidConfig(format!(
+                            "Gateway {} not found in exit gateways",
+                            gateway_identity
+                        ))
+                    })?;
+
+                // Return the full network requester address
+                ipr_address.to_string()
+            }
+            ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
+                // For non-specific exit points, select a gateway the same way the VPN does
+                tracing::info!(
+                    "Selecting SOCKS5 exit node for exit point: {:?}",
+                    exit_point
+                );
+
+                let exit_gateways = self
+                    .gateway_cache_handle
+                    .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+                    .await
+                    .map_err(|e| {
+                        LazySocks5Error::InvalidConfig(format!(
+                            "Failed to lookup exit gateways: {}",
+                            e
+                        ))
+                    })?;
+
+                tracing::debug!("Found {} exit gateways", exit_gateways.len());
+
+                // Convert to gateway_directory types for lookup
+                let exit_point_dir = gateway_directory::ExitPoint::from(exit_point.clone());
+                let residential_exit = self.config_manager.config().residential_exit;
+
+                // Try to find a high-performance gateway first
+                let selected_gateway = exit_point_dir
+                    .lookup_gateway(
+                        &exit_gateways,
+                        Some(gateway_directory::ScoreValue::High),
+                        residential_exit,
+                    )
+                    .or_else(|err| {
+                        // When no gateways could be found, lower performance tier and try again
+                        if err.is_unmatched_non_specific_gateway() {
+                            tracing::debug!(
+                                "Could not locate high quality SOCKS5 exit gateway. \
+                                Lowering performance filter to medium and trying again"
+                            );
+                            exit_point_dir.lookup_gateway(
+                                &exit_gateways,
+                                Some(gateway_directory::ScoreValue::Medium),
+                                residential_exit,
+                            )
+                        } else {
+                            Err(err)
+                        }
+                    })
+                    .map_err(|e| {
+                        LazySocks5Error::InvalidConfig(format!(
+                            "Failed to select exit gateway: {}",
+                            e
+                        ))
+                    })?;
+
+                // Verify gateway supports SOCKS5 (has network requester)
+                let ipr_address = selected_gateway
+                    .ipr_address
+                    .ok_or(LazySocks5Error::GatewayNotSupported)?;
+
+                tracing::info!(
+                    "Selected SOCKS5 exit gateway: {}, location: {}",
+                    selected_gateway.identity(),
+                    selected_gateway
+                        .two_letter_iso_country_code()
+                        .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+                );
+
+                // Return the network requester address
+                ipr_address.to_string()
+            }
+        };
+
+        tracing::info!(
+            "Using network requester address {} for SOCKS5",
+            exit_network_requester_address
+        );
+
+        // Enable the lazy service with default idle timeout of 60 seconds
+        let idle_timeout_secs = 60;
+
+        self.socks5_service
+            .enable(
+                self.data_dir.clone(),
+                socks5_settings.listen_address,
+                http_rpc_settings.listen_address,
+                exit_network_requester_address,
+                idle_timeout_secs,
+            )
+            .await?;
+
+        tracing::info!("Lazy SOCKS5 proxy service enabled successfully");
+        tracing::info!(
+            "Mixnet will initialize on first SOCKS5 connection and shut down after {}s of inactivity",
+            idle_timeout_secs
+        );
+        Ok(())
+    }
+
+    async fn handle_disable_socks5(&mut self) -> Result<(), LazySocks5Error> {
+        tracing::info!("Disabling lazy SOCKS5 proxy service");
+        self.socks5_service.disable().await?;
+        tracing::info!("Lazy SOCKS5 proxy service disabled successfully");
+        Ok(())
+    }
+
+    async fn handle_get_socks5_status(&self) -> Result<Socks5Status, LazySocks5Error> {
+        self.socks5_service.get_status().await
     }
 
     // Deprecated
