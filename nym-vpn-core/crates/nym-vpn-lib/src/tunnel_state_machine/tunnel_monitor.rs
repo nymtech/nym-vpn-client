@@ -5,8 +5,8 @@ use futures::{FutureExt, future::Fuse, pin_mut};
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_connection_monitor::{
-    ConnectionEvent, ConnectionMonitor, ConnectionProbe, ConnectionStatusEvent, IcmpProbe,
-    IcmpProbeConfig, TcpProbe, TcpProbeConfig, TimingConfig,
+    ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
+    TcpProbe, TcpProbeConfig, TimingConfig,
 };
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
@@ -1910,7 +1910,7 @@ impl TunnelMonitor {
                     self.shutdown_token.child_token(),
                 ))
             }
-        })
+        }
     }
 }
 

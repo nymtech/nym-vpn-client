@@ -123,7 +123,7 @@ impl TcpProbe {
         #[cfg(any(target_os = "android", target_os = "linux"))]
         if let Some(interface) = self.config.interface.as_deref() {
             socket
-                .bind_device(Some(interface))
+                .bind_device(Some(interface.as_bytes()))
                 .map_err(|err| TcpProbeError::from(TcpProbeInnerError::BindInterface(err)))?;
         }
 
