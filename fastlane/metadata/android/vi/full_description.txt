@@ -1,34 +1,49 @@
-Ngừng bị theo dõi: VPN duy nhất không thể do thám bạn
+Ngừng bị theo dõi trực tuyến. VPN duy nhất mà không thể theo dõi bạn — ngay cả khi nó muốn. Sản xuất tại Thụy Sĩ, được các nhà bảo vệ quyền riêng tư trên toàn thế giới tin cậy.
 
-Mệt mỏi vì bị giám sát trực tuyến? VPN truyền thống đưa dữ liệu qua máy chủ tập trung, có thể theo dõi bạn. NymVPN khác biệt: mạng phi tập trung, không có máy chủ trung tâm, ghi log là không thể. Không chỉ “no-logs”, mà là “không thể log”.
+⭐️ Được giới thiệu tại: PCMag, TechRadar, Wirecutter, ZDNet, Tom’s Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-Được xây dựng bởi đội ngũ tiến sĩ và chuyên gia mật mã với hơn 20 công bố khoa học. NymVPN chạy trên hàng trăm máy chủ độc lập ở 50+ quốc gia. Hợp tác với KU Leuven và EPFL, trụ sở tại Thụy Sĩ. Sứ mệnh: quyền riêng tư cho mọi người.
+DUYỆT WEB KHÔNG ĐỂ LẠI DẤU VẾT
 
-CHỌN MỨC RIÊNG TƯ CỦA BẠN
-- Chế độ Nhanh: Kết nối 2-hop với AmneziaWG. Hop đầu biết danh tính nhưng không biết hoạt động; hop thứ hai biết hoạt động nhưng không danh tính.
-- Chế độ Ẩn danh: Mixnet 5-hop với nhiều lớp mã hóa. Gói tin giả và nhiễu khiến theo dõi bất khả thi, kể cả AI.
+Mệt mỏi vì tự hỏi ai đang theo dõi bạn? Các VPN truyền thống theo lý thuyết có thể ghi lại hoạt động của bạn. NymVPN thì hoàn toàn khác: mạng phân quyền của chúng tôi khiến việc ghi nhật ký tập trung trở nên bất khả thi theo thiết kế. Đây không chỉ là “chính sách không ghi nhật ký” — đây là kiến trúc “không thể ghi nhật ký”.
 
-TẠI SAO NYMVPN KHÁC BIỆT
-- Ẩn danh thật sự: Không email, không tên. Thanh toán bằng tiền mã hóa hoặc tiền mặt.
-- Bảo vệ siêu dữ liệu: Không chỉ nội dung mà cả mẫu lưu lượng.
-- Chống kiểm duyệt: Truy cập website bị chặn.
-- Nhiều thiết bị: Một mã bảo vệ tối đa 10 thiết bị.
+✓ Ẩn danh thực sự: Thanh toán bằng crypto hoặc tiền mặt, không cần email
+✓ 50+ quốc gia, hàng trăm máy chủ độc lập
+✓ Bảo vệ đa thiết bị: 10 thiết bị với một mã ẩn danh
+✓ Có trụ sở tại Thụy Sĩ với tiêu chuẩn quyền riêng tư cấp học thuật
 
-ĐƯỢC KIỂM CHỨNG ĐỘC LẬP
-- 4 cuộc kiểm toán (2021–2024)
-- 20+ bài báo khoa học
-- Minh bạch qua “Signals of Trustworthy VPNs”
+CHỌN MỨC ĐỘ RIÊNG TƯ CỦA BẠN
 
-TÍNH NĂNG CHÍNH
-- Kill switch
-- Máy chủ tại 50+ quốc gia
-- Không quảng cáo
-- Mã hóa hiện đại
+⚡ Chế độ Nhanh – Tốc độ cực nhanh cho streaming và lướt web. Mặc định 2-hop: một máy chủ biết bạn là ai, máy chủ khác biết bạn đang làm gì — nhưng không bao giờ cả hai.
+🔒 Chế độ Ẩn danh – Quyền riêng tư tối đa qua mixnet 5-hop với công nghệ tạo nhiễu và lên tới 5 lớp mã hóa. Được thiết kế để chống lại phân tích lưu lượng do AI điều khiển và giám sát tiên tiến.
 
-SẮP RA MẮT (2025)
-- Split tunneling
-- IP dân cư
-- Mật mã hậu lượng tử
-- Chống kiểm duyệt nâng cao
+TẠI SAO NymVPN KHÁC BIỆT
 
-Tải về, kết nối, biến mất — trở nên vô hình trong vài giây. Dùng thử NymVPN với đảm bảo hoàn tiền 30 ngày.
+• Bảo vệ metadata – Khác với các VPN khác, chúng tôi không chỉ bảo vệ dữ liệu của bạn mà còn cả mô hình mà bạn để lại
+• Kháng kiểm duyệt – Truy cập thông tin bị chặn trong môi trường hạn chế bằng AmneziaWG, QUIC và các giao thức stealth
+• Thanh toán Zero-Knowledge – Gói đăng ký của bạn không bị liên kết mã hóa với hoạt động của bạn
+• Thiết kế bởi trường đại học – Được phát triển bởi các nhà mật mã học PhD từ KU Leuven và EPFL với hơn 20 bài báo bình duyệt
+
+ĐƯỢC XÁC MINH ĐỘC LẬP
+
+• 4 cuộc kiểm định bảo mật (2021-2024) bởi JP Aumasson, Oak Security, Cryspen, Cure53
+• Mã nguồn mở và minh bạch (“Signals of Trustworthy VPNs”)
+• Hơn 10.000 người dùng đã tin tưởng NymVPN cho quyền riêng tư của mình
+
+TÍNH NĂNG CƠ BẢN
+
+• Kết nối tốc độ cao với lựa chọn hơn 50 quốc gia
+• Kill switch ngăn rò rỉ dữ liệu
+• Trải nghiệm hoàn toàn không quảng cáo
+• Ngăn xếp mã hóa hiện đại nhất
+
+PHÙ HỢP CHO
+
+→ Streaming và duyệt web không bị hãng quảng cáo theo dõi
+→ Kết nối WiFi công cộng an toàn tại quán cà-phê, sân bay, khách sạn
+→ Những người ở quốc gia bị hạn chế cần truy cập đáng tin cậy
+→ Những ai muốn ẩn danh thực sự, chứ không chỉ ẩn IP
+→ Nhà báo và nhà hoạt động cần giao tiếp không thể bị lần theo
+
+Tải ngay. Kết nối trong vài giây. Biến mất trực tuyến.
+
+🎁 Dùng thử miễn phí 7 ngày | 💯 Bảo đảm hoàn tiền trong 30 ngày | 🌐 Được hơn 10.000 người dùng toàn cầu tin cậy
