@@ -143,10 +143,10 @@ impl From<IcmpProbeInnerError> for IcmpProbeError {
 /// Private error type for the ICMP probe.
 #[derive(Debug, thiserror::Error)]
 enum IcmpProbeInnerError {
-    #[error("failed to send ICMP packet")]
+    #[error("failed to send icmp packet")]
     Send(#[source] SurgeError),
 
-    #[error("failed to create ICMP client")]
+    #[error("failed to create icmp client")]
     CreateIcmpClient(#[source] std::io::Error),
 
     #[cfg(any(target_os = "ios", target_os = "macos"))]

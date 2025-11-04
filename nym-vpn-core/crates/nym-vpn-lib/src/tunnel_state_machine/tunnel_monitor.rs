@@ -57,7 +57,7 @@ use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
 };
-use nym_common::trace_err_chain;
+use nym_common::{ErrorExt, trace_err_chain};
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
@@ -1899,7 +1899,7 @@ impl TunnelMonitor {
                 self.shutdown_token.child_token(),
             )),
             Err(err) => {
-                trace_err_chain!(err, "failed to initialize ICMP probe");
+                tracing::warn!("{}", err.display_chain());
                 tracing::info!("Fallback to TCP probe");
                 let tcp_probe = self.create_tcp_probe(exit_tunnel_metadata)?;
 
