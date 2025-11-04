@@ -59,5 +59,6 @@
       "explorer": "More details in the Nym <networkExplorerLink />"
     },
     "select-button": "サーバーを選択"
-  }
+  },
+  "search-other-nodes": "その他の検索結果"
 }

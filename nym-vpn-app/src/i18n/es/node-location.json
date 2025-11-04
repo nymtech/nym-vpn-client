@@ -59,5 +59,6 @@
       "explorer": "Más detalles en el Nym <networkExplorerLink />"
     },
     "select-button": "Seleccionar servidor"
-  }
+  },
+  "search-other-nodes": "Otros resultados de búsqueda"
 }

@@ -59,5 +59,6 @@
       "explorer": "Xem chi tiết trong Nym <networkExplorerLink />"
     },
     "select-button": "Chọn máy chủ"
-  }
+  },
+  "search-other-nodes": "Các kết quả tìm kiếm khác"
 }

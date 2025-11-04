@@ -59,5 +59,6 @@
       "explorer": "Больше подробностей в Nym <networkExplorerLink />"
     },
     "select-button": "Выберите сервер"
-  }
+  },
+  "search-other-nodes": "Другие результаты поиска"
 }

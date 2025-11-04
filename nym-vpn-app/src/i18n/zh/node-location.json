@@ -59,5 +59,6 @@
       "explorer": "Nym <networkExplorerLink /> 的更多详细信息"
     },
     "select-button": "选择服务器"
-  }
+  },
+  "search-other-nodes": "其他搜索结果"
 }

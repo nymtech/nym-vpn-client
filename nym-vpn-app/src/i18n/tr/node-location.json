@@ -59,5 +59,6 @@
       "explorer": "Detaylı bilgi için Nym <networkExplorerLink />’i inceleyin."
     },
     "select-button": "Sunucu seçin"
-  }
+  },
+  "search-other-nodes": "Other search results"
 }

@@ -59,5 +59,6 @@
       "explorer": "المزيد من التفاصيل في Nym <networkExplorerLink />"
     },
     "select-button": "حدد الخادم"
-  }
+  },
+  "search-other-nodes": "نتائج البحث الأخرى"
 }
