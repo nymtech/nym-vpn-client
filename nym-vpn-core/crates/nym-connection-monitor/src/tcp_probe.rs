@@ -192,6 +192,12 @@ enum TcpProbeInnerError {
     #[error("failed to bind tcp socket to address")]
     BindAddress(#[source] std::io::Error),
 
+    #[cfg(any(
+        target_os = "android",
+        target_os = "linux",
+        target_os = "ios",
+        target_os = "macos"
+    ))]
     #[error("failed to bind tcp socket to interface")]
     BindInterface(#[source] std::io::Error),
 
