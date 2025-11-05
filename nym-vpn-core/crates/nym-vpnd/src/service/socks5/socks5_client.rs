@@ -1,8 +1,3 @@
-// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: GPL-3.0-only
-
-//! SOCKS5 backend that manages the Nym mixnet client lifecycle
-
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -13,9 +8,9 @@ use tracing::{debug, error, info};
 pub struct Socks5Backend {
     /// Data directory for mixnet client state
     data_path: PathBuf,
-    /// Network requester address (recipient format: client_address@gateway_identity)
+    /// Network requester address
     network_requester_address: String,
-    /// Internal SOCKS5 listen address (e.g., "127.0.0.1:10801")
+    /// Internal SOCKS5 listen address
     internal_listen_address: SocketAddr,
     /// The connected SOCKS5 mixnet client (if connected)
     client: Option<Socks5MixnetClient>,
@@ -76,12 +71,11 @@ impl Socks5Backend {
             self.network_requester_address
         );
 
+        // TODO: properly pass configuration
+
         // Create SOCKS5 configuration pointing to the network requester
         let mut socks5_config = Socks5::new("J2oXYjn8fRMz9MKFUibatjCTvxvQbVa2r5Uxp7X47aL3.BdyaZLL1cpSeZKS3AfpzXEXFE67WkuoEsSmxwvo5tTVN@3hWtFJbVVPbZZ9iNZuSHPnShHG5AUiFpTPnvJmUibNp9".to_string());
 
-        // CRITICAL: Enable anonymous sending so responses can come back through the mixnet using SURBs
-        // By default this is false, which means responses won't be routed back to the SOCKS5 client
-        // Setting this to true enables Single Use Reply Blocks (SURBs) for anonymous replies
         socks5_config.send_anonymously = true;
         info!("Enabled anonymous sending (SURBs) for SOCKS5 responses");
 
