@@ -416,6 +416,7 @@ jobs:
 
           COMPONENT_PLIST_FILE="$TMPDIR/component.plist"
           DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
+          UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
@@ -475,12 +476,14 @@ jobs:
             "$DIST_XML_FILE"
 
           # Synthesize the final package from the distribution.
-          productbuild --timestamp \
+          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
+          echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
+
+          # Sign separately since productbuild gets stuck on keychain password prompt when signing
+          productsign --timestamp \
               --keychain "$KEYCHAIN_PATH" \
               --sign "$INSTALLER_SIGNING_IDENTITY" \
-              --distribution "$DIST_XML_FILE" \
-              --package-path "$STAGING_DIRECTORY" \
-              "$PKG_PATH"
+              "$UNSIGNED_PKG_PATH" "$PKG_PATH"
 
           echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
