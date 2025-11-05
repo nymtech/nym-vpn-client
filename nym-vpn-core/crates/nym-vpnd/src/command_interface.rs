@@ -416,6 +416,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn rotate_keys(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let result = self
+            .send_and_wait(VpnServiceCommand::RotateKeys, ())
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_account_identity(
         &self,
         _request: tonic::Request<()>,

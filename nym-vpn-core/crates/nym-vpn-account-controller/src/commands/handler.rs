@@ -184,6 +184,19 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     Ok(())
 }
 
+pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
+    shared_state
+        .wireguard_keys_storage
+        .clear_keys()
+        .await
+        .map_err(|source| {
+            tracing::error!("Failed to clear wireguard keys storage: {source:?}");
+            AccountCommandError::Storage(source.to_string())
+        })
+}
+
 // TODO: With the erorr rework we are now losing information about the original error cause, this needs to be addressed, but errors rework is a pretty gnarly thing to do, so we need to plan it a bit more carefully
 pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,

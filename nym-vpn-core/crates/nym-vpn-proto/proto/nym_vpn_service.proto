@@ -865,6 +865,9 @@ service NymVpnService {
   // credential storage, mixnet keys, gateway registrations.
   rpc ForgetAccount (google.protobuf.Empty) returns (AccountCommandResponse) {}
 
+  // Force a rotation of the wireguard keys.
+  rpc RotateKeys (google.protobuf.Empty) returns (AccountCommandResponse) {}
+
   // Get the account identity of the locally stored recovery phrase
   rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
 
