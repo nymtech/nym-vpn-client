@@ -428,7 +428,7 @@ jobs:
           # Set up a staging directory with the contents to install.
           rm -rf "$STAGING_DIRECTORY" || true
           mkdir -p "$STAGING_DIRECTORY"
-          cp -r "$APP_PATH" "$STAGING_APP_DIR"
+          cp -R "$APP_PATH" "$STAGING_APP_DIR/"
 
           # Generate the component property list.
           pkgbuild --analyze --root "$STAGING_APP_DIR" "$COMPONENT_PLIST_FILE"
