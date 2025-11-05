@@ -267,6 +267,7 @@ jobs:
           SCCACHE_DIR: ${{ env.SCCACHE_DIR }}
           SCCACHE_CACHE_SIZE: ${{ env.SCCACHE_CACHE_SIZE }}
           SCCACHE_IDLE_TIMEOUT: ${{ env.SCCACHE_IDLE_TIMEOUT }}
+          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }} # macOS.mk and iOS.mk both respect RELEASE=true|false
         run: |
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
