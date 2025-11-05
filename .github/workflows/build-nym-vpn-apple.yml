@@ -426,7 +426,9 @@ jobs:
           mkdir -p "$STAGING_DIRECTORY"
 
           # Copy NymVPN.app into staging directory for the app
-          cp -R "$APP_PATH" "$STAGING_APP_DIR/"
+          echo "Copying $APP_PATH to $STAGING_APP_DIR"
+          mkdir "$STAGING_APP_DIR"
+          cp -R "$APP_PATH" "$STAGING_APP_DIR"
           ls -la "$STAGING_APP_DIR"
 
           # Generate the component property list.
