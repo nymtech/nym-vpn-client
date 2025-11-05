@@ -18,9 +18,6 @@ use tracing::{debug, error, info, warn};
 /// Default idle timeout duration (300 seconds)
 const DEFAULT_IDLE_TIMEOUT_SECS: u64 = 300;
 
-/// Default port offset for internal SOCKS5 server
-const INTERNAL_PORT_OFFSET: u16 = 10000;
-
 /// Lazy SOCKS5 wrapper that starts the mixnet on first connection
 pub struct LazySocks5Wrapper {
     /// Public SOCKS5 listen address (user-facing)
@@ -74,7 +71,7 @@ impl LazySocks5Wrapper {
         cancel_token: CancellationToken,
     ) -> Self {
         // Calculate internal port by adding offset to public port
-        let internal_port = public_listen_address.port() + INTERNAL_PORT_OFFSET;
+        let internal_port = 1081;
         let internal_listen_address = SocketAddr::new(public_listen_address.ip(), internal_port);
 
         info!(

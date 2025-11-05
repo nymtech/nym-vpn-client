@@ -1,6 +1,4 @@
-//! HTTP RPC proxy server that forwards requests through the SOCKS5 wrapper
-//! Requests to http://localhost:8545/?p=TARGET_URL are forwarded to TARGET_URL
-//! through the mixnet.
+//! Receives HTTP requests and sends them through SOCKS5 proxy.
 
 use super::socks5_wrapper::LazySocks5Wrapper;
 use bytes::Bytes;
@@ -65,6 +63,7 @@ impl HttpRpcProxy {
         let proxy = reqwest::Proxy::all(&socks5_url)
             .map_err(|e| HttpRpcProxyError::Internal(format!("Failed to create proxy: {}", e)))?;
 
+        // TODO: properly pass configuration
         let http_client = Client::builder()
             .proxy(proxy)
             .timeout(Duration::from_secs(60)) // Total request timeout
@@ -108,7 +107,6 @@ impl HttpRpcProxy {
                                     Self::handle_request(req, http_client.clone(), addr)
                                 });
 
-                                // Serve HTTP/1 on this connection
                                 if let Err(e) = http1::Builder::new()
                                     .serve_connection(io, service)
                                     .await

@@ -1,4 +1,11 @@
-//! Service wrapper for the lazy SOCKS5 wrapper
+//! Lazy SOCKS5 proxy service that routes traffic through the Nym mixnet
+//!
+//! This module implements a lazy-initialed mixnet, triggered by the first SOCKS5 connection
+//! - Listens on a public SOCKS5 port, or HTTP RPC port
+//! - Initializes the Nym mixnet on first connection
+//! - Proxies SOCKS5 traffic to internal Nym SDK SOCKS5 server
+//! - Proxies HTTP RPC traffic to SOCKS5
+//! - Shuts down mixnet after idle timeout
 
 use super::http_rpc_proxy::HttpRpcProxy;
 use super::socks5_wrapper::LazySocks5Wrapper;
