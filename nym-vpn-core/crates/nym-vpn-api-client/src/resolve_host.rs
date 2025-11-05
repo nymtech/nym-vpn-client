@@ -3,31 +3,13 @@ use std::{
     time::Duration,
 };
 
-use futures::stream::{FuturesUnordered, StreamExt};
 use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;
-use tokio::net::TcpStream;
 
 use crate::error::{Result, VpnApiClientError};
 
 // be generous with the resolution timeout
 const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
-
-/// DNS resolution timeout for connectivity probes (1s for mobile networks)
-const PROBE_DNS_TIMEOUT: Duration = Duration::from_secs(1);
-
-/// TCP connection timeout for connectivity probes (1s for mobile networks)
-const PROBE_TCP_TIMEOUT: Duration = Duration::from_secs(1);
-
-/// Overall probe timeout - fail fast if network is not ready
-const PROBE_OVERALL_TIMEOUT: Duration = Duration::from_secs(3);
-
-/// Probe targets
-const PROBE_TARGETS: &[(&str, u16)] = &[
-    ("nymvpn.com", 443),
-    ("validator.nymtech.net", 443),
-    ("nym.com", 443),
-];
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
@@ -136,73 +118,6 @@ pub async fn domain_to_socket_addr(
     } else {
         str_to_socket_addr(&format!("https://{domain}"), limit).await
     }
-}
-
-/// Probes connectivity by testing DNS + TCP
-/// Returns true on first successful connection, false if all fail or timeout.
-pub async fn probe_connectivity() -> bool {
-    match tokio::time::timeout(PROBE_OVERALL_TIMEOUT, probe_connectivity_inner()).await {
-        Ok(result) => result,
-        Err(_) => {
-            tracing::warn!(
-                "Connectivity probe timed out after {:?}",
-                PROBE_OVERALL_TIMEOUT
-            );
-            false
-        }
-    }
-}
-
-async fn probe_connectivity_inner() -> bool {
-    let mut resolver = HickoryDnsResolver::default();
-    resolver.disable_system_fallback();
-
-    let mut probe_tasks = FuturesUnordered::new();
-
-    for &(hostname, port) in PROBE_TARGETS {
-        let resolver_clone = resolver.clone();
-        probe_tasks.push(async move {
-            let ips: Vec<IpAddr> =
-                match tokio::time::timeout(PROBE_DNS_TIMEOUT, resolver_clone.resolve_str(hostname))
-                    .await
-                {
-                    Ok(Ok(addrs)) => addrs.into_iter().collect(),
-                    _ => return false,
-                };
-
-            if ips.is_empty() {
-                return false;
-            }
-
-            let mut connect_tasks = FuturesUnordered::new();
-            for ip in ips.into_iter().take(3) {
-                let addr = SocketAddr::new(ip, port);
-                connect_tasks.push(async move {
-                    matches!(
-                        tokio::time::timeout(PROBE_TCP_TIMEOUT, TcpStream::connect(addr)).await,
-                        Ok(Ok(_))
-                    )
-                });
-            }
-
-            while let Some(success) = connect_tasks.next().await {
-                if success {
-                    tracing::info!("Connectivity probe succeeded to {hostname}:{port}");
-                    return true;
-                }
-            }
-            false
-        });
-    }
-
-    while let Some(success) = probe_tasks.next().await {
-        if success {
-            return true;
-        }
-    }
-
-    tracing::warn!("All connectivity probes failed");
-    false
 }
 
 #[cfg(test)]
