@@ -3,6 +3,7 @@ use nym_vpn_proto::proto as p;
 use time::{Duration, OffsetDateTime};
 use tracing::{error, instrument};
 
+#[allow(dead_code)]
 #[instrument]
 pub fn proto_timestamp_to_datetime(timestamp: p::Timestamp) -> Result<OffsetDateTime> {
     let date_time = OffsetDateTime::from_unix_timestamp(timestamp.seconds)
