@@ -5,9 +5,11 @@ import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
 import { routes } from '../../../router';
 import { MsIcon, PageAnim } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
+import { useMainState } from '../../../contexts';
 
 function Legal() {
   const { t } = useTranslation('settings');
+  const { codeDepsJs, codeDepsRust } = useMainState();
   const navigate = useNavigate();
 
   return (
@@ -32,14 +34,14 @@ function Legal() {
       />
       <SettingsGroup
         settings={[
-          {
+          codeDepsRust.length > 0 && {
             title: t('legal.licenses-rust'),
             onClick: () => {
               navigate(routes.licensesRust);
             },
             trailing: <MsIcon icon="arrow_right" />,
           },
-          {
+          codeDepsJs.length > 0 && {
             title: t('legal.licenses-js'),
             onClick: () => {
               navigate(routes.licensesJs);
