@@ -3993,6 +3993,7 @@ dependencies = [
  "nix 0.30.1",
  "nym-common",
  "pretty_assertions",
+ "socket2 0.6.1",
  "surge-ping",
  "thiserror 2.0.17",
  "tokio",
@@ -8077,8 +8078,9 @@ checksum = "734676eb262c623cec13c3155096e08d1f8f29adce39ba17948b18dad1e54142"
 
 [[package]]
 name = "surge-ping"
-version = "0.8.2"
-source = "git+https://github.com/pronebird/surge-ping.git?rev=d5d973b50eb75d5908f88cb0b98dafa6979f4c8a#d5d973b50eb75d5908f88cb0b98dafa6979f4c8a"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f27ea7b4bfbd3d9980392cd9f90e4158212a5f775fa58e9b85216a0bf739067d"
 dependencies = [
  "hex",
  "parking_lot",
