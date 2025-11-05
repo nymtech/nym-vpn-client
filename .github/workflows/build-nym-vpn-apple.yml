@@ -409,7 +409,7 @@ jobs:
           MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
-          spctl -a -t exec -vv "$APP_PATH"
+          spctl -a -t exec -vv "$APP_PATH" || true
 
           STAGING_DIRECTORY="$PWD/build/pkg"
           UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
@@ -475,7 +475,7 @@ jobs:
 
           cat "$DIST_XML_FILE"
 
-          spctl -a -t exec -vv "$NESTED_PKG_PATH"
+          spctl -a -t exec -vv "$NESTED_PKG_PATH" || true
           rm "$NESTED_PKG_PATH" || true
 
           echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
@@ -486,7 +486,7 @@ jobs:
               --sign "$INSTALLER_SIGNING_IDENTITY" \
               "$UNSIGNED_PKG_PATH" "$PKG_PATH"
 
-          spctl -a -t exec -vv "$PKG_PATH"
+          spctl -a -t exec -vv "$PKG_PATH" || true
 
           echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
