@@ -299,21 +299,21 @@ jobs:
 
           echo "✅ Signed archive + .ipa exported"
 
-      # - name: Upload to TestFlight
-      #   if: env.RELEASE_TYPE != 'pr'
-      #   working-directory: nym-vpn-apple
-      #   env:
-      #     APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-      #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-      #   run: |
-      #     set -euo pipefail
+      - name: Upload to TestFlight
+        if: env.RELEASE_TYPE != 'pr'
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
 
-      #     echo "🚀 Uploading to TestFlight..."
-      #     app-store-connect publish
-      #       # --testflight // uncomment later on and add groups
+          echo "🚀 Uploading to TestFlight..."
+          app-store-connect publish
+            # --testflight // uncomment later on and add groups
 
-      #     echo "✅ Upload completed successfully."
+          echo "✅ Upload completed successfully."
 
       - name: Archive macOS
         id: archive-macos
