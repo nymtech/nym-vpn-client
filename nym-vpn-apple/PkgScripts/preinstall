@@ -6,20 +6,36 @@ INSTALL_DIR=$2
 LOG_DIR=/var/log/nym-vpnd
 NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/MacOS/nym-setup"
 
+DMG_PRIVILEGED_HELPER="/Library/PrivilegedHelperTools/net.nymtech.vpn.helper"
+DMG_LAUNCH_DAEMON_PLIST="/Library/LaunchDaemons/net.nymtech.vpn.helper.plist"
+
 mkdir -p $LOG_DIR
 chmod 755 $LOG_DIR
 exec > $LOG_DIR/preinstall.log 2>&1
 
 echo "Running preinstall at $(date) with $@"
 
+# Remove the daemon registered by DMG based installation
+echo "Migrating to new launch daemon"
+if [ -f "$DMG_LAUNCH_DAEMON_PLIST" ]; then
+    echo "Unregistering old launch daemon"
+    launchctl unload "$DMG_LAUNCH_DAEMON_PLIST" || echo "Failed to unload launch daemon"
+    rm -f "$DMG_LAUNCH_DAEMON_PLIST"
+fi
+
+if [ -f "$DMG_PRIVILEGED_HELPER" ]; then
+    echo "Removing privileged helper tool"
+    rm -f "$DMG_PRIVILEGED_HELPER"
+fi
+
+echo "Terminating old daemon (may not be running)"
+killall "net.nymtech.vpn.helper" || true
+sleep 1
+
 # Stop the existing daemon
 if [ -f "$NYM_SETUP_BIN" ]; then
     "$NYM_SETUP_BIN" prepare-restart &>/dev/null || \
         echo "Failed to send 'prepare-restart' command to old nym-vpnd"
-elif [ -d "$INSTALL_DIR" ]; then
-    echo "Old installation of nym-vpnd detected"
-    killall nym-vpnd || true
-    sleep 1
 fi
 
 # Kill the GUI before proceeding with the upgrade.
