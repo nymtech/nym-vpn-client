@@ -172,7 +172,7 @@
 	<!-- Common -->
 	<string name="button_done">Done</string>
 	<string name="stream_display">Stream display</string>
-	<string name="streaming_server_banner_title">New: Discover streaming-optimized servers (▶️)</string>
+	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
 	<string name="quic_gatway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="here">here</string>
