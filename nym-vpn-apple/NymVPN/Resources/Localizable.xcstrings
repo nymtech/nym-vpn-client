@@ -3593,8 +3593,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "state" : "translated",
+            "value" : "Isso irá reconectá-lo sem o protocolo QUIC habilitado. Você manterá \nseus gateways atuais."
           }
         },
         "ru" : {
@@ -8964,14 +8964,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "day"
+            "state" : "translated",
+            "value" : "день"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "day"
+            "state" : "translated",
+            "value" : "ngày"
           }
         },
         "zh-Hans" : {
@@ -27952,14 +27952,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "month"
+            "state" : "translated",
+            "value" : "місяць"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "month"
+            "state" : "translated",
+            "value" : "tháng"
           }
         },
         "zh-Hans" : {
@@ -30478,14 +30478,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "period"
+            "state" : "translated",
+            "value" : "період"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "period"
+            "state" : "translated",
+            "value" : "khoảng thời gian"
           }
         },
         "zh-Hans" : {
@@ -31066,8 +31066,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send crash info to help us fix bugs faster.\nReports go through Sentry’s secure system and include technical debugging data only."
+            "state" : "translated",
+            "value" : "Envie informações sobre falhas para nos ajudar a corrigir bugs mais rapidamente.\nOs relatórios passam pelo sistema seguro do Sentry e incluem apenas dados técnicos de depuração."
           }
         },
         "ru" : {
@@ -31268,7 +31268,7 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : " "
           }
         },
@@ -39692,14 +39692,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "التسجيل بواسطة البوابات"
+            "state" : "translated",
+            "value" : "تسجيل مجهول مع الخوادم (5/6)"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Registrierung mit Gateways"
+            "state" : "translated",
+            "value" : "Anonym bei Servern registrieren (5/6)"
           }
         },
         "en" : {
@@ -39710,80 +39710,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Registrando con pasarelas"
+            "state" : "translated",
+            "value" : "Registrándose anónimamente con los servidores (5/6)"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "در حال ثبت‌نام در گِیت‌وی‌ها"
+            "state" : "new",
+            "value" : "Registering anonymously with servers (5/6)"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Inscription aux passerelles"
+            "state" : "translated",
+            "value" : "Inscription anonyme sur les serveurs (5/6)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Registering with gateways"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Registrazione con gateway"
+            "state" : "translated",
+            "value" : "Registrazione anonima con server (5/6)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ゲートウェイへの登録"
+            "state" : "translated",
+            "value" : "サーバーに匿名で登録しています (5/6)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Registrando com gateways"
+            "state" : "translated",
+            "value" : "Registrar-se anonimamente com servidores (5/6)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Registrando com gateways"
+            "state" : "translated",
+            "value" : "Registrar-se anonimamente com servidores (5/6)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Регистрация через шлюзы"
+            "state" : "translated",
+            "value" : "Анонимная регистрация на серверах (5/6)"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Registering with gateways"
+            "value" : "Registering anonymously with servers (5/6)"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Реєстрація на шлюзах"
+            "state" : "translated",
+            "value" : "Анонімна реєстрація на серверах (5/6)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Đang đăng ký với các cổng kết nối"
+            "state" : "translated",
+            "value" : "Đang đăng ký ẩn danh với các máy chủ (5/6)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "用网关注册"
+            "state" : "translated",
+            "value" : "匿名注册服务器(5/6)"
           }
         }
       }
@@ -40477,14 +40477,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "week"
+            "state" : "translated",
+            "value" : "тиждень"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "week"
+            "state" : "translated",
+            "value" : "tuần"
           }
         },
         "zh-Hans" : {
@@ -41891,14 +41891,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "year"
+            "state" : "translated",
+            "value" : "рік"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "year"
+            "state" : "translated",
+            "value" : "năm"
           }
         },
         "zh-Hans" : {
