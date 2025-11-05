@@ -46,30 +46,36 @@ pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 
 const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct SkewState {
-    skew: Option<TimeDuration>,
-    expires_at: Option<Instant>,
+    skew: TimeDuration,
+    expires_at: Instant,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SkewStatus {
-    Missing,
     Expired(TimeDuration),
     Valid(TimeDuration),
 }
 
 impl SkewState {
+    fn new(skew: TimeDuration, now: Instant) -> Self {
+        Self {
+            skew,
+            expires_at: now + SKEW_CACHE_TTL,
+        }
+    }
+
     fn update(&mut self, skew: TimeDuration, now: Instant) {
-        self.skew = Some(skew);
-        self.expires_at = Some(now + SKEW_CACHE_TTL);
+        self.skew = skew;
+        self.expires_at = now + SKEW_CACHE_TTL;
     }
 
     fn status(&self, now: Instant) -> SkewStatus {
-        match (self.skew, self.expires_at) {
-            (Some(skew), Some(expires_at)) if expires_at > now => SkewStatus::Valid(skew),
-            (Some(skew), Some(_)) => SkewStatus::Expired(skew),
-            _ => SkewStatus::Missing,
+        if self.expires_at > now {
+            SkewStatus::Valid(self.skew)
+        } else {
+            SkewStatus::Expired(self.skew)
         }
     }
 }
@@ -79,7 +85,7 @@ pub struct VpnApiClient {
     inner: Client,
     urls: Vec<Url>,
     user_agent: UserAgent,
-    skew_state: Arc<RwLock<SkewState>>,
+    skew_state: Arc<RwLock<Option<SkewState>>>,
 }
 
 impl VpnApiClient {
@@ -100,7 +106,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
-            skew_state: Arc::new(RwLock::new(SkewState::default())),
+            skew_state: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -132,7 +138,7 @@ impl VpnApiClient {
             inner,
             urls,
             user_agent,
-            skew_state: Arc::new(RwLock::new(SkewState::default())),
+            skew_state: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -196,8 +202,11 @@ impl VpnApiClient {
         let now = Instant::now();
 
         {
-            let mut state = self.skew_state.write().await;
-            state.update(skew, now);
+            let mut skew_state = self.skew_state.write().await;
+            match skew_state.as_mut() {
+                Some(existing) => existing.update(skew, now),
+                None => *skew_state = Some(SkewState::new(skew, now)),
+            }
         }
 
         tracing::debug!(skew = ?skew, "Refreshed VPN API time skew");
@@ -206,38 +215,35 @@ impl VpnApiClient {
     }
 
     async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
-        let now = Instant::now();
-        let status = {
-            let state = self.skew_state.read().await;
-            state.status(now)
-        };
+        match &*self.skew_state.read().await {
+            Some(skew_state) => match skew_state.status(Instant::now()) {
+                SkewStatus::Valid(skew) => {
+                    tracing::debug!("Using cached VPN API time skew");
+                    let local_time = OffsetDateTime::now_utc();
+                    let estimated_remote_time = local_time - skew;
+                    let cached_remote_time =
+                        VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
 
-        match status {
-            SkewStatus::Valid(skew) => {
-                let local_time = OffsetDateTime::now_utc();
-                let estimated_remote_time = local_time - skew;
-                let cached_remote_time =
-                    VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
-
-                if Self::use_remote_time(cached_remote_time) {
-                    Ok(Some(cached_remote_time))
-                } else {
-                    Ok(None)
+                    if Self::use_remote_time(cached_remote_time) {
+                        Ok(Some(cached_remote_time))
+                    } else {
+                        Ok(None)
+                    }
                 }
-            }
-            SkewStatus::Expired(skew) => {
-                tracing::debug!(
-                    skew = ?skew,
-                    "Cached VPN API time skew expired, refreshing"
-                );
-                let refreshed_time = self.refresh_skew().await?;
-                if Self::use_remote_time(refreshed_time) {
-                    Ok(Some(refreshed_time))
-                } else {
-                    Ok(None)
+                SkewStatus::Expired(skew) => {
+                    tracing::debug!(
+                        skew = ?skew,
+                        "Cached VPN API time skew expired, refreshing"
+                    );
+                    let refreshed_time = self.refresh_skew().await?;
+                    if Self::use_remote_time(refreshed_time) {
+                        Ok(Some(refreshed_time))
+                    } else {
+                        Ok(None)
+                    }
                 }
-            }
-            SkewStatus::Missing => {
+            },
+            None => {
                 tracing::debug!("No cached VPN API time skew present, refreshing");
                 let refreshed_time = self.refresh_skew().await?;
                 if Self::use_remote_time(refreshed_time) {
