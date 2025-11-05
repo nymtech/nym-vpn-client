@@ -259,26 +259,17 @@ jobs:
             exit 1
           fi
 
-      # - name: Build core
-      #   working-directory: nym-vpn-apple/scripts
-      #   env:
-      #     VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-      #     RUSTC_WRAPPER: ${{ env.RUSTC_WRAPPER }}
-      #     SCCACHE_DIR: ${{ env.SCCACHE_DIR }}
-      #     SCCACHE_CACHE_SIZE: ${{ env.SCCACHE_CACHE_SIZE }}
-      #     SCCACHE_IDLE_TIMEOUT: ${{ env.SCCACHE_IDLE_TIMEOUT }}
-      #   run: |
-      #     echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
-      #     sh BuildCore.sh
-
-      - name: Copy daemon (temporary)
-        working-directory: nym-vpn-apple
+      - name: Build core
+        working-directory: nym-vpn-apple/scripts
+        env:
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          RUSTC_WRAPPER: ${{ env.RUSTC_WRAPPER }}
+          SCCACHE_DIR: ${{ env.SCCACHE_DIR }}
+          SCCACHE_CACHE_SIZE: ${{ env.SCCACHE_CACHE_SIZE }}
+          SCCACHE_IDLE_TIMEOUT: ${{ env.SCCACHE_IDLE_TIMEOUT }}
         run: |
-          echo "🧱 Copying daemon"
-          rm Daemon/nym-vpnd || true
-          rm Daemon/nym-setup || true
-          cp ../nym-vpn-core/target/release/nym-vpnd Daemon/nym-vpnd
-          cp ../nym-vpn-core/target/release/nym-setup Daemon/nym-setup
+          echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
+          sh BuildCore.sh
 
       - name: Build iOS (Release, signed)
         working-directory: nym-vpn-apple
