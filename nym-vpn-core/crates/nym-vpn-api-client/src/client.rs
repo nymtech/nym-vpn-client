@@ -204,7 +204,7 @@ impl VpnApiClient {
         {
             let mut skew_state = self.skew_state.write().await;
             match skew_state.as_mut() {
-                Some(existing) => existing.update(skew, now),
+                Some(state) => state.update(skew, now),
                 None => *skew_state = Some(SkewState::new(skew, now)),
             }
         }
@@ -215,34 +215,38 @@ impl VpnApiClient {
     }
 
     async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
-        match &*self.skew_state.read().await {
-            Some(skew_state) => match skew_state.status(Instant::now()) {
-                SkewStatus::Valid(skew) => {
-                    tracing::debug!("Using cached VPN API time skew");
-                    let local_time = OffsetDateTime::now_utc();
-                    let estimated_remote_time = local_time - skew;
-                    let cached_remote_time =
-                        VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
+        let now = Instant::now();
+        let status = {
+            let state = self.skew_state.read().await;
+            state.as_ref().map(|state| state.status(now))
+        };
 
-                    if Self::use_remote_time(cached_remote_time) {
-                        Ok(Some(cached_remote_time))
-                    } else {
-                        Ok(None)
-                    }
+        match status {
+            Some(SkewStatus::Valid(skew)) => {
+                tracing::debug!("Valid VPN API time skew");
+                let local_time = OffsetDateTime::now_utc();
+                let estimated_remote_time = local_time - skew;
+                let cached_remote_time =
+                    VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
+
+                if Self::use_remote_time(cached_remote_time) {
+                    Ok(Some(cached_remote_time))
+                } else {
+                    Ok(None)
                 }
-                SkewStatus::Expired(skew) => {
-                    tracing::debug!(
-                        skew = ?skew,
-                        "Cached VPN API time skew expired, refreshing"
-                    );
-                    let refreshed_time = self.refresh_skew().await?;
-                    if Self::use_remote_time(refreshed_time) {
-                        Ok(Some(refreshed_time))
-                    } else {
-                        Ok(None)
-                    }
+            }
+            Some(SkewStatus::Expired(skew)) => {
+                tracing::debug!(
+                    skew = ?skew,
+                    "Expired VPN API time skew, refreshing"
+                );
+                let refreshed_time = self.refresh_skew().await?;
+                if Self::use_remote_time(refreshed_time) {
+                    Ok(Some(refreshed_time))
+                } else {
+                    Ok(None)
                 }
-            },
+            }
             None => {
                 tracing::debug!("No cached VPN API time skew present, refreshing");
                 let refreshed_time = self.refresh_skew().await?;
