@@ -272,32 +272,32 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-      - name: Build iOS (Release, signed)
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-          echo "🚜 Bump build number"
-          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)
-          NEXT_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
-          echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
-
-          fastlane mac bump_build build:$NEXT_BUILD_NUMBER
-
-          echo "🚜 Update signing"
-          xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
-
-          echo "🚀 Building signed iOS Release with Codemagic CLI..."
-          xcode-project build-ipa \
-            --workspace "NymVPN.xcworkspace" \
-            --scheme "NymVPN" \
-            --config "Release" \
-            --clean
-
-          echo "✅ Signed archive + .ipa exported"
+      # - name: Build iOS (Release, signed)
+      #   working-directory: nym-vpn-apple
+      #   env:
+      #     APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+      #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+      #   run: |
+      #     set -euo pipefail
+      #     echo "🚜 Bump build number"
+      #     LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)
+      #     NEXT_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
+      #     echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
+      #
+      #     fastlane mac bump_build build:$NEXT_BUILD_NUMBER
+      #
+      #     echo "🚜 Update signing"
+      #     xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
+      #
+      #     echo "🚀 Building signed iOS Release with Codemagic CLI..."
+      #     xcode-project build-ipa \
+      #       --workspace "NymVPN.xcworkspace" \
+      #       --scheme "NymVPN" \
+      #       --config "Release" \
+      #       --clean
+      #
+      #     echo "✅ Signed archive + .ipa exported"
 
       # - name: Upload to TestFlight
       #   if: env.RELEASE_TYPE != 'pr'
@@ -308,11 +308,11 @@ jobs:
       #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
       #   run: |
       #     set -euo pipefail
-
+      #
       #     echo "🚀 Uploading to TestFlight..."
       #     app-store-connect publish
       #       # --testflight // uncomment later on and add groups
-
+      #
       #     echo "✅ Upload completed successfully."
 
       - name: Archive macOS
