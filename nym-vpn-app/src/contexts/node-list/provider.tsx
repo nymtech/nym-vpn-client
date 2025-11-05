@@ -120,30 +120,36 @@ function NodeListProvider({ children, hop }: NodesStateProviderProps) {
             return countryAcc;
           }
 
-          const regions = country.regions.reduce<UiRegion[]>(
-            (regionAcc, region) => {
-              const regionGateways = gatewaysToUi(
-                region.gateways,
-                selectedEntry,
-                selectedExit,
-              );
-              if (regionGateways.length === 0) {
-                return regionAcc;
-              }
-              regionAcc.push({
-                ...region,
-                nodeType: 'region',
-                gateways: regionGateways,
-                isSelected: isSelectedNodeType(
-                  region,
+          let regions: UiRegion[] = [];
+          // redundant defensive code, due to recent structure changes of
+          // gateways data and data being cached, let's be safe and check
+          // TODO some time after 1.18.0 release, remove this check
+          if (Array.isArray(country.regions)) {
+            regions = country.regions.reduce<UiRegion[]>(
+              (regionAcc, region) => {
+                const regionGateways = gatewaysToUi(
+                  region.gateways,
                   selectedEntry,
                   selectedExit,
-                ) as GwSelectedKind,
-              });
-              return regionAcc;
-            },
-            [],
-          );
+                );
+                if (regionGateways.length === 0) {
+                  return regionAcc;
+                }
+                regionAcc.push({
+                  ...region,
+                  nodeType: 'region',
+                  gateways: regionGateways,
+                  isSelected: isSelectedNodeType(
+                    region,
+                    selectedEntry,
+                    selectedExit,
+                  ) as GwSelectedKind,
+                });
+                return regionAcc;
+              },
+              [],
+            );
+          }
 
           const uiCountry: UiGatewaysByCountry = {
             country: mappedCountry,
