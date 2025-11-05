@@ -42,6 +42,7 @@ import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
+import net.nymtech.nymvpn.ui.screens.hop.ItemType
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
@@ -54,28 +55,24 @@ import java.util.Locale
 @Composable
 fun CountryItem(
 	query: String,
-	country: Locale,
+	countryItem: ItemType.CountryItem,
 	gatewayType: GatewayType,
 	gatewayLocation: GatewayLocation,
-	gateways: List<NymGateway>,
 	selectedKey: String?,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
 	modifier: Modifier = Modifier,
 	isQuicSettingsEnabled: Boolean = false,
 ) {
-	val countryCode = remember(country) { country.country.lowercase() }
-	val gatewaysGroupByState = remember(gateways, countryCode) {
-		gateways.filter {
-			it.region != null && it.region?.lowercase()?.contains(query) ?: false
-		}.groupBy { it.region }.takeIf { countryCode == "us" && gateways.any { it.region != null } }?.toSortedMap(compareBy { it })
-	}
-	var expanded by rememberSaveable(key = "expanded_${country.country}") {
+	val countryCode = remember(countryItem) { countryItem.locale.country.lowercase() }
+	var expanded by rememberSaveable(key = "expanded_${countryItem.locale.country}") {
 		mutableStateOf(
-			gateways.any {
-				it.identity == selectedKey || it.region.equals(selectedKey, true) || query.takeIf { q -> q.isNotBlank() }?.let { q ->
-					it.region?.contains(q, true)
-				} ?: false
+			countryItem.gateways.any {
+				it.identity == selectedKey || it.region.equals(selectedKey, true) || (
+					countryCode == "us" && query.takeIf { q -> q.isNotBlank() }?.let { q ->
+						it.region?.contains(q, true)
+					} ?: false
+					)
 			},
 		)
 	}
@@ -83,12 +80,12 @@ fun CountryItem(
 
 	Column(modifier = modifier) {
 		CountryDropDown(
-			title = country.displayCountry,
+			title = countryItem.locale.displayCountry,
 			countryCode = countryCode,
-			country = country,
+			country = countryItem.locale,
 			rotationAngle = rotationAngle,
 			expanded = expanded,
-			gateways = gateways,
+			gateways = countryItem.gateways,
 			isSelected = countryCode == selectedKey,
 			onDropDownClick = {
 				expanded = !expanded
@@ -102,12 +99,12 @@ fun CountryItem(
 			enter = expandVertically() + fadeIn(),
 			exit = shrinkVertically() + fadeOut(),
 		) {
-			if (gatewaysGroupByState != null) {
+			if (countryItem.regions != null) {
 				StateGroupedGatewayList(
-					gatewaysGroupByState = gatewaysGroupByState,
+					gatewaysGroupByState = countryItem.regions,
 					countryCode = countryCode,
 					selectedKey = selectedKey,
-					country = country,
+					country = countryItem.locale,
 					gatewayType = gatewayType,
 					gatewayLocation = gatewayLocation,
 					onSelectionChange = onSelectionChange,
@@ -119,7 +116,7 @@ fun CountryItem(
 					gatewayType = gatewayType,
 					gatewayLocation = gatewayLocation,
 					selectedKey = selectedKey,
-					gateways = gateways,
+					gateways = countryItem.gateways,
 					onSelectionChange = { onSelectionChange(it) },
 					onGatewayDetails = { onGatewayDetails(it) },
 					isQuicSettingsEnabled = isQuicSettingsEnabled,
@@ -203,44 +200,42 @@ private fun StateGroupedGatewayList(
 	country: Locale,
 	gatewayType: GatewayType,
 	gatewayLocation: GatewayLocation,
-	gatewaysGroupByState: Map<String?, List<NymGateway>>,
+	gatewaysGroupByState: List<ItemType.CountryItem.Region>,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
 ) {
 	Column {
 		gatewaysGroupByState.forEach { (state, stateGateways) ->
-			if (state != null) {
-				var isStateExpanded by rememberSaveable(key = "isStateExpanded_$state") {
-					mutableStateOf(stateGateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey })
-				}
-				val stateRotationAngle by animateFloatAsState(targetValue = if (isStateExpanded) 180f else 0f, label = "StateItemRotation")
+			var isStateExpanded by rememberSaveable(key = "isStateExpanded_$state") {
+				mutableStateOf(stateGateways.any { it.region.equals(selectedKey, true) || it.identity == selectedKey })
+			}
+			val stateRotationAngle by animateFloatAsState(targetValue = if (isStateExpanded) 180f else 0f, label = "StateItemRotation")
 
-				CountryDropDown(
-					title = state,
-					countryCode = countryCode,
-					rotationAngle = stateRotationAngle,
-					expanded = isStateExpanded,
-					isSelected = state.equals(selectedKey, true),
+			CountryDropDown(
+				title = state,
+				countryCode = countryCode,
+				rotationAngle = stateRotationAngle,
+				expanded = isStateExpanded,
+				isSelected = state.equals(selectedKey, true),
+				gateways = stateGateways,
+				onDropDownClick = { isStateExpanded = !isStateExpanded },
+				onSelectionChange = { onSelectionChange(state) },
+				country = country,
+			)
+			AnimatedVisibility(
+				visible = isStateExpanded,
+				enter = expandVertically() + fadeIn(),
+				exit = shrinkVertically() + fadeOut(),
+			) {
+				GatewayCell(
 					gateways = stateGateways,
-					onDropDownClick = { isStateExpanded = !isStateExpanded },
-					onSelectionChange = { onSelectionChange(state) },
-					country = country,
+					selectedKey = selectedKey,
+					gatewayType = gatewayType,
+					gatewayLocation = gatewayLocation,
+					onSelectionChange = onSelectionChange,
+					onGatewayDetails = onGatewayDetails,
+					isQuicSettingsEnabled = isQuicSettingsEnabled,
 				)
-				AnimatedVisibility(
-					visible = isStateExpanded,
-					enter = expandVertically() + fadeIn(),
-					exit = shrinkVertically() + fadeOut(),
-				) {
-					GatewayCell(
-						gateways = stateGateways,
-						selectedKey = selectedKey,
-						gatewayType = gatewayType,
-						gatewayLocation = gatewayLocation,
-						onSelectionChange = onSelectionChange,
-						onGatewayDetails = onGatewayDetails,
-						isQuicSettingsEnabled = isQuicSettingsEnabled,
-					)
-				}
 			}
 		}
 	}
