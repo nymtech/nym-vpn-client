@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::collections::HashSet;
 use std::error::Error;
 
 use crate::response::NymErrorResponse;
@@ -134,6 +135,9 @@ pub enum VpnApiClientError {
 
     #[error("timed out while attempting to resolve hostname: {hostname}")]
     HostnameResolutionTimeout { hostname: String },
+
+    #[error("Failed to resolve hostname(s): {hostnames:?}")]
+    HostnamesResolutionError { hostnames: HashSet<String> },
 
     #[error("the url {url} doesn't parse to a host and/or a port: {reason}")]
     UrlError { url: url::Url, reason: String },
