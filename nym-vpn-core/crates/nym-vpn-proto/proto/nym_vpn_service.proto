@@ -712,6 +712,10 @@ message GetAccountIdentityResponse {
   optional string account_identity = 1;
 }
 
+message GetStoredMnemonicResponse {
+  optional string mnemonic = 1;
+}
+
 message GetAccountUsageResponse {
   message AccountUsages {
     repeated AccountUsage account_usages = 1;
@@ -867,6 +871,9 @@ service NymVpnService {
 
   // Get the account identity of the locally stored recovery phrase
   rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
+
+  // Get the locally stored mnemonic
+  rpc GetStoredMnemonic (google.protobuf.Empty) returns (GetStoredMnemonicResponse) {}
 
   // Get the set of account links for the user
   rpc GetAccountLinks (GetAccountLinksRequest) returns (AccountManagement) {}

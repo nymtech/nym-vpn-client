@@ -320,6 +320,14 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
+    pub async fn get_stored_mnemonic(&mut self) -> Result<Option<String>> {
+        self.0
+            .get_stored_mnemonic(())
+            .await
+            .map(|v| v.into_inner().mnemonic)
+            .map_err(Error::Rpc)
+    }
+
     pub async fn get_account_links(&mut self, locale: String) -> Result<ParsedAccountLinks> {
         let request = proto::GetAccountLinksRequest { locale };
         let response = self

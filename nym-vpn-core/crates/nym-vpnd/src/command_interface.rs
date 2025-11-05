@@ -432,6 +432,23 @@ impl NymVpnService for CommandInterface {
         }))
     }
 
+    async fn get_stored_mnemonic(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetStoredMnemonicResponse>> {
+        let mnemonic = self
+            .send_and_wait(VpnServiceCommand::GetStoredMnemonic, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get stored mnemonic: {err}"))
+            })?
+            .map(|mnemonic| mnemonic.to_string());
+
+        Ok(tonic::Response::new(proto::GetStoredMnemonicResponse {
+            mnemonic,
+        }))
+    }
+
     async fn account_balance(
         &self,
         _request: tonic::Request<()>,

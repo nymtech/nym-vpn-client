@@ -98,6 +98,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
         (),
     ),
+    GetStoredMnemonic(
+        oneshot::Sender<Result<Option<Mnemonic>, AccountCommandError>>,
+        (),
+    ),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountLinksError>>,
         Locale,
@@ -790,6 +794,9 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountIdentity(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_identity().await);
             }
+            VpnServiceCommand::GetStoredMnemonic(tx, ()) => {
+                let _ = tx.send(self.handle_get_stored_mnemonic().await);
+            }
             VpnServiceCommand::GetAccountLinks(tx, locale) => {
                 let _ = tx.send(self.handle_get_account_links(locale).await);
             }
@@ -1138,6 +1145,14 @@ impl NymVpnService {
 
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountCommandError> {
         self.account_command_tx.get_account_id().await
+    }
+
+    async fn handle_get_stored_mnemonic(&self) -> Result<Option<Mnemonic>, AccountCommandError> {
+        Ok(self
+            .account_command_tx
+            .get_stored_account()
+            .await?
+            .map(|acc| acc.mnemonic))
     }
 
     async fn handle_get_account_links(
