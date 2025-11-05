@@ -41,4 +41,4 @@ if [ -f "$NYM_SETUP_BIN" ]; then
 fi
 
 # Kill the GUI before proceeding with the upgrade.
-pkill -x "Nym VPN" && sleep 1 || echo "Unable to kill Nym VPN, not running?"
+pkill -x "NymVPN" && sleep 1 || echo "Unable to kill Nym VPN, not running?"
