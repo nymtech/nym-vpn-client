@@ -410,9 +410,6 @@ jobs:
           MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
-          spctl -a -t exec -vv "$APP_PATH" || true
-          codesign -dv "$APP_PATH" || true
-
           STAGING_DIRECTORY="$PWD/build/pkg"
           UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
@@ -425,10 +422,13 @@ jobs:
           # Directory with pkg scripts
           SCRIPTS_DIR="$PWD/PkgScripts"
 
-          # Set up a staging directory with the contents to install.
+          # Ensure that staging directory is empty and exists
           rm -rf "$STAGING_DIRECTORY" || true
           mkdir -p "$STAGING_DIRECTORY"
+
+          # Copy NymVPN.app into staging directory for the app
           cp -R "$APP_PATH" "$STAGING_APP_DIR/"
+          ls -la "$STAGING_APP_DIR"
 
           # Generate the component property list.
           pkgbuild --analyze --root "$STAGING_APP_DIR" "$COMPONENT_PLIST_FILE"
