@@ -21,7 +21,7 @@ use super::{
     DEFAULT_TCP_PROBE_PORT, ProbeError,
 };
 
-/// ICMP probe configuration
+/// TCP probe configuration
 #[derive(Debug, Clone)]
 pub struct TcpProbeConfig {
     /// Probe IP address and port
@@ -97,8 +97,15 @@ pub struct TcpProbe {
 }
 
 impl TcpProbe {
-    pub fn new(config: TcpProbeConfig) -> Self {
-        Self { config }
+    pub fn new(config: TcpProbeConfig) -> Result<TcpProbe, TcpProbeError> {
+        let tcp_probe = Self {
+            config: config.clone(),
+        };
+
+        // Test socket without connecting it
+        tcp_probe.create_socket()?;
+
+        Ok(tcp_probe)
     }
 
     fn create_socket(&self) -> Result<TcpSocket, TcpProbeError> {
@@ -245,9 +252,10 @@ impl ConnectionProbe for TcpProbe {
     }
 }
 
-// Running these tests on Linux requires CAP_NET_RAW
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+
     use super::*;
 
     use tokio::{
@@ -256,15 +264,17 @@ mod tests {
     };
     use tokio_util::sync::CancellationToken;
 
+    const LOOPBACK_V4: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
+    const LOOPBACK_V6: SocketAddr = SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 0);
+
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_send_loopback_tcp_v4() {
         let shutdown_token = CancellationToken::new();
-        let server_addr =
-            start_tcp_listener("127.0.0.1:0".parse().unwrap(), shutdown_token.child_token()).await;
+        let server_addr = start_tcp_listener(LOOPBACK_V4, shutdown_token.child_token()).await;
         let _drop_guard = shutdown_token.drop_guard();
 
-        let probe = TcpProbe::new(get_config(server_addr, "127.0.0.1:0".parse().unwrap()));
+        let probe = TcpProbe::new(get_config(server_addr, LOOPBACK_V4)).unwrap();
         probe
             .send(Duration::from_millis(100))
             .await
@@ -275,11 +285,10 @@ mod tests {
     #[tracing_test::traced_test]
     async fn test_send_loopback_tcp_v6() {
         let shutdown_token = CancellationToken::new();
-        let server_addr =
-            start_tcp_listener("[::1]:0".parse().unwrap(), shutdown_token.child_token()).await;
+        let server_addr = start_tcp_listener(LOOPBACK_V6, shutdown_token.child_token()).await;
         let _drop_guard = shutdown_token.drop_guard();
 
-        let probe = TcpProbe::new(get_config(server_addr, "[::1]:0".parse().unwrap()));
+        let probe = TcpProbe::new(get_config(server_addr, LOOPBACK_V6)).unwrap();
         probe
             .send(Duration::from_millis(100))
             .await
