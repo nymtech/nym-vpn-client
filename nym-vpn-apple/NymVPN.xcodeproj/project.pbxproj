@@ -190,7 +190,6 @@
 		D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunnelProvider+TunnelStatusListener.swift"; sourceTree = "<group>"; };
 		D9264E252B3DA062004594A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9281C462B8884D400834B53 /* NymVPN.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPN.entitlements; sourceTree = "<group>"; };
-		D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		D9418D6E2E849769008B6B0A /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NymMixnetTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -496,7 +495,6 @@
 		D9FB33F02BEE31E2009C3419 /* Daemon */ = {
 			isa = PBXGroup;
 			children = (
-				D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */,
 				58B5A2E22EB52A490079FE55 /* nym-setup */,
 				D9AC152C2BF384580041E334 /* nym-vpnd */,
 			);

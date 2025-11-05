@@ -409,6 +409,8 @@ jobs:
           MARKETING_VERSION="$(plutil -extract CFBundleShortVersionString raw $APP_PLIST_PATH)"
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
+          spctl -a -t exec -vv "$APP_PATH"
+
           STAGING_DIRECTORY="$PWD/build/pkg"
           UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
@@ -416,7 +418,7 @@ jobs:
 
           COMPONENT_PLIST_FILE="$TMPDIR/component.plist"
           DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
-          NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
+          NESTED_PKG_PATH="$STAGING_DIRECTORY/app.pkg"
 
           # Directory with pkg scripts
           SCRIPTS_DIR="$PWD/PkgScripts"
@@ -435,6 +437,8 @@ jobs:
 
           # Allow downgrades
           plutil -replace "0.BundleIsVersionChecked" -bool NO "$COMPONENT_PLIST_FILE"
+
+          ls -la "$STAGING_APP_DIR"
 
           # Build a temporary package using the component property list.
           pkgbuild --root "$STAGING_APP_DIR" \
@@ -469,6 +473,11 @@ jobs:
           # Synthesize the final package from the distribution.
           productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
 
+          cat "$DIST_XML_FILE"
+
+          spctl -a -t exec -vv "$NESTED_PKG_PATH"
+          rm "$NESTED_PKG_PATH" || true
+
           echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
 
           # Sign separately since productbuild gets stuck on keychain password prompt when signing
@@ -476,6 +485,8 @@ jobs:
               --keychain "$KEYCHAIN_PATH" \
               --sign "$INSTALLER_SIGNING_IDENTITY" \
               "$UNSIGNED_PKG_PATH" "$PKG_PATH"
+
+          spctl -a -t exec -vv "$PKG_PATH"
 
           echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
