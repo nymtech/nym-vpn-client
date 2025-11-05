@@ -92,23 +92,17 @@ impl ConnectingState {
             .await
             .ok();
 
-        // This prevents hickory resolver from getting confused when system DNS points to
-        // local forwarder but it expects responses from upstream DNS servers.
         #[cfg(target_os = "macos")]
-        if retry_attempt > FAST_RETRY_ATTEMPTS
-            && let Err(e) = Self::set_local_dns_resolver(shared_state).await
-        {
+        if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
             return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
         }
 
-        // On reconnect attempts (retry_attempt > 0), we do want to check if we're actually offline.
-        if retry_attempt > 0
-            && shared_state
-                .connectivity_handle
-                .connectivity()
-                .await
-                .is_offline()
+        if shared_state
+            .connectivity_handle
+            .connectivity()
+            .await
+            .is_offline()
         {
             // FIXME: Temporary: Nudge route manager to update the default interface
             #[cfg(target_os = "macos")]
@@ -836,5 +830,33 @@ fn wait_delay(retry_attempt: u32) -> Duration {
             .saturating_mul(DELAY_MULTIPLIER);
         let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
         std::cmp::min(delay, MAX_WAIT_DELAY)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn wait_delay_sequence() {
+        let retry_attempt_values: Vec<u32> = (0..10).collect();
+        let expected_delays: [Duration; 10] = [
+            NETWORK_RECOVERY_DELAY,
+            NETWORK_RECOVERY_DELAY,
+            NETWORK_RECOVERY_DELAY,
+            Duration::from_secs(4),
+            Duration::from_secs(8),
+            Duration::from_secs(12),
+            MAX_WAIT_DELAY,
+            MAX_WAIT_DELAY,
+            MAX_WAIT_DELAY,
+            MAX_WAIT_DELAY,
+        ];
+
+        let delay_values: Vec<Duration> = retry_attempt_values
+            .iter()
+            .map(|i| wait_delay(*i))
+            .collect();
+        assert_eq!(delay_values, expected_delays);
     }
 }
