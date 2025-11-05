@@ -411,13 +411,12 @@ jobs:
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
           STAGING_DIRECTORY="$PWD/build/pkg"
-          UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
           COMPONENT_PLIST_FILE="$TMPDIR/component.plist"
           DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
-          NESTED_PKG_PATH="$STAGING_DIRECTORY/app.pkg"
+          NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
           SCRIPTS_DIR="$PWD/PkgScripts"
@@ -449,6 +448,7 @@ jobs:
               --install-location "/Applications" \
               --scripts "$SCRIPTS_DIR" \
               --min-os-version "$MIN_OS_VERSION" \
+              --compression latest \
               --component-plist "$COMPONENT_PLIST_FILE" \
               "$NESTED_PKG_PATH"
 
@@ -473,22 +473,12 @@ jobs:
             "$DIST_XML_FILE"
 
           # Synthesize the final package from the distribution.
-          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
-
-          cat "$DIST_XML_FILE"
-
-          spctl -a -t install -vv "$NESTED_PKG_PATH" || true
-          rm "$NESTED_PKG_PATH" || true
-
-          echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
-
-          # Sign separately since productbuild gets stuck on keychain password prompt when signing
-          productsign --timestamp \
+          productbuild --timestamp \
               --keychain "$KEYCHAIN_PATH" \
               --sign "$INSTALLER_SIGNING_IDENTITY" \
-              "$UNSIGNED_PKG_PATH" "$PKG_PATH"
-
-          spctl -a -t install -vv "$PKG_PATH" || true
+              --distribution "$DIST_XML_FILE" \
+              --package-path "$STAGING_DIRECTORY" \
+              "$PKG_PATH"
 
           echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
