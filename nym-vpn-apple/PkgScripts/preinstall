@@ -6,8 +6,9 @@ INSTALL_DIR=$2
 LOG_DIR=/var/log/nym-vpnd
 NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/MacOS/nym-setup"
 
-DMG_PRIVILEGED_HELPER="/Library/PrivilegedHelperTools/net.nymtech.vpn.helper"
-DMG_LAUNCH_DAEMON_PLIST="/Library/LaunchDaemons/net.nymtech.vpn.helper.plist"
+PRIVILEGED_HELPER="/Library/PrivilegedHelperTools/net.nymtech.vpn.helper"
+LAUNCH_DAEMON_PLIST="/Library/LaunchDaemons/net.nymtech.vpn.helper.plist"
+SMAPP_SERVICE_VPN_HELPER_SERVICE="system/net.nymtech.vpn.helper"
 
 mkdir -p $LOG_DIR
 chmod 755 $LOG_DIR
@@ -16,20 +17,21 @@ exec > $LOG_DIR/preinstall.log 2>&1
 echo "Running preinstall at $(date) with $@"
 
 # Remove the daemon registered by DMG based installation
-echo "Migrating to new launch daemon"
-if [ -f "$DMG_LAUNCH_DAEMON_PLIST" ]; then
-    echo "Unregistering old launch daemon"
-    launchctl unload "$DMG_LAUNCH_DAEMON_PLIST" || echo "Failed to unload launch daemon"
-    rm -f "$DMG_LAUNCH_DAEMON_PLIST"
+if [ -f "$LAUNCH_DAEMON_PLIST" ]; then
+    echo "Remove the daemon registered at $LAUNCH_DAEMON_PLIST"
+    launchctl unload "$LAUNCH_DAEMON_PLIST" || echo "Failed to unload old daemon"
+    rm -f "$LAUNCH_DAEMON_PLIST"
 fi
 
-if [ -f "$DMG_PRIVILEGED_HELPER" ]; then
-    echo "Removing privileged helper tool"
-    rm -f "$DMG_PRIVILEGED_HELPER"
+if [ -f "$PRIVILEGED_HELPER" ]; then
+    echo "Removing privileged helper tool at: $PRIVILEGED_HELPER"
+    rm -f "$PRIVILEGED_HELPER"
 fi
 
-echo "Terminating old daemon (may not be running)"
-killall "net.nymtech.vpn.helper" || true
+# Remove the daemon registered with SMAppService
+echo "Remove the daemon registered with SMAppService"
+sudo launchctl bootout "$SMAPP_SERVICE_VPN_HELPER_SERVICE" || echo "Failed to bootout old daemon"
+sudo launchctl disable "$SMAPP_SERVICE_VPN_HELPER_SERVICE" || echo "Failed to disable old daemon"
 sleep 1
 
 # Stop the existing daemon
