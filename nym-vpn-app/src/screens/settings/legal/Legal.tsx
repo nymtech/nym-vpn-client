@@ -11,6 +11,7 @@ function Legal() {
   const { t } = useTranslation('settings');
   const { codeDepsJs, codeDepsRust } = useMainState();
   const navigate = useNavigate();
+  const licensesAvailable = codeDepsJs.length > 0 || codeDepsRust.length > 0;
 
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6">
@@ -32,24 +33,26 @@ function Legal() {
           },
         ]}
       />
-      <SettingsGroup
-        settings={[
-          codeDepsRust.length > 0 && {
-            title: t('legal.licenses-rust'),
-            onClick: () => {
-              navigate(routes.licensesRust);
+      {licensesAvailable && (
+        <SettingsGroup
+          settings={[
+            codeDepsRust.length > 0 && {
+              title: t('legal.licenses-rust'),
+              onClick: () => {
+                navigate(routes.licensesRust);
+              },
+              trailing: <MsIcon icon="arrow_right" />,
             },
-            trailing: <MsIcon icon="arrow_right" />,
-          },
-          codeDepsJs.length > 0 && {
-            title: t('legal.licenses-js'),
-            onClick: () => {
-              navigate(routes.licensesJs);
+            codeDepsJs.length > 0 && {
+              title: t('legal.licenses-js'),
+              onClick: () => {
+                navigate(routes.licensesJs);
+              },
+              trailing: <MsIcon icon="arrow_right" />,
             },
-            trailing: <MsIcon icon="arrow_right" />,
-          },
-        ]}
-      />
+          ]}
+        />
+      )}
     </PageAnim>
   );
 }
