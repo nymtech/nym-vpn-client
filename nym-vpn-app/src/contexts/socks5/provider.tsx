@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type {
-  NodeConnect,
+  SelectedNode,
   Socks5Status,
   Socks5Settings,
   HttpRpcSettings,
@@ -34,7 +34,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
     async (
       socks5Settings: Socks5Settings,
       httpRpcSettings: HttpRpcSettings,
-      exit: NodeConnect,
+      exit: SelectedNode,
     ) => {
       setIsLoading(true);
       try {

@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type {
-  NodeConnect,
+  SelectedNode,
   Socks5Status,
   Socks5Settings,
   HttpRpcSettings,
@@ -12,7 +12,7 @@ export type Socks5ContextType = {
   enable: (
     socks5Settings: Socks5Settings,
     httpRpcSettings: HttpRpcSettings,
-    exit: NodeConnect,
+    exit: SelectedNode,
   ) => Promise<void>;
   disable: () => Promise<void>;
   refresh: () => Promise<void>;
