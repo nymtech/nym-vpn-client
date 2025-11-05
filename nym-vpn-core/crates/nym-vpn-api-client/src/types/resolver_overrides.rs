@@ -21,6 +21,7 @@ impl ResolverOverrides {
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
         // Collect all resolution tasks to run in parallel
         let mut resolution_tasks: Vec<ResolutionTask> = Vec::new();
+        let mut all_domains: HashSet<String> = HashSet::new();
 
         for url in urls {
             let Some(domain) = url.inner_url().domain() else {
@@ -34,6 +35,7 @@ impl ResolverOverrides {
             // Task for main domain
             let main_url = url.inner_url().clone();
             let main_domain = domain.to_string();
+            all_domains.insert(main_domain.clone());
             resolution_tasks.push(Box::pin(async move {
                 match url_to_socket_addr(&main_url, Some((1, 1))).await {
                     Ok(addresses) => Some((main_domain.clone(), addresses)),
@@ -56,6 +58,7 @@ impl ResolverOverrides {
                     };
                     let front_url_clone = front_url.clone();
                     let front_domain_str = front_domain.to_string();
+                    all_domains.insert(front_domain_str.clone());
                     resolution_tasks.push(Box::pin(async move {
                         match url_to_socket_addr(&front_url_clone, Some((1, 1))).await {
                             Ok(addresses) => Some((front_domain_str.clone(), addresses)),
@@ -80,22 +83,27 @@ impl ResolverOverrides {
         // Collect successful resolutions
         let mut overrides = HashMap::new();
         let mut successful_resolutions = 0;
+        let mut received_domains: HashSet<String> = HashSet::new();
 
         for (domain, addresses) in results.into_iter().flatten() {
-            overrides.insert(domain, HashSet::from_iter(addresses.into_iter()));
+            overrides.insert(domain.clone(), HashSet::from_iter(addresses.into_iter()));
+            received_domains.insert(domain);
             successful_resolutions += 1;
         }
 
-        if overrides.is_empty() {
-            return Err(VpnApiClientError::HostnameResolutionTimeout {
-                hostname: "all domains".to_string(),
+        if successful_resolutions < total_tasks {
+            // At least one resolution failed.
+            let missed_domains: HashSet<String> =
+                all_domains.difference(&received_domains).cloned().collect();
+            tracing::warn!("failed to resolve one or more URLs: {:?}", missed_domains);
+            return Err(VpnApiClientError::HostnamesResolutionError {
+                hostnames: missed_domains,
             });
         }
 
         tracing::debug!(
-            "Successfully resolved {}/{} domains in parallel",
-            successful_resolutions,
-            total_tasks
+            "Successfully resolved domains in parallel: {:?}",
+            all_domains
         );
 
         Ok(Self { overrides })
@@ -140,5 +148,64 @@ impl ResolverOverrides {
             .values()
             .flat_map(|addrs| addrs.iter().cloned())
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[tokio::test]
+    async fn get_overrides_for_empty_url_set() -> Result<(), VpnApiClientError> {
+        let urls: Vec<Url> = vec![];
+
+        let overrides = ResolverOverrides::from_urls(&urls).await?;
+        assert!(overrides.is_empty());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn get_overrides_for_url_set() -> Result<(), VpnApiClientError> {
+        let urls: Vec<Url> = vec![
+            Url::new("https://nymvpn.com", None).unwrap(),
+            Url::new(
+                "https://validator.nymtech.net",
+                Some(vec!["https://example.com"]),
+            )
+            .unwrap(),
+        ];
+
+        let overrides = ResolverOverrides::from_urls(&urls).await?;
+        assert!(!overrides.is_empty());
+        assert_eq!(overrides.domains().len(), 3);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn overrides_return_error() -> Result<(), VpnApiClientError> {
+        let urls: Vec<Url> = vec![
+            Url::new("https://nymvpn.com", None).unwrap(),
+            Url::new(
+                "https://validator.nymtech.net",
+                Some(vec!["https://non-existent.nymtech.net"]),
+            )
+            .unwrap(),
+        ];
+
+        let result = ResolverOverrides::from_urls(&urls).await;
+        assert!(result.is_err());
+
+        let mut expected = HashSet::new();
+        expected.insert("non-existent.nymtech.net".to_string());
+        match result {
+            Ok(_) => panic!("unreachable"),
+            Err(VpnApiClientError::HostnamesResolutionError { hostnames }) => {
+                assert_eq!(hostnames, expected)
+            }
+            Err(e) => panic!("unexpected err: {e}"),
+        }
+        Ok(())
     }
 }
