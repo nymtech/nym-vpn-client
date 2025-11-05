@@ -1816,24 +1816,14 @@ impl TunnelMonitor {
         let mut icmp_probe_config = IcmpProbeConfig::default_v4();
 
         // Prefer bind to interface on supported platforms
-        #[cfg(any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
-        ))]
+        #[cfg(any(target_os = "linux", target_os = "ios", target_os = "macos"))]
         {
             icmp_probe_config =
                 icmp_probe_config.with_interface(exit_tunnel_metadata.interface.clone());
         }
 
         // Bind to local interface IP on other platforms
-        #[cfg(not(any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
-        )))]
+        #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "macos")))]
         {
             let local_addr = exit_tunnel_metadata
                 .ips
@@ -1850,24 +1840,14 @@ impl TunnelMonitor {
         let mut tcp_probe_config = TcpProbeConfig::default_v4();
 
         // Prefer bind to interface on supported platforms
-        #[cfg(any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
-        ))]
+        #[cfg(any(target_os = "linux", target_os = "ios", target_os = "macos"))]
         {
             tcp_probe_config =
                 tcp_probe_config.with_interface(exit_tunnel_metadata.interface.clone());
         }
 
         // Bind to local interface IP on other platforms
-        #[cfg(not(any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
-        )))]
+        #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "macos")))]
         {
             let local_addr = exit_tunnel_metadata
                 .ips
@@ -1877,7 +1857,7 @@ impl TunnelMonitor {
             tcp_probe_config = tcp_probe_config.with_local_address(SocketAddr::new(*local_addr, 0));
         }
 
-        Ok(TcpProbe::new(tcp_probe_config))
+        TcpProbe::new(tcp_probe_config).map_err(Error::CreateTcpProbe)
     }
 
     fn create_tunnel_connection_monitor(
