@@ -242,10 +242,19 @@ impl HttpRpcProxy {
         // Build the reqwest request
         let mut request_builder = client.request(method.clone(), target_url);
 
-        // Copy headers from hyper to reqwest
+        // Copy headers from hyper to reqwest, but skip host-specific headers
+        // reqwest will set these correctly based on the target URL
         for (name, value) in headers.iter() {
+            let name_str = name.as_str();
+            // Skip headers that should be set by reqwest based on the target URL
+            if name_str.eq_ignore_ascii_case("host")
+                || name_str.eq_ignore_ascii_case("connection")
+                || name_str.eq_ignore_ascii_case("content-length")
+            {
+                continue;
+            }
             if let Ok(value_str) = value.to_str() {
-                request_builder = request_builder.header(name.as_str(), value_str);
+                request_builder = request_builder.header(name_str, value_str);
             }
         }
 
