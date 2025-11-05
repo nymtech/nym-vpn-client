@@ -82,11 +82,7 @@ import GRPCManager
     }
 
     // TODO: remove this once iOS tunnel supports tunnel reconnection
-    @Published public var currentTunnelStatus: TunnelStatus = .disconnected {
-        didSet {
-            updateTunnelStatusIfReconnecting()
-        }
-    }
+    @Published public var currentTunnelStatus: TunnelStatus = .disconnected
 #elseif os(macOS)
     @Published public var currentTunnelStatus: TunnelStatus = .disconnected
 #endif
@@ -188,7 +184,7 @@ public extension ConnectionManager {
 
 // MARK: - Connection -
 
-private extension ConnectionManager {
+extension ConnectionManager {
     func waitForTunnelStatus(with targetStatus: TunnelStatus) async {
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
