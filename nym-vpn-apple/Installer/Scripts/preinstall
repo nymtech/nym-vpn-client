@@ -39,6 +39,3 @@ if [ -f "$NYM_SETUP_BIN" ]; then
     "$NYM_SETUP_BIN" prepare-restart &>/dev/null || \
         echo "Failed to send 'prepare-restart' command to old nym-vpnd"
 fi
-
-# Kill the GUI before proceeding with the upgrade.
-pkill -x "NymVPN" && sleep 1 || echo "Unable to kill Nym VPN, not running?"

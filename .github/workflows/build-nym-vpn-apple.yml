@@ -414,13 +414,15 @@ jobs:
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
-          COMPONENT_PLIST_FILE="$TMPDIR/component.plist"
+          COMPONENT_PLIST_FILE="$STAGING_DIRECTORY/component.plist"
           DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
           UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
-          SCRIPTS_DIR="$PWD/PkgScripts"
+          SCRIPTS_DIR="$PWD/Installer/Scripts"
+          # Directory with pkg resources (images)
+          RESOURCES_DIR="$PWD/Installer/Resources"
 
           # Ensure that staging directory is empty and exists
           rm -rf "$STAGING_DIRECTORY" || true
@@ -442,8 +444,6 @@ jobs:
           # Allow downgrades
           plutil -replace "0.BundleIsVersionChecked" -bool NO "$COMPONENT_PLIST_FILE"
 
-          ls -la "$STAGING_APP_DIR"
-
           # Build a temporary package using the component property list.
           pkgbuild --root "$STAGING_APP_DIR" \
               --identifier "$PRODUCT_BUNDLE_IDENTIFIER" \
@@ -462,6 +462,7 @@ jobs:
           # - enable_anywhere=false - restrict installation to system volume only, i.e no installs on external drives
           # - enable_currentUserHome=false - prevent installation into home dir
           # - enable_localSystem=true - enable installation into root
+          # Reference: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
           xmlstarlet edit --inplace \
               --subnode '//installer-gui-script' --type elem -n 'domains' \
               --append '//installer-gui-script/domains' --type attr -n 'enable_anywhere' --value 'false' \
@@ -469,14 +470,51 @@ jobs:
               --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
               "$DIST_XML_FILE"
 
+          # Add element to prompt user to close the app before installation
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "pkg-ref" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'id' --value 'net.nymtech.vpn' \
+            --subnode '$new_node' --type elem -n 'must-close' \
+            --var new_node '$prev' \
+            --subnode '$new_node' --type elem -n 'app' \
+            --append '$prev' --type attr -n 'id' --value 'net.nymtech.vpn' \
+            "$DIST_XML_FILE"
+
           # Add title which acts as an app name
           xmlstarlet edit --inplace \
-            --insert '//installer-gui-script/node()[1]' \
+            --subnode '//installer-gui-script' \
             --type elem --name "title" --value "$PRODUCT_NAME" \
             "$DIST_XML_FILE"
 
+          # Add background image for light mode
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "background" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+            --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
+            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+            "$DIST_XML_FILE"
+
+          # Add background image for dark mode
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "background-darkAqua" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+            --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
+            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+            "$DIST_XML_FILE"
+
+          echo "✅ Distribution XML:"
+          cat "$DIST_XML_FILE"
+
           # Synthesize the final package from the distribution.
-          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
+          productbuild --distribution "$DIST_XML_FILE" --resources "$RESOURCES_DIR" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
           echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
 
           # Sign separately since productbuild gets stuck on keychain password prompt when signing
