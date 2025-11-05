@@ -216,7 +216,8 @@ impl VpnApiClient {
             SkewStatus::Valid(skew) => {
                 let local_time = OffsetDateTime::now_utc();
                 let estimated_remote_time = local_time - skew;
-                let cached_remote_time = VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
+                let cached_remote_time =
+                    VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
 
                 if Self::use_remote_time(cached_remote_time) {
                     Ok(Some(cached_remote_time))
@@ -304,10 +305,7 @@ impl VpnApiClient {
             }
         };
 
-        match self
-            .get_query::<T>(path, account, device, jwt)
-            .await
-        {
+        match self.get_query::<T>(path, account, device, jwt).await {
             Ok(response) => Ok(response),
             Err(err) => {
                 if let HttpClientError::EndpointFailure { error, .. } = &err
