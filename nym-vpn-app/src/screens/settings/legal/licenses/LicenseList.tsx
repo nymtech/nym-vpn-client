@@ -61,19 +61,13 @@ function LicenseList({ language }: Props) {
       : rootFontSize * heightFactor;
 
   return (
-    <PageAnim
-      className="xs:max-w-lg h-full flex flex-col"
-      data-testid={`license-list-${language}`}
-    >
+    <PageAnim className="xs:max-w-lg h-full flex flex-col">
       {licenses.length === 0 ? (
-        <span
-          className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default"
-          data-testid="license-list-empty"
-        >
+        <span className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default">
           {t('legal.emptyData')}
         </span>
       ) : (
-        <div className="h-full py-2" data-testid="license-list-container">
+        <div className="h-full py-2">
           <List
             className="w-full"
             rowHeight={rowHeight}
@@ -81,7 +75,6 @@ function LicenseList({ language }: Props) {
             rowComponent={Row}
             rowProps={{ licenses, language }}
             role="list"
-            data-testid="license-virtualized-list"
           />
         </div>
       )}
