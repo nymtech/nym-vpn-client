@@ -54,7 +54,7 @@ struct SkewState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SkewStatus {
-    Expired(TimeDuration),
+    Expired(),
     Valid(TimeDuration),
 }
 
@@ -75,7 +75,7 @@ impl SkewState {
         if self.expires_at > now {
             SkewStatus::Valid(self.skew)
         } else {
-            SkewStatus::Expired(self.skew)
+            SkewStatus::Expired()
         }
     }
 }
@@ -221,42 +221,26 @@ impl VpnApiClient {
             state.as_ref().map(|state| state.status(now))
         };
 
-        match status {
+        let cached_remote_time = match status {
             Some(SkewStatus::Valid(skew)) => {
                 tracing::debug!("Valid VPN API time skew");
                 let local_time = OffsetDateTime::now_utc();
                 let estimated_remote_time = local_time - skew;
-                let cached_remote_time =
-                    VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time);
 
-                if Self::use_remote_time(cached_remote_time) {
-                    Ok(Some(cached_remote_time))
-                } else {
-                    Ok(None)
-                }
+                VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
             }
-            Some(SkewStatus::Expired(skew)) => {
-                tracing::debug!(
-                    skew = ?skew,
-                    "Expired VPN API time skew, refreshing"
-                );
-                let refreshed_time = self.refresh_skew().await?;
-                if Self::use_remote_time(refreshed_time) {
-                    Ok(Some(refreshed_time))
-                } else {
-                    Ok(None)
-                }
+            Some(SkewStatus::Expired()) | None => {
+                tracing::debug!("VPN API time skew expired or not present, refreshing");
+
+                self.refresh_skew().await?
             }
-            None => {
-                tracing::debug!("No cached VPN API time skew present, refreshing");
-                let refreshed_time = self.refresh_skew().await?;
-                if Self::use_remote_time(refreshed_time) {
-                    Ok(Some(refreshed_time))
-                } else {
-                    Ok(None)
-                }
-            }
-        }
+        };
+
+        Ok(if Self::use_remote_time(cached_remote_time) {
+            Some(cached_remote_time)
+        } else {
+            None
+        })
     }
 
     async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
