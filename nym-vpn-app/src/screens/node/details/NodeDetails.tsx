@@ -301,58 +301,63 @@ function NodeDetails() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 cursor-default">
-      <h1 className="text-lg font-medium dark:text-white break-words">
-        {gateway.name}
-      </h1>
-      <div className="flex flex-row items-center gap-2 select-none">
-        <FlagIcon
-          code={country.code.toLowerCase() as countryCode}
-          alt={country.code}
-          className="h-6"
+    <PageAnim className="xs:max-w-lg h-full flex flex-col cursor-default">
+      <div className="flex-1 overflow-auto flex flex-col gap-6 p-4">
+        <h1 className="text-lg font-medium dark:text-white break-words">
+          {gateway.name}
+        </h1>
+        <div className="flex flex-row items-center gap-2 select-none">
+          <FlagIcon
+            code={country.code.toLowerCase() as countryCode}
+            alt={country.code}
+            className="h-6"
+          />
+          <div className="text-lg">{serverLocation()}</div>
+        </div>
+        {gateway.description && (
+          <p className="text-iron dark:text-bombay">{gateway.description}</p>
+        )}
+        <DataCard
+          rows={card1}
+          footer={hop === 'entry' && quic && Card1Footer}
         />
-        <div className="text-lg" data-testid="node-details-country-name">
-          {serverLocation()}
+        <DataCard rows={card2} footer={card2Footer} />
+        {showCard3 && <DataCard rows={card3} />}
+        <DataCard rows={card4} />
+        <div className="flex flex-col gap-2 select-none">
+          <Link
+            text={t('node-details.links.missing-info')}
+            url={SupportServerLocationUrl}
+            className="text-baltic-sea dark:text-white"
+            iconClassName="text-lg"
+            color="iron"
+            icon
+          />
+          <p className="text-iron dark:text-bombay">
+            <Trans
+              i18nKey="node-details.links.explorer"
+              ns="nodeLocation"
+              components={{
+                networkExplorerLink: (
+                  <Link
+                    text="Network Explorer"
+                    url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
+                    color="primary"
+                    iconClassName="text-lg"
+                    icon
+                  />
+                ),
+              }}
+            />
+          </p>
         </div>
       </div>
-      {gateway.description && (
-        <p className="text-iron dark:text-bombay">{gateway.description}</p>
-      )}
-      <DataCard rows={card1} footer={hop === 'entry' && quic && Card1Footer} />
-      <DataCard rows={card2} footer={card2Footer} />
-      {showCard3 && <DataCard rows={card3} />}
-      <DataCard rows={card4} />
-      <div className="flex flex-col gap-2 select-none">
-        <Link
-          text={t('node-details.links.missing-info')}
-          url={SupportServerLocationUrl}
-          className="text-baltic-sea dark:text-white"
-          iconClassName="text-lg"
-          color="iron"
-          icon
-        />
-        <p className="text-iron dark:text-bombay">
-          <Trans
-            i18nKey="node-details.links.explorer"
-            ns="nodeLocation"
-            components={{
-              networkExplorerLink: (
-                <Link
-                  text="Network Explorer"
-                  url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
-                  color="primary"
-                  iconClassName="text-lg"
-                  icon
-                />
-              ),
-            }}
-          />
-        </p>
-      </div>
       {!isSelected && (
-        <Button onClick={handleSelect}>
-          {t('node-details.select-button')}
-        </Button>
+        <div className="p-4 bg-white dark:bg-charcoal border-t border-bombay dark:border-iron">
+          <Button onClick={handleSelect}>
+            {t('node-details.select-button')}
+          </Button>
+        </div>
       )}
     </PageAnim>
   );

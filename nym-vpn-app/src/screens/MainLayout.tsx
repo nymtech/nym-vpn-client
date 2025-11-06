@@ -54,11 +54,18 @@ function MainLayout({
           (location.pathname === routes.licensesRust ||
             location.pathname === routes.licensesJs ||
             location.pathname === routes.entryNodeLocation ||
-            location.pathname === routes.exitNodeLocation) &&
+            location.pathname === routes.exitNodeLocation ||
+            location.pathname === routes.nodeDetails) &&
             'p-0!',
         ])}
       >
-        <div ref={rootRef} className="grow">
+        <div
+          ref={rootRef}
+          className={clsx([
+            'grow',
+            location.pathname === routes.nodeDetails && 'h-full',
+          ])}
+        >
           <EventNotification>
             <Outlet />
           </EventNotification>
