@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Split by US state and allow to connect to US state
+
 ## [2.3.0]
 
 ### Added
