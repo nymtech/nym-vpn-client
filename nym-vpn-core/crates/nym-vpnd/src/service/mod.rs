@@ -13,6 +13,6 @@ pub use config::{
 };
 pub use error::SetNetworkError;
 pub use socks5::{
-    HttpRpcSettings, LazySocks5Error, LazySocks5Service, Socks5Settings, Socks5State, Socks5Status,
+    HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5State, Socks5Status,
 };
 pub use vpn_service::{NymVpnService, NymVpnServiceParameters, VpnServiceCommand};

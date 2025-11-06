@@ -26,8 +26,7 @@ use nym_vpn_proto::proto::{
 };
 
 use crate::service::{
-    HttpRpcSettings, LazySocks5Error, SetNetworkError, Socks5Settings, Socks5State,
-    VpnServiceCommand,
+    HttpRpcSettings, SetNetworkError, Socks5Error, Socks5Settings, Socks5State, VpnServiceCommand,
 };
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
@@ -750,14 +749,13 @@ impl NymVpnService for CommandInterface {
         .map_err(|err| {
             tracing::error!("Failed to enable SOCKS5 proxy: {err}");
             match err {
-                LazySocks5Error::GatewayNotSupported => tonic::Status::failed_precondition(
+                Socks5Error::GatewayNotSupported => tonic::Status::failed_precondition(
                     "Gateway does not support SOCKS5 network requester",
                 ),
-                LazySocks5Error::AlreadyEnabled => {
-                    tonic::Status::already_exists("SOCKS5 proxy is already enabled")
+                Socks5Error::InvalidConfig(msg) => tonic::Status::failed_precondition(msg),
+                Socks5Error::LazySocks5Error(_) => {
+                    tonic::Status::internal(format!("Failed to enable SOCKS5 proxy: {err}"))
                 }
-                LazySocks5Error::InvalidConfig(msg) => tonic::Status::failed_precondition(msg),
-                _ => tonic::Status::internal(format!("Failed to enable SOCKS5 proxy: {err}")),
             }
         })?;
 
