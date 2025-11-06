@@ -1,14 +1,15 @@
-use crate::{api_urls_to_urls, error::VpnApiClientError, url_to_socket_addr};
-use futures::future::{self, BoxFuture};
-use nym_http_api_client::Url;
-use nym_network_defaults::ApiUrl;
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
 use std::{
     collections::{HashMap, HashSet},
     net::SocketAddr,
 };
 
-/// A boxed future that resolves to an optional domain name and its resolved socket addresses.
-type ResolutionTask = BoxFuture<'static, Option<(String, Vec<SocketAddr>)>>;
+use nym_http_api_client::Url;
+use nym_network_defaults::ApiUrl;
+use tokio::task::JoinSet;
+
+use crate::{api_urls_to_urls, error::VpnApiClientError, url_to_socket_addr};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ResolverOverrides {
@@ -19,9 +20,8 @@ impl ResolverOverrides {
     /// Create a new set of resolver overrides from the provided URLs.
     /// Resolves all domains in parallel for faster startup and reconnection.
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
-        // Collect all resolution tasks to run in parallel
-        let mut resolution_tasks: Vec<ResolutionTask> = Vec::new();
         let mut all_domains: HashSet<String> = HashSet::new();
+        let mut join_set = JoinSet::new();
 
         for url in urls {
             let Some(domain) = url.inner_url().domain() else {
@@ -36,7 +36,7 @@ impl ResolverOverrides {
             let main_url = url.inner_url().clone();
             let main_domain = domain.to_string();
             all_domains.insert(main_domain.clone());
-            resolution_tasks.push(Box::pin(async move {
+            join_set.spawn(async move {
                 match url_to_socket_addr(&main_url, Some((1, 1))).await {
                     Ok(addresses) => Some((main_domain.clone(), addresses)),
                     Err(e) => {
@@ -44,7 +44,7 @@ impl ResolverOverrides {
                         None
                     }
                 }
-            }));
+            });
 
             // Tasks for front URLs
             if let Some(fronts) = url.fronts() {
@@ -59,7 +59,7 @@ impl ResolverOverrides {
                     let front_url_clone = front_url.clone();
                     let front_domain_str = front_domain.to_string();
                     all_domains.insert(front_domain_str.clone());
-                    resolution_tasks.push(Box::pin(async move {
+                    join_set.spawn(async move {
                         match url_to_socket_addr(&front_url_clone, Some((1, 1))).await {
                             Ok(addresses) => Some((front_domain_str.clone(), addresses)),
                             Err(e) => {
@@ -71,14 +71,14 @@ impl ResolverOverrides {
                                 None
                             }
                         }
-                    }));
+                    });
                 }
             }
         }
 
         // Execute all resolution tasks in parallel
-        let total_tasks = resolution_tasks.len();
-        let results = future::join_all(resolution_tasks).await;
+        let total_tasks = join_set.len();
+        let results = join_set.join_all().await;
 
         // Collect successful resolutions
         let mut overrides = HashMap::new();

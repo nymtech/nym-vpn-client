@@ -5313,7 +5313,6 @@ dependencies = [
  "bip39",
  "bs58",
  "chrono",
- "futures",
  "itertools 0.14.0",
  "nym-common",
  "nym-compact-ecash",
