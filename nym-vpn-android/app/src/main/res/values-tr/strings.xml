@@ -67,12 +67,7 @@
     <string name="always_on_message">Çalışmıyor mu? Diğer uygulamalar için Her zaman açık VPN\'in devre dışı olduğundan emin olun</string>
     <string name="vpn_settings">VPN sistem ayarları</string>
     <string name="try_again">ve yeniden bağlanmayı deneyin</string>
-    <string name="share">Paylaş</string>
-    <string name="delete">Sil</string>
-    <string name="delete_logs_title">Tüm günlükleri silmek istediğinizden emin misiniz?</string>
-    <string name="delete_logs_description">Silindikten sonra, günlükler geri alınamaz.</string>
-	<string name="yes">Evet</string>
-	<string name="network_error">Bir ağ bağlantı hatası oluştu. Lütfen ağ bağlantınızı kontrol edin ve tekrar deneyin.</string>
+    <string name="network_error">Bir ağ bağlantı hatası oluştu. Lütfen ağ bağlantınızı kontrol edin ve tekrar deneyin.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Uyarı Kanalı</string>
     <string name="vpn_alerts_channel_description">Uygulama ile ilgili uyarı bildirimleri için bir kanal.</string>
     <string name="bandwidth_alert">Bant genişliği uyarısı</string>

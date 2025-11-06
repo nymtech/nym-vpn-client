@@ -23,6 +23,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.BridgeParameter
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.VpnException
 import nym_vpn_lib_types.EntryPoint
@@ -32,6 +33,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 import timber.log.Timber
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -181,6 +183,12 @@ fun ExitPoint.Country.toDisplayCountry(): String {
 	return toDisplayCountry(twoLetterIsoCountryCode)
 }
 
+internal fun NymGateway.isQuicSupported(): Boolean = run {
+	return bridgeInformation?.transports?.find {
+		it is BridgeParameter.QuicPlain
+	} != null
+}
+
 @Composable
 fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String> {
 	val score = when (gatewayType) {
@@ -198,7 +206,7 @@ fun getScoreIcon(score: Score): Pair<ImageVector, String> {
 		Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
 		Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
 		Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
-		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
 	}
 }
 
@@ -235,7 +243,7 @@ fun formatUtcString(utcString: String?): String {
 				.withZone(ZoneId.systemDefault())
 			formatter.format(instant)
 		} ?: "--"
-	} catch (e: Exception) {
+	} catch (_: Exception) {
 		"--"
 	}
 }
@@ -249,4 +257,10 @@ fun relativeTimeSpan(utcString: String?): String {
 	} catch (_: Exception) {
 		"--"
 	}
+}
+
+fun Int.addDaysToToday(): String {
+	val targetDate = LocalDate.now().plusDays(this.toLong())
+	val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+	return targetDate.format(formatter)
 }

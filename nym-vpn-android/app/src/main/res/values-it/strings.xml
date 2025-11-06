@@ -67,12 +67,7 @@
     <string name="always_on_message">Non funziona? Assicurati che il VPN Always-on sia disabilitato per le altre applicazioni in</string>
     <string name="vpn_settings">impostazioni VPN</string>
     <string name="try_again">e prova di nuovo</string>
-    <string name="share">Share</string>
-    <string name="delete">Delete</string>
-    <string name="delete_logs_title">Are you sure you want to delete all logs?</string>
-    <string name="delete_logs_description">Once deleted, the logs will not be recoverable.</string>
-	<string name="yes">Yes</string>
-	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
+    <string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Alerts Channel</string>
     <string name="vpn_alerts_channel_description">A channel for app related alert notifications.</string>
     <string name="bandwidth_alert">Bandwidth alert</string>

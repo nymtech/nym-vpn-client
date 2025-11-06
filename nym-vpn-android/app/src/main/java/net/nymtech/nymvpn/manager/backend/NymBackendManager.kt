@@ -129,7 +129,6 @@ class NymBackendManager @Inject constructor(
 
 	override suspend fun startTunnel() {
 		runCatching {
-			backend.await().updateAccountState()
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
 				entryPoint = getEntryPoint(),
@@ -139,7 +138,8 @@ class NymBackendManager @Inject constructor(
 				backendEvent = ::onBackendEvent,
 				bypassLan = settingsRepository.isBypassLanEnabled(),
 			)
-			backend.await().start(tunnel, context.toUserAgent())
+			val enableBridges = isQuicEnabled()
+			backend.await().start(tunnel, context.toUserAgent(), enableBridges)
 		}.onFailure {
 			if (it is BackendException) {
 				when (it) {
@@ -153,6 +153,12 @@ class NymBackendManager @Inject constructor(
 				Timber.e(it)
 			}
 		}
+	}
+
+	private suspend fun isQuicEnabled(): Boolean {
+		return settingsRepository.getQUICEnabled() &&
+			getBackend().getCurrentEnvironment().featureFlags?.isQuicEnabled() ?: false &&
+			settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
 	}
 
 	private suspend fun getEntryPoint(): EntryPoint {

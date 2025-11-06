@@ -39,10 +39,11 @@ internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Mod
 		) {
 			Text(
 				text = config.message,
-				color = CustomColors.snackbarTextColor,
 				modifier = Modifier
 					.weight(1f)
 					.padding(end = 8.dp),
+				color = CustomColors.snackbarTextColor,
+				style = MaterialTheme.typography.bodyMedium,
 			)
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
@@ -50,7 +51,7 @@ internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Mod
 			) {
 				config.action?.let { action ->
 					TextButton(onClick = { action.onClicked() }, modifier = Modifier.padding(end = 12.dp)) {
-						Text(text = action.title, style = MaterialTheme.typography.labelLarge, maxLines = 2)
+						Text(text = action.title, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
 					}
 				}
 				config.icon?.let {

@@ -4,13 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -85,8 +83,7 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 		horizontalAlignment = Alignment.Start,
 		modifier = Modifier
 			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background)
-			.padding(WindowInsets.systemBars.asPaddingValues()),
+			.background(MaterialTheme.colorScheme.background),
 	) {
 		Column(
 			modifier = Modifier
@@ -117,6 +114,7 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 				.shadow(elevation = 20.dp, spotColor = Color(0x26000000), ambientColor = Color(0x26000000))
 				.topBorder(height = 1.dp, color = MaterialTheme.colorScheme.outline)
 				.background(MaterialTheme.colorScheme.surface)
+				.navigationBarsPadding()
 				.padding(24.dp),
 		) {
 			MainStyledButton(
