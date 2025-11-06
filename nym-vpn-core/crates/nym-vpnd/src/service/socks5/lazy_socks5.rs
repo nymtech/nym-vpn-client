@@ -252,19 +252,24 @@ impl LazySocks5 {
         info!("SOCKS5 mixnet backend connected successfully");
         info!("Client Nym address: {}", mixnet_client.nym_address());
         info!(
-            "Internal SOCKS5 server listening on: {}",
+            "Internal SOCKS5 server should be listening on: {}",
             self.config.internal_listen_address.to_string()
         );
 
         *self.mixnet_client.write().await = Some(mixnet_client);
+
+        // Give the internal SOCKS5 server a moment to fully bind
+        sleep(Duration::from_millis(100)).await;
+        info!("Backend initialization complete");
+
         Ok(())
     }
 
     /// Connect to internal SOCKS5 server with retry logic
     /// The internal server may take a moment to bind after backend initialization
     async fn connect_to_internal_with_retry(&self) -> Result<TcpStream, std::io::Error> {
-        const MAX_RETRIES: u32 = 20;
-        const RETRY_DELAY_MS: u64 = 1000;
+        const MAX_RETRIES: u32 = 100;
+        const RETRY_DELAY_MS: u64 = 50;
 
         let start = Instant::now();
         let mut last_error = None;
@@ -282,22 +287,27 @@ impl LazySocks5 {
             match TcpStream::connect(self.config.internal_listen_address).await {
                 Ok(stream) => {
                     if attempt > 0 {
-                        debug!(
-                            "Successfully connected to internal SOCKS5 server after {} attempts ({:?})",
+                        info!(
+                            "Connected to internal SOCKS5 server after {} attempts ({:?})",
                             attempt + 1,
                             start.elapsed()
                         );
+                    } else {
+                        debug!("Connected to internal SOCKS5 server on first attempt");
                     }
                     return Ok(stream);
                 }
                 Err(e) => {
                     last_error = Some(e);
                     if attempt < MAX_RETRIES - 1 {
-                        debug!(
-                            "Internal SOCKS5 server not ready yet (attempt {}), retrying in {}ms...",
-                            attempt + 1,
-                            RETRY_DELAY_MS
-                        );
+                        // Only log after a few attempts to avoid spam
+                        if attempt > 0 && attempt % 10 == 0 {
+                            debug!(
+                                "Internal SOCKS5 server not ready yet (attempt {}/{}), retrying...",
+                                attempt + 1,
+                                MAX_RETRIES
+                            );
+                        }
                         sleep(Duration::from_millis(RETRY_DELAY_MS)).await;
                     }
                 }
