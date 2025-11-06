@@ -21,11 +21,10 @@ use nym_vpn_lib_types::LogPath;
 
 use crate::service;
 
-static INFO_CRATES: &[&str; 14] = &[
+static INFO_CRATES: &[&str; 13] = &[
     "hyper",
     "netlink_proto",
     "hickory_proto",
-    "hickory_resolver",
     "hyper_util",
     "h2",
     "rustls",
