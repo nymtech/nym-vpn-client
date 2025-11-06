@@ -16,7 +16,9 @@ use tokio_util::sync::CancellationToken;
 
 use super::{
     HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
+    config::{
+        NetworkEnvironments, VpnServiceConfigManager, socks5_idle_timeout, socks5_request_timeout,
+    },
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
@@ -1198,9 +1200,8 @@ impl NymVpnService {
             requester_address
         );
 
-        // TODO: ENV var
-        let request_timeout = Duration::from_secs(30);
-        let idle_timeout = Duration::from_secs(300);
+        let request_timeout = socks5_request_timeout();
+        let idle_timeout = socks5_idle_timeout();
 
         self.socks5_service
             .enable(
