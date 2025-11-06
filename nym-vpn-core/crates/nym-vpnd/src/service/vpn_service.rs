@@ -1219,8 +1219,8 @@ impl NymVpnService {
             requester_address
         );
 
-        // Enable the lazy service with default idle timeout of 60 seconds
-        let idle_timeout_secs = 60;
+        // TODO: ENV var
+        let idle_timeout = Duration::from_secs(60);
 
         self.socks5_service
             .enable(
@@ -1228,14 +1228,14 @@ impl NymVpnService {
                 socks5_settings.listen_address,
                 http_rpc_settings.listen_address,
                 requester_address,
-                idle_timeout_secs,
+                idle_timeout,
             )
             .await?;
 
         tracing::info!("Lazy SOCKS5 proxy service enabled successfully");
         tracing::info!(
             "Mixnet will initialize on first SOCKS5 connection and shut down after {}s of inactivity",
-            idle_timeout_secs
+            idle_timeout.as_secs()
         );
         Ok(())
     }

@@ -22,6 +22,8 @@ use tracing::{debug, error, info};
 pub struct HttpRpcProxy {
     /// Listen address ex: 127.0.0.1:8545
     listen_address: String,
+    /// Timeout duration
+    idle_timeout: Duration,
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
     /// Reqwest client configured with SOCKS5 proxy
@@ -40,9 +42,14 @@ pub enum HttpRpcProxyError {
 
 impl HttpRpcProxy {
     /// Create a new HTTP RPC proxy
-    pub fn new(listen_address: String, cancel_token: CancellationToken) -> Self {
+    pub fn new(
+        listen_address: String,
+        idle_timeout: Duration,
+        cancel_token: CancellationToken,
+    ) -> Self {
         Self {
             listen_address,
+            idle_timeout,
             cancel_token,
             http_client: None,
         }
@@ -63,14 +70,9 @@ impl HttpRpcProxy {
         let proxy = reqwest::Proxy::all(&socks5_url)
             .map_err(|e| HttpRpcProxyError::Internal(format!("Failed to create proxy: {}", e)))?;
 
-        // TODO: properly pass configuration
         let http_client = Client::builder()
             .proxy(proxy)
-            .timeout(Duration::from_secs(60)) // Total request timeout
-            .connect_timeout(Duration::from_secs(30)) // Connection establishment timeout
-            .pool_idle_timeout(Duration::from_secs(10)) // Very short idle timeout
-            .pool_max_idle_per_host(0) // Disable connection pooling entirely
-            .tcp_keepalive(Duration::from_secs(10)) // Aggressive TCP keepalive
+            .timeout(self.idle_timeout)
             .build()
             .map_err(|e| {
                 HttpRpcProxyError::Internal(format!("Failed to build HTTP client: {}", e))

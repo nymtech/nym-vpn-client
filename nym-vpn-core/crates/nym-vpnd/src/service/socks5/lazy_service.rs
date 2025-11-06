@@ -63,7 +63,7 @@ impl LazySocks5Service {
         socks5_listen_address: String,
         http_rpc_listen_address: String,
         network_requester_address: String,
-        idle_timeout_secs: u64,
+        idle_timeout: Duration,
     ) -> Result<(), LazySocks5Error> {
         let mut state = self.state.write().await;
         state
@@ -72,7 +72,7 @@ impl LazySocks5Service {
                 socks5_listen_address,
                 http_rpc_listen_address,
                 network_requester_address,
-                idle_timeout_secs,
+                idle_timeout,
                 self.shutdown_token.child_token(),
             )
             .await
@@ -104,7 +104,6 @@ struct ServiceState {
     socks5_listen_address: String,
     http_rpc_listen_address: String,
     network_requester_address: String,
-    idle_timeout_secs: u64,
     error_message: Option<String>,
     wrapper: Option<Arc<LazySocks5Wrapper>>,
     wrapper_handle: Option<JoinHandle<()>>,
@@ -119,7 +118,6 @@ impl ServiceState {
             socks5_listen_address: "127.0.0.1:1080".to_string(),
             http_rpc_listen_address: "127.0.0.1:8545".to_string(),
             network_requester_address: String::new(),
-            idle_timeout_secs: 60,
             error_message: None,
             wrapper: None,
             wrapper_handle: None,
@@ -154,7 +152,7 @@ impl ServiceState {
         socks5_listen_address: String,
         http_rpc_listen_address: String,
         network_requester_address: String,
-        idle_timeout_secs: u64,
+        idle_timeout: Duration,
         cancel_token: CancellationToken,
     ) -> Result<(), LazySocks5Error> {
         // Check if already enabled
@@ -169,7 +167,9 @@ impl ServiceState {
 
         info!(
             "Enabling lazy SOCKS5 service: network_requester_address={}, socks5_listen_address={}, idle_timeout={}s",
-            network_requester_address, socks5_listen_address, idle_timeout_secs
+            network_requester_address,
+            socks5_listen_address,
+            idle_timeout.as_secs()
         );
 
         // Parse listen address
@@ -178,15 +178,13 @@ impl ServiceState {
         })?;
 
         // Create lazy wrapper
-        let wrapper = Arc::new(
-            LazySocks5Wrapper::new(
-                listen_addr,
-                data_dir,
-                network_requester_address.clone(),
-                cancel_token.child_token(),
-            )
-            .with_idle_timeout(Duration::from_secs(idle_timeout_secs)),
-        );
+        let wrapper = Arc::new(LazySocks5Wrapper::new(
+            data_dir,
+            idle_timeout,
+            listen_addr,
+            network_requester_address.clone(),
+            cancel_token.child_token(),
+        ));
 
         // Spawn wrapper task
         let wrapper_clone = wrapper.clone();
@@ -206,8 +204,11 @@ impl ServiceState {
         let http_rpc_handle = if !http_rpc_listen_address.is_empty() {
             info!("Starting HTTP RPC proxy on {}", http_rpc_listen_address);
 
-            let mut http_proxy =
-                HttpRpcProxy::new(http_rpc_listen_address.clone(), cancel_token.child_token());
+            let mut http_proxy = HttpRpcProxy::new(
+                http_rpc_listen_address.clone(),
+                idle_timeout,
+                cancel_token.child_token(),
+            );
 
             let wrapper_clone = wrapper.clone();
             let handle = tokio::spawn(async move {
@@ -226,7 +227,6 @@ impl ServiceState {
         self.socks5_listen_address = socks5_listen_address;
         self.http_rpc_listen_address = http_rpc_listen_address;
         self.network_requester_address = network_requester_address;
-        self.idle_timeout_secs = idle_timeout_secs;
         self.state = Socks5State::Idle;
         self.error_message = None;
         self.wrapper = Some(wrapper);
