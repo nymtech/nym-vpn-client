@@ -57,7 +57,7 @@ pub enum SpecificGatewayError {
         gateway_id: String,
         ticketbook_type: TicketType,
         #[source]
-        source: Box<nym_authenticator_client::Error>,
+        source: Box<nym_authenticator_client::AuthenticationClientError>,
     },
 
     #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
