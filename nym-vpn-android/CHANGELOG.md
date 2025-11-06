@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Split by US state and allow to connect to US state (https://github.com/nymtech/nym-vpn-client/pull/3895)
 
 ## [2.3.0] - 2025-11-06
 
