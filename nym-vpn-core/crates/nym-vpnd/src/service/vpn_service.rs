@@ -14,7 +14,17 @@ use tokio::{
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
+use super::{
+    HttpRpcSettings, LazySocks5Error, LazySocks5Service, Socks5Settings, Socks5Status,
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError,
+    },
+};
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
+use nym_sdk::mixnet::NodeIdentity;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
@@ -38,16 +48,6 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
-
-use super::{
-    HttpRpcSettings, LazySocks5Error, LazySocks5Service, Socks5Settings, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
-    },
-};
-use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -1069,36 +1069,41 @@ impl NymVpnService {
             );
         }
 
+        tracing::info!("Using exit point: {:?}", exit_point);
+
+        // Get all exit gateways to validate SOCKS5 support
+        let exit_gateways: nym_gateway_directory::GatewayList = self
+            .gateway_cache_handle
+            .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+            .await
+            .map_err(|e| {
+                LazySocks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
+            })?;
+
+        // Filter for gateways that support SOCKS5
+        let socks5_gateways = gateway_directory::GatewayList::new(
+            Some(gateway_directory::GatewayType::MixnetExit),
+            exit_gateways
+                .into_iter()
+                .filter(|gateway| {
+                    gateway
+                        .last_probe
+                        .as_ref()
+                        .and_then(|probe| probe.outcome.as_exit.as_ref())
+                        .map(|exit_point| exit_point.can_connect)
+                        .unwrap_or(false)
+                })
+                .collect(),
+        );
+
         // Get exit gateway network requester address from exit point and validate SOCKS5 support
-        let exit_network_requester_address = match &exit_point {
-            ExitPoint::Gateway { identity } => {
-                // Fetch gateway list to validate SOCKS5 support
-                let exit_gateways = self
-                    .gateway_cache_handle
-                    .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
-                    .await
-                    .map_err(|e| {
-                        LazySocks5Error::InvalidConfig(format!(
-                            "Failed to lookup exit gateways: {}",
-                            e
-                        ))
-                    })?;
-
-                // Convert nym_vpn_lib_types::NodeIdentity to nym_sdk::mixnet::NodeIdentity
-                let identity_base58 = identity.to_base58_string();
-                let sdk_identity = nym_sdk::mixnet::NodeIdentity::from_base58_string(
-                    &identity_base58,
-                )
-                .map_err(|e| {
-                    LazySocks5Error::InvalidConfig(format!(
-                        "Failed to parse gateway identity {}: {}",
-                        identity_base58, e
-                    ))
-                })?;
-
+        let requester_address = match &exit_point {
+            // User has chosen a specific exit address (IPR address)
+            ExitPoint::Address { address } => {
+                let identity = address.gateway();
                 // Look up the specific gateway
-                let gateway = exit_gateways
-                    .gateway_with_identity(&sdk_identity)
+                let gateway = socks5_gateways
+                    .gateway_with_identity(&identity.inner())
                     .ok_or_else(|| {
                         LazySocks5Error::InvalidConfig(format!(
                             "Gateway {} not found in exit gateways",
@@ -1113,59 +1118,32 @@ impl NymVpnService {
 
                 ipr_address.to_string()
             }
-            ExitPoint::Address { address } => {
-                // For Address, we already have the full network requester address
-                // Convert nym_vpn_lib_types::Recipient to nym_gateway_directory::Recipient
-                let gateway_dir_recipient: gateway_directory::Recipient =
-                    (**address).clone().into();
-                let ipr_address =
-                    gateway_directory::IpPacketRouterAddress::from(gateway_dir_recipient);
-                let gateway_identity = ipr_address.gateway();
-
-                // Fetch gateway list to validate that the gateway exists
-                let exit_gateways = self
-                    .gateway_cache_handle
-                    .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
-                    .await
-                    .map_err(|e| {
-                        LazySocks5Error::InvalidConfig(format!(
-                            "Failed to lookup exit gateways: {}",
-                            e
-                        ))
-                    })?;
-
-                // Look up the specific gateway to verify it exists
-                let _gateway = exit_gateways
-                    .gateway_with_identity(&gateway_identity)
+            // User has chosen a specific gateway identity
+            ExitPoint::Gateway { identity } => {
+                // Look up the specific gateway
+                let gateway = socks5_gateways
+                    .gateway_with_identity(&identity.inner())
                     .ok_or_else(|| {
                         LazySocks5Error::InvalidConfig(format!(
                             "Gateway {} not found in exit gateways",
-                            gateway_identity
+                            identity
                         ))
                     })?;
 
-                // Return the full network requester address
+                // Verify gateway supports SOCKS5 (has network requester)
+                let ipr_address = gateway
+                    .ipr_address
+                    .ok_or(LazySocks5Error::GatewayNotSupported)?;
+
                 ipr_address.to_string()
             }
+            // User has chosen a specific exit country, region, or random
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
                 // For non-specific exit points, select a gateway the same way the VPN does
                 tracing::info!(
                     "Selecting SOCKS5 exit node for exit point: {:?}",
                     exit_point
                 );
-
-                let exit_gateways = self
-                    .gateway_cache_handle
-                    .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
-                    .await
-                    .map_err(|e| {
-                        LazySocks5Error::InvalidConfig(format!(
-                            "Failed to lookup exit gateways: {}",
-                            e
-                        ))
-                    })?;
-
-                tracing::debug!("Found {} exit gateways", exit_gateways.len());
 
                 // Convert to gateway_directory types for lookup
                 let exit_point_dir = gateway_directory::ExitPoint::from(exit_point.clone());
@@ -1174,7 +1152,7 @@ impl NymVpnService {
                 // Try to find a high-performance gateway first
                 let selected_gateway = exit_point_dir
                     .lookup_gateway(
-                        &exit_gateways,
+                        &socks5_gateways,
                         Some(gateway_directory::ScoreValue::High),
                         residential_exit,
                     )
@@ -1186,7 +1164,7 @@ impl NymVpnService {
                                 Lowering performance filter to medium and trying again"
                             );
                             exit_point_dir.lookup_gateway(
-                                &exit_gateways,
+                                &socks5_gateways,
                                 Some(gateway_directory::ScoreValue::Medium),
                                 residential_exit,
                             )
@@ -1221,7 +1199,7 @@ impl NymVpnService {
 
         tracing::info!(
             "Using network requester address {} for SOCKS5",
-            exit_network_requester_address
+            requester_address
         );
 
         // Enable the lazy service with default idle timeout of 60 seconds
@@ -1232,7 +1210,7 @@ impl NymVpnService {
                 self.data_dir.clone(),
                 socks5_settings.listen_address,
                 http_rpc_settings.listen_address,
-                exit_network_requester_address,
+                requester_address,
                 idle_timeout_secs,
             )
             .await?;
