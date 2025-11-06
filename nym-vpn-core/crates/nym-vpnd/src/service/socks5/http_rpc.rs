@@ -1,6 +1,6 @@
-//! Receives HTTP requests and sends them through SOCKS5 proxy.
+//! Receives HTTP requests and sends them to lazy SOCKS5 proxy.
 
-use super::socks5_wrapper::LazySocks5Wrapper;
+use super::lazy_socks5::LazySocks5;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
@@ -18,21 +18,18 @@ use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
-/// HTTP RPC proxy server
-pub struct HttpRpcProxy {
+/// Configuration for the HTTP RPC proxy
+#[derive(Debug, Clone)]
+pub struct HttpRpcConfig {
     /// Listen address ex: 127.0.0.1:8545
-    listen_address: String,
-    /// Timeout duration
-    idle_timeout: Duration,
-    /// Cancellation token for shutdown
-    cancel_token: CancellationToken,
-    /// Reqwest client configured with SOCKS5 proxy
-    http_client: Option<Arc<Client>>,
+    listen_address: SocketAddr,
+    /// Request timeout duration
+    request_timeout: Duration,
 }
 
 /// Errors from the HTTP RPC proxy
 #[derive(Debug, thiserror::Error)]
-pub enum HttpRpcProxyError {
+pub enum HttpRpcError {
     #[error("Failed to bind to {0}: {1}")]
     BindError(String, std::io::Error),
 
@@ -40,54 +37,62 @@ pub enum HttpRpcProxyError {
     Internal(String),
 }
 
-impl HttpRpcProxy {
+/// HTTP RPC proxy state
+pub struct HttpRpc {
+    /// Configuration
+    config: HttpRpcConfig,
+    /// HTTP client
+    http_client: Option<Arc<Client>>,
+    /// Cancellation token for shutdown
+    cancel_token: CancellationToken,
+}
+
+impl HttpRpc {
     /// Create a new HTTP RPC proxy
     pub fn new(
-        listen_address: String,
-        idle_timeout: Duration,
+        listen_address: SocketAddr,
+        request_timeout: Duration,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
-            listen_address,
-            idle_timeout,
+            config: HttpRpcConfig {
+                listen_address,
+                request_timeout,
+            },
             cancel_token,
             http_client: None,
         }
     }
 
     /// Start the HTTP RPC proxy server
-    pub async fn start(
-        &mut self,
-        socks5_wrapper: Arc<LazySocks5Wrapper>,
-    ) -> Result<(), HttpRpcProxyError> {
-        info!("Starting HTTP RPC proxy on {}", self.listen_address);
+    pub async fn start(&mut self, lazy_socks5: Arc<LazySocks5>) -> Result<(), HttpRpcError> {
+        let listen_address = self.config.listen_address.to_string();
+        info!("Starting HTTP RPC proxy on {}", listen_address);
 
-        // Get the SOCKS5 proxy URL from the wrapper's public address
-        let socks5_url = format!("socks5h://{}", socks5_wrapper.public_address());
+        // Get the SOCKS5 proxy public URL
+        let socks5_url = format!("socks5h://{}", lazy_socks5.public_address());
         info!("Configuring HTTP client with SOCKS5 proxy: {}", socks5_url);
 
         // Create reqwest client configured with SOCKS5 proxy
         let proxy = reqwest::Proxy::all(&socks5_url)
-            .map_err(|e| HttpRpcProxyError::Internal(format!("Failed to create proxy: {}", e)))?;
+            .map_err(|e| HttpRpcError::Internal(format!("Failed to create proxy: {}", e)))?;
 
         let http_client = Client::builder()
             .proxy(proxy)
-            .timeout(self.idle_timeout)
+            .timeout(self.config.request_timeout)
             .build()
-            .map_err(|e| {
-                HttpRpcProxyError::Internal(format!("Failed to build HTTP client: {}", e))
-            })?;
+            .map_err(|e| HttpRpcError::Internal(format!("Failed to build HTTP client: {}", e)))?;
 
         self.http_client = Some(Arc::new(http_client));
 
         // Bind TCP listener
-        let listener = TcpListener::bind(&self.listen_address)
+        let listener = TcpListener::bind(&listen_address)
             .await
-            .map_err(|e| HttpRpcProxyError::BindError(self.listen_address.clone(), e))?;
+            .map_err(|e| HttpRpcError::BindError(listen_address.clone(), e))?;
 
-        let local_addr = listener.local_addr().map_err(|e| {
-            HttpRpcProxyError::Internal(format!("Failed to get local address: {}", e))
-        })?;
+        let local_addr = listener
+            .local_addr()
+            .map_err(|e| HttpRpcError::Internal(format!("Failed to get local address: {}", e)))?;
 
         info!("HTTP RPC proxy listening on {}", local_addr);
 

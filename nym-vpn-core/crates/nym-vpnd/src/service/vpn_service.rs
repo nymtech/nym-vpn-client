@@ -14,7 +14,7 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    HttpRpcSettings, LazySocks5Error, LazySocks5Service, Socks5Settings, Socks5Status,
+    HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
@@ -23,7 +23,6 @@ use super::{
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
-use nym_sdk::mixnet::NodeIdentity;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
@@ -81,11 +80,11 @@ pub enum VpnServiceCommand {
         GatewayFilters,
     ),
     EnableSocks5(
-        oneshot::Sender<Result<(), LazySocks5Error>>,
+        oneshot::Sender<Result<(), Socks5Error>>,
         (Socks5Settings, HttpRpcSettings, ExitPoint),
     ),
-    DisableSocks5(oneshot::Sender<Result<(), LazySocks5Error>>, ()),
-    GetSocks5Status(oneshot::Sender<Result<Socks5Status, LazySocks5Error>>, ()),
+    DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
+    GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
     SetTargetState(oneshot::Sender<bool>, TargetState),
@@ -241,7 +240,7 @@ pub struct NymVpnService {
     statistics_event_sender: StatisticsSender,
 
     // Lazy SOCKS5 proxy service handle
-    socks5_service: LazySocks5Service,
+    socks5_service: Socks5Service,
 }
 
 impl NymVpnService {
@@ -397,7 +396,7 @@ impl NymVpnService {
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
         // Initialize lazy SOCKS5 service (disabled by default)
-        let socks5_service = LazySocks5Service::new(services_shutdown_token.child_token());
+        let socks5_service = Socks5Service::new(services_shutdown_token.child_token());
 
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -1073,7 +1072,7 @@ impl NymVpnService {
         socks5_settings: Socks5Settings,
         http_rpc_settings: HttpRpcSettings,
         exit_point: ExitPoint,
-    ) -> Result<(), LazySocks5Error> {
+    ) -> Result<(), Socks5Error> {
         tracing::info!("Enabling SOCKS5 client");
 
         // Log warning if VPN is connected in 5-hop mode
@@ -1094,7 +1093,7 @@ impl NymVpnService {
             .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
             .await
             .map_err(|e| {
-                LazySocks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
+                Socks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
             })?;
 
         // Filter for gateways that support SOCKS5
@@ -1122,7 +1121,7 @@ impl NymVpnService {
                 let gateway = socks5_gateways
                     .gateway_with_identity(&identity.inner())
                     .ok_or_else(|| {
-                        LazySocks5Error::InvalidConfig(format!(
+                        Socks5Error::InvalidConfig(format!(
                             "Gateway {} not found in exit gateways",
                             identity
                         ))
@@ -1131,7 +1130,7 @@ impl NymVpnService {
                 // Verify gateway supports SOCKS5 (has network requester)
                 let ipr_address = gateway
                     .ipr_address
-                    .ok_or(LazySocks5Error::GatewayNotSupported)?;
+                    .ok_or(Socks5Error::GatewayNotSupported)?;
 
                 ipr_address.to_string()
             }
@@ -1141,7 +1140,7 @@ impl NymVpnService {
                 let gateway = socks5_gateways
                     .gateway_with_identity(&identity.inner())
                     .ok_or_else(|| {
-                        LazySocks5Error::InvalidConfig(format!(
+                        Socks5Error::InvalidConfig(format!(
                             "Gateway {} not found in exit gateways",
                             identity
                         ))
@@ -1150,7 +1149,7 @@ impl NymVpnService {
                 // Verify gateway supports SOCKS5 (has network requester)
                 let ipr_address = gateway
                     .ipr_address
-                    .ok_or(LazySocks5Error::GatewayNotSupported)?;
+                    .ok_or(Socks5Error::GatewayNotSupported)?;
 
                 ipr_address.to_string()
             }
@@ -1190,16 +1189,13 @@ impl NymVpnService {
                         }
                     })
                     .map_err(|e| {
-                        LazySocks5Error::InvalidConfig(format!(
-                            "Failed to select exit gateway: {}",
-                            e
-                        ))
+                        Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {}", e))
                     })?;
 
                 // Verify gateway supports SOCKS5 (has network requester)
                 let ipr_address = selected_gateway
                     .ipr_address
-                    .ok_or(LazySocks5Error::GatewayNotSupported)?;
+                    .ok_or(Socks5Error::GatewayNotSupported)?;
 
                 tracing::info!(
                     "Selected SOCKS5 exit gateway: {}, location: {}",
@@ -1220,7 +1216,8 @@ impl NymVpnService {
         );
 
         // TODO: ENV var
-        let idle_timeout = Duration::from_secs(60);
+        let request_timeout = Duration::from_secs(30);
+        let idle_timeout = Duration::from_secs(300);
 
         self.socks5_service
             .enable(
@@ -1228,6 +1225,7 @@ impl NymVpnService {
                 socks5_settings.listen_address,
                 http_rpc_settings.listen_address,
                 requester_address,
+                request_timeout,
                 idle_timeout,
             )
             .await?;
@@ -1240,14 +1238,14 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_disable_socks5(&mut self) -> Result<(), LazySocks5Error> {
+    async fn handle_disable_socks5(&mut self) -> Result<(), Socks5Error> {
         tracing::info!("Disabling lazy SOCKS5 proxy service");
         self.socks5_service.disable().await?;
         tracing::info!("Lazy SOCKS5 proxy service disabled successfully");
         Ok(())
     }
 
-    async fn handle_get_socks5_status(&self) -> Result<Socks5Status, LazySocks5Error> {
+    async fn handle_get_socks5_status(&self) -> Result<Socks5Status, Socks5Error> {
         self.socks5_service.get_status().await
     }
 
