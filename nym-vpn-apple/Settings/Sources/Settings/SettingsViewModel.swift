@@ -231,6 +231,16 @@ private extension SettingsViewModel {
                             self?.navigateToAccount()
                         }
                     }
+                ),
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.passphrase".localizedString,
+                    imageName: "key",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToPassphrase()
+                        }
+                    }
                 )
             ]
         )
