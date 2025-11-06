@@ -127,9 +127,20 @@ impl Firewall {
             return Ok(false);
         }
 
-        if [5353, 53].contains(&remote_address.port()) {
-            // Ignore DNS states. The local resolver takes care of everything,
-            // and PQ seems to timeout if these states are flushed
+        // Socket addresses for Multicast DNS.
+        const MDNS_PORT: u16 = 5353;
+        if remote_address.port() == MDNS_PORT {
+            // Blocking mDNS sometimes causes the tunnel to fail. Seemingly by interferring with
+            // configd, mDNSResponder, or another macOS service.
+            return Ok(false);
+        }
+
+        // Do not reset state for non-tunnel DNS traffic to prevent connection resets
+        if policy.dns_config().is_some_and(|dns| {
+            dns.non_tunnel_config().iter().any(|ip| {
+                *ip == remote_address.ip() && DNS_TCP_PORTS.contains(&remote_address.port())
+            }) && proto == pfctl::Proto::Tcp
+        }) {
             return Ok(false);
         }
 
