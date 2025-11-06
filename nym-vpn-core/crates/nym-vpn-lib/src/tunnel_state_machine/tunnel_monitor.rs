@@ -6,7 +6,7 @@ use futures::{FutureExt, future::Fuse, pin_mut};
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_connection_monitor::{
     ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
-    TimingConfig,
+    TcpProbe, TcpProbeConfig, TimingConfig,
 };
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
@@ -57,7 +57,7 @@ use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
 };
-use nym_common::trace_err_chain;
+use nym_common::{ErrorExt, trace_err_chain};
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
@@ -1812,52 +1812,85 @@ impl TunnelMonitor {
         self.tunnel_parameters.tunnel_settings.enable_ipv6
     }
 
-    fn create_tunnel_connection_monitor(
-        &self,
-        exit_tunnel_metadata: &TunnelMetadata,
-        event_tx: mpsc::UnboundedSender<ConnectionEvent>,
-    ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
+    fn create_icmp_probe(&self, exit_tunnel_metadata: &TunnelMetadata) -> Result<IcmpProbe> {
         let mut icmp_probe_config = IcmpProbeConfig::default_v4();
 
         // Prefer bind to interface on supported platforms
-        #[cfg(any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
-        ))]
+        #[cfg(any(target_os = "linux", target_os = "ios", target_os = "macos"))]
         {
             icmp_probe_config =
                 icmp_probe_config.with_interface(exit_tunnel_metadata.interface.clone());
         }
 
         // Bind to local interface IP on other platforms
-        #[cfg(not(any(
-            target_os = "linux",
-            target_os = "android",
-            target_os = "ios",
-            target_os = "macos"
-        )))]
+        #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "macos")))]
         {
             let local_addr = exit_tunnel_metadata
                 .ips
                 .iter()
                 .find(|v| v.is_ipv4())
-                .ok_or(Error::IcmpProbeRequiresIPv4Addr)?;
+                .ok_or(Error::ProbeRequiresIPv4Addr)?;
             icmp_probe_config = icmp_probe_config.with_local_address(*local_addr);
         }
 
-        let icmp_probe = IcmpProbe::new(icmp_probe_config).map_err(Error::CreateIcmpProbe)?;
+        IcmpProbe::new(icmp_probe_config).map_err(Error::CreateIcmpProbe)
+    }
+
+    fn create_tcp_probe(&self, exit_tunnel_metadata: &TunnelMetadata) -> Result<TcpProbe> {
+        let mut tcp_probe_config = TcpProbeConfig::default_v4();
+
+        // Prefer bind to interface on supported platforms
+        #[cfg(any(target_os = "linux", target_os = "ios", target_os = "macos"))]
+        {
+            tcp_probe_config =
+                tcp_probe_config.with_interface(exit_tunnel_metadata.interface.clone());
+        }
+
+        // Bind to local interface IP on other platforms
+        #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "macos")))]
+        {
+            let local_addr = exit_tunnel_metadata
+                .ips
+                .iter()
+                .find(|v| v.is_ipv4())
+                .ok_or(Error::ProbeRequiresIPv4Addr)?;
+            tcp_probe_config = tcp_probe_config.with_local_address(SocketAddr::new(*local_addr, 0));
+        }
+
+        TcpProbe::new(tcp_probe_config).map_err(Error::CreateTcpProbe)
+    }
+
+    fn create_tunnel_connection_monitor(
+        &self,
+        exit_tunnel_metadata: &TunnelMetadata,
+        event_tx: mpsc::UnboundedSender<ConnectionEvent>,
+    ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
         let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type {
             TunnelType::Mixnet => TimingConfig::mixnet(),
             TunnelType::Wireguard => TimingConfig::two_hop(),
         };
-        Ok(ConnectionMonitor::spawn(
-            icmp_probe,
-            timing_config,
-            event_tx,
-            self.shutdown_token.child_token(),
-        ))
+
+        // Create ICMP probe first, fallback to TCP probe on failure
+        match self.create_icmp_probe(exit_tunnel_metadata) {
+            Ok(icmp_probe) => Ok(ConnectionMonitor::spawn(
+                icmp_probe,
+                timing_config,
+                event_tx,
+                self.shutdown_token.child_token(),
+            )),
+            Err(err) => {
+                tracing::warn!("{}", err.display_chain());
+                tracing::info!("Fallback to TCP probe");
+                let tcp_probe = self.create_tcp_probe(exit_tunnel_metadata)?;
+
+                Ok(ConnectionMonitor::spawn(
+                    tcp_probe,
+                    timing_config,
+                    event_tx,
+                    self.shutdown_token.child_token(),
+                ))
+            }
+        }
     }
 }
 

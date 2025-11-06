@@ -1,51 +1,49 @@
-Pare de ser rastreado: A única VPN que não pode espiar você
+Deixe de ser rastreado online. A única VPN que não pode espiar-lo, mesmo que quisesse. Feito na Suíça, confiável por defensores da privacidade em todo o mundo.
 
-Cansado de ser vigiado online? VPNs tradicionais usam um servidor central que pode rastrear você. NymVPN é diferente: rede descentralizada sem autoridade central — registos impossíveis. Não é só “sem logs”, é “não pode registar”.
+⭐️ Como visto em: PCMag, TechRadar, Wirecutter, ZDNet, Tom’s Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-Criado por uma equipa de investigadores e criptógrafos com mais de 20 publicações. NymVPN opera em centenas de servidores independentes em 50+ países. Desenvolvido com KU Leuven e EPFL, sediado na Suíça. Missão: privacidade para todos.
+NAVEGUE SEM DEIXAR RASTO
+
+Cansado de perguntar-se quem o está a observar? VPNs tradicionais podem teoricamente registar a sua atividade. NymVPN é fundamentalmente diferente: a nossa rede descentralizada torna impossível o registo centralizado por design. Isto não é apenas uma “política sem registos” — é uma arquitetura que “não pode registar”.
+
+✓ Anonimato verdadeiro: pague com cripto ou em dinheiro, sem e-mail necessário
+✓ 50+ países, centenas de servidores independentes
+✓ Proteção multi-dispositivo: 10 dispositivos com um único código anónimo
+✓ Sediado na Suíça com padrões de privacidade ao nível académico
 
 ESCOLHA O SEU NÍVEL DE PRIVACIDADE
 
-Modo rápido: Conexão 2-hop com AmneziaWG. O primeiro salto conhece a identidade, não a atividade; o segundo, atividade, não identidade.
+⚡ Modo Rápido – Velocidades fulminantes para streaming e navegação. Por defeito 2-hop: um servidor sabe quem é, outro sabe o que faz — mas nunca ambos.
+🔒 Modo Anónimo – Privacidade máxima através de um mixnet de 5-hop com geração de ruído e até 5 camadas de encriptação. Concebido para resistir até à análise de tráfego alimentada por IA e vigilância avançada.
 
-Modo anónimo: Mixnet de 5 saltos com várias camadas de criptografia. Pacotes falsos e ruído impossibilitam rastreamento, até por IA avançada.
+PORQUE É QUE NymVPN É DIFERENTE
 
-PORQUE O NYMVPN É DIFERENTE
+• Proteção de metadados – Ao contrário de outros VPNs, protegemos não só os seus dados, mas também os padrões que deixa
+• Resistente à censura – Aceda a conteúdos bloqueados em ambientes restritivos com AmneziaWG, QUIC e protocolos stealth
+• Pagamentos zero-knowledge – A sua subscrição não está criptograficamente ligada à sua atividade
+• Desenhado na universidade – Desenvolvido por criptógrafos com PhD da KU Leuven e da EPFL com mais de 20 publicações peer-reviewed
 
-Anonimato real: Pagamentos zero-knowledge. Sem e-mail, sem nome. Pague com cripto ou dinheiro.
+VERIFICADO DE FORMA INDEPENDENTE
 
-Proteção de metadados: Protege conteúdos e padrões de tráfego.
-
-Resistente à censura: Acesso a sites bloqueados.
-
-Multi-dispositivo: Um código protege até 10 dispositivos.
-
-VERIFICADO INDEPENDENTEMENTE
-
-4 auditorias de segurança (2021–2024)
-
-20+ publicações académicas
-
-Transparência via “Signals of Trustworthy VPNs”
+• 4 auditorias de segurança (2021-2024) por JP Aumasson, Oak Security, Cryspen, Cure53
+• Código aberto e transparente (“Signals of Trustworthy VPNs”)
+• Mais de 10.000 utilizadores já confiam no NymVPN para a sua privacidade
 
 FUNCIONALIDADES ESSENCIAIS
 
-Kill switch
+• Ligações de alta velocidade com escolha entre 50+ países
+• Interruptor “kill switch” que evita fugas de dados
+• Experiência totalmente sem anúncios
+• Stack criptográfico de última geração
 
-Servidores em 50+ países
+PERFEITO PARA
 
-Sem anúncios
+→ Streaming e navegação sem ser rastreado por anunciantes
+→ Ligações WiFi públicas seguras em cafés, aeroportos, hotéis
+→ Qualquer pessoa em países restritivos que precise de acesso fiável
+→ Pessoas que querem anonimato verdadeiro, não apenas um IP oculto
+→ Jornalistas e ativistas que necessitam de comunicações não rastreáveis
 
-Criptografia avançada
+Descarregue agora. Ligue em segundos. Desapareça online.
 
-FUNCIONALIDADES FUTURAS (2025)
-
-Split tunneling
-
-IPs residenciais
-
-Criptografia pós-quântica
-
-Resistência avançada à censura
-
-Descarregue, conecte, desapareça — torne-se invisível em segundos. Experimente o NymVPN com garantia de reembolso de 30 dias.
+🎁 Teste gratuito de 7 dias | 💯 Garantia de reembolso de 30 dias | 🌐 Confiado por mais de 10.000 utilizadores em todo o mundo

@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.account.passphrase
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
@@ -80,34 +81,30 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 		}
 	}
 
-	val promptInfo = remember {
-		BiometricPrompt.PromptInfo.Builder()
-			.setTitle(context.getString(R.string.passphrase_title))
-			.setSubtitle(context.getString(R.string.passphrase_description))
-			.setAllowedAuthenticators(
-				BiometricManager.Authenticators.BIOMETRIC_STRONG or
-					BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-			)
-			.build()
-	}
+	val promptInfo = remember(context) { buildPromptInfo(context) }
 
 	fun requestAuthOrReveal() {
 		val manager = BiometricManager.from(context)
+
 		val authenticators =
-			BiometricManager.Authenticators.BIOMETRIC_STRONG or
-				BiometricManager.Authenticators.DEVICE_CREDENTIAL
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+				BiometricManager.Authenticators.BIOMETRIC_STRONG or
+					BiometricManager.Authenticators.DEVICE_CREDENTIAL
+			} else {
+				BiometricManager.Authenticators.BIOMETRIC_STRONG
+			}
 
 		when (manager.canAuthenticate(authenticators)) {
 			BiometricManager.BIOMETRIC_SUCCESS,
 			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
 			-> {
-				val prompt = biometricPrompt
-				if (prompt != null) {
-					prompt.authenticate(promptInfo)
+				if (biometricPrompt != null) {
+					biometricPrompt.authenticate(promptInfo)
 				} else {
 					showSheet = true
 				}
 			}
+
 			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
 			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE,
 			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
@@ -116,6 +113,7 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 			-> {
 				showSheet = true
 			}
+
 			else -> showSheet = true
 		}
 	}
@@ -159,6 +157,42 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 			navController.safePopBackStack()
 		},
 	)
+}
+
+@Suppress("DEPRECATION")
+private fun buildPromptInfo(context: Context): BiometricPrompt.PromptInfo {
+	val title = context.getString(R.string.passphrase_title)
+	val subtitle = context.getString(R.string.passphrase_description)
+
+	return when {
+		Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+			BiometricPrompt.PromptInfo.Builder()
+				.setTitle(title)
+				.setSubtitle(subtitle)
+				.setAllowedAuthenticators(
+					BiometricManager.Authenticators.BIOMETRIC_STRONG or
+						BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+				)
+				.build()
+		}
+
+		Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
+			BiometricPrompt.PromptInfo.Builder()
+				.setTitle(title)
+				.setSubtitle(subtitle)
+				.setDeviceCredentialAllowed(true)
+				.build()
+		}
+
+		else -> {
+			BiometricPrompt.PromptInfo.Builder()
+				.setTitle(title)
+				.setSubtitle(subtitle)
+				.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+				.setNegativeButtonText(context.getString(android.R.string.cancel))
+				.build()
+		}
+	}
 }
 
 @Composable

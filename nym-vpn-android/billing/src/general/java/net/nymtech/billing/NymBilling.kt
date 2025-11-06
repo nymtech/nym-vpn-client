@@ -71,7 +71,7 @@ class NymBilling(
 			)
 			.build()
 
-	override fun isAvailable() = true
+	override fun isAvailable() = false // for no-IAP release
 
 	override fun initialize() {
 		if (billingClient.isReady) return

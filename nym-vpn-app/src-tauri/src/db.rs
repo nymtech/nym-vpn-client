@@ -16,6 +16,8 @@ use thiserror::Error;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
+use crate::grpc::client::Node;
+
 const DB_DIR: &str = "db";
 
 pub type JsonValue = Value;
@@ -265,5 +267,14 @@ impl Db {
                 error!("failed to get key [{key}]: {e}");
             }
         }
+    }
+
+    // TODO due to selected node type change introduced in 1.18.0
+    //  we need to reset the saved entry/exit nodes
+    //  get_typed will discard any deserialization errors
+    //  Some time after 1.18.0 release, remove this function
+    pub fn migrate_selected_node(&self) {
+        self.get_typed::<Node>(Key::EntryNode.as_ref()).ok();
+        self.get_typed::<Node>(Key::ExitNode.as_ref()).ok();
     }
 }

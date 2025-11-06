@@ -3716,7 +3716,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "block2",
  "dispatch2",
@@ -3940,7 +3940,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -3986,13 +3986,14 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "async-trait",
  "futures",
  "nix 0.30.1",
  "nym-common",
  "pretty_assertions",
+ "socket2 0.6.1",
  "surge-ping",
  "thiserror 2.0.17",
  "tokio",
@@ -4149,7 +4150,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "dbus",
  "libc",
@@ -4160,7 +4161,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "duct",
  "futures",
@@ -4235,7 +4236,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "ipnetwork",
  "libc",
@@ -4295,7 +4296,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "itertools 0.14.0",
  "nym-client-core",
@@ -4463,7 +4464,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -4477,7 +4478,7 @@ dependencies = [
 
 [[package]]
 name = "nym-macos"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "nix 0.30.1",
  "tokio",
@@ -4629,7 +4630,7 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "async-trait",
  "debounced",
@@ -4699,7 +4700,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "nym-dbus",
  "objc2-foundation",
@@ -4745,7 +4746,7 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "bitflags 2.9.4",
  "futures",
@@ -5090,7 +5091,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "futures",
  "nym-bin-common",
@@ -5112,7 +5113,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-api-client"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "nym-http-api-client",
  "serde",
@@ -5262,7 +5263,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5306,7 +5307,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "backon",
  "base64-url",
@@ -5339,7 +5340,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "android_logger",
  "async-trait",
@@ -5414,7 +5415,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "ipnetwork",
  "nym-bandwidth-controller",
@@ -5438,7 +5439,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-uniffi"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "android_logger",
  "async-trait",
@@ -5477,7 +5478,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "futures-util",
  "itertools 0.14.0",
@@ -5503,7 +5504,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "nym-ipc",
  "nym-vpn-lib-types",
@@ -5520,7 +5521,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-rpc-uniffi"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "futures",
  "nym-vpn-lib-types",
@@ -5533,7 +5534,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5554,7 +5555,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "anyhow",
  "celes",
@@ -5572,7 +5573,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "anyhow",
  "bip39",
@@ -5623,7 +5624,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "base64 0.22.1",
  "hex",
@@ -5639,7 +5640,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-metadata-client"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "nym-credentials-interface",
  "nym-gateway-directory",
@@ -5654,7 +5655,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "bitflags 2.9.4",
  "futures",
@@ -8077,8 +8078,9 @@ checksum = "734676eb262c623cec13c3155096e08d1f8f29adce39ba17948b18dad1e54142"
 
 [[package]]
 name = "surge-ping"
-version = "0.8.2"
-source = "git+https://github.com/pronebird/surge-ping.git?rev=d5d973b50eb75d5908f88cb0b98dafa6979f4c8a#d5d973b50eb75d5908f88cb0b98dafa6979f4c8a"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f27ea7b4bfbd3d9980392cd9f90e4158212a5f775fa58e9b85216a0bf739067d"
 dependencies = [
  "hex",
  "parking_lot",
@@ -9137,7 +9139,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "1.18.0-beta"
+version = "1.18.0"
 dependencies = [
  "uniffi",
 ]
