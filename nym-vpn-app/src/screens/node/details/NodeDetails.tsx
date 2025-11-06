@@ -301,7 +301,7 @@ function NodeDetails() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col cursor-default min-h-0">
+    <PageAnim className="xs:max-w-lg h-full flex flex-col cursor-default">
       <div className="flex-1 overflow-auto flex flex-col gap-6 p-4">
         <h1 className="text-lg font-medium dark:text-white break-words">
           {gateway.name}
