@@ -7,9 +7,15 @@
   "input-label": "جست‌وجو",
   "quic-filter-note": "فقط مکان‌ها و سرورهایی را نمایش می‌دهد که از حالت سریع (Fast Mode) و پروتکل QUIC پشتیبانی می‌کنند.\nبرای نمایش تمام سرورها، گزینه‌ی QUIC را غیرفعال کنید.<here />.",
   "location-details": {
-    "title": "جزئیات مربوط به موقعیت مکانی سرورها",
-    "description": "ما موقعیت مکانی سرورها را بر اساس آدرس‌ IP آنها تشخیص می‌دهیم، اما ممکن است مکان حقیقی اندکی تفاوت داشته باشد.",
-    "link": "بیشتر بخوانید"
+    "streaming": {
+      "title": "Streaming",
+      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+    },
+    "location": {
+      "title": "Location accuracy",
+      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+    },
+    "title": "جزئیات مربوط به موقعیت مکانی سرورها"
   },
   "location-not-available": {
     "entry": "مکان ورودی انتخاب‌شده در دسترس نیست، به {{location}} تغییر یافت",
@@ -59,5 +65,6 @@
       "explorer": "جزئیات بیشتر در Nym <networkExplorerLink />"
     },
     "select-button": "انتخاب سرور"
-  }
+  },
+  "search-other-nodes": "Other search results"
 }

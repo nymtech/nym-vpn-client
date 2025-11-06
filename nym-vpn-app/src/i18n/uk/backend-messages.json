@@ -5,8 +5,8 @@
     "awaiting-account-readiness": "Очікування готовності облікового запису…",
     "refreshing-gateways": "Оновлення шлюзів…",
     "selecting-gateways": "Вибір шлюзів…",
-    "registering-with-gateways": "Реєстрація на шлюзах…",
-    "connecting-tunnel": "Підключення до VPN-тунелю…"
+    "registering-with-gateways": "Анонімна реєстрація на серверах (5/6)",
+    "connecting-tunnel": "Встановлення з'єднання з сервером (6/6)"
   },
   "connection-attempt_one": "Повторна спроба… спроба {{count}}",
   "connection-attempt_other": "Повторна спроба… спроба {{count}}"

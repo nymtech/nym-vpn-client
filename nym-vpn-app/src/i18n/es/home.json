@@ -38,8 +38,8 @@
   },
   "modes-dialog": {
     "title": "Seleccione el modo",
-    "privacy-description": "Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.",
-    "fast-description": "Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.",
+    "privacy-description": "Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores (hasta 1-5 Mbps) mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.",
+    "fast-description": "Experimenta la máxima velocidad (250+ Mbps) con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.",
     "link": "Continúe leyendo"
   },
   "update-dialog": {

@@ -12,5 +12,7 @@
   },
   "copied-to-clipboard": "Panoya kopyalandı",
   "daemon-no-compat": "Daemon sürümü, uygulama sürümüyle uyumsuz! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin.",
-  "daemon-not-connected": "Daemon bağlantısı yok, lütfen destek ekibimizle iletişime geçin."
+  "daemon-not-connected": "Daemon bağlantısı yok, lütfen destek ekibimizle iletişime geçin.",
+  "streaming-optimized-label": "⏯️ Streaming-optimized servers now labelled",
+  "streaming-optimized-label-button": "Browse exit servers now"
 }

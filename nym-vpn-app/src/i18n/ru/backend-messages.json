@@ -1,12 +1,12 @@
 {
   "connection-progress": {
     "canceling": "Отменяем…",
-    "resolving-api-addresses": "Разрешение адресов API…",
-    "awaiting-account-readiness": "Ожидание готовности аккаунта…",
-    "refreshing-gateways": "Обновление шлюзов…",
-    "selecting-gateways": "Выбор шлюзов…",
-    "registering-with-gateways": "Регистрация с помощью шлюзов…",
-    "connecting-tunnel": "Подключение к VPN туннелю…"
+    "resolving-api-addresses": "Инициализация NymVPN (1/6)",
+    "awaiting-account-readiness": "Настройка учетной записи (2/6)",
+    "refreshing-gateways": "Обновление списка серверов (3/6)",
+    "selecting-gateways": "Выбор лучших серверов (4/6)",
+    "registering-with-gateways": "Анонимная регистрация на серверах (5/6)",
+    "connecting-tunnel": "Установка соединения с сервером (6/6)"
   },
   "connection-attempt_one": "Повторная попытка… попытка {{count}}",
   "connection-attempt_other": "Повторная попытка… попытка {{count}}"

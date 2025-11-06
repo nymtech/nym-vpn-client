@@ -7,9 +7,15 @@
   "input-label": "Recherche",
   "quic-filter-note": "Afficher uniquement les emplacements du mode rapide et les serveurs prenant en charge le protocole QUIC. Pour révéler tous les serveurs, désactivez QUIC <here />.",
   "location-details": {
-    "title": "Détails sur l'emplacement des serveurs",
-    "description": "Nous déduisons l'emplacement des serveurs sur la base de leurs adresses IP, mais l'emplacement réel peut varier légèrement.",
-    "link": "En savoir plus"
+    "streaming": {
+      "title": "Streaming en cours",
+      "description": "<0>Serveurs IP résidentiel</0> optimisés pour l'accès au streaming et au contenu. Peut connaître des vitesses plus lentes en raison de limitations matérielles et de demande plus élevées."
+    },
+    "location": {
+      "title": "Précision de la localisation",
+      "description": "Les emplacements affichés sont <1>déterminés à partir d'adresses IP</1> et peuvent ne pas refléter des emplacements physiques exacts."
+    },
+    "title": "Détails sur l'emplacement des serveurs"
   },
   "location-not-available": {
     "entry": "Le lieu d'entrée sélectionné n'est pas disponible, il a été remplacé par {{location}}",
@@ -50,7 +56,7 @@
       "offline": "Hors ligne"
     },
     "notes": {
-      "anti-censorship": "<0>Activez le « protocole QUIC»</0> dans les paramètres de lutte contre la censure pour utiliser cette fonctionnalité",
+      "anti-censorship": "<0>Activez le \"protocole QUIC\"</0> dans les paramètres de lutte contre la censure pour utiliser cette fonctionnalité",
       "performance_with_time": "Score de performance calculé à partir de la charge du serveur et du temps de disponibilité. Temps de disponibilité des dernières 24 heures. Dernière mise à jour {{relativeTime}}.",
       "performance": "Score de performance calculé à partir de la charge du serveur et de la durée de disponibilité comme moyenne des dernières 24 heures."
     },
@@ -59,5 +65,6 @@
       "explorer": "Plus de détails dans le Nym <networkExplorerLink />"
     },
     "select-button": "Sélectionnez le serveur"
-  }
+  },
+  "search-other-nodes": "Autres résultats de recherche"
 }
