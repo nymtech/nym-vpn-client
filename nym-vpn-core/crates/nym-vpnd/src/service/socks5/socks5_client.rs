@@ -74,7 +74,7 @@ impl Socks5Backend {
         // TODO: properly pass configuration
 
         // Create SOCKS5 configuration pointing to the network requester
-        let mut socks5_config = Socks5::new("J2oXYjn8fRMz9MKFUibatjCTvxvQbVa2r5Uxp7X47aL3.BdyaZLL1cpSeZKS3AfpzXEXFE67WkuoEsSmxwvo5tTVN@3hWtFJbVVPbZZ9iNZuSHPnShHG5AUiFpTPnvJmUibNp9".to_string());
+        let mut socks5_config = Socks5::new(self.network_requester_address.clone());
 
         socks5_config.send_anonymously = true;
         info!("Enabled anonymous sending (SURBs) for SOCKS5 responses");
