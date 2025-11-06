@@ -9,14 +9,12 @@ import ErrorHandler
 import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
-import HelperManager
 #endif
 
 @MainActor public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
-    private let helperManager = HelperManager.shared
 #endif
     private let appSettings = AppSettings.shared
 

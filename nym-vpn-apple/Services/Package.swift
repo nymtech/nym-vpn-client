@@ -86,7 +86,6 @@ let package = Package(
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
@@ -122,8 +121,7 @@ let package = Package(
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
-                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources/Services/GatewayManager"
         ),

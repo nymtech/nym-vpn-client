@@ -11,7 +11,6 @@ import FeatureFlagsManager
 import GatewayManager
 import GRPCManager
 import Home
-import HelperManager
 import NotificationsManager
 import NymLogger
 import MessagesManager
@@ -50,7 +49,6 @@ struct NymVPNDaemonApp: App {
         credentialsManager: .shared,
         networkMonitor: .shared,
         grpcManager: .shared,
-        helperManager: .shared,
         externalLinkManager: .shared,
         gatewayManager: .shared,
         impactGenerator: .shared,
@@ -128,19 +126,6 @@ struct NymVPNDaemonApp: App {
             }
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
-            }
-            CommandGroup(after: .help) {
-                Button("helper.uninstallHelper".localizedString) {
-                    Task {
-                        do {
-                            try await HelperManager.shared.uninstall()
-                            alertTitle = "helper.successfullyUninstalled".localizedString
-                        } catch {
-                            alertTitle = error.localizedDescription
-                        }
-                        isDisplayingAlert = true
-                    }
-                }
             }
         }
         menuBarExtraView()

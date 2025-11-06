@@ -15,13 +15,7 @@ public extension HomeViewModel {
         }
 #endif
         resetStatusInfoState()
-#if os(macOS)
-        guard !helperManager.isInstallNeeded()
-        else {
-            navigateToInstallHelper()
-            return
-        }
-#endif
+
         // TODO: move to connection manager, do not check is valid imported if .connected
         if lastTunnelStatus != .connected {
             guard credentialsManager.isValidCredentialImported

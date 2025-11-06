@@ -1,7 +1,4 @@
 import SwiftUI
-#if os(macOS)
-import HelperInstall
-#endif
 import Settings
 import UIComponents
 
@@ -70,22 +67,12 @@ private extension HomeFlowCoordinator {
                         connectionManager: .shared,
                         credentialsManager: .shared,
                         externalLinkManager: .shared,
-                        helperManager: .shared,
                         featureFlagsManager: .shared
                     )
             )
 #endif
         case let .gatewayDetails(gateway: gateway, hopType: hopType):
             GatewayDetailsView(path: $state.path, gateway: gateway, hopType: hopType, externalLinkManager: .shared)
-#if os(macOS)
-        case let .installHelper(afterInstallAction):
-            HelperInstallView(
-                viewModel: HelperInstallViewModel(
-                    path: $state.path,
-                    afterInstallAction: afterInstallAction
-                )
-            )
-#endif
         }
     }
 }
