@@ -1,7 +1,7 @@
 {
   "vpn-modes": {
-    "privacy": "Ẩn danh",
-    "fast": "Nhanh"
+    "privacy": "Ẩn danh (mixnet)",
+    "fast": "Nhanh (WireGuard)"
   },
   "connect": "Kết nối",
   "disconnect": "Ngắt kết nối",

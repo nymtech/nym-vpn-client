@@ -7,9 +7,15 @@
   "input-label": "Suche",
   "quic-filter-note": "Nur die Anzeige von schnellen Standorten und Servern, die das QUIC-Protokoll unterstützen. Um alle Server freizugeben, schalten Sie QUIC <here /> aus.",
   "location-details": {
-    "title": "Details zum Serverstandort",
-    "description": "Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann leicht abweichen.",
-    "link": "Mehr lesen"
+    "streaming": {
+      "title": "Streaming",
+      "description": "<0>Wohn-IP-Servern</0> optimiert für Streaming- und Content-Zugriff. Kann aufgrund höherer Nachfrage und Hardware-Einschränkungen langsamere Geschwindigkeiten aufweisen."
+    },
+    "location": {
+      "title": "Standortgenauigkeit",
+      "description": "Angezeigte Standorte werden <1>von IP-Adressen ermittelt</1> und können nicht exakte physische Standorte wiedergeben."
+    },
+    "title": "Details zum Serverstandort"
   },
   "location-not-available": {
     "entry": "Ausgewählte Eintrittsregion nicht verfügbar, gewechselt zu {{location}}",
@@ -59,5 +65,6 @@
       "explorer": "Mehr Details in der Nym <networkExplorerLink />"
     },
     "select-button": "Server auswählen"
-  }
+  },
+  "search-other-nodes": "Andere Suchergebnisse"
 }

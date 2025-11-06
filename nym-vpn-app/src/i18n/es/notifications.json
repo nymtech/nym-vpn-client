@@ -12,5 +12,7 @@
   },
   "copied-to-clipboard": "Copiado al portapapeles",
   "daemon-no-compat": "La versión del Daemon no es compatible con la versión de la aplicación. Versión daemon: {{version}}, esperada: {{required}}. Actualiza la aplicación o el Daemon.",
-  "daemon-not-connected": "El daemon no tiene conexión por favor contacta con nuestro equipo de soporte"
+  "daemon-not-connected": "El daemon no tiene conexión por favor contacta con nuestro equipo de soporte",
+  "streaming-optimized-label": "⏯️ Servidores optimizados en streaming ahora etiquetados",
+  "streaming-optimized-label-button": "Navegar servidores de salida ahora"
 }

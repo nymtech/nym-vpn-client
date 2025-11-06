@@ -12,5 +12,7 @@
   },
   "copied-to-clipboard": "کپی شده به کلیپ‌بورد",
   "daemon-no-compat": "نسخهٔ دیمون با نسخهٔ برنامه سازگار نیست! نسخهٔ دیمون: {{version}}، نسخهٔ مورد انتظار: {{required}}. لطفاً یا برنامه یا دیمون را به‌روزرسانی کنید.",
-  "daemon-not-connected": "هیچ ارتباط دیمونی وجود ندارد، لطفاً با تیم پشتیبانی ما تماس بگیرید"
+  "daemon-not-connected": "هیچ ارتباط دیمونی وجود ندارد، لطفاً با تیم پشتیبانی ما تماس بگیرید",
+  "streaming-optimized-label": "⏯️ Streaming-optimized servers now labelled",
+  "streaming-optimized-label-button": "Browse exit servers now"
 }
