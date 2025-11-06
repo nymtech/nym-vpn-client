@@ -94,10 +94,9 @@ async fn main() -> Result<()> {
 
     let os = sys::OsInfo::new();
     info!("os: {}", os);
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     {
-        info!("display server: {}", os.display_server.as_ref());
-        info!("gpu: {}", os.gpu.as_ref());
+        os.print_linux_info();
         os.linux_check();
     }
 

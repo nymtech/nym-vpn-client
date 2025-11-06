@@ -80,7 +80,7 @@ export type DbKey =
   | 'cache-device-id'
   | 'streaming-optimized-label-seen';
 
-export type DisplayServer = 'x11' | 'wayland' | 'unknown';
+export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
 export type DownloadUpdateEvent =
   | { event: 'started'; data: { contentLength: bigint } }
@@ -214,9 +214,9 @@ export type OsInfo = {
   version: string;
   kernel: string;
   arch: string;
-  displayServer: DisplayServer;
-  gpu: GpuType;
   hash: string;
+  displayServer: DisplayServer | null;
+  gpu: GpuType | null;
 };
 
 export type Performance = {
