@@ -1,9 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, sync::OnceLock};
+use std::{path::PathBuf, str::FromStr, sync::OnceLock};
 
 use clap::{Parser, Subcommand};
+
+use nym_vpn_lib::UserAgent;
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
@@ -27,7 +29,7 @@ pub struct CliArgs {
 
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
-    pub user_agent: Option<nym_vpn_lib::UserAgent>,
+    pub user_agent: Option<UserAgent>,
 
     /// Override the otherwise random statistics_id_seed
     #[arg(long, hide = true)]
@@ -86,6 +88,6 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-fn parse_user_agent(user_agent: &str) -> Result<nym_vpn_lib::UserAgent, String> {
-    nym_vpn_lib::UserAgent::try_from(user_agent).map_err(|e| e.to_string())
+fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {
+    UserAgent::from_str(user_agent).map_err(|e| e.to_string())
 }

@@ -1,12 +1,14 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_statistics::StatisticsSender;
 use std::path::PathBuf;
 
-use nym_vpn_network_config::Network;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
+
+use nym_statistics::StatisticsSender;
+use nym_vpn_lib::new_user_agent;
+use nym_vpn_network_config::Network;
 
 use super::{STATISTICS_CONTROLLER_HANDLE, error::VpnError};
 
@@ -49,7 +51,7 @@ async fn start_statistics_controller(
     enabled: bool,
 ) -> StatisticsControllerHandle {
     // TODO: pass in as argument
-    let user_agent = crate::user_agent::construct_user_agent();
+    let user_agent = new_user_agent!();
     let shutdown_token = CancellationToken::new();
 
     let statistics_controller_config = nym_statistics::StatisticsControllerConfig::new(

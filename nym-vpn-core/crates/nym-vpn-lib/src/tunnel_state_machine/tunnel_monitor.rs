@@ -1,20 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse, pin_mut};
-
-use nym_authenticator_client::AuthClientMixnetListenerHandle;
-use nym_connection_monitor::{
-    ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
-    TcpProbe, TcpProbeConfig, TimingConfig,
-};
-use nym_registration_client::{
-    MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
-    RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
-};
-use nym_registration_common::NymNode;
-use nym_sdk::UserAgent;
-use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -30,13 +16,11 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-#[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-
-#[cfg(windows)]
-use super::wintun::{self, WintunAdapterConfig};
+use futures::{FutureExt, future::Fuse, pin_mut};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+#[cfg(target_os = "linux")]
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, ResolvedConfig,
 };
@@ -47,17 +31,18 @@ use tun::AsyncDevice;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tun::Device;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use super::route_handler::{RouteHandler, RoutingConfig};
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use super::tun_ipv6;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use super::tun_name;
-use super::{
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
-    tunnel::{self, AnyTunnelHandle, SelectedGateways, Tombstone},
-};
+use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_common::{ErrorExt, trace_err_chain};
+use nym_connection_monitor::{
+    ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
+    TcpProbe, TcpProbeConfig, TimingConfig,
+};
+use nym_registration_client::{
+    MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
+    RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
+};
+use nym_registration_common::NymNode;
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
@@ -65,15 +50,30 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use super::route_handler::{RouteHandler, RoutingConfig};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use super::tun_ipv6;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use super::tun_name;
 #[cfg(not(any(target_os = "ios", target_os = "android")))]
 use super::tunnel::wireguard::connected_tunnel::TunTunTunnelOptions;
-use super::tunnel::wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions};
+#[cfg(windows)]
+use super::wintun::{self, WintunAdapterConfig};
+use super::{
+    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
+    tunnel::{
+        self, AnyTunnelHandle, SelectedGateways, Tombstone,
+        wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
+    },
+};
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, VpnTopologyProvider,
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
+    VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
@@ -216,6 +216,8 @@ pub struct TunnelParameters {
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
+    /// The user agent used for HTTP requests.
+    pub user_agent: UserAgent,
 }
 
 pub struct TunnelMonitor {
@@ -351,15 +353,7 @@ impl TunnelMonitor {
             }
         }
 
-        let user_agent = self
-            .tunnel_parameters
-            .tunnel_settings
-            .user_agent
-            .clone()
-            .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-
-        // TODO: user_agent must not be a part of tunnel_settings
-
+        let user_agent = self.tunnel_parameters.user_agent.clone();
         let resolver_overrides = Some(
             &self
                 .tunnel_parameters

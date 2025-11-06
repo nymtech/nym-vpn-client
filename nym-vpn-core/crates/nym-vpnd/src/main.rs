@@ -9,7 +9,6 @@ mod logging;
 mod sentry;
 mod service;
 mod shutdown_handler;
-mod user_agent;
 #[cfg(windows)]
 mod windows_service;
 
@@ -20,7 +19,7 @@ use clap::Parser;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib::UserAgent;
+use nym_vpn_lib::{UserAgent, new_user_agent};
 use nym_vpn_lib_types::LogPath;
 
 use crate::{
@@ -135,17 +134,13 @@ struct RunParameters {
 
 impl RunParameters {
     fn new_with_cli_args(args: CliArgs, log_path: Option<LogPath>, sentry_enabled: bool) -> Self {
-        let user_agent = args
-            .user_agent
-            .unwrap_or_else(user_agent::construct_user_agent);
-
         Self {
             log_path,
             network: args.network,
             config_env_file: args.config_env_file,
             sentry_enabled,
             stats_id_seed: args.stats_id_seed,
-            user_agent,
+            user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
         }
     }
 }

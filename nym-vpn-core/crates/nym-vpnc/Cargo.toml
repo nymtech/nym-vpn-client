@@ -17,21 +17,12 @@ anyhow.workspace = true
 celes.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 serde_json.workspace = true
-sysinfo.workspace = true
 tabled.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true
 
-nym-bin-common.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
-
-[build-dependencies]
-vergen-gitcl = { workspace = true, default-features = false, features = [
-    "build",
-    "cargo",
-    "rustc",
-] }
 
 # Debian
 [package.metadata.deb]
@@ -43,6 +34,3 @@ recommends = "nym-vpnd"
 revision = ""
 maintainer-scripts = "debian"
 systemd-units = { enable = false }
-
-[package.metadata.cargo-machete]
-ignored = ["vergen"]

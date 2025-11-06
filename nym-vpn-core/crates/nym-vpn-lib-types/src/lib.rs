@@ -44,6 +44,7 @@ mod tunnel_event;
 mod tunnel_state;
 #[cfg(feature = "uniffi-bindings")]
 mod uniffi_std_types;
+mod user_agent;
 
 pub use account::{
     AccountCommandError, RegisterAccountResponse, VpnApiError, VpnApiErrorResponse,
@@ -71,7 +72,7 @@ pub use network::{
 };
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, ConnectArgs, ConnectOptions,
-    DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest, UserAgent,
+    DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use tunnel_event::{
@@ -79,6 +80,7 @@ pub use tunnel_event::{
     TunnelEvent,
 };
 pub use tunnel_state::{ActionAfterDisconnect, ErrorStateReason, TunnelState, TunnelType};
+pub use user_agent::UserAgent;
 
 #[cfg(feature = "uniffi-bindings")]
 uniffi::setup_scaffolding!();

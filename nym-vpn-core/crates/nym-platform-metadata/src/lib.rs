@@ -24,21 +24,28 @@ pub use apple::AppleVersion;
 
 #[derive(Debug, Clone)]
 pub struct SysInfo {
+    /// The name of the operating system.
+    pub system_name: String,
+    /// The version of the operating system including its name
     pub os_version: String,
+    /// CPU architecture
     pub arch: String,
+    /// Extra metadata
     pub extra: Vec<String>,
 }
 
 impl SysInfo {
     pub fn new() -> Self {
+        let system_name = System::name().unwrap_or("unknown".to_owned());
         let os_version = System::long_os_version().unwrap_or_else(|| env::consts::OS.into());
-        let arch = std::env::consts::ARCH.to_string();
+        let arch = System::cpu_arch();
         let extra_metadata = Self::extra_metadata()
             .into_iter()
             .map(|(k, v)| format!("{k}: {v}"))
             .collect::<Vec<_>>();
 
         SysInfo {
+            system_name,
             os_version,
             arch,
             extra: extra_metadata,

@@ -5385,6 +5385,7 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-macos",
  "nym-offline-monitor",
+ "nym-platform-metadata",
  "nym-registration-client",
  "nym-registration-common",
  "nym-routing",
@@ -5571,15 +5572,12 @@ dependencies = [
  "anyhow",
  "celes",
  "clap",
- "nym-bin-common",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "serde_json",
- "sysinfo",
  "tabled",
  "tokio",
  "tokio-stream",
- "vergen-gitcl",
 ]
 
 [[package]]
@@ -5614,7 +5612,6 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
- "sysinfo",
  "tempfile",
  "thiserror 2.0.17",
  "time",
