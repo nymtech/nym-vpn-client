@@ -30,8 +30,7 @@ impl ResolverOverrides {
                 [url.inner_url().clone()].into_iter().chain(
                     url.fronts()
                         .unwrap_or_default()
-                        .iter()
-                        .map(|front| front.clone()),
+                        .iter().cloned(),
                 )
             })
             .collect::<HashSet<_>>();
