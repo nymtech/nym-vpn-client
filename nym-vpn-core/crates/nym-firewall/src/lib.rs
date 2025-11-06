@@ -218,6 +218,14 @@ impl FirewallPolicy {
             | FirewallPolicy::Blocked { allow_lan, .. } => *allow_lan,
         }
     }
+
+    pub fn dns_config(&self) -> Option<&ResolvedDnsConfig> {
+        match self {
+            FirewallPolicy::Connecting { dns_config, .. }
+            | FirewallPolicy::Connected { dns_config, .. } => Some(dns_config),
+            FirewallPolicy::Blocked { .. } => None,
+        }
+    }
 }
 
 impl fmt::Display for FirewallPolicy {
