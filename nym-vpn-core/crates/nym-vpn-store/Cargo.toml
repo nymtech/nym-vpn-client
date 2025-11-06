@@ -25,9 +25,10 @@ sqlx = { workspace = true, features = [
     "sqlite",
     "macros",
     "migrate",
+    "time",
 ] }
 thiserror.workspace = true
-time.workspace = true
+time = {workspace = true, features=["serde"]}
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 zeroize.workspace = true
@@ -39,6 +40,7 @@ sqlx = { workspace = true, features = [
     "sqlite",
     "macros",
     "migrate",
+    "time",
 ] }
 
 [dev-dependencies]
