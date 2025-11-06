@@ -1,4 +1,5 @@
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
+use nym_vpn_lib::nym_config::OptionalSet;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use tokio_util::sync::CancellationToken;

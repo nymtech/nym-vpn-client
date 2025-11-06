@@ -1,6 +1,3 @@
-// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: GPL-3.0-only
-
 //! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection
 
 use super::socks5_client::{Socks5Backend, Socks5BackendError};
@@ -13,10 +10,7 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::RwLock;
 use tokio::time::{Instant, sleep};
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info, warn};
-
-/// Default idle timeout duration (300 seconds)
-const DEFAULT_IDLE_TIMEOUT_SECS: u64 = 300;
+use tracing::{debug, error, info};
 
 /// Lazy SOCKS5 wrapper that starts the mixnet on first connection
 pub struct LazySocks5Wrapper {
@@ -65,8 +59,9 @@ pub enum WrapperError {
 impl LazySocks5Wrapper {
     /// Create a new lazy SOCKS5 wrapper
     pub fn new(
-        public_listen_address: SocketAddr,
         data_path: PathBuf,
+        idle_timeout: Duration,
+        public_listen_address: SocketAddr,
         network_requester_address: String,
         cancel_token: CancellationToken,
     ) -> Self {
@@ -84,18 +79,12 @@ impl LazySocks5Wrapper {
             internal_listen_address,
             data_path,
             network_requester_address,
-            idle_timeout: Duration::from_secs(DEFAULT_IDLE_TIMEOUT_SECS),
+            idle_timeout,
             backend: Arc::new(RwLock::new(None)),
             active_connections: Arc::new(RwLock::new(0)),
             last_connection_closed: Arc::new(RwLock::new(None)),
             cancel_token,
         }
-    }
-
-    /// Set custom idle timeout duration
-    pub fn with_idle_timeout(mut self, timeout: Duration) -> Self {
-        self.idle_timeout = timeout;
-        self
     }
 
     /// Run the lazy SOCKS5 wrapper
