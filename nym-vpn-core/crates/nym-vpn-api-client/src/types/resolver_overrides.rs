@@ -5,9 +5,11 @@ use std::{
     net::SocketAddr,
 };
 
+use itertools::{Either, Itertools};
+use tokio::task::JoinSet;
+
 use nym_http_api_client::Url;
 use nym_network_defaults::ApiUrl;
-use tokio::task::JoinSet;
 
 use crate::{api_urls_to_urls, error::VpnApiClientError, url_to_socket_addr};
 
@@ -20,7 +22,6 @@ impl ResolverOverrides {
     /// Create a new set of resolver overrides from the provided URLs.
     /// Resolves all domains in parallel for faster startup and reconnection.
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
-        let mut all_domains: HashSet<String> = HashSet::new();
         let mut join_set = JoinSet::new();
 
         for url in urls {
@@ -34,16 +35,14 @@ impl ResolverOverrides {
 
             // Task for main domain
             let main_url = url.inner_url().clone();
-            let main_domain = domain.to_string();
-            all_domains.insert(main_domain.clone());
+            let main_domain = domain.to_owned();
             join_set.spawn(async move {
-                match url_to_socket_addr(&main_url, Some((1, 1))).await {
-                    Ok(addresses) => Some((main_domain.clone(), addresses)),
-                    Err(e) => {
-                        tracing::warn!("Failed to resolve domain {}: {}", main_domain, e);
-                        None
-                    }
-                }
+                let result = url_to_socket_addr(&main_url, Some((1, 1)))
+                    .await
+                    .inspect_err(|err| {
+                        tracing::warn!("Failed to resolve domain {}: {}", main_domain, err);
+                    });
+                (main_domain.clone(), result)
             });
 
             // Tasks for front URLs
@@ -57,56 +56,51 @@ impl ResolverOverrides {
                         continue;
                     };
                     let front_url_clone = front_url.clone();
-                    let front_domain_str = front_domain.to_string();
-                    all_domains.insert(front_domain_str.clone());
+                    let front_domain_str = front_domain.to_owned();
                     join_set.spawn(async move {
-                        match url_to_socket_addr(&front_url_clone, Some((1, 1))).await {
-                            Ok(addresses) => Some((front_domain_str.clone(), addresses)),
-                            Err(e) => {
+                        let result = url_to_socket_addr(&front_url_clone, Some((1, 1)))
+                            .await
+                            .inspect_err(|err| {
                                 tracing::warn!(
                                     "Failed to resolve front domain {}: {}",
                                     front_domain_str,
-                                    e
+                                    err
                                 );
-                                None
-                            }
-                        }
+                            });
+                        (front_domain_str.clone(), result)
                     });
                 }
             }
         }
 
         // Execute all resolution tasks in parallel
-        let total_tasks = join_set.len();
         let results = join_set.join_all().await;
 
-        // Collect successful resolutions
-        let mut overrides = HashMap::new();
-        let mut successful_resolutions = 0;
-        let mut received_domains: HashSet<String> = HashSet::new();
-
-        for (domain, addresses) in results.into_iter().flatten() {
-            overrides.insert(domain.clone(), HashSet::from_iter(addresses.into_iter()));
-            received_domains.insert(domain);
-            successful_resolutions += 1;
-        }
-
-        if successful_resolutions < total_tasks {
-            // At least one resolution failed.
-            let missed_domains: HashSet<String> =
-                all_domains.difference(&received_domains).cloned().collect();
-            tracing::warn!("failed to resolve one or more URLs: {:?}", missed_domains);
-            return Err(VpnApiClientError::HostnamesResolutionError {
-                hostnames: missed_domains,
+        // Collect successful and failed resolutions
+        let (successes, failures): (Vec<(String, HashSet<SocketAddr>)>, HashSet<String>) = results
+            .into_iter()
+            .partition_map(|(domain, result)| match result {
+                Ok(addresses) => Either::Left((domain, HashSet::from_iter(addresses))),
+                Err(_) => Either::Right(domain),
             });
+
+        if failures.is_empty() {
+            tracing::debug!(
+                "Successfully resolved domains in parallel: {:?}",
+                successes.iter().map(|v| v.0.as_str()).collect::<Vec<_>>()
+            );
+
+            Ok(Self {
+                overrides: HashMap::from_iter(successes),
+            })
+        } else {
+            // At least one resolution failed.
+            tracing::warn!("Failed to resolve one or more URLs: {:?}", failures);
+
+            Err(VpnApiClientError::HostnamesResolutionError {
+                hostnames: failures,
+            })
         }
-
-        tracing::debug!(
-            "Successfully resolved domains in parallel: {:?}",
-            all_domains
-        );
-
-        Ok(Self { overrides })
     }
 
     /// Create resolver overrides from the provided ApiUrls
