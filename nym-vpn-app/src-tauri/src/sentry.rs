@@ -53,10 +53,14 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
     ));
     sentry::configure_scope(|scope| {
         scope.set_tag("os_version", &os.version);
-        #[cfg(target_os = "linux")]
+        #[cfg(any(target_os = "linux", target_os = "openbsd"))]
         {
-            scope.set_tag("display_server", os.display_server.as_ref());
-            scope.set_tag("gpu", os.gpu.as_ref());
+            if let Some(ds) = &os.display_server {
+                scope.set_tag("display_server", ds.as_ref());
+            }
+            if let Some(gpu) = &os.gpu {
+                scope.set_tag("gpu", gpu.as_ref());
+            }
         }
         scope.set_user(Some(User {
             id: Some(os.hash.clone()), // anonymized user identifier
