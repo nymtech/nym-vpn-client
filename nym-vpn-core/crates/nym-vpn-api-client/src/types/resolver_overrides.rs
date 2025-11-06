@@ -24,8 +24,20 @@ impl ResolverOverrides {
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
         let mut join_set = JoinSet::new();
 
-        for url in urls {
-            let Some(domain) = url.inner_url().domain() else {
+        let urls_to_resolve = urls
+            .iter()
+            .flat_map(|url| {
+                [url.inner_url().clone()].into_iter().chain(
+                    url.fronts()
+                        .unwrap_or_default()
+                        .iter()
+                        .map(|front| front.clone()),
+                )
+            })
+            .collect::<HashSet<_>>();
+
+        for url in urls_to_resolve {
+            let Some(domain) = url.domain().map(|s| s.to_owned()) else {
                 tracing::warn!(
                     "Ignoring API URL '{}' for resolver overrides as it does not have a valid domain",
                     url.to_string()
@@ -33,44 +45,14 @@ impl ResolverOverrides {
                 continue;
             };
 
-            // Task for main domain
-            let main_url = url.inner_url().clone();
-            let main_domain = domain.to_owned();
             join_set.spawn(async move {
-                let result = url_to_socket_addr(&main_url, Some((1, 1)))
+                let result = url_to_socket_addr(&url, Some((1, 1)))
                     .await
                     .inspect_err(|err| {
-                        tracing::warn!("Failed to resolve domain {}: {}", main_domain, err);
+                        tracing::warn!("Failed to resolve domain {}: {}", domain, err);
                     });
-                (main_domain.clone(), result)
+                (domain, result)
             });
-
-            // Tasks for front URLs
-            if let Some(fronts) = url.fronts() {
-                for front_url in fronts {
-                    let Some(front_domain) = front_url.domain() else {
-                        tracing::warn!(
-                            "Ignoring front host URL '{}' for resolver overrides as it does not have a valid domain",
-                            front_url
-                        );
-                        continue;
-                    };
-                    let front_url_clone = front_url.clone();
-                    let front_domain_str = front_domain.to_owned();
-                    join_set.spawn(async move {
-                        let result = url_to_socket_addr(&front_url_clone, Some((1, 1)))
-                            .await
-                            .inspect_err(|err| {
-                                tracing::warn!(
-                                    "Failed to resolve front domain {}: {}",
-                                    front_domain_str,
-                                    err
-                                );
-                            });
-                        (front_domain_str.clone(), result)
-                    });
-                }
-            }
         }
 
         // Execute all resolution tasks in parallel
