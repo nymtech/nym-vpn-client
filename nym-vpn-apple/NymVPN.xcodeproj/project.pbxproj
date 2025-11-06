@@ -17,7 +17,6 @@
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
 		D916EE672C90F2A700FADEEF /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D916EE662C90F2A700FADEEF /* Migrations */; };
 		D9188A9E2CE12C5F0031E141 /* TunnelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */; };
-		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E52C33F3D400465E84 /* ExternalLinkManager */; };
 		D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E72C33F3DA00465E84 /* ExternalLinkManager */; };
@@ -82,7 +81,6 @@
 		D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E42BEBA4010036C566 /* AppSettings */; };
 		D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */; };
 		D9BF25982DBBA5F100A3CE72 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */; };
-		D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */ = {isa = PBXBuildFile; productRef = D9BF292A2D5A23F500CDFC9A /* HelperInstall */; };
 		D9C5EDE42DF0612700C0D991 /* PurchasesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9C5EDE32DF0612700C0D991 /* PurchasesManager */; };
 		D9CA18992D9AB96500FA8FAC /* QuitAppModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */; };
 		D9CACB0C2D67B7090004F9E0 /* gatewaysEntry.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */; };
@@ -303,7 +301,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */,
-				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D99035882E9063D600E42A82 /* ImpactGenerator in Frameworks */,
 				D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
@@ -317,7 +314,6 @@
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
 				D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */,
-				D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */,
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
@@ -608,7 +604,6 @@
 				D9BEF2E42BEBA4010036C566 /* AppSettings */,
 				D9FB33DB2BECD473009C3419 /* SentryManager */,
 				D9FB33DD2BECD47E009C3419 /* Theme */,
-				D91E36A82BF3AA7F00BDE84A /* HelperManager */,
 				D9ABF2832BF4989B009089FA /* Shell */,
 				D9CDF2DB2BF49909007E5DAF /* Home */,
 				D9E6D8C82BF5FF5F009612CE /* TunnelStatus */,
@@ -623,7 +618,6 @@
 				D96680D22CC4FC7800267FA1 /* Device */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
 				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
-				D9BF292A2D5A23F500CDFC9A /* HelperInstall */,
 				D9BA3B6C2D5BF65000A5B99A /* GatewayManager */,
 				D9C5EDE32DF0612700C0D991 /* PurchasesManager */,
 				D9391F0A2E461E1C002BE10F /* MessagesManager */,
@@ -1389,10 +1383,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Migrations;
 		};
-		D91E36A82BF3AA7F00BDE84A /* HelperManager */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = HelperManager;
-		};
 		D924A8E52C33F3D400465E84 /* ExternalLinkManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ExternalLinkManager;
@@ -1570,10 +1560,6 @@
 		D9BEF2E42BEBA4010036C566 /* AppSettings */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppSettings;
-		};
-		D9BF292A2D5A23F500CDFC9A /* HelperInstall */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = HelperInstall;
 		};
 		D9C5EDE32DF0612700C0D991 /* PurchasesManager */ = {
 			isa = XCSwiftPackageProductDependency;

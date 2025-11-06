@@ -1,8 +1,5 @@
 import SwiftUI
 import AppSettings
-#if os(macOS)
-import HelperInstall
-#endif
 import NymLogger
 
 struct SettingsFlowCoordinator<Content: View>: View {
@@ -52,14 +49,6 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case .santasMenu:
             santasMenuDestination()
 #if os(macOS)
-        case let .installHelper(afterInstallAction):
-            // Kept inline due to associated value whose concrete type lives in your domain.
-            HelperInstallView(
-                viewModel: HelperInstallViewModel(
-                    path: $flowState.path,
-                    afterInstallAction: afterInstallAction
-                )
-            )
         case .appMode:
             appModeDestination()
 #endif

@@ -11,7 +11,6 @@ let package = Package(
     products: [
         .library(name: "AutoUpdater", targets: ["AutoUpdater"]),
         .library(name: "GRPCManager", targets: ["GRPCManager"]),
-        .library(name: "HelperManager", targets: ["HelperManager"]),
         .library(name: "Shell", targets: ["Shell"])
     ],
     dependencies: [
@@ -44,15 +43,6 @@ let package = Package(
                 "Shell"
             ],
             path: "Sources/GRPCManager"
-        ),
-        .target(
-            name: "HelperManager",
-            dependencies: [
-                "GRPCManager",
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Theme", package: "Theme")
-            ],
-            path: "Sources/HelperManager"
         ),
         .target(
             name: "Shell",
