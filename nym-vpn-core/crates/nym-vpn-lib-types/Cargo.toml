@@ -33,7 +33,7 @@ serde = ["dep:serde"]
 
 [dependencies]
 time = { workspace = true, features = ["serde", "parsing", "formatting"] }
-serde = { workspace = true, features = ["derive"], optional = true }
+serde = { workspace = true, features = ["derive", "rc"], optional = true }
 si-scale.workspace = true
 thiserror.workspace = true
 ts-rs = { workspace = true, optional = true }
