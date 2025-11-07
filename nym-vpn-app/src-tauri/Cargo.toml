@@ -49,10 +49,12 @@ semver = "1.0"
 url = "2.5.4"
 sentry = { version = "0.45.0", features = ["tracing", "logs"] }
 sysinfo = "0.37"
+tokio-stream = "0.1.17"
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
-nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
+nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto", features = ["rpc_client"] }
+nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types" }
 nym-ipc = { path = "../../nym-vpn-core/crates/nym-ipc" }
 
 # tauri deps

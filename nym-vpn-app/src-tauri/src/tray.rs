@@ -13,7 +13,7 @@ use tracing::{debug, error, info, instrument, trace, warn};
 use crate::APP_NAME;
 use crate::grpc::tunnel::TunnelState;
 use crate::{
-    MAIN_WINDOW_LABEL, grpc::client::GrpcClient, state::SharedAppState, window::AppWindow,
+    MAIN_WINDOW_LABEL, grpc::client::VpndClient, state::SharedAppState, window::AppWindow,
 };
 
 pub const TRAY_ICON_ID: &str = "main";
@@ -53,7 +53,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
             let c_app = app.clone();
             tokio::spawn(async move {
                 let state = c_app.state::<SharedAppState>();
-                let grpc = c_app.state::<GrpcClient>();
+                let grpc = c_app.state::<VpndClient>();
 
                 let app_state = state.lock().await;
                 if let TunnelState::Connected(_)

@@ -3,7 +3,7 @@ use crate::{
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
     grpc::{
-        client::{GrpcClient, Node, VpndError},
+        client::{VpndClient, Node, VpndError},
         tunnel::{ConnectingState, TunnelState},
     },
     state::{SharedAppState, app::VpnMode},
@@ -15,7 +15,7 @@ use tracing::{debug, error, info, instrument, warn};
 #[tauri::command]
 pub async fn get_tunnel_state(
     app: tauri::AppHandle,
-    grpc: State<'_, GrpcClient>,
+    grpc: State<'_, VpndClient>,
 ) -> Result<TunnelState, BackendError> {
     let state = grpc.tunnel_state(&app).await?;
     Ok(state)
@@ -26,7 +26,7 @@ pub async fn get_tunnel_state(
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc: State<'_, GrpcClient>,
+    grpc: State<'_, VpndClient>,
     db: State<'_, Db>,
     entry: Node,
     exit: Node,
@@ -120,7 +120,7 @@ pub async fn connect(
 pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc: State<'_, GrpcClient>,
+    grpc: State<'_, VpndClient>,
 ) -> Result<TunnelState, BackendError> {
     let mut app_state = state.lock().await;
     if matches!(

@@ -1,11 +1,7 @@
+use nym_vpn_lib_types as lib;
 use serde::Serialize;
+use tracing::instrument;
 use ts_rs::TS;
-
-use nym_vpn_proto::proto as p;
-use p::mixnet_event::{
-    BandwidthEvent, ConnectionEvent, Event, bandwidth_event::Event as BandwidthEventEvent,
-};
-use tracing::{error, instrument};
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS, strum::AsRefStr)]
 #[ts(export, export_to = "tauri.ts")]
@@ -25,47 +21,35 @@ pub enum MixnetEvent {
 }
 
 impl MixnetEvent {
-    #[instrument(skip(mixnet_event))]
-    pub fn from_proto(mixnet_event: p::MixnetEvent) -> Option<Self> {
-        let Some(event) = mixnet_event.event else {
-            error!("no event data");
-            return None;
-        };
+    #[instrument(skip(event))]
+    pub fn from_lib(event: lib::MixnetEvent) -> Self {
         match event {
-            Event::BandwidthEvent(b) => MixnetEvent::from_bandwidth_event(b),
-            Event::ConnectionEvent(event) => MixnetEvent::from_connection_event(event),
-            Event::ConnectionStatisticsEvent(_) => Some(MixnetEvent::SphinxPacketMetrics),
+            lib::MixnetEvent::Bandwidth(b) => MixnetEvent::from(b),
+            lib::MixnetEvent::Connection(event) => MixnetEvent::from(event),
+            lib::MixnetEvent::ConnectionStatistics(_) => MixnetEvent::SphinxPacketMetrics,
         }
     }
+}
 
-    #[instrument]
-    pub fn from_bandwidth_event(bandwidth_event: BandwidthEvent) -> Option<Self> {
-        let Some(event) = bandwidth_event.event else {
-            error!("no event data");
-            return None;
-        };
+impl From<lib::BandwidthEvent> for MixnetEvent {
+    fn from(event: lib::BandwidthEvent) -> Self {
         match event {
-            BandwidthEventEvent::NoBandwidth(_) => Some(Self::NoBandwidth),
-            BandwidthEventEvent::RemainingBandwidth(b) => Some(Self::RemainingBandwidth(b.value)),
+            lib::BandwidthEvent::NoBandwidth => Self::NoBandwidth,
+            lib::BandwidthEvent::RemainingBandwidth(b) => Self::RemainingBandwidth(b),
         }
     }
+}
 
-    #[instrument]
-    pub fn from_connection_event(event: i32) -> Option<Self> {
-        if let Ok(e) = ConnectionEvent::try_from(event)
-            .inspect_err(|e| error!("invalid connection event [{}], {}", event, e))
-        {
-            match e {
-                ConnectionEvent::EntryGatewayDown => Some(Self::EntryGwDown),
-                ConnectionEvent::ExitGatewayDownIpv4 => Some(Self::ExitGwDownIpv4),
-                ConnectionEvent::ExitGatewayDownIpv6 => Some(Self::ExitGwDownIpv6),
-                ConnectionEvent::ExitGatewayRoutingErrorIpv4 => Some(Self::ExitGwRoutingErrorIpv4),
-                ConnectionEvent::ExitGatewayRoutingErrorIpv6 => Some(Self::ExitGwRoutingErrorIpv6),
-                ConnectionEvent::ConnectedIpv4 => Some(Self::ConnectedIpv4),
-                ConnectionEvent::ConnectedIpv6 => Some(Self::ConnectedIpv6),
-            }
-        } else {
-            None
+impl From<lib::ConnectionEvent> for MixnetEvent {
+    fn from(event: lib::ConnectionEvent) -> Self {
+        match event {
+            lib::ConnectionEvent::EntryGatewayDown => Self::EntryGwDown,
+            lib::ConnectionEvent::ExitGatewayDownIpv4 => Self::ExitGwDownIpv4,
+            lib::ConnectionEvent::ExitGatewayDownIpv6 => Self::ExitGwDownIpv6,
+            lib::ConnectionEvent::ExitGatewayRoutingErrorIpv4 => Self::ExitGwRoutingErrorIpv4,
+            lib::ConnectionEvent::ExitGatewayRoutingErrorIpv6 => Self::ExitGwRoutingErrorIpv6,
+            lib::ConnectionEvent::ConnectedIpv4 => Self::ConnectedIpv4,
+            lib::ConnectionEvent::ConnectedIpv6 => Self::ConnectedIpv6,
         }
     }
 }

@@ -3,14 +3,14 @@ use tauri::State;
 use tracing::{debug, info, instrument};
 
 use crate::error::BackendError;
-use crate::grpc::client::GrpcClient;
+use crate::grpc::client::VpndClient;
 use crate::state::{SharedAppConfig, SharedAppState};
 
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn enable_sentry(
     app_config: State<'_, SharedAppConfig>,
-    grpc: State<'_, GrpcClient>,
+    grpc: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
     let mut config_guard = app_config.lock().await;
     let mut config = config_guard.read()?;
@@ -30,7 +30,7 @@ pub async fn enable_sentry(
 pub async fn disable_sentry(
     app_config: State<'_, SharedAppConfig>,
     app_state: State<'_, SharedAppState>,
-    grpc: State<'_, GrpcClient>,
+    grpc: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
     let mut config_guard = app_config.lock().await;
     let mut config = config_guard.read()?;

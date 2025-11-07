@@ -13,7 +13,7 @@ use crate::{
     cli::Cli,
     db::Db,
     fs::{app::AppFs, config::AppConfig},
-    grpc::client::GrpcClient,
+    grpc::client::VpndClient,
 };
 
 use anyhow::{Result, anyhow};
@@ -217,7 +217,7 @@ async fn main() -> Result<()> {
             app.manage(Mutex::new(app_state));
 
             let pkg_info = app.package_info().clone();
-            let grpc = GrpcClient::new(&app_config, &cli, &pkg_info);
+            let grpc = VpndClient::new(&app_config, &cli, &pkg_info);
 
             app.manage(Mutex::new(fs_config));
             app.manage(grpc.clone());
@@ -231,7 +231,7 @@ async fn main() -> Result<()> {
                 loop {
                     if let Ok(info) = c_grpc.vpnd_info().await {
                         // connected to the daemon
-                        GrpcClient::reset_log_flag();
+                        VpndClient::reset_log_flag();
 
                         c_grpc.update_vpnd_state(info, &handle).await.ok();
                         // initialize tunnel state

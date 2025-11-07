@@ -8,7 +8,7 @@ use ts_rs::TS;
 
 use crate::country::Country;
 use crate::error::{BackendError, ErrorKey};
-use crate::grpc::client::GrpcClient;
+use crate::grpc::client::VpndClient;
 use crate::grpc::gateway::{Gateway, GatewayType};
 
 #[allow(dead_code)]
@@ -141,7 +141,7 @@ fn sort_countries_gw(mut gw_by_countries: Vec<GatewaysByCountry>) -> Vec<Gateway
 #[tauri::command]
 pub async fn get_gateways(
     node_type: GatewayType,
-    grpc: State<'_, GrpcClient>,
+    grpc: State<'_, VpndClient>,
 ) -> Result<Vec<GatewaysByCountry>, BackendError> {
     info!("fetching gateways");
     let gateways = grpc

@@ -1,12 +1,12 @@
 use tracing::{error, info, instrument, warn};
 
 use crate::db::{Db, Key};
-use crate::grpc::client::GrpcClient;
+use crate::grpc::client::VpndClient;
 
 // Check the state of network statistics collection in daemon side
 // if needed sync it with the saved setting from the app db
 #[instrument(skip_all)]
-pub async fn netstats_check(db: &Db, grpc: &GrpcClient) -> anyhow::Result<()> {
+pub async fn netstats_check(db: &Db, grpc: &VpndClient) -> anyhow::Result<()> {
     let vpnd_enabled = grpc.netstats_enabled().await.inspect_err(|e| {
         error!("failed to check network stats collection: {:?}", e);
     })?;
@@ -35,7 +35,7 @@ pub async fn netstats_check(db: &Db, grpc: &GrpcClient) -> anyhow::Result<()> {
 // Check the state of sentry monitoring in daemon side
 // if needed sync it with the saved setting from the app db
 #[instrument(skip(grpc))]
-pub async fn sentry_check(sentry_enabled: bool, grpc: &GrpcClient) -> anyhow::Result<()> {
+pub async fn sentry_check(sentry_enabled: bool, grpc: &VpndClient) -> anyhow::Result<()> {
     let vpnd_enabled = grpc.sentry_enabled().await.inspect_err(|e| {
         error!("failed to check sentry state: {:?}", e);
     })?;

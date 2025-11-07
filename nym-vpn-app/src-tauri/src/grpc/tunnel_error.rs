@@ -1,8 +1,10 @@
+use nym_vpn_lib_types as lib;
 use nym_vpn_proto::proto as p;
 use p::tunnel_state::{Error as ProtoTunnelError, ErrorStateReason};
 use serde::Serialize;
 use ts_rs::TS;
 
+// TODO refactor the variants, only Internal needs to have a String
 #[derive(Serialize, Clone, Debug, strum::Display, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
@@ -78,6 +80,49 @@ impl From<ProtoTunnelError> for TunnelError {
             }
             ErrorStateReason::CredentialWastedOnExitGateway => {
                 TunnelError::CredentialWastedOnExitGateway(error.message)
+            }
+        }
+    }
+}
+
+impl From<lib::ErrorStateReason> for TunnelError {
+    fn from(error: lib::ErrorStateReason) -> Self {
+        match error {
+            lib::ErrorStateReason::Internal(msg) => TunnelError::Internal(Some(msg)),
+            lib::ErrorStateReason::SetFirewallPolicy => TunnelError::SetFirewallPolicy(None),
+            lib::ErrorStateReason::SetDns => TunnelError::SetDns(None),
+            lib::ErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw(None),
+            lib::ErrorStateReason::PerformantEntryGatewayUnavailable => {
+                TunnelError::PerformantEntryGwUnavailable(None)
+            }
+            lib::ErrorStateReason::PerformantExitGatewayUnavailable => {
+                TunnelError::PerformantExitGwUnavailable(None)
+            }
+            lib::ErrorStateReason::InvalidEntryGatewayIdentity => {
+                TunnelError::InvalidEntryGwId(None)
+            }
+            lib::ErrorStateReason::InvalidExitGatewayIdentity => TunnelError::InvalidExitGwId(None),
+            lib::ErrorStateReason::InvalidEntryGatewayCountry => {
+                TunnelError::InvalidEntryGwCountry(None)
+            }
+            lib::ErrorStateReason::InvalidExitGatewayCountry => {
+                TunnelError::InvalidExitGwCountry(None)
+            }
+            lib::ErrorStateReason::MaxDevicesReached => TunnelError::MaxDevicesReached(None),
+            lib::ErrorStateReason::BandwidthExceeded => TunnelError::BandwidthExceeded(None),
+            lib::ErrorStateReason::InactiveSubscription => TunnelError::InactiveSubscription(None),
+            lib::ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(None),
+            lib::ErrorStateReason::Ipv6Unavailable => TunnelError::Ipv6Unavailable(None),
+            lib::ErrorStateReason::SetRouting => TunnelError::SetRouting(None),
+            lib::ErrorStateReason::TunDevice => TunnelError::TunDevice(None),
+            lib::ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider(None),
+            lib::ErrorStateReason::InactiveAccount => TunnelError::InactiveAccount(None),
+            lib::ErrorStateReason::DeviceLoggedOut => TunnelError::DeviceLoggedOut(None),
+            lib::ErrorStateReason::CredentialWastedOnEntryGateway => {
+                TunnelError::CredentialWastedOnEntryGateway(None)
+            }
+            lib::ErrorStateReason::CredentialWastedOnExitGateway => {
+                TunnelError::CredentialWastedOnExitGateway(None)
             }
         }
     }

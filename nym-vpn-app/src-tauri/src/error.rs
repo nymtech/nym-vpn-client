@@ -95,6 +95,9 @@ impl From<VpndError> for BackendError {
             VpndError::GrpcError(s) => {
                 BackendError::new(&format!("grpc error: {s}"), ErrorKey::Grpc)
             }
+            VpndError::RpcClient(e) => {
+                BackendError::new(&format!("rpc client error: {e}"), ErrorKey::Grpc)
+            }
             VpndError::FailedToConnectIpc(_) => BackendError::new(
                 "not connected to the daemon",
                 ErrorKey::NotConnectedToDaemon,

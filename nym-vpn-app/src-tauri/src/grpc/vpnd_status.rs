@@ -1,5 +1,5 @@
 use anyhow::Result;
-use nym_vpn_proto::proto::InfoResponse;
+use nym_vpn_lib_types::VpnServiceInfo;
 use semver::{Version, VersionReq};
 use serde::Serialize;
 use tracing::error;
@@ -32,15 +32,11 @@ pub enum VpndStatus {
     Down,
 }
 
-impl From<&InfoResponse> for VpndInfo {
-    fn from(info: &InfoResponse) -> Self {
+impl From<VpnServiceInfo> for VpndInfo {
+    fn from(info: VpnServiceInfo) -> Self {
         VpndInfo {
             version: info.version.clone(),
-            network: info
-                .nym_network
-                .as_ref()
-                .map(|network| network.network_name.to_owned())
-                .unwrap_or_else(|| "unknown".to_string()),
+            network: info.nym_network.network_name,
             git_commit: info.git_commit.clone(),
         }
     }

@@ -1,6 +1,6 @@
 use crate::env::DEV_MODE;
 use crate::error::BackendError;
-use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
+use crate::grpc::client::{FeatureFlags, SystemMessage, VpndClient, VpndStatus};
 use crate::state::SharedAppState;
 use crate::state::app::NetworkCompat;
 use serde::{Deserialize, Serialize};
@@ -37,7 +37,7 @@ pub async fn daemon_status(
 #[instrument(skip(grpc_client))]
 #[tauri::command]
 pub async fn set_network(
-    grpc_client: State<'_, GrpcClient>,
+    grpc_client: State<'_, VpndClient>,
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
     if !*DEV_MODE {
@@ -59,7 +59,7 @@ pub async fn set_network(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn system_messages(
-    grpc_client: State<'_, GrpcClient>,
+    grpc_client: State<'_, VpndClient>,
 ) -> Result<Vec<SystemMessage>, BackendError> {
     grpc_client
         .system_messages()
@@ -73,7 +73,7 @@ pub async fn system_messages(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn feature_flags(
-    grpc_client: State<'_, GrpcClient>,
+    grpc_client: State<'_, VpndClient>,
 ) -> Result<FeatureFlags, BackendError> {
     grpc_client
         .feature_flags()
@@ -96,7 +96,7 @@ pub async fn network_compat(
 #[tauri::command]
 pub async fn vpnd_log_dir(
     app_state: State<'_, SharedAppState>,
-    grpc_client: State<'_, GrpcClient>,
+    grpc_client: State<'_, VpndClient>,
 ) -> Result<String, BackendError> {
     let state = app_state.lock().await;
     if state.vpnd_status == VpndStatus::Down {
@@ -104,11 +104,10 @@ pub async fn vpnd_log_dir(
         return Ok(DEFAULT_VPND_LOG_DIR.to_string());
     }
 
-    Ok(grpc_client
+    let path = grpc_client
         .vpnd_log_path()
-        .await
-        .inspect_err(|e| {
-            warn!("failed to get vpnd log path: {:?}", e);
-        })
-        .unwrap_or_else(|_| DEFAULT_VPND_LOG_DIR.to_string()))
+        .await?
+        .to_string_lossy()
+        .to_string();
+    Ok(path)
 }

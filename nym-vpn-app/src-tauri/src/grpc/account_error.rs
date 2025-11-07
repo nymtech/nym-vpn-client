@@ -1,4 +1,5 @@
 use crate::error::{BackendError, ErrorKey};
+use nym_vpn_lib_types as lib;
 use nym_vpn_proto::proto::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
     account_command_error::ErrorDetail as AccountError,
@@ -125,6 +126,51 @@ impl From<StateError> for BackendError {
                 BackendError::new("AC max device reached", ErrorKey::MaxDeviceReached)
             }
             ErrorStateReason::DeviceTimeDesynced => {
+                BackendError::new("AC device time desynced", ErrorKey::DeviceTimeDesync)
+            }
+        }
+    }
+}
+
+impl From<lib::AccountControllerErrorStateReason> for BackendError {
+    fn from(error: lib::AccountControllerErrorStateReason) -> Self {
+        match error {
+            lib::AccountControllerErrorStateReason::Storage { context } => {
+                BackendError::internal_with_detail("AC storage error", context)
+            }
+            lib::AccountControllerErrorStateReason::ApiFailure { context, details } => {
+                BackendError::internal_with_detail(
+                    "AC API failure",
+                    format!("{} - {}", context, details),
+                )
+            }
+            lib::AccountControllerErrorStateReason::Internal { context, details } => {
+                BackendError::internal_with_detail(
+                    "AC internal error",
+                    format!("{} - {}", context, details),
+                )
+            }
+            lib::AccountControllerErrorStateReason::BandwidthExceeded { context } => {
+                BackendError::with_detail(
+                    "AC bandwidth exceeded",
+                    ErrorKey::BandwidthExceeded,
+                    context,
+                )
+            }
+            lib::AccountControllerErrorStateReason::AccountStatusNotActive { status } => {
+                BackendError::with_detail(
+                    "AC account status not active",
+                    ErrorKey::AccountStatusNotActive,
+                    status,
+                )
+            }
+            lib::AccountControllerErrorStateReason::InactiveSubscription => {
+                BackendError::new("AC inactive subscription", ErrorKey::NoSubscription)
+            }
+            lib::AccountControllerErrorStateReason::MaxDeviceReached => {
+                BackendError::new("AC max devices reached", ErrorKey::MaxDeviceReached)
+            }
+            lib::AccountControllerErrorStateReason::DeviceTimeDesynced => {
                 BackendError::new("AC device time desynced", ErrorKey::DeviceTimeDesync)
             }
         }

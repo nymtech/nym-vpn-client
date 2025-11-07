@@ -1,5 +1,6 @@
 use crate::error::BackendError;
 
+use nym_vpn_lib_types as lib;
 use serde::Serialize;
 use tracing::{debug, instrument};
 use tracing::{info, warn};
@@ -28,19 +29,27 @@ pub enum AccountState {
 }
 
 impl AccountState {
-    pub fn from_proto(state: ProtoState) -> AccountState {
+    pub fn from_lib(state: lib::AccountControllerState) -> AccountState {
         match state {
-            State::LoggedOut(_) => AccountState::LoggedOut,
-            State::Syncing(_) => AccountState::Syncing,
-            State::ReadyToConnect(_) => AccountState::Ready,
-            State::Decentralised(_) => AccountState::Decentralised,
-            State::Offline(_) => AccountState::Offline,
-            State::RequestingZkNyms(_) => AccountState::RequestingZkNyms,
-            State::Error(error) => match error.reason() {
-                ErrorStateReason::BandwidthExceeded => AccountState::BandwidthExceeded,
-                ErrorStateReason::AccountStatusNotActive => AccountState::StatusNotActive,
-                ErrorStateReason::InactiveSubscription => AccountState::NoSubscription,
-                ErrorStateReason::MaxDeviceReached => AccountState::MaxDeviceReached,
+            lib::AccountControllerState::LoggedOut => AccountState::LoggedOut,
+            lib::AccountControllerState::Syncing => AccountState::Syncing,
+            lib::AccountControllerState::ReadyToConnect => AccountState::Ready,
+            lib::AccountControllerState::Decentralised => AccountState::Decentralised,
+            lib::AccountControllerState::Offline => AccountState::Offline,
+            lib::AccountControllerState::RequestingZkNyms(_) => AccountState::RequestingZkNyms,
+            lib::AccountControllerState::Error(error) => match error {
+                lib::AccountControllerErrorStateReason::BandwidthExceeded {
+                    context: _, /* TODO */
+                } => AccountState::BandwidthExceeded,
+                lib::AccountControllerErrorStateReason::AccountStatusNotActive {
+                    status: _, /* TODO */
+                } => AccountState::StatusNotActive,
+                lib::AccountControllerErrorStateReason::InactiveSubscription => {
+                    AccountState::NoSubscription
+                }
+                lib::AccountControllerErrorStateReason::MaxDeviceReached => {
+                    AccountState::MaxDeviceReached
+                }
                 _ => AccountState::Error(error.into()),
             },
         }
