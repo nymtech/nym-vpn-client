@@ -19,16 +19,16 @@ data class AppUiState(
 ) {
 
 	val entryPointCountry = when (val entry = settings.entryPoint) {
-		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
+		is EntryPoint.Gateway -> entryGateways().firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode
-		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region.equals(entry.region, true) }?.twoLetterCountryISO
+		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.twoLetterCountryISO
 		else -> null
 	}
 	val exitPointCountry = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> null
-		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
+		is ExitPoint.Gateway -> exitGateways().firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode
-		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region.equals(exit.region, true) }?.twoLetterCountryISO
+		is ExitPoint.Region -> exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.twoLetterCountryISO
 		else -> null
 	}
 
@@ -36,13 +36,13 @@ data class AppUiState(
 		is EntryPoint.Country, is EntryPoint.Region -> {
 			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
-					gateways.entryGateways.firstOrNull { it.identity == data.entryGateway.id }
+					entryGateways().firstOrNull { it.identity == data.entryGateway.id }
 				}
 			} else {
 				null
 			}
 		}
-		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }
+		is EntryPoint.Gateway -> entryGateways().firstOrNull { it.identity == entry.identity }
 		else -> null
 	}
 
@@ -50,38 +50,38 @@ data class AppUiState(
 		is ExitPoint.Country, ExitPoint.Region -> {
 			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
-					gateways.exitGateways.firstOrNull { it.identity == data.exitGateway.id }
+					exitGateways().firstOrNull { it.identity == data.exitGateway.id }
 				}
 			} else {
 				null
 			}
 		}
-		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }
+		is ExitPoint.Gateway -> exitGateways().firstOrNull { it.identity == exit.identity }
 		else -> null
 	}
 
 	val entryPointName: String = when (val entry = settings.entryPoint) {
 		is EntryPoint.Gateway -> {
-			gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
+			entryGateways().firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
 		}
 		is EntryPoint.Country -> entry.toDisplayCountry()
-		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region
+		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region
 		else -> Settings.DEFAULT_ENTRY_POINT.toDisplayCountry()
 	}
 
 	val exitPointName: String = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Gateway -> {
-			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
+			exitGateways().firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
 		is ExitPoint.Country -> exit.toDisplayCountry()
-		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region
+		is ExitPoint.Region -> exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region
 		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
 	}
 
 	val entryPointLocation: String? = when (val entry = settings.entryPoint) {
 		is EntryPoint.Country -> entryPointGateway.serverLocationOnCountrySelection(entry.twoLetterIsoCountryCode)
-		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull {
+		is EntryPoint.Gateway -> entryGateways().firstOrNull {
 			it.identity == entry.identity
 		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
 		is EntryPoint.Region -> entryPointGateway?.serverLocationOnRegionSelection()
@@ -90,7 +90,7 @@ data class AppUiState(
 
 	val exitPointLocation: String? = when (val exit = settings.exitPoint) {
 		is ExitPoint.Country -> exitPointGateway.serverLocationOnCountrySelection(exit.twoLetterIsoCountryCode)
-		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull {
+		is ExitPoint.Gateway -> exitGateways().firstOrNull {
 			it.identity == exit.identity
 		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
 		is ExitPoint.Region -> exitPointGateway?.serverLocationOnRegionSelection()
@@ -110,6 +110,20 @@ data class AppUiState(
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 		is EntryPoint.Region -> entry.region
 		else -> null
+	}
+
+	private fun entryGateways(): List<NymGateway> {
+		return when (settings.vpnMode) {
+			Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways
+			Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
+		}
+	}
+
+	private fun exitGateways(): List<NymGateway> {
+		return when (settings.vpnMode) {
+			Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.exitGateways
+			Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
+		}
 	}
 }
 
