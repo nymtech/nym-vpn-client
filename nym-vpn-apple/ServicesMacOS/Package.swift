@@ -16,9 +16,7 @@ let package = Package(
     dependencies: [
         .package(path: "../NymVPNRpc"),
         .package(path: "../ServicesMutual"),
-        .package(name: "Theme", path: "../Theme"),
-        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4"),
-        .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
     ],
     targets: [
         .target(

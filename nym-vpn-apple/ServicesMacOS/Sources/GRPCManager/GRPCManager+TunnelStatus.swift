@@ -5,13 +5,6 @@ import ErrorReason
 import TunnelStatus
 
 extension GRPCManager {
-    func resetTunnelStateChangeObserver() {
-        setup()
-        tunnelStatus = .unknown
-        guard isServing else { return }
-        isServing = false
-    }
-
     func startDaemonInitialStatusPingerIfNeeded() {
         guard versionPingTask == nil || versionPingTask?.isCancelled == true else { return }
 

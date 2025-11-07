@@ -1,8 +1,14 @@
 import SwiftUI
+#if os(macOS)
+import GRPCManager
+#endif
 import Settings
 import UIComponents
 
 struct HomeFlowCoordinator<Content: View>: View {
+#if os(macOS)
+    @EnvironmentObject private var grpcManager: GRPCManager
+#endif
     @StateObject var state: HomeFlowState
 
     let content: () -> Content
@@ -61,6 +67,7 @@ private extension HomeFlowCoordinator {
             SettingsView(
                 viewModel:
                     SettingsViewModel(
+                        isServing: $grpcManager.isServing,
                         path: $state.path,
                         appSettings: .shared,
                         configurationManager: .shared,

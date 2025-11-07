@@ -8780,6 +8780,138 @@
         }
       }
     },
+    "daemonInstall.backToMainScreen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to main screen"
+          }
+        }
+      }
+    },
+    "daemonInstall.daemonText" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN runs a background service (daemon) to keep your connection secure."
+          }
+        }
+      }
+    },
+    "daemonInstall.daemonText1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It handles encryption and routing, protecting your activity even when the app is closed."
+          }
+        }
+      }
+    },
+    "daemonInstall.daemonText2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the steps below to install the daemon."
+          }
+        }
+      }
+    },
+    "daemonInstall.firstStep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Open system settings using button below"
+          }
+        }
+      }
+    },
+    "daemonInstall.openSystemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open system settings"
+          }
+        }
+      }
+    },
+    "daemonInstall.secondStep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+          }
+        }
+      }
+    },
+    "daemonInstall.successModal.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can resume using NymVPN after returning to the main screen."
+          }
+        }
+      }
+    },
+    "daemonInstall.successModal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon successfully enabled"
+          }
+        }
+      }
+    },
+    "daemonInstall.thirdStep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our"
+          }
+        }
+      }
+    },
+    "daemonInstall.thirdStep.supportTeam" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support team."
+          }
+        }
+      }
+    },
+    "daemonInstall.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon not running"
+          }
+        }
+      }
+    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
