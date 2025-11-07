@@ -3,6 +3,7 @@
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
@@ -49,6 +50,16 @@ pub enum AccountControllerErrorStateReason {
 impl AccountControllerErrorStateReason {
     pub fn is_retryable(&self) -> bool {
         matches!(self, Self::ApiFailure { .. } | Self::Internal { .. })
+    }
+
+    pub fn storage(context: impl Into<String>) -> AccountControllerErrorStateReason {
+        AccountControllerErrorStateReason::Storage {
+            context: context.into(),
+        }
+    }
+
+    pub fn storage_err(context: impl Error) -> AccountControllerErrorStateReason {
+        Self::storage(context.to_string())
     }
 }
 

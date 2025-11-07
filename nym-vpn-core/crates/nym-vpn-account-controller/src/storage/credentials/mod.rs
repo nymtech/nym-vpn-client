@@ -147,6 +147,19 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    pub(crate) async fn try_retrieve_upgrade_mode_jwt(
+        &self,
+    ) -> Result<Option<(String, Option<OffsetDateTime>)>, Error> {
+        let Some(credential) = self
+            .credential_storage
+            .get_emergency_credential(UPGRADE_MODE_CREDENTIAL_TYPE)
+            .await?
+        else {
+            return Ok(None);
+        };
+        Ok(Some((credential.data.typ, credential.data.expiration)))
+    }
+
     pub(crate) async fn remove_upgrade_mode_jwts(&self) -> Result<(), Error> {
         todo!()
     }

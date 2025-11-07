@@ -10,11 +10,10 @@ use nym_vpn_lib_types::AccountCommandError;
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
-    commands::{ReturnSender, UpgradeModeCommand, dispatch::CommonCommand},
+    commands::{ReturnSender, dispatch::CommonCommand},
     storage::AccountStorageOp,
 };
 use nym_vpn_store::account::StorableAccount;
-use tracing::warn;
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,

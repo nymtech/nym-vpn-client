@@ -8,6 +8,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 
+use crate::state_machine::UpgradeModeState;
 use crate::{
     SharedAccountState,
     commands::{
@@ -17,13 +18,12 @@ use crate::{
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
         OfflineState, PrivateAccountControllerState, ReadyState, SyncingState,
-        upgrade_mode_state::UpgradeModeState,
     },
     storage::VpnCredentialStorage,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
-    RequestZkNymErrorReason, RequestZkNymSuccess,
+    AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
+    RequestZkNymSuccess,
 };
 use tokio::{
     sync::mpsc,
@@ -49,17 +49,19 @@ const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 /// - SyncingState : We handled a refresh account command
 /// - LoggedOutState : A successful forget account command was handled
 /// - UpgradeModeState : Instead of retrieving zk-nyms, we have received information about upgrade mode being activated
-pub(super) struct RequestingZkNymsState {
+pub(crate) struct RequestingZkNymsState {
     zk_nym_fetching_handle: JoinHandle<Result<ZkNymFetchResult, ZkNymError>>,
     attempts: u32,
     fair_usage_left: bool,
+    entered_through_upgrade_mode: bool,
 }
 
 impl RequestingZkNymsState {
-    pub(super) fn enter<C: ConnectivityMonitor>(
+    pub(crate) fn enter<C: ConnectivityMonitor>(
         shared_state: &SharedAccountState<C>,
         attempts: u32,
         fair_usage_left: bool, // Syncing state telling us the fair usage state
+        entered_through_upgrade_mode: bool,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
@@ -96,6 +98,7 @@ impl RequestingZkNymsState {
                 zk_nym_fetching_handle,
                 attempts,
                 fair_usage_left,
+                entered_through_upgrade_mode,
             }),
             PrivateAccountControllerState::RequestingZkNyms,
         )
@@ -260,6 +263,7 @@ impl RequestingZkNymsState {
                             shared_state,
                             ZK_NYM_MAX_FAILS + 1,
                             self.fair_usage_left,
+                            false,
                         ))
                     }
                     ZkNymError::ApiFailure(_) => {
@@ -268,6 +272,7 @@ impl RequestingZkNymsState {
                             shared_state,
                             self.attempts + 1,
                             self.fair_usage_left,
+                            false,
                         ))
                     }
                     ZkNymError::BandwidthExceeded => {
@@ -296,7 +301,7 @@ impl RequestingZkNymsState {
                 NextAccountControllerState::NewState(ReadyState::enter())
             }
             ZkNymFetchResult::UpgradeMode => {
-                NextAccountControllerState::NewState(UpgradeModeState::enter())
+                NextAccountControllerState::NewState(UpgradeModeState::enter(shared_state).await)
             }
         }
     }
@@ -353,12 +358,18 @@ impl RequestingZkNymsState {
                 };
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
+                // no need to abort the fetching handle, as per @SW:
+                // "In theory, if we get VpnApiFirewallDown, it means we got the up version before, so no handle is running"
+                // as a side note, firewall handling could use some improvements as well,
+                // because the current solution is suboptimal to say the least
+                // and is causing a number of weird edge cases
                 shared_state.firewall_active = false;
                 return_sender.send(Ok(()));
                 return NextAccountControllerState::NewState(RequestingZkNymsState::enter(
                     shared_state,
                     self.attempts,
                     self.fair_usage_left,
+                    false,
                 ));
             }
             AccountCommand::VpnApiFirewallUp(return_sender) => {
@@ -371,12 +382,18 @@ impl RequestingZkNymsState {
             }
             AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
                 UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                    return_sender.send(Ok(false))
+                    return_sender.send(Ok(self.entered_through_upgrade_mode))
                 }
                 UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
-                    warn!(
-                        "received unexpected command to disable upgrade mode while in 'RequestingZkNymsState' state"
-                    );
+                    if !self.entered_through_upgrade_mode {
+                        warn!(
+                            "received unexpected command to disable upgrade mode while in 'RequestingZkNymsState' state"
+                        );
+                    }
+                    // if UM is indeed over, the `zk_nym_fetching_handle` should resolve with
+                    // fetched zk-nyms and we'll exit the state naturally.
+                    // there's no need to abort the future
+
                     return_sender.send(Ok(()))
                 }
             },
