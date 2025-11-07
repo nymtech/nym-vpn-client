@@ -1,12 +1,12 @@
 {
   "vpn-modes": {
-    "privacy": "Анонімний",
+    "privacy": "Анонімний (мікснет)",
     "fast": "Швидкий"
   },
   "connect": "Підключитись",
   "disconnect": "Від'єднати",
-  "first-hop-selection": "Вибір першого підключення",
-  "last-hop-selection": "Вибір останнього підключення",
+  "first-hop-selection": "Місце входу",
+  "last-hop-selection": "Місце виходу",
   "settings": "Налаштування",
   "display-theme": "Тема",
   "notifications": "Сповіщення",

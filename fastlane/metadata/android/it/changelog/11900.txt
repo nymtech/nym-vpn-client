@@ -1,0 +1,3 @@
+Cosa c'è di nuovo:
+- Rilevamento offline
+- Correzioni bug

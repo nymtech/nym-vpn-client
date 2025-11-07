@@ -1,0 +1,5 @@
+Was ist neu:
+- UI-Verbesserungen
+- Caching-Verbesserungen
+- Hafenmeister Integration hinzugefügt
+- Verbesserte Schnell-Kachel-Statussynchronisierung

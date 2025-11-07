@@ -7,9 +7,15 @@
   "input-label": "Search",
   "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
-    "title": "Details on server locations",
-    "description": "We infer server locations based on their IP addresses, but the actual locations may vary slightly.",
-    "link": "Read more"
+    "streaming": {
+      "title": "Streaming",
+      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+    },
+    "location": {
+      "title": "Location accuracy",
+      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+    },
+    "title": "Choosing exit locations"
   },
   "location-not-available": {
     "entry": "Selected entry location not available, switched to {{location}}",

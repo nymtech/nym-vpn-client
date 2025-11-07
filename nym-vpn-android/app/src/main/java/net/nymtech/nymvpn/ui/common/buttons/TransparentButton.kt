@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.common.buttons
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.Button
@@ -12,7 +13,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun TransparentButton(testTag: String? = null, onClick: () -> Unit, content: @Composable () -> Unit, modifier: Modifier = Modifier) {
+fun TransparentButton(
+	testTag: String? = null,
+	onClick: () -> Unit,
+	content: @Composable () -> Unit,
+	modifier: Modifier = Modifier,
+	borderStroke: BorderStroke? = null,
+) {
 	Button(
 		onClick = { onClick() },
 		colors = ButtonDefaults.buttonColors(
@@ -24,6 +31,7 @@ fun TransparentButton(testTag: String? = null, onClick: () -> Unit, content: @Co
 			.testTag(testTag ?: "")
 			.defaultMinSize(1.dp, 1.dp),
 		shape = ShapeDefaults.Small,
+		border = borderStroke,
 	) {
 		content()
 	}

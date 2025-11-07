@@ -11,15 +11,12 @@ let package = Package(
     products: [
         .library(name: "AutoUpdater", targets: ["AutoUpdater"]),
         .library(name: "GRPCManager", targets: ["GRPCManager"]),
-        .library(name: "HelperManager", targets: ["HelperManager"]),
         .library(name: "Shell", targets: ["Shell"])
     ],
     dependencies: [
         .package(path: "../NymVPNRpc"),
         .package(path: "../ServicesMutual"),
-        .package(name: "Theme", path: "../Theme"),
-        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4"),
-        .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
     ],
     targets: [
         .target(
@@ -44,15 +41,6 @@ let package = Package(
                 "Shell"
             ],
             path: "Sources/GRPCManager"
-        ),
-        .target(
-            name: "HelperManager",
-            dependencies: [
-                "GRPCManager",
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Theme", package: "Theme")
-            ],
-            path: "Sources/HelperManager"
         ),
         .target(
             name: "Shell",

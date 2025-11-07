@@ -44,7 +44,9 @@ import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
+import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -58,6 +60,7 @@ fun CountryItem(
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
 	modifier: Modifier = Modifier,
+	isQuicSettingsEnabled: Boolean = false,
 ) {
 	val context = LocalContext.current
 	var expanded by rememberSaveable(key = "expanded_${country.country}") {
@@ -97,7 +100,9 @@ fun CountryItem(
 								Icon(
 									Icons.Filled.ArrowDropDown,
 									contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
-									modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).size(iconSize),
+									modifier = Modifier
+										.graphicsLayer(rotationZ = rotationAngle)
+										.size(iconSize),
 								)
 							}
 						}
@@ -124,6 +129,7 @@ fun CountryItem(
 		) {
 			SurfaceSelectionGroupButton(
 				gateways.map { gateway ->
+					val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
 					SelectionItem(
 						onClick = { onSelectionChange(gateway.identity) },
 						leading = {
@@ -137,9 +143,11 @@ fun CountryItem(
 							}
 						},
 						trailing = {
-							ServerDetailsTrailingContent(gatewayLocation, gateway.asnKind) {
-								onGatewayDetails(gateway)
-							}
+							ServerDetailsTrailingContent(
+								showStreamDisplay = showStreamDisplay,
+								showQuicLabel = isQuicSettingsEnabled && gateway.isQuicSupported(),
+								onInfoIconClick = { onGatewayDetails(gateway) },
+							)
 						},
 						title = {
 							Text(

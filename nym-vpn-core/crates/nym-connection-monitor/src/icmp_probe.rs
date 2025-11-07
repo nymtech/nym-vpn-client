@@ -4,7 +4,7 @@
 //! Module implementing ICMP connection probe
 
 use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{IpAddr, SocketAddr},
     sync::atomic::{AtomicU16, Ordering},
     time::Duration,
 };
@@ -13,16 +13,12 @@ use surge_ping::{
     Client as SurgeClient, Config as SurgeConfig, ICMP, PingIdentifier, PingSequence, SurgeError,
 };
 
-use super::{BoxedProbeError, ConnectionProbe, ProbeError};
+use super::{
+    BoxedProbeError, ConnectionProbe, DEFAULT_IPV4_PROBE_IP, DEFAULT_IPV6_PROBE_IP, ProbeError,
+};
 
 /// Default ICMP identifier
 const DEFAULT_ICMP_IDENT: u16 = 217;
-
-/// Default host used for probing via IPv4
-const DEFAULT_IPV4_PROBE_IP: Ipv4Addr = Ipv4Addr::new(1, 1, 1, 1);
-
-/// Default host used for probing via IPv6
-const DEFAULT_IPV6_PROBE_IP: Ipv6Addr = Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111);
 
 /// ICMP probe configuration
 #[derive(Debug, Clone)]
@@ -147,10 +143,10 @@ impl From<IcmpProbeInnerError> for IcmpProbeError {
 /// Private error type for the ICMP probe.
 #[derive(Debug, thiserror::Error)]
 enum IcmpProbeInnerError {
-    #[error("failed to send ICMP packet")]
+    #[error("failed to send icmp packet")]
     Send(#[source] SurgeError),
 
-    #[error("failed to create ICMP client")]
+    #[error("failed to create icmp client")]
     CreateIcmpClient(#[source] std::io::Error),
 
     #[cfg(any(target_os = "ios", target_os = "macos"))]
@@ -248,6 +244,8 @@ impl ConnectionProbe for IcmpProbe {
 // Running these tests on Linux requires CAP_NET_RAW
 #[cfg(test)]
 mod tests {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+
     use super::*;
 
     #[tokio::test]

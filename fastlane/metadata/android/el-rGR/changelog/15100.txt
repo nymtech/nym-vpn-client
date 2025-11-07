@@ -1,0 +1,2 @@
+What's new:
+- Navigation improvements and fixes

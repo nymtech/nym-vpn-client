@@ -18,8 +18,6 @@ import UIComponents
 import ImpactGenerator
 #if os(macOS)
 import GRPCManager
-import HelperInstall
-import HelperManager
 #endif
 
 @MainActor public class HomeViewModel: HomeFlowState {
@@ -36,7 +34,6 @@ import HelperManager
     let impactGenerator: ImpactGenerator
 #if os(macOS)
     let grpcManager: GRPCManager
-    let helperManager: HelperManager
 #endif
     let messagesManager: MessagesManager
     let anonymousButtonViewModel = NetworkButtonViewModel(
@@ -57,6 +54,10 @@ import HelperManager
     var tunnelConnectingStateCancellable: AnyCancellable?
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
+
+#if os(macOS)
+    @Published public var isServing = false
+#endif
 
     @MainActor @Published var activeTunnel: Tunnel?
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
@@ -139,7 +140,6 @@ import HelperManager
         credentialsManager: CredentialsManager,
         networkMonitor: NetworkMonitor,
         grpcManager: GRPCManager,
-        helperManager: HelperManager,
         externalLinkManager: ExternalLinkManager,
         gatewayManager: GatewayManager,
         impactGenerator: ImpactGenerator,
@@ -147,12 +147,10 @@ import HelperManager
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
-
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.networkMonitor = networkMonitor
         self.grpcManager = grpcManager
-        self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
         self.impactGenerator = impactGenerator
         self.gatewayManager = gatewayManager
@@ -201,13 +199,9 @@ public extension HomeViewModel {
     }
 
 #if os(macOS)
-    @MainActor func navigateToInstallHelper() {
-        let action = HelperAfterInstallAction { [weak self] in
-            Task { @MainActor in
-                await self?.connectDisconnect()
-            }
-        }
-        path.append(HomeLink.installHelper(afterInstallAction: action))
+    func navigateToDaemonEnable() {
+        path.append(HomeLink.settings)
+        path.append(SettingLink.daemonEnable)
     }
 #endif
 }

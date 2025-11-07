@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Implement a TCP-based probe as a fallback for connection monitoring when ICMP is unavailable. (https://github.com/nymtech/nym-vpn-client/pull/3868)
+
 ### Changed
 
 - Rotate wireguard keys every 1-2 weeks, if disconnected (https://github.com/nymtech/nym-vpn-client/pull/3788)
 
-## [1.18.0] - TBD
+### Fixed
+
+- [macOS] Prevent resetting state for non-tunnel DNS connections (https://github.com/nymtech/nym-vpn-client/pull/3899)
+
+## [1.18.0] - 2025-11-03
 
 ### Added
 
@@ -19,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add tunnel connection monitoring (https://github.com/nymtech/nym-vpn-client/pull/3724)
 - Backend QUIC filtering for desktop (https://github.com/nymtech/nym-vpn-client/pull/3746)
 - Fallback on mixnet channel if metadata endpoint is not available (https://github.com/nymtech/nym-vpn-client/pull/3747)
+- Library exposing the command for manual wireguard key rotation (https://github.com/nymtech/nym-vpn-client/pull/3870)
 
 ### Changed
 

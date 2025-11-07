@@ -1,0 +1,5 @@
+Ce qui change :
+- Les écrans et fonctionnalités du kill switch peuvent désormais être désactivés
+- Amélioration des messages d'erreur pour une meilleure clarté
+- Mise à jour de la gestion des données de connexion
+- Correction du problème du backstack sur l'écran d'accueil

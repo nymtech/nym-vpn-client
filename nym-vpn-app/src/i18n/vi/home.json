@@ -19,11 +19,11 @@
   "select-node-title": "Kết nối đến",
   "privacy-mode": {
     "title": "Ẩn danh (mixnet)",
-    "desc": "Phù hợp cho thanh toán, gửi mail, nhắn tin"
+    "desc": "Quyền riêng tư tối đa cho các tác vụ nhạy cảm"
   },
   "fast-mode": {
-    "title": "Nhanh (WireGuard*)",
-    "desc": "Phù hợp cho duyệt web, phát trực tuyến, chia sẻ dữ liệu"
+    "title": "Nhanh (WireGuard)",
+    "desc": "Phù hợp cho duyệt web, phát trực tuyến, tải xuống"
   },
   "last-node-select": {
     "label": "Bước nhảy cuối cùng",
@@ -38,8 +38,8 @@
   },
   "modes-dialog": {
     "title": "Chọn chế độ",
-    "privacy-description": "Tận hưởng quyền riêng tư ở mức tối đa bằng cách định tuyến kết nối của bạn qua 5 máy chủ thông qua mixnet. Hoàn hảo để xử lý thanh toán, email và tin nhắn một cách an toàn.",
-    "fast-description": "Trải nghiệm tốc độ tối đa với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho việc duyệt web, phát trực tuyến và chia sẻ tệp nhanh.",
+    "privacy-description": "Tận hưởng quyền riêng tư tối đa thông qua định tuyến 5 bước nhảy (lên đến 1-5 Mbps). Lưu lượng giả và che giấu thời gian để nâng cao tính ẩn danh. Hoàn hảo cho các hoạt động nhạy cảm cao như thanh toán, email và tin nhắn.",
+    "fast-description": "Trải nghiệm tốc độ duyệt web nhanh (250+ Mbps) với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho phát trực tuyến, duyệt web và tải xuống nhanh.",
     "link": "Tiếp tục đọc"
   },
   "update-dialog": {

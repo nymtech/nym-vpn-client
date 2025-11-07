@@ -20,6 +20,8 @@ pub enum Command {
     },
     /// Forget account
     Forget,
+    /// Force wireguard key rotation
+    RotateKeys,
     /// Get account links
     Links {
         /// Locale string (i.e en-US)
@@ -84,6 +86,16 @@ impl Command {
                     return Err(err.into());
                 } else {
                     println!("Account forgotten successfully");
+                }
+                Ok(())
+            }
+            Command::RotateKeys => {
+                let response = rpc_client.rotate_keys().await?;
+                if let Some(err) = response.error {
+                    println!("Failed to rotate keys: {err}");
+                    return Err(err.into());
+                } else {
+                    println!("Keys rotated successfully");
                 }
                 Ok(())
             }

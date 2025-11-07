@@ -59,7 +59,7 @@ export default function HopSelect({
       case 'region':
         return getLocationInfo(selected.country, gateway, selected.name);
       case 'gateway':
-        return getGatewayInfo(selected);
+        return getGatewayInfo(selected, gateway);
     }
   };
 
@@ -68,6 +68,8 @@ export default function HopSelect({
     name: string;
     subInfo?: string | null;
     animate?: boolean;
+    quic?: boolean;
+    streamOptimized?: boolean;
   };
 
   const getLocationInfo = (
@@ -96,28 +98,33 @@ export default function HopSelect({
       name: location,
       subInfo,
       animate: true,
+      quic: gateway?.quic,
+      streamOptimized: gateway?.asn?.type === 'residential',
     };
   };
 
-  const getGatewayInfo = (gateway: GatewayNode): SelectedNodeProps => {
+  const getGatewayInfo = (
+    node: GatewayNode,
+    gateway: Gateway | null,
+  ): SelectedNodeProps => {
     const components = [];
-    if (gateway.city.length > 0) {
-      components.push(gateway.city);
+    if (node.city.length > 0) {
+      components.push(node.city);
     }
     if (
-      countriesWithRegions.includes(gateway.country.code) &&
-      gateway.region.length > 0
+      countriesWithRegions.includes(node.country.code) &&
+      node.region.length > 0
     ) {
-      components.push(gateway.region);
+      components.push(node.region);
     }
-    components.push(
-      getCountryName(gateway.country.code) || gateway.country.name,
-    );
+    components.push(getCountryName(node.country.code) || node.country.name);
 
     return {
-      countryCode: gateway.country.code.toLowerCase() as countryCode,
-      name: gateway.name,
+      countryCode: node.country.code.toLowerCase() as countryCode,
+      name: node.name,
       subInfo: components.join(', '),
+      quic: gateway?.quic,
+      streamOptimized: gateway?.asn?.type === 'residential',
     };
   };
 
@@ -126,41 +133,59 @@ export default function HopSelect({
     name,
     subInfo,
     animate,
-  }: SelectedNodeProps) => (
-    <div className="flex flex-row items-center gap-3 overflow-hidden">
-      <FlagIcon code={countryCode} alt={countryCode} />
-      <div className={clsx('flex flex-col justify-center truncate')}>
-        <div
-          className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-        >
-          {name}
+    quic,
+    streamOptimized,
+  }: SelectedNodeProps) => {
+    const showQuic = quicTag && quic;
+    const showStreamOptimized = nodeHop === 'exit' && streamOptimized;
+
+    return (
+      <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
+        <FlagIcon code={countryCode} alt={countryCode} />
+        <div className={clsx('flex flex-col justify-center truncate')}>
+          <div
+            className={clsx([
+              'text-base truncate',
+              disabled && 'cursor-default',
+            ])}
+          >
+            {name}
+          </div>
+          {animate ? (
+            <AnimatePresence>
+              {subInfo && (
+                <motion.div
+                  initial={{ opacity: 0, x: '-1rem' }}
+                  exit={{ opacity: 0, x: '1rem' }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="text-sm text-iron dark:text-bombay truncate"
+                >
+                  {subInfo}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          ) : (
+            <>
+              {subInfo && (
+                <div className="text-sm text-iron dark:text-bombay truncate">
+                  {subInfo}
+                </div>
+              )}
+            </>
+          )}
         </div>
-        {animate ? (
-          <AnimatePresence>
-            {subInfo && (
-              <motion.div
-                initial={{ opacity: 0, x: '-1rem' }}
-                exit={{ opacity: 0, x: '1rem' }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="text-sm text-iron dark:text-bombay truncate"
-              >
-                {subInfo}
-              </motion.div>
+        {(showQuic || showStreamOptimized) && (
+          <div className="flex items-center justify-end gap-3 flex-1 mr-1">
+            {showStreamOptimized && (
+              <MsIcon icon="smart_display" className="text-cornflower" />
             )}
-          </AnimatePresence>
-        ) : (
-          <>
-            {subInfo && (
-              <div className="text-sm text-iron dark:text-bombay truncate">
-                {subInfo}
-              </div>
-            )}
-          </>
+            {showQuic && <QuicTag />}
+          </div>
         )}
       </div>
-    </div>
-  );
+    );
+  };
 
   const gateway = useMemo(() => {
     if (node.type === 'gateway') {
@@ -205,14 +230,11 @@ export default function HopSelect({
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
       <SelectedNode {...nodeData(node, gateway)} />
-      <div className="flex items-center">
-        {quicTag && gateway?.quic && <QuicTag className="mx-2" />}
-        <MsIcon
-          icon="arrow_right"
-          className="pointer-events-none"
-          data-testid={`hop-select-arrow-${nodeHop}`}
-        />
-      </div>
+      <MsIcon
+        icon="arrow_right"
+        className="pointer-events-none"
+        data-testid={`hop-select-arrow-${nodeHop}`}
+      />
     </div>
   );
 }

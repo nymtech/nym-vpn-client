@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Migliorata la registrazione su file
+- Correzioni bug
+- Altre efficienze e miglioramenti

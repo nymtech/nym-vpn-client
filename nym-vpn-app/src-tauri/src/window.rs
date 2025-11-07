@@ -159,7 +159,7 @@ impl AppWindow {
     #[instrument(skip_all)]
     pub fn set_max_size(
         &self,
-        #[cfg(target_os = "linux")] display_server: DisplayServer,
+        #[cfg(target_os = "linux")] display_server: Option<DisplayServer>,
     ) -> Result<()> {
         let Some(monitor) = self.0.current_monitor().inspect_err(|e| {
             error!("failed to get current monitor: {e}");
@@ -169,7 +169,7 @@ impl AppWindow {
             {
                 // On Wayland it is expected failing to detected monitor info
                 // especially when the window is not yet visible
-                if display_server == DisplayServer::Wayland {
+                if display_server == Some(DisplayServer::Wayland) {
                     tracing::info!("failed to get current monitor details");
                 } else {
                     warn!("failed to get current monitor details");
@@ -244,7 +244,7 @@ pub fn handle_event(#[allow(unused_variables)] os: &OsInfo, win: &Window, event:
             // Toggling the resizable property appears to resolve this issue.
             // see https://github.com/safing/portmaster/issues/1909
             // https://github.com/tauri-apps/tauri/issues/6162#issuecomment-1423304398
-            if os.display_server == DisplayServer::Wayland {
+            if os.display_server == Some(DisplayServer::Wayland) {
                 trace!("toggle resizable");
                 win.set_resizable(false).ok();
                 win.set_resizable(true).ok();

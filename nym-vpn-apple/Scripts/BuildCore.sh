@@ -43,10 +43,10 @@ rm -rf "${RPC_DEST}"
 cp -R "${RPC_SRC}" "${RPC_DEST}"
 echo "[BuildCore] Copied NymVPNRpc → ${RPC_DEST}"
 
-# 5) Copy the universal nym-vpnd → apple Daemon as net.nymtech.vpn.helper
+# 5) Copy the universal nym-vpnd → apple Daemon
 VPND_SRC="${CORE_ROOT}/upload/mac/nym-vpnd"
 VPND_DEST_DIR="${APPLE_ROOT}/Daemon"
-VPND_DEST="${VPND_DEST_DIR}/net.nymtech.vpn.helper"
+VPND_DEST="${VPND_DEST_DIR}/nym-vpnd"
 if [[ ! -f "${VPND_SRC}" ]]; then
   echo "[BuildCore][ERROR] ${VPND_SRC} not found. Make sure macOS.mk builds vpnd-universal."
   exit 1
@@ -55,6 +55,17 @@ mkdir -p "${VPND_DEST_DIR}"
 cp -f "${VPND_SRC}" "${VPND_DEST}"
 chmod +x "${VPND_DEST}"
 echo "[BuildCore] Copied nym-vpnd → ${VPND_DEST}"
+
+# 6) Copy the universal nym-setup → apple Daemon
+NYM_SETUP_SRC="${CORE_ROOT}/upload/mac/nym-setup"
+NYM_SETUP_DEST="${VPND_DEST_DIR}/nym-setup"
+if [[ ! -f "${NYM_SETUP_SRC}" ]]; then
+  echo "[BuildCore][ERROR] ${NYM_SETUP_SRC} not found. Make sure macOS.mk builds nym-setup-universal."
+  exit 1
+fi
+cp -f "${NYM_SETUP_SRC}" "${NYM_SETUP_DEST}"
+chmod +x "${NYM_SETUP_DEST}"
+echo "[BuildCore] Copied nym-setup → ${VPND_DEST}"
 
 # Print sccache stats
 if command -v sccache &>/dev/null; then

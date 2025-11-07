@@ -1,0 +1,7 @@
+Yenilikler:
+- Temalı simge desteği eklendi
+- Bağlantı durumu artık daha ayrıntılı bilgi gösteriyor
+- Sunucu adı, Ana Ekranda ülkenin altında görüntüleniyor
+- Çıkış sonrası kullanıcı arayüzü güncellemeleri düzeltildi
+- Sunucu detayları ekranı eklendi
+- Sansür Karşıtı güncellemeler

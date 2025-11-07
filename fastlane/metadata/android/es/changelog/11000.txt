@@ -1,0 +1,5 @@
+Novedades:
+- Mejoras en la velocidad de dos saltos con Wirex Guard
+- Mejoras de rendimiento de la aplicación
+- Mejoras de la IU
+- Varios errores arreglados

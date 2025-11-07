@@ -1,8 +1,11 @@
 import { DialogTitle } from '@headlessui/react';
-import { useTranslation } from 'react-i18next';
-import { LocationDetailsArticle } from '../../constants';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button, Dialog, Link, MsIcon } from '../../ui';
 import { capFirst } from '../../util';
+import {
+  LocationDetailsArticle,
+  ResidentialIpServersUrl,
+} from '../../constants';
 
 export type Props = {
   isOpen: boolean;
@@ -33,21 +36,48 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
           {t('location-details.title')}
         </DialogTitle>
       </div>
-
-      <p
-        className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80"
-        data-testid="location-details-description"
-      >
-        {t('location-details.description')}
-      </p>
-
-      <Link
-        text={t('location-details.link')}
-        url={LocationDetailsArticle}
-        icon
-        data-testid="location-details-learn-more-link"
-      />
-
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
+          <MsIcon icon="smart_display" />
+          <h4 className="text-lg">{t('location-details.streaming.title')}</h4>
+        </div>
+        <p className="text-iron dark:text-bombay md:text-nowrap">
+          <Trans
+            i18nKey="location-details.streaming.description"
+            ns="nodeLocation"
+          >
+            <Link
+              url={ResidentialIpServersUrl}
+              textClassName="underline text-black dark:text-white"
+            >
+              Residential IP servers
+            </Link>
+            optimized for streaming and content access. May experience slower
+            speeds due to higher demand and hardware limitations.
+          </Trans>
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
+          <MsIcon icon="location_on" />
+          <h4 className="text-lg">{t('location-details.location.title')}</h4>
+        </div>
+        <p className="text-iron dark:text-bombay md:text-nowrap">
+          <Trans
+            i18nKey="location-details.location.description"
+            ns="nodeLocation"
+          >
+            Displayed locations are
+            <Link
+              url={LocationDetailsArticle}
+              textClassName="underline text-black dark:text-white"
+            >
+              determined from IP addresses
+            </Link>
+            and may not reflect exact physical locations.
+          </Trans>
+        </p>
+      </div>
       <Button
         onClick={onClose}
         className="mt-2"

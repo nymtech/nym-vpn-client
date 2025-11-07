@@ -1,0 +1,5 @@
+Quoi de neuf :
+- Correction du bug du descripteur de fichier
+- Correction du bug d'api v5 nym
+- Correction des arrêts ipv6/ipv4 vpn
+- Autres corrections de bugs

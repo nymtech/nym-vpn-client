@@ -1,0 +1,4 @@
+Quoi de neuf :
+- Ajout de la prise en charge du VPN permanent
+- Ajout de la prise en charge de la tuile des réglages rapides
+- Correction d'un bug lors de la connexion automatique au démarrage

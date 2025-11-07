@@ -12,5 +12,7 @@
   },
   "copied-to-clipboard": "已复制到剪贴板",
   "daemon-no-compat": "守护进程版本与应用程序版本不兼容！守护进程版本： {{version}}, expected: {{required}}。请更新应用程序或守护进程。",
-  "daemon-not-connected": "没有守护程序连接，请联系我们的支持团队"
+  "daemon-not-connected": "没有守护程序连接，请联系我们的支持团队",
+  "streaming-optimized-label": "⏯️ Streaming-优化服务器现在已被标签",
+  "streaming-optimized-label-button": "现在浏览退出服务器"
 }

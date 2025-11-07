@@ -15,13 +15,15 @@ public extension HomeViewModel {
         }
 #endif
         resetStatusInfoState()
+
 #if os(macOS)
-        guard !helperManager.isInstallNeeded()
+        guard grpcManager.isServing
         else {
-            navigateToInstallHelper()
+            navigateToDaemonEnable()
             return
         }
 #endif
+
         // TODO: move to connection manager, do not check is valid imported if .connected
         if lastTunnelStatus != .connected {
             guard credentialsManager.isValidCredentialImported

@@ -82,6 +82,14 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    pub async fn rotate_keys(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RotateKeys(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
     pub async fn background_refresh_account_state(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

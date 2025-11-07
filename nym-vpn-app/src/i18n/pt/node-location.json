@@ -7,9 +7,15 @@
   "input-label": "Pesquisar",
   "quic-filter-note": "Exibir apenas locais do modo rápido e servidores que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC <here />.",
   "location-details": {
-    "title": "Detalhes sobre os locais dos servidores",
-    "description": "Inferimos a localização dos servidores com base em seus endereços IP, mas a localização real pode variar um pouco.",
-    "link": "Leia mais"
+    "streaming": {
+      "title": "Transmitindo",
+      "description": "<0>Servidores IP Residenciais</0> otimizados para acesso a streaming e conteúdo. Pode experimentar velocidades mais lentas devido a maior demanda e limitações de hardware."
+    },
+    "location": {
+      "title": "Precisão da localização",
+      "description": "As localizações exibidas são <1>determinadas a partir de endereços IP</1> e podem não refletir localizações físicas exatas."
+    },
+    "title": "Detalhes sobre os locais dos servidores"
   },
   "location-not-available": {
     "entry": "O local da entrada selecionada não está disponível, trocado para {{location}}",
@@ -59,5 +65,6 @@
       "explorer": "Mais detalhes no Nym <networkExplorerLink />"
     },
     "select-button": "Selecionar servidor"
-  }
+  },
+  "search-other-nodes": "Outros resultados da pesquisa"
 }

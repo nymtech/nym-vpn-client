@@ -7,9 +7,15 @@
   "input-label": "Tìm kiếm",
   "quic-filter-note": "Chỉ hiển thị các vị trí chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, tắt QUIC <here />.",
   "location-details": {
-    "title": "Chi tiết về vị trí máy chủ",
-    "description": "Chúng tôi suy luận vị trí máy chủ dựa trên địa chỉ IP, nhưng vị trí thực tế có thể chênh lệch đôi chút.",
-    "link": "Đọc thêm"
+    "streaming": {
+      "title": "Streaming",
+      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+    },
+    "location": {
+      "title": "Location accuracy",
+      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+    },
+    "title": "Chi tiết về vị trí máy chủ"
   },
   "location-not-available": {
     "entry": "Vị trí vào đã chọn không khả dụng, đã chuyển sang {{location}}",
@@ -59,5 +65,6 @@
       "explorer": "Xem chi tiết trong Nym <networkExplorerLink />"
     },
     "select-button": "Chọn máy chủ"
-  }
+  },
+  "search-other-nodes": "Các kết quả tìm kiếm khác"
 }

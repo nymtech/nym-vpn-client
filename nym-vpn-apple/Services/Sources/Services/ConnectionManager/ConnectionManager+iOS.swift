@@ -143,7 +143,11 @@ extension ConnectionManager {
             else {
                 return
             }
-            try await connectDisconnect(isAutoConnect: true)
+            isReconnecting = true
+            try await disconnectActiveTunnel()
+            await waitForTunnelStatus(with: .disconnected)
+            try await connectDisconnect()
+            isReconnecting = false
         } catch {
             lastError = error
         }
@@ -210,36 +214,17 @@ extension ConnectionManager {
     @MainActor public func connectDisconnect(isAutoConnect: Bool = false) async throws {
         do {
             let config = try generateConfig()
-            isReconnecting = isReconnecting(newConfig: config)
-            if isReconnecting {
-                // Reconnecting after change of country, 5hop...
+            // User "Connect" button actions
+            guard !isAutoConnect else { return }
+            if shouldDisconnectActiveTunnel() {
+                isDisconnecting = true
                 try await disconnectActiveTunnel()
+                lastError = nil
             } else {
-                // User "Connect" button actions
-                guard !isAutoConnect else { return }
-                if shouldDisconnectActiveTunnel() {
-                    isDisconnecting = true
-                    try await disconnectActiveTunnel()
-                    lastError = nil
-                } else {
-                    try await connect(with: config)
-                }
+                try await connect(with: config)
             }
         } catch let error {
             throw error
-        }
-    }
-
-    func updateTunnelStatusIfReconnecting() {
-        guard isReconnecting,
-              currentTunnelStatus == .disconnected
-        else {
-            return
-        }
-
-        Task { @MainActor in
-            isReconnecting = false
-            try? await connectDisconnect()
         }
     }
 

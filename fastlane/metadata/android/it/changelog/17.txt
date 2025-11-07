@@ -1,0 +1,3 @@
+Cosa c'è di nuovo:
+- Risolvere il problema della cache paese
+- Miglioramenti delle prestazioni Hilt

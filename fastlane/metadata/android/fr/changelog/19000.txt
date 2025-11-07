@@ -1,0 +1,9 @@
+Ce qui change :
+- Bouton de téléchargement ajouté à l'écran des journaux
+- Nouvel écran Confidentialité & Données
+- Introduction du flux de surveillance réseau
+- Écran de bienvenue ajouté
+- Mise à jour de l'interface utilisateur pour les modals et SnackBar
+- Améliorations du magasin de données
+- Corrections de plantages matériels sur des périphériques spécifiques
+- Correction du plantage du lecteur de logs sur certains appareils

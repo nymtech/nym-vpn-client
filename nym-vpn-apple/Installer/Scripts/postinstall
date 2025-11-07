@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+INSTALL_DIR=$2
+LOG_DIR=/var/log/nym-vpnd
+NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/MacOS/nym-setup"
+
+mkdir -p $LOG_DIR
+exec > $LOG_DIR/postinstall.log 2>&1
+
+echo "Running postinstall at $(date)"
+
+# Install launchd config
+"$NYM_SETUP_BIN" install-service

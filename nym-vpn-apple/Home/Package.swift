@@ -17,7 +17,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../HelperInstall"),
         .package(path: "../UIComponents"),
         .package(path: "../Settings"),
         .package(path: "../Services"),
@@ -39,10 +38,8 @@ let package = Package(
                 .product(name: "Device", package: "Services"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "ExternalLinkManager", package: "Services"),
-                .product(name: "HelperInstall", package: "HelperInstall", condition: .when(platforms: [.macOS])),
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "MessagesManager", package: "Services"),
                 .product(name: "Theme", package: "Theme")
             ],

@@ -7,7 +7,7 @@ use anyhow::{Result, anyhow};
 
 use nym_vpn_lib_types::{
     ConnectArgs as DaemonConnectArgs, ConnectOptions, EntryPoint, ExitPoint, NodeIdentity,
-    Recipient, StoreAccountRequest, UserAgent,
+    Recipient, StoreAccountRequest,
 };
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -79,11 +79,11 @@ pub enum Internal {
 }
 
 impl Command {
-    pub async fn execute(self, rpc_client: RpcClient, user_agent: UserAgent) -> Result<()> {
+    pub async fn execute(self, rpc_client: RpcClient) -> Result<()> {
         println!("This call is deprecated and going to be removed soon.");
 
         match self {
-            Command::Connect(connect_args) => connect(rpc_client, *connect_args, user_agent).await,
+            Command::Connect(connect_args) => connect(rpc_client, *connect_args).await,
             Command::SetNetwork(args) => set_network(rpc_client, args).await,
             Command::StoreAccount(store_args) => store_account(rpc_client, store_args).await,
             Command::IsAccountStored => is_account_stored(rpc_client).await,
@@ -328,11 +328,7 @@ pub struct ConfirmZkNymDownloadedArgs {
     pub id: String,
 }
 
-async fn connect(
-    mut rpc_client: RpcClient,
-    connect_args: ConnectArgs,
-    user_agent: UserAgent,
-) -> Result<()> {
+async fn connect(mut rpc_client: RpcClient, connect_args: ConnectArgs) -> Result<()> {
     let options = DaemonConnectArgs {
         entry: connect_args.entry_point()?,
         exit: connect_args.exit_point()?,
@@ -345,7 +341,7 @@ async fn connect(
             disable_poisson_rate: connect_args.disable_poisson_rate,
             disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
             enable_credentials_mode: connect_args.enable_credentials_mode,
-            user_agent: Some(user_agent),
+            user_agent: None,
         },
     };
 

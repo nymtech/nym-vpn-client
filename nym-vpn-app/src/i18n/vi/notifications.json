@@ -12,5 +12,7 @@
   },
   "copied-to-clipboard": "Đã sao chép vào bộ nhớ tạm",
   "daemon-no-compat": "Phiên bản daemon không tương thích với phiên bản ứng dụng! Phiên bản daemon: {{version}}, dự kiến: {{required}}. Vui lòng cập nhật ứng dụng hoặc daemon.",
-  "daemon-not-connected": "Không có kết nối với daemon, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi"
+  "daemon-not-connected": "Không có kết nối với daemon, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi",
+  "streaming-optimized-label": "⏯️ Streaming-optimized servers now labelled",
+  "streaming-optimized-label-button": "Browse exit servers now"
 }

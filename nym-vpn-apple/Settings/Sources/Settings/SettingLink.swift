@@ -1,7 +1,4 @@
 import Foundation
-#if os(macOS)
-import HelperInstall
-#endif
 
 public enum SettingLink: Hashable, Identifiable {
     case addCredentials
@@ -20,8 +17,8 @@ public enum SettingLink: Hashable, Identifiable {
     case privacyAndData
     case censorship
 #if os(macOS)
-    case installHelper(afterInstallAction: HelperAfterInstallAction)
     case appMode
+    case daemonEnable
 #endif
 
     public var id: String {

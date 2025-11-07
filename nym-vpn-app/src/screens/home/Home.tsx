@@ -20,6 +20,8 @@ import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
+import useStreamingOptimizedLabel from './useStreamingOptimizedLabel';
+import { setStreamOptimizedLabelSeen } from './util';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -54,6 +56,8 @@ function Home() {
     account &&
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
+
+  useStreamingOptimizedLabel();
 
   const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;
   const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
@@ -181,6 +185,7 @@ function Home() {
     } else {
       resetNodeList('exit');
       navigate(routes.exitNodeLocation);
+      setStreamOptimizedLabelSeen(dispatch);
     }
   };
 

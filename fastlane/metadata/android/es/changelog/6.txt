@@ -1,0 +1,4 @@
+Novedades:
+- Añadida pantalla de registros
+- Mejor visualización del estado de VPN
+- Añadido Sentry

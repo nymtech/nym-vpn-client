@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Aggiungi integrazione vpn lib
+- Schermata di avvio
+- Elenco paesi

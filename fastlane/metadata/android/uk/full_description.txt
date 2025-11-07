@@ -1,34 +1,50 @@
-Зупиніть стеження: єдиний VPN, що не може шпигувати за вами
+Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
 
-Втомилися від онлайн-нагляду? Звичайні VPN проводять ваші дані через центральний сервер, який може відстежувати вас. NymVPN інший: наша децентралізована мережа без центральної влади, логів бути не може. Це не просто “no-logs”, а “неможливо логувати”.
+⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-Створений командою PhD-дослідників та криптографів з 20+ науковими публікаціями. Працює через сотні незалежних серверів у 50+ країнах. Розроблений разом з KU Leuven і EPFL, штаб-квартира у Швейцарії. Наша місія — приватність для кожного.
+BROWSE WITHOUT LEAVING A TRACE
 
-ОБЕРІТЬ СВІЙ РІВЕНЬ ПРИВАТНОСТІ
-- Швидкий режим: 2-hop з’єднання з AmneziaWG. Перший хоп знає вашу особу, але не дії; другий — дії, але не особу.
-- Анонімний режим: максимальна приватність через 5-hop Mixnet (мікс-мережу) з багатошаровим шифруванням. Фальшиві пакети та шум роблять відстеження неможливим.
+Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
 
-ЧОМУ NYMVPN ОСОБЛИВИЙ
-- Справжня анонімність: без e-mail та імені. Оплата криптовалютою або готівкою.
-- Захист метаданих: не лише вміст, але й шаблони трафіку.
-- Стійкість до цензури: доступ до заблокованих сайтів.
-- Захист кількох пристроїв: один код для 10 пристроїв.
+✓ True anonymity: Pay with crypto or cash, no email required
+✓ 50+ countries, hundreds of independent servers
+✓ Multi-device protection: 10 devices with one anonymous code
+✓ Swiss-based with academic-grade privacy standards
 
-НЕЗАЛЕЖНА ПЕРЕВІРКА
-- 4 аудити безпеки (2021–2024)
-- 20+ публікацій
-- Прозорість через CDT “Signals of Trustworthy VPNs”
+CHOOSE YOUR PRIVACY LEVEL
 
-ОСНОВНІ ФУНКЦІЇ
-- Kill switch
-- Сервери у 50+ країнах
-- Без реклами
-- Сучасна криптографія
+⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
+🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
 
-НОВІ МОЖЛИВОСТІ (2025)
-- Split tunneling
-- Резидентські IP
-- Пост-квантова криптографія
-- Поглиблений захист від цензури
+ЧОМУ NYMVPN ВІДРІЗНЯЄТЬСЯ
 
-Завантажте, підключіться та зникніть — станьте невидимим за секунди. Спробуйте NymVPN з 30-денною гарантією повернення коштів.
+• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
+• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
+• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
+• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
+
+НЕЗАЛЕЖНО ПЕРЕВІРЕНО
+
+• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
+• Open-source and transparent ("Signals of Trustworthy VPNs")
+• 10,000+ users already trust NymVPN for their privacy
+
+ОСНОВНІ ХАРАКТЕРИСТИКИ
+
+• High-speed connections with 50+ country selection
+• Kill switch prevents data leaks
+• Completely ad-free experience
+• State-of-the-art cryptographic stack
+
+
+PERFECT FOR
+
+→ Streaming and browsing without being tracked by advertisers
+→ Secure public WiFi connections at cafes, airports, hotels
+→ Anyone in restrictive countries needing reliable access
+→ People who want true anonymity, not just hidden IP addresses
+→ Journalists and activists needing untraceable communication
+
+Download now. Connect in seconds. Disappear online.
+
+🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide

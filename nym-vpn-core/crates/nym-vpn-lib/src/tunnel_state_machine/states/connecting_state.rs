@@ -53,6 +53,12 @@ const DELAY_MULTIPLIER: u32 = 2;
 /// Max wait delay between retry attempts.
 const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
 
+/// Number of fast retry attempts before switching to exponential backoff.
+const FAST_RETRY_ATTEMPTS: u32 = 2;
+
+/// Fast retry delay for network recovery scenarios (first FAST_RETRY_ATTEMPTS).
+const NETWORK_RECOVERY_DELAY: Duration = Duration::from_millis(500);
+
 type ResolveApiAddrsFuture = BoxFuture<'static, Result<ResolvedConfig>>;
 type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
@@ -141,7 +147,7 @@ impl ConnectingState {
         let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
             let wait_delay = wait_delay(retry_attempt);
-            tracing::info!("Waiting {}s before reconnect", wait_delay.as_secs());
+            tracing::info!("Waiting {}ms before reconnect", wait_delay.as_millis());
             tokio::time::sleep(wait_delay).boxed().fuse()
         } else {
             std::future::ready(()).boxed().fuse()
@@ -353,6 +359,7 @@ impl ConnectingState {
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
+            user_agent: shared_state.user_agent.clone(),
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
@@ -813,7 +820,44 @@ impl ConnectingPolicyParameters {
 }
 
 fn wait_delay(retry_attempt: u32) -> Duration {
-    let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
-    let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
-    std::cmp::min(delay, MAX_WAIT_DELAY)
+    // Use fast retries for the first FAST_RETRY_ATTEMPTS to handle network recovery
+    // where the network reports as "online" before DNS/routing are ready.
+    if retry_attempt <= FAST_RETRY_ATTEMPTS {
+        NETWORK_RECOVERY_DELAY
+    } else {
+        // After fast retries, use exponential backoff for persistent failures
+        let multiplier = retry_attempt
+            .saturating_sub(FAST_RETRY_ATTEMPTS)
+            .saturating_mul(DELAY_MULTIPLIER);
+        let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
+        std::cmp::min(delay, MAX_WAIT_DELAY)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn wait_delay_sequence() {
+        let retry_attempt_values: Vec<u32> = (0..10).collect();
+        let expected_delays: [Duration; 10] = [
+            NETWORK_RECOVERY_DELAY,
+            NETWORK_RECOVERY_DELAY,
+            NETWORK_RECOVERY_DELAY,
+            Duration::from_secs(4),
+            Duration::from_secs(8),
+            Duration::from_secs(12),
+            MAX_WAIT_DELAY,
+            MAX_WAIT_DELAY,
+            MAX_WAIT_DELAY,
+            MAX_WAIT_DELAY,
+        ];
+
+        let delay_values: Vec<Duration> = retry_attempt_values
+            .iter()
+            .map(|i| wait_delay(*i))
+            .collect();
+        assert_eq!(delay_values, expected_delays);
+    }
 }

@@ -1,0 +1,4 @@
+Quais as novidades:
+- Adicionar tela de logs
+- Melhorar exibição de status de VPN
+- Adicionar referência

@@ -6,7 +6,7 @@ use tabled::Table;
 
 use nym_vpn_lib_types::{
     EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, ListGatewaysOptions, NodeIdentity,
-    Recipient, UserAgent,
+    Recipient,
 };
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -145,7 +145,7 @@ pub struct FilterArgs {
 }
 
 impl Args {
-    pub async fn execute(self, mut rpc_client: RpcClient, user_agent: UserAgent) -> Result<()> {
+    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self.command {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
@@ -176,8 +176,7 @@ impl Args {
                 Ok(())
             }
             Command::List { gateway_type } => {
-                self.list_gateways(rpc_client, gateway_type, user_agent)
-                    .await?;
+                self.list_gateways(rpc_client, gateway_type).await?;
                 Ok(())
             }
             Command::ListFiltered {
@@ -191,16 +190,11 @@ impl Args {
         }
     }
 
-    async fn list_gateways(
-        &self,
-        mut rpc_client: RpcClient,
-        gw_type: GatewayType,
-        user_agent: UserAgent,
-    ) -> Result<()> {
+    async fn list_gateways(&self, mut rpc_client: RpcClient, gw_type: GatewayType) -> Result<()> {
         let gateways = rpc_client
             .list_gateways(ListGatewaysOptions {
                 gw_type: gw_type.into(),
-                user_agent: Some(user_agent),
+                user_agent: None,
             })
             .await?;
 
