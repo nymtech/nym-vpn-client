@@ -21,12 +21,14 @@ data class AppUiState(
 	val entryPointCountry = when (val entry = settings.entryPoint) {
 		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode
+		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region.equals(entry.region, true) }?.twoLetterCountryISO
 		else -> null
 	}
 	val exitPointCountry = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> null
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode
+		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region.equals(exit.region, true) }?.twoLetterCountryISO
 		else -> null
 	}
 
@@ -40,7 +42,6 @@ data class AppUiState(
 				null
 			}
 		}
-
 		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }
 		else -> null
 	}
@@ -55,7 +56,6 @@ data class AppUiState(
 				null
 			}
 		}
-
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }
 		else -> null
 	}
@@ -64,11 +64,8 @@ data class AppUiState(
 		is EntryPoint.Gateway -> {
 			gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
 		}
-
 		is EntryPoint.Country -> entry.toDisplayCountry()
-		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.entryPointNameForRegion(entry.region)
-			?: entry.region
-
+		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region
 		else -> Settings.DEFAULT_ENTRY_POINT.toDisplayCountry()
 	}
 
@@ -77,9 +74,8 @@ data class AppUiState(
 		is ExitPoint.Gateway -> {
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
-
 		is ExitPoint.Country -> exit.toDisplayCountry()
-		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region == exit.region }?.entryPointNameForRegion(exit.region) ?: exit.region
+		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region
 		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
 	}
 
@@ -88,8 +84,7 @@ data class AppUiState(
 		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull {
 			it.identity == entry.identity
 		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
-
-		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.serverLocationOnRegionSelection()
+		is EntryPoint.Region -> entryPointGateway?.serverLocationOnRegionSelection()
 		else -> null
 	}
 
@@ -98,8 +93,7 @@ data class AppUiState(
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull {
 			it.identity == exit.identity
 		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
-
-		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region == exit.region }?.serverLocationOnRegionSelection()
+		is ExitPoint.Region -> exitPointGateway?.serverLocationOnRegionSelection()
 		else -> null
 	}
 
@@ -107,12 +101,14 @@ data class AppUiState(
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Gateway -> exit.identity
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode.lowercase()
+		is ExitPoint.Region -> exit.region
 		else -> null
 	}
 
 	val entryPointId = when (val entry = settings.entryPoint) {
 		is EntryPoint.Gateway -> entry.identity
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
+		is EntryPoint.Region -> entry.region
 		else -> null
 	}
 }
@@ -131,6 +127,6 @@ private fun NymGateway.serverLocationOnRegionSelection(): String? {
 	return this.city.orEmpty() + " (${this.name})"
 }
 
-private fun NymGateway.entryPointNameForRegion(region: String): String {
+private fun NymGateway.entryPointNameForRegion(): String {
 	return listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")
 }

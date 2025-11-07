@@ -1,8 +1,14 @@
 import SwiftUI
 import AppSettings
+#if os(macOS)
+import GRPCManager
+#endif
 import NymLogger
 
 struct SettingsFlowCoordinator<Content: View>: View {
+#if os(macOS)
+    @EnvironmentObject private var grpcManager: GRPCManager
+#endif
     @EnvironmentObject private var logFileManager: LogFileManager
 
     @ObservedObject var flowState: SettingsFlowState
@@ -51,6 +57,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
 #if os(macOS)
         case .appMode:
             appModeDestination()
+        case .daemonEnable:
+            DaemonInstallView(isServing: $grpcManager.isServing, path: $flowState.path)
 #endif
         case .privacyAndData:
             privacyAndDataDestination()

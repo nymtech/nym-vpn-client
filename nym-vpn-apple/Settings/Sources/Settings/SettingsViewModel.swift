@@ -24,7 +24,9 @@ import UIComponents
     }
 
     let settingsTitle = "settings".localizedString
-
+#if os(macOS)
+    @Binding private var isServing: Bool
+#endif
     @Published var isLogoutConfirmationDisplayed = false
     @Published var sections: [SettingsSection] = []
     @Published var accountIdentifier: String?
@@ -69,6 +71,7 @@ import UIComponents
     }
 #elseif os(macOS)
     public init(
+        isServing: Binding<Bool>,
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
         configurationManager: ConfigurationManager,
@@ -77,6 +80,7 @@ import UIComponents
         externalLinkManager: ExternalLinkManager,
         featureFlagsManager: FeatureFlagsManager
     ) {
+        _isServing = isServing
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.connectionManager = connectionManager
@@ -99,6 +103,11 @@ import UIComponents
 
     func navigateToAddCredentialsOrCredential() {
 #if os(macOS)
+        guard isServing
+        else {
+            path.append(SettingLink.daemonEnable)
+            return
+        }
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {

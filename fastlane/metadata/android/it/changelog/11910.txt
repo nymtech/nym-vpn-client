@@ -1,0 +1,2 @@
+Cosa c'è di nuovo:
+- Corretto crash in background

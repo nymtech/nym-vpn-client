@@ -1,0 +1,5 @@
+Yenilikler:
+Gateway seçim ayrıntıları
+- Veri kullanım optimizasyonları
+- Tile senkronizasyonu düzeltmeleri
+- Diğer hata onarımları ve geliştirmeler.

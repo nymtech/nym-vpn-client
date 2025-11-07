@@ -12,10 +12,20 @@ on:
         description: "Select build mode"
         type: choice
         options:
-          - "pr — Pull Request (unsigned debug build)"
-          - "qa — QA Release (signed, automatic, TestFlight/App Store export)"
-          - "ship — Ship Release (signed, automatic, App Store distribution)"
+          - "🚜 pr — Pull Request (unsigned debug build)"
+          - "🧪✈️ qa — QA Release (signed, TestFlight/App Store export)"
+          - "🚢🚢🚢 ship — Ship Release (signed, App Store distribution)"
         default: "pr — Pull Request (unsigned debug build)"
+      build_ios:
+        description: "📱 iOS app (only applies for QA/Ship builds)"
+        required: false
+        type: boolean
+        default: false
+      build_macos:
+        description: "🖥️ macOS app (only applies for QA/Ship builds)"
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       release_type:
@@ -300,7 +310,7 @@ jobs:
           echo "✅ Signed archive + .ipa exported"
 
       - name: Upload to TestFlight
-        if: env.RELEASE_TYPE != 'pr'
+        if: env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true'
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -311,7 +321,9 @@ jobs:
 
           echo "🚀 Uploading to TestFlight..."
           app-store-connect publish
+            # --beta-group=
             # --testflight // uncomment later on and add groups
+            # --expire-build-submitted-for-review
 
           echo "✅ Upload completed successfully."
 
@@ -394,6 +406,7 @@ jobs:
           echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Create PKG
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: make-pkg
         working-directory: nym-vpn-apple
         env:
@@ -414,13 +427,15 @@ jobs:
           PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
-          COMPONENT_PLIST_FILE="$TMPDIR/component.plist"
+          COMPONENT_PLIST_FILE="$STAGING_DIRECTORY/component.plist"
           DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
           UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
           NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
-          SCRIPTS_DIR="$PWD/PkgScripts"
+          SCRIPTS_DIR="$PWD/Installer/Scripts"
+          # Directory with pkg resources (images)
+          RESOURCES_DIR="$PWD/Installer/Resources"
 
           # Ensure that staging directory is empty and exists
           rm -rf "$STAGING_DIRECTORY" || true
@@ -442,8 +457,6 @@ jobs:
           # Allow downgrades
           plutil -replace "0.BundleIsVersionChecked" -bool NO "$COMPONENT_PLIST_FILE"
 
-          ls -la "$STAGING_APP_DIR"
-
           # Build a temporary package using the component property list.
           pkgbuild --root "$STAGING_APP_DIR" \
               --identifier "$PRODUCT_BUNDLE_IDENTIFIER" \
@@ -462,6 +475,7 @@ jobs:
           # - enable_anywhere=false - restrict installation to system volume only, i.e no installs on external drives
           # - enable_currentUserHome=false - prevent installation into home dir
           # - enable_localSystem=true - enable installation into root
+          # Reference: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
           xmlstarlet edit --inplace \
               --subnode '//installer-gui-script' --type elem -n 'domains' \
               --append '//installer-gui-script/domains' --type attr -n 'enable_anywhere' --value 'false' \
@@ -469,14 +483,51 @@ jobs:
               --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
               "$DIST_XML_FILE"
 
+          # Add element to prompt user to close the app before installation
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "pkg-ref" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'id' --value 'net.nymtech.vpn' \
+            --subnode '$new_node' --type elem -n 'must-close' \
+            --var new_node '$prev' \
+            --subnode '$new_node' --type elem -n 'app' \
+            --append '$prev' --type attr -n 'id' --value 'net.nymtech.vpn' \
+            "$DIST_XML_FILE"
+
           # Add title which acts as an app name
           xmlstarlet edit --inplace \
-            --insert '//installer-gui-script/node()[1]' \
+            --subnode '//installer-gui-script' \
             --type elem --name "title" --value "$PRODUCT_NAME" \
             "$DIST_XML_FILE"
 
+          # Add background image for light mode
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "background" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+            --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
+            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+            "$DIST_XML_FILE"
+
+          # Add background image for dark mode
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "background-darkAqua" \
+            --var new_node '$prev' \
+            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+            --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
+            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+            "$DIST_XML_FILE"
+
+          echo "✅ Distribution XML:"
+          cat "$DIST_XML_FILE"
+
           # Synthesize the final package from the distribution.
-          productbuild --distribution "$DIST_XML_FILE" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
+          productbuild --distribution "$DIST_XML_FILE" --resources "$RESOURCES_DIR" --package-path "$STAGING_DIRECTORY" "$UNSIGNED_PKG_PATH"
           echo "✅ Unsigned PKG is written to: $UNSIGNED_PKG_PATH"
 
           # Sign separately since productbuild gets stuck on keychain password prompt when signing
@@ -489,7 +540,7 @@ jobs:
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
-        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -503,7 +554,7 @@ jobs:
           echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize PKG (Developer Installer ID)
-        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: notarize-pkg
         working-directory: nym-vpn-apple
         env:
@@ -555,7 +606,7 @@ jobs:
           echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifacts (QA / Ship)
-        if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}

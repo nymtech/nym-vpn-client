@@ -816,8 +816,8 @@ impl tunnel::Error {
                 }
             }
             Self::RegistrationClient(e) => match *e {
-                nym_registration_client::RegistrationClientError::EntryGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
-                nym_registration_client::RegistrationClientError::ExitGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
+                nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
+                nym_registration_client::RegistrationClientError::WireguardExitRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
                 _ => None,
             }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(

@@ -1,0 +1,5 @@
+Was ist neu:
+- Ablaufzeit der Anmeldeinformationen
+- QR-Code nach Anmeldeinformationen
+- Link beenden
+- UI-Erweiterungen

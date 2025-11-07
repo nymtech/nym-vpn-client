@@ -1,0 +1,8 @@
+Có gì mới:
+- Cải thiện và sửa lỗi điều hướng
+- Cải thiện tác vụ xuất nhật ký
+- Hiệu suất ứng dụng ổn định hơn
+- Cải thiện giao diện người dùng và trải nghiệm người dùng
+- Cập nhật thông báo lỗi và thông tin
+- Cải thiện xử lý thông báo
+- Triển khai kiểm tra quyền chạy phù hợp

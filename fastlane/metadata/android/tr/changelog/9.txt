@@ -1,0 +1,4 @@
+Yenilikler:
+- Navigasyon animasyonu hatası düzeltildi
+- Giriş bilgisi doğrulama ekranı hataları düzeltildi
+- Ülke listesi API ve arama düzeltildi

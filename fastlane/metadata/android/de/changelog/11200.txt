@@ -1,0 +1,2 @@
+Was ist neu:
+- Fehler beim Absturz von Logs beheben

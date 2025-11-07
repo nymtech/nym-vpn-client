@@ -1,0 +1,5 @@
+Yenilikler:
+- Bağlantı arayüzü senkronizasyon hatası düzeltildi
+- Hata mesajları iyileştirildi
+- İzin reddedildi akışı eklendi
+- Yayın sürümünden hata ayıklama günlükleri kaldırıldı

@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.settings.censorship.components
 
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
+import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.TunnelState
 
 enum class ConnectionStatus {
@@ -11,6 +12,7 @@ enum class ConnectionStatus {
 }
 
 internal fun getConnectionStatus(appUiState: AppUiState): ConnectionStatus {
+	if (appUiState.settings.vpnMode != Tunnel.Mode.TWO_HOP_MIXNET) return ConnectionStatus.Disconnected
 	return when (appUiState.managerState.tunnelState) {
 		TunnelState.Connected -> {
 			val isQuicSupported = appUiState.managerState.connectionData?.entryGateway?.id?.let { connectedGatewayId ->

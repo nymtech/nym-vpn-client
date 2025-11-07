@@ -1,0 +1,2 @@
+What's new:
+- Fixes logs crash bug

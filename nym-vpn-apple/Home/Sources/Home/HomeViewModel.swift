@@ -55,6 +55,10 @@ import GRPCManager
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
 
+#if os(macOS)
+    @Published public var isServing = false
+#endif
+
     @MainActor @Published var activeTunnel: Tunnel?
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
 
@@ -193,6 +197,13 @@ public extension HomeViewModel {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
 #endif
     }
+
+#if os(macOS)
+    func navigateToDaemonEnable() {
+        path.append(HomeLink.settings)
+        path.append(SettingLink.daemonEnable)
+    }
+#endif
 }
 
 // MARK: - Configuration -
