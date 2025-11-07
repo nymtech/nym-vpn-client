@@ -12,10 +12,20 @@ on:
         description: "Select build mode"
         type: choice
         options:
-          - "pr — Pull Request (unsigned debug build)"
-          - "qa — QA Release (signed, automatic, TestFlight/App Store export)"
-          - "ship — Ship Release (signed, automatic, App Store distribution)"
+          - "🚜 pr — Pull Request (unsigned debug build)"
+          - "🧪✈️ qa — QA Release (signed, TestFlight/App Store export)"
+          - "🚢🚢🚢 ship — Ship Release (signed, App Store distribution)"
         default: "pr — Pull Request (unsigned debug build)"
+      build_ios:
+        description: "📱 iOS app (only applies for QA/Ship builds)"
+        required: false
+        type: boolean
+        default: false
+      build_macos:
+        description: "🖥️ macOS app (only applies for QA/Ship builds)"
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       release_type:
@@ -300,7 +310,7 @@ jobs:
           echo "✅ Signed archive + .ipa exported"
 
       - name: Upload to TestFlight
-        if: env.RELEASE_TYPE != 'pr'
+        if: env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true'
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -311,7 +321,9 @@ jobs:
 
           echo "🚀 Uploading to TestFlight..."
           app-store-connect publish
+            # --beta-group=
             # --testflight // uncomment later on and add groups
+            # --expire-build-submitted-for-review
 
           echo "✅ Upload completed successfully."
 
@@ -394,6 +406,7 @@ jobs:
           echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Create PKG
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: make-pkg
         working-directory: nym-vpn-apple
         env:
@@ -527,7 +540,7 @@ jobs:
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
-        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -541,7 +554,7 @@ jobs:
           echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize PKG (Developer Installer ID)
-        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: notarize-pkg
         working-directory: nym-vpn-apple
         env:
@@ -593,7 +606,7 @@ jobs:
           echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifacts (QA / Ship)
-        if: ${{ always() && (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
