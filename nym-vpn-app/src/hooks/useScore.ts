@@ -48,7 +48,7 @@ function useScore() {
           };
         case 'medium':
           return {
-            color: 'text-king-nacho',
+            color: 'dark:text-king-nacho text-cheddar',
             label: t('node-details.server-load-score.medium'),
           };
         case 'high':
