@@ -9,8 +9,8 @@ use crate::tunnel_state_machine::{
     states::{ConnectingState, OfflineState},
     tunnel::Tombstone,
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
-use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct DisconnectedState;
 
@@ -19,36 +19,19 @@ impl DisconnectedState {
         tombstone: Option<Tombstone>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .ok();
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(false))
-            .ok();
-
         #[cfg(target_os = "macos")]
         Self::reset_dns(shared_state).await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_firewall_policy(shared_state);
 
-        if let Err(e) = shared_state
-            .account_command_tx
-            .set_resolver_overrides(None)
-            .await
-        {
-            trace_err_chain!(e, "Failed to unset static API addresses");
-        }
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_down()
-            .await;
-
         // Drop tombstone to close tunnel devices.
         let _ = tombstone;
+
+        // Reset resolver overrides and allow all networking since firewall is no longer active
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        shared_state.reset_resolver_overrides().await;
+        shared_state.allow_networking().await;
 
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }
