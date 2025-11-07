@@ -96,7 +96,10 @@ function NodeDetails() {
           icon="check"
         />
       ) : (
-        <MsIcon className="text-cheddar text-xl" icon="circle" />
+        <MsIcon
+          className="dark:text-king-nacho text-cheddar text-xl"
+          icon="circle"
+        />
       )}
       <p className="whitespace-nowrap truncate">{feature}</p>
     </DataRow>
