@@ -12,6 +12,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
+import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
@@ -20,6 +21,7 @@ import net.nymtech.vpn.util.extensions.asExitPoint
 import nym_vpn_lib_types.GatewayType
 import timber.log.Timber
 import java.text.Collator
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,10 +39,12 @@ class HopViewModel @Inject constructor(
 	private var allGateways: List<NymGateway> = emptyList()
 	private var isQuicOnlyGatewaysFilterRequired = false
 	private var isExitScreen = false
+	private var tunnelMode = Tunnel.Mode.FIVE_HOP_MIXNET
 
 	init {
 		viewModelScope.launch {
 			updateQuicState()
+			tunnelMode = settingsRepository.getVpnMode()
 
 			gatewayRepository.gatewayFlow.collect { gateways ->
 				val type = gatewayType ?: return@collect
@@ -94,42 +98,56 @@ class HopViewModel @Inject constructor(
 	}
 
 	private fun updateFilteredData(gateways: List<NymGateway>, query: String) {
-		val collator = Collator.getInstance()
 		val lowercaseQuery = query.lowercase()
+		val collator = Collator.getInstance()
+		val resultItems = mutableListOf<ItemType>()
 
-		val filteredCountries = gateways.asSequence()
-			.distinctBy { it.twoLetterCountryISO }
+		// 1. First, apply universal filters (like QUIC support) to get an eligible pool.
+		val eligibleGateways = gateways.asSequence()
+			.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
+
+		// 2. Group all eligible gateways by country. This is our base structure.
+		val allCountryGroups = eligibleGateways
 			.filter { it.twoLetterCountryISO != null }
-			.filter {
-				!isQuicOnlyGatewaysFilterRequired || it.isQuicSupported()
-			} // if @isQuicOnlyGatewaysFilterRequired is true than only check for if it supported by Quic
-			.mapNotNull { it.toLocale() }
-			.filter {
-				it.displayCountry.lowercase().contains(lowercaseQuery) ||
-					it.country.lowercase().contains(lowercaseQuery) ||
-					it.isO3Country.lowercase().contains(lowercaseQuery)
-			}
-			.sortedWith(compareBy(collator) { it.displayCountry })
-			.toList()
+			.groupBy { it.toLocale() }
 
-		val filteredGateways = if (query.isNotBlank()) {
-			gateways
+		// 3. Process the country groups to create the final list of items.
+		val countryItems = allCountryGroups
+			.filter { (locale, countryGateways) ->
+				locale != null &&
+					(
+						locale.displayCountry.lowercase().contains(lowercaseQuery) ||
+							locale.country.lowercase().contains(lowercaseQuery) ||
+							locale.isO3Country.lowercase().contains(lowercaseQuery) ||
+							countryGateways.any { it.region?.lowercase()?.contains(lowercaseQuery) == true }
+						)
+			}
+			.mapNotNull { (locale, countryGateways) ->
+				if (locale == null) return@mapNotNull null
+				val sortedByScore = countryGateways.scoreSorted(tunnelMode)
+				createCountryItem(locale, sortedByScore)
+			}
+			.distinctBy { it.locale.displayCountry }
+			.sortedWith(compareBy(collator) { it.locale.displayCountry })
+
+		resultItems.addAll(countryItems)
+
+		// 4. If a query is active, direct matches to the bottom of the final list.
+		if (query.isNotBlank()) {
+			val gatewayItems = eligibleGateways
 				.filter {
 					it.identity.lowercase().contains(lowercaseQuery) ||
 						it.name.lowercase().contains(lowercaseQuery)
 				}
-				.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
-				.sortedWith(compareBy(collator) { it.identity })
-		} else {
-			emptyList()
+				.distinctBy { it.identity }
+				.toList()
+				.scoreSorted(tunnelMode)
+				.map { ItemType.GatewayItem(it) }
+
+			resultItems.addAll(gatewayItems)
 		}
 
-		_uiState.update {
-			it.copy(
-				countries = filteredCountries,
-				queriedGateways = filteredGateways,
-			)
-		}
+		_uiState.update { it.copy(items = resultItems) }
 	}
 
 	fun onSelected(id: String, gatewayLocation: GatewayLocation) = viewModelScope.launch {
@@ -141,5 +159,24 @@ class HopViewModel @Inject constructor(
 		}.onFailure {
 			Timber.e(it)
 		}
+	}
+
+	/**
+	 * Helper function to create a CountryItem, handling region grouping for the US.
+	 */
+	private fun createCountryItem(locale: Locale, gateways: List<NymGateway>): ItemType.CountryItem {
+		val regions = if (locale.country.equals("us", ignoreCase = true)) {
+			gateways.filter { it.region != null }
+				.groupBy { it.region }
+				.mapNotNull { (region, regionGateways) ->
+					if (region == null) return@mapNotNull null
+
+					ItemType.CountryItem.Region(region, regionGateways)
+				}
+				.sortedBy { it.region }
+		} else {
+			null
+		}
+		return ItemType.CountryItem(locale, gateways, regions)
 	}
 }
