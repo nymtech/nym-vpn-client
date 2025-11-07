@@ -6,7 +6,7 @@ import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
 import { countriesWithRegions } from '../../../constants';
 import QuicTag from '../QuicTag';
-import { getScoreIcon } from './util';
+import { ScoreIndicator } from './ScoreIndicator';
 
 type GatewayRowProps = {
   ref?: React.Ref<HTMLDivElement>;
@@ -30,7 +30,7 @@ const GatewayItem = ({
   inSearchResult,
 }: GatewayRowProps) => {
   const { isSelected } = gateway;
-  const scoreIcon = getScoreIcon(gateway, vpnMode);
+  const score = vpnMode === 'mixnet' ? gateway.mxScore : gateway.wgScore;
   const { getCountryName } = useLang();
 
   const handleSelect = () => {
@@ -77,11 +77,7 @@ const GatewayItem = ({
         />
         <div className="flex flex-row items-center p-2 gap-4 overflow-hidden">
           <div className="flex">
-            <MsIcon
-              className={clsx(scoreIcon[1], 'text-xl')}
-              icon={scoreIcon[0]}
-              data-testid={`gateway-score-icon-${gateway.id.substring(0, 8)}`}
-            />
+            <ScoreIndicator score={score} />
           </div>
           <div className="flex flex-col text-start overflow-hidden">
             <p
