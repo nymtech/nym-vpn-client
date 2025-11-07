@@ -40,6 +40,7 @@ data class AppUiState(
 				null
 			}
 		}
+
 		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }
 		else -> null
 	}
@@ -54,6 +55,7 @@ data class AppUiState(
 				null
 			}
 		}
+
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }
 		else -> null
 	}
@@ -62,8 +64,11 @@ data class AppUiState(
 		is EntryPoint.Gateway -> {
 			gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
 		}
+
 		is EntryPoint.Country -> entry.toDisplayCountry()
-		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.entryPointNameForRegion(entry.region) ?: entry.region
+		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.entryPointNameForRegion(entry.region)
+			?: entry.region
+
 		else -> Settings.DEFAULT_ENTRY_POINT.toDisplayCountry()
 	}
 
@@ -72,6 +77,7 @@ data class AppUiState(
 		is ExitPoint.Gateway -> {
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
+
 		is ExitPoint.Country -> exit.toDisplayCountry()
 		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region == exit.region }?.entryPointNameForRegion(exit.region) ?: exit.region
 		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
@@ -82,6 +88,7 @@ data class AppUiState(
 		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull {
 			it.identity == entry.identity
 		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
+
 		is EntryPoint.Region -> gateways.entryGateways.firstOrNull { it.region == entry.region }?.serverLocationOnRegionSelection()
 		else -> null
 	}
@@ -91,6 +98,7 @@ data class AppUiState(
 		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull {
 			it.identity == exit.identity
 		}?.let { it.serverLocationOnGatewaySelection(it.twoLetterCountryISO.orEmpty()) }
+
 		is ExitPoint.Region -> gateways.exitGateways.firstOrNull { it.region == exit.region }?.serverLocationOnRegionSelection()
 		else -> null
 	}

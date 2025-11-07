@@ -132,7 +132,9 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 					style = MaterialTheme.typography.titleMedium,
 				)
 			},
-			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+			modifier = Modifier
+				.fillMaxWidth()
+				.height(56.dp.scaledHeight()),
 			color = MaterialTheme.colorScheme.surface,
 			borderStroke = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onSurface),
 		)

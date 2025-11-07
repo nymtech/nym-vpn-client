@@ -91,6 +91,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 					GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
 				}
 			}
+
 			Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
 		}
 	}
@@ -162,7 +163,13 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 							.background(Color.Transparent, RoundedCornerShape(30.dp)),
 						placeholder = { Text(stringResource(R.string.search_country), color = MaterialTheme.colorScheme.outline) },
 						singleLine = true,
-						leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
+						leading = {
+							Icon(
+								Icons.Rounded.Search,
+								contentDescription = stringResource(R.string.search),
+								modifier = Modifier.size(iconSize),
+							)
+						},
 						label = { Text(stringResource(R.string.search)) },
 						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
 					)
@@ -298,7 +305,10 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 									}
 								},
 								trailing = {
-									ServerDetailsTrailingContent(showStreamDisplay = showStreamDisplay, showQuicLabel = canShowQuicLabel && gateway.isQuicSupported()) {
+									ServerDetailsTrailingContent(
+										showStreamDisplay = showStreamDisplay,
+										showQuicLabel = canShowQuicLabel && gateway.isQuicSupported(),
+									) {
 										navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
 									}
 								},
@@ -346,9 +356,12 @@ internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
 			),
 		) {
 			withLink(
-				LinkAnnotation.Clickable("quic", linkInteractionListener = {
-					onNavigateToQuicSettings()
-				}),
+				LinkAnnotation.Clickable(
+					"quic",
+					linkInteractionListener = {
+						onNavigateToQuicSettings()
+					},
+				),
 			) {
 				append(stringResource(R.string.here))
 			}

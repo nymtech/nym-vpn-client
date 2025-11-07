@@ -102,6 +102,7 @@ constructor(
 			}
 		}
 	}
+
 	companion object {
 		private const val NOTIFICATION_ID = 42
 	}

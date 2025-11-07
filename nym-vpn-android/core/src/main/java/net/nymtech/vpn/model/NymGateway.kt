@@ -76,6 +76,7 @@ data class NymGateway(
 			is SdkBridgeParameter.QuicPlain -> BridgeParameter.QuicPlain()
 		}
 	}
+
 	override fun toString(): String {
 		return Json.encodeToString(serializer(), this)
 	}

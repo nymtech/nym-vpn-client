@@ -52,6 +52,7 @@ fun ConnectionStateDisplay(connectionState: ConnectionState, stateMessage: State
 				)
 			}
 		}
+
 		is ConnectionState.Connecting ->
 			PillLabel(
 				text = text,
@@ -73,6 +74,7 @@ fun ConnectionStateDisplay(connectionState: ConnectionState, stateMessage: State
 			backgroundColor = determinePillColor(CustomColors.statusRedLight, CustomColors.statusRed),
 			textColor = MaterialTheme.colorScheme.onSurface,
 		)
+
 		ConnectionState.WaitingForConnection -> PillLabel(
 			text = text,
 			backgroundColor = determinePillColor(CustomColors.statusDefaultLight, CustomColors.statusDefaultDark),

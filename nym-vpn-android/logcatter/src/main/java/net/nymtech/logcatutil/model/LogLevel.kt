@@ -30,7 +30,8 @@ enum class LogLevel(val signifier: String) {
 		override fun color(): Long {
 			return 0xFF000000
 		}
-	}, ;
+	},
+	;
 
 	abstract fun color(): Long
 

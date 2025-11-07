@@ -107,7 +107,12 @@ fun SettingsScreen(
 			)
 			AccountSection(appUiState = appUiState, context = context)
 			SupportSection(navController = navController)
-			VpnSettingsSection(appUiState = appUiState, viewModel = viewModel, context = context, showCensorshipSection = uiState.showCensorshipSection)
+			VpnSettingsSection(
+				appUiState = appUiState,
+				viewModel = viewModel,
+				context = context,
+				showCensorshipSection = uiState.showCensorshipSection,
+			)
 			AppearanceSection(appUiState = appUiState, viewModel = viewModel, context = context)
 			LegalSection()
 			LogoutSection(

@@ -15,6 +15,7 @@ class PrivacyViewModel @Inject constructor(
 	fun onNetworkStatsEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setStatisticsEnabled(enabled)
 	}
+
 	fun onMonitoringEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setSentryMonitoring(enabled)
 	}
