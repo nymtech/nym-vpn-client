@@ -94,7 +94,7 @@ pub enum SpecificGatewayError {
     #[error("failed to request upgrade mode state recheck with the gateway: {gateway_id}")]
     DeprecatedUpgradeModeRecheck {
         gateway_id: String,
-        source: Box<nym_authenticator_client::Error>,
+        source: Box<nym_authenticator_client::AuthenticationClientError>,
     },
 
     #[error("failed to request upgrade mode state recheck with the gateway: {gateway_id}")]
