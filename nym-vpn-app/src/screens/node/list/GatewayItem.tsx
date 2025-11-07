@@ -6,7 +6,7 @@ import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
 import { countriesWithRegions } from '../../../constants';
 import QuicTag from '../QuicTag';
-import { ScoreIndicator } from './ScoreIndicator';
+import { ScoreIndicator } from '../ScoreIndicator';
 
 type GatewayRowProps = {
   ref?: React.Ref<HTMLDivElement>;

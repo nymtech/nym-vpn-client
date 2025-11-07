@@ -7,9 +7,9 @@ import {
   LightOfflineIcon,
   MediumIcon,
   OfflineIcon,
-} from '../../../assets/icons';
-import { useMainState } from '../../../contexts';
-import { Score } from '../../../types';
+} from '../../assets/icons';
+import { useMainState } from '../../contexts';
+import { Score } from '../../types';
 
 export const ScoreIndicator = ({ score }: { score: Score }) => {
   const { uiTheme } = useMainState();

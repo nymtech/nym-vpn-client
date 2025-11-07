@@ -29,7 +29,7 @@ import {
 import { kvSet } from '../../../kvStore';
 import { uiNodeToSelectedNode } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
-import { ScoreIndicator } from '../list/ScoreIndicator';
+import { ScoreIndicator } from '../ScoreIndicator';
 import DataCard from './DataCard';
 
 type RouteState = {
