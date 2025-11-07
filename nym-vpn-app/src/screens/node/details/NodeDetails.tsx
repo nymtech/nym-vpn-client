@@ -29,6 +29,7 @@ import {
 import { kvSet } from '../../../kvStore';
 import { uiNodeToSelectedNode } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
+import { ScoreIndicator } from '../list/ScoreIndicator';
 import DataCard from './DataCard';
 
 type RouteState = {
@@ -90,7 +91,10 @@ function NodeDetails() {
   ) => (
     <DataRow label={label}>
       {status === 'green' ? (
-        <MsIcon className="text-malachite text-xl" icon="check" />
+        <MsIcon
+          className="dark:text-malachite text-malachite-moss text-xl"
+          icon="check"
+        />
       ) : (
         <MsIcon className="text-cheddar text-xl" icon="circle" />
       )}
@@ -99,12 +103,12 @@ function NodeDetails() {
   );
 
   const scoreRow = (label: string, score: Score) => {
-    const { icon, color, label: iconLabel } = performance(score);
+    const { color, label: iconLabel } = performance(score);
 
     return (
       <DataRow label={label}>
         <div className="flex gap-1 items-center overflow-hidden select-none">
-          <MsIcon className={clsx('text-lg', color)} icon={icon} />
+          <ScoreIndicator score={score} />
           <p className={clsx('font-medium truncate', color)}>{iconLabel}</p>
         </div>
       </DataRow>

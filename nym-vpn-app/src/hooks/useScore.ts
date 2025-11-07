@@ -10,26 +10,22 @@ function useScore() {
       switch (score) {
         case 'offline':
           return {
-            icon: 'signal_cellular_alt_1_bar',
             color: 'text-iron',
             label: t('node-details.perf-score.offline'),
           };
         case 'low':
           return {
-            icon: 'signal_cellular_alt_1_bar',
             color: 'text-aphrodisiac',
             label: t('node-details.perf-score.low'),
           };
         case 'medium':
           return {
-            icon: 'signal_cellular_alt_2_bar',
-            color: 'text-king-nacho',
+            color: 'dark:text-king-nacho text-cheddar',
             label: t('node-details.perf-score.medium'),
           };
         case 'high':
           return {
-            icon: 'signal_cellular_alt',
-            color: 'text-malachite',
+            color: 'dark:text-malachite text-malachite-moss',
             label: t('node-details.perf-score.high'),
           };
       }
@@ -47,7 +43,7 @@ function useScore() {
           };
         case 'low':
           return {
-            color: 'text-malachite',
+            color: 'dark:text-malachite text-malachite-moss',
             label: t('node-details.server-load-score.low'),
           };
         case 'medium':
