@@ -26,7 +26,7 @@ impl DisconnectedState {
         Self::reset_firewall_policy(shared_state);
 
         // Drop tombstone to close tunnel devices.
-        let _ = tombstone;
+        drop(tombstone);
 
         // Reset resolver overrides and allow all networking since firewall is no longer active
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
