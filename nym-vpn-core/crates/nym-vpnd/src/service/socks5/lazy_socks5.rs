@@ -1,6 +1,6 @@
 //! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection
 
-use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient};
+use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -16,7 +16,7 @@ use tracing::{debug, error, info};
 #[derive(Debug, Clone)]
 pub struct LazySocks5Config {
     /// Data directory for mixnet client state
-    _mixnet_data_path: PathBuf,
+    mixnet_data_path: PathBuf,
     /// Public SOCKS5 listen address (user-facing)
     listen_address: SocketAddr,
     /// Internal SOCKS5 address (from Nym SDK)
@@ -75,7 +75,7 @@ impl LazySocks5 {
 
         Ok(Self {
             config: LazySocks5Config {
-                _mixnet_data_path: mixnet_data_path,
+                mixnet_data_path,
                 listen_address,
                 internal_listen_address,
                 request_timeout,
@@ -226,13 +226,73 @@ impl LazySocks5 {
         socks5_config.bind_address = self.config.internal_listen_address;
 
         info!("Building mixnet client with SOCKS5 configuration...");
-        // Build the mixnet client with SOCKS5 configuration
-        let mixnet_client = MixnetClientBuilder::new_ephemeral()
-            // .await
-            // .map_err(|e| {
-            //     error!("Failed to create mixnet client builder: {}", e);
-            //     Socks5BackendError::MixnetInitError(e.to_string())
-            // })?
+
+        // Create a custom StoragePaths that shares the credential database with the main VPN
+        // but uses a separate identity by storing keys in a "socks5" subdirectory
+        let socks5_data_path = self.config.mixnet_data_path.join("socks5");
+
+        // Remove old socks5 directory if it exists
+        // - to get fresh identity each time
+        // - to not worry about version migrations
+        if socks5_data_path.exists() {
+            info!(
+                "Removing old socks5 directory: {}",
+                socks5_data_path.display()
+            );
+            tokio::fs::remove_dir_all(&socks5_data_path)
+                .await
+                .map_err(|e| {
+                    error!("Failed to remove old socks5 directory: {}", e);
+                    LazySocks5Error::Internal(format!(
+                        "Failed to remove old socks5 directory: {}",
+                        e
+                    ))
+                })?;
+        }
+
+        // Create fresh socks5 subdirectory
+        tokio::fs::create_dir_all(&socks5_data_path)
+            .await
+            .map_err(|e| {
+                error!("Failed to create socks5 data directory: {}", e);
+                LazySocks5Error::Internal(format!("Failed to create socks5 data directory: {}", e))
+            })?;
+
+        info!("Created fresh socks5 directory for new identity");
+
+        // Create base storage paths for the main VPN (to get the shared credential DB path)
+        let main_storage_paths = StoragePaths::new_from_dir(&self.config.mixnet_data_path)
+            .map_err(|e| {
+                error!("Failed to create main storage paths: {}", e);
+                LazySocks5Error::Internal(format!("Failed to create main storage paths: {}", e))
+            })?;
+
+        // Create storage paths for SOCKS5 identity
+        let mut socks5_storage_paths =
+            StoragePaths::new_from_dir(&socks5_data_path).map_err(|e| {
+                error!("Failed to create socks5 storage paths: {}", e);
+                LazySocks5Error::Internal(format!("Failed to create socks5 storage paths: {}", e))
+            })?;
+
+        // Override the credential database path to use the shared one from main VPN
+        socks5_storage_paths.credential_database_path = main_storage_paths.credential_database_path;
+
+        info!(
+            "Using shared credential store: {}",
+            socks5_storage_paths.credential_database_path.display()
+        );
+        info!(
+            "Using separate identity keys in: {}",
+            socks5_data_path.display()
+        );
+
+        // Build the mixnet client with shared credentials but different identity
+        let mixnet_client = MixnetClientBuilder::new_with_default_storage(socks5_storage_paths)
+            .await
+            .map_err(|e| {
+                error!("Failed to create mixnet client builder: {}", e);
+                LazySocks5Error::Internal(e.to_string())
+            })?
             .socks5_config(socks5_config)
             .build()
             .map_err(|e| {

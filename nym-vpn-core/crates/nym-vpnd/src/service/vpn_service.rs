@@ -1220,6 +1220,8 @@ impl NymVpnService {
         let request_timeout = socks5_request_timeout();
         let idle_timeout = socks5_idle_timeout();
 
+        // self.config_manager.config()
+
         self.socks5_service
             .enable(
                 self.data_dir.clone(),
