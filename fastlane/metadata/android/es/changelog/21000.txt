@@ -1,0 +1,7 @@
+Novedades:
+- Añadido soporte para iconos temáticos
+- Conectar estado ahora muestra información más detallada
+- El nombre del servidor se muestra debajo del país en la pantalla principal
+- Actualizaciones de IU corregidas después de cerrar sesión
+- Pantalla de detalles del servidor añadida
+- Actualizaciones contra la censura

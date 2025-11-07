@@ -1,0 +1,7 @@
+Cosa c'è di nuovo:
+- Aggiunto il supporto per icone a tema
+- Lo stato di connessione ora mostra informazioni più dettagliate
+- Il nome del server è mostrato sotto il paese nella schermata principale
+- Aggiornamenti dell'interfaccia fissa dopo il logout
+- Schermata dei dettagli del server aggiunta
+- Aggiornamenti anti-censura

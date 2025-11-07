@@ -1,0 +1,7 @@
+Yenilikler:
+- API performansı iyileştirildi
+- Temel uygulama kısayolları eklendi
+- Kullanıcı arayüzü iyileştirmeleri
+- Giriş bilgisi son kullanma tarihi kontrolü düzeltildi
+- Bağlantı arayüzü senkronizasyon hatası düzeltildi
+- Hızlı erişim simgelerinin senkronizasyonu iyileştirildi

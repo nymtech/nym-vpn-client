@@ -1,0 +1,5 @@
+Có gì mới:
+- Đã sửa sự cố bị treo và ANR
+- Đã thêm nhắc nhở tối ưu pin
+- Thêm tab riêng cho log
+- Cải thiện độ ổn định của kết nối

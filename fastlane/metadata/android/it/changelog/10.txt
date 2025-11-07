@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Aggiunto il supporto per la VPN sempre attiva
+- Aggiunto il supporto per le impostazioni rapide
+- Corretto bug con connessione automatica all'avvio

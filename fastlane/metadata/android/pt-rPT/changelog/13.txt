@@ -1,0 +1,5 @@
+Quais as novidades:
+- Correção de bug de descritor de arquivo
+- Corrigir erro de api nym v5
+- Correção de paradas IPv6 IPv6 VPN
+- Outras correções de erros

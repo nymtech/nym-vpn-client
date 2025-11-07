@@ -1,0 +1,6 @@
+Was ist neu:
+- Kleinere UI-Updates und Verbesserungen
+- Fix für korrekte URL's öffnen 
+- Bessere Fehlermeldungen bei geringer Konnektivität
+- Eingabeaufforderungen, wenn die Gerätezeit nicht mehr synchronisiert ist
+- Verbesserung der Konnektivität

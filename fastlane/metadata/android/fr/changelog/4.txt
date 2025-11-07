@@ -1,0 +1,4 @@
+Quoi de neuf :
+- Refactoriser le client VPN
+- Ajouter des images
+- Correction de la synchronisation de l'état de l'interface utilisateur avec le VPN

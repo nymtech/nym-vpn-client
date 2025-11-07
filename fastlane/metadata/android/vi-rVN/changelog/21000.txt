@@ -1,0 +1,7 @@
+Có gì mới:
+- Đã thêm hỗ trợ biểu tượng theo chủ đề
+- Trạng thái kết nối giờ đây hiển thị thông tin chi tiết hơn
+- Tên máy chủ được hiển thị dưới tên quốc gia trên Màn Hình Chính
+- Đã sửa lỗi cập nhật giao diện sau khi đăng xuất
+- Đã thêm màn hình chi tiết máy chủ
+- Cập nhật chống kiểm duyệt

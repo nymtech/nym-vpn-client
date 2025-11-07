@@ -1,0 +1,3 @@
+Cosa c'è di nuovo:
+- Aggiungi altre lingue
+- Aggiungi miglioramenti alla schermata iniziale
