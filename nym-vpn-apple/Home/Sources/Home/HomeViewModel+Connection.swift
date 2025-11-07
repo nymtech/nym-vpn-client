@@ -16,6 +16,14 @@ public extension HomeViewModel {
 #endif
         resetStatusInfoState()
 
+#if os(macOS)
+        guard grpcManager.isServing
+        else {
+            navigateToDaemonEnable()
+            return
+        }
+#endif
+
         // TODO: move to connection manager, do not check is valid imported if .connected
         if lastTunnelStatus != .connected {
             guard credentialsManager.isValidCredentialImported

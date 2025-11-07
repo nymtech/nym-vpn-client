@@ -18,6 +18,7 @@ public enum SettingLink: Hashable, Identifiable {
     case censorship
 #if os(macOS)
     case appMode
+    case daemonEnable
 #endif
 
     public var id: String {

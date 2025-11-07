@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import NymLogger
 import SwiftUI
+import ServiceManagement
 import ErrorReason
 import NymVPNRpc
 import Logging
@@ -29,14 +30,6 @@ import TunnelStatus
     @Published public var connectionInfoData: ConnectionInfoData?
     @Published public var networkName: String?
     @Published public var daemonVersion = "unknown"
-
-    public var requiredVersion: String { AppVersionProvider.libVersion }
-
-    public var requiresUpdate: Bool {
-        let required = daemonVersion.semVerCore
-        let current  = AppVersionProvider.libVersion.semVerCore
-        return required.compare(current, options: .numeric) == .orderedAscending
-    }
 
     public var userAgent: UserAgent {
         UserAgent(
@@ -70,6 +63,7 @@ private extension GRPCManager {
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] value in
                     guard value else { return }
+                    self?.isServing = false
                     self?.tunnelStatus = .unknown
                     self?.listenToEventsObserver = nil
                     self?.stopInitialStatusPinger()
