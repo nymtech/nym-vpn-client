@@ -1,0 +1,9 @@
+O que há de novo:
+- Botão de download adicionado para a tela de logs
+- Nova Tela de dados e privacidade
+- Fluxo de Monitoramento de Rede introduzido
+- Tela de boas-vindas adicionada
+- Interface de usuário atualizada para modais e SnackBar
+- Melhorias na Loja de Dados
+- Correções para falhas de hardware em dispositivos específicos
+- Correção para o crash do leitor de log em certos dispositivos

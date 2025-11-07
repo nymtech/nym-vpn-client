@@ -1,0 +1,5 @@
+Was ist neu:
+- Abstürze und ANR-Fehler behoben
+- Akkuoptimierungs-Prompt hinzugefügt
+- separate Tabs für Logs hinzugefügt
+- Verbesserte Verbindungsstabilität

@@ -1,0 +1,4 @@
+Quais as novidades:
+- Melhoria no registro em arquivo
+- Correção de erros
+- Outras eficiências e melhorias

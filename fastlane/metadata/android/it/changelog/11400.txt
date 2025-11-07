@@ -1,0 +1,6 @@
+Cosa c'è di nuovo:
+- Aggiunte credenziali anonime
+- Migliorata affidabilità del tunnel
+- Aggiornamenti interfaccia utente
+- Migliorata gestione del cambio di rete
+- Altre correzioni e miglioramenti

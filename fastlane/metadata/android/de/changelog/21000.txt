@@ -1,0 +1,7 @@
+Was ist neu:
+- Unterstützung für Theme-Icons hinzugefügt
+- Verbindungsstatus zeigt jetzt detailliertere Informationen
+- Servername wird unterhalb des Landes auf dem Hauptbildschirm angezeigt
+- UI-Updates nach Abmeldung behoben
+- Server-Detailansicht hinzugefügt
+- Anti-Zensur Updates

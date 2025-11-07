@@ -1,0 +1,5 @@
+Cosa c'è di nuovo:
+- Nel selettore della lingua dell'app
+- Altre lingue
+- Migliorata la sincronizzazione di stato
+- Varie correzioni di bug e miglioramenti

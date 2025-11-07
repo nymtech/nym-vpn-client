@@ -1,0 +1,5 @@
+Cosa c'è di nuovo:
+- Risolti crash e problemi di ANR
+- Aggiunta richiesta di ottimizzazione della batteria
+- Aggiunte schede separate per i log
+- Migliorata la stabilità della connessione

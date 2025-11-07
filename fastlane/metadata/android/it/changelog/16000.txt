@@ -1,0 +1,8 @@
+Cosa c'è di nuovo:
+- Miglioramenti e correzioni della navigazione
+- Esportazione log migliorata
+- Prestazioni delle app più stabili
+- Miglioramenti UI e UX
+- Aggiornamento dei messaggi di errore e informazioni
+- Migliorata la gestione delle notifiche
+- Controllo dei permessi di esecuzione corretto implementato

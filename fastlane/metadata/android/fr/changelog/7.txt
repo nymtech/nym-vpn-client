@@ -1,0 +1,2 @@
+Quoi de neuf :
+- Correction des changements d'API

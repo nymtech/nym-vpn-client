@@ -1,0 +1,12 @@
+Yenilikler:
+
+Geliştirmeler:
+Renk çiftleri ve stiller güncellendi
+"Ayarlar" ve "Destek & Geri Bildirim" menüleri güncellendi
+
+Hata Düzeltmeleri:
+- Minimize edilmiş bir uygulama yeniden açıldığında bağlantının giriş ekranına yönlendirilmesi sorunu düzeltildi
+- "forSyncAccount" hatası düzeltildi
+- Bağlantı kopmaları ve kararsızlık sorunları çözüldü
+- Mixnet modunda hız testleri sırasında uygulamanın çökmesi düzeltildi.
+- [Android 12] 1-2 saat sonra bağlantı kopması/donma sorunu düzeltildi

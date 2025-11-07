@@ -1,0 +1,3 @@
+Quais as novidades:
+- Adicionar verificação de credenciais
+- Adicionar armazenamento criptografado para credenciais
