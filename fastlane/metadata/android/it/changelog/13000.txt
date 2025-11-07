@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Correzioni bug di Logger
+- Miglioramenti della stabilità
+- Messaggistica aggiornamento client

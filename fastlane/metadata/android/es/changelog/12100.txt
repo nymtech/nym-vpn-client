@@ -1,0 +1,5 @@
+Novedades:
+- Detalles de selección del gateway
+- Optimizaciones de uso de datos
+- Correcciones de sincronización de tiles
+- Otras correcciones y mejoras

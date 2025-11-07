@@ -1,0 +1,8 @@
+Quais as novidades:
+- Melhorias e correções de navegação
+- Exportação de logs melhorada
+- Desempenho do aplicativo mais estável
+- Melhorias de UI e de UX
+- Atualizado as mensagens de erro e informação
+- Melhor manipulação de notificações
+- Verificações de permissão de tempo de execução implementadas

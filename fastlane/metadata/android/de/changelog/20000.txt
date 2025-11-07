@@ -1,0 +1,5 @@
+Was ist neu:
+- Kill-Schalterbildschirme und Funktionalität können nun getrennt werden
+- Verbesserte Fehlermeldungen für bessere Klarheit
+- Verarbeitung der Verbindungsdaten aktualisiert
+- Fehler im Backstack auf dem Willkommensbildschirm behoben

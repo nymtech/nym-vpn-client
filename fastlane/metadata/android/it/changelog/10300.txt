@@ -1,0 +1,5 @@
+Cosa c'è di nuovo:
+- Tempo di scadenza credenziali
+- Scansione del codice QR per credenziali
+- Collegamento interruttore di uccisione
+- Miglioramenti interfaccia utente

@@ -1,0 +1,5 @@
+What's new:
+- Fixed crashes and ANR issues
+- Added battery optimization prompt
+- Added separate tabs for logs
+- Improved connection stability

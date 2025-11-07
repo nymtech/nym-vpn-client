@@ -1,0 +1,4 @@
+Was ist neu:
+- Verbessertes Protokollieren in Datei
+- Fehlerbehebungen
+- Sonstige Effizienz und Verbesserungen

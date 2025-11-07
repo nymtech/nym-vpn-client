@@ -1,0 +1,5 @@
+Novedades:
+- Cerrar pantallas de conmutación y funcionalidad ahora pueden ser desactivadas
+- Mejorados mensajes de error para una mayor claridad
+- Gestión de datos de conexión actualizada
+- Corregido problema de backstack en la pantalla de bienvenida

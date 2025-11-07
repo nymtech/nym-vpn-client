@@ -1,0 +1,4 @@
+Quais as novidades:
+- Refatoração do cliente VPN
+- Adicionar arquivos de imagem
+- Correção da sincronização do estado da interface do usuário com a VPN
