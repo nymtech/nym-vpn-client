@@ -6,10 +6,6 @@ use tracing::{debug, instrument};
 use tracing::{info, warn};
 use ts_rs::TS;
 
-use nym_vpn_proto::proto::account_controller_state::{
-    ErrorStateReason, State as ProtoState, State,
-};
-
 #[derive(strum::AsRefStr, Default, Serialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TAccountState")]
 #[serde(rename_all = "kebab-case")]
@@ -57,25 +53,24 @@ impl AccountState {
 }
 
 #[instrument]
-pub fn log_account_state(state: &ProtoState) {
+pub fn log_account_state(state: &lib::AccountControllerState) {
     match state {
-        ProtoState::Error(e) => {
-            let message = format!(
-                "account state error: [{:?}] - details: {} - context: {}",
-                e.reason(),
-                e.details(),
-                e.context()
-            );
-            match e.reason() {
-                ErrorStateReason::Storage
-                | ErrorStateReason::ApiFailure
-                | ErrorStateReason::Internal
-                | ErrorStateReason::DeviceTimeDesynced => {
-                    warn!(message);
-                }
-                _ => info!(message),
+        lib::AccountControllerState::Error(e) => match e {
+            lib::AccountControllerErrorStateReason::Storage { context } => {
+                warn!("account state error: {:?}, context: {context}", e)
             }
-        }
+            lib::AccountControllerErrorStateReason::ApiFailure { context, details }
+            | lib::AccountControllerErrorStateReason::Internal { context, details } => {
+                warn!(
+                    "account state error: {:?}, context: {}, details: {}",
+                    e, context, details
+                )
+            }
+            lib::AccountControllerErrorStateReason::DeviceTimeDesynced => {
+                warn!("account state error: {:?}", e)
+            }
+            _ => info!("account state error: {:?}", e),
+        },
         _ => debug!("account state: [{:?}]", state),
     }
 }

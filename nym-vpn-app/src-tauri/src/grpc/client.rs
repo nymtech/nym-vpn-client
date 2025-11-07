@@ -15,9 +15,8 @@ use super::{
 use anyhow::{Result, anyhow};
 use nym_vpn_lib_types as lib;
 use nym_vpn_proto::proto::{
-    AccountControllerState, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
-    Location, StoreAccountRequest, TunnelEvent, UserAgent, VpnAccountStoreRequest,
-    nym_vpn_service_client::NymVpnServiceClient,
+    ConnectRequest, Dns, ListGatewaysRequest, Location, StoreAccountRequest, UserAgent,
+    VpnAccountStoreRequest, nym_vpn_service_client::NymVpnServiceClient,
 };
 use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
@@ -27,10 +26,9 @@ use std::{
     sync::Mutex,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
-use tokio::sync::mpsc::{self, Sender};
-use tokio_stream::{Stream, StreamExt};
+use tokio_stream::StreamExt;
 use tonic::{
-    Request, Streaming,
+    Request,
     transport::{Channel, Endpoint as TonicEndpoint},
 };
 use tracing::{debug, error, info, instrument, trace, warn};
@@ -263,7 +261,7 @@ impl VpndClient {
         app: &AppHandle,
         update: lib::AccountControllerState,
     ) -> Result<()> {
-        // log_account_state(&update); TODO
+        log_account_state(&update);
         let account_state = AccountState::from_lib(update);
         let s_state = app.state::<SharedAppState>();
         let mut app_state = s_state.lock().await;
@@ -414,19 +412,21 @@ impl VpndClient {
     /// Get the account links
     #[instrument(skip_all)]
     pub async fn account_links(&self, _locale: &str) -> Result<AccountLinks, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(GetAccountLinksRequest {
-            // TODO use the locale set at app level once website is i18n ready
-            locale: "en".to_string(),
-        });
-        let response = vpnd.get_account_links(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        let response = response.into_inner();
-        debug!("grpc response: {:?}", response);
-        Ok(response.into())
+        // TODO use the user local once website is i18n ready
+        let locale = "en".to_string();
+
+        let links = vpnd
+            .get_account_links(locale)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?
+            .into();
+        debug!("links: {:?}", links);
+        Ok(links)
     }
 
     /// Get the list of available gateways

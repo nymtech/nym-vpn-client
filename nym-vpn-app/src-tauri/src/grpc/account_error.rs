@@ -1,132 +1,58 @@
 use crate::error::{BackendError, ErrorKey};
 use nym_vpn_lib_types as lib;
-use nym_vpn_proto::proto::{
-    AccountCommandError, VpnApiError, VpnApiErrorResponse,
-    account_command_error::ErrorDetail as AccountError,
-    account_controller_state::Error as StateError, account_controller_state::ErrorStateReason,
-    vpn_api_error::ErrorDetail as VpnApiErrorDetail,
-};
-use tracing::error;
 
-impl From<VpnApiError> for BackendError {
-    fn from(error: VpnApiError) -> Self {
-        let Some(detail) = error.error_detail else {
-            error!("missing error detail in VpnApiError");
-            return BackendError::internal("nym-vpn-api returned error", None);
-        };
-        match detail {
-            VpnApiErrorDetail::Timeout(_) => BackendError::internal("nym-vpn-api timeout", None),
-            VpnApiErrorDetail::StatusCode(code) => BackendError::internal_with_detail(
-                "nym-vpn-api error",
-                format!("nym-vpn-api returned: {code:?}"),
-            ),
-            VpnApiErrorDetail::Response(response) => BackendError::from(response),
-        }
-    }
-}
-
-impl From<VpnApiErrorResponse> for BackendError {
-    fn from(error: VpnApiErrorResponse) -> Self {
-        let mut detail = format!("VPN API response error: {}", error.message);
-        if let Some(code) = error.message_id {
-            detail.push_str(&format!(" (id: {code})"));
-        }
-        if let Some(id) = error.code_reference_id {
-            detail.push_str(&format!(" (code: {id})"));
-        }
-        BackendError::internal_with_detail("VPN API response error", detail)
-    }
-}
-
-impl From<AccountCommandError> for BackendError {
-    fn from(error: AccountCommandError) -> Self {
-        let Some(detail) = error.error_detail else {
-            error!("missing error detail in AccountCommandError");
-            return BackendError::internal("failed to run account command", None);
-        };
-        match detail {
-            AccountError::Internal(e) => BackendError::internal_with_detail("AC internal error", e),
-            AccountError::StorageError(e) => BackendError::internal_with_detail(
+impl From<lib::AccountCommandError> for BackendError {
+    fn from(error: lib::AccountCommandError) -> Self {
+        match error {
+            lib::AccountCommandError::Internal(e) => {
+                BackendError::internal_with_detail("AC internal error", e)
+            }
+            lib::AccountCommandError::Storage(e) => BackendError::internal_with_detail(
                 "AC storage error",
                 format!("AC storage error: {e}"),
             ),
-            AccountError::VpnApi(error) => error.into(),
-            AccountError::UnexpectedResponse(e) => BackendError::internal_with_detail(
-                "AC unexpected response",
-                format!("AC unexpected response: {e}"),
-            ),
-            AccountError::NoAccountStored(v) => BackendError::with_detail(
-                "AC no account stored",
-                ErrorKey::NoAccountStored,
-                format!("AC no account stored : {v}"),
-            ),
-            AccountError::NoDeviceStored(v) => BackendError::with_detail(
-                "AC no device stored",
-                ErrorKey::NoDeviceStored,
-                format!("AC no device stored : {v}"),
-            ),
-            AccountError::ExistingAccount(v) => BackendError::with_detail(
-                "AC account already exists",
-                ErrorKey::ExistingAccount,
-                format!("AC account already exists : {v}"),
-            ),
-            AccountError::Offline(v) => {
-                BackendError::internal_with_detail("AC is offline", format!("AC is offline : {v}"))
+            lib::AccountCommandError::VpnApi(error) => error.into(),
+            lib::AccountCommandError::UnexpectedVpnApiResponse(e) => {
+                BackendError::internal_with_detail(
+                    "AC unexpected response",
+                    format!("AC unexpected response: {e}"),
+                )
             }
-            AccountError::InvalidMnemonic(e) => BackendError::with_detail(
+            lib::AccountCommandError::NoAccountStored => {
+                BackendError::new("AC no account stored", ErrorKey::NoAccountStored)
+            }
+            lib::AccountCommandError::NoDeviceStored => {
+                BackendError::new("AC no device stored", ErrorKey::NoDeviceStored)
+            }
+            lib::AccountCommandError::ExistingAccount => {
+                BackendError::new("AC account already exists", ErrorKey::ExistingAccount)
+            }
+            lib::AccountCommandError::Offline => BackendError::internal("AC is offline", None),
+            lib::AccountCommandError::InvalidMnemonic(e) => BackendError::with_detail(
                 "invalid mnemonic",
                 ErrorKey::AccountInvalidMnemonic,
                 format!("invalid mnemonic: {e}"),
             ),
-            AccountError::NyxdConnectionFailure(e) => {
+            lib::AccountCommandError::NyxdConnectionFailure(e) => {
                 BackendError::internal_with_detail("failed to connect to nyxd", e)
             }
-            AccountError::NyxdQueryFailure(e) => {
+            lib::AccountCommandError::NyxdQueryFailure(e) => {
                 BackendError::internal_with_detail("failed to resolve query to a nyxd instance", e)
             }
-            AccountError::AccountDoesntExistOnChain(v) => BackendError::internal_with_detail(
-                "account doesn't exist on chain",
-                format!("account doesn't exist on chain: {v}"),
-            ),
-            AccountError::InsufficientFunds(v) => BackendError::internal_with_detail(
-                "account does not have sufficient funds",
-                format!("account does not have sufficient funds: {v}"),
-            ),
-            AccountError::AccountDecentralised(v) => BackendError::internal_with_detail(
-                "account is set in decentralised mode",
-                format!("account is set in decentralised mode: {v}"),
-            ),
-            AccountError::AccountNotDecentralised(v) => BackendError::internal_with_detail(
-                "account is not set in decentralised mode",
-                format!("account is not set in decentralised mode: {v}"),
-            ),
-            AccountError::ZkNymAcquisitionFailure(e) => {
+            lib::AccountCommandError::AccountDoesntExistOnChain => {
+                BackendError::internal("account doesn't exist on chain", None)
+            }
+            lib::AccountCommandError::InsufficientFunds => {
+                BackendError::internal("account does not have sufficient funds", None)
+            }
+            lib::AccountCommandError::AccountDecentralised => {
+                BackendError::internal("account is set in decentralised mode", None)
+            }
+            lib::AccountCommandError::AccountNotDecentralised => {
+                BackendError::internal("account is not set in decentralised mode", None)
+            }
+            lib::AccountCommandError::ZkNymAcquisitionFailure(e) => {
                 BackendError::internal_with_detail("failed to obtain zk-nym", e)
-            }
-        }
-    }
-}
-
-impl From<StateError> for BackendError {
-    fn from(error: StateError) -> Self {
-        match error.reason() {
-            ErrorStateReason::Internal => BackendError::internal("AC internal", None),
-            ErrorStateReason::Storage => BackendError::internal("AC storage", None),
-            ErrorStateReason::ApiFailure => BackendError::internal("AC api failure", None),
-            ErrorStateReason::BandwidthExceeded => {
-                BackendError::new("AC bandwidth exceeded", ErrorKey::BandwidthExceeded)
-            }
-            ErrorStateReason::AccountStatusNotActive => {
-                BackendError::new("AC status not active", ErrorKey::AccountStatusNotActive)
-            }
-            ErrorStateReason::InactiveSubscription => {
-                BackendError::new("AC inactive subscription", ErrorKey::NoSubscription)
-            }
-            ErrorStateReason::MaxDeviceReached => {
-                BackendError::new("AC max device reached", ErrorKey::MaxDeviceReached)
-            }
-            ErrorStateReason::DeviceTimeDesynced => {
-                BackendError::new("AC device time desynced", ErrorKey::DeviceTimeDesync)
             }
         }
     }
@@ -174,5 +100,33 @@ impl From<lib::AccountControllerErrorStateReason> for BackendError {
                 BackendError::new("AC device time desynced", ErrorKey::DeviceTimeDesync)
             }
         }
+    }
+}
+
+impl From<lib::VpnApiError> for BackendError {
+    fn from(error: lib::VpnApiError) -> Self {
+        match error {
+            lib::VpnApiError::Timeout(t) => {
+                BackendError::internal(&format!("VPN API timeout: {t}"), None)
+            }
+            lib::VpnApiError::StatusCode { code, msg } => BackendError::internal(
+                &format!("VPN API error, status code: {code}, error: {msg}"),
+                None,
+            ),
+            lib::VpnApiError::Response(response) => BackendError::from(response),
+        }
+    }
+}
+
+impl From<lib::VpnApiErrorResponse> for BackendError {
+    fn from(error: lib::VpnApiErrorResponse) -> Self {
+        let mut detail = format!("VPN API response error: {}", error.message);
+        if let Some(code) = error.message_id {
+            detail.push_str(&format!(" (id: {code})"));
+        }
+        if let Some(id) = error.code_reference_id {
+            detail.push_str(&format!(" (code: {id})"));
+        }
+        BackendError::internal_with_detail("VPN API response error", detail)
     }
 }

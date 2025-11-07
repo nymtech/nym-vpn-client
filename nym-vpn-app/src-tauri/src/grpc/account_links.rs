@@ -1,7 +1,8 @@
+use nym_vpn_lib_types as lib;
 use serde::Serialize;
 use ts_rs::TS;
 
-#[derive(Clone, Serialize, TS)]
+#[derive(Clone, Serialize, TS, Debug)]
 #[serde(rename_all = "camelCase")]
 #[ts(export, export_to = "tauri.ts")]
 pub struct AccountLinks {
@@ -10,8 +11,8 @@ pub struct AccountLinks {
     pub account: Option<String>,
 }
 
-impl From<nym_vpn_proto::proto::AccountManagement> for AccountLinks {
-    fn from(links: nym_vpn_proto::proto::AccountManagement) -> Self {
+impl From<lib::ParsedAccountLinks> for AccountLinks {
+    fn from(links: lib::ParsedAccountLinks) -> Self {
         AccountLinks {
             sign_up: links.sign_up,
             sign_in: links.sign_in,
