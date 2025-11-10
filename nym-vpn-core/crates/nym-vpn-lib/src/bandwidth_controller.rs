@@ -6,7 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 use nym_registration_common::GatewayData;
-use tokio_stream::{wrappers::IntervalStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
