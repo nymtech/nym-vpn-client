@@ -7,7 +7,9 @@ preserve_hierarchy: true
 languages_mapping: &android-code
   android_code: 
     ar: ar
+    bn: bn
     de: de
+    el: el
     es-ES: es
     fa: fa
     fr: fr
