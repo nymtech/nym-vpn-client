@@ -1,50 +1,50 @@
-Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
+Çevrimiçi izlenmeyi durdurun. Sizi izleyemeyecek tek VPN. İsviçre’de geliştirildi ve dünya genelinde gizlilik savunucuları tarafından güveniliyor.
 
-⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ Bu platformlarda yer aldı: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-BROWSE WITHOUT LEAVING A TRACE
+İZ BIRAKMADAN GEZİN
 
-Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
+Sizi kimin izlediğini düşünmekten yoruldunuz mu? Geleneksel VPN’ler teorik olarak etkinliklerinizi kaydedebilir. NymVPN temelde farklıdır: Merkeziyetsiz ağımız, merkezi kayıt tutmayı tasarım gereği imkansız kılar. Bu bir ‘kayıt tutmama politikası’ değil — bu, ‘kayıt tutamaz’ mimarisidir.
 
-✓ True anonymity: Pay with crypto or cash, no email required
-✓ 50+ countries, hundreds of independent servers
-✓ Multi-device protection: 10 devices with one anonymous code
-✓ Swiss-based with academic-grade privacy standards
+✓ Gerçek anonimlik: Kripto veya nakit ile ödeme, e-posta gerekmez
+✓ 50’den fazla ülke, yüzlerce bağımsız sunucu
+✓ Çoklu cihaz koruması: Tek anonim kod ile 10 cihaz
+✓ İsviçre merkezli, akademik düzeyde gizlilik standartları
 
-CHOOSE YOUR PRIVACY LEVEL
+GİZLİLİK DÜZEYİNİZİ SEÇİN
 
-⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
-🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
+⚡ Hızlı Mod – Yayın izlerken veya internette gezinirken süper hızlı performans sağlar. Varsayılan olarak 2-hop kullanılır: bir sunucu kim olduğunuzu, diğer sunucu ne yaptığınızı bilir ama ikisi hiçbir zaman birlikte bilmez.
+🔒 Anonim Mod – Gürültü üreten teknoloji ve 5 katmanlı şifreleme ile 5-hop mixnet üzerinden maksimum gizlilik sağlar.  Yapay zekâ destekli trafik analizi ve gelişmiş gözetlemeye karşı dayanacak şekilde tasarlanmıştır.
 
 NYMVPN’İ FARKLI KILAN NEDİR
 
-• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
-• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
-• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
-• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
+• Meta veri koruması – Diğer VPN’lerin aksine, sadece verilerinizi değil, geride bıraktığınız kalıpları da korur
+• Sansüre dirençli – AmneziaWG, QUIC ve gizli protokollerle kısıtlayıcı ortamlarda engellenmiş bilgilere erişim sağlar
+• Sıfır bilgi ödemeleri – Aboneliğiniz etkinliğinizden kriptografik olarak ayrıdır
+• Üniversite tasarımı – KU Leuven ve EPFL’den doktora seviyesinde kriptograflar tarafından 20+ hakemli yayına dayanarak geliştirildi
 
 BAĞIMSIZ OLARAK DOĞRULANDI
 
-• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-source and transparent ("Signals of Trustworthy VPNs")
-• 10,000+ users already trust NymVPN for their privacy
+• 4 güvenlik denetimi (2021-2024) – JP Aumasson, Oak Security, Cryspen, Cure53
+• Açık kaynak ve şeffaf (“Güvenilir VPN Sinyalleri”)
+• 10.000+ kullanıcı, gizlilikleri için NymVPN’e güveniyor
 
 TEMEL ÖZELLİKLER
 
-• High-speed connections with 50+ country selection
-• Kill switch prevents data leaks
-• Completely ad-free experience
-• State-of-the-art cryptographic stack
+• 50’den fazla ülke seçeneğiyle yüksek hızlı bağlantılar
+• Kill switch özelliği veri sızıntılarını engeller
+• Tamamen reklamsız kullanım deneyimi
+• En güncel ve ileri düzey kriptografik altyapı
 
 
-PERFECT FOR
+ŞUNLAR İÇİN MÜKEMMEL:
 
-→ Streaming and browsing without being tracked by advertisers
-→ Secure public WiFi connections at cafes, airports, hotels
-→ Anyone in restrictive countries needing reliable access
-→ People who want true anonymity, not just hidden IP addresses
-→ Journalists and activists needing untraceable communication
+→ Reklam verenler tarafından izlenmeden yayın izleme ve internette gezinme
+→ Kafeler, havaalanları, oteller gibi yerlerde güvenli kamuya açık WiFi bağlantıları
+→ Kısıtlayıcı ülkelerde güvenilir erişime ihtiyaç duyan herkes
+→ Sadece IP gizleme değil, gerçek anonimlik isteyen kişiler
+→ İzlenemez iletişime ihtiyaç duyan gazeteciler ve aktivistler
 
-Download now. Connect in seconds. Disappear online.
+Şimdi indir. Saniyeler içinde bağlan. Online görünmez ol.
 
-🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide
+🎁 7 günlük ücretsiz deneme | 💯 30 gün para iade garantisi | 🌐 Dünya genelinde 10.000+ kullanıcı tarafından güveniliyor
