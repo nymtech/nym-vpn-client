@@ -1,8 +1,8 @@
 Yenilikler:
-- Added QUIC status and server details
-- New streaming icon and updated tooltips on Home/Exit
-- New passphrase screen and account creation flow
-- Entry/Exit screens now show city names instead of server IDs
-- Improved gateway details with relative update times
-- Fixed server uptime display
-- Various UI improvements and fixes
+- QUIC durumu ve sunucu bilgileri eklendi
+- Ana ve Çıkış ekranlarına yeni yayın ikonu ve güncellenmiş bilgilendirmeler eklendi
+- Yeni parola ifadesi ekranı ve hesap oluşturma akışı tasarlandı
+- Giriş ve Çıkış ekranları artık sunucu ID’leri yerine şehir isimlerini gösteriyor
+- Gateway detayları iyileştirildi; güncelleme zamanları artık göreli olarak gösteriliyor
+- Sunucu çalışma süresi gösterimi düzeltildi
+- Arayüzde çeşitli iyileştirmeler ve hata düzeltmeleri yapıldı
