@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rotate wireguard keys every 1-2 weeks, if disconnected (https://github.com/nymtech/nym-vpn-client/pull/3788)
+- When querying for bandwidth, retry once on failure (https://github.com/nymtech/nym-vpn-client/pull/3922).
 
 ### Fixed
 
