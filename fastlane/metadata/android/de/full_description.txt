@@ -1,10 +1,10 @@
-Stoppen Sie die Verfolgung online. Das einzige VPN, das dich nicht ausspionieren kann, selbst wenn es es wollte. Hergestellt in der Schweiz, vertraut von Datenschutzbeauftragten weltweit.
+Stoppen Sie die Verfolgung online. Das einzige VPN, das dich nicht ausspionieren kann, selbst wenn es wollte. Hergestellt in der Schweiz, vertraut von Datenschutzbeauftragten weltweit.
 
 ⭐ Wie gesehen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-BROWSE OHNE LEAVING A TRACE
+DURCHSUCHEN OHNE SPUREN ZU HINTERLASSEN
 
-Müde zu fragen, wer sieht? Traditionelle VPNs können Ihre Aktivität theoretisch protokollieren. NymVPN ist grundlegend anders: Unser dezentralisiertes Netzwerk macht eine zentralisierte Protokollierung durch Design unmöglich. Dies ist keine "No-Logs"-Richtlinie. Es ist eine "can't log"-Architektur.
+Müde zu fragen, wer sieht? Traditionelle VPNs können Ihre Aktivität theoretisch protokollieren. NymVPN ist grundlegend anders: Unser dezentralisiertes Netzwerk macht eine zentralisierte Protokollierung durch Design unmöglich. Dies ist keine ''Richtlinie für keine Protokolle'' Es ist eine "kann nicht protokollieren" Architektur.
 
 ✓ Wahre Anonymität: Bezahlen Sie mit Krypto oder Bargeld, keine E-Mail erforderlich
 ✓ 50 + Länder, Hunderte von unabhängigen Servern
@@ -16,17 +16,17 @@ WÄHLEN SIE IHRE PRIVATISCHE LEVEL
 ⚡ Schneller Modus – blitzschnelle Geschwindigkeiten für Streaming und Surfen. 2-Hop standardmäßig, so dass ein Server weiß, wer du bist, ein anderer weiß, was du tust – aber nie beides.
 🔒 Anonymer Modus – Maximale Privatsphäre durch ein 5-Hop-Mixnet mit geräuschgenerierender Technologie und bis zu 5 Verschlüsselungsschichten. Entwickelt um selbst der AI-gestützten Verkehrsanalyse und der erweiterten Überwachung zu widerstehen.
 
-WARUM NYMVPN IST DIFFERENT
+WARUM NYMVPN ANDERS IST
 
-• Metadatenschutz – Im Gegensatz zu anderen VPNs schützen wir nicht nur deine Daten, sondern auch die Muster, die du hinterlässt,
+• Metadatenschutz - Im Gegensatz zu anderen VPNs schützen wir nicht nur Ihre Daten, sondern auch die Muster, die Sie hinterlassen
 • Zensurresistenz – Zugriff auf blockierte Informationen in restriktiven Umgebungen mit AmneziaWG, QUIC- und Stealth-Protokollen
 • Null-Wissen-Zahlungen – Ihr Abonnement ist kryptographisch von Ihrer Aktivität getrennt
 • University-Design – Built by PhD-Kryptografen von KU Leuven und EPFL mit 20+ Peer-geprüften Publikationen
 
-INDEPENDENTLICH VERIFIED
+UNABHÄNGIG VERIFIZIERT
 
 • 4 Sicherheits-Audits (2021-2024) von JP Aumasson, Eichensicherheit, Cryspen, Cure53
-• Open-Source und transparent ("Signale von vertrauenswürdigen VPNs")
+• Quelloffen und transparent ("Signale vertrauenswürdiger VPNs")
 • 10.000+ Benutzer vertrauen NymVPN bereits für ihre Privatsphäre
 
 ESENTIALE FEATUREN
@@ -40,7 +40,7 @@ ESENTIALE FEATUREN
 PERFEKT FÜR
 
 → Streaming und Surfen, ohne von Werbetreibenden verfolgt zu werden
-→ Öffentliche WLAN-Verbindungen an Cafés, Flughäfen, Hotels
+→ Sichere öffentliche WLAN-Verbindungen in Cafés, Flughäfen und Hotels
 → Jeder, der in restriktiven Ländern auf verlässlichen Zugang angewiesen ist
 → Personen, die echte Anonymität und nicht nur versteckte IP-Adressen wünschen
 → Journalisten und Aktivisten brauchen nicht rückverfolgbare Kommunikation

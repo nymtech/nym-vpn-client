@@ -1,50 +1,50 @@
-Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
+Припиніть відстеження в Інтернеті. Єдиний VPN, який не може шпигувати за вами, навіть якщо він хоче. Вироблено в Швейцарії, користується довірою захисників конфіденційності у всьому світі.
 
-⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ Як показано в: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-BROWSE WITHOUT LEAVING A TRACE
+ПЕРЕГЛЯДАЙТЕ, НЕ ЗАЛИШАЮЧИ СЛІДІВ
 
-Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
+Втомилися гадати, хто за вами стежить? Традиційні VPN теоретично можуть реєструвати вашу активність. NymVPN принципово відрізняється: наша децентралізована мережа за своєю конструкцією унеможливлює централізоване ведення журналів. Це не «політика відсутності журналів» — це архітектура «неможливості ведення журналів».
 
-✓ True anonymity: Pay with crypto or cash, no email required
-✓ 50+ countries, hundreds of independent servers
-✓ Multi-device protection: 10 devices with one anonymous code
-✓ Swiss-based with academic-grade privacy standards
+✓ Справжня анонімність: оплата криптовалютою або готівкою, електронна адреса не потрібна
+✓ Понад 50 країн, сотні незалежних серверів
+✓ Захист декількох пристроїв: 10 пристроїв за допомогою одного анонімного коду
+✓ Швейцарська компанія з академічними стандартами конфіденційності
 
-CHOOSE YOUR PRIVACY LEVEL
+ВИБЕРІТЬ СВІЙ РІВЕНЬ КОНФІДЕНЦІЙНОСТІ
 
-⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
-🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
+⚡ Швидкий режим – блискавична швидкість для потокового передавання та перегляду веб-сторінок. За замовчуванням 2-hop, тому один сервер знає, хто ви, а інший — що ви робите, але обидва одночасно - ніколи.
+🔒 Анонімний режим – Максимальна конфіденційність завдяки 5-ступеневій мережі Mixnet з технологією генерації шуму та до 5 рівнями шифрування. Розроблений для протистояння навіть аналізу трафіку на основі штучного інтелекту та вдосконаленому спостереженню.
 
 ЧОМУ NYMVPN ВІДРІЗНЯЄТЬСЯ
 
-• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
-• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
-• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
-• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
+• Захист метаданих – на відміну від інших VPN, ми захищаємо не тільки ваші дані, але й сліди, які ви залишаєте після себе.
+• Стійкість до цензури – отримуйте доступ до заблокованої інформації в обмежених середовищах за допомогою AmneziaWG, QUIC та стелс-протоколів.
+• Платежі з нульовим розкриттям інформації – Ваша підписка криптографічно не пов'язана з Вашою активністю.
+• Розроблено університетом – Створено криптографами з докторським ступенем з KU Leuven та EPFL, авторами понад 20 рецензованих публікацій.
 
 НЕЗАЛЕЖНО ПЕРЕВІРЕНО
 
-• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-source and transparent ("Signals of Trustworthy VPNs")
-• 10,000+ users already trust NymVPN for their privacy
+• 4 перевірки безпеки (2021-2024) JP Aumasson, Oak Security, Cryspen, Cure53
+• Відкритий код і прозорість («Ознаки надійних VPN»)
+• 10,000+ користувачів, які вже довіряють NymVPN для своєї приватності
 
 ОСНОВНІ ХАРАКТЕРИСТИКИ
 
-• High-speed connections with 50+ country selection
-• Kill switch prevents data leaks
-• Completely ad-free experience
-• State-of-the-art cryptographic stack
+• Високошвидкісні підключення з вибором 50+ країн
+• Функція Kill Switch для запобігання витоку даних
+• Повністю без реклами
+• Сучасний криптографічний стек
 
 
-PERFECT FOR
+ІДЕАЛЬНО ПІДХОДИТЬ ДЛЯ
 
-→ Streaming and browsing without being tracked by advertisers
-→ Secure public WiFi connections at cafes, airports, hotels
-→ Anyone in restrictive countries needing reliable access
-→ People who want true anonymity, not just hidden IP addresses
-→ Journalists and activists needing untraceable communication
+→ Стрімінгу та перегляду веб-сторінок без відстеження рекламодавцями
+→ Безпеки в публічних WiFi у кафе, аеропортах, готелях
+→ Тих, хто проживає в країнах з обмеженим доступом до Інтернету і потребує надійного доступу
+→ Людей, які хочуть справжньої анонімності, а не просто прихованих IP-адрес
+→ Журналістів та активістів, яким потрібна невідстежувана комунікація
 
-Download now. Connect in seconds. Disappear online.
+Завантажити зараз. Підключення за лічені секунди. Зникніть з мережі.
 
-🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide
+🎁 7-денна безкоштовна пробна версія | 💯 30-денна гарантія повернення грошей | 🌐 Довіряють понад 10 000 користувачів по всьому світу
