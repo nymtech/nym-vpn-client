@@ -39,7 +39,6 @@ public struct PassphraseView: View {
             navbar
             Spacer()
                 .frame(height: 24)
-            ScrollView {
                 VStack(spacing: 0) {
                     title
                     Spacer()
@@ -55,12 +54,10 @@ public struct PassphraseView: View {
                         .frame(height: 24)
                     exclaimerText
                     Spacer()
+                        .frame(minHeight: 0)
                     savedConfirmationSection
                 }
-                .frame(maxWidth: MagicNumbers.moreMaxWidth)
-                Spacer()
-                    .frame(height: 24)
-            }
+                .frame(maxWidth: MagicNumbers.moreMaxWidth, maxHeight: .infinity)
         }
         .alert(errorMessage, isPresented: $isErrorDisplayed) {
             Button("ok".localizedString, role: .cancel) {}

@@ -29517,6 +29517,17 @@
         }
       }
     },
+    "purchasePlan.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a plan now to activate your protection"
+          }
+        }
+      }
+    },
     "purchasePlan.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {

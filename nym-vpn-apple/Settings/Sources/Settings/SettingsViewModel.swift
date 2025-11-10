@@ -153,6 +153,10 @@ private extension SettingsViewModel {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
 
+    func navigateToPassphrase() {
+        path.append(SettingLink.passphrase)
+    }
+
     func navigateToCensorship() {
         path.append(SettingLink.censorship)
     }

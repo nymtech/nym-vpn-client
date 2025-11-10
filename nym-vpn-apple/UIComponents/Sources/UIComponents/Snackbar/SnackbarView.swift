@@ -87,6 +87,7 @@ extension SnackbarView {
     @ViewBuilder
     func closeButton() -> some View {
         if let message {
+            Spacer()
             Image(systemName: "xmark")
                 .resizable()
                 .foregroundStyle(message.style.iconColor)
