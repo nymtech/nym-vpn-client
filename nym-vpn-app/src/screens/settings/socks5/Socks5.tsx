@@ -10,6 +10,7 @@ import {
   SettingsMenuCardBig,
 } from '../../../ui';
 import { useInAppNotify } from '../../../contexts';
+import { PulseDot } from '../../../ui';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
@@ -192,7 +193,8 @@ function Socks5() {
         }
       >
         {isLoading ? (
-          <div className="flex items-center justify-center gap-3 py-8">
+          <div className="flex flex-col items-center justify-center gap-3 py-8">
+            <PulseDot color="cornflower" />
             <span className="text-sm text-iron dark:text-bombay">
               {isEnabled ? t('app-proxy.disabling') : t('app-proxy.enabling')}
             </span>
