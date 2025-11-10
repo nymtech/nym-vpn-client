@@ -205,18 +205,33 @@ impl TemporaryBandwidthClient {
         }
     }
 
-    pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, String> {
-        match self {
-            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
-                .query_bandwidth()
-                .await
-                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
-                .ok_or("No such peer on the gateway".to_string()),
-            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
-                .query_bandwidth()
-                .await
-                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth")),
+    pub(crate) async fn query_bandwidth(&mut self, retries: usize) -> Result<i64, String> {
+        let mut res = Ok(0);
+        for attempt in 0..retries {
+            res = match self {
+                TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
+                    .query_bandwidth()
+                    .await
+                    .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
+                    .ok_or("No such peer on the gateway".to_string()),
+                TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
+                    .query_bandwidth()
+                    .await
+                    .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth")),
+            };
+            let Err(err) = &res else {
+                break;
+            };
+            if attempt < retries - 1 {
+                tracing::warn!(
+                    "Attempt {}/{} to query bandwidth failed: {}. Retrying...",
+                    attempt + 1,
+                    retries,
+                    err
+                );
+            }
         }
+        res
     }
 
     pub(crate) fn gateway_id(&self) -> nym_gateway_directory::NodeIdentity {
@@ -406,7 +421,7 @@ impl BandwidthController {
             _ = self.shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
-            ret = wg_metadata_client.query_bandwidth() => {
+            ret = wg_metadata_client.query_bandwidth(2) => {
                 match ret {
                     Ok(remaining_bandwidth) => {
                         self.successful_checks += 1;
