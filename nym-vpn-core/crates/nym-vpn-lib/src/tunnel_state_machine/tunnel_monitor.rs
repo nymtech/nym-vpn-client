@@ -212,7 +212,7 @@ impl TunnelMonitorHandle {
 #[derive(Debug, Clone)]
 pub struct TunnelParameters {
     pub nym_config: NymConfig,
-    pub resolved_gateway_config: ResolvedConfig,
+    pub resolved_gateway_config: Option<ResolvedConfig>,
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
@@ -354,19 +354,17 @@ impl TunnelMonitor {
         }
 
         let user_agent = self.tunnel_parameters.user_agent.clone();
-        let resolver_overrides = Some(
-            &self
-                .tunnel_parameters
-                .resolved_gateway_config
-                .nym_api_resolver_overrides,
-        );
+        let resolver_overrides = self
+            .tunnel_parameters
+            .resolved_gateway_config
+            .as_ref()
+            .map(|v| &v.nym_api_resolver_overrides);
 
-        let vpn_resolver_overrides = Some(
-            &self
-                .tunnel_parameters
-                .resolved_gateway_config
-                .nym_vpn_api_resolver_overrides,
-        );
+        let vpn_resolver_overrides = self
+            .tunnel_parameters
+            .resolved_gateway_config
+            .as_ref()
+            .map(|v| &v.nym_vpn_api_resolver_overrides);
 
         let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
             gateway_config.clone(),
@@ -456,12 +454,10 @@ impl TunnelMonitor {
                 mixnet_client_config
                     .min_gateway_performance
                     .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
-                Some(
-                    self.tunnel_parameters
-                        .resolved_gateway_config
-                        .nym_api_resolver_overrides
-                        .clone(),
-                ),
+                self.tunnel_parameters
+                    .resolved_gateway_config
+                    .as_ref()
+                    .map(|v| v.nym_api_resolver_overrides.clone()),
             )
             .await;
 

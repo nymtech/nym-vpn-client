@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Prevent resetting state for non-tunnel DNS connections (https://github.com/nymtech/nym-vpn-client/pull/3899)
 
+### Removed
+
+- Remove unnecessary DNS resolutions on mobile platforms where there is no configurable firewall. (https://github.com/nymtech/nym-vpn-client/pull/3913)
+
 ## [1.18.0] - 2025-11-03
 
 ### Added

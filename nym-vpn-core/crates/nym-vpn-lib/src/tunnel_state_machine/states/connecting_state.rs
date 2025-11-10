@@ -14,15 +14,15 @@ use futures::{
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use nym_common::trace_err_chain;
-
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::Error;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
-    Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
-    Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
+    ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
+    SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
     states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
     tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
@@ -31,6 +31,7 @@ use crate::tunnel_state_machine::{
     },
 };
 
+use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -42,7 +43,6 @@ use nym_gateway_directory::ResolvedConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
-use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -81,16 +81,13 @@ impl ConnectingState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Pause Discovery Refresher until we have resolved all the domains
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(true))
-            .ok();
-        shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_up()
-            .await
-            .ok();
+        // Disallow networking until firewall exceptions and resolver overrides are configured
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        shared_state.disallow_networking().await;
+
+        // Always allow networking on mobile since there is no configurable firewall
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        shared_state.allow_networking().await;
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
@@ -144,7 +141,6 @@ impl ConnectingState {
             firewall_policy_params
         };
 
-        let resolve_config_fut = Fuse::terminated();
         let reconnect_delay_fut = if retry_attempt > 0 {
             let wait_delay = wait_delay(retry_attempt);
             tracing::info!("Waiting {}ms before reconnect", wait_delay.as_millis());
@@ -171,7 +167,7 @@ impl ConnectingState {
             retry_attempt,
             selected_gateways,
             connection_data: initial_connection_data.clone(),
-            resolve_api_addrs_fut: resolve_config_fut,
+            resolve_api_addrs_fut: Fuse::terminated(),
             reconnect_delay_fut,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
@@ -244,11 +240,9 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_routes(shared_state).await;
 
-        NextTunnelState::NewState(DisconnectingState::enter(
-            after_disconnect,
-            tunnel_monitor_handle,
-            shared_state,
-        ))
+        NextTunnelState::NewState(
+            DisconnectingState::enter(after_disconnect, tunnel_monitor_handle, shared_state).await,
+        )
     }
 
     async fn handle_tunnel_close(tombstone: Tombstone, _shared_state: &mut SharedState) {
@@ -259,6 +253,33 @@ impl ConnectingState {
         let _ = tombstone;
     }
 
+    async fn handle_reconnect_delay(
+        #[allow(unused_mut)] mut self: Box<Self>,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            let gateway_config = shared_state.nym_config.gateway_config.clone();
+
+            self.resolve_api_addrs_fut = async move {
+                nym_gateway_directory::resolve_config(&gateway_config)
+                    .await
+                    .map_err(|err| Error::ResolveApiHostnames(Box::new(err)))
+            }
+            .boxed()
+            .fuse();
+
+            NextTunnelState::SameState(self)
+        }
+
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        {
+            // Start tunnel monitor immediately since there is no configurable firewall on mobile
+            self.start_tunnel_monitor(None, shared_state).await
+        }
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn handle_resolved_gateway_config(
         mut self: Box<Self>,
         resolver_result: Result<ResolvedConfig>,
@@ -275,69 +296,68 @@ impl ConnectingState {
             }
         };
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
-            if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
-            {
-                trace_err_chain!(err, "failed to set firewall policy");
-                return NextTunnelState::NewState(
-                    ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await,
-                );
-            }
+        self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
+        if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+            trace_err_chain!(err, "failed to set firewall policy");
+            return NextTunnelState::NewState(
+                ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await,
+            );
         }
 
-        if !resolved_gateway_config.has_resolver_overrides() {
-            tracing::warn!(
-                "There are no resolver overrides, which may result in the firewall blocking API requests"
-            );
-        } else {
-            // Tell the Account Controller about the resolver overrrides
-            if let Err(e) = shared_state
-                .account_command_tx
-                .set_resolver_overrides(Some(
-                    resolved_gateway_config
-                        .nym_vpn_api_resolver_overrides
-                        .clone(),
-                ))
+        if resolved_gateway_config.has_resolver_overrides() {
+            let resolver_overrides = resolved_gateway_config
+                .nym_vpn_api_resolver_overrides
+                .clone();
+
+            // Set DNS resolver overrides to ensure that HTTP clients use IP addresses specified in firewall exceptions.
+            if !shared_state
+                .set_resolver_overrides(resolver_overrides)
                 .await
             {
-                trace_err_chain!(e, "Failed to set resolver overrides for account controller");
                 return NextTunnelState::NewState(
                     ErrorState::enter(
-                        ErrorStateReason::Internal(
-                            "Failed to set static NYM API addresses to account controller"
-                                .to_owned(),
-                        ),
+                        ErrorStateReason::Internal("Failed to set resolver overrides".to_owned()),
                         shared_state,
                     )
                     .await,
                 );
             }
-
-            // Tell the Discovery Refresher about the resolver overrides and resume it
-            shared_state
-                .discovery_refresher_command_tx
-                .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
-                    Box::new(
-                        resolved_gateway_config
-                            .nym_vpn_api_resolver_overrides
-                            .clone(),
-                    ),
-                )))
-                .ok();
-
-            shared_state
-                .discovery_refresher_command_tx
-                .send(DiscoveryRefresherCommand::Pause(false))
-                .ok();
+        } else {
+            tracing::warn!(
+                "There are no resolver overrides, which may result in the firewall blocking API requests"
+            );
         }
 
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_down()
-            .await;
+        // Allow networking now when firewall and resolver overrides are configured.
+        shared_state.allow_networking().await;
 
+        self.start_tunnel_monitor(Some(resolved_gateway_config), shared_state)
+            .await
+    }
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    async fn handle_resolved_gateway_config(
+        self: Box<Self>,
+        _resolver_result: Result<ResolvedConfig>,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
+        NextTunnelState::NewState(
+            ErrorState::enter(
+                ErrorStateReason::Internal(
+                    "DNS resolution must not be performed on mobile. This is a logical error."
+                        .to_owned(),
+                ),
+                shared_state,
+            )
+            .await,
+        )
+    }
+
+    async fn start_tunnel_monitor(
+        mut self: Box<Self>,
+        resolved_gateway_config: Option<ResolvedConfig>,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
         let Some(tunnel_monitor_event_sender) = self.tunnel_monitor_event_sender.take() else {
             return NextTunnelState::NewState(
                 ErrorState::enter(
@@ -355,11 +375,11 @@ impl ConnectingState {
 
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
-            resolved_gateway_config: resolved_gateway_config.clone(),
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
+            resolved_gateway_config,
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
@@ -474,18 +494,7 @@ impl TunnelStateHandler for ConnectingState {
     ) -> NextTunnelState {
         tokio::select! {
             _ = &mut self.reconnect_delay_fut => {
-                let gateway_config = shared_state.nym_config.gateway_config.clone();
-
-                self.resolve_api_addrs_fut = async move {
-                    nym_gateway_directory::resolve_config(&gateway_config)
-                        .await
-                        .map_err(Box::new)
-                        .map_err(Error::ResolveApiHostnames)
-                }
-                .boxed()
-                .fuse();
-
-                NextTunnelState::SameState(self)
+                self.handle_reconnect_delay(shared_state).await
             },
             resolved_gateway_config = &mut self.resolve_api_addrs_fut => {
                 self.handle_resolved_gateway_config(resolved_gateway_config, shared_state).await
@@ -522,7 +531,7 @@ impl TunnelStateHandler for ConnectingState {
                                         PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                                         tunnel_monitor_handle,
                                         shared_state
-                                    ))
+                                    ).await)
                                 } else {
                                     NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
                                 }
@@ -544,7 +553,7 @@ impl TunnelStateHandler for ConnectingState {
                                         PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                                         tunnel_monitor_handle,
                                         shared_state
-                                    ))
+                                    ).await)
                                 } else {
                                     NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
                                 }
@@ -568,7 +577,7 @@ impl TunnelStateHandler for ConnectingState {
                                         PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                                         tunnel_monitor_handle,
                                         shared_state
-                                    ))
+                                    ).await)
                                 } else {
                                     NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
                                 }
@@ -596,7 +605,7 @@ impl TunnelStateHandler for ConnectingState {
                                 PrivateActionAfterDisconnect::Error(error_state_reason),
                                 self.tunnel_monitor_handle.expect("monitor handle must be set!"),
                                 shared_state
-                            ))
+                            ).await)
                         } else {
                             if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
                                 let tombstone = tunnel_monitor_handle.wait().await;

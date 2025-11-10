@@ -21,11 +21,14 @@ pub struct DisconnectingState {
 }
 
 impl DisconnectingState {
-    pub fn enter(
+    pub async fn enter(
         after_disconnect: PrivateActionAfterDisconnect,
         tunnel_monitor_handle: TunnelMonitorHandle,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Disallow networking when disconnecting to prevent new connections during tunnel shutdown
+        shared_state.disallow_networking().await;
+
         // It's safe to abort status listener as it's stateless.
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
             status_listener_handle.abort();
