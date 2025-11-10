@@ -6,7 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 use nym_registration_common::GatewayData;
-use tokio_stream::{StreamExt, wrappers::IntervalStream};
+use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
@@ -205,9 +205,10 @@ impl TemporaryBandwidthClient {
         }
     }
 
-    pub(crate) async fn query_bandwidth(&mut self, retries: usize) -> Result<i64, String> {
+    pub(crate) async fn query_bandwidth(&mut self, tries: usize) -> Result<i64, String> {
+        assert!(tries > 0);
         let mut res = Ok(0);
-        for attempt in 0..retries {
+        for attempt in 0..tries {
             res = match self {
                 TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
                     .query_bandwidth()
@@ -222,11 +223,11 @@ impl TemporaryBandwidthClient {
             let Err(err) = &res else {
                 break;
             };
-            if attempt < retries - 1 {
+            if attempt < tries - 1 {
                 tracing::warn!(
                     "Attempt {}/{} to query bandwidth failed: {}. Retrying...",
                     attempt + 1,
-                    retries,
+                    tries,
                     err
                 );
             }
