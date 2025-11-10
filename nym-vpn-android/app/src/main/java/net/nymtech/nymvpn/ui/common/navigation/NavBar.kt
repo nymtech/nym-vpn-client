@@ -235,6 +235,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 					}
 				},
 			)
+
 			currentRoute.startsWith(Route.Permission::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.permission_required)) },
 				show = true,

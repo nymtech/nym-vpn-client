@@ -20,6 +20,7 @@ internal fun getConnectionStatus(appUiState: AppUiState): ConnectionStatus {
 
 			if (isQuicSupported) ConnectionStatus.FastQuicConnected else ConnectionStatus.FastNonQuicConnected
 		}
+
 		else -> ConnectionStatus.Disconnected
 	}
 }

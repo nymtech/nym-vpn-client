@@ -1,4 +1,5 @@
 package net.nymtech.logcatutil
+
 import androidx.lifecycle.ProcessLifecycleOwner
 import java.io.File
 

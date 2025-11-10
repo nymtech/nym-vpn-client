@@ -75,16 +75,19 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 					SnackbarController.showMessage(StringValue.StringResource(R.string.account_payment_error))
 					navController.replaceCurrentWith(Route.SelectPlan)
 				}
+
 				is PaymentUiEvent.PaymentSuccess -> {
 					if (animationEnded && !navigated) {
 						navigated = true
 						navController.replaceCurrentWith(Route.Main())
 					}
 				}
+
 				is PaymentUiEvent.SubscriptionOwned -> {
 					navigated = true
 					navController.replaceCurrentWith(Route.Main())
 				}
+
 				PaymentUiEvent.PaymentPending -> {
 					if (animationEnded && !navigated) {
 						navigated = true
@@ -186,15 +189,19 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 				0 -> {
 					Pair(R.string.account_payment_processing, R.string.account_payment_verifying)
 				}
+
 				1 -> {
 					Pair(R.string.account_payment_retrieving, R.string.account_payment_credentials)
 				}
+
 				2 -> {
 					Pair(R.string.account_payment_saving, R.string.account_payment_anonymous)
 				}
+
 				3 -> {
 					Pair(R.string.account_payment_welcome, R.string.account_payment_protected)
 				}
+
 				else -> {
 					Pair(-1, -1)
 				}

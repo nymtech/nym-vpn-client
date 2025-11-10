@@ -47,18 +47,30 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 			MainStyledButton(
 				onClick = onClickLogin,
 				content = {
-					Text(stringResource(R.string.account_subscription_button), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black)
+					Text(
+						stringResource(R.string.account_subscription_button),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = Color.Black,
+					)
 				},
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 		dismissButton = {
 			TransparentButton(
 				onClick = onClickCancel,
 				content = {
-					Text(stringResource(R.string.close), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = MaterialTheme.colorScheme.onSurface)
+					Text(
+						stringResource(R.string.close),
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onSurface,
+					)
 				},
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 	)

@@ -53,13 +53,13 @@ import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
+import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
+import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
-import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
-import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen

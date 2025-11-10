@@ -69,7 +69,9 @@ fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onSaveClick: () ->
 			Column(
 				verticalArrangement = Arrangement.spacedBy(6.dp),
 				horizontalAlignment = Alignment.CenterHorizontally,
-				modifier = Modifier.fillMaxWidth().padding(8.dp),
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(8.dp),
 			) {
 				Text(
 					text = stringResource(R.string.passphrase_lose),

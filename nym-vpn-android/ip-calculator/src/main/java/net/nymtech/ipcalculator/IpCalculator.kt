@@ -1,4 +1,5 @@
 package net.nymtech.ipcalculator
+
 import java.net.InetAddress
 
 interface IpCalculator {

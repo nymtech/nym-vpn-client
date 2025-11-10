@@ -3,15 +3,15 @@ import java.io.File
 import java.util.Properties
 
 fun Project.getLocalProperty(key: String, file: String = "local.properties"): String? {
-    val properties = java.util.Properties()
-    val localProperties = File(file)
-    if (localProperties.isFile) {
-        java.io.InputStreamReader(java.io.FileInputStream(localProperties), Charsets.UTF_8)
-            .use { reader ->
-                properties.load(reader)
-            }
-    } else return null
-    return properties.getProperty(key)
+	val properties = java.util.Properties()
+	val localProperties = File(file)
+	if (localProperties.isFile) {
+		java.io.InputStreamReader(java.io.FileInputStream(localProperties), Charsets.UTF_8)
+			.use { reader ->
+				properties.load(reader)
+			}
+	} else return null
+	return properties.getProperty(key)
 }
 
 fun Project.getBuildTaskName(): String {
@@ -65,8 +65,8 @@ fun Project.getSigningProperty(property: String): String {
 }
 
 
-fun Project.isBundleBuild() : Boolean {
-    return gradle.startParameter.taskNames.find { it.lowercase().contains("bundle") } != null
+fun Project.isBundleBuild(): Boolean {
+	return gradle.startParameter.taskNames.find { it.lowercase().contains("bundle") } != null
 }
 
 fun Project.languageList(): List<String> {

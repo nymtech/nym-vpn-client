@@ -15,10 +15,12 @@ class FdroidBilling : Billing {
 
 	override fun isReady(): Boolean = false
 
-	private val _uiState = MutableStateFlow(object : PurchaseInfo {
-		override val billingInfo: BillingInfo? = null
-		override val billingPurchase: List<BillingPurchase> = emptyList()
-	})
+	private val _uiState = MutableStateFlow(
+		object : PurchaseInfo {
+			override val billingInfo: BillingInfo? = null
+			override val billingPurchase: List<BillingPurchase> = emptyList()
+		},
+	)
 
 	override val uiState: StateFlow<PurchaseInfo> = _uiState
 	override val products: Flow<List<ProductData>> = flowOf(emptyList())

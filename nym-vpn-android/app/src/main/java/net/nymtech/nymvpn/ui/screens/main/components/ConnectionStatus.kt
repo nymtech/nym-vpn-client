@@ -108,6 +108,7 @@ fun ConnectionStatus(
 							)
 						}
 					}
+
 					else -> {
 						StatusInfoLabel(
 							message = stateMessage.reason.toUserMessage(context),
