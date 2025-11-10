@@ -122,7 +122,7 @@ impl LazySocks5 {
 
                             // Spawn task to handle this connection
                             tokio::spawn(async move {
-                                if let Err(e) = wrapper.handle_connection(stream, addr).await {
+                                if let Err(e) = wrapper.handle_connection_with_mixnet(stream, addr).await {
                                     error!("Connection handler error for {}: {}", addr, e);
                                 }
                             });
@@ -147,8 +147,8 @@ impl LazySocks5 {
         Ok(())
     }
 
-    /// Handle a single connection
-    async fn handle_connection(
+    /// Handle a single connection with mixnet
+    async fn handle_connection_with_mixnet(
         &self,
         mut client_stream: TcpStream,
         client_addr: SocketAddr,
@@ -228,8 +228,19 @@ impl LazySocks5 {
         info!("Building mixnet client with SOCKS5 configuration...");
 
         // Create a custom StoragePaths that shares the credential database with the main VPN
-        // but uses a separate identity by storing keys in a "socks5" subdirectory
-        let socks5_data_path = self.config.mixnet_data_path.join("socks5");
+        // but uses a separate identity by storing keys in a sibling "_socks5" directory
+        let mixnet_folder_name = self
+            .config
+            .mixnet_data_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap();
+        let socks5_data_path = self
+            .config
+            .mixnet_data_path
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new("."))
+            .join(format!("{}_socks5", mixnet_folder_name));
 
         // Remove old socks5 directory if it exists
         // - to get fresh identity each time
