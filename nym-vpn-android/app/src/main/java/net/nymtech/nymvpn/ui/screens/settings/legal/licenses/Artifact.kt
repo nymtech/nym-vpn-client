@@ -30,6 +30,7 @@ data class Artifact(
 					.distinctBy { artifact -> artifact.name }
 			}
 		}
+
 		fun from(license: License): Artifact {
 			return Artifact(
 				version = license.version,
@@ -38,6 +39,7 @@ data class Artifact(
 				scm = license.repository?.let { Scm(it) },
 			)
 		}
+
 		fun from(licenses: List<License>): List<Artifact> {
 			return licenses.map { from(it) }
 		}

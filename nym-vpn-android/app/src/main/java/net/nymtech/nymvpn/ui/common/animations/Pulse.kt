@@ -26,9 +26,12 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 @Composable
 fun Pulse(color: Color = CustomColors.pulse) {
 	MultiplePulsarEffect(pulsarColor = color) { modifier ->
-		Canvas(modifier = modifier.size(5.dp), onDraw = {
-			drawCircle(color = color)
-		})
+		Canvas(
+			modifier = modifier.size(5.dp),
+			onDraw = {
+				drawCircle(color = color)
+			},
+		)
 	}
 }
 
@@ -44,12 +47,15 @@ fun MultiplePulsarEffect(nbPulsar: Int = 2, pulsarRadius: Float = 10f, pulsarCol
 		Modifier,
 		contentAlignment = Alignment.Center,
 	) {
-		Canvas(Modifier, onDraw = {
-			for (i in 0 until nbPulsar) {
-				val (radius, alpha) = effects[i]
-				drawCircle(color = pulsarColor, radius = radius, alpha = alpha)
-			}
-		})
+		Canvas(
+			Modifier,
+			onDraw = {
+				for (i in 0 until nbPulsar) {
+					val (radius, alpha) = effects[i]
+					drawCircle(color = pulsarColor, radius = radius, alpha = alpha)
+				}
+			},
+		)
 		circle(
 			Modifier
 				.padding((pulsarRadius).dp)

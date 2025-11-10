@@ -39,7 +39,10 @@ fun CustomSnackBar(
 	if (content.value != null) {
 		content.value?.let { info ->
 			Box(
-				modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp.scaledWidth()).padding(top = paddingTop),
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(horizontal = 24.dp.scaledWidth())
+					.padding(top = paddingTop),
 				contentAlignment = Alignment.TopCenter,
 			) {
 				Snackbar(containerColor = containerColor) {
@@ -47,13 +50,17 @@ fun CustomSnackBar(
 						LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
 					) {
 						Row(
-							modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 4.dp, vertical = 4.dp),
 							verticalAlignment = Alignment.CenterVertically,
 						) {
 							Text(
 								text = info.message,
 								color = CustomColors.snackbarTextColor,
-								modifier = Modifier.weight(1f).padding(end = 8.dp),
+								modifier = Modifier
+									.weight(1f)
+									.padding(end = 8.dp),
 							)
 							Row(
 								verticalAlignment = Alignment.CenterVertically,
@@ -66,10 +73,12 @@ fun CustomSnackBar(
 								}
 								info.iconAction?.let {
 									Box(
-										modifier = Modifier.size(24.dp).clickable {
-											data.dismiss()
-											it.onActionPress()
-										},
+										modifier = Modifier
+											.size(24.dp)
+											.clickable {
+												data.dismiss()
+												it.onActionPress()
+											},
 										contentAlignment = Alignment.Center,
 									) {
 										Icon(

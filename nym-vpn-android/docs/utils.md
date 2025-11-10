@@ -26,7 +26,8 @@ These limits should be enforced by Crowdin, but they are worth noting.
 
 For logging, there is a local logger that writes the app logs to local storage and can optionally be shared with support.
 
-The project was originally configured with [Sentry](https://sentry.io/auth/login/nymtech/), but we removed this from Android due to concerns about logging. Even \
+The project was originally configured with [Sentry](https://sentry.io/auth/login/nymtech/), but we removed this from Android due to concerns about
+logging. Even \
 when turned off, the dependencies were visible in the F-Droid store. There may be a request to add this back in the future, \
 and the secrets are already available in the GitHub workflows.
 

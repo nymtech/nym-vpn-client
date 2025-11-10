@@ -24,7 +24,9 @@ fun LoginSection(appUiState: AppUiState, onLoginClick: () -> Unit) {
 				Text(stringResource(R.string.log_in).uppercase(), style = CustomTypography.buttonMain)
 			},
 			color = MaterialTheme.colorScheme.primary,
-			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+			modifier = Modifier
+				.fillMaxWidth()
+				.height(56.dp.scaledHeight()),
 		)
 	}
 }

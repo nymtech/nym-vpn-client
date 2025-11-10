@@ -49,7 +49,9 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 				Row(
 					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.Start),
 					verticalAlignment = Alignment.CenterVertically,
-					modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(top = 24.dp),
 				) {
 					MainStyledButton(
 						onClick = onDismiss,
@@ -62,7 +64,9 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 								),
 							)
 						},
-						modifier = Modifier.weight(1f).height(46.dp),
+						modifier = Modifier
+							.weight(1f)
+							.height(46.dp),
 					)
 					OutlineStyledButton(
 						onClick = onConfirm,
@@ -74,7 +78,9 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 							)
 						},
 						backgroundColor = Color.Transparent,
-						modifier = Modifier.weight(1f).height(46.dp),
+						modifier = Modifier
+							.weight(1f)
+							.height(46.dp),
 					)
 				}
 			}
