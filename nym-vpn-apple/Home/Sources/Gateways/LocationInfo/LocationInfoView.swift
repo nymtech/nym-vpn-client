@@ -131,7 +131,7 @@ private extension LocationInfoView {
 
     func locationAccuracySubtitle() -> some View {
         HStack(spacing: 0) {
-            Text(locationAccuracyAttributtedString())
+            Text(locationAccuracyattributedString())
                 .tint(NymColor.gray1)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
@@ -147,7 +147,7 @@ private extension LocationInfoView {
         })
     }
 
-    func locationAccuracyAttributtedString() -> AttributedString {
+    func locationAccuracyattributedString() -> AttributedString {
         let first = AttributedString("locationModal.accuracy.subtitle1".localizedString)
         var second = AttributedString("locationModal.accuracy.subtitle2".localizedString)
         let third = AttributedString("locationModal.accuracy.subtitle3".localizedString)

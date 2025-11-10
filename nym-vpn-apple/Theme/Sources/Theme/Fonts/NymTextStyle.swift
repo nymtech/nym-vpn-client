@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct NymTextStyle {
-    let nymFont: NymFont
+    public let nymFont: NymFont
     let lineSpacing: CGFloat
     let kerning: CGFloat
 

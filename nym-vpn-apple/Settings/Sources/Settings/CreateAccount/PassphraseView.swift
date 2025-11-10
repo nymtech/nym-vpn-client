@@ -3,9 +3,7 @@ import AppSettings
 import Device
 import BiometricAuthenticator
 import CredentialsManager
-#if os(iOS)
 import ImpactGenerator
-#endif
 import Keychain
 import MessageModels
 import Theme
@@ -14,9 +12,11 @@ import UIComponents
 public struct PassphraseView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var credentialsManager: CredentialsManager
+    @EnvironmentObject private var impactGenerator: ImpactGenerator
     @Binding private var path: NavigationPath
     @State private var isErrorDisplayed = false
     @State private var isSnackbarDisplayed = false
+    @State private var isInfoModalDisplayed = false
     @State private var mnemonic: String?
     @State private var snackbarMessage: String?
     @State private var errorMessage = ""
@@ -73,6 +73,11 @@ public struct PassphraseView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+        .overlay {
+            if isInfoModalDisplayed {
+                WhatIsPassphraseView(isDisplayed: $isInfoModalDisplayed)
+            }
+        }
         .onDisappear {
             mnemonic = nil
         }
@@ -89,7 +94,20 @@ private extension PassphraseView {
             title: "settings.passphrase".localizedString,
             useElevationBackground: true,
             isLogoImageHidden: true,
-            leftButton: ((mnemonic?.isEmpty) == nil) ? CustomNavBarButton(type: .back, action: { navigateBack() }) : nil
+            leftButton: CustomNavBarButton(
+                type: .back,
+                action: {
+                    impactGenerator.softImpact()
+                    navigateBack()
+                }
+            ),
+            rightButton: CustomNavBarButton(
+                type: .info,
+                action: {
+                    impactGenerator.softImpact()
+                    isInfoModalDisplayed.toggle()
+                }
+            )
         )
     }
 
