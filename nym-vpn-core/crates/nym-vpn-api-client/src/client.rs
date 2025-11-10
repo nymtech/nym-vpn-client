@@ -54,7 +54,7 @@ struct SkewState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SkewStatus {
-    Expired(),
+    Expired,
     Valid(TimeDuration),
 }
 
@@ -75,7 +75,7 @@ impl SkewState {
         if self.expires_at > now {
             SkewStatus::Valid(self.skew)
         } else {
-            SkewStatus::Expired()
+            SkewStatus::Expired
         }
     }
 }
@@ -86,6 +86,8 @@ pub struct VpnApiClient {
     urls: Vec<Url>,
     user_agent: UserAgent,
     skew_state: Arc<RwLock<Option<SkewState>>>,
+    #[cfg(test)]
+    mock_remote_time: Arc<RwLock<Option<VpnApiTime>>>,
 }
 
 impl VpnApiClient {
@@ -107,6 +109,8 @@ impl VpnApiClient {
             urls,
             user_agent,
             skew_state: Arc::new(RwLock::new(None)),
+            #[cfg(test)]
+            mock_remote_time: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -139,6 +143,8 @@ impl VpnApiClient {
             urls,
             user_agent,
             skew_state: Arc::new(RwLock::new(None)),
+            #[cfg(test)]
+            mock_remote_time: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -166,6 +172,11 @@ impl VpnApiClient {
     }
 
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
+        #[cfg(test)]
+        if let Some(mocked) = self.mock_remote_time.read().await.clone() {
+            return Ok(mocked);
+        }
+
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = self.get_health().await?.timestamp_utc;
         let time_after = OffsetDateTime::now_utc();
@@ -229,7 +240,7 @@ impl VpnApiClient {
 
                 VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
             }
-            Some(SkewStatus::Expired()) | None => {
+            Some(SkewStatus::Expired) | None => {
                 tracing::debug!("VPN API time skew expired or not present, refreshing");
 
                 self.refresh_skew().await?
@@ -1393,8 +1404,170 @@ impl VpnApiClient {
             .map_err(Box::new)
             .map_err(VpnApiClientError::GetVpnNetworkDetails)
     }
+
+    // TEST HELPERS
+    #[cfg(test)]
+    pub(super) async fn set_mock_remote_time(&self, remote_time: Option<VpnApiTime>) {
+        let mut guard = self.mock_remote_time.write().await;
+        *guard = remote_time;
+    }
 }
 
 fn jwt_error(error: &str) -> bool {
     error.to_lowercase().contains("jwt")
+}
+
+// skew_state tests
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::time::{Duration as StdDuration, Instant};
+
+    use super::*;
+
+    fn test_user_agent() -> UserAgent {
+        UserAgent {
+            application: "vpn-api-client-test".to_string(),
+            version: "0.0.1".to_string(),
+            platform: "test-platform".to_string(),
+            git_commit: "test-commit".to_string(),
+        }
+    }
+
+    fn test_client() -> VpnApiClient {
+        let base_url = "http://localhost";
+        let inner = Client::new_url(base_url, Some(StdDuration::from_secs(1))).unwrap();
+        let parsed_url = Url::parse(base_url).unwrap();
+
+        VpnApiClient {
+            inner,
+            urls: vec![parsed_url],
+            user_agent: test_user_agent(),
+            skew_state: Arc::new(RwLock::new(None)),
+            mock_remote_time: Arc::new(RwLock::new(None)),
+        }
+    }
+
+    fn remote_time_with_skew(seconds: i64) -> VpnApiTime {
+        let local_time = OffsetDateTime::now_utc();
+        let estimated_remote_time = local_time - TimeDuration::seconds(seconds);
+        VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
+    }
+
+    #[tokio::test]
+    async fn current_remote_time_returns_cached_for_valid_skew() {
+        let client = test_client();
+
+        {
+            let mut state = client.skew_state.write().await;
+            *state = Some(SkewState {
+                skew: TimeDuration::seconds(120),
+                expires_at: Instant::now() + StdDuration::from_secs(60),
+            });
+        }
+
+        {
+            let state = client.skew_state.read().await;
+            assert!(matches!(
+                state.as_ref().unwrap().status(Instant::now()),
+                SkewStatus::Valid(_)
+            ));
+        }
+
+        let remote_time = client.current_remote_time().await.unwrap();
+        assert!(remote_time.is_some());
+
+        let state = client.skew_state.read().await;
+        assert!(matches!(
+            state.as_ref().unwrap().status(Instant::now()),
+            SkewStatus::Valid(_)
+        ));
+    }
+
+    #[tokio::test]
+    async fn current_remote_time_returns_none_for_synced_skew() {
+        let client = test_client();
+
+        {
+            let mut state = client.skew_state.write().await;
+            *state = Some(SkewState {
+                skew: TimeDuration::seconds(1),
+                expires_at: Instant::now() + StdDuration::from_secs(60),
+            });
+        }
+
+        {
+            let state = client.skew_state.read().await;
+            assert!(matches!(
+                state.as_ref().unwrap().status(Instant::now()),
+                SkewStatus::Valid(_)
+            ));
+        }
+
+        let remote_time = client.current_remote_time().await.unwrap();
+        assert!(remote_time.is_none());
+    }
+
+    #[tokio::test]
+    async fn current_remote_time_refreshes_expired_skew() {
+        let client = test_client();
+
+        {
+            let mut state = client.skew_state.write().await;
+            *state = Some(SkewState {
+                skew: TimeDuration::seconds(10),
+                expires_at: Instant::now() - StdDuration::from_secs(1),
+            });
+        }
+
+        let mocked_remote_time = remote_time_with_skew(180);
+        client.set_mock_remote_time(Some(mocked_remote_time)).await;
+
+        {
+            let state = client.skew_state.read().await;
+            assert!(matches!(
+                state.as_ref().unwrap().status(Instant::now()),
+                SkewStatus::Expired
+            ));
+        }
+
+        let remote_time = client.current_remote_time().await.unwrap();
+        assert!(remote_time.is_some());
+
+        let state = client.skew_state.read().await;
+        assert!(matches!(
+            state.as_ref().unwrap().status(Instant::now()),
+            SkewStatus::Valid(_)
+        ));
+        assert_eq!(
+            remote_time
+                .unwrap()
+                .local_time_ahead_skew()
+                .whole_seconds()
+                .abs(),
+            180
+        );
+    }
+
+    #[tokio::test]
+    async fn current_remote_time_refreshes_when_missing() {
+        let client = test_client();
+
+        let mocked_remote_time = remote_time_with_skew(200);
+        client.set_mock_remote_time(Some(mocked_remote_time)).await;
+
+        assert!(client.skew_state.read().await.is_none());
+        let remote_time = client.current_remote_time().await.unwrap();
+        assert!(remote_time.is_some());
+
+        assert!(client.skew_state.read().await.is_some());
+        assert_eq!(
+            remote_time
+                .unwrap()
+                .local_time_ahead_skew()
+                .whole_seconds()
+                .abs(),
+            200
+        );
+    }
 }
