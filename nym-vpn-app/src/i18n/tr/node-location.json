@@ -7,9 +7,15 @@
   "input-label": "Ara",
   "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
-    "title": "Sunucu konumları hakkında detaylar",
-    "description": "Sunucu konumlarını IP adreslerine dayanarak tahmin ediyoruz, ancak gerçek konumlar biraz farklı olabilir.",
-    "link": "Daha fazla bilgi için"
+    "streaming": {
+      "title": "Streaming",
+      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+    },
+    "location": {
+      "title": "Location accuracy",
+      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+    },
+    "title": "Sunucu konumları hakkında detaylar"
   },
   "location-not-available": {
     "entry": "Seçilen giriş konumu kullanılamıyor, {{location}} konumuna geçildi",
@@ -59,5 +65,6 @@
       "explorer": "Detaylı bilgi için Nym <networkExplorerLink />’i inceleyin."
     },
     "select-button": "Sunucu seçin"
-  }
+  },
+  "search-other-nodes": "Other search results"
 }

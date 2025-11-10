@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -54,9 +55,10 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import timber.log.Timber
 
 @Composable
-fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
+fun SelectPlanScreen(appUiState: AppUiState, viewModel: SelectPlanViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val products by viewModel.subscriptions.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
@@ -70,7 +72,10 @@ fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 				viewModel.fetchSubscriptions()
 				showSheet = true
 			} else {
-				context.openWebUrl(context.getString(R.string.pricing_url))
+				appUiState.managerState.accountLinks?.signUp?.let {
+					Timber.d("Create url: $it")
+					context.openWebUrl(it)
+				}
 			}
 		},
 		onDismissSheet = { showSheet = false },
@@ -176,11 +181,13 @@ internal fun PreviewSelectPlanScreen() {
 				override val id = "1"
 				override val name = "Monthly Plan"
 				override val price = "$4.99 / month"
+				override val freeTrialDays = null
 			},
 			object : ProductData {
 				override val id = "2"
 				override val name = "Yearly Plan"
 				override val price = "$49.99 / year"
+				override val freeTrialDays = null
 			},
 		)
 		SelectPlanScreen(products = mockProducts, onSelectPlanButtonClick = {}, onSelectSubscription = {}, onDismissSheet = {})

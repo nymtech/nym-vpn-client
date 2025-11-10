@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
@@ -68,6 +69,7 @@ import net.nymtech.nymvpn.ui.screens.main.modal.ShowInfoModal
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -105,6 +107,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionTime by viewModel.connectionTime.collectAsState()
+	val isQuicFeatureFlagEnabled by viewModel.isQuicFeatureFlagEnabled.collectAsStateWithLifecycle()
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
@@ -214,14 +217,17 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		}
 	}
 
-	Box {
+	Box(
+		modifier = Modifier
+			.fillMaxSize()
+			.padding(bottom = padding.calculateBottomPadding()),
+	) {
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier
-				.verticalScroll(rememberScrollState())
 				.fillMaxSize()
-				.padding(bottom = padding.calculateBottomPadding()),
+				.verticalScroll(rememberScrollState()),
 		) {
 			SnackbarHost(hostState = screenSnackbar, Modifier)
 			ConnectionStatus(
@@ -253,6 +259,12 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
 				) {
 					GroupLabel(title = stringResource(R.string.connect_to))
+					val shouldShowQuic = run {
+						isQuicFeatureFlagEnabled &&
+							appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET &&
+							appUiState.settings.quicEnabled &&
+							appUiState.entryPointGateway?.isQuicSupported() ?: false
+					}
 					LocationField(
 						value = appUiState.entryPointName,
 						label = stringResource(R.string.entry),
@@ -260,6 +272,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						gatewayLocation = appUiState.entryPointLocation,
 						onClick = { navController.goFromRoot(Route.EntryLocation) },
 						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+						showQuicLabel = shouldShowQuic,
 					)
 					LocationField(
 						value = appUiState.exitPointName,

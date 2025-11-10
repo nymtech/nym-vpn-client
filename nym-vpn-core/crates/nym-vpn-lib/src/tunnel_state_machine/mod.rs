@@ -48,7 +48,6 @@ use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
-use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint, TunnelEvent,
@@ -64,9 +63,10 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, VpnTopologyProvider,
+    GatewayDirectoryError, UserAgent, VpnTopologyProvider,
     bandwidth_controller::Error as BandwidthControllerError,
 };
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -155,9 +155,6 @@ pub struct TunnelSettings {
 
     /// DNS configuration.
     pub dns: DnsOptions,
-
-    /// The user agent used for HTTP requests.
-    pub user_agent: Option<UserAgent>,
 }
 
 impl TunnelSettings {
@@ -446,6 +443,7 @@ pub struct SharedState {
     topology_provider: VpnTopologyProvider,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     wg_keys_db: WireguardKeysDb,
+    user_agent: UserAgent,
 }
 
 impl SharedState {
@@ -502,6 +500,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+        user_agent: UserAgent,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -553,6 +552,7 @@ impl TunnelStateMachine {
             topology_provider,
             discovery_refresher_command_tx,
             wg_keys_db,
+            user_agent,
         };
 
         let (current_state_handler, _) = if shared_state
@@ -717,8 +717,11 @@ pub enum Error {
     #[error("failed to create icmp probe")]
     CreateIcmpProbe(#[source] nym_connection_monitor::IcmpProbeError),
 
-    #[error("failed to configure icmp probe due to missing IPv4 interface address")]
-    IcmpProbeRequiresIPv4Addr,
+    #[error("failed to create tcp probe")]
+    CreateTcpProbe(#[source] nym_connection_monitor::TcpProbeError),
+
+    #[error("failed to configure probe due to missing IPv4 interface address")]
+    ProbeRequiresIPv4Addr,
 }
 
 impl Error {
@@ -759,7 +762,8 @@ impl Error {
             Self::WireguardKeyDb(e) => ErrorStateReason::Internal(e.to_string()),
             Self::GatewayDirectoryClient(e) => ErrorStateReason::Internal(e.to_string()),
             Self::CreateIcmpProbe(e) => ErrorStateReason::Internal(e.to_string()),
-            Self::IcmpProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
+            Self::CreateTcpProbe(e) => ErrorStateReason::Internal(e.to_string()),
+            Self::ProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
         })
     }
 }
@@ -812,8 +816,8 @@ impl tunnel::Error {
                 }
             }
             Self::RegistrationClient(e) => match *e {
-                nym_registration_client::RegistrationClientError::EntryGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
-                nym_registration_client::RegistrationClientError::ExitGatewayRegisterWireguard { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
+                nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
+                nym_registration_client::RegistrationClientError::WireguardExitRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
                 _ => None,
             }
             Self::DupFd(_) => Some(ErrorStateReason::Internal(

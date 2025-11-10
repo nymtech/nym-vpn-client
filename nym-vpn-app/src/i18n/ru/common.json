@@ -1,7 +1,7 @@
 {
   "vpn-modes": {
-    "privacy": "Анонимный",
-    "fast": "Быстрый"
+    "privacy": "Анонимный (микснет)",
+    "fast": "Быстрый (WireGuard)"
   },
   "connect": "Подключиться",
   "disconnect": "Отключиться",

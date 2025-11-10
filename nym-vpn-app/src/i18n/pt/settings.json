@@ -87,7 +87,7 @@
     "network-stats": {
       "label": "Estatísticas de rede anônimas",
       "sublabel": "As alterações serão aplicadas após a reinicialização do daemon.",
-      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "desc": "Ajude-nos a construir uma rede mais rápida compartilhando dados anônimos de desempenho da sua região. Usamos esses dados para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor para onde ela é mais necessária.\n\nApenas os dados de desempenho da rede são compartilhados — nunca sua atividade de navegação ou dados pessoais.",
       "link": "Saiba exatamente o que é compartilhado"
     }
   },

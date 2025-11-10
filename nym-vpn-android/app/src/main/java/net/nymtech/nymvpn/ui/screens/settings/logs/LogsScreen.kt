@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,15 +22,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.collectLatest
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.AutoScrollEffect
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.DeleteLogsModal
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsBottomBar
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsList
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsTabBar
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.ScrollToBottomFab
+import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsModal
 
 @Composable
 fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
@@ -37,7 +43,9 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 
 	var isAutoScrolling by remember { mutableStateOf(true) }
 	var lastScrollPosition by remember { mutableIntStateOf(0) }
-	var showModal by remember { mutableStateOf(false) }
+	var showDelete by remember { mutableStateOf(false) }
+	var showShare by remember { mutableStateOf(false) }
+	var showDownload by remember { mutableStateOf(false) }
 
 	val context = LocalContext.current
 
@@ -83,9 +91,9 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 				)
 				LogsBottomBar { event ->
 					when (event) {
-						LogsBottomBarEvent.Share -> viewModel.shareLogs(context)
-						LogsBottomBarEvent.Download -> viewModel.downloadLogs(context)
-						LogsBottomBarEvent.Delete -> showModal = true
+						LogsBottomBarEvent.Share -> showShare = true
+						LogsBottomBarEvent.Download -> showDownload = true
+						LogsBottomBarEvent.Delete -> showDelete = true
 					}
 				}
 			}
@@ -98,12 +106,45 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 		)
 	}
 
-	DeleteLogsModal(
-		show = showModal,
-		onDismiss = { showModal = false },
+	// Delete
+	LogsModal(
+		show = showDelete,
+		onDismiss = { showDelete = false },
 		onConfirm = {
 			viewModel.deleteLogs()
-			showModal = false
+			showDelete = false
 		},
+		title = stringResource(R.string.logs_delete_title),
+		description = stringResource(R.string.logs_delete_description),
+		buttonText = stringResource(R.string.logs_delete_button),
+		icon = Icons.Filled.Delete,
+	)
+
+	// Share
+	LogsModal(
+		show = showShare,
+		onDismiss = { showShare = false },
+		onConfirm = {
+			viewModel.shareLogs(context)
+			showShare = false
+		},
+		title = stringResource(R.string.logs_share_title),
+		description = stringResource(R.string.logs_share_description),
+		buttonText = stringResource(R.string.logs_share_button),
+		icon = Icons.Filled.Share,
+	)
+
+	// Download
+	LogsModal(
+		show = showDownload,
+		onDismiss = { showDownload = false },
+		onConfirm = {
+			viewModel.downloadLogs(context)
+			showDownload = false
+		},
+		title = stringResource(R.string.logs_download_title),
+		description = stringResource(R.string.logs_download_description),
+		buttonText = stringResource(R.string.logs_download_button),
+		icon = Icons.Filled.Download,
 	)
 }

@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -43,6 +42,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import timber.log.Timber
 
 @Composable
 fun LoginInputSection(
@@ -166,12 +166,10 @@ fun LoginInputSection(
 								tag = "signUpLink",
 								styles = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary)),
 							) {
-								val url = if (BuildConfig.FLAVOR == Constants.FDROID) {
-									context.getString(R.string.pricing_url)
-								} else {
-									appUiState.managerState.accountLinks?.signUp ?: context.getString(R.string.create_account_url)
+								appUiState.managerState.accountLinks?.signUp?.let {
+									Timber.d("Create url: $it")
+									context.openWebUrl(it)
 								}
-								context.openWebUrl(url)
 							},
 						) {
 							append(stringResource(R.string.get_access_code))

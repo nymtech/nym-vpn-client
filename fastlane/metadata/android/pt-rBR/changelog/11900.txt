@@ -1,0 +1,3 @@
+Quais as novidades:
+- Detecção offline
+- Correção de erros

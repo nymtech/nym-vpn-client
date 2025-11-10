@@ -78,8 +78,10 @@ fun SurfaceSelectionGroupButton(
 					Row(
 						verticalAlignment = Alignment.CenterVertically,
 						modifier = Modifier
-							.weight(4f, false)
-							.padding(vertical = 4.dp.scaledHeight()).fillMaxSize(),
+							.weight(1f, false)
+							.padding(vertical = 4.dp.scaledHeight())
+							.fillMaxSize()
+							.padding(end = 4.dp.scaledWidth()),
 					) {
 						Box(modifier = Modifier.padding(start = anchorsPadding.scaledWidth()))
 						it.leading?.let { icon ->
@@ -104,8 +106,8 @@ fun SurfaceSelectionGroupButton(
 						Box(
 							contentAlignment = Alignment.CenterEnd,
 							modifier = Modifier
-								.padding(horizontal = anchorsPadding.scaledWidth())
-								.weight(1f),
+								.weight(0.35f)
+								.padding(horizontal = anchorsPadding.scaledWidth()),
 						) {
 							trailing()
 						}

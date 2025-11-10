@@ -32,6 +32,8 @@ const GatewayItem = ({
   const { isSelected } = gateway;
   const scoreIcon = getScoreIcon(gateway, vpnMode);
   const { getCountryName } = useLang();
+  const streamOptimized =
+    node === 'exit' && gateway.asn?.type === 'residential';
 
   const handleSelect = () => {
     if (isSelected) {
@@ -97,7 +99,10 @@ const GatewayItem = ({
         </div>
       </Button>
       {quicLabel && gateway.quic && <QuicTag />}
-      <div className="flex py-2 self-stretch">
+      {streamOptimized && (
+        <MsIcon icon="smart_display" className="text-cornflower" />
+      )}
+      <div className="flex py-2 self-stretch items-center">
         <Button
           className={clsx(
             'w-14 flex justify-center items-center mr-3 shrink-0',

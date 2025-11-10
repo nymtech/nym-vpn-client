@@ -1,0 +1,8 @@
+Was ist neu:
+- Verbesserungen der Navigation und Korrekturen
+- Verbesserte Protokolle exportieren
+- Mehr stabile App-Leistung
+- UI und UX Verbesserungen
+- Aktualisierte Fehler und Info-Nachrichten
+- Verbesserte Benachrichtigungsbehandlung
+- ordnungsgemäße Überprüfung der Laufzeitberechtigungen

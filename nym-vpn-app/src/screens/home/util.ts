@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useInAppNotify, useMainState } from '../../contexts';
+import { StateDispatch } from '../../types';
+import { kvSet } from '../../kvStore';
 
 export function useActionToast(action: 'node-select' | 'mode-select') {
   const { state } = useMainState();
@@ -42,3 +44,8 @@ export function useActionToast(action: 'node-select' | 'mode-select') {
 
   return toast;
 }
+
+export const setStreamOptimizedLabelSeen = (dispatch: StateDispatch) => {
+  dispatch({ type: 'set-streaming-optimized-label-seen', seen: true });
+  kvSet('streaming-optimized-label-seen', true);
+};

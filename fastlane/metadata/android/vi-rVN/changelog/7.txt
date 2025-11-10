@@ -1,0 +1,2 @@
+Có gì mới:
+- Sửa lỗi cho các thay đổi API

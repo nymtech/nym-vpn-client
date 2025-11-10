@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Miglioramenti interfaccia utente
+- Schermata di selezione Analytics
+- Vari miglioramenti e miglioramenti

@@ -1,0 +1,7 @@
+Quais as novidades:
+- Desempenho de API melhorado
+- Atalhos de aplicativo básico adicionados
+- Aprimoramentos da UI
+- Verificação de vencimento de credencial fixa
+- Falha de sincronização de interface de conexão fixa
+- Sincronização rápida melhorada

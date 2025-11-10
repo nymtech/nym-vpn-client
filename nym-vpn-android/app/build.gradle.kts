@@ -242,8 +242,11 @@ dependencies {
 	// sentry
 	implementation(libs.sentry)
 
-	// okhttp for testing
-	implementation(libs.okhttp)
+	// biometric
+	implementation(libs.biometric)
+
+	// credentials
+	implementation(libs.credentials)
 }
 
 fun determineVersionName(): String {

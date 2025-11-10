@@ -35,6 +35,7 @@ function Notifications() {
         type={current?.type}
         clickAway={current?.clickAway}
         data-testid="notifications-toast"
+        content={current?.content}
       />
     </>
   );

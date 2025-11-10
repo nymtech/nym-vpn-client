@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -20,41 +20,41 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.VerticalDivider
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.iconSize
-import nym_vpn_lib_types.AsnKind
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-internal fun ServerDetailsTrailingContent(gatewayLocation: GatewayLocation, asnKind: AsnKind?, onInfoIconClick: () -> Unit) {
+internal fun ServerDetailsTrailingContent(showStreamDisplay: Boolean, showQuicLabel: Boolean, onInfoIconClick: () -> Unit) {
 	Box(
 		modifier = Modifier.fillMaxHeight(),
-		contentAlignment = Alignment.Center,
+		contentAlignment = Alignment.CenterEnd,
 	) {
-		val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && asnKind == AsnKind.RESIDENTIAL
 		Row(
-			horizontalArrangement = Arrangement.spacedBy(if (showStreamDisplay) 12.dp else 16.dp),
+			horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth()),
 			verticalAlignment = Alignment.CenterVertically,
 			modifier = Modifier
-				.padding(end = 16.dp)
+				.padding(end = 16.dp.scaledWidth())
 				.clickable {
 					onInfoIconClick()
-				},
+				}
+				.heightIn(min = 42.dp.scaledHeight())
+				.align(Alignment.CenterEnd),
 		) {
 			if (showStreamDisplay) {
 				Icon(
 					imageVector = ImageVector.vectorResource(R.drawable.smart_display),
 					contentDescription = stringResource(R.string.stream_display),
-					modifier = Modifier.size(iconSize),
+					modifier = Modifier.size(iconSize.scaledHeight()),
 					tint = Color.Unspecified,
 				)
-			} else {
-				VerticalDivider(modifier = Modifier.height(42.dp))
+			} else if (showQuicLabel) {
+				QuickLabel()
 			}
 			Icon(
-				Icons.Outlined.Info,
+				imageVector = Icons.Outlined.Info,
 				contentDescription = stringResource(R.string.info),
-				modifier = Modifier.size(iconSize),
+				modifier = Modifier.size(iconSize.scaledHeight()).align(Alignment.CenterVertically),
 			)
 		}
 	}

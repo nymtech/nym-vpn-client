@@ -31,7 +31,7 @@ build-release-all: ## Build all the crates in the Rust workspace in release mode
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --release --workspace
 
 build-mac: ## Build the Rust workspace suitable for running the daemon
-	RUSTFLAGS="$(IDEMPOTENT_RUSTFLAGS) -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/../nym-vpn-apple/Daemon/Info.plist" $(OTHER_IDEMPOTENT_FLAGS) cargo build --release
+	$(ALL_IDEMPOTENT_FLAGS) cargo build --release
 
 build-win-cross:
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --target x86_64-pc-windows-gnu --release

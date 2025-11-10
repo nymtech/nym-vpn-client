@@ -47,25 +47,26 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.welcome.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
+import timber.log.Timber
 
 @Composable
-fun WelcomeAccountScreen(viewModel: WelcomeAccountViewModel = hiltViewModel()) {
+fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = LocalNavController.current
-	val snackbar = SnackbarController.current
 
 	val activeSubscription by viewModel.activeSubscription.collectAsStateWithLifecycle(false)
 	val loading by viewModel.loading.collectAsStateWithLifecycle()
@@ -78,10 +79,18 @@ fun WelcomeAccountScreen(viewModel: WelcomeAccountViewModel = hiltViewModel()) {
 		},
 		onStartClick = {
 			if (!loading) {
-				if (activeSubscription) {
-					showSubscriptionDialog = true
+				if (viewModel.isBillingAvailable()) {
+					if (activeSubscription) {
+						showSubscriptionDialog = true
+					} else {
+						navController.replaceCurrentWith(Route.Generating)
+					}
 				} else {
-					navController.replaceCurrentWith(Route.Generating)
+					appUiState.managerState.accountLinks?.signUp?.let {
+						Timber.d("Create url: $it")
+						context.openWebUrl(it)
+					}
+					navController.replaceCurrentWith(Route.Login)
 				}
 			}
 		},
@@ -95,8 +104,6 @@ fun WelcomeAccountScreen(viewModel: WelcomeAccountViewModel = hiltViewModel()) {
 		},
 		onClickCancel = {
 			showSubscriptionDialog = false
-			snackbar.showMessage(context.getString(R.string.account_subscription_info))
-			navController.replaceCurrentWith(Route.Generating)
 		},
 		onDismiss = {
 			showSubscriptionDialog = false

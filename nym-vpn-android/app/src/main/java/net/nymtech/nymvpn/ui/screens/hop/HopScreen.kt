@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
@@ -38,10 +37,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,14 +59,16 @@ import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -102,8 +108,15 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 		}
 	}
 
+	val canShowQuicLabel = remember(uiState.isQuicFeatureFlagEnabled) {
+		uiState.isQuicFeatureFlagEnabled &&
+			gatewayLocation == GatewayLocation.ENTRY &&
+			appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET &&
+			appUiState.settings.quicEnabled
+	}
+
 	LaunchedEffect(gatewayType, initialGateways) {
-		viewModel.initializeGateways(initialGateways)
+		viewModel.initializeGateways(initialGateways, gatewayLocation == GatewayLocation.EXIT)
 		viewModel.updateCountryCache(gatewayType)
 	}
 
@@ -133,6 +146,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 						.padding(horizontal = 24.dp.scaledWidth())
 						.padding(top = 24.dp.scaledHeight()),
 				) {
+					if (canShowQuicLabel) {
+						QuicInfoMessage {
+							navController.navigate(Route.Censorship)
+						}
+					}
 					CustomTextField(
 						value = uiState.query,
 						onValueChange = { viewModel.onQueryChange(it) },
@@ -149,7 +167,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 				}
 			}
 
-			if (uiState.countries.isEmpty() && uiState.queriedGateways.isEmpty() && initialGateways.isEmpty()) {
+			if (uiState.items.isEmpty() && initialGateways.isEmpty()) {
 				item {
 					Box(
 						modifier = Modifier
@@ -175,7 +193,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 				}
 			}
 
-			if (uiState.query.isNotBlank() && uiState.countries.isEmpty() && uiState.queriedGateways.isEmpty() && !uiState.error) {
+			if (uiState.query.isNotBlank() && uiState.items.isEmpty() && !uiState.error) {
 				item {
 					Column(
 						horizontalAlignment = Alignment.CenterHorizontally,
@@ -194,14 +212,28 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 							buildAnnotatedString {
 								append(stringResource(R.string.try_another_server_name))
 								append(" ")
-								withLink(LinkAnnotation.Url(stringResource(R.string.contact_url))) {
-									append(stringResource(R.string.contact_for_help))
+								withStyle(
+									style = SpanStyle(
+										color = MaterialTheme.colorScheme.onBackground,
+										textDecoration = TextDecoration.Underline,
+									),
+								) {
+									withLink(LinkAnnotation.Url(stringResource(R.string.contact_url))) {
+										append(stringResource(R.string.contact_for_help))
+									}
 								}
 								append(" ")
 								append(stringResource(R.string.or_learn))
 								append(" ")
-								withLink(LinkAnnotation.Url(stringResource(R.string.docs_url))) {
-									append(stringResource(R.string.how_to_run_gateway))
+								withStyle(
+									style = SpanStyle(
+										color = MaterialTheme.colorScheme.onBackground,
+										textDecoration = TextDecoration.Underline,
+									),
+								) {
+									withLink(LinkAnnotation.Url(stringResource(R.string.docs_url))) {
+										append(stringResource(R.string.how_to_run_gateway))
+									}
 								}
 							},
 							textAlign = TextAlign.Center,
@@ -211,89 +243,126 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 				}
 			}
 
-			items(uiState.countries, key = { it.country }) { country ->
-				CountryItem(
-					country = country,
-					gatewayType = gatewayType,
-					gatewayLocation = gatewayLocation,
-					gateways = when (gatewayType) {
-						GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
-						GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
-						GatewayType.WG -> appUiState.gateways.wgGateways
-						else -> emptyList()
+			items(
+				uiState.items,
+				key = { item ->
+					when (item) {
+						is ItemType.CountryItem -> item.locale.country
+						is ItemType.GatewayItem -> item.gateway.identity
 					}
-						.filter { it.twoLetterCountryISO == country.country.lowercase() }
-						.scoreSorted(appUiState.settings.vpnMode),
-					selectedKey = selectedKey,
-					onSelectionChange = { id ->
-						viewModel.onSelected(id, gatewayLocation)
-						navController.safePopBackStack()
-					},
-					onGatewayDetails = { gateway ->
-						navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
-					},
-					modifier = Modifier
-						.padding(top = if (uiState.countries.indexOf(country) == 0) 24.dp.scaledHeight() else 0.dp)
-						.padding(vertical = 4.dp),
-				)
-			}
+				},
+			) { item ->
+				when (item) {
+					is ItemType.CountryItem -> {
+						CountryItem(
+							query = uiState.query,
+							countryItem = item,
+							gatewayType = gatewayType,
+							gatewayLocation = gatewayLocation,
+							selectedKey = selectedKey,
+							onSelectionChange = { id ->
+								viewModel.onSelected(id, gatewayLocation)
+								navController.safePopBackStack()
+							},
+							onGatewayDetails = { gateway ->
+								navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
+							},
+							modifier = Modifier
+								.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp)
+								.padding(vertical = 4.dp),
+							isQuicSettingsEnabled = canShowQuicLabel,
+						)
+					}
 
-			if (uiState.queriedGateways.isNotEmpty()) {
-				itemsIndexed(
-					uiState.queriedGateways.scoreSorted(appUiState.settings.vpnMode),
-					key = { _, gateway -> gateway.identity },
-				) { index, gateway ->
-					val locale = gateway.twoLetterCountryISO?.let { Locale(it, it) }
-					SurfaceSelectionGroupButton(
-						listOf(
-							SelectionItem(
-								onClick = {
-									viewModel.onSelected(gateway.identity, gatewayLocation)
-									navController.safePopBackStack()
-								},
-								leading = {
-									val (icon, description) = gateway.getScoreIcon(gatewayType)
-									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-										Image(
-											icon,
-											contentDescription = description,
-											modifier = Modifier.size(16.dp),
+					is ItemType.GatewayItem -> {
+						val gateway = item.gateway
+						val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
+						val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
+						SurfaceSelectionGroupButton(
+							items = listOf(
+								SelectionItem(
+									onClick = {
+										viewModel.onSelected(gateway.identity, gatewayLocation)
+										navController.safePopBackStack()
+									},
+									leading = {
+										val (icon, description) = gateway.getScoreIcon(gatewayType)
+										Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+											Image(
+												icon,
+												contentDescription = description,
+												modifier = Modifier.size(16.dp),
+											)
+										}
+									},
+									trailing = {
+										ServerDetailsTrailingContent(
+											showStreamDisplay = showStreamDisplay,
+											showQuicLabel = canShowQuicLabel && gateway.isQuicSupported(),
+										) {
+											navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
+										}
+									},
+									title = {
+										Text(
+											gateway.name,
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis,
+											style = MaterialTheme.typography.bodyLarge,
 										)
-									}
-								},
-								trailing = {
-									ServerDetailsTrailingContent(gatewayLocation, gateway.asnKind) {
-										navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
-									}
-								},
-								title = {
-									Text(
-										gateway.name,
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodyLarge,
-									)
-								},
-								description = {
-									Text(
-										text = gateway.serverLocation(locale?.displayCountry),
-										maxLines = 1,
-										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodySmall,
-									)
-								},
-								selected = selectedKey == gateway.identity,
+									},
+									description = {
+										Text(
+											text = gateway.serverLocation(locale?.displayCountry),
+											maxLines = 1,
+											overflow = TextOverflow.Ellipsis,
+											style = MaterialTheme.typography.bodySmall,
+										)
+									},
+									selected = selectedKey == gateway.identity,
+								),
 							),
-						),
-						shape = RectangleShape,
-						background = MaterialTheme.colorScheme.background,
-						divider = false,
-						anchorsPadding = 0.dp,
-						modifier = Modifier
-							.padding(top = if (index == 0 && uiState.countries.isEmpty()) 24.dp.scaledHeight() else 0.dp),
-					)
+							shape = RectangleShape,
+							background = MaterialTheme.colorScheme.background,
+							divider = false,
+							anchorsPadding = 0.dp,
+							modifier = Modifier
+								.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp),
+						)
+					}
 				}
 			}
 		}
 	}
+}
+
+@Composable
+internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
+	val annotatedText = buildAnnotatedString {
+		append(stringResource(R.string.quic_gatway_filter_info_msg))
+		append(" ")
+		withStyle(
+			style = SpanStyle(
+				color = MaterialTheme.colorScheme.onBackground,
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			withLink(
+				LinkAnnotation.Clickable("quic", linkInteractionListener = {
+					onNavigateToQuicSettings()
+				}),
+			) {
+				append(stringResource(R.string.here))
+			}
+		}
+		append(".")
+	}
+
+	Text(
+		text = annotatedText,
+		style = Typography.bodyMedium.copy(
+			color = MaterialTheme.colorScheme.outline,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		),
+	)
 }

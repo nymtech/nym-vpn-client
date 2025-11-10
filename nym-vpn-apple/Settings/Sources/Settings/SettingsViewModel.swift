@@ -7,10 +7,6 @@ import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
 import FeatureFlagsManager
-#if os(macOS)
-import HelperInstall
-import HelperManager
-#endif
 import UIComponents
 
 @MainActor public class SettingsViewModel: SettingsFlowState {
@@ -19,9 +15,6 @@ import UIComponents
     private let connectionManager: ConnectionManager
     private let externalLinkManager: ExternalLinkManager
     private let featureFlagsManager: FeatureFlagsManager
-#if os(macOS)
-    private let helperManager: HelperManager
-#endif
 
     @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
@@ -31,7 +24,9 @@ import UIComponents
     }
 
     let settingsTitle = "settings".localizedString
-
+#if os(macOS)
+    @Binding private var isServing: Bool
+#endif
     @Published var isLogoutConfirmationDisplayed = false
     @Published var sections: [SettingsSection] = []
     @Published var accountIdentifier: String?
@@ -76,21 +71,21 @@ import UIComponents
     }
 #elseif os(macOS)
     public init(
+        isServing: Binding<Bool>,
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
         configurationManager: ConfigurationManager,
         connectionManager: ConnectionManager,
         credentialsManager: CredentialsManager,
         externalLinkManager: ExternalLinkManager,
-        helperManager: HelperManager,
         featureFlagsManager: FeatureFlagsManager
     ) {
+        _isServing = isServing
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
-        self.helperManager = helperManager
         self.featureFlagsManager = featureFlagsManager
         super.init(path: path)
         setup()
@@ -108,9 +103,9 @@ import UIComponents
 
     func navigateToAddCredentialsOrCredential() {
 #if os(macOS)
-        guard !helperManager.isInstallNeeded()
+        guard isServing
         else {
-            navigateToInstallHelper()
+            path.append(SettingLink.daemonEnable)
             return
         }
         if credentialsManager.isValidCredentialImported {
@@ -161,14 +156,6 @@ private extension SettingsViewModel {
     func navigateToCensorship() {
         path.append(SettingLink.censorship)
     }
-#if os(macOS)
-    func navigateToInstallHelper() {
-        let action = HelperAfterInstallAction { [weak self] in
-            self?.navigateToAddCredentialsOrCredential()
-        }
-        path.append(SettingLink.installHelper(afterInstallAction: action))
-    }
-#endif
 }
 
 // MARK: - Setup -

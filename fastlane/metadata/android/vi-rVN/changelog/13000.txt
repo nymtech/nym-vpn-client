@@ -1,0 +1,4 @@
+Có gì mới:
+- Sửa lỗi trình ghi nhật ký
+- Cải thiện tính ổn định
+- Thông báo cập nhật cho máy khách

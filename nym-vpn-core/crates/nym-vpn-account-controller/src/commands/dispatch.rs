@@ -32,6 +32,9 @@ pub enum AccountCommand {
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
+    /// Rotate the wireguard keys
+    RotateKeys(ReturnSender<(), AccountCommandError>),
+
     /// Retrieve current, on-chain, balance of the account. Only applicable for decentralised accounts
     AccountBalance(ReturnSender<Vec<Coin>, AccountCommandError>),
 
@@ -61,6 +64,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),

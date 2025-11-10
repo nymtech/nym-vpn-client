@@ -267,10 +267,10 @@ class MainActivity : AppCompatActivity() {
 									WelcomeScreen(appState)
 								}
 								composable<Route.SelectPlan> {
-									SelectPlanScreen()
+									SelectPlanScreen(appState)
 								}
 								composable<Route.WelcomeAccount> {
-									WelcomeAccountScreen()
+									WelcomeAccountScreen(appState)
 								}
 								composable<Route.Generating> {
 									GeneratingScreen()
@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity() {
 									}
 								}
 								composable<Route.Passphrase> {
-									PassphraseScreen(appState)
+									PassphraseScreen()
 								}
 								composable<Route.Account> {
 									AccountInfoScreen(appState)

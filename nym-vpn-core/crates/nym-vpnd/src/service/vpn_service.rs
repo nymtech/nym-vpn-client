@@ -94,6 +94,7 @@ pub enum VpnServiceCommand {
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    RotateKeys(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetAccountIdentity(
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
         (),
@@ -488,6 +489,7 @@ impl NymVpnService {
             wireguard_keys_db,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
+            parameters.user_agent.clone(),
             state_machine_shutdown_token.child_token(),
         )
         .await
@@ -786,6 +788,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let _ = tx.send(self.handle_forget_account().await);
+            }
+            VpnServiceCommand::RotateKeys(tx, ()) => {
+                let _ = tx.send(self.handle_rotate_keys().await);
             }
             VpnServiceCommand::GetAccountIdentity(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_identity().await);
@@ -1134,6 +1139,17 @@ impl NymVpnService {
             .report(StatisticsEvent::remove_seed());
 
         self.account_command_tx.forget_account().await
+    }
+
+    async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
+        // TODO: temporary, until key rotation can be done while connected
+        if self.tunnel_state != TunnelState::Disconnected {
+            return Err(AccountCommandError::internal(
+                "Unable to rotate keys while connected",
+            ));
+        }
+
+        self.account_command_tx.rotate_keys().await
     }
 
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountCommandError> {

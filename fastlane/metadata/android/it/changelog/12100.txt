@@ -1,0 +1,5 @@
+Cosa c'è di nuovo:
+- Dettagli selezione gateway
+- Ottimizzazioni utilizzo dati
+- Correzioni di sincronizzazione delle caselle
+- Altre correzioni di bug e miglioramenti

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
+		58B5A2E42EB52A730079FE55 /* nym-setup in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = 58B5A2E22EB52A490079FE55 /* nym-setup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */; };
 		D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */; };
 		D9144C5B2CC1057A0021A617 /* CountriesManagerTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */; };
@@ -16,7 +17,6 @@
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
 		D916EE672C90F2A700FADEEF /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D916EE662C90F2A700FADEEF /* Migrations */; };
 		D9188A9E2CE12C5F0031E141 /* TunnelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */; };
-		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E52C33F3D400465E84 /* ExternalLinkManager */; };
 		D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E72C33F3DA00465E84 /* ExternalLinkManager */; };
@@ -43,7 +43,6 @@
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
 		D954C0C12B51C1CA00C6BAAC /* NymMixnetTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D956711E2D5144AE003BB2EA /* PacketTunneProvider+Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */; };
-		D956A8052D4B9627006651E7 /* net.nymtech.vpn.helper.plist in Embed Helper Plist */ = {isa = PBXBuildFile; fileRef = D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9643C6E2CEBC53A00F6B9A7 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9643C6D2CEBC53A00F6B9A7 /* UserNotifications.framework */; };
 		D9643C702CEBC90700F6B9A7 /* NotificationMessages in Frameworks */ = {isa = PBXBuildFile; productRef = D9643C6F2CEBC90700F6B9A7 /* NotificationMessages */; };
 		D96680D12CC4FC7200267FA1 /* Device in Frameworks */ = {isa = PBXBuildFile; productRef = D96680D02CC4FC7200267FA1 /* Device */; };
@@ -67,7 +66,7 @@
 		D99B4F332E95900100A224A9 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9D336662E7A8EDE00590D81 /* AppIcon.icon */; };
 		D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
-		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		D9AC152E2BF3845E0041E334 /* nym-vpnd in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* nym-vpnd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
 		D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAFB2C4866AF005AF2D6 /* NymLogger */; };
 		D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BA3B6C2D5BF65000A5B99A /* GatewayManager */; };
@@ -82,7 +81,6 @@
 		D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E42BEBA4010036C566 /* AppSettings */; };
 		D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */; };
 		D9BF25982DBBA5F100A3CE72 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */; };
-		D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */ = {isa = PBXBuildFile; productRef = D9BF292A2D5A23F500CDFC9A /* HelperInstall */; };
 		D9C5EDE42DF0612700C0D991 /* PurchasesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9C5EDE32DF0612700C0D991 /* PurchasesManager */; };
 		D9CA18992D9AB96500FA8FAC /* QuitAppModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */; };
 		D9CACB0C2D67B7090004F9E0 /* gatewaysEntry.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */; };
@@ -157,17 +155,6 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D956A8042D4B9609006651E7 /* Embed Helper Plist */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Contents/Library/LaunchDaemons;
-			dstSubfolderSpec = 1;
-			files = (
-				D956A8052D4B9627006651E7 /* net.nymtech.vpn.helper.plist in Embed Helper Plist */,
-			);
-			name = "Embed Helper Plist";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		D99820962BB6E73C000C1FEE /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -184,7 +171,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */,
+				58B5A2E42EB52A730079FE55 /* nym-setup in Embed Helper Tool */,
+				D9AC152E2BF3845E0041E334 /* nym-vpnd in Embed Helper Tool */,
 			);
 			name = "Embed Helper Tool";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -193,12 +181,12 @@
 
 /* Begin PBXFileReference section */
 		5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelSettingsConversions.swift; sourceTree = "<group>"; };
+		58B5A2E22EB52A490079FE55 /* nym-setup */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-setup"; sourceTree = "<group>"; };
 		D90F19042BEED69D008D2232 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelActor.swift; sourceTree = "<group>"; };
 		D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunnelProvider+TunnelStatusListener.swift"; sourceTree = "<group>"; };
 		D9264E252B3DA062004594A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9281C462B8884D400834B53 /* NymVPN.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPN.entitlements; sourceTree = "<group>"; };
-		D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		D9418D6E2E849769008B6B0A /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NymMixnetTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -215,7 +203,7 @@
 		D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
 		D99A14762B357E9900F2728B /* NymVPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NymVPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99A14792B357E9900F2728B /* NymVPNApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNApp.swift; sourceTree = "<group>"; };
-		D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = net.nymtech.vpn.helper; sourceTree = "<group>"; };
+		D9AC152C2BF384580041E334 /* nym-vpnd */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-vpnd"; sourceTree = "<group>"; };
 		D9BEF2D02BEB63310036C566 /* NymVPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NymVPN.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9BEF2D22BEB63310036C566 /* NymVPNDaemonApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNDaemonApp.swift; sourceTree = "<group>"; };
 		D9BEF2D62BEB63320036C566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -244,9 +232,7 @@
 		D9F236222C64E64E00CCC433 /* LibLicences.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
 		D9F236242C650A9200CCC433 /* LibLicences.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
 		D9F744742D79BF5900DD9277 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.nymtech.vpn.helper.plist; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
-		D9FB33F32BEE320B009C3419 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -315,7 +301,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */,
-				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D99035882E9063D600E42A82 /* ImpactGenerator in Frameworks */,
 				D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
@@ -329,7 +314,6 @@
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
 				D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */,
-				D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */,
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
@@ -505,10 +489,8 @@
 		D9FB33F02BEE31E2009C3419 /* Daemon */ = {
 			isa = PBXGroup;
 			children = (
-				D94127BA2BFF2CB7009EDB7A /* Entitlements.plist */,
-				D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */,
-				D9FB33F32BEE320B009C3419 /* Info.plist */,
-				D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */,
+				58B5A2E22EB52A490079FE55 /* nym-setup */,
+				D9AC152C2BF384580041E334 /* nym-vpnd */,
 			);
 			path = Daemon;
 			sourceTree = "<group>";
@@ -610,7 +592,6 @@
 				D9BEF2CE2BEB63310036C566 /* Resources */,
 				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
-				D956A8042D4B9609006651E7 /* Embed Helper Plist */,
 			);
 			buildRules = (
 			);
@@ -623,7 +604,6 @@
 				D9BEF2E42BEBA4010036C566 /* AppSettings */,
 				D9FB33DB2BECD473009C3419 /* SentryManager */,
 				D9FB33DD2BECD47E009C3419 /* Theme */,
-				D91E36A82BF3AA7F00BDE84A /* HelperManager */,
 				D9ABF2832BF4989B009089FA /* Shell */,
 				D9CDF2DB2BF49909007E5DAF /* Home */,
 				D9E6D8C82BF5FF5F009612CE /* TunnelStatus */,
@@ -638,7 +618,6 @@
 				D96680D22CC4FC7800267FA1 /* Device */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
 				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
-				D9BF292A2D5A23F500CDFC9A /* HelperInstall */,
 				D9BA3B6C2D5BF65000A5B99A /* GatewayManager */,
 				D9C5EDE32DF0612700C0D991 /* PurchasesManager */,
 				D9391F0A2E461E1C002BE10F /* MessagesManager */,
@@ -677,7 +656,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1530;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					D954C0B72B51C1CA00C6BAAC = {
@@ -898,7 +877,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 421;
+				CURRENT_PROJECT_VERSION = 422;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -914,7 +893,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.12.0;
+				MARKETING_VERSION = 2.13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -936,7 +915,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 421;
+				CURRENT_PROJECT_VERSION = 422;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -952,7 +931,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MARKETING_VERSION = 2.12.0;
+				MARKETING_VERSION = 2.13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.nymtech.vpn.network-extension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1100,7 +1079,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 421;
+				CURRENT_PROJECT_VERSION = 422;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
@@ -1117,7 +1096,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2.12.0;
+				MARKETING_VERSION = 2.13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1141,7 +1120,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 421;
+				CURRENT_PROJECT_VERSION = 422;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
@@ -1158,7 +1137,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				MARKETING_VERSION = 2.12.0;
+				MARKETING_VERSION = 2.13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1183,7 +1162,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 123;
+				CURRENT_PROJECT_VERSION = 124;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1200,7 +1179,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.12.0;
+				MARKETING_VERSION = 2.13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1221,7 +1200,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 123;
+				CURRENT_PROJECT_VERSION = 124;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1239,7 +1218,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.12.0;
+				MARKETING_VERSION = 2.13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn;
 				PRODUCT_NAME = NymVPN;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1403,10 +1382,6 @@
 		D916EE662C90F2A700FADEEF /* Migrations */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Migrations;
-		};
-		D91E36A82BF3AA7F00BDE84A /* HelperManager */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = HelperManager;
 		};
 		D924A8E52C33F3D400465E84 /* ExternalLinkManager */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1585,10 +1560,6 @@
 		D9BEF2E42BEBA4010036C566 /* AppSettings */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppSettings;
-		};
-		D9BF292A2D5A23F500CDFC9A /* HelperInstall */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = HelperInstall;
 		};
 		D9C5EDE32DF0612700C0D991 /* PurchasesManager */ = {
 			isa = XCSwiftPackageProductDependency;

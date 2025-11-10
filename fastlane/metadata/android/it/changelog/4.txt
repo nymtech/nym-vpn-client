@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Refactor VPN client
+- Aggiungi risorse immagine
+- Correggi la sincronizzazione dello stato dell'UI con la VPN

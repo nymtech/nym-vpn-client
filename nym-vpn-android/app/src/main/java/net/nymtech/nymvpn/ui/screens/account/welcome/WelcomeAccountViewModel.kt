@@ -9,7 +9,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +27,7 @@ class WelcomeAccountViewModel @Inject constructor(
 
 	init {
 		viewModelScope.launch {
-			if (billingManager.isAvailable()) {
+			if (billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID) {
 				_loading.emit(true)
 				try {
 					if (billingManager.isReady()) {
@@ -54,5 +56,9 @@ class WelcomeAccountViewModel @Inject constructor(
 	private suspend fun checkSubscription() {
 		val subscribed = billingManager.hasActiveSubscription()
 		_activeSubscription.value = subscribed
+	}
+
+	fun isBillingAvailable(): Boolean {
+		return billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
 	}
 }

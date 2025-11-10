@@ -3,7 +3,7 @@ import { globalIgnores } from 'eslint/config';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
-import hooksPlugin from 'eslint-plugin-react-hooks';
+import reactHooks from 'eslint-plugin-react-hooks';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 
@@ -31,6 +31,7 @@ export default [
     ...tseslint.configs.disableTypeChecked,
   },
   reactPlugin.configs.flat.recommended,
+  reactHooks.configs.flat.recommended,
   {
     languageOptions: {
       parserOptions: {
@@ -38,9 +39,6 @@ export default [
         project: true,
       },
       globals: globals.browser,
-    },
-    plugins: {
-      'react-hooks': hooksPlugin,
     },
     settings: {
       react: {
@@ -50,7 +48,13 @@ export default [
   },
   {
     rules: {
-      ...hooksPlugin.configs.recommended.rules,
+      // TODO all of these will need to be fixed eventually
+      //  disable them for now
+      'react-hooks/set-state-in-effect': 0,
+      'react-hooks/static-components': 0,
+      'react-hooks/preserve-manual-memoization': 0,
+      'react-hooks/refs': 0,
+
       'sort-imports': [
         'error',
         {

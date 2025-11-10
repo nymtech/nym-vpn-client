@@ -72,7 +72,8 @@ export type StateAction =
   | { type: 'set-account-error'; error: AppError | null }
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
-  | { type: 'set-domain-fronting'; enabled: boolean };
+  | { type: 'set-domain-fronting'; enabled: boolean }
+  | { type: 'set-streaming-optimized-label-seen'; seen: boolean };
 
 export const initialState: AppState = {
   initialized: false,
@@ -111,6 +112,7 @@ export const initialState: AppState = {
     gatewayUpdateVersion: null,
     flags: {},
   },
+  streamingOptimizedLabelSeen: false,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -339,6 +341,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         welcomeChecked: action.checked,
+      };
+    case 'set-streaming-optimized-label-seen':
+      return {
+        ...state,
+        streamingOptimizedLabelSeen: action.seen,
       };
     case 'set-backend-flags':
       return {

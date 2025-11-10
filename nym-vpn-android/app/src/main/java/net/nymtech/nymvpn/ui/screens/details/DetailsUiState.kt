@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.details
 
-import net.nymtech.vpn.model.BridgeParameter
+import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.NodeIdentity
@@ -49,12 +49,6 @@ data class DetailsUiState(
 				exitIpv6 = gateway.exitIpv6s.firstOrNull(),
 				isQuickSupportedByGateway = gateway.isQuicSupported(),
 			)
-		}
-
-		private fun NymGateway.isQuicSupported(): Boolean = run {
-			return bridgeInformation?.transports?.find {
-				it is BridgeParameter.QuicPlain
-			} != null
 		}
 	}
 }

@@ -1,0 +1,8 @@
+Novedades:
+- Añadido estado de QUIC y detalles del servidor
+- Nuevo icono de streaming y tooltips actualizados en Inicio / Salida
+- Nueva contraseña de pantalla y flujo de creación de cuentas
+- Las pantallas de entrada/salida ahora muestran nombres de ciudades en lugar de IDs del servidor
+- Mejorados detalles de la pasarela con tiempos de actualización relativos
+- Fijada pantalla de tiempo de actividad del servidor
+- Varias mejoras y correcciones en la interfaz

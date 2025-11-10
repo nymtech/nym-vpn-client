@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -26,6 +28,7 @@ fun Modal(
 	title: @Composable () -> Unit,
 	text: @Composable () -> Unit,
 	icon: ImageVector = Icons.Outlined.Info,
+	iconSize: Dp? = null,
 	description: String = stringResource(R.string.info),
 	confirmButton: @Composable () -> Unit = {
 		MainStyledButton(
@@ -42,7 +45,7 @@ fun Modal(
 ) {
 	if (show) {
 		AlertDialog(
-			containerColor = MaterialTheme.colorScheme.surfaceContainer,
+			containerColor = MaterialTheme.colorScheme.surface,
 			onDismissRequest = { onDismiss() },
 			tonalElevation = 0.dp,
 			dismissButton = dismissButton,
@@ -50,7 +53,18 @@ fun Modal(
 				confirmButton()
 			},
 			icon = {
-				Icon(icon, description, tint = MaterialTheme.colorScheme.onSurface)
+				Icon(
+					icon,
+					description,
+					tint = MaterialTheme.colorScheme.onSurface,
+					modifier = Modifier.then(
+						if (iconSize != null) {
+							Modifier.size(iconSize)
+						} else {
+							Modifier
+						},
+					),
+				)
 			},
 			title = {
 				title()

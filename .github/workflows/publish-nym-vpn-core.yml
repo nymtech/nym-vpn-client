@@ -220,7 +220,6 @@ jobs:
           cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum ${{ env.OUTPUT_DIR }} || true
 
       - name: Upload to www
-        continue-on-error: true
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}

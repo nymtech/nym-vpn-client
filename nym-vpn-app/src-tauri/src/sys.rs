@@ -1,12 +1,9 @@
 use nym_platform_metadata::SysInfo;
 use serde::Serialize;
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use std::{env, process::Command};
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 use ts_rs::TS;
 
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
 #[derive(Debug, Clone, Serialize, TS, strum::AsRefStr)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export, export_to = "tauri.ts")]
@@ -19,20 +16,21 @@ pub enum GpuType {
     Unknown(Option<String>),
 }
 
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
-#[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, TS, strum::AsRefStr, Eq, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export, export_to = "tauri.ts")]
 pub enum DisplayServer {
     X11,
     Wayland,
-    #[default]
-    Unknown,
+    Unknown(Option<String>),
 }
 
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
-fn get_display_server() -> DisplayServer {
-    match env::var("XDG_SESSION_TYPE")
+fn get_display_server() -> Option<DisplayServer> {
+    if !cfg!(any(target_os = "linux", target_os = "openbsd")) {
+        return None;
+    }
+
+    let display_server = match env::var("XDG_SESSION_TYPE")
         .inspect_err(|e| warn!("XDG_SESSION_TYPE not set or not valid: {e}"))
         .map(|s| s.to_lowercase())
     {
@@ -40,10 +38,11 @@ fn get_display_server() -> DisplayServer {
         Ok(s) if s == "wayland" => DisplayServer::Wayland,
         Ok(s) => {
             warn!("unknown display server: {}", s);
-            DisplayServer::Unknown
+            DisplayServer::Unknown(Some(s))
         }
-        _ => DisplayServer::Unknown,
-    }
+        _ => DisplayServer::Unknown(None),
+    };
+    Some(display_server)
 }
 
 #[derive(Debug, Clone, Default, Serialize, TS)]
@@ -54,11 +53,10 @@ pub struct OsInfo {
     pub version: String,
     pub kernel: String,
     pub arch: String,
-    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-    pub display_server: DisplayServer,
-    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-    pub gpu: GpuType,
     pub hash: String,
+    // set on Linux only
+    pub display_server: Option<DisplayServer>,
+    pub gpu: Option<GpuType>,
 }
 
 impl OsInfo {
@@ -70,9 +68,7 @@ impl OsInfo {
             version: system.os_version,
             kernel,
             arch: system.arch,
-            #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             display_server: get_display_server(),
-            #[cfg(any(target_os = "linux", target_os = "openbsd"))]
             gpu: gpu_info(),
             hash,
         }
@@ -82,27 +78,39 @@ impl OsInfo {
     pub fn linux_check(&self) {
         // with NVIDIA gpu, there is an upstream issue with webkit dmabuf renderer
         // see https://github.com/tauri-apps/tauri/issues/9304
-        if matches!(self.gpu, GpuType::Nvidia) {
+        if matches!(self.gpu, Some(GpuType::Nvidia)) {
             info!("NVIDIA gpu detected, disabling webkit dmabuf renderer");
             unsafe {
                 env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
         }
     }
+
+    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
+    pub fn print_linux_info(&self) {
+        if let Some(ds) = &self.display_server {
+            info!("display server: {}", ds.as_ref());
+        }
+        if let Some(gpu) = &self.gpu {
+            info!("gpu: {}", gpu.as_ref());
+        }
+    }
 }
 
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
-fn gpu_info() -> GpuType {
-    use tracing::debug;
+/// Linux only
+fn gpu_info() -> Option<GpuType> {
+    if !cfg!(any(target_os = "linux", target_os = "openbsd")) {
+        return None;
+    }
 
     let Ok(output) = Command::new("lspci").arg("-nn").output().inspect_err(|e| {
         error!("failed to run lspci: {}", e);
     }) else {
-        return GpuType::Unknown(None);
+        return Some(GpuType::Unknown(None));
     };
     if !output.status.success() {
         error!("lspci failed: {}", String::from_utf8_lossy(&output.stderr));
-        return GpuType::Unknown(None);
+        return Some(GpuType::Unknown(None));
     }
     let output = String::from_utf8_lossy(&output.stdout);
     let Some(info) = output
@@ -110,18 +118,18 @@ fn gpu_info() -> GpuType {
         .find(|line| line.to_lowercase().contains("vga compatible controller"))
     else {
         warn!("no VGA device found in lspci output");
-        return GpuType::Unknown(None);
+        return Some(GpuType::Unknown(None));
     };
     debug!("GPU info: {}", info);
     if info.to_lowercase().contains("nvidia") {
-        return GpuType::Nvidia;
+        return Some(GpuType::Nvidia);
     } else if info.to_lowercase().contains("amd") || info.contains("radeon") {
-        return GpuType::Amd;
+        return Some(GpuType::Amd);
     } else if info.to_lowercase().contains("intel") {
-        return GpuType::Intel;
+        return Some(GpuType::Intel);
     }
     info!("unknown GPU type: {}", info);
-    GpuType::Unknown(Some(info.to_string()))
+    Some(GpuType::Unknown(Some(info.to_string())))
 }
 
 impl std::fmt::Display for OsInfo {
@@ -130,7 +138,6 @@ impl std::fmt::Display for OsInfo {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "openbsd"))]
 impl Default for GpuType {
     fn default() -> Self {
         GpuType::Unknown(None)

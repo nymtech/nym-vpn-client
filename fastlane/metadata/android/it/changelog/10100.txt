@@ -1,0 +1,4 @@
+Cosa c'è di nuovo:
+- Miglioramenti dell'interfaccia utente
+- Aggiungi rifilatura credenziali
+- Correzione temporanea per errori di connessione

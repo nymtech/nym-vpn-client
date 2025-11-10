@@ -1,0 +1,9 @@
+Novedades:
+- Botón de descarga añadido a la pantalla de registros
+- Nueva pantalla de privacidad y datos
+- Flujo de monitoreo de red introducido
+- Pantalla de bienvenida añadida
+- UI actualizada para modales y SnackBar
+- Mejoras en la tienda de datos
+- Arreglos para cierres de hardware en dispositivos específicos
+- Arreglo para el bloqueo del lector de registros en ciertos dispositivos

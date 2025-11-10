@@ -1,0 +1,4 @@
+Novedades:
+- Añadido soporte para VPN siempre activa
+- Añadido soporte para ajustes rápidos
+- Corregido error con autoconexión al iniciar

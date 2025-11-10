@@ -7,9 +7,15 @@
   "input-label": "搜索",
   "quic-filter-note": "仅显示支持QUIC 协议的快速模式位置和服务器。要打开所有服务器，请关闭 QUIC <here />。",
   "location-details": {
-    "title": "服务器位置详情",
-    "description": "我们根据 IP 地址推断服务器位置，但实际位置可能略有不同。",
-    "link": "阅读更多"
+    "streaming": {
+      "title": "流流",
+      "description": "<0>住宅IP服务器</0> 优化流媒体和内容访问。由于需求和硬件限制，可能会减慢速度。"
+    },
+    "location": {
+      "title": "位置精度",
+      "description": "显示的位置是 <1>通过 IP 地址</1> 确定，可能无法反映确切的实际位置。"
+    },
+    "title": "服务器位置详情"
   },
   "location-not-available": {
     "entry": "所选条目位置不可用，切换到 {{location}}",
@@ -59,5 +65,6 @@
       "explorer": "Nym <networkExplorerLink /> 的更多详细信息"
     },
     "select-button": "选择服务器"
-  }
+  },
+  "search-other-nodes": "其他搜索结果"
 }

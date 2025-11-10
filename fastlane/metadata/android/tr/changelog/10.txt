@@ -1,0 +1,4 @@
+Yenilikler:
+Sürekli Açık VPN desteği eklendi
+Hızlı Ayarlar sekmesi desteği eklendi
+Başlangıçtaki otomatik bağlantıdaki hata düzeltildi

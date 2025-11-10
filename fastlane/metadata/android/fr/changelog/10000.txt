@@ -1,0 +1,7 @@
+Quoi de neuf :
+- Amélioration des performances de l'API
+- Ajout de raccourcis de l'application de base
+- Améliorations de l'interface utilisateur
+- Vérification d'expiration des identifiants fixe
+- Correction d'un bug de synchronisation de l'interface de connexion
+- Amélioration de la synchronisation rapide des tuiles
