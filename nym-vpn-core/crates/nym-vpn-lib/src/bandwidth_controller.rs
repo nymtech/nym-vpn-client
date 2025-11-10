@@ -225,17 +225,14 @@ impl TemporaryBandwidthClient {
     ) -> Result<i64, String> {
         assert!(tries > 0);
         let mut res = Ok(0);
-        for attempt in 0..tries {
+        for attempt in 1..tries + 1 {
             res = self.query_bandwidth().await;
             let Err(err) = &res else {
                 break;
             };
             if attempt < tries - 1 {
                 tracing::warn!(
-                    "Attempt {}/{} to query bandwidth failed: {}. Retrying...",
-                    attempt + 1,
-                    tries,
-                    err
+                    "Attempt {attempt}/{tries} to query bandwidth failed: {err}. Retrying..."
                 );
             }
         }
