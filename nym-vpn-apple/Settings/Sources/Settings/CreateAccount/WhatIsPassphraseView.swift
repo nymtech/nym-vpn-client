@@ -1,9 +1,11 @@
 import SwiftUI
+import AppSettings
 import ImpactGenerator
 import UIComponents
 import Theme
 
 public struct WhatIsPassphraseView: View {
+    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var impactGenerator: ImpactGenerator
     @Binding private var isDisplayed: Bool
 
@@ -17,7 +19,7 @@ public struct WhatIsPassphraseView: View {
 
             HStack {
                 Spacer()
-                    .frame(width: 40)
+                    .frame(width: appSettings.isSmallScreen ? 16 : 40)
 
                 content
                     .padding(24)
@@ -25,7 +27,7 @@ public struct WhatIsPassphraseView: View {
                     .cornerRadius(16)
 
                 Spacer()
-                    .frame(width: 40)
+                    .frame(width: appSettings.isSmallScreen ? 16 : 40)
             }
             .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }

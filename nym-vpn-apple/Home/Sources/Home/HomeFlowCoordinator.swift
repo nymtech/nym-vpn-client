@@ -60,7 +60,8 @@ private extension HomeFlowCoordinator {
                         connectionManager: .shared,
                         credentialsManager: .shared,
                         externalLinkManager: .shared,
-                        featureFlagsManager: .shared
+                        featureFlagsManager: .shared,
+                        impactGenerator: .shared
                     )
             )
 #elseif os(macOS)
@@ -74,7 +75,8 @@ private extension HomeFlowCoordinator {
                         connectionManager: .shared,
                         credentialsManager: .shared,
                         externalLinkManager: .shared,
-                        featureFlagsManager: .shared
+                        featureFlagsManager: .shared,
+                        impactGenerator: .shared
                     )
             )
 #endif

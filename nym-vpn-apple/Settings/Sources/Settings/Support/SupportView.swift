@@ -16,8 +16,10 @@ struct SupportView: View {
             VStack(spacing: 0) {
                 Spacer()
                     .frame(height: 24)
-                sections()
-                    .frame(maxWidth: MagicNumbers.maxWidth)
+                ScrollView {
+                    sections()
+                        .frame(maxWidth: MagicNumbers.maxWidth)
+                }
             }
             .padding(.horizontal, 16)
             Spacer()

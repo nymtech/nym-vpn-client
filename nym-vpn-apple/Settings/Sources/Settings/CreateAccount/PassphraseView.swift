@@ -58,11 +58,11 @@ public struct PassphraseView: View {
                     savedConfirmationSection
                 }
                 .frame(maxWidth: MagicNumbers.moreMaxWidth, maxHeight: .infinity)
+                .padding(.horizontal, 16)
         }
         .alert(errorMessage, isPresented: $isErrorDisplayed) {
             Button("ok".localizedString, role: .cancel) {}
         }
-        .padding(.horizontal, 16)
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .snackbar(
@@ -302,8 +302,7 @@ private extension PassphraseView {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    @ViewBuilder
-    var savedConfirmationButton: some View {
+    @ViewBuilder var savedConfirmationButton: some View {
         if appSettings.isPassphraseStored {
             Spacer()
                 .frame(height: 16)
@@ -326,6 +325,7 @@ private extension PassphraseView {
     }
 
     func showPassphraseDidTap() {
+        impactGenerator.softImpact()
         authenticate()
     }
 

@@ -114,7 +114,7 @@ private extension PurchasePlanView {
                 titleVisibility: .visible
             ) {
                 ForEach(purchasesManager.products, id: \.id) { plan in
-                    Button("\(plan.displayName) (\(plan.displayPrice))") {
+                    Button(subscriptionTitle(for: plan)) {
                         Task {
                             await purchasePlanAction(with: plan)
                         }
@@ -126,6 +126,24 @@ private extension PurchasePlanView {
 }
 
 private extension PurchasePlanView {
+    func subscriptionTitle(for plan: Product) -> String {
+        if purchasesManager.isEligibleForIntroOffer.contains(plan.id),
+           let subscription = plan.subscription,
+           let offer = subscription.introductoryOffer {
+            let periodDescription = offer.period.localizedDescription
+            let offerText: String
+
+            if offer.price == 0 {
+                offerText = "\(periodDescription) free trial"
+            } else {
+                offerText = "\(offer.displayPrice) for \(periodDescription)"
+            }
+            return "\(plan.displayName) (\(plan.displayPrice), \(offerText))"
+        } else {
+            return "\(plan.displayName) (\(plan.displayPrice))"
+        }
+    }
+
     func selectPlanAction() {
         isPlanAlertDisplayed = true
     }
@@ -166,5 +184,24 @@ private extension PurchasePlanView {
 
     func navigateToPaymentSuccessView() {
         path.append(SettingLink.processingAccount)
+    }
+}
+
+private extension Product.SubscriptionPeriod {
+    var localizedDescription: String {
+        let unitName: String
+        switch unit {
+        case .day:
+            unitName = "day".localizedString
+        case .week:
+            unitName = "week".localizedString
+        case .month:
+            unitName = "month".localizedString
+        case .year:
+            unitName = "year".localizedString
+        @unknown default:
+            unitName = "period".localizedString
+        }
+        return "\(value)-\(unitName)"
     }
 }
