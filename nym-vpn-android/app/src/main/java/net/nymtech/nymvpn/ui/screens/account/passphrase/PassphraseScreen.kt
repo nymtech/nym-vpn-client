@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -95,16 +97,14 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 			}
 
 		when (manager.canAuthenticate(authenticators)) {
-			BiometricManager.BIOMETRIC_SUCCESS,
-			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
-			-> {
+			BiometricManager.BIOMETRIC_SUCCESS -> {
 				if (biometricPrompt != null) {
 					biometricPrompt.authenticate(promptInfo)
 				} else {
 					showSheet = true
 				}
 			}
-
+			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
 			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
 			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE,
 			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
@@ -113,7 +113,6 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 			-> {
 				showSheet = true
 			}
-
 			else -> showSheet = true
 		}
 	}
@@ -213,7 +212,8 @@ fun PassphraseScreen(
 	) {
 		Column(
 			modifier = Modifier
-				.weight(1f),
+				.weight(1f)
+				.verticalScroll(rememberScrollState()),
 		) {
 			Text(
 				text = stringResource(R.string.passphrase_title),
@@ -279,7 +279,7 @@ fun PassphraseScreen(
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES,  device = "spec:width=320dp,height=640dp,dpi=480")
 internal fun PreviewPassphraseScreen() {
 	NymVPNTheme(Theme.default()) {
 		PassphraseScreen(
