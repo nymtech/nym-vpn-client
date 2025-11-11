@@ -12,6 +12,7 @@ mod lazy_socks5;
 
 use http_rpc::HttpRpc;
 use lazy_socks5::{LazySocks5, LazySocks5Error};
+use nym_vpn_lib_types::TunnelState;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -40,6 +41,8 @@ pub enum Socks5Error {
 struct Socks5ServiceState {
     /// Current state
     state: Socks5State,
+    /// Shared tunnel state
+    tunnel_state_shared: Arc<RwLock<TunnelState>>,
     /// SOCKS5 listen address
     socks5_listen_address: String,
     /// HTTP RPC listen address
@@ -59,9 +62,10 @@ struct Socks5ServiceState {
 }
 
 impl Socks5ServiceState {
-    fn new() -> Self {
+    fn new(tunnel_state_shared: Arc<RwLock<TunnelState>>) -> Self {
         Self {
             state: Socks5State::Disabled,
+            tunnel_state_shared,
             socks5_listen_address: String::new(),
             http_rpc_proxy_listen_address: String::new(),
             network_requester_address: String::new(),
@@ -137,6 +141,7 @@ impl Socks5ServiceState {
             request_timeout,
             idle_timeout,
             network_requester_address.clone(),
+            self.tunnel_state_shared.clone(),
             cancel_token.child_token(),
         )?);
 
@@ -232,15 +237,20 @@ impl Socks5ServiceState {
 
 /// Handle to the lazy SOCKS5 service
 pub struct Socks5Service {
+    /// Socks5 service state
     state: Arc<RwLock<Socks5ServiceState>>,
+    /// Shutdown token
     shutdown_token: CancellationToken,
 }
 
 impl Socks5Service {
     /// Create a new lazy SOCKS5 service (starts in disabled state)
-    pub fn new(shutdown_token: CancellationToken) -> Self {
+    pub fn new(
+        tunnel_state_shared: Arc<RwLock<TunnelState>>,
+        shutdown_token: CancellationToken,
+    ) -> Self {
         Self {
-            state: Arc::new(RwLock::new(Socks5ServiceState::new())),
+            state: Arc::new(RwLock::new(Socks5ServiceState::new(tunnel_state_shared))),
             shutdown_token,
         }
     }

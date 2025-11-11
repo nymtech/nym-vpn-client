@@ -1,11 +1,12 @@
 //! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection
 
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
-use std::net::SocketAddr;
+use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::io::{AsyncWriteExt, copy_bidirectional};
+use tokio::io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::RwLock;
 use tokio::time::{Instant, sleep};
@@ -46,6 +47,8 @@ pub enum LazySocks5Error {
 pub struct LazySocks5 {
     /// Configuration
     config: LazySocks5Config,
+    /// Shared tunnel state
+    tunnel_state_shared: Arc<RwLock<TunnelState>>,
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
     /// Active connection counter   
@@ -65,6 +68,7 @@ impl LazySocks5 {
         request_timeout: Duration,
         idle_timeout: Duration,
         network_requester_address: String,
+        tunnel_state_shared: Arc<RwLock<TunnelState>>,
         cancel_token: CancellationToken,
     ) -> Result<Self, LazySocks5Error> {
         info!(
@@ -82,6 +86,7 @@ impl LazySocks5 {
                 idle_timeout,
                 network_requester_address,
             },
+            tunnel_state_shared,
             cancel_token,
             active_connections: Arc::new(RwLock::new(0)),
             last_connection_closed: Arc::new(RwLock::new(None)),
@@ -111,6 +116,12 @@ impl LazySocks5 {
             idle_monitor.monitor_idle_timeout().await;
         });
 
+        // Spawn tunnel state monitor to shut down mixnet when dVPN is available
+        let state_monitor = self.clone();
+        let state_monitor_handle = tokio::spawn(async move {
+            state_monitor.monitor_tunnel_state().await;
+        });
+
         // Accept connections loop
         loop {
             tokio::select! {
@@ -120,9 +131,25 @@ impl LazySocks5 {
                             debug!("Accepted connection from {}", addr);
                             let wrapper = self.clone();
 
+                            // Check tunnel state to determine routing method
+                            let tunnel_state = self.tunnel_state_shared.read().await.clone();
+                            let use_dvpn = matches!(
+                                tunnel_state,
+                                TunnelState::Connected { ref connection_data }
+                                if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
+                            );
+
                             // Spawn task to handle this connection
                             tokio::spawn(async move {
-                                if let Err(e) = wrapper.handle_connection_with_mixnet(stream, addr).await {
+                                let result = if use_dvpn {
+                                    info!("Routing connection from {} through dVPN tunnel", addr);
+                                    wrapper.handle_connection_with_dvpn(stream, addr).await
+                                } else {
+                                    debug!("Routing connection from {} through mixnet", addr);
+                                    wrapper.handle_connection_with_mixnet(stream, addr).await
+                                };
+
+                                if let Err(e) = result {
                                     error!("Connection handler error for {}: {}", addr, e);
                                 }
                             });
@@ -141,9 +168,252 @@ impl LazySocks5 {
 
         // Clean up
         idle_monitor_handle.abort();
+        state_monitor_handle.abort();
         self.shutdown_backend().await;
 
         info!("Lazy SOCKS5 wrapper stopped");
+        Ok(())
+    }
+
+    /// Handle a single connection with dVPN tunnel (direct connection)
+    async fn handle_connection_with_dvpn(
+        &self,
+        mut client_stream: TcpStream,
+        client_addr: SocketAddr,
+    ) -> Result<(), LazySocks5Error> {
+        // Increment connection counter
+        {
+            let mut count = self.active_connections.write().await;
+            *count += 1;
+            debug!("Active connections (dVPN): {}", *count);
+        }
+
+        // Parse SOCKS5 handshake and request
+        let target_addr = match Self::socks5_handshake(&mut client_stream).await {
+            Ok(addr) => addr,
+            Err(e) => {
+                error!("SOCKS5 handshake failed for {}: {}", client_addr, e);
+                self.decrement_connections().await;
+                return Err(e);
+            }
+        };
+
+        debug!(
+            "dVPN: Connecting from {} to target {}",
+            client_addr, target_addr
+        );
+
+        // Connect directly to the target (routes through dVPN tunnel)
+        // DNS resolution happens through the VPN tunnel, preserving privacy
+        let target_stream = match TcpStream::connect(&target_addr).await {
+            Ok(stream) => stream,
+            Err(e) => {
+                error!(
+                    "Failed to connect to target {} from {}: {}",
+                    target_addr, client_addr, e
+                );
+                // Send SOCKS5 error response with a dummy bind address
+                let reply_code = if e.kind() == std::io::ErrorKind::ConnectionRefused {
+                    0x05 // Connection refused
+                } else if e.kind() == std::io::ErrorKind::TimedOut {
+                    0x06 // TTL expired
+                } else {
+                    0x04 // Host unreachable
+                };
+                // Use unspecified address for error responses
+                let dummy_addr = SocketAddr::from(([0, 0, 0, 0], 0));
+                let _ = Self::send_socks5_reply(&mut client_stream, reply_code, dummy_addr).await;
+                self.decrement_connections().await;
+                return Err(LazySocks5Error::Internal(format!(
+                    "Failed to connect to target: {}",
+                    e
+                )));
+            }
+        };
+
+        debug!(
+            "dVPN: Successfully connected from {} to {}",
+            client_addr, target_addr
+        );
+
+        // Get the local address of the established connection for SOCKS5 reply
+        let bind_addr = target_stream
+            .local_addr()
+            .unwrap_or_else(|_| SocketAddr::from(([0, 0, 0, 0], 0)));
+
+        // Send SOCKS5 success response with the actual bind address
+        if let Err(e) = Self::send_socks5_reply(&mut client_stream, 0x00, bind_addr).await {
+            error!(
+                "Failed to send SOCKS5 success response to {}: {}",
+                client_addr, e
+            );
+            self.decrement_connections().await;
+            return Err(LazySocks5Error::Internal(format!(
+                "Failed to send SOCKS5 response: {}",
+                e
+            )));
+        }
+
+        // Proxy bidirectionally
+        let mut target_stream = target_stream;
+        match copy_bidirectional(&mut client_stream, &mut target_stream).await {
+            Ok((client_to_target, target_to_client)) => {
+                debug!(
+                    "dVPN connection from {} to {} closed: {}↑ {}↓",
+                    client_addr, target_addr, client_to_target, target_to_client
+                );
+            }
+            Err(e) => {
+                debug!(
+                    "dVPN proxy error for {} to {}: {}",
+                    client_addr, target_addr, e
+                );
+            }
+        }
+
+        // Decrement connection counter
+        self.decrement_connections().await;
+
+        Ok(())
+    }
+
+    /// Perform SOCKS5 handshake and parse the target address
+    /// Returns a string in "host:port" format to allow DNS resolution through the VPN tunnel
+    async fn socks5_handshake(stream: &mut TcpStream) -> Result<String, LazySocks5Error> {
+        // Read version and number of auth methods
+        let mut buf = [0u8; 2];
+        stream.read_exact(&mut buf).await.map_err(|e| {
+            LazySocks5Error::Internal(format!("Failed to read SOCKS5 version: {}", e))
+        })?;
+
+        let version = buf[0];
+        let nmethods = buf[1];
+
+        if version != 0x05 {
+            return Err(LazySocks5Error::Internal(format!(
+                "Unsupported SOCKS version: {}",
+                version
+            )));
+        }
+
+        // Read auth methods
+        let mut methods = vec![0u8; nmethods as usize];
+        stream.read_exact(&mut methods).await.map_err(|e| {
+            LazySocks5Error::Internal(format!("Failed to read auth methods: {}", e))
+        })?;
+
+        // Respond with "no authentication required" (0x00)
+        stream.write_all(&[0x05, 0x00]).await.map_err(|e| {
+            LazySocks5Error::Internal(format!("Failed to send auth response: {}", e))
+        })?;
+
+        // Read the CONNECT request
+        let mut buf = [0u8; 4];
+        stream.read_exact(&mut buf).await.map_err(|e| {
+            LazySocks5Error::Internal(format!("Failed to read SOCKS5 request: {}", e))
+        })?;
+
+        let version = buf[0];
+        let cmd = buf[1];
+        let _reserved = buf[2];
+        let atyp = buf[3];
+
+        if version != 0x05 {
+            return Err(LazySocks5Error::Internal(format!(
+                "Invalid SOCKS version in request: {}",
+                version
+            )));
+        }
+
+        if cmd != 0x01 {
+            // Only CONNECT command is supported
+            return Err(LazySocks5Error::Internal(format!(
+                "Unsupported SOCKS command: {}",
+                cmd
+            )));
+        }
+
+        // Parse destination address based on address type
+        let host: String = match atyp {
+            0x01 => {
+                // IPv4
+                let mut buf = [0u8; 4];
+                stream.read_exact(&mut buf).await.map_err(|e| {
+                    LazySocks5Error::Internal(format!("Failed to read IPv4 address: {}", e))
+                })?;
+                Ipv4Addr::from(buf).to_string()
+            }
+            0x03 => {
+                // Domain name - DO NOT resolve locally to preserve privacy!
+                // Let TcpStream::connect handle DNS through the VPN tunnel
+                let mut len_buf = [0u8; 1];
+                stream.read_exact(&mut len_buf).await.map_err(|e| {
+                    LazySocks5Error::Internal(format!("Failed to read domain length: {}", e))
+                })?;
+                let domain_len = len_buf[0] as usize;
+
+                let mut domain_buf = vec![0u8; domain_len];
+                stream.read_exact(&mut domain_buf).await.map_err(|e| {
+                    LazySocks5Error::Internal(format!("Failed to read domain name: {}", e))
+                })?;
+
+                String::from_utf8(domain_buf)
+                    .map_err(|e| LazySocks5Error::Internal(format!("Invalid domain name: {}", e)))?
+            }
+            0x04 => {
+                // IPv6
+                let mut buf = [0u8; 16];
+                stream.read_exact(&mut buf).await.map_err(|e| {
+                    LazySocks5Error::Internal(format!("Failed to read IPv6 address: {}", e))
+                })?;
+                Ipv6Addr::from(buf).to_string()
+            }
+            _ => {
+                return Err(LazySocks5Error::Internal(format!(
+                    "Unsupported address type: {}",
+                    atyp
+                )));
+            }
+        };
+
+        // Read port
+        let mut port_buf = [0u8; 2];
+        stream
+            .read_exact(&mut port_buf)
+            .await
+            .map_err(|e| LazySocks5Error::Internal(format!("Failed to read port: {}", e)))?;
+        let port = u16::from_be_bytes(port_buf);
+
+        // Return "host:port" format - TcpStream::connect will handle DNS resolution through VPN
+        Ok(format!("{}:{}", host, port))
+    }
+
+    /// Send SOCKS5 reply
+    async fn send_socks5_reply(
+        stream: &mut TcpStream,
+        reply_code: u8,
+        bind_addr: SocketAddr,
+    ) -> Result<(), LazySocks5Error> {
+        // SOCKS5 reply: VER | REP | RSV | ATYP | BND.ADDR | BND.PORT
+        let mut response = vec![0x05, reply_code, 0x00];
+
+        match bind_addr.ip() {
+            IpAddr::V4(ipv4) => {
+                response.push(0x01); // IPv4
+                response.extend_from_slice(&ipv4.octets());
+            }
+            IpAddr::V6(ipv6) => {
+                response.push(0x04); // IPv6
+                response.extend_from_slice(&ipv6.octets());
+            }
+        }
+
+        response.extend_from_slice(&bind_addr.port().to_be_bytes());
+
+        stream.write_all(&response).await.map_err(|e| {
+            LazySocks5Error::Internal(format!("Failed to send SOCKS5 reply: {}", e))
+        })?;
+
         Ok(())
     }
 
@@ -435,6 +705,47 @@ impl LazySocks5 {
                 let mut last_closed = self.last_connection_closed.write().await;
                 *last_closed = None;
             }
+
+            // Check for cancellation
+            if self.cancel_token.is_cancelled() {
+                break;
+            }
+        }
+    }
+
+    /// Monitor tunnel state and shut down mixnet backend when dVPN is available
+    async fn monitor_tunnel_state(&self) {
+        let mut last_dvpn_available = false;
+
+        loop {
+            // Wait a bit before checking
+            sleep(Duration::from_secs(2)).await;
+
+            // Check if dVPN is currently available
+            let dvpn_available = {
+                let tunnel_state = self.tunnel_state_shared.read().await;
+                matches!(
+                    *tunnel_state,
+                    TunnelState::Connected { ref connection_data }
+                    if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
+                )
+            };
+
+            // React to state transitions
+            if dvpn_available && !last_dvpn_available {
+                // dVPN just became available - shut down mixnet backend
+                info!(
+                    "dVPN tunnel is now available, shutting down mixnet SOCKS5 backend to save bandwidth"
+                );
+                self.shutdown_backend().await;
+            } else if !dvpn_available && last_dvpn_available {
+                // dVPN just became unavailable
+                info!(
+                    "dVPN tunnel is no longer available, mixnet SOCKS5 backend will be lazily initialized on next connection"
+                );
+            }
+
+            last_dvpn_available = dvpn_available;
 
             // Check for cancellation
             if self.cancel_token.is_cancelled() {

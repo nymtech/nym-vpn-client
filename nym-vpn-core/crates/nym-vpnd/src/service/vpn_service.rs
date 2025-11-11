@@ -5,7 +5,9 @@ use std::{path::PathBuf, pin::Pin};
 
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use std::sync::Arc;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use tokio::sync::RwLock;
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
@@ -188,6 +190,7 @@ pub struct NymVpnService {
 
     // Last known tunnel state
     tunnel_state: TunnelState,
+    tunnel_state_shared: Arc<RwLock<TunnelState>>,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -396,8 +399,15 @@ impl NymVpnService {
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
+        let tunnel_state = TunnelState::Disconnected;
+        // Shared state for the tunnel state
+        let tunnel_state_shared = Arc::new(RwLock::new(tunnel_state.clone()));
+
         // Initialize lazy SOCKS5 service (disabled by default)
-        let socks5_service = Socks5Service::new(services_shutdown_token.child_token());
+        let socks5_service = Socks5Service::new(
+            tunnel_state_shared.clone(),
+            services_shutdown_token.child_token(),
+        );
 
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -520,7 +530,8 @@ impl NymVpnService {
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             target_state: TargetState::Unsecured,
-            tunnel_state: TunnelState::Disconnected,
+            tunnel_state,
+            tunnel_state_shared,
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -674,6 +685,10 @@ impl NymVpnService {
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
         if let TunnelEvent::NewState(ref state) = event {
             self.tunnel_state = state.clone();
+            // Update shared state
+            if let Ok(mut shared) = self.tunnel_state_shared.try_write() {
+                *shared = state.clone();
+            }
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -1202,8 +1217,6 @@ impl NymVpnService {
 
         let request_timeout = socks5_request_timeout();
         let idle_timeout = socks5_idle_timeout();
-
-        // self.config_manager.config()
 
         self.socks5_service
             .enable(
