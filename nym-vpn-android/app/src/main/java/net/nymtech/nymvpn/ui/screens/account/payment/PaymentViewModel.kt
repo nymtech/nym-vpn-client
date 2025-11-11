@@ -108,4 +108,10 @@ constructor(
 			}
 		}
 	}
+
+	fun refreshAccountState() {
+		viewModelScope.launch {
+			backendManager.refreshAccountState()
+		}
+	}
 }

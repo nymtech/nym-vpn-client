@@ -268,6 +268,11 @@ class NymBackendManager @Inject constructor(
 		refreshAccountLinks()
 	}
 
+	override suspend fun refreshAccountState() {
+		backend.await().updateAccountState()
+		Timber.d("refreshAccountState: ${backend.await().getState()}")
+	}
+
 	override suspend fun getMnemonic(): List<String> {
 		val mnemonic = backend.await().getStoredMnemonic()
 		return mnemonic.split(" ")
