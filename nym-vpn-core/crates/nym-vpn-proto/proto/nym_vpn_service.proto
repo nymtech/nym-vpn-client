@@ -628,6 +628,7 @@ message AccountControllerState {
 
   message LoggedOut {}
   message ReadyToConnect {}
+  message RequestingZkNyms {}
   message Syncing {}
   message Error {
     ErrorStateReason reason = 1;
@@ -641,6 +642,7 @@ message AccountControllerState {
   oneof state {
     LoggedOut logged_out = 1;
     Syncing syncing = 2;
+    RequestingZkNyms requesting_zk_nyms = 7;
     ReadyToConnect ready_to_connect = 3;
     Error error = 4;
     Offline offline = 5;
