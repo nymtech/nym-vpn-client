@@ -1,5 +1,5 @@
 Was ist neu:
-- In App-Sprachauswahl
+- Sprachauswahl in der App
 - Mehr Sprachen
 - Verbesserte Synchronisierung des Status
 - Verschiedene Fehlerbehebungen und Verbesserungen
