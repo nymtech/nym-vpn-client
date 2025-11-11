@@ -19,8 +19,9 @@ impl AccountStateReceiver {
     pub async fn wait_for_account_ready_to_connect(
         &mut self,
     ) -> Result<(), AccountControllerError> {
+        let state = self.get_state();
         loop {
-            match self.get_state() {
+            match state {
                 AccountControllerState::Offline => {
                     return Err(AccountControllerError::Offline);
                 }
@@ -31,7 +32,7 @@ impl AccountStateReceiver {
                     return Err(AccountControllerError::ErrorState(reason));
                 }
                 AccountControllerState::Syncing | AccountControllerState::RequestingZkNyms => {
-                    tracing::debug!("Account controller is syncing, waiting for the next state");
+                    tracing::debug!("Account controller is {state}, waiting for the next state");
 
                     self.inner.changed().await.map_err(|_| {
                         AccountControllerError::Internal(
