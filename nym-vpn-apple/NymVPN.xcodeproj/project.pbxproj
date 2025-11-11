@@ -696,6 +696,8 @@
 				tr,
 				uk,
 				vi,
+				el,
+				bn,
 			);
 			mainGroup = D99A146D2B357E9900F2728B;
 			packageReferences = (
