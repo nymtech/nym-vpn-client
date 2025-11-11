@@ -1,20 +1,26 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
+import android.app.Activity
 import android.content.Context
-import android.content.res.Configuration
+import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,10 +37,14 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.credentials.CreatePasswordRequest
@@ -78,6 +88,22 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 					}
 				},
 			)
+		}
+	}
+
+	val fileSaverLauncher = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.StartActivityForResult(),
+	) { result ->
+		if (result.resultCode == Activity.RESULT_OK) {
+			result.data?.data?.also { uri ->
+				try {
+					context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+						outputStream.write(passphrase.joinToString().toByteArray())
+					}
+				} catch (e: Exception) {
+					Timber.e(e, "Failed to write passphrase to file.")
+				}
+			}
 		}
 	}
 
@@ -145,6 +171,14 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 		onCopyClick = {
 			clipboardManager.setText(AnnotatedString(passphrase.joinToString(" ")))
 		},
+		onDownloadClick = {
+			val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+				addCategory(Intent.CATEGORY_OPENABLE)
+				type = "text/plain"
+				putExtra(Intent.EXTRA_TITLE, "nym-passphrase.txt")
+			}
+			fileSaverLauncher.launch(intent)
+		},
 		onSaveClick = {
 			scope.launch {
 				savePasswordToManager(
@@ -201,6 +235,7 @@ fun PassphraseScreen(
 	show: Boolean,
 	onShowClick: () -> Unit,
 	onCopyClick: () -> Unit,
+	onDownloadClick: () -> Unit,
 	onSaveClick: () -> Unit,
 	onContinueClick: () -> Unit,
 ) {
@@ -209,34 +244,52 @@ fun PassphraseScreen(
 		modifier = Modifier
 			.fillMaxSize()
 			.imePadding()
+			.verticalScroll(rememberScrollState())
 			.padding(horizontal = 16.dp.scaledWidth(), vertical = 24.dp),
 	) {
-		Column(
+		Text(
+			text = stringResource(R.string.passphrase_title),
+			style = Typography.titleMedium,
+			color = MaterialTheme.colorScheme.onBackground,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier
-				.weight(1f),
-		) {
-			Text(
-				text = stringResource(R.string.passphrase_title),
-				style = Typography.titleMedium,
-				color = MaterialTheme.colorScheme.onBackground,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				modifier = Modifier
-					.fillMaxWidth(),
-			)
-			Text(
-				text = stringResource(R.string.passphrase_description),
-				style = Typography.bodyMedium,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				.fillMaxWidth(),
+		)
+		Text(
+			text = buildAnnotatedString {
+				withStyle(
+					style = SpanStyle(
+						color = MaterialTheme.colorScheme.outline,
+					),
+				) {
+					append(stringResource(R.string.passphrase_description_first))
+				}
+
+				append(" ")
+
+				withStyle(
+					style = SpanStyle(
+						color = MaterialTheme.colorScheme.outline,
+						fontWeight = FontWeight.Bold,
+					),
+				) {
+					append(stringResource(R.string.passphrase_description_last))
+				}
+			},
+			modifier = Modifier.padding(top = 16.dp),
+			style = MaterialTheme.typography.bodyMedium,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+		PassphraseCard(passphrase = passphrase, show = show, onShowClick = onShowClick)
+		PassphraseActions(show = show, onCopyClick = onCopyClick, onDownloadClick = onDownloadClick, onSaveClick = onSaveClick)
+
+		if (show) {
+			Spacer(modifier = Modifier.weight(1f))
+			Column(
 				modifier = Modifier
 					.fillMaxWidth()
-					.padding(top = 16.dp),
-			)
-			PassphraseCard(passphrase = passphrase, show = show, onShowClick = onShowClick)
-			PassphraseActions(show = show, onCopyClick = onCopyClick, onSaveClick = onSaveClick)
-		}
-		if (show) {
-			Column(modifier = Modifier.fillMaxWidth()) {
+					.padding(top = 24.dp),
+			) {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -270,7 +323,7 @@ fun PassphraseScreen(
 					color = MaterialTheme.colorScheme.primary,
 					modifier = Modifier
 						.fillMaxWidth()
-						.padding(top = 24.dp, bottom = 16.dp)
+						.padding(vertical = 16.dp)
 						.height(54.dp.scaledHeight()),
 				)
 			}
@@ -279,7 +332,7 @@ fun PassphraseScreen(
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@PreviewLightDark
 internal fun PreviewPassphraseScreen() {
 	NymVPNTheme(Theme.default()) {
 		PassphraseScreen(
@@ -291,6 +344,7 @@ internal fun PreviewPassphraseScreen() {
 			show = true,
 			onShowClick = {},
 			onCopyClick = {},
+			onDownloadClick = {},
 			onSaveClick = {},
 			onContinueClick = {},
 		)
