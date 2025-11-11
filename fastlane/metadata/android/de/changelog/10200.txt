@@ -2,4 +2,4 @@ Was ist neu:
 - Synchronisation mit Verbindungsstatus
 - Verbesserte Fehlermeldung
 - Hinzugefügte Berechtigung verweigert Flow
-- Debug-Logs vom Release entfernt
+- - Debug-Protokolle aus Release entfernt

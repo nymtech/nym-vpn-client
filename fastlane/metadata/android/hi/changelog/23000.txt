@@ -5,4 +5,4 @@
 - Entry/Exit screens now show city names instead of server IDs
 - Improved gateway details with relative update times
 - Fixed server uptime display
-- Various UI improvements and fixes
+- नेविगेशन सुधार और समस्याओं का समाधान

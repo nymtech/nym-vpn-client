@@ -1,0 +1,4 @@
+What's new:
+- Added support for Always-on VPN
+- Added support for Quick Settings tile
+- Fixed bug with auto-connect on boot
