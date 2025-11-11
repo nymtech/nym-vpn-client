@@ -1,0 +1,5 @@
+What's new:
+- Kill switch screens and functionality can now be disengaged
+- Improved error messages for better clarity
+- Updated connection data handling
+- Fixed backstack issue on the Welcome screen
