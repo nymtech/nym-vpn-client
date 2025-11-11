@@ -131,7 +131,11 @@ impl From<AccountControllerState> for proto::AccountControllerState {
             AccountControllerState::Syncing => proto::account_controller_state::State::Syncing(
                 proto::account_controller_state::Syncing {},
             ),
-
+            AccountControllerState::RequestingZkNyms => {
+                proto::account_controller_state::State::RequestingZkNyms(
+                    proto::account_controller_state::RequestingZkNyms {},
+                )
+            }
             AccountControllerState::Offline => proto::account_controller_state::State::Offline(
                 proto::account_controller_state::Offline {},
             ),
@@ -166,6 +170,9 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::ReadyToConnect(
                 proto::account_controller_state::ReadyToConnect {},
             ) => Self::ReadyToConnect,
+            proto::account_controller_state::State::RequestingZkNyms(
+                proto::account_controller_state::RequestingZkNyms {},
+            ) => Self::RequestingZkNyms,
             proto::account_controller_state::State::Syncing(
                 proto::account_controller_state::Syncing {},
             ) => Self::Syncing,
