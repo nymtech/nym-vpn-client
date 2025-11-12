@@ -101,7 +101,7 @@ fun PaymentScreen(start: Boolean, onAnimationEnd: () -> Unit) {
 	var step by remember { mutableIntStateOf(0) }
 
 	LaunchedEffect(start) {
-		if(start) {
+		if (start) {
 			delay(2000)
 			step = 1
 			delay(2000)

@@ -29,7 +29,6 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
-import timber.log.Timber
 
 @Composable
 fun ConnectionButton(
@@ -52,7 +51,8 @@ fun ConnectionButton(
 		when (connectionState) {
 			ConnectionState.Disconnected, ConnectionState.Offline -> {
 				if (stateMessage is StateMessage.Error &&
-					(stateMessage.reason is ErrorStateReason.InactiveSubscription || stateMessage.reason is ErrorStateReason.InactiveAccount) && accountState != AccountControllerState.Syncing
+					(stateMessage.reason is ErrorStateReason.InactiveSubscription || stateMessage.reason is ErrorStateReason.InactiveAccount) &&
+					accountState != AccountControllerState.Syncing
 				) {
 					if (isVpnAlwaysOn(context)) {
 						MainStyledButton(

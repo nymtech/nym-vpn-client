@@ -74,7 +74,6 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
 
 @Composable
