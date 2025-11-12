@@ -1,8 +1,8 @@
 Có gì mới:
-- Added QUIC status and server details
-- New streaming icon and updated tooltips on Home/Exit
-- New passphrase screen and account creation flow
-- Entry/Exit screens now show city names instead of server IDs
-- Improved gateway details with relative update times
-- Fixed server uptime display
-- Various UI improvements and fixes
+- Thêm trạng thái QUIC và chi tiết máy chủ
+- Biểu tượng phát trực tuyến mới và chú giải công cụ được cập nhật trên Trang chủ/Thoát
+- Màn hình cụm từ mật khẩu và luồng tạo tài khoản mới
+- Màn hình Vào/Thoát hiện hiển thị tên thành phố thay vì ID máy chủ
+- Cải thiện chi tiết cổng kết nối với thời gian cập nhật tương đối
+- Sửa lỗi hiển thị thời gian hoạt động của máy chủ
+- Nhiều cải tiến và sửa lỗi giao diện người dùng
