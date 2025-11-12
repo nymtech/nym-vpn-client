@@ -19,6 +19,7 @@ pub enum AccountState {
     Syncing,
     Offline,
     Decentralised,
+    UpgradeMode,
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
@@ -35,6 +36,7 @@ impl AccountState {
             State::ReadyToConnect(_) => AccountState::Ready,
             State::Decentralised(_) => AccountState::Decentralised,
             State::Offline(_) => AccountState::Offline,
+            State::UpgradeMode(_) => AccountState::UpgradeMode,
             State::RequestingZkNyms(_) => AccountState::RequestingZkNyms,
             State::Error(error) => match error.reason() {
                 ErrorStateReason::BandwidthExceeded => AccountState::BandwidthExceeded,
