@@ -3,11 +3,9 @@ use nym_vpn_lib_types::FlagValue;
 use serde::Serialize;
 use ts_rs::TS;
 
-const KEY_VERSIONS: &str = "versions";
 const KEY_QUIC: &str = "quic";
 const KEY_DOMAIN_FRONTING: &str = "domain_fronting";
 const KEY_ZKNYMS: &str = "zkNyms";
-const KEY_GW_UPDATE: &str = "gatewayMetadataUpdate";
 
 #[derive(Clone, Serialize, TS)]
 #[ts(export, export_to = "tauri.ts")]
