@@ -34,7 +34,7 @@ pub struct Socks5Settings {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct HttpRpcSettings {
-    /// HTTP RPC listen address, ex 127.0.0.1:8545
+    /// HTTP RPC listen address, e.g., 127.0.0.1:8545
     pub listen_address: String,
 }
 

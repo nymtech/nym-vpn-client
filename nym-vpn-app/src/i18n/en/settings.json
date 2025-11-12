@@ -90,7 +90,6 @@
     "snackbar-enabled": "SOCKS5 proxy enabled",
     "snackbar-disabled": "SOCKS5 proxy disabled",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
-    "dual-mode-warning": "⚠️ You're running both VPN tunnel and SOCKS5 proxy simultaneously. This may result in higher bandwidth usage as both services maintain separate mixnet connections.",
     "socks5-address-label": "SOCKS5 Listen Address",
     "socks5-address-placeholder": "127.0.0.1:1080",
     "http-rpc-address-label": "HTTP RPC Listen Address",

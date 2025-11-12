@@ -8,4 +8,3 @@ export function useSocks5() {
   }
   return context;
 }
-

@@ -14,7 +14,7 @@ import { PulseDot } from '../../../ui';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
-  const { state: vpnState, exitNode } = useMainState();
+  const { exitNode } = useMainState();
   const { push } = useInAppNotify();
   const { t } = useTranslation('settings');
   const [isCopying, setIsCopying] = useState(false);
@@ -42,15 +42,11 @@ function Socks5() {
     status?.state === Socks5State.Connected;
   const hasError = status?.state === Socks5State.Error;
   const socks5Url = status?.socks5Settings?.listenAddress
-    ? `socks5://${status.socks5Settings.listenAddress}`
+    ? `socks5h://${status.socks5Settings.listenAddress}`
     : null;
   const httpRpcUrl = status?.httpRpcSettings?.listenAddress
     ? `http://${status.httpRpcSettings.listenAddress}?p=<your-provider-url>`
     : null;
-
-  // Check if VPN is connected in 5-hop mode (mixnet)
-  const showDualModeWarning =
-    isEnabled && (vpnState === 'connected' || vpnState === 'connecting');
 
   // enable/disable socks5
   const handleToggle = async () => {
@@ -128,17 +124,6 @@ function Socks5() {
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
       <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
-
-      {showDualModeWarning && (
-        <div className="bg-king-nacho/10 border border-king-nacho rounded-lg p-4">
-          <div className="flex items-start gap-2">
-            <MsIcon icon="warning" className="text-king-nacho mt-0.5" />
-            <div className="text-sm text-iron dark:text-bombay">
-              {t('app-proxy.dual-mode-warning')}
-            </div>
-          </div>
-        </div>
-      )}
 
       <SettingsMenuCardBig
         header={t('app-proxy.configuration')}
