@@ -80,6 +80,7 @@ import GRPCManager
             return try getStoredMnemonicRaw(path: dataFolderURL.path())
         }.value
 #elseif os(macOS)
+        // TODO: add missing grpc
         return ""
 #endif
     }

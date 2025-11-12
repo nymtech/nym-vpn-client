@@ -8,6 +8,7 @@ import ExternalLinkManager
 import FeatureFlagsManager
 import GatewayManager
 import Home
+import ImpactGenerator
 import Extensions
 import KeyboardManager
 import MessagesManager
@@ -34,6 +35,7 @@ struct NymVPNApp: App {
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
     @ObservedObject private var externalLinkManager = ExternalLinkManager.shared
     @ObservedObject private var gatewayManager = GatewayManager.shared
+    @ObservedObject private var impactGenerator = ImpactGenerator.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
 
     @ObservedObject private var homeViewModel = HomeViewModel(
@@ -90,6 +92,7 @@ struct NymVPNApp: App {
             .environmentObject(externalLinkManager)
             .environmentObject(featureFlagsManager)
             .environmentObject(gatewayManager)
+            .environmentObject(impactGenerator)
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
             .environmentObject(purchasesManager)

@@ -12,7 +12,7 @@ struct StatisticsEnableOverlay: View {
             Rectangle()
                 .foregroundColor(.black)
                 .opacity(0.3)
-                .background(Color.clear)
+                .background(.clear)
                 .contentShape(Rectangle())
 
             HStack(spacing: 0) {

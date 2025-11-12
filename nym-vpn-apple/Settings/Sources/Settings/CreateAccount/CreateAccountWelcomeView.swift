@@ -138,7 +138,7 @@ private extension CreateAccountWelcomeView {
 
     func navigateToCreateAccount() {
         ImpactGenerator.shared.impact()
-        path.append(SettingLink.createAccount)
+        path.append(SettingLink.generatePassphrase)
     }
 
     func navigateToLogin() {

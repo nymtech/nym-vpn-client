@@ -52,6 +52,9 @@ private extension HomeView {
         .overlay {
             statisticsEnableOverlay()
         }
+        .overlay {
+            passphraseOverlay()
+        }
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
             message: viewModel.messagesManager.currentMessage
@@ -76,7 +79,9 @@ private extension HomeView {
         StatusAreaView(
             statusButtonConfig: $viewModel.statusButtonConfig,
             statusInfoState: $viewModel.statusInfoState,
-            connectedDate: $viewModel.connectionManager.connectedDate
+            connectedDate: $viewModel.connectionManager.connectedDate,
+            path: $viewModel.path,
+            tunnelStatus: $viewModel.connectionManager.currentTunnelStatus
         )
         .padding(.horizontal, 16)
     }

@@ -1,49 +1,48 @@
 import SwiftUI
-import ConfigurationManager
+import StoreKit
 import CredentialsManager
-import ImpactGenerator
 #if os(iOS)
+import ImpactGenerator
 import NymVPNLib
 import ErrorHandler
 #endif
 import PurchasesManager
-import StoreKit
 import Theme
 import UIComponents
 
-public struct CreateAccountSuccessView: View {
+public struct PurchasePlanView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @EnvironmentObject private var purchasesManager: PurchasesManager
-
     @Binding private var path: NavigationPath
-
-    @State private var isPlanAlertDisplayed = false
-    @State private var isDisplayingAlert = false
-    @State private var isLoading = false
     @State private var alertTitle = ""
-    @State private var retryAfter = 5.0
+    @State private var isPlanAlertDisplayed = false
+    @State private var isAlertDisplayed = false
+    @State private var isPurchasing = false
 
     public var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .center, spacing: 0) {
             navbar
             Spacer()
-                .frame(height: 40)
+                .frame(height: 24)
 
-            content
-                .frame(maxWidth: MagicNumbers.moreMaxWidth)
-                .padding(.horizontal, 16)
-                .alert(alertTitle, isPresented: $isDisplayingAlert) {
-                    Button("ok".localizedString, role: .cancel) {}
-                }
+            StepView(stepCount: 2, currentStep: 1)
+            Spacer()
+            checkmarkImage
+            Spacer()
+                .frame(height: 12)
+            titleSubtitleView
+            Spacer()
+            selectPlanButton
         }
+        .frame(maxWidth: MagicNumbers.moreMaxWidth)
+        .padding(16)
         .navigationBarBackButtonHidden(true)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
             NymColor.background
                 .ignoresSafeArea()
         }
-        .task {
-            await loadProductsIfEmpty()
+        .alert(alertTitle, isPresented: $isAlertDisplayed) {
+            Button("ok".localizedString, role: .cancel) {}
         }
     }
 
@@ -52,29 +51,9 @@ public struct CreateAccountSuccessView: View {
     }
 }
 
-private extension CreateAccountSuccessView {
-    var content: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            StepView(stepCount: 3, currentStep: 2)
-            Spacer()
-
-            checkmarkImage
-            Spacer()
-                .frame(height: 12)
-            titleSubtitleView
-            Spacer()
-            selectPlanButton
-                .padding(.bottom, 16)
-            privacyPolicy
-                .padding(.bottom, 16)
-        }
-    }
-
+private extension PurchasePlanView {
     var navbar: some View {
-        CustomNavBar(
-            useElevationBackground: true,
-            leftButton: CustomNavBarButton(type: .back, action: { navigateHome() })
-        )
+        CustomNavBar(useElevationBackground: true)
     }
 
     var checkmarkImage: some View {
@@ -106,24 +85,23 @@ private extension CreateAccountSuccessView {
             Spacer()
                 .frame(height: 24)
 
-            Text("purchasePlan.subtitle1".localizedString)
+            Text("purchasePlan.subtitle".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
                 .multilineTextAlignment(.center)
 
             Spacer()
-                .frame(height: 16)
+                .frame(height: 24)
 
             Text("purchasePlan.subtitle2".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
                 .multilineTextAlignment(.center)
         }
-        .padding(32)
     }
 
     var selectPlanButton: some View {
-        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isLoading)
+        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isPurchasing)
             .onTapGesture {
                 selectPlanAction()
             }
@@ -145,33 +123,9 @@ private extension CreateAccountSuccessView {
                 Button("cancel".localizedString, role: .cancel) {}
             }
     }
-
-    var privacyPolicy: some View {
-        HStack(spacing: 8) {
-            Spacer()
-            Text("[Terms of use](https://nym.com/vpn-terms)")
-                .tint(NymColor.accent)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Small.regular)
-
-            Text("[Privacy policy](https://nym.com/vpn-privacy-statement)")
-                .tint(NymColor.accent)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Small.regular)
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-    }
 }
 
-private extension CreateAccountSuccessView {
-    func skipPlanSelectAttributedString() -> AttributedString? {
-        let maybeLater = "createAccount.success.maybeLater".localizedString
-        let skip = "createAccount.success.skipForNow".localizedString
-        let skipLink = "skip"
-        return try? AttributedString(markdown: "[\(maybeLater)](\(skipLink)) (\(skip))")
-    }
-
+private extension PurchasePlanView {
     func subscriptionTitle(for plan: Product) -> String {
         if purchasesManager.isEligibleForIntroOffer.contains(plan.id),
            let subscription = plan.subscription,
@@ -189,17 +143,6 @@ private extension CreateAccountSuccessView {
             return "\(plan.displayName) (\(plan.displayPrice))"
         }
     }
-}
-
-// MARK: - Actions -
-private extension CreateAccountSuccessView {
-    func navigateHome() {
-        path = .init()
-    }
-
-    func navigateToDidPurchaseSuccessfully() {
-        path.append(SettingLink.planPurchaseSuccess)
-    }
 
     func selectPlanAction() {
         isPlanAlertDisplayed = true
@@ -207,10 +150,12 @@ private extension CreateAccountSuccessView {
 
     func purchasePlanAction(with plan: Product) async {
         defer {
-            isLoading = false
+            isPurchasing = false
         }
-        isLoading = true
+        isPurchasing = true
+#if os(iOS)
         ImpactGenerator.shared.impact()
+#endif
         do {
             guard let token = credentialsManager.accountToken
             else {
@@ -222,7 +167,7 @@ private extension CreateAccountSuccessView {
                 token: token
             )
             guard didPurchaseSuccesfully else { return }
-            navigateToDidPurchaseSuccessfully()
+            navigateToPaymentSuccessView()
         } catch {
             Task { @MainActor in
 #if os(iOS)
@@ -231,27 +176,14 @@ private extension CreateAccountSuccessView {
                 } else {
                     alertTitle = error.localizedDescription
                 }
-                isDisplayingAlert = true
+                isAlertDisplayed = true
 #endif
             }
         }
     }
 
-    func loadProductsIfEmpty() async {
-        guard purchasesManager.products.isEmpty else { return }
-        isLoading = true
-        do {
-            try await purchasesManager.loadProducts()
-            isLoading = false
-        } catch {
-            Task { @MainActor in
-                alertTitle = error.localizedDescription
-                isDisplayingAlert = true
-            }
-            try? await Task.sleep(for: .seconds(retryAfter))
-            retryAfter *= 2
-            isLoading = true
-        }
+    func navigateToPaymentSuccessView() {
+        path.append(SettingLink.processingAccount)
     }
 }
 

@@ -34,12 +34,14 @@ struct SettingsFlowCoordinator<Content: View>: View {
             addCredentialsDestination()
         case .createAccountWelcome:
             createAccountWelcomeDestination()
-        case .createAccount:
-            createAccountDestination()
-        case .createAccountSuccess:
-            createAccountSuccessDestination()
-        case .planPurchaseSuccess:
-            planPurchaseSuccessDestination()
+        case .generatePassphrase:
+            GeneratePassphraseView(path: $flowState.path)
+        case .planPurchase:
+            PurchasePlanView(path: $flowState.path)
+        case .processingAccount:
+            ProcessingAccountView(path: $flowState.path)
+        case .passphrase:
+            PassphraseView(path: $flowState.path)
         case .logs:
             logsDestination()
         case .acknowledgments:
@@ -135,21 +137,6 @@ private extension SettingsFlowCoordinator {
     @ViewBuilder
     func createAccountWelcomeDestination() -> some View {
         CreateAccountWelcomeView(path: $flowState.path)
-    }
-
-    @ViewBuilder
-    func createAccountDestination() -> some View {
-        CreateAccountView(path: $flowState.path)
-    }
-
-    @ViewBuilder
-    func createAccountSuccessDestination() -> some View {
-        CreateAccountSuccessView(path: $flowState.path)
-    }
-
-    @ViewBuilder
-    func planPurchaseSuccessDestination() -> some View {
-        PlanPurchaseSuccessView(path: $flowState.path)
     }
 
     @ViewBuilder

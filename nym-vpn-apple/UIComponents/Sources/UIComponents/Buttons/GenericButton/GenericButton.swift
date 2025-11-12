@@ -4,14 +4,15 @@ import Theme
 public struct GenericButton: View {
     public enum Style {
         case normal
-        case borderOnly
+        case accentBorderOnly
+        case primaryBorderOnly
         case textOnly
 
         var backgroundColor: Color {
             switch self {
             case .normal:
                 NymColor.accent
-            case .borderOnly, .textOnly:
+            case .accentBorderOnly, .textOnly, .primaryBorderOnly:
                 .clear
             }
         }
@@ -20,8 +21,10 @@ public struct GenericButton: View {
             switch self {
             case .normal:
                 NymColor.black
-            case .borderOnly, .textOnly:
+            case .accentBorderOnly, .textOnly:
                 NymColor.accent
+            case .primaryBorderOnly:
+                NymColor.primary
             }
         }
 
@@ -29,9 +32,9 @@ public struct GenericButton: View {
             switch self {
             case .normal:
                 NymColor.black
-            case .borderOnly:
+            case .accentBorderOnly:
                 NymColor.accent
-            case .textOnly:
+            case .textOnly, .primaryBorderOnly:
                 NymColor.primary
             }
         }
@@ -40,8 +43,19 @@ public struct GenericButton: View {
             switch self {
             case .normal, .textOnly:
                 0
-            case .borderOnly:
+            case .accentBorderOnly, .primaryBorderOnly:
                 1
+            }
+        }
+
+        var strokeColor: Color {
+            switch self {
+            case .normal, .textOnly:
+                    .clear
+            case .accentBorderOnly:
+                NymColor.accent
+            case .primaryBorderOnly:
+                NymColor.primary
             }
         }
     }
@@ -106,7 +120,7 @@ public struct GenericButton: View {
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(style.backgroundColor, lineWidth: style.strokeLineWidth)
+                .stroke(style.strokeColor, lineWidth: style.strokeLineWidth)
         )
         .contentShape(RoundedRectangle(cornerRadius: 8))
         .cornerRadius(8)

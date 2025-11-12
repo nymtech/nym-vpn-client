@@ -58,6 +58,9 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.accountToken.rawValue)
     public var accountToken: String?
 
+    @AppStorage(AppSettingKey.passphraseStored.rawValue)
+    public var isPassphraseStored: Bool = false
+
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
     public var isIPv6TrafficEnabled = true
 
@@ -129,4 +132,5 @@ public enum AppSettingKey: String {
     case statisticsConnectionCount
     case quic
     case shouldReconnect
+    case passphraseStored
 }

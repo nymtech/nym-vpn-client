@@ -12,6 +12,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AppSettings", targets: ["AppSettings"]),
+        .library(name: "BiometricAuthenticator", targets: ["BiometricAuthenticator"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
@@ -48,6 +49,11 @@ let package = Package(
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/AppSettings"
+        ),
+        .target(
+            name: "BiometricAuthenticator",
+            dependencies: [],
+            path: "Sources/Services/BiometricAuthenticator"
         ),
         .target(
             name: "ConfigurationManager",
