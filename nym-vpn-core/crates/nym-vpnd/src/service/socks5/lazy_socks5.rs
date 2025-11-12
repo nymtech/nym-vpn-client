@@ -484,10 +484,7 @@ impl LazySocks5 {
 
         info!("First connection detected, initializing Nym mixnet backend...");
 
-        // TODO: replace with network_requester_address
-        let mut socks5_config = Socks5::new(
-            "J2oXYjn8fRMz9MKFUibatjCTvxvQbVa2r5Uxp7X47aL3.BdyaZLL1cpSeZKS3AfpzXEXFE67WkuoEsSmxwvo5tTVN@3hWtFJbVVPbZZ9iNZuSHPnShHG5AUiFpTPnvJmUibNp9",
-        );
+        let mut socks5_config = Socks5::new(self.config.network_requester_address.clone());
         socks5_config.send_anonymously = true;
         socks5_config.bind_address = self.config.internal_listen_address;
 
