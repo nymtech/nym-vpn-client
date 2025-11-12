@@ -26598,6 +26598,39 @@
         }
       }
     },
+    "passphraseOverlay.backup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back up your passphrase"
+          }
+        }
+      }
+    },
+    "passphraseOverlay.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Successfully connected!"
+          }
+        }
+      }
+    },
+    "passphraseOverlay.secureAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secure your access"
+          }
+        }
+      }
+    },
     "period" : {
       "comment" : "Unknown intro offer format period",
       "extractionState" : "manual",

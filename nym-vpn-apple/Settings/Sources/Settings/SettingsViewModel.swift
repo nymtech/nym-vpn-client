@@ -240,31 +240,34 @@ private extension SettingsViewModel {
 // MARK: - Sections -
 private extension SettingsViewModel {
     func accountSection() -> SettingsSection {
-        .account(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .externalLink,
-                    title: "settings.account".localizedString,
-                    subtitle: deviceIdentifier,
-                    imageName: "person",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToAccount()
-                        }
+        var viewModels = [
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.account".localizedString,
+                subtitle: deviceIdentifier,
+                imageName: "person",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToAccount()
                     }
-                ),
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.passphrase".localizedString,
-                    imageName: "key",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToPassphrase()
-                        }
+                }
+            )
+        ]
+#if os(iOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.passphrase".localizedString,
+                imageName: "key",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToPassphrase()
                     }
-                )
-            ]
+                }
+            )
         )
+#endif
+        return .account(viewModels: viewModels)
     }
 
     func appearanceSection() -> SettingsSection {
