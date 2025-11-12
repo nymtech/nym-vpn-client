@@ -120,7 +120,6 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
-  gatewayUpdateVersion: string | null;
 };
 
 export type Gateway = {

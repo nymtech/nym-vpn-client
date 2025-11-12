@@ -16,7 +16,6 @@ pub struct FeatureFlags {
     pub quic: bool,
     pub domain_fronting: bool,
     pub zknym_credential: bool,
-    pub gateway_update_version: Option<String>,
 }
 
 impl From<lib::FeatureFlags> for FeatureFlags {
@@ -27,7 +26,6 @@ impl From<lib::FeatureFlags> for FeatureFlags {
                 .unwrap_or(false),
             zknym_credential: get_group_flag(&fflags, KEY_ZKNYMS, "credentialMode")
                 .unwrap_or(false),
-            gateway_update_version: None, // TODO
         }
     }
 }

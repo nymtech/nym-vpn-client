@@ -89,7 +89,6 @@ const featureFlags: FeatureFlags = {
   quic: true,
   domainFronting: true,
   zknymCredential: true,
-  gatewayUpdateVersion: null,
 };
 
 export function mockTauriIPC() {

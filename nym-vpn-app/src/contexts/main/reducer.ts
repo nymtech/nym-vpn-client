@@ -109,7 +109,6 @@ export const initialState: AppState = {
     quic: false,
     domainFronting: false,
     zknymCredential: false,
-    gatewayUpdateVersion: null,
   },
   streamingOptimizedLabelSeen: false,
 };
