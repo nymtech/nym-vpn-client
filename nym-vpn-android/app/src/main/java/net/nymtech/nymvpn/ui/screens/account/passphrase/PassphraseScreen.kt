@@ -279,7 +279,7 @@ fun PassphraseScreen(
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES,  device = "spec:width=320dp,height=640dp,dpi=480")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, device = "spec:width=320dp,height=640dp,dpi=480")
 internal fun PreviewPassphraseScreen() {
 	NymVPNTheme(Theme.default()) {
 		PassphraseScreen(

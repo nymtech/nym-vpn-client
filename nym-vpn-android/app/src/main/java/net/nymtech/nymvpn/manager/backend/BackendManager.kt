@@ -24,6 +24,7 @@ interface BackendManager {
 	suspend fun createAccount()
 	suspend fun registerAccount(purchaseToken: String): String
 	suspend fun refreshAccount()
+	suspend fun refreshAccountState()
 	suspend fun getMnemonic(): List<String>
 	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State
