@@ -318,7 +318,9 @@ impl SyncError {
     fn is_retryable(&self) -> bool {
         matches!(
             self,
-            SyncError::ApiRequestError(_) | SyncError::DeviceTimeDesynced
+            SyncError::ApiRequestError(_)
+                | SyncError::DeviceTimeDesynced
+                | SyncError::InactiveSubscription // in the case of IAP, it might take a while for the subscription to become active
         )
     }
 }
