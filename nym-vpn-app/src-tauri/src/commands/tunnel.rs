@@ -3,7 +3,7 @@ use crate::{
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
     grpc::{
-        client::{VpndClient, Node, VpndError},
+        client::{Node, VpndClient, VpndError},
         tunnel::{ConnectingState, TunnelState},
     },
     state::{SharedAppState, app::VpnMode},
@@ -48,11 +48,7 @@ pub async fn connect(
     app.emit_connecting();
     let app_state = state.lock().await;
     let vpn_mode = app_state.vpn_mode.clone();
-
-    let dns = app_state
-        .dns_server
-        .clone()
-        .map(|ip| nym_vpn_proto::proto::Dns { ip: Some(ip) });
+    let dns = app_state.dns_server.clone();
     let credentials_mode = app_state.credentials_mode;
     // release the lock
     drop(app_state);

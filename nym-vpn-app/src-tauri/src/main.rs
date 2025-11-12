@@ -217,7 +217,7 @@ async fn main() -> Result<()> {
             app.manage(Mutex::new(app_state));
 
             let pkg_info = app.package_info().clone();
-            let grpc = VpndClient::new(&app_config, &cli, &pkg_info);
+            let grpc = VpndClient::new(&pkg_info);
 
             app.manage(Mutex::new(fs_config));
             app.manage(grpc.clone());

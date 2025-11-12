@@ -1,6 +1,6 @@
-use nym_vpn_proto::proto::{FeatureFlagGroup, GetFeatureFlagsResponse};
+use nym_vpn_lib_types as lib;
+use nym_vpn_lib_types::FlagValue;
 use serde::Serialize;
-use std::collections::HashMap;
 use ts_rs::TS;
 
 const KEY_VERSIONS: &str = "versions";
@@ -17,39 +17,27 @@ pub struct FeatureFlags {
     pub domain_fronting: bool,
     pub zknym_credential: bool,
     pub gateway_update_version: Option<String>,
-    pub flags: HashMap<String, String>,
 }
 
-impl From<&GetFeatureFlagsResponse> for FeatureFlags {
-    fn from(feature_flags: &GetFeatureFlagsResponse) -> Self {
-        let mut flags = HashMap::new();
-        for (key, value) in &feature_flags.flags {
-            flags.insert(key.clone(), value.clone());
-        }
-
+impl From<lib::FeatureFlags> for FeatureFlags {
+    fn from(fflags: lib::FeatureFlags) -> Self {
         FeatureFlags {
-            quic: get_bool_value(&feature_flags.groups, KEY_QUIC, "enabled"),
-            domain_fronting: get_bool_value(&feature_flags.groups, KEY_DOMAIN_FRONTING, "enabled"),
-            zknym_credential: get_bool_value(&feature_flags.groups, KEY_ZKNYMS, "credentialMode"),
-            gateway_update_version: get_version_value(&feature_flags.groups, KEY_GW_UPDATE),
-            flags,
+            quic: get_group_flag(&fflags, KEY_QUIC, "enabled").unwrap_or(false),
+            domain_fronting: get_group_flag(&fflags, KEY_DOMAIN_FRONTING, "enabled")
+                .unwrap_or(false),
+            zknym_credential: get_group_flag(&fflags, KEY_ZKNYMS, "credentialMode")
+                .unwrap_or(false),
+            gateway_update_version: None, // TODO
         }
     }
 }
 
-fn get_bool_value(map: &HashMap<String, FeatureFlagGroup>, key: &str, subkey: &str) -> bool {
-    map.get(key)
-        .and_then(|group| {
-            group
-                .map
-                .get(subkey)
-                .map(|v| matches!(v.to_lowercase().as_str(), "true"))
-        })
-        .unwrap_or(false)
-}
-
-fn get_version_value(map: &HashMap<String, FeatureFlagGroup>, key: &str) -> Option<String> {
-    map.get(KEY_VERSIONS)
-        .and_then(|group| group.map.get(key))
-        .cloned()
+fn get_group_flag(fflags: &lib::FeatureFlags, group_name: &str, flag_name: &str) -> Option<bool> {
+    if let Some(FlagValue::Group(group)) = fflags.flags.get(group_name)
+        && let Some(value) = group.get(flag_name)
+    {
+        Some(value == "true")
+    } else {
+        None
+    }
 }

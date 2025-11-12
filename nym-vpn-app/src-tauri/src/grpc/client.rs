@@ -13,13 +13,12 @@ use super::{
 };
 
 use anyhow::{Result, anyhow};
+use lib::UserAgent;
 use nym_vpn_lib_types as lib;
-use nym_vpn_proto::proto::{
-    ConnectRequest, Dns, ListGatewaysRequest, Location, StoreAccountRequest, UserAgent,
-    VpnAccountStoreRequest, nym_vpn_service_client::NymVpnServiceClient,
-};
+use nym_vpn_proto::proto::Location;
 use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
+use std::net::IpAddr;
 use std::{
     env::consts::{ARCH, OS},
     path::PathBuf,
@@ -27,30 +26,16 @@ use std::{
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio_stream::StreamExt;
-use tonic::{
-    Request,
-    transport::{Channel, Endpoint as TonicEndpoint},
-};
 use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use crate::grpc::network::NetworkCompatVersions;
 use crate::{
-    cli::Cli,
     country::Country,
     error::BackendError,
     events::AppHandleEventEmitter,
-    fs::config::AppConfig,
     grpc::account::{AccountState, log_account_state},
     state::SharedAppState,
 };
-
-#[cfg(target_os = "linux")]
-const DEFAULT_SOCKET_PATH: &str = "/run/nym-vpn.sock";
-#[cfg(target_os = "macos")]
-const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
-#[cfg(windows)]
-const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
-const DUMMY_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 
 // simple flag to save that "failed to connect to daemon"
 // warning has been logged once when vpnd is down
@@ -58,21 +43,14 @@ static VPND_DOWN_LOGGED: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 #[derive(Debug, Clone)]
 pub struct VpndClient {
-    socket: PathBuf,
     pkg_info: PackageInfo,
     user_agent: UserAgent,
 }
 
 impl VpndClient {
     #[instrument(skip_all)]
-    pub fn new(config: &AppConfig, cli: &Cli, pkg: &PackageInfo) -> Self {
+    pub fn new(pkg: &PackageInfo) -> Self {
         VpndClient {
-            socket: cli.grpc_socket_endpoint.clone().unwrap_or(
-                config
-                    .grpc_socket_endpoint
-                    .clone()
-                    .unwrap_or(DEFAULT_SOCKET_PATH.into()),
-            ),
             pkg_info: pkg.clone(),
             user_agent: VpndClient::user_agent(pkg, None),
         }
@@ -115,22 +93,6 @@ impl VpndClient {
             VpndError::FailedToConnectIpc(e.into())
         })?;
         Ok(client)
-    }
-
-    /// Get the Vpnd service client
-    #[instrument(skip_all)]
-    pub async fn ol_vpnd(&self) -> Result<NymVpnServiceClient<Channel>, VpndError> {
-        let channel = connect(self.socket.clone()).await.map_err(|e| {
-            let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
-            if !*logged {
-                warn!("failed to connect to the daemon: {}", e);
-                *logged = true;
-            } else {
-                trace!("failed to connect to the daemon: {}", e);
-            }
-            VpndError::FailedToConnectIpc(e)
-        })?;
-        Ok(NymVpnServiceClient::new(channel))
     }
 
     /// Get daemon info
@@ -279,41 +241,56 @@ impl VpndClient {
         two_hop_mod: bool,
         credentials_mode: bool,
         netstack: bool,
-        dns: Option<Dns>,
+        dns: Option<String>,
         disable_ipv6: bool,
         enable_bridges: bool,
     ) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ConnectRequest {
-            entry: Some(entry_node.into()),
-            exit: Some(exit_node.into()),
-            enable_two_hop: two_hop_mod,
-            enable_bridges,
-            netstack,
-            disable_poisson_rate: false,
-            disable_background_cover_traffic: false,
-            enable_credentials_mode: credentials_mode,
-            dns,
-            user_agent: Some(self.user_agent.clone()),
-            disable_ipv6,
-        });
-        vpnd.connect_tunnel(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        let dns = dns
+            .map(|addr| {
+                addr.parse::<IpAddr>()
+                    .inspect_err(|e| warn!("failed to parse dns address '{addr}': {e}"))
+            })
+            .transpose()
+            .unwrap_or(None);
+
+        let args = lib::ConnectArgs {
+            entry: Some(entry_node.try_into()?),
+            exit: Some(exit_node.try_into()?),
+            options: lib::ConnectOptions {
+                enable_two_hop: two_hop_mod,
+                enable_bridges,
+                netstack,
+                disable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: credentials_mode,
+                dns,
+                user_agent: Some(self.user_agent.clone()),
+                disable_ipv6,
+            },
+        };
+
+        vpnd.connect_tunnel(args)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
         Ok(())
     }
 
     /// Disconnect from the VPN
     #[instrument(skip_all)]
     pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        vpnd.disconnect_tunnel(()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        vpnd.disconnect_tunnel()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
 
         Ok(())
     }
@@ -321,21 +298,17 @@ impl VpndClient {
     /// Store an account
     #[instrument(skip_all)]
     pub async fn store_account(&self, mnemonic: String) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(StoreAccountRequest {
-            request: Some(
-                nym_vpn_proto::proto::store_account_request::Request::VpnAccountStore(
-                    VpnAccountStoreRequest { mnemonic },
-                ),
-            ),
-        });
-        let response = vpnd.store_account(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("grpc response: {:?}", response);
-        let response = response.into_inner();
+        let response = vpnd
+            .store_account(lib::StoreAccountRequest::Vpn { mnemonic })
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+
+        debug!("response: {:?}", response);
         if let Some(error) = response.error.map(BackendError::from) {
             return Err(VpndError::Response(error));
         }
@@ -346,14 +319,17 @@ impl VpndClient {
     /// credential storage, mixnet keys, gateway registrations
     #[instrument(skip_all)]
     pub async fn forget_account(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd.forget_account(()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("grpc response: {:?}", response);
-        let response = response.into_inner();
+        let response = vpnd
+            .forget_account()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+
+        debug!("response: {:?}", response);
         if let Some(error) = response.error.map(BackendError::from) {
             return Err(VpndError::Response(error));
         }
@@ -363,14 +339,16 @@ impl VpndClient {
     /// Check if an account is stored
     #[instrument(skip_all)]
     pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd.is_account_stored(()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        let is_stored = response.into_inner();
-        debug!("grpc response: {:?}", is_stored);
+        let is_stored = vpnd
+            .is_account_stored()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+        debug!("account stored: {}", is_stored);
         Ok(is_stored)
     }
 
@@ -378,35 +356,33 @@ impl VpndClient {
     /// public key derived from the mnemonic
     #[instrument(skip_all)]
     pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd
-            .get_account_identity(())
+        let id = vpnd
+            .get_account_identity()
             .await
-            .map_err(|e| {
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
                 error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
-        debug!("grpc response: {:?}", response);
-        Ok(response.account_identity)
+            })?;
+        debug!("account id: {:?}", id);
+        Ok(id)
     }
 
     /// Get the device identity
     #[instrument(skip_all)]
     pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd
-            .get_device_identity(())
+        let id = vpnd
+            .get_device_identity()
             .await
-            .map_err(|e| {
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
                 error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
-        debug!("grpc response: {:?}", response);
-        Ok(response.device_identity)
+            })?;
+        debug!("device id: {:?}", id);
+        Ok(id)
     }
 
     /// Get the account links
@@ -423,33 +399,30 @@ impl VpndClient {
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
                 error!("grpc: {}", e);
-            })?
-            .into();
+            })?;
         debug!("links: {:?}", links);
-        Ok(links)
+        Ok(links.into())
     }
 
     /// Get the list of available gateways
     #[instrument(skip(self))]
     pub async fn gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListGatewaysRequest {
-            kind: nym_vpn_proto::proto::GatewayType::from(gw_type) as i32,
+        let options = lib::ListGatewaysOptions {
+            gw_type: gw_type.into(),
             user_agent: Some(self.user_agent.clone()),
-        });
-        let response = vpnd.list_gateways(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!(
-            "proto gateways count: {}",
-            response.get_ref().gateways.len()
-        );
+        };
+        let gateways = vpnd
+            .list_gateways(options)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+        debug!("vpnd gateways count: {}", gateways.len());
 
-        let gateways: Vec<Gateway> = response
-            .into_inner()
-            .gateways
+        let gateways: Vec<Gateway> = gateways
             .into_iter()
             .filter_map(|gateway| {
                 Gateway::from_proto(gateway, gw_type)
@@ -468,7 +441,7 @@ impl VpndClient {
         info: VpndInfo,
         app: &AppHandle,
     ) -> Result<(), VpndError> {
-        let net_compat = self.network_compat().await.ok();
+        let net_compat = self.network_compat().await.ok().flatten();
 
         let app_state = app.state::<SharedAppState>();
         let mut state = app_state.lock().await;
@@ -483,12 +456,14 @@ impl VpndClient {
     /// ⚠ This requires to restart the daemon to take effect.
     #[instrument(skip(self))]
     pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        vpnd.set_network(network.to_owned()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        vpnd.set_network(network.to_owned())
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
 
         Ok(())
     }
@@ -496,66 +471,65 @@ impl VpndClient {
     /// Get messages affecting the whole system, fetched from nym-vpn-api
     #[instrument(skip_all)]
     pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd.get_system_messages(()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("grpc response: {:?}", response);
-        let response = response.into_inner();
-        Ok(response.messages.iter().map(Into::into).collect())
+        let messages = vpnd
+            .get_system_messages()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+        debug!("system messages: {:?}", messages);
+        Ok(messages.into_iter().map(Into::into).collect())
     }
 
     /// Get the feature flags, fetched from nym-vpn-api
     #[instrument(skip_all)]
     pub async fn feature_flags(&self) -> Result<FeatureFlags, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd.get_feature_flags(()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("grpc response: {:?}", response);
-        let response = response.into_inner();
-        Ok(FeatureFlags::from(&response))
+        let flags = vpnd
+            .get_feature_flags()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+        debug!("feature flags: {:?}", flags);
+        Ok(flags.into())
     }
 
     /// Get the network compatibility versions of supported vpn-core and tauri client
     #[instrument(skip_all)]
-    pub async fn network_compat(&self) -> Result<NetworkCompatVersions, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+    pub async fn network_compat(&self) -> Result<Option<NetworkCompatVersions>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd.get_network_compatibility(()).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        debug!("grpc response: {:?}", response);
-        response
-            .into_inner()
-            .network_compatibility
-            .map(NetworkCompatVersions::from)
-            .ok_or_else(|| {
-                error!("no network compatibility data");
-                VpndError::internal("no network compatibility data")
-            })
+        let net_compat = vpnd
+            .get_network_compatibility()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
+        debug!("network compat: {:?}", net_compat);
+        Ok(net_compat.map(NetworkCompatVersions::from))
     }
 
     /// Is sentry enabled at daemon level
     #[instrument(skip_all)]
     pub async fn sentry_enabled(&self) -> Result<bool, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
         let enabled = vpnd
-            .is_sentry_enabled(())
+            .is_sentry_enabled()
             .await
-            .map_err(|e| {
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
                 error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
+            })?;
 
-        debug!("vpnd sentry enabled: {}", enabled);
+        debug!("sentry enabled: {}", enabled);
         if enabled {
             info!("⚠ vpnd sentry monitoring is enabled ⚠");
         }
@@ -565,12 +539,14 @@ impl VpndClient {
     /// Enable sentry at daemon level
     #[instrument(skip_all)]
     pub async fn enable_sentry(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        vpnd.enable_sentry(()).await.map_err(|e| {
-            error!("failed to enable sentry: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        vpnd.enable_sentry()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
 
         debug!("enabled vpnd sentry");
         info!("restart vpnd (service) required for the change to take effect");
@@ -580,12 +556,14 @@ impl VpndClient {
     /// Disable sentry at daemon level
     #[instrument(skip_all)]
     pub async fn disable_sentry(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        vpnd.disable_sentry(()).await.map_err(|e| {
-            error!("failed to disable sentry: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        vpnd.disable_sentry()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
 
         debug!("disabled vpnd sentry");
         info!("restart vpnd (service) recommended");
@@ -595,18 +573,17 @@ impl VpndClient {
     /// Is network statistics collection enabled at daemon level
     #[instrument(skip_all)]
     pub async fn netstats_enabled(&self) -> Result<bool, VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
         let enabled = vpnd
-            .is_collect_network_stats_enabled(())
+            .is_collect_network_stats_enabled()
             .await
-            .map_err(|e| {
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
                 error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
+            })?;
 
-        debug!("vpnd network statistics collection enabled: {}", enabled);
+        debug!("network statistics collection enabled: {}", enabled);
         if enabled {
             info!("⚠ vpnd network statistics collection enabled ⚠");
         }
@@ -616,12 +593,14 @@ impl VpndClient {
     /// Enable network statistics collection at daemon level
     #[instrument(skip_all)]
     pub async fn enable_netstats(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        vpnd.enable_collect_network_stats(()).await.map_err(|e| {
-            error!("failed to enable network statistics collection: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        vpnd.enable_collect_network_stats()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
 
         debug!("enabled vpnd network statistics collection");
         info!("restart vpnd (service) required for the change to take effect");
@@ -631,12 +610,14 @@ impl VpndClient {
     /// Disable network statistics collection at daemon level
     #[instrument(skip_all)]
     pub async fn disable_netstats(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.ol_vpnd().await?;
+        let mut vpnd = self.vpnd().await?;
 
-        vpnd.disable_collect_network_stats(()).await.map_err(|e| {
-            error!("failed to disable network statistics collection: {}", e);
-            VpndError::GrpcError(e)
-        })?;
+        vpnd.disable_collect_network_stats()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("grpc: {}", e);
+            })?;
 
         debug!("disabled vpnd network statistics collection");
         info!("restart vpnd (service) required for the change to take effect");
@@ -649,15 +630,7 @@ impl VpndClient {
     }
 }
 
-async fn connect(socket_path: PathBuf) -> Result<Channel> {
-    // NOTE the uri here is ignored
-    Ok(TonicEndpoint::from_static(DUMMY_HTTP_ENDPOINT)
-        .connect_with_connector(tower::service_fn(move |_| {
-            nym_ipc::client::connect(socket_path.clone())
-        }))
-        .await?)
-}
-
+// TODO move this
 impl TryFrom<&Location> for Country {
     type Error = anyhow::Error;
 

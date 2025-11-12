@@ -92,9 +92,6 @@ impl Display for BackendError {
 impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
-            VpndError::GrpcError(s) => {
-                BackendError::new(&format!("grpc error: {s}"), ErrorKey::Grpc)
-            }
             VpndError::RpcClient(e) => {
                 BackendError::new(&format!("rpc client error: {e}"), ErrorKey::Grpc)
             }
