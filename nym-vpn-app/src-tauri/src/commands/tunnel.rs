@@ -15,9 +15,9 @@ use tracing::{debug, error, info, instrument, warn};
 #[tauri::command]
 pub async fn get_tunnel_state(
     app: tauri::AppHandle,
-    grpc: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<TunnelState, BackendError> {
-    let state = grpc.tunnel_state(&app).await?;
+    let state = vpnd.tunnel_state(&app).await?;
     Ok(state)
 }
 
@@ -26,7 +26,7 @@ pub async fn get_tunnel_state(
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
     db: State<'_, Db>,
     entry: Node,
     exit: Node,
@@ -75,7 +75,7 @@ pub async fn connect(
         .unwrap_or(None)
         .unwrap_or(false);
 
-    match grpc
+    match vpnd
         .vpn_connect(
             entry,
             exit,
@@ -90,7 +90,7 @@ pub async fn connect(
     {
         Ok(_) => Ok(TunnelState::Connecting(ConnectingState::default())),
         Err(vpnd_err) => {
-            warn!("grpc vpn_connect: {}", vpnd_err);
+            warn!("vpn_connect: {}", vpnd_err);
             debug!("update connection state [Disconnected]");
             let mut app_state = state.lock().await;
             app_state.tunnel = TunnelState::Disconnected;
@@ -101,8 +101,8 @@ pub async fn connect(
                 }
                 _ => {
                     app.emit_disconnected(Some(BackendError::new(
-                        "Internal gRPC error",
-                        ErrorKey::Grpc,
+                        "Internal rpc client error",
+                        ErrorKey::RpcClient,
                     )));
                 }
             }
@@ -116,7 +116,7 @@ pub async fn connect(
 pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<TunnelState, BackendError> {
     let mut app_state = state.lock().await;
     if matches!(
@@ -132,7 +132,7 @@ pub async fn disconnect(
     drop(app_state);
     app.emit_disconnecting();
 
-    grpc.vpn_disconnect().await?;
+    vpnd.vpn_disconnect().await?;
     Ok(TunnelState::Disconnecting(None))
 }
 

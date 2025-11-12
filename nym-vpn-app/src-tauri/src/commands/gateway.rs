@@ -137,14 +137,14 @@ fn sort_countries_gw(mut gw_by_countries: Vec<GatewaysByCountry>) -> Vec<Gateway
     gw_by_countries
 }
 
-#[instrument(skip(grpc))]
+#[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn get_gateways(
     node_type: GatewayType,
-    grpc: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<Vec<GatewaysByCountry>, BackendError> {
     info!("fetching gateways");
-    let gateways = grpc
+    let gateways = vpnd
         .gateways(node_type)
         .await
         .map_err(|e| {

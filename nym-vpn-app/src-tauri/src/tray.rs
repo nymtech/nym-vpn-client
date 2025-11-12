@@ -53,7 +53,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
             let c_app = app.clone();
             tokio::spawn(async move {
                 let state = c_app.state::<SharedAppState>();
-                let grpc = c_app.state::<VpndClient>();
+                let vpnd = c_app.state::<VpndClient>();
 
                 let app_state = state.lock().await;
                 if let TunnelState::Connected(_)
@@ -62,7 +62,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
                 | TunnelState::Error(_) = app_state.tunnel
                 {
                     drop(app_state);
-                    grpc.vpn_disconnect().await.ok();
+                    vpnd.vpn_disconnect().await.ok();
                 };
                 info!("app exit");
                 c_app.exit(0);

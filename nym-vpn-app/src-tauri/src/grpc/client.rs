@@ -103,7 +103,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?
             .into();
 
@@ -127,7 +127,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("vpnd log path: {:?}", log_path);
@@ -273,7 +273,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         Ok(())
     }
@@ -287,7 +287,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         Ok(())
@@ -303,7 +303,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("response: {:?}", response);
@@ -324,7 +324,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("response: {:?}", response);
@@ -344,7 +344,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("account stored: {}", is_stored);
         Ok(is_stored)
@@ -361,7 +361,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("account id: {:?}", id);
         Ok(id)
@@ -377,7 +377,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("device id: {:?}", id);
         Ok(id)
@@ -396,7 +396,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("links: {:?}", links);
         Ok(links.into())
@@ -416,7 +416,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("vpnd gateways count: {}", gateways.len());
 
@@ -460,7 +460,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         Ok(())
@@ -476,7 +476,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("system messages: {:?}", messages);
         Ok(messages.into_iter().map(Into::into).collect())
@@ -492,7 +492,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("feature flags: {:?}", flags);
         Ok(flags.into())
@@ -508,7 +508,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
         debug!("network compat: {:?}", net_compat);
         Ok(net_compat.map(NetworkCompatVersions::from))
@@ -524,7 +524,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("sentry enabled: {}", enabled);
@@ -543,7 +543,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("enabled vpnd sentry");
@@ -560,7 +560,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("disabled vpnd sentry");
@@ -578,7 +578,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("network statistics collection enabled: {}", enabled);
@@ -597,7 +597,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("enabled vpnd network statistics collection");
@@ -614,7 +614,7 @@ impl VpndClient {
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
-                error!("grpc: {}", e);
+                error!("rpc: {}", e);
             })?;
 
         debug!("disabled vpnd network statistics collection");

@@ -93,7 +93,7 @@ impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
             VpndError::RpcClient(e) => {
-                BackendError::new(&format!("rpc client error: {e}"), ErrorKey::Grpc)
+                BackendError::new(&format!("rpc client error: {e}"), ErrorKey::RpcClient)
             }
             VpndError::FailedToConnectIpc(_) => BackendError::new(
                 "not connected to the daemon",
@@ -114,11 +114,11 @@ pub enum ErrorKey {
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
     Internal,
-    /// gRPC bare layer error, when an RPC call fails (aka `tonic::Status`)
+    /// Rpc Client layer error
     /// That is, the error does not come from the application layer
-    Grpc,
+    RpcClient,
     /// Happens when the app is not connected to a running daemon
-    /// and attempts to make a gRPC call
+    /// and attempts to make an RPC call
     NotConnectedToDaemon,
     // Various mixnet events that should be mapped to errors
     EntryGwDown,
@@ -137,7 +137,7 @@ pub enum ErrorKey {
     NoSubscription,
     MaxDeviceReached,
     DeviceTimeDesync,
-    // Failure when querying countries from gRPC
+    // Failure when querying countries from daemon
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,

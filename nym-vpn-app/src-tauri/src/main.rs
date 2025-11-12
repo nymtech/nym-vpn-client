@@ -54,7 +54,7 @@ mod sys;
 mod tray;
 #[cfg(windows)]
 mod updater;
-mod vpnd;
+mod vpnd_check;
 mod window;
 
 pub const APP_NAME: &str = "NymVPN";
@@ -217,32 +217,32 @@ async fn main() -> Result<()> {
             app.manage(Mutex::new(app_state));
 
             let pkg_info = app.package_info().clone();
-            let grpc = VpndClient::new(&pkg_info);
+            let vpnd = VpndClient::new(&pkg_info);
 
             app.manage(Mutex::new(fs_config));
-            app.manage(grpc.clone());
+            app.manage(vpnd.clone());
 
             tray::setup(app.handle())?;
 
             let handle = app.handle().clone();
-            let mut c_grpc = grpc.clone();
+            let mut c_vpnd = vpnd.clone();
             tokio::spawn(async move {
                 info!("starting vpnd spy");
                 loop {
-                    if let Ok(info) = c_grpc.vpnd_info().await {
+                    if let Ok(info) = c_vpnd.vpnd_info().await {
                         // connected to the daemon
                         VpndClient::reset_log_flag();
 
-                        c_grpc.update_vpnd_state(info, &handle).await.ok();
+                        c_vpnd.update_vpnd_state(info, &handle).await.ok();
                         // initialize tunnel state
-                        c_grpc.tunnel_state(&handle).await.ok();
-                        vpnd::sentry_check(sentry_enabled, &c_grpc).await.ok();
-                        vpnd::netstats_check(&db, &c_grpc).await.ok();
+                        c_vpnd.tunnel_state(&handle).await.ok();
+                        vpnd_check::sentry_check(sentry_enabled, &c_vpnd).await.ok();
+                        vpnd_check::netstats_check(&db, &c_vpnd).await.ok();
                         info!("watching vpnd events");
                         // start watching vpnd events, this is a blocking call
                         // and will keep the task alive as long as the grpc connection
                         // with vpnd is UP
-                        c_grpc.watch_events(&handle).await.ok();
+                        c_vpnd.watch_events(&handle).await.ok();
                         // if the events stream cuts off, that means vpnd is down
                         AppState::vpnd_down(&handle).await;
                     } else {

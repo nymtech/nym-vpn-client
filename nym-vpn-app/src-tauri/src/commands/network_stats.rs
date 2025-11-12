@@ -9,9 +9,9 @@ use tracing::instrument;
 #[tauri::command]
 pub async fn enable_netstats(
     db: State<'_, Db>,
-    grpc: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
-    grpc.enable_netstats().await?;
+    vpnd.enable_netstats().await?;
     db.insert(Key::NetworkStatsEnabled.as_ref(), true)?;
     Ok(())
 }
@@ -20,9 +20,9 @@ pub async fn enable_netstats(
 #[tauri::command]
 pub async fn disable_netstats(
     db: State<'_, Db>,
-    grpc: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
-    grpc.disable_netstats().await?;
+    vpnd.disable_netstats().await?;
     db.insert(Key::NetworkStatsEnabled.as_ref(), false)?;
     Ok(())
 }

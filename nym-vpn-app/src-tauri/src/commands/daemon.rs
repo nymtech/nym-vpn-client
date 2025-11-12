@@ -34,18 +34,17 @@ pub async fn daemon_status(
     Ok(status)
 }
 
-#[instrument(skip(grpc_client))]
+#[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn set_network(
-    grpc_client: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
     if !*DEV_MODE {
         warn!("not in dev mode");
         return Err(BackendError::internal("nope", None));
     }
-    grpc_client
-        .set_network(network.as_ref())
+    vpnd.set_network(network.as_ref())
         .await
         .map_err(|e| {
             warn!("failed to set network {}: {:?}", network.as_ref(), e);
@@ -59,10 +58,9 @@ pub async fn set_network(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn system_messages(
-    grpc_client: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<Vec<SystemMessage>, BackendError> {
-    grpc_client
-        .system_messages()
+    vpnd.system_messages()
         .await
         .inspect_err(|e| {
             warn!("failed to get system messages: {:?}", e);
@@ -72,11 +70,8 @@ pub async fn system_messages(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn feature_flags(
-    grpc_client: State<'_, VpndClient>,
-) -> Result<FeatureFlags, BackendError> {
-    grpc_client
-        .feature_flags()
+pub async fn feature_flags(vpnd: State<'_, VpndClient>) -> Result<FeatureFlags, BackendError> {
+    vpnd.feature_flags()
         .await
         .inspect_err(|e| {
             warn!("failed to get feature flags: {:?}", e);
@@ -96,7 +91,7 @@ pub async fn network_compat(
 #[tauri::command]
 pub async fn vpnd_log_dir(
     app_state: State<'_, SharedAppState>,
-    grpc_client: State<'_, VpndClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<String, BackendError> {
     let state = app_state.lock().await;
     if state.vpnd_status == VpndStatus::Down {
@@ -104,10 +99,6 @@ pub async fn vpnd_log_dir(
         return Ok(DEFAULT_VPND_LOG_DIR.to_string());
     }
 
-    let path = grpc_client
-        .vpnd_log_path()
-        .await?
-        .to_string_lossy()
-        .to_string();
+    let path = vpnd.vpnd_log_path().await?.to_string_lossy().to_string();
     Ok(path)
 }
