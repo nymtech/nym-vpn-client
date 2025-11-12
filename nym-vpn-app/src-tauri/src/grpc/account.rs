@@ -23,6 +23,7 @@ pub enum AccountState {
     StatusNotActive,
     NoSubscription,
     MaxDeviceReached,
+    RequestingZkNyms,
     Error(BackendError),
 }
 
@@ -34,6 +35,7 @@ impl AccountState {
             State::ReadyToConnect(_) => AccountState::Ready,
             State::Decentralised(_) => AccountState::Decentralised,
             State::Offline(_) => AccountState::Offline,
+            State::RequestingZkNyms(_) => AccountState::RequestingZkNyms,
             State::Error(error) => match error.reason() {
                 ErrorStateReason::BandwidthExceeded => AccountState::BandwidthExceeded,
                 ErrorStateReason::AccountStatusNotActive => AccountState::StatusNotActive,

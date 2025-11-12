@@ -30,6 +30,9 @@ pub enum AccountControllerState {
     /// Not logged in with a mnemonic
     LoggedOut,
 
+    /// Logged in, registered device, zk-nyms not available
+    RequestingZkNyms,
+
     /// Logged in, registered device, available zk-nyms
     ReadyToConnect,
 
@@ -51,6 +54,9 @@ impl fmt::Display for AccountControllerState {
             }
             Self::LoggedOut => {
                 write!(f, "Logged Out")
+            }
+            Self::RequestingZkNyms => {
+                write!(f, "Requesting zk-nyms")
             }
             Self::ReadyToConnect => {
                 write!(f, "Ready to connect")
