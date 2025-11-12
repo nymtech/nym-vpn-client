@@ -123,6 +123,7 @@ class MainActivity : AppCompatActivity() {
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
+			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
 
 			LaunchedEffect(configurationChange) {
 				if (configurationChange) {
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
 											it.size.height.toDp()
 										}
 									},
+									hideBackButton = hideBackButtonInNavBar,
 								)
 							},
 							snackbarHost = {
@@ -288,7 +290,11 @@ class MainActivity : AppCompatActivity() {
 									}
 								}
 								composable<Route.Passphrase> {
-									PassphraseScreen()
+									PassphraseScreen(
+										onBackButtonVisibilityChange = {
+											hideBackButtonInNavBar = it
+										},
+									)
 								}
 								composable<Route.Account> {
 									AccountInfoScreen(appState)

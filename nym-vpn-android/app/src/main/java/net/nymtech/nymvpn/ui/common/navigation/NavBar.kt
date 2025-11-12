@@ -33,10 +33,11 @@ import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
+fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBackButton: Boolean = false) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val context = LocalContext.current
 
@@ -46,7 +47,9 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 	var showExitServerTooltip by remember { mutableStateOf(false) }
 	var showPassphraseModal by remember { mutableStateOf(false) }
 
-	LaunchedEffect(navBackStackEntry) {
+	Timber.d("@@ hide back button $hideBackButton")
+
+	LaunchedEffect(navBackStackEntry, hideBackButton) {
 		keyboardController?.hide()
 		val currentRoute = navBackStackEntry?.destination?.route ?: return@LaunchedEffect
 		navBarState = when {
@@ -264,8 +267,10 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				title = { NavTitle(stringResource(R.string.settings_passphrase_title)) },
 				show = true,
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
+					if (!hideBackButton) {
+						NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+							navController.safePopBackStack()
+						}
 					}
 				},
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showPassphraseModal = true } },
