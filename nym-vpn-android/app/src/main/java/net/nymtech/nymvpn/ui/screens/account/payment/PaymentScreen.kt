@@ -57,8 +57,7 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 	val activity = context as? Activity
 	val userId = appUiState.managerState.accountId
 
-	var animationEnded by rememberSaveable { mutableStateOf(false) }
-	var navigated by rememberSaveable { mutableStateOf(false) }
+	var animationStart by rememberSaveable { mutableStateOf(false) }
 	var latestEvent by remember { mutableStateOf<PaymentUiEvent?>(null) }
 
 	LaunchedEffect(activity, productId) {
@@ -77,51 +76,44 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 				}
 
 				is PaymentUiEvent.PaymentSuccess -> {
-					if (animationEnded && !navigated) {
-						navigated = true
-						navController.replaceCurrentWith(Route.Main())
-					}
+					animationStart = true
 				}
 
 				is PaymentUiEvent.SubscriptionOwned -> {
-					navigated = true
 					navController.replaceCurrentWith(Route.Main())
 				}
 
 				PaymentUiEvent.PaymentPending -> {
-					if (animationEnded && !navigated) {
-						navigated = true
-						navController.replaceCurrentWith(Route.Main())
-					}
+					animationStart = true
 				}
 			}
 		}
 	}
 
 	PaymentScreen(
+		start = animationStart,
 		onAnimationEnd = {
-			animationEnded = true
-			if ((latestEvent == PaymentUiEvent.PaymentSuccess || latestEvent == PaymentUiEvent.PaymentPending) && !navigated) {
-				navigated = true
-				navController.navigateAndForget(Route.Main())
-			}
+			viewModel.refreshAccountState()
+			navController.navigateAndForget(Route.Main())
 		},
 	)
 }
 
 @Composable
-fun PaymentScreen(onAnimationEnd: () -> Unit) {
+fun PaymentScreen(start: Boolean, onAnimationEnd: () -> Unit) {
 	var step by remember { mutableIntStateOf(0) }
 
-	LaunchedEffect(Unit) {
-		delay(2000)
-		step = 1
-		delay(2000)
-		step = 2
-		delay(2000)
-		step = 3
-		delay(2000)
-		onAnimationEnd()
+	LaunchedEffect(start) {
+		if (start) {
+			delay(2000)
+			step = 1
+			delay(2000)
+			step = 2
+			delay(2000)
+			step = 3
+			delay(2000)
+			onAnimationEnd()
+		}
 	}
 
 	Column(
@@ -232,6 +224,6 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 @Composable
 private fun PreviewPaymentScreen() {
 	NymVPNTheme(Theme.default()) {
-		PaymentScreen(onAnimationEnd = {})
+		PaymentScreen(start = true, onAnimationEnd = {})
 	}
 }

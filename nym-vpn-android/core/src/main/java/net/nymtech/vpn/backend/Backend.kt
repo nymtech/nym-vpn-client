@@ -1,6 +1,7 @@
 package net.nymtech.vpn.backend
 
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -38,6 +39,8 @@ interface Backend {
 	suspend fun createAccount()
 
 	suspend fun registerAccount(token: String): String
+
+	suspend fun getAccountState(): AccountControllerState
 
 	fun getState(): Tunnel.State
 

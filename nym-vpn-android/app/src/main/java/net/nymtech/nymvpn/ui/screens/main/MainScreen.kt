@@ -311,6 +311,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					onStopKillSwitch = { onStopKillSwitchPressed() },
 					onGetStart = { onGetStartedPressed() },
 					navController = navController,
+					accountState = appUiState.managerState.accountState,
 					snackbar = snackbar,
 				)
 			}
