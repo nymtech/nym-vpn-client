@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
@@ -25,6 +26,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +69,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
-fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
+fun PassphraseScreen(hideBackButton: (Boolean) -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
 	val clipboardManager = LocalClipboardManager.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
@@ -108,6 +110,13 @@ fun PassphraseScreen(viewModel: PassphraseViewModel = hiltViewModel()) {
 	}
 
 	val promptInfo = remember(context) { buildPromptInfo(context) }
+
+	// Prevent system back click navigation if passphrase sheet is visible
+	BackHandler(enabled = showSheet) {  }
+
+	LaunchedEffect(showSheet) {
+		hideBackButton(showSheet)
+	}
 
 	fun requestAuthOrReveal() {
 		val manager = BiometricManager.from(context)
@@ -311,7 +320,11 @@ fun PassphraseScreen(
 					)
 				}
 				MainStyledButton(
-					onClick = onContinueClick,
+					onClick = {
+						if (confirmed) {
+							onContinueClick()
+						}
+					},
 					content = {
 						Text(
 							stringResource(R.string.welcome_continue),
@@ -319,8 +332,7 @@ fun PassphraseScreen(
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					},
-					enabled = confirmed,
-					color = MaterialTheme.colorScheme.primary,
+					color = MaterialTheme.colorScheme.primary.copy(if (confirmed) 1f else 0.5f),
 					modifier = Modifier
 						.fillMaxWidth()
 						.padding(vertical = 16.dp)
