@@ -74,6 +74,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
 
 @Composable
@@ -296,6 +297,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					onStopKillSwitch = { onStopKillSwitchPressed() },
 					onGetStart = { onGetStartedPressed() },
 					navController = navController,
+					accountState = appUiState.managerState.accountState,
 					snackbar = snackbar,
 				)
 			}
