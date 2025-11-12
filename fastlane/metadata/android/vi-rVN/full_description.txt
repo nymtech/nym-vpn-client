@@ -1,50 +1,50 @@
-Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
+Đừng để bị theo dõi trực tuyến. VPN duy nhất không thể theo dõi bạn, ngay cả khi muốn thế. Sản xuất tại Thụy Sĩ, được những người ủng hộ quyền riêng tư trên toàn thế giới tin dùng.
 
-⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ Đã xuất hiện trên: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-BROWSE WITHOUT LEAVING A TRACE
+DUYỆT WEB MÀ KHÔNG ĐỂ LẠI DẤU VẾT
 
-Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
+Bạn đã chán ngấy việc lo lắng xem ai đang theo dõi mình? Về mặt lý thuyết, VPN truyền thống có thể ghi lại hoạt động của bạn. NymVPN hoàn toàn khác biệt: mạng lưới phi tập trung của chúng tôi khiến việc ghi nhật ký tập trung trở nên bất khả thi. Đây không phải là "chính sách không ghi nhật ký" mà là kiến ​​trúc "không thể ghi nhật ký".
 
-✓ True anonymity: Pay with crypto or cash, no email required
-✓ 50+ countries, hundreds of independent servers
-✓ Multi-device protection: 10 devices with one anonymous code
-✓ Swiss-based with academic-grade privacy standards
+✓ Ẩn danh thực sự: Thanh toán bằng tiền điện tử hoặc tiền mặt, không cần email
+✓ Hơn 50 quốc gia, hàng trăm máy chủ độc lập
+✓ Bảo vệ đa thiết bị: 10 thiết bị với một mã ẩn danh
+✓ Có trụ sở tại Thụy Sĩ với tiêu chuẩn bảo mật cấp độ học thuật
 
-CHOOSE YOUR PRIVACY LEVEL
+CHỌN MỨC ĐỘ RIÊNG TƯ
 
-⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
-🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
+⚡ Chế độ Nhanh – Tốc độ cực nhanh để phát trực tuyến và duyệt web. Mặc định là 2 bước nhảy, cho phép một máy chủ biết bạn là ai, một máy chủ khác biết bạn đang làm gì—nhưng không bao giờ biết tất cả.
+🔒 Chế độ Ẩn danh – Quyền riêng tư tối đa thông qua mixnet 5 bước nhảy với công nghệ tạo nhiễu và tlên tới 5 lớp mã hóa. Được thiết kế để chống lại ngay cả phân tích lưu lượng truy cập được hỗ trợ bởi AI và giám sát tiên tiến.
 
 TẠI SAO NYMVPN KHÁC BIỆT
 
-• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
-• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
-• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
-• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
+• Bảo vệ siêu dữ liệu – Không giống như các VPN khác, chúng tôi không chỉ bảo vệ dữ liệu của bạn mà còn cả các mô hình dữ liệu bạn để lại
+• Chống kiểm duyệt – Truy cập thông tin bị chặn trong môi trường hạn chế với các giao thức AmneziaWG, QUIC và giao thức ẩn
+• Thanh toán zero-knowledge – Gói đăng ký của bạn được mã hóa và không liên kết với hoạt động của bạn
+• Được thiết kế bởi trường đại học – Được xây dựng bởi các nhà mật mã học tiến sĩ từ KU Leuven và EPFL với hơn 20 ấn phẩm được bình duyệt
 
 ĐÃ ĐƯỢC KIỂM ĐỊNH ĐỘC LẬP
 
-• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-source and transparent ("Signals of Trustworthy VPNs")
-• 10,000+ users already trust NymVPN for their privacy
+• 4 lần kiểm toán bảo mật (2021-2024) bởi JP Aumasson, Oak Security, Cryspen, Cure53
+• Mã nguồn mở và minh bạch ("Dấu hiệu của VPN đáng tin cậy")
+• Hơn 10.000 người dùng đã tin tưởng NymVPN để bảo vệ quyền riêng tư của họ
 
 CÁC TÍNH NĂNG CƠ BẢN
 
-• High-speed connections with 50+ country selection
-• Kill switch prevents data leaks
-• Completely ad-free experience
-• State-of-the-art cryptographic stack
+• Kết nối tốc độ cao với lựa chọn hơn 50 quốc gia
+• Kill switch ngăn chặn rò rỉ dữ liệu
+• Trải nghiệm hoàn toàn không có quảng cáo
+• Cơ chế mã hóa tiên tiến
 
 
-PERFECT FOR
+HOÀN HẢO CHO
 
-→ Streaming and browsing without being tracked by advertisers
-→ Secure public WiFi connections at cafes, airports, hotels
-→ Anyone in restrictive countries needing reliable access
-→ People who want true anonymity, not just hidden IP addresses
-→ Journalists and activists needing untraceable communication
+→ Phát trực tuyến và duyệt web mà không bị theo dõi bởi các nhà quảng cáo
+→ Kết nối WiFi công cộng an toàn tại quán cà phê, sân bay, khách sạn
+→ Bất kỳ ai ở các quốc gia hạn chế cần truy cập đáng tin cậy
+→ Những người muốn ẩn danh thực sự, không chỉ là ẩn địa chỉ IP
+→ Các nhà báo và nhà hoạt động cần giao tiếp mà không thể bị theo dõi
 
-Download now. Connect in seconds. Disappear online.
+Tải xuống ngay. Kết nối trong vài giây. Biến mất khi trực tuyến.
 
-🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide
+🎁 Dùng thử miễn phí trong 7 ngày | 💯 Đảm bảo hoàn tiền trong 30 ngày | 🌐 Được hơn 10.000 người dùng trên toàn thế giới tin dùng
