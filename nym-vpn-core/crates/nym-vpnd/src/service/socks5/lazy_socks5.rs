@@ -55,6 +55,8 @@ pub struct LazySocks5 {
     active_connections: Arc<RwLock<u32>>,
     /// Last connection closed timestamp
     last_connection_closed: Arc<RwLock<Option<Instant>>>,
+    /// Is mixnet running
+    is_mixnet_running: Arc<RwLock<bool>>,
     /// Mixnet client
     mixnet_client: Arc<RwLock<Option<Socks5MixnetClient>>>,
 }
@@ -90,6 +92,7 @@ impl LazySocks5 {
             cancel_token,
             active_connections: Arc::new(RwLock::new(0)),
             last_connection_closed: Arc::new(RwLock::new(None)),
+            is_mixnet_running: Arc::new(RwLock::new(false)),
             mixnet_client: Arc::new(RwLock::new(None)),
         })
     }
@@ -182,11 +185,7 @@ impl LazySocks5 {
         client_addr: SocketAddr,
     ) -> Result<(), LazySocks5Error> {
         // Increment connection counter
-        {
-            let mut count = self.active_connections.write().await;
-            *count += 1;
-            debug!("Active connections (dVPN): {}", *count);
-        }
+        self.increment_connections().await;
 
         // Parse SOCKS5 handshake and request
         let target_addr = match Self::socks5_handshake(&mut client_stream).await {
@@ -424,11 +423,7 @@ impl LazySocks5 {
         client_addr: SocketAddr,
     ) -> Result<(), LazySocks5Error> {
         // Increment connection counter
-        {
-            let mut count = self.active_connections.write().await;
-            *count += 1;
-            debug!("Active connections: {}", *count);
-        }
+        self.increment_connections().await;
 
         // Ensure backend is started (lazy initialization)
         if let Err(e) = self.ensure_backend_started().await {
@@ -489,6 +484,7 @@ impl LazySocks5 {
 
         info!("First connection detected, initializing Nym mixnet backend...");
 
+        // TODO: replace with network_requester_address
         let mut socks5_config = Socks5::new(
             "J2oXYjn8fRMz9MKFUibatjCTvxvQbVa2r5Uxp7X47aL3.BdyaZLL1cpSeZKS3AfpzXEXFE67WkuoEsSmxwvo5tTVN@3hWtFJbVVPbZZ9iNZuSHPnShHG5AUiFpTPnvJmUibNp9",
         );
@@ -638,6 +634,7 @@ impl LazySocks5 {
                     } else {
                         debug!("Connected to internal SOCKS5 server on first attempt");
                     }
+                    *self.is_mixnet_running.write().await = true;
                     return Ok(stream);
                 }
                 Err(e) => {
@@ -759,8 +756,16 @@ impl LazySocks5 {
         let mut client_guard = self.mixnet_client.write().await;
         if let Some(mixnet_client) = client_guard.take() {
             info!("Shutting down Nym mixnet client");
+            *self.is_mixnet_running.write().await = false;
             mixnet_client.disconnect().await;
         }
+    }
+
+    /// Increment active connection counter
+    async fn increment_connections(&self) {
+        let mut count = self.active_connections.write().await;
+        *count += 1;
+        debug!("Active connections: {}", *count);
     }
 
     /// Decrement active connection counter
@@ -785,6 +790,11 @@ impl LazySocks5 {
     /// Get the number of active connections
     pub async fn active_connections(&self) -> u32 {
         *self.active_connections.read().await
+    }
+
+    /// Is mixnet running
+    pub async fn is_mixnet_running(&self) -> bool {
+        *self.is_mixnet_running.read().await
     }
 
     /// Get the public listen address

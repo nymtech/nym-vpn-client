@@ -84,8 +84,20 @@ impl Socks5ServiceState {
             0
         };
 
+        let is_mixnet_running = if let Some(lazy_socks5) = &self.lazy_socks5 {
+            lazy_socks5.is_mixnet_running().await
+        } else {
+            false
+        };
+
+        let state = if is_mixnet_running {
+            Socks5State::Connected
+        } else {
+            self.state
+        };
+
         Socks5Status {
-            state: self.state,
+            state: state,
             socks5_settings: Socks5Settings {
                 listen_address: self.socks5_listen_address.clone(),
             },

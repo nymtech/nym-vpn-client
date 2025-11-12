@@ -1091,17 +1091,6 @@ impl NymVpnService {
         exit_point: ExitPoint,
     ) -> Result<(), Socks5Error> {
         tracing::info!("Enabling SOCKS5 client");
-
-        // Log warning if VPN is connected in 5-hop mode
-        if matches!(self.tunnel_state, TunnelState::Connected { .. })
-            && !self.config_manager.config().enable_two_hop
-        {
-            tracing::warn!(
-                "Both VPN tunnel (5-hop) and SOCKS5 proxy are active. \
-                This will generate dual cover traffic streams and consume more bandwidth."
-            );
-        }
-
         tracing::info!("Using exit point: {:?}", exit_point);
 
         // Get all exit gateways to validate SOCKS5 support
