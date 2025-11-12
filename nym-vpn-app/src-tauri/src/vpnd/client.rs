@@ -27,12 +27,12 @@ use tauri::{AppHandle, Manager, PackageInfo};
 use tokio_stream::StreamExt;
 use tracing::{debug, error, info, instrument, trace, warn};
 
-pub use crate::grpc::network::NetworkCompatVersions;
+pub use crate::vpnd::network::NetworkCompatVersions;
 use crate::{
     error::BackendError,
     events::AppHandleEventEmitter,
-    grpc::account::{AccountState, log_account_state},
     state::SharedAppState,
+    vpnd::account::{AccountState, log_account_state},
 };
 
 // simple flag to save that "failed to connect to daemon"

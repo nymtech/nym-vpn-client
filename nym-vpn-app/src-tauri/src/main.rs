@@ -13,7 +13,7 @@ use crate::{
     cli::Cli,
     db::Db,
     fs::{app::AppFs, config::AppConfig},
-    grpc::client::VpndClient,
+    vpnd::client::VpndClient,
 };
 
 use anyhow::{Result, anyhow};
@@ -45,7 +45,6 @@ mod env;
 mod error;
 mod events;
 mod fs;
-mod grpc;
 mod log;
 mod sentry;
 mod startup_error;
@@ -54,6 +53,7 @@ mod sys;
 mod tray;
 #[cfg(windows)]
 mod updater;
+mod vpnd;
 mod vpnd_check;
 mod window;
 

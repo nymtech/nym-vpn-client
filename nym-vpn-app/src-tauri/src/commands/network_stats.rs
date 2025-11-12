@@ -1,6 +1,6 @@
 use crate::db::{Db, Key};
 use crate::error::BackendError;
-use crate::grpc::client::VpndClient;
+use crate::vpnd::client::VpndClient;
 
 use tauri::State;
 use tracing::instrument;

@@ -1,8 +1,8 @@
 use crate::env::DEV_MODE;
 use crate::error::BackendError;
-use crate::grpc::client::{FeatureFlags, SystemMessage, VpndClient, VpndStatus};
 use crate::state::SharedAppState;
 use crate::state::app::NetworkCompat;
+use crate::vpnd::client::{FeatureFlags, SystemMessage, VpndClient, VpndStatus};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{debug, info, instrument, warn};

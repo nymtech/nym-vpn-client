@@ -11,9 +11,9 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
-use crate::grpc::tunnel::TunnelState;
+use crate::vpnd::tunnel::TunnelState;
 use crate::{
-    MAIN_WINDOW_LABEL, grpc::client::VpndClient, state::SharedAppState, window::AppWindow,
+    MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient, window::AppWindow,
 };
 
 pub const TRAY_ICON_ID: &str = "main";

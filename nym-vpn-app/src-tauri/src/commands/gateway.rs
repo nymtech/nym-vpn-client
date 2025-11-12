@@ -8,8 +8,8 @@ use ts_rs::TS;
 
 use crate::country::Country;
 use crate::error::{BackendError, ErrorKey};
-use crate::grpc::client::VpndClient;
-use crate::grpc::gateway::{Gateway, GatewayType};
+use crate::vpnd::client::VpndClient;
+use crate::vpnd::gateway::{Gateway, GatewayType};
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]

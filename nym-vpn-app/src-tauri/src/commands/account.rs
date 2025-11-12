@@ -1,11 +1,11 @@
 use tauri::State;
 use tracing::{error, info, instrument, warn};
 
-use crate::grpc::account::AccountState;
-use crate::grpc::account_links::AccountLinks;
-use crate::grpc::tunnel::TunnelState;
 use crate::state::SharedAppState;
-use crate::{error::BackendError, grpc::client::VpndClient};
+use crate::vpnd::account::AccountState;
+use crate::vpnd::account_links::AccountLinks;
+use crate::vpnd::tunnel::TunnelState;
+use crate::{error::BackendError, vpnd::client::VpndClient};
 
 #[instrument(skip_all)]
 #[tauri::command]

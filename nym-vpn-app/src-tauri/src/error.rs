@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::db::DbError;
-use crate::grpc::{client::VpndError, gateway::GatewayType};
+use crate::vpnd::{client::VpndError, gateway::GatewayType};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;

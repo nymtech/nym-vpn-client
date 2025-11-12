@@ -1,7 +1,7 @@
 use tracing::{error, info, instrument, warn};
 
 use crate::db::{Db, Key};
-use crate::grpc::client::VpndClient;
+use crate::vpnd::client::VpndClient;
 
 // Check the state of network statistics collection in daemon side
 // if needed sync it with the saved setting from the app db

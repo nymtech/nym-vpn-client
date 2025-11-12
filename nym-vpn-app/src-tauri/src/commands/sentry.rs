@@ -3,8 +3,8 @@ use tauri::State;
 use tracing::{debug, info, instrument};
 
 use crate::error::BackendError;
-use crate::grpc::client::VpndClient;
 use crate::state::{SharedAppConfig, SharedAppState};
+use crate::vpnd::client::VpndClient;
 
 #[instrument(skip_all)]
 #[tauri::command]

@@ -2,11 +2,11 @@ use crate::{
     db::{Db, Key},
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
-    grpc::{
+    state::{SharedAppState, app::VpnMode},
+    vpnd::{
         client::{Node, VpndClient, VpndError},
         tunnel::{ConnectingState, TunnelState},
     },
-    state::{SharedAppState, app::VpnMode},
 };
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
