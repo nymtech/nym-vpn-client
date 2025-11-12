@@ -69,7 +69,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
-fun PassphraseScreen(hideBackButton: (Boolean) -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
+fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
 	val clipboardManager = LocalClipboardManager.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
@@ -115,7 +115,7 @@ fun PassphraseScreen(hideBackButton: (Boolean) -> Unit, viewModel: PassphraseVie
 	BackHandler(enabled = showSheet) { }
 
 	LaunchedEffect(showSheet) {
-		hideBackButton(showSheet)
+		onBackButtonVisibilityChange(showSheet)
 	}
 
 	fun requestAuthOrReveal() {

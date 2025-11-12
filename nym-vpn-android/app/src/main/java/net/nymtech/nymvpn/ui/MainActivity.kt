@@ -291,7 +291,7 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Passphrase> {
 									PassphraseScreen(
-										hideBackButton = {
+										onBackButtonVisibilityChange = {
 											hideBackButtonInNavBar = it
 										},
 									)
