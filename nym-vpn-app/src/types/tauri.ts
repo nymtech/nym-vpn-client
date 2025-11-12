@@ -95,7 +95,7 @@ export type DownloadUpdateEvent =
  */
 export type ErrorKey =
   | 'internal'
-  | 'grpc'
+  | 'vpnd-client'
   | 'not-connected-to-daemon'
   | 'entry-gw-down'
   | 'exit-gw-down-ipv4'

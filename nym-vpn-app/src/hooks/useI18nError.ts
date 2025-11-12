@@ -29,8 +29,8 @@ function useI18nError() {
         // general errors
         case 'internal':
           return t('internal');
-        case 'grpc':
-          return t('grpc');
+        case 'vpnd-client':
+          return t('vpnd-client');
         case 'not-connected-to-daemon':
           return t('daemon.not-connected');
         case 'account-invalid-mnemonic':

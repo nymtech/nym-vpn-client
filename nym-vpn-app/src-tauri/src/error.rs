@@ -93,7 +93,7 @@ impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
             VpndError::RpcClient(e) => {
-                BackendError::new(&format!("rpc client error: {e}"), ErrorKey::RpcClient)
+                BackendError::new(&format!("rpc client error: {e}"), ErrorKey::VpndClient)
             }
             VpndError::FailedToConnectIpc(_) => BackendError::new(
                 "not connected to the daemon",
@@ -115,8 +115,8 @@ pub enum ErrorKey {
     /// Extra data should be passed along to help specialize the problem
     Internal,
     /// Rpc Client layer error
-    /// That is, the error does not come from the application layer
-    RpcClient,
+    /// the error does not originate from the application layer
+    VpndClient,
     /// Happens when the app is not connected to a running daemon
     /// and attempts to make an RPC call
     NotConnectedToDaemon,

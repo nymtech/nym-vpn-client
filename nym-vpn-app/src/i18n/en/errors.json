@@ -6,7 +6,7 @@
     "internal": "Daemon internal error",
     "invalid-network": "Invalid network"
   },
-  "grpc": "Internal RPC Client error",
+  "vpnd-client": "Internal Vpnd Client error",
   "tunnel": {
     "internal": "Internal error",
     "firewall": "Firewall error",
