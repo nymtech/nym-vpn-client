@@ -32,7 +32,7 @@ impl AccountState {
             lib::AccountControllerState::ReadyToConnect => AccountState::Ready,
             lib::AccountControllerState::Decentralised => AccountState::Decentralised,
             lib::AccountControllerState::Offline => AccountState::Offline,
-            lib::AccountControllerState::RequestingZkNyms(_) => AccountState::RequestingZkNyms,
+            lib::AccountControllerState::RequestingZkNyms => AccountState::RequestingZkNyms,
             lib::AccountControllerState::Error(error) => match error {
                 lib::AccountControllerErrorStateReason::BandwidthExceeded {
                     context: _, /* TODO */
