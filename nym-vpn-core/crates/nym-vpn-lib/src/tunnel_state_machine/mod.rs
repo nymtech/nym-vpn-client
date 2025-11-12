@@ -198,28 +198,16 @@ pub struct MixnetTunnelOptions {
     pub mtu: Option<u16>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub enum WireguardMultihopMode {
     /// Multihop using two tun devices to nest tunnels.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[default]
     TunTun,
 
+    #[cfg_attr(any(target_os = "ios", target_os = "android"), default)]
     /// Netstack based multihop.
     Netstack,
-}
-
-impl Default for WireguardMultihopMode {
-    fn default() -> Self {
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        {
-            Self::Netstack
-        }
-
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::TunTun
-        }
-    }
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
