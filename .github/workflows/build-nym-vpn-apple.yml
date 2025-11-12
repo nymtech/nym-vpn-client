@@ -39,6 +39,8 @@ on:
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-apple.outputs.RUST_VERSION }}
+  schedule:
+    - cron: "0 1 * * *"
 
 env:
   CARGO_TERM_COLOR: always
@@ -74,11 +76,19 @@ jobs:
 
           # Determine normalized mode (pr / qa / ship)
           case "$sel" in
-            pr|PR)   mode=pr ;;
-            qa|QA)   mode=qa ;;
+            pr|PR)     mode=pr ;;
+            qa|QA)     mode=qa ;;
             ship|SHIP) mode=ship ;;
-            *)        mode=pr ;;
+            *)         mode=pr ;;
           esac
+
+          # If triggered by schedule, force QA and build both platforms
+          if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then
+            mode=qa
+            ios=true
+            macos=true
+            echo "🕒 Scheduled run detected → forcing QA with iOS+macOS"
+          fi
 
           echo "🧩 Selected mode (raw): $sel"
           echo "🧩 Normalized mode: $mode"
@@ -641,14 +651,59 @@ jobs:
 
           echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
 
+      - name: Generate artifact name
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        run: |
+          TIMESTAMP=$(date +"%Y%m%d-%H%M")
+          SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
+          echo "ARTIFACT_NAME=apple-${RELEASE_TYPE}-${TIMESTAMP}-${SAFE_BRANCH}" >> "$GITHUB_ENV"
+
       - name: Upload artifacts (QA / Ship)
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: apple-${{ env.RELEASE_TYPE }}-${{ github.run_id }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}
           if-no-files-found: error
           retention-days: 1
+      
+      - name: Rename PKG for upload
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple/build/pkg
+        run: |
+          set -euo pipefail
+
+          # Find the built package
+          ORIGINAL_PKG=$(basename "${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}")
+
+          # Strip "apple-" prefix → keep timestamp-branch only
+          PREFIX_PART=$(echo "${ARTIFACT_NAME}" | sed 's/^apple-//')
+          NEW_NAME="${PREFIX_PART}-${ORIGINAL_PKG}"
+
+          echo "📦 Renaming package:"
+          echo "  Old: $ORIGINAL_PKG"
+          echo "  New: $NEW_NAME"
+
+          mv "$ORIGINAL_PKG" "$NEW_NAME"
+
+          # Export relative path (relative to repository root)
+          RELATIVE_PATH="nym-vpn-apple/build/pkg/$NEW_NAME"
+          echo "renamed_pkg_relative_path=$RELATIVE_PATH" >> "$GITHUB_ENV"
+          echo "✅ Renamed and ready to upload: $RELATIVE_PATH"
+
+      - name: Upload to www
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        uses: easingthemes/ssh-deploy@main
+        with:
+          REMOTE_PORT: 22
+          ARGS: -avzr
+          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
+          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
+          SOURCE: ${{ env.renamed_pkg_relative_path }}
 
       - name: Cleanup Keychain
         if: always()
