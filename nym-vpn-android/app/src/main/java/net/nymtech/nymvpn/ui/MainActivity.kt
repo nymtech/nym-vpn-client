@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity() {
 											it.size.height.toDp()
 										}
 									},
-									hideBackButton = hideBackButtonInNavBar
+									hideBackButton = hideBackButtonInNavBar,
 								)
 							},
 							snackbarHost = {
@@ -293,7 +293,7 @@ class MainActivity : AppCompatActivity() {
 									PassphraseScreen(
 										hideBackButton = {
 											hideBackButtonInNavBar = it
-										}
+										},
 									)
 								}
 								composable<Route.Account> {

@@ -112,7 +112,7 @@ fun PassphraseScreen(hideBackButton: (Boolean) -> Unit, viewModel: PassphraseVie
 	val promptInfo = remember(context) { buildPromptInfo(context) }
 
 	// Prevent system back click navigation if passphrase sheet is visible
-	BackHandler(enabled = showSheet) {  }
+	BackHandler(enabled = showSheet) { }
 
 	LaunchedEffect(showSheet) {
 		hideBackButton(showSheet)
