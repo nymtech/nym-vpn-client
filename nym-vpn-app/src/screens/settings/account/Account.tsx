@@ -60,6 +60,8 @@ function Account() {
         return t('account.status-inactive');
       case 'bandwidth-exceeded':
         return t('account.bandwidth-exceeded');
+      case 'requesting-zk-nyms':
+        return t('account.requesting-zknyms');
       case 'offline':
       case 'error':
         return t('account.error');

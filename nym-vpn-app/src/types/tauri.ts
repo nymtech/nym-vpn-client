@@ -266,6 +266,7 @@ export type TAccountState =
   | 'status-not-active'
   | 'no-subscription'
   | 'max-device-reached'
+  | 'requesting-zk-nyms'
   | { error: TBackendError };
 
 /**

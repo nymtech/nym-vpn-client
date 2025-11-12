@@ -67,7 +67,7 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
             PrivateAccountControllerState::Decentralised => Self::Decentralised,
             PrivateAccountControllerState::Error(reason) => Self::Error(reason),
-            PrivateAccountControllerState::RequestingZkNyms => Self::Syncing,
+            PrivateAccountControllerState::RequestingZkNyms => Self::RequestingZkNyms,
         }
     }
 }
