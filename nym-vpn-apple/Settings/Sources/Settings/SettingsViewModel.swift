@@ -329,7 +329,7 @@ private extension SettingsViewModel {
         var viewModels = [SettingsListItemViewModel]()
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: .constant(true), isDisabled: true)),
+                accessory: .empty,
                 title: "settings.killswitch.title".localizedString,
                 subtitle: "settings.killswitch.subtitle".localizedString,
                 systemImageName: "power",
