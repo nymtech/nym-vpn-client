@@ -36,9 +36,8 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
             }
         };
 
-    tracing::debug!("Resolved to: {addrs:?}");
-
     let ips: Vec<IpAddr> = addrs.into_iter().collect();
+    tracing::debug!("Resolved to: {ips:?}");
     if ips.is_empty() {
         return Err(VpnApiClientError::ResolvedHostnameButNoIp(
             hostname.to_string(),
