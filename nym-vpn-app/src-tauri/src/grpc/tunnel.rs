@@ -129,12 +129,8 @@ impl TunnelState {
                 state,
                 tunnel_type,
             } => {
-                let entry_gw_id = connection_data
-                    .as_ref()
-                    .and_then(|d| Some(d.entry_gateway.id.clone()));
-                let exit_gw_id = connection_data
-                    .as_ref()
-                    .and_then(|d| Some(d.exit_gateway.id.clone()));
+                let entry_gw_id = connection_data.as_ref().map(|d| d.entry_gateway.id.clone());
+                let exit_gw_id = connection_data.as_ref().map(|d| d.exit_gateway.id.clone());
                 let tunnel = connection_data.and_then(|d| d.tunnel.map(TunnelData::from));
                 TunnelState::Connecting(ConnectingState {
                     tunnel_type: tunnel_type.into(),

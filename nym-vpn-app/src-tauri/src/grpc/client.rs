@@ -12,10 +12,9 @@ use super::{
     tunnel::TunnelState,
 };
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use lib::UserAgent;
 use nym_vpn_lib_types as lib;
-use nym_vpn_proto::proto::Location;
 use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
 use std::net::IpAddr;
@@ -30,7 +29,6 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use crate::grpc::network::NetworkCompatVersions;
 use crate::{
-    country::Country,
     error::BackendError,
     events::AppHandleEventEmitter,
     grpc::account::{AccountState, log_account_state},
@@ -425,7 +423,7 @@ impl VpndClient {
         let gateways: Vec<Gateway> = gateways
             .into_iter()
             .filter_map(|gateway| {
-                Gateway::from_proto(gateway, gw_type)
+                Gateway::from_lib(gateway, gw_type)
                     .inspect_err(|e| warn!("failed to parse gateway from proto: {e}"))
                     .ok()
             })
@@ -627,21 +625,5 @@ impl VpndClient {
     pub fn reset_log_flag() {
         let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
         *logged = false;
-    }
-}
-
-// TODO move this
-impl TryFrom<&Location> for Country {
-    type Error = anyhow::Error;
-
-    fn try_from(location: &Location) -> Result<Country, Self::Error> {
-        Country::try_new_from_code(&location.two_letter_iso_country_code).ok_or_else(|| {
-            let msg = format!(
-                "invalid country code {}",
-                location.two_letter_iso_country_code
-            );
-            warn!(msg);
-            anyhow!(msg)
-        })
     }
 }

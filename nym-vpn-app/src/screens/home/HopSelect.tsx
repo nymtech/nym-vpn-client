@@ -49,17 +49,18 @@ export default function HopSelect({
     }
   };
 
-  const nodeData = (
-    { type, node: selected }: SelectedNode,
-    gateway: Gateway | null,
-  ) => {
-    switch (type) {
+  const nodeData = (selected: SelectedNode, gateway: Gateway | null) => {
+    switch (selected.type) {
       case 'country':
-        return getLocationInfo(selected, gateway);
+        return getLocationInfo(selected.node, gateway);
       case 'region':
-        return getLocationInfo(selected.country, gateway, selected.name);
+        return getLocationInfo(
+          selected.node.country,
+          gateway,
+          selected.node.name,
+        );
       case 'gateway':
-        return getGatewayInfo(selected, gateway);
+        return getGatewayInfo(selected.node, gateway);
     }
   };
 

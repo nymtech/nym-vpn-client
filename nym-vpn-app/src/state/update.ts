@@ -50,7 +50,7 @@ export function updateTunnel(state: TTunnelState, dispatch: StateDispatch) {
   }
   if (isTunnelError(state)) {
     console.log('tunnel [error]', state.error);
-    if (state.error.key === 'inactive-subscription') {
+    if (state.error === 'inactive-subscription') {
       dispatch({
         type: 'set-account-state',
         state: 'no-subscription',
