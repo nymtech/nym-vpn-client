@@ -38,24 +38,28 @@ public struct PassphraseView: View {
         VStack(spacing: 0) {
             navbar
             Spacer()
-                .frame(height: 24)
+                .frame(height: appSettings.isSmallScreen ? 8 : 24)
                 VStack(spacing: 0) {
                     title
                     Spacer()
-                        .frame(height: 16)
+                        .frame(height: appSettings.isSmallScreen ? 8 : 16)
                     subtitle
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: appSettings.isSmallScreen ? 8 : 24)
                     passphraseSquare
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: appSettings.isSmallScreen ? 8 : 24)
                     passphraseActionsRow
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: appSettings.isSmallScreen ? 8 : 24)
                     exclaimerText
                     Spacer()
                         .frame(minHeight: 0)
                     savedConfirmationSection
+                    if appSettings.isSmallScreen {
+                        Spacer()
+                            .frame(height: 8)
+                    }
                 }
                 .frame(maxWidth: MagicNumbers.moreMaxWidth, maxHeight: .infinity)
                 .padding(.horizontal, 16)
@@ -121,7 +125,7 @@ private extension PassphraseView {
     }
 
     var subtitle: some View {
-        HStack {
+        HStack(spacing: 0) {
             Text("passphrase.masterPassphrase".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
@@ -177,7 +181,7 @@ private extension PassphraseView {
     var passphrase: some View {
         HStack(spacing: 0) {
             ForEach(0..<columns.count, id: \.self) { column in
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
                     ForEach(Array(columns[column].enumerated()), id: \.offset) { row, word in
                         let number = column * 8 + row + 1
                         HStack(spacing: 4) {
