@@ -89,6 +89,7 @@
     "copied-to-clipboard": "Proxy URL copied to clipboard",
     "snackbar-enabled": "SOCKS5 proxy enabled",
     "snackbar-disabled": "SOCKS5 proxy disabled",
+    "error-gateway-not-supported": "Gateway does not support SOCKS5",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
     "socks5-address-label": "SOCKS5 Listen Address",
     "socks5-address-placeholder": "127.0.0.1:1080",

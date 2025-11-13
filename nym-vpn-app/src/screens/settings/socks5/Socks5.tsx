@@ -72,14 +72,29 @@ function Socks5() {
           close: true,
         });
       }
-    } catch (error) {
-      push({
-        id: 'socks5-error',
-        message:
-          error instanceof Error ? error.message : t('app-proxy.error-unknown'),
-        duration: 5000,
-        close: true,
-      });
+    } catch (error: unknown) {
+      const explicitErrorMessage = (error as any)?.message ?? '';
+
+      // Explicit error we want to show, show specific error
+      if (explicitErrorMessage.includes('Gateway does not support')) {
+        push({
+          id: 'socks5-error',
+          message: t('app-proxy.error-gateway-not-supported'),
+          duration: 5000,
+          close: true,
+          type: 'error',
+        });
+      }
+      // Unknown error, show generic error
+      else {
+        push({
+          id: 'socks5-error',
+          message: t('app-proxy.error-unknown'),
+          duration: 5000,
+          close: true,
+          type: 'error',
+        });
+      }
     }
   };
 

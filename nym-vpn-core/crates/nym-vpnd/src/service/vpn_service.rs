@@ -213,6 +213,9 @@ pub struct NymVpnService {
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
 
+    // Gateway client
+    gateway_client: GatewayClient,
+
     // Gateway cache join handle
     gateway_cache_join_handle: JoinHandle<()>,
 
@@ -456,7 +459,7 @@ impl NymVpnService {
                     }
                 })?;
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
-            gateway_directory_client,
+            gateway_directory_client.clone(),
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
         );
@@ -542,6 +545,7 @@ impl NymVpnService {
             shutdown_token,
             services_shutdown_token,
             state_machine_shutdown_token,
+            gateway_client: gateway_directory_client,
             gateway_cache_handle,
             gateway_cache_join_handle,
             discovery_refresher_event_rx,
@@ -1076,38 +1080,23 @@ impl NymVpnService {
         tracing::info!("Enabling SOCKS5 client");
         tracing::info!("Using exit point: {:?}", exit_point);
 
+        // TODO: move this into the cache too
         // Get all exit gateways to validate SOCKS5 support
-        let exit_gateways: nym_gateway_directory::GatewayList = self
-            .gateway_cache_handle
-            .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+        let exit_gateways = self
+            .gateway_client
+            .lookup_gateways_from_nym_api(nym_gateway_directory::GatewayType::MixnetExit)
             .await
             .map_err(|e| {
                 Socks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
             })?;
 
-        // Filter for gateways that support SOCKS5
-        let socks5_gateways = gateway_directory::GatewayList::new(
-            Some(gateway_directory::GatewayType::MixnetExit),
-            exit_gateways
-                .into_iter()
-                .filter(|gateway| {
-                    gateway
-                        .last_probe
-                        .as_ref()
-                        .and_then(|probe| probe.outcome.as_exit.as_ref())
-                        .map(|exit_point| exit_point.can_connect)
-                        .unwrap_or(false)
-                })
-                .collect(),
-        );
-
         // Get exit gateway network requester address from exit point and validate SOCKS5 support
-        let requester_address = match &exit_point {
+        let nr_address = match &exit_point {
             // User has chosen a specific exit address (IPR address)
             ExitPoint::Address { address } => {
                 let identity = address.gateway();
                 // Look up the specific gateway
-                let gateway = socks5_gateways
+                let gateway = exit_gateways
                     .gateway_with_identity(&identity.inner())
                     .ok_or_else(|| {
                         Socks5Error::InvalidConfig(format!(
@@ -1116,17 +1105,16 @@ impl NymVpnService {
                         ))
                     })?;
 
-                // Verify gateway supports SOCKS5 (has network requester)
-                let ipr_address = gateway
-                    .ipr_address
+                let nr_address = gateway
+                    .nr_address
+                    .as_ref()
                     .ok_or(Socks5Error::GatewayNotSupported)?;
-
-                ipr_address.to_string()
+                nr_address.to_string()
             }
             // User has chosen a specific gateway identity
             ExitPoint::Gateway { identity } => {
                 // Look up the specific gateway
-                let gateway = socks5_gateways
+                let gateway = exit_gateways
                     .gateway_with_identity(&identity.inner())
                     .ok_or_else(|| {
                         Socks5Error::InvalidConfig(format!(
@@ -1135,12 +1123,13 @@ impl NymVpnService {
                         ))
                     })?;
 
-                // Verify gateway supports SOCKS5 (has network requester)
-                let ipr_address = gateway
-                    .ipr_address
-                    .ok_or(Socks5Error::GatewayNotSupported)?;
+                tracing::debug!("Gateway: {gateway:?}");
 
-                ipr_address.to_string()
+                let nr_address = gateway
+                    .nr_address
+                    .as_ref()
+                    .ok_or(Socks5Error::GatewayNotSupported)?;
+                nr_address.to_string()
             }
             // User has chosen a specific exit country, region, or random
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
@@ -1157,7 +1146,7 @@ impl NymVpnService {
                 // Try to find a high-performance gateway first
                 let selected_gateway = exit_point_dir
                     .lookup_gateway(
-                        &socks5_gateways,
+                        &exit_gateways,
                         Some(gateway_directory::ScoreValue::High),
                         residential_exit,
                     )
@@ -1169,7 +1158,7 @@ impl NymVpnService {
                                 Lowering performance filter to medium and trying again"
                             );
                             exit_point_dir.lookup_gateway(
-                                &socks5_gateways,
+                                &exit_gateways,
                                 Some(gateway_directory::ScoreValue::Medium),
                                 residential_exit,
                             )
@@ -1181,9 +1170,9 @@ impl NymVpnService {
                         Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {}", e))
                     })?;
 
-                // Verify gateway supports SOCKS5 (has network requester)
-                let ipr_address = selected_gateway
-                    .ipr_address
+                let nr_address = selected_gateway
+                    .nr_address
+                    .as_ref()
                     .ok_or(Socks5Error::GatewayNotSupported)?;
 
                 tracing::info!(
@@ -1194,15 +1183,11 @@ impl NymVpnService {
                         .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
                 );
 
-                // Return the network requester address
-                ipr_address.to_string()
+                nr_address.to_string()
             }
         };
 
-        tracing::info!(
-            "Using network requester address {} for SOCKS5",
-            requester_address
-        );
+        tracing::info!("Using network requester address {} for SOCKS5", nr_address);
 
         let request_timeout = socks5_request_timeout();
         let idle_timeout = socks5_idle_timeout();
@@ -1212,7 +1197,7 @@ impl NymVpnService {
                 self.data_dir.clone(),
                 socks5_settings.listen_address,
                 http_rpc_settings.listen_address,
-                requester_address,
+                nr_address,
                 request_timeout,
                 idle_timeout,
             )
