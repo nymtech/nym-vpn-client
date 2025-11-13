@@ -134,7 +134,6 @@ class NymBackendManager @Inject constructor(
 	override suspend fun startTunnel() {
 		runCatching {
 			emitBackendUiEvent(null)
-			backend.await().updateAccountState()
 			val tunnel = NymTunnel(
 				entryPoint = getEntryPoint(),
 				exitPoint = getExitPoint(),
@@ -277,6 +276,10 @@ class NymBackendManager @Inject constructor(
 	override suspend fun getMnemonic(): List<String> {
 		val mnemonic = backend.await().getStoredMnemonic()
 		return mnemonic.split(" ")
+	}
+
+	override suspend fun getAccountState(): AccountControllerState {
+		return backend.await().getAccountState()
 	}
 
 	private fun emitMnemonicStored(stored: Boolean) {
