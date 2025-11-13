@@ -611,8 +611,7 @@ impl VpndClient {
             })?;
 
         debug!("SOCKS5 status: {:?}", response);
-        
-        // Convert from lib::Socks5Status to crate::vpnd::socks5::Socks5Status
+
         Ok(response.into())
     }
 
