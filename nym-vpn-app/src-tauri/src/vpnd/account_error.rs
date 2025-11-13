@@ -61,8 +61,11 @@ impl From<lib::AccountCommandError> for BackendError {
 impl From<lib::AccountControllerErrorStateReason> for BackendError {
     fn from(error: lib::AccountControllerErrorStateReason) -> Self {
         match error {
-            lib::AccountControllerErrorStateReason::Storage { context } => {
-                BackendError::internal_with_detail("AC storage error", context)
+            lib::AccountControllerErrorStateReason::Storage { context, details } => {
+                BackendError::internal_with_detail(
+                    "AC storage error",
+                    format!("{} - {}", context, details),
+                )
             }
             lib::AccountControllerErrorStateReason::ApiFailure { context, details } => {
                 BackendError::internal_with_detail(
