@@ -613,17 +613,7 @@ impl VpndClient {
         debug!("SOCKS5 status: {:?}", response);
         
         // Convert from lib::Socks5Status to crate::vpnd::socks5::Socks5Status
-        Ok(Socks5Status {
-            state: response.state.into(),
-            socks5_settings: Some(crate::vpnd::socks5::Socks5Settings {
-                listen_address: response.socks5_settings.listen_address,
-            }),
-            http_rpc_settings: Some(crate::vpnd::socks5::HttpRpcSettings {
-                listen_address: response.http_rpc_settings.listen_address,
-            }),
-            error_message: response.error_message,
-            active_connections: response.active_connections,
-        })
+        Ok(response.into())
     }
 
     /// Disable sentry at daemon level

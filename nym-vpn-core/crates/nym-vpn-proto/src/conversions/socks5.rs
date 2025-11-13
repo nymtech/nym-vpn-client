@@ -64,3 +64,43 @@ impl From<proto::HttpRpcSettings> for HttpRpcSettings {
     }
 }
 
+// Reverse conversions: lib types -> proto types
+
+impl From<Socks5State> for proto::socks5_status::State {
+    fn from(value: Socks5State) -> Self {
+        match value {
+            Socks5State::Disabled => Self::Disabled,
+            Socks5State::Idle => Self::Idle,
+            Socks5State::Connected => Self::Connected,
+            Socks5State::Error => Self::Error,
+        }
+    }
+}
+
+impl From<Socks5Settings> for proto::Socks5Settings {
+    fn from(value: Socks5Settings) -> Self {
+        Self {
+            listen_address: value.listen_address,
+        }
+    }
+}
+
+impl From<HttpRpcSettings> for proto::HttpRpcSettings {
+    fn from(value: HttpRpcSettings) -> Self {
+        Self {
+            listen_address: value.listen_address,
+        }
+    }
+}
+
+impl From<Socks5Status> for proto::Socks5Status {
+    fn from(value: Socks5Status) -> Self {
+        Self {
+            state: proto::socks5_status::State::from(value.state) as i32,
+            socks5_settings: Some(proto::Socks5Settings::from(value.socks5_settings)),
+            http_rpc_settings: Some(proto::HttpRpcSettings::from(value.http_rpc_settings)),
+            error_message: value.error_message,
+            active_connections: value.active_connections,
+        }
+    }
+}
