@@ -355,6 +355,39 @@ jobs:
 
           echo "✅ Signed archive + .ipa exported"
 
+      - name: Generate what to test notes for iOS
+        if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          DATE_TIME="$(date '+%Y-%m-%d %H:%M:%S')"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          # Get ONLY the latest commit
+          LATEST_COMMIT="$(git log -1 --pretty=format:'%h, %ar, message: %s')"
+
+          # Build release notes
+          RELEASE_NOTES="Date: ${DATE_TIME}\nBranch: ${BRANCH_NAME}\nLatest commit:\n- ${LATEST_COMMIT}"
+
+          # Escape newlines for JSON
+          ESCAPED_NOTES=$(printf "%s" "$RELEASE_NOTES" | awk '{printf "%s\\n", $0}')
+          ESCAPED_NOTES="${ESCAPED_NOTES%\\n}"
+
+          # Build whats_new.json
+          {
+            printf '[\n'
+            printf '  {\n'
+            printf '    "language": "en-US",\n'
+            printf '    "locale": "en-US",\n'
+            printf '    "whats_new": "%s"\n' "$ESCAPED_NOTES"
+            printf '  }\n'
+            printf ']\n'
+          } > whats_new.json
+
+          echo "Generated whats_new.json:"
+          cat whats_new.json
+
       - name: Upload to TestFlight
         if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
         working-directory: nym-vpn-apple
@@ -366,9 +399,12 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight..."
-          app-store-connect publish
-            # --beta-group=
-            # --testflight // uncomment later on and add groups
+          app-store-connect publish \
+            --beta-build-localizations=@file:whats_new.json \
+            --beta-group='External QA' \
+            --beta-group='Nym Team External' \
+            --testflight
+            # --beta-group="World" \
             # --expire-build-submitted-for-review
 
           echo "✅ Upload completed successfully."
