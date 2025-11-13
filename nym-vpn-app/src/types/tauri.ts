@@ -12,6 +12,8 @@ export type Asn = { asn: string; name: string; type: AsnType };
 
 export type AsnType = 'other' | 'residential';
 
+export type BridgeAddress = { listenAddr: string; remoteAddr: string };
+
 export type Cli = {
   /**
    * Print build information
@@ -93,7 +95,7 @@ export type DownloadUpdateEvent =
  */
 export type ErrorKey =
   | 'internal'
-  | 'grpc'
+  | 'vpnd-client'
   | 'not-connected-to-daemon'
   | 'entry-gw-down'
   | 'exit-gw-down-ipv4'
@@ -118,8 +120,6 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
-  gatewayUpdateVersion: string | null;
-  flags: { [key in string]?: string };
 };
 
 export type Gateway = {
@@ -181,8 +181,8 @@ export type Location = {
 };
 
 export type MixnetData = {
-  nymAddress: Address | null;
-  exitIpr: Address | null;
+  nymAddress: Address;
+  exitIpr: Address;
   ipv4: string;
   ipv6: string | null;
   entryIp: string;
@@ -254,7 +254,9 @@ export type StartupError = {
 export type SystemMessage = {
   name: string;
   message: string;
-  properties: { [key in string]?: string };
+  display_from: bigint | null;
+  display_until: bigint | null;
+  properties: { [key in string]?: string } | null;
 };
 
 export type TAccountState =
@@ -267,6 +269,7 @@ export type TAccountState =
   | 'status-not-active'
   | 'no-subscription'
   | 'max-device-reached'
+  | 'requesting-zk-nyms'
   | { error: TBackendError };
 
 /**
@@ -302,7 +305,7 @@ export type ThemeMode = 'system' | 'light' | 'dark';
 export type Tunnel = {
   entryGwId: string;
   exitGwId: string;
-  connectedAt: bigint | null;
+  connectedAt: bigint;
   data: TunnelData;
 };
 
@@ -311,28 +314,28 @@ export type TunnelAction = 'error' | 'reconnect' | 'offline';
 export type TunnelData = MixnetData | WireguardData;
 
 export type TunnelError =
-  | { key: 'internal'; message: string | null }
-  | { key: 'set-firewall-policy'; message: string | null }
-  | { key: 'set-dns'; message: string | null }
-  | { key: 'set-routing'; message: string | null }
-  | { key: 'same-entry-and-exit-gw'; message: string | null }
-  | { key: 'performant-entry-gw-unavailable'; message: string | null }
-  | { key: 'performant-exit-gw-unavailable'; message: string | null }
-  | { key: 'invalid-entry-gw-id'; message: string | null }
-  | { key: 'invalid-exit-gw-id'; message: string | null }
-  | { key: 'invalid-entry-gw-country'; message: string | null }
-  | { key: 'invalid-exit-gw-country'; message: string | null }
-  | { key: 'max-devices-reached'; message: string | null }
-  | { key: 'bandwidth-exceeded'; message: string | null }
-  | { key: 'inactive-subscription'; message: string | null }
-  | { key: 'device-time-out-of-sync'; message: string | null }
-  | { key: 'ipv6-unavailable'; message: string | null }
-  | { key: 'tun-device'; message: string | null }
-  | { key: 'tunnel-provider'; message: string | null }
-  | { key: 'inactive-account'; message: string | null }
-  | { key: 'device-logged-out'; message: string | null }
-  | { key: 'credential-wasted-on-entry-gateway'; message: string | null }
-  | { key: 'credential-wasted-on-exit-gateway'; message: string | null };
+  | { internal: string }
+  | 'set-firewall-policy'
+  | 'set-dns'
+  | 'set-routing'
+  | 'same-entry-and-exit-gw'
+  | 'performant-entry-gw-unavailable'
+  | 'performant-exit-gw-unavailable'
+  | 'invalid-entry-gw-id'
+  | 'invalid-exit-gw-id'
+  | 'invalid-entry-gw-country'
+  | 'invalid-exit-gw-country'
+  | 'max-devices-reached'
+  | 'bandwidth-exceeded'
+  | 'inactive-subscription'
+  | 'device-time-out-of-sync'
+  | 'device-logged-out'
+  | 'ipv6-unavailable'
+  | 'tun-device'
+  | 'tunnel-provider'
+  | 'inactive-account'
+  | 'credential-wasted-on-entry-gateway'
+  | 'credential-wasted-on-exit-gateway';
 
 export type TunnelStateEvent = {
   state: TTunnelState;
@@ -383,4 +386,8 @@ export type WindowSize =
   | { type: 'Physical'; width: number; height: number }
   | { type: 'Logical'; width: number; height: number };
 
-export type WireguardData = { entry: WgNode; exit: WgNode };
+export type WireguardData = {
+  entryBridgeAddr: BridgeAddress | null;
+  entry: WgNode;
+  exit: WgNode;
+};

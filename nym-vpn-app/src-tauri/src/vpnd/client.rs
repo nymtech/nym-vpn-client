@@ -1,0 +1,629 @@
+pub use super::{
+    account_links::AccountLinks,
+    error::VpndError,
+    feature_flags::FeatureFlags,
+    node::Node,
+    system_message::SystemMessage,
+    vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
+};
+use super::{
+    events::MixnetEvent,
+    gateway::{Gateway, GatewayType},
+    tunnel::TunnelState,
+};
+
+use anyhow::Result;
+use lib::UserAgent;
+use nym_vpn_lib_types as lib;
+use nym_vpn_proto::rpc_client::RpcClient;
+use once_cell::sync::Lazy;
+use std::net::IpAddr;
+use std::{
+    env::consts::{ARCH, OS},
+    path::PathBuf,
+    sync::Mutex,
+};
+use tauri::{AppHandle, Manager, PackageInfo};
+use tokio_stream::StreamExt;
+use tracing::{debug, error, info, instrument, trace, warn};
+
+pub use crate::vpnd::network::NetworkCompatVersions;
+use crate::{
+    error::BackendError,
+    events::AppHandleEventEmitter,
+    state::SharedAppState,
+    vpnd::account::{AccountState, log_account_state},
+};
+
+// simple flag to save that "failed to connect to daemon"
+// warning has been logged once when vpnd is down
+static VPND_DOWN_LOGGED: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+
+#[derive(Debug, Clone)]
+pub struct VpndClient {
+    pkg_info: PackageInfo,
+    user_agent: UserAgent,
+}
+
+impl VpndClient {
+    #[instrument(skip_all)]
+    pub fn new(pkg: &PackageInfo) -> Self {
+        VpndClient {
+            pkg_info: pkg.clone(),
+            user_agent: VpndClient::user_agent(pkg, None),
+        }
+    }
+
+    /// Create a user agent
+    pub fn user_agent(pkg: &PackageInfo, daemon_info: Option<&VpndInfo>) -> UserAgent {
+        let app_git_commit = crate::build_info()
+            .version_control
+            .as_ref()
+            .and_then(|vc| vc.git())
+            .map(|g| g.commit_short_id.clone())
+            .unwrap_or_default();
+
+        UserAgent {
+            application: pkg.name.clone(),
+            version: daemon_info.map_or_else(
+                || pkg.version.to_string(),
+                |info| format!("{} ({})", pkg.version, info.version),
+            ),
+            platform: format!("{}; {}; {}", OS, tauri_plugin_os::version(), ARCH),
+            git_commit: daemon_info.map_or_else(
+                || app_git_commit.clone(),
+                |info| format!("{} ({})", app_git_commit, info.git_commit),
+            ),
+        }
+    }
+
+    /// Get the rpc client
+    #[instrument(skip_all)]
+    pub async fn vpnd(&self) -> Result<RpcClient, VpndError> {
+        let client = RpcClient::new().await.map_err(|e| {
+            let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
+            if !*logged {
+                warn!("failed to connect to the daemon: {}", e);
+                *logged = true;
+            } else {
+                trace!("failed to connect to the daemon: {}", e);
+            }
+            VpndError::FailedToConnectIpc(e.into())
+        })?;
+        Ok(client)
+    }
+
+    /// Get daemon info
+    #[instrument(skip_all)]
+    pub async fn vpnd_info(&mut self) -> Result<VpndInfo, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let info: VpndInfo = vpnd
+            .get_info()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?
+            .into();
+
+        info!("vpnd UP");
+        info!(
+            "vpnd version: {}, network env: {}",
+            info.version, info.network
+        );
+        self.user_agent = VpndClient::user_agent(&self.pkg_info, Some(&info));
+        info!("user agent: {:?}", self.user_agent);
+        Ok(info)
+    }
+
+    /// Get daemon log path
+    #[instrument(skip_all)]
+    pub async fn vpnd_log_path(&self) -> Result<PathBuf, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let log_path = vpnd
+            .get_log_path()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("vpnd log path: {:?}", log_path);
+        Ok(log_path.dir)
+    }
+
+    /// Get the current tunnel state and update the app state
+    #[instrument(skip_all)]
+    pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let tun_state = vpnd.get_tunnel_state().await?;
+        let tunnel = TunnelState::from_lib(tun_state);
+        info!("tunnel state [{}]", tunnel);
+        if let TunnelState::Error(e) = &tunnel {
+            warn!("tunnel error: {:?}", e);
+        }
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_tunnel(app, tunnel.clone()).await?;
+
+        Ok(tunnel)
+    }
+
+    /// Watch tunnel state and account state updates
+    #[instrument(skip_all)]
+    pub async fn watch_events(&self, app: &AppHandle) -> Result<()> {
+        let mut vpnd = self.vpnd().await?;
+
+        let mut stream = vpnd.listen_to_events().await.inspect_err(|e| {
+            error!("listen to events failed: {}", e);
+        })?;
+
+        while let Some(event) = stream.next().await {
+            match event {
+                Ok(event) => {
+                    trace!("received tunnel event: {:?}", event);
+                    self.handle_event(app, event).await.ok();
+                }
+                Err(e) => warn!("event stream error: {:?}", e),
+            }
+        }
+
+        let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
+        if !*logged {
+            warn!("vpnd DOWN: stream closed");
+            *logged = true;
+        }
+
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_event(&self, app: &AppHandle, event: lib::TunnelEvent) -> Result<()> {
+        match event {
+            lib::TunnelEvent::NewState(state) => {
+                debug!("tunnel state event {:?}", state);
+                VpndClient::handle_tunnel_update(app, state).await.ok();
+            }
+            lib::TunnelEvent::MixnetState(e) => {
+                let event = MixnetEvent::from_lib(e);
+                trace!("mixnet event [{}]", event.as_ref());
+                app.emit_mixnet_event(event);
+            }
+            lib::TunnelEvent::AccountState(account_state) => {
+                VpndClient::handle_account_update(app, account_state)
+                    .await
+                    .ok();
+            }
+            _ => debug!("ignoring tunnel event: {event:?}"),
+        }
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_tunnel_update(app: &AppHandle, tun_state: lib::TunnelState) -> Result<()> {
+        let tunnel = TunnelState::from_lib(tun_state);
+        info!("tunnel state [{}]", tunnel);
+        if let TunnelState::Error(e) = &tunnel {
+            warn!("tunnel error: {:?}", e);
+        }
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_tunnel(app, tunnel).await?;
+
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    async fn handle_account_update(
+        app: &AppHandle,
+        update: lib::AccountControllerState,
+    ) -> Result<()> {
+        log_account_state(&update);
+        let account_state = AccountState::from_lib(update);
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_account_state(app, account_state).await?;
+        Ok(())
+    }
+
+    /// Connect to the VPN
+    #[instrument(skip_all)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn vpn_connect(
+        &self,
+        entry_node: Node,
+        exit_node: Node,
+        two_hop_mod: bool,
+        credentials_mode: bool,
+        netstack: bool,
+        dns: Option<String>,
+        disable_ipv6: bool,
+        enable_bridges: bool,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let dns = dns
+            .map(|addr| {
+                addr.parse::<IpAddr>()
+                    .inspect_err(|e| warn!("failed to parse dns address '{addr}': {e}"))
+            })
+            .transpose()
+            .unwrap_or(None);
+
+        let args = lib::ConnectArgs {
+            entry: Some(entry_node.try_into()?),
+            exit: Some(exit_node.try_into()?),
+            options: lib::ConnectOptions {
+                enable_two_hop: two_hop_mod,
+                enable_bridges,
+                netstack,
+                disable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: credentials_mode,
+                dns,
+                user_agent: Some(self.user_agent.clone()),
+                disable_ipv6,
+            },
+        };
+
+        vpnd.connect_tunnel(args)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        Ok(())
+    }
+
+    /// Disconnect from the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.disconnect_tunnel()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    /// Store an account
+    #[instrument(skip_all)]
+    pub async fn store_account(&self, mnemonic: String) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response = vpnd
+            .store_account(lib::StoreAccountRequest::Vpn { mnemonic })
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("response: {:?}", response);
+        if let Some(error) = response.error.map(BackendError::from) {
+            return Err(VpndError::Response(error));
+        }
+        Ok(())
+    }
+
+    /// Removes everything related to the account, including the device identity,
+    /// credential storage, mixnet keys, gateway registrations
+    #[instrument(skip_all)]
+    pub async fn forget_account(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response = vpnd
+            .forget_account()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("response: {:?}", response);
+        if let Some(error) = response.error.map(BackendError::from) {
+            return Err(VpndError::Response(error));
+        }
+        Ok(())
+    }
+
+    /// Check if an account is stored
+    #[instrument(skip_all)]
+    pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let is_stored = vpnd
+            .is_account_stored()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("account stored: {}", is_stored);
+        Ok(is_stored)
+    }
+
+    /// Get the account identity \
+    /// public key derived from the mnemonic
+    #[instrument(skip_all)]
+    pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let id = vpnd
+            .get_account_identity()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("account id: {:?}", id);
+        Ok(id)
+    }
+
+    /// Get the device identity
+    #[instrument(skip_all)]
+    pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let id = vpnd
+            .get_device_identity()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("device id: {:?}", id);
+        Ok(id)
+    }
+
+    /// Get the account links
+    #[instrument(skip_all)]
+    pub async fn account_links(&self, _locale: &str) -> Result<AccountLinks, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        // TODO use the user local once website is i18n ready
+        let locale = "en".to_string();
+
+        let links = vpnd
+            .get_account_links(locale)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("links: {:?}", links);
+        Ok(links.into())
+    }
+
+    /// Get the list of available gateways
+    #[instrument(skip(self))]
+    pub async fn gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let options = lib::ListGatewaysOptions {
+            gw_type: gw_type.into(),
+            user_agent: Some(self.user_agent.clone()),
+        };
+        let gateways = vpnd
+            .list_gateways(options)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("vpnd gateways count: {}", gateways.len());
+
+        let gateways: Vec<Gateway> = gateways
+            .into_iter()
+            .filter_map(|gateway| {
+                Gateway::from_lib(gateway, gw_type)
+                    .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
+                    .ok()
+            })
+            .collect();
+        debug!("parsed gateway #{}", gateways.len());
+
+        Ok(gateways)
+    }
+
+    #[instrument(skip(self, app))]
+    pub async fn update_vpnd_state(
+        &mut self,
+        info: VpndInfo,
+        app: &AppHandle,
+    ) -> Result<(), VpndError> {
+        let net_compat = self.network_compat().await.ok().flatten();
+
+        let app_state = app.state::<SharedAppState>();
+        let mut state = app_state.lock().await;
+        state.vpnd_info = Some(info.clone());
+        state.set_vpnd_status(&info);
+        state.set_network_compat(net_compat, &self.pkg_info.version, &info);
+        app.emit_vpnd_status(state.vpnd_status.clone());
+        Ok(())
+    }
+
+    /// Set the network environment of the daemon.
+    /// ⚠ This requires to restart the daemon to take effect.
+    #[instrument(skip(self))]
+    pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_network(network.to_owned())
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    /// Get messages affecting the whole system, fetched from nym-vpn-api
+    #[instrument(skip_all)]
+    pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let messages = vpnd
+            .get_system_messages()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("system messages: {:?}", messages);
+        Ok(messages.into_iter().map(Into::into).collect())
+    }
+
+    /// Get the feature flags, fetched from nym-vpn-api
+    #[instrument(skip_all)]
+    pub async fn feature_flags(&self) -> Result<FeatureFlags, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let flags = vpnd
+            .get_feature_flags()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("feature flags: {:?}", flags);
+        Ok(flags.into())
+    }
+
+    /// Get the network compatibility versions of supported vpn-core and tauri client
+    #[instrument(skip_all)]
+    pub async fn network_compat(&self) -> Result<Option<NetworkCompatVersions>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let net_compat = vpnd
+            .get_network_compatibility()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+        debug!("network compat: {:?}", net_compat);
+        Ok(net_compat.map(NetworkCompatVersions::from))
+    }
+
+    /// Is sentry enabled at daemon level
+    #[instrument(skip_all)]
+    pub async fn sentry_enabled(&self) -> Result<bool, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let enabled = vpnd
+            .is_sentry_enabled()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("sentry enabled: {}", enabled);
+        if enabled {
+            info!("⚠ vpnd sentry monitoring is enabled ⚠");
+        }
+        Ok(enabled)
+    }
+
+    /// Enable sentry at daemon level
+    #[instrument(skip_all)]
+    pub async fn enable_sentry(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.enable_sentry()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("enabled vpnd sentry");
+        info!("restart vpnd (service) required for the change to take effect");
+        Ok(())
+    }
+
+    /// Disable sentry at daemon level
+    #[instrument(skip_all)]
+    pub async fn disable_sentry(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.disable_sentry()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("disabled vpnd sentry");
+        info!("restart vpnd (service) recommended");
+        Ok(())
+    }
+
+    /// Is network statistics collection enabled at daemon level
+    #[instrument(skip_all)]
+    pub async fn netstats_enabled(&self) -> Result<bool, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let enabled = vpnd
+            .is_collect_network_stats_enabled()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("network statistics collection enabled: {}", enabled);
+        if enabled {
+            info!("⚠ vpnd network statistics collection enabled ⚠");
+        }
+        Ok(enabled)
+    }
+
+    /// Enable network statistics collection at daemon level
+    #[instrument(skip_all)]
+    pub async fn enable_netstats(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.enable_collect_network_stats()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("enabled vpnd network statistics collection");
+        info!("restart vpnd (service) required for the change to take effect");
+        Ok(())
+    }
+
+    /// Disable network statistics collection at daemon level
+    #[instrument(skip_all)]
+    pub async fn disable_netstats(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.disable_collect_network_stats()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        debug!("disabled vpnd network statistics collection");
+        info!("restart vpnd (service) required for the change to take effect");
+        Ok(())
+    }
+
+    pub fn reset_log_flag() {
+        let mut logged = VPND_DOWN_LOGGED.lock().unwrap();
+        *logged = false;
+    }
+}

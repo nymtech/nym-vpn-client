@@ -65,7 +65,7 @@ git clone https://github.com/nymtech/nym-vpn-client
 cd nym-vpn-client/nym-vpn-core
 cargo ndk -t arm64-v8a build -p nym-vpn-lib --release
 make generate-uniffi-android
-cp crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt ../nym-vpn-android/core/src/main/java/net/nymtech/vpn/nym_vpn_lib 
+cp crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt ../nym-vpn-android/core/src/main/java/net/nymtech/vpn/nym_vpn_lib
 ```
 
 ### Build
@@ -77,11 +77,13 @@ cd nym-vpn-client/nym-vpn-android
 ```
 
 To create a build with native core build if not already present:
+
 ```sh
 ./gradlew assembleFdroidDebug
 ```
 
 To create a debug build with fresh native core build (useful for when there are core changes):
+
 ```sh
 ./gradlew clean
 ./gradlew assembleFdroidDebug

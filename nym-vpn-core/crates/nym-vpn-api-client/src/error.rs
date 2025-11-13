@@ -126,7 +126,7 @@ pub enum VpnApiClientError {
     #[error("failed to resolve gateway hostname: {hostname}")]
     FailedToDnsResolveGateway {
         hostname: String,
-        source: nym_http_api_client::HickoryDnsError,
+        source: nym_http_api_client::ResolveError,
     },
 
     #[error("resolved hostname {0} but no IP address found")]

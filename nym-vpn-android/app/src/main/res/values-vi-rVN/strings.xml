@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">Cài đặt</string>
 	<string name="connected">Đã kết nối</string>
 	<string name="disconnected">Đã ngắt kết nối</string>
@@ -155,10 +154,10 @@
 	<!-- Common -->
 	<string name="button_done">Hoàn thành</string>
 	<string name="stream_display">Hiển thị trực tuyến</string>
-	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
-	<string name="streaming_server_banner_action">Check new\nexit servers</string>
-	<string name="quic_gatway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
-	<string name="here">here</string>
+	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
+	<string name="streaming_server_banner_action">Kiểm tra máy chủ thoát\nmới</string>
+	<string name="quic_gatway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
+	<string name="here">tại đây</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Không thể kết nối với cùng một node vào và thoát. Vui lòng thay đổi vị trí node vào hoặc node thoát và kết nối lại.</string>
 	<string name="unexpected_error">Đã xảy ra lỗi không mong muốn:</string>
@@ -230,10 +229,10 @@
 	<string name="select_plan_title">Chọn mức độ\nbảo vệ của bạn 🛡️</string>
 	<string name="select_plan_descr">Chọn một gói ngay bây giờ để \nđược bảo vệ \n\nKhoản thanh toán sắp tới của bạn không thể bị liên kết \nvới hoạt động duyệt web trong tương lai của bạn</string>
 	<string name="select_plan_button">Chọn gói NymVPN</string>
-	<string name="select_plan_modal_title">Choose your NymVPN plan</string>
-	<string name="select_plan_modal_free_trial">Free trial: 1 week</string>
-	<string name="select_plan_modal_free_trial_starts_today">Starts: today</string>
-	<string name="select_plan_modal_free_trial_starts">Starts: %1$s</string>
+	<string name="select_plan_modal_title">Chọn gói NymVPN của bạn</string>
+	<string name="select_plan_modal_free_trial">Dùng thử miễn phí: 1 tuần</string>
+	<string name="select_plan_modal_free_trial_starts_today">Bắt đầu: hôm nay</string>
+	<string name="select_plan_modal_free_trial_starts">Bắt đầu: %1$s</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Thông tin máy chủ</string>
 	<string name="details_select_server_button">Chọn máy chủ</string>
@@ -269,7 +268,7 @@
 	<string name="censorship_description">Bật các tính năng này nếu bạn gặp sự cố kết nối hoặc NymVPN bị chặn tại vị trí của bạn.</string>
 	<string name="censorship_quic_title">Kết nối nâng cao (QUIC)</string>
 	<string name="censorship_quic_changes">Thay đổi sẽ có hiệu lực sau khi kết nối lại</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">Cải thiện độ ổn định của chế độ Nhanh trong các mạng hạn chế bằng cách gói lưu lượng WireGuard trong QUIC (HTTP/3) để hiển thị như trình duyệt web thông thường.\n\nLưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích với QUIC.</string>
 	<string name="censorship_quic_link_text">Cách QUIC cải thiện kết nối</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Kết nối API Ẩn danh</string>
@@ -277,14 +276,14 @@
 	<string name="censorship_stealth_link_text">Cách chế độ kết nối API Ẩn danh hoạt động</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
-	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
-	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
-	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
+	<string name="quick_info_modal_title">Bật kết nối nâng cao (QUIC)?</string>
+	<string name="quick_info_modal_desc">Thao tác này sẽ kết nối lại bạn với giao thức QUIC khả dụng. Bạn sẽ giữ nguyên các cổng hiện tại nếu chúng hỗ trợ QUIC, hoặc chọn các cổng tương thích nếu cần.\n\nDữ liệu của bạn sẽ được bảo vệ trong quá trình kết nối lại.</string>
+	<string name="quic_primary_btn_text">Kết nối lại với QUIC ngay bây giờ</string>
+	<string name="quic_text_btn_text">Áp dụng QUIC cho kết nối tiếp theo</string>
+	<string name="quick_info_modal_title_non_quic">Tắt kết nối nâng cao (QUIC)?</string>
+	<string name="quick_info_modal_desc_non_quic">Thao tác này sẽ kết nối lại mà không cần bật giao thức QUIC. Bạn sẽ giữ nguyên các cổng kết nối hiện tại.\n\nDữ liệu của bạn sẽ được bảo vệ trong quá trình kết nối lại.</string>
+	<string name="quic_primary_btn_text_non_quic">Kết nối lại ngay bây giờ mà không dùng QUIC</string>
+	<string name="quic_text_btn_text_non_quic">Tắt QUIC trong kết nối tiếp theo</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Công nghệ mixnet ẩn danh</string>
 	<string name="account_welcome_countries">Hơn 50 quốc gia trên toàn thế giới</string>
@@ -293,9 +292,9 @@
 	<string name="account_welcome_button">Bắt đầu bảo vệ quyền riêng tư của tôi</string>
 	<string name="account_welcome_have_account">Bạn đã có tài khoản?</string>
 	<!-- Existing subscription -->
-	<string name="account_subscription_title">You’re already subscribed!</string>
-	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
-	<string name="account_subscription_button">Log in with Nym passphrase</string>
+	<string name="account_subscription_title">Bạn đã đăng ký!</string>
+	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
+	<string name="account_subscription_button">Đăng nhập bằng cụm từ mật khẩu Nym</string>
 	<!-- Account Generating screen -->
 	<string name="account_generating_creating">Đang tạo danh tính ẩn danh của bạn…</string>
 	<string name="account_generating_establishing">Đang thiết lập thông tin xác thực mạng ẩn danh</string>
@@ -315,14 +314,17 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Cụm mật khẩu tài khoản của bạn</string>
 	<string name="passphrase_description">🔒Cụm mật khẩu chính của tài khoản bạn: 24 từ giúp bạn truy cập tài khoản từ mọi thiết bị.</string>
+	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Hiển thị cụm từ mật khẩu của tôi</string>
 	<string name="passphrase_copy">Sao chép cụm từ mật khẩu</string>
-	<string name="passphrase_save">Save to password manager</string>
+	<string name="passphrase_save">Lưu vào trình quản lý mật khẩu</string>
+	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi.</string>
 	<string name="passphrase_never">Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym.</string>
 	<string name="passphrase_saved">Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng</string>
 	<string name="passphrase_info_title">Cụm từ mật khẩu là gì</string>
-	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
+	<string name="passphrase_info_description">Đây là một tập hợp 24 từ duy nhất, được tạo trên thiết bị của bạn, hoạt động như thông tin đăng nhập an toàn. Chỉ bạn mới có quyền truy cập vào nó—không có sao lưu, đặt lại hay khôi phục.\n\n ⚠️ Hãy giữ an toàn: cụm từ mật khẩu này là cách duy nhất để truy cập tài khoản của bạn.</string>
 	<string name="passphrase_info_privacy_removed">Để bảo vệ quyền riêng tư của bạn, chúng tôi đã loại bỏ:</string>
 	<string name="passphrase_info_stored_accounts">Tài khoản lưu trữ tập trung</string>
 	<string name="passphrase_info_personal_logins">Đăng nhập dựa trên dữ liệu cá nhân</string>
@@ -339,17 +341,17 @@
 	<string name="account_info_id_description">Sử dụng ID này cho các yêu cầu hỗ trợ</string>
 	<string name="account_info_id_important">⚠️ Quan trọng: Hỗ trợ Nym sẽ không bao giờ yêu cầu cụm từ mật khẩu 24 từ của bạn. Đừng bao giờ chia sẻ nó với bất kỳ ai.</string>
 	<!-- Logs screen -->
-	<string name="logs_share">Share</string>
-	<string name="logs_download">Download</string>
-	<string name="logs_delete">Delete</string>
-	<string name="logs_delete_title">Delete NymVPN logs?</string>
-	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
-	<string name="logs_delete_button">Delete logs</string>
-	<string name="logs_share_title">Share NymVPN logs?</string>
-	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
-	<string name="logs_share_button">Share anyway</string>
-	<string name="logs_download_title">Save NymVPN logs as file?</string>
-	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
-	<string name="logs_download_button">Save as file anyway</string>
+	<string name="logs_share">Chia sẻ</string>
+	<string name="logs_download">Tải xuống</string>
+	<string name="logs_delete">Xóa</string>
+	<string name="logs_delete_title">Xóa nhật ký NymVPN?</string>
+	<string name="logs_delete_description">Xóa nhật ký sẽ cải thiện quyền riêng tư nhưng sẽ cản trở quá trình chẩn đoán các sự cố kết nối của bạn của Bộ phận hỗ trợ.</string>
+	<string name="logs_delete_button">Xóa nhật ký</string>
+	<string name="logs_share_title">Chia sẻ nhật ký NymVPN?</string>
+	<string name="logs_share_description">Người nhận và bất kỳ ai bạn chia sẻ quyền đều có thể xem được tệp nhật ký.</string>
+	<string name="logs_share_button">Vẫn chia sẻ</string>
+	<string name="logs_download_title">Lưu nhật ký NymVPN dưới dạng tệp?</string>
+	<string name="logs_download_description">Các ứng dụng khác hoặc bất kỳ ai có quyền truy cập vào bộ nhớ trên thiết bị của bạn đều có thể truy cập vào nhật ký đã lưu.</string>
+	<string name="logs_download_button">Vẫn lưu dưới dạng tệp</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 </resources>

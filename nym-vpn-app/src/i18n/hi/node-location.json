@@ -8,11 +8,11 @@
   "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
     "streaming": {
-      "title": "Streaming",
+      "title": "Streaming Services",
       "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
     },
     "location": {
-      "title": "Location accuracy",
+      "title": "स्थिति की सटीकता",
       "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
     "title": "सर्वर स्थानों की जानकारी"
@@ -24,47 +24,47 @@
   "node-details": {
     "id-label": "आइडेंटिटी की:",
     "data": {
-      "advanced-privacy": "Advanced privacy",
-      "with-mixnet": "With mixnet (5-hop)",
-      "ip-type": "Streaming & content",
-      "ip-residential": "Residential IP",
-      "ip-datacenter": "Datacenter IP",
-      "anti-censorship": "Anti-censorship",
-      "quic-protocol": "QUIC protocol",
-      "standard-protocol": "Standard protocol",
-      "overall-performance": "Overall performance",
-      "server-load": "Server load",
-      "speed": "Speed",
-      "uptime": "Uptime",
-      "exit-ipv4": "Exit IPv4",
-      "exit-ipv6": "Exit IPv6",
+      "advanced-privacy": "उन्नत गोपनीयता",
+      "with-mixnet": "मिक्सनेट (5-हॉप) के साथ",
+      "ip-type": "स्ट्रीमिंग और सामग्री",
+      "ip-residential": "आवासीय IP",
+      "ip-datacenter": "डेटा सेंटर आईपी",
+      "anti-censorship": "सेन्सरशिप के विरोध में",
+      "quic-protocol": "QUIC प्रोटोकॉल",
+      "standard-protocol": "मानक प्रोटोकॉल",
+      "overall-performance": "कुल प्रदर्शन",
+      "server-load": "सर्वर लोड",
+      "speed": "गति",
+      "uptime": "अपटाइम",
+      "exit-ipv4": "IPv4 निकास ",
+      "exit-ipv6": "IPv6 निकास ",
       "asn": "ASN",
-      "asn-name": "ASN name",
-      "build-version": "Nym build version",
-      "identity-key": "Identity key:"
+      "asn-name": "ASN नाम",
+      "build-version": "Nym बिल्ड संस्करण",
+      "identity-key": "आइडेंटिटी की:"
     },
     "perf-score": {
-      "high": "Good",
-      "medium": "Mid",
-      "low": "Low",
-      "offline": "Offline"
+      "high": "ठीक",
+      "medium": "मध्‍यम",
+      "low": "Kam",
+      "offline": "ऑफ़लाइन"
     },
     "server-load-score": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low",
-      "offline": "Offline"
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "Kam",
+      "offline": "ऑफ़लाइन"
     },
     "notes": {
       "anti-censorship": "Enable “QUIC protocol” in Anti-censorship Settings to use this feature",
-      "performance_with_time": "Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update {{relativeTime}}.",
-      "performance": "Performance score calculated from server load and uptime. Uptime as last 24-hours average."
+      "performance_with_time": "प्रदर्शन स्कोर सर्वर लोड और अपटाइम से गणना किया गया है। अपटाइम पिछले २४ घंटों के औसत के रूप में। अंतिम अपडेट {{relativeTime}}।",
+      "performance": "प्रदर्शन स्कोर सर्वर लोड और अपटाइम से गणना किया गया है। अपटाइम पिछले २४ घंटों के औसत के रूप में। अंतिम अपडेट ।"
     },
     "links": {
-      "missing-info": "Why is there missing or incorrect info",
+      "missing-info": "जानकारी गायब या गलत क्यों है",
       "explorer": "More details in the Nym <networkExplorerLink />"
     },
-    "select-button": "Select server"
+    "select-button": "सर्वर चुनें"
   },
   "search-other-nodes": "Other search results"
 }

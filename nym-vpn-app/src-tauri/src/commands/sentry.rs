@@ -3,14 +3,14 @@ use tauri::State;
 use tracing::{debug, info, instrument};
 
 use crate::error::BackendError;
-use crate::grpc::client::GrpcClient;
 use crate::state::{SharedAppConfig, SharedAppState};
+use crate::vpnd::client::VpndClient;
 
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn enable_sentry(
     app_config: State<'_, SharedAppConfig>,
-    grpc: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
     let mut config_guard = app_config.lock().await;
     let mut config = config_guard.read()?;
@@ -20,7 +20,7 @@ pub async fn enable_sentry(
     info!("sentry monitoring enabled, app restart required");
 
     info!("enabling vpnd sentry monitoring");
-    grpc.enable_sentry().await?;
+    vpnd.enable_sentry().await?;
 
     Ok(())
 }
@@ -30,7 +30,7 @@ pub async fn enable_sentry(
 pub async fn disable_sentry(
     app_config: State<'_, SharedAppConfig>,
     app_state: State<'_, SharedAppState>,
-    grpc: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<(), BackendError> {
     let mut config_guard = app_config.lock().await;
     let mut config = config_guard.read()?;
@@ -48,7 +48,7 @@ pub async fn disable_sentry(
     info!("sentry monitoring disabled ⚠ app restart required ⚠");
 
     info!("disabling vpnd sentry monitoring");
-    grpc.disable_sentry().await?;
+    vpnd.disable_sentry().await?;
     Ok(())
 }
 

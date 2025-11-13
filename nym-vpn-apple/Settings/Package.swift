@@ -30,6 +30,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "BiometricAuthenticator", package: "Services"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),

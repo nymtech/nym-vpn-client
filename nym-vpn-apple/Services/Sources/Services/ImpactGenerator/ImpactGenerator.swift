@@ -1,8 +1,9 @@
 #if os(iOS)
 import UIKit
 #endif
+import SwiftUI
 
-@MainActor public final class ImpactGenerator {
+@MainActor public final class ImpactGenerator: ObservableObject {
 #if os(iOS)
     private let mediumFeedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
     private let softFeedbackGenerator = UIImpactFeedbackGenerator(style: .soft)

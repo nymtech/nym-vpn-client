@@ -1,0 +1,7 @@
+What's new:
+- Improved API performance
+- Added basic application shortcuts
+- UI enhancements
+- Fixed credential expiry check
+- Fixed connection UI sync bug
+- Improved quick tile sync

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">सेटिंग्स</string>
 	<string name="connected">कनेक्शन सफल हुआ</string>
 	<string name="disconnected">डिस्कनेक्टेड</string>
@@ -60,15 +59,15 @@
 	<string name="language">भाषा</string>
 	<string name="gateway_modal_description">हम IP पतों के आधार पर सर्वर स्थानों का अनुमान लगाते हैं, लेकिन वास्तविक स्थानों में थोड़ा बदलाव हो सकता है।</string>
 	<string name="gateway_locations_title">सर्वर स्थानों की जानकारी</string>
-	<string name="exit_gateway_locations_title">Choosing exit locations</string>
-	<string name="exit_gateway_locations_sub_item_1">Streaming</string>
-	<string name="exit_gateway_locations_sub_item_1_desc_link_text">Residential IP servers optimized</string>
-	<string name="exit_gateway_locations_sub_item_1_desc">for streaming and content access. May experience slower speeds due to higher demand and hardware limitations.</string>
-	<string name="exit_gateway_locations_sub_item_2">Location accuracy</string>
-	<string name="exit_gateway_locations_sub_item_2_desc">Displayed locations are</string>
-	<string name="exit_gateway_locations_sub_item_2_desc_link_text">determined from IP addresses</string>
-	<string name="exit_gateway_locations_sub_item_2_desc_after_link">and may not reflect exact physical locations.</string>
-	<string name="ok">OK</string>
+	<string name="exit_gateway_locations_title">सर्वर स्थानों की जानकारी</string>
+	<string name="exit_gateway_locations_sub_item_1">स्ट्रीमिंग</string>
+	<string name="exit_gateway_locations_sub_item_1_desc_link_text">आवासीय IP सर्वर को तेज़ बनाया गया है</string>
+	<string name="exit_gateway_locations_sub_item_1_desc">स्ट्रीमिंग और कंटेंट एक्सेस के लिए। ज़्यादा मांग और हार्डवेयर सीमाओं के कारण स्पीड थोड़ी कम हो सकती है।</string>
+	<string name="exit_gateway_locations_sub_item_2">स्थिति की सटीकता</string>
+	<string name="exit_gateway_locations_sub_item_2_desc">दिखाई गई लोकेशन हैं</string>
+	<string name="exit_gateway_locations_sub_item_2_desc_link_text">IP एड्रेस के आधार पर तय की गई हैं</string>
+	<string name="exit_gateway_locations_sub_item_2_desc_after_link">और ये वास्तविक स्थानों को पूरी तरह नहीं दिखा सकतीं।</string>
+	<string name="ok">ठीक है</string>
 	<string name="vpn_connection">VPN कनेक्शन</string>
 	<string name="vpn_permission_message">VPN कनेक्शन अनुरोध को मान्यता देने के लिए पुनः कनेक्ट करने का प्रयास करें।</string>
 	<string name="try_reconnecting">फिर से कनेक्ट करने का प्रयास करें</string>
@@ -153,12 +152,12 @@
 	<string name="get_help">मदद् लें</string>
 	<string name="join_telegram">Telegram पर हमसे जुड़ें</string>
 	<!-- Common -->
-	<string name="button_done">Done</string>
-	<string name="stream_display">Stream display</string>
-	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
+	<string name="button_done">पुर्ण हुआ</string>
+	<string name="stream_display">स्ट्रीम डिस्प्ले</string>
+	<string name="streaming_server_banner_title">नया: स्ट्रीमिंग के लिए तेज़ सर्वर पाएं (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
-	<string name="quic_gatway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
-	<string name="here">here</string>
+	<string name="quic_gatway_filter_info_msg">सिर्फ फ़ास्ट मोड लोकेशन और QUIC प्रोटोकॉल सपोर्ट करने वाले सर्वर दिखाए जा रहे हैं। सभी सर्वर देखने के लिए QUIC बंद करें।</string>
+	<string name="here">यहाँ</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">एक ही प्रवेश और निकासी नोड से कनेक्ट नहीं कर सकते। कृपया या तो प्रवेश या निकासी नोड स्थान बदलें।</string>
 	<string name="unexpected_error">एक अप्रत्याशित त्रुटि हुई:</string>
@@ -185,15 +184,15 @@
 	<string name="error_invalid_exit_gateway_identity">निकास सर्वर ऑफ़लाइन है। कृपया कोई अन्य चुनें और पुनः कनेक्ट करें।</string>
 	<!-- Main Screen -->
 	<string name="main_get_started_button">शुरू करें</string>
-	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Setting up your account (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Updating server list (3/6)</string>
-	<string name="connection_state_selecting_gateways">Choosing best servers (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
+	<string name="connection_state_resolving_addresses">API पतों का समाधान कर रहा है…</string>
+	<string name="connection_state_awaiting_readiness">खाते की तैयारी की प्रतीक्षा हो रही है…</string>
+	<string name="connection_state_refreshing_gateways">गेटवे लिस्ट को ताज़ा किया जा रहा है…</string>
+	<string name="connection_state_selecting_gateways">गेटवे का चयन हो रहा हैं…</string>
+	<string name="connection_state_connecting_mixnet_client">Registering with gateways</string>
+	<string name="connection_state_connecting_tunnel">VPN टनल से जुड़ रहा है…</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">एंटी-सेंसरशिप</string>
-	<string name="settings_passphrase_title">Passphrase</string>
+	<string name="settings_passphrase_title">पासफ़्रेज़</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">सबसे अच्छे कनेक्शन के लिए</string>
 	<string name="battery_opt_descr">अधिक स्थिर VPN कनेक्शनों के लिए NymVPN बैटरी अनुकूलन अक्षम करें।</string>
@@ -230,10 +229,10 @@
 	<string name="select_plan_title">अपना \nसुरक्षा स्तर चुनें 🛡️</string>
 	<string name="select_plan_descr">अपनी सुरक्षा एक्टिवेट करने के लिए \nअभी एक योजना चुनें\n\nआपका आगामी भुगतान आपकी भविष्य की ब्राउज़िंग गतिविधि से लिंक \nनहीं किया जा सकता है</string>
 	<string name="select_plan_button">अपना NymVPN योजना चुनें</string>
-	<string name="select_plan_modal_title">Choose your NymVPN plan</string>
-	<string name="select_plan_modal_free_trial">Free trial: 1 week</string>
-	<string name="select_plan_modal_free_trial_starts_today">Starts: today</string>
-	<string name="select_plan_modal_free_trial_starts">Starts: %1$s</string>
+	<string name="select_plan_modal_title">अपना NymVPN योजना चुनें</string>
+	<string name="select_plan_modal_free_trial">फ्री ट्रायल: 1 सप्ताह</string>
+	<string name="select_plan_modal_free_trial_starts_today">आज से शुरू</string>
+	<string name="select_plan_modal_free_trial_starts">शुरू %1$s</string>
 	<!-- Server Details screen -->
 	<string name="details_title">सर्वर विवरण</string>
 	<string name="details_select_server_button">सर्वर चुनें</string>
@@ -251,7 +250,7 @@
 	<string name="details_server_load">सर्वर लोड</string>
 	<string name="details_speed">गति</string>
 	<string name="details_uptime">अपटाइम</string>
-	<string name="not_applicable">N/A</string>
+	<string name="not_applicable">लागू नहीं</string>
 	<string name="details_performance_calculated">प्रदर्शन स्कोर सर्वर लोड और अपटाइम से गणना किया गया है। अपटाइम पिछले २४ घंटों के औसत के रूप में। अंतिम अपडेट %1$s।</string>
 	<string name="details_exit_ipv4">IPv4 निकास </string>
 	<string name="details_exit_ipv6">IPv6 निकास </string>
@@ -269,87 +268,91 @@
 	<string name="censorship_description">यदि आप कनेक्शन समस्याओं का सामना कर रहे हैं या आपके स्थान पर NymVPN अवरुद्ध है, तो इन सुविधाओं को सक्षम करें।</string>
 	<string name="censorship_quic_title">संशोधित कनेक्शन (QUIC)</string>
 	<string name="censorship_quic_changes">पुनः कनेक्ट करने के बाद परिवर्तन लागू होंगे</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">प्रतिबंधित नेटवर्क में Fast मोड की विश्वसनीयता सुधारता है, WireGuard ट्रैफ़िक को QUIC (HTTP/3) में लपेटकर इसे सामान्य वेब ब्राउज़िंग के रूप में दिखाता है। नोट: प्रवेश सर्वर विकल्पों को केवल QUIC-संगत गेटवे तक सीमित करता है।</string>
 	<string name="censorship_quic_link_text">QUIC कनेक्शनों को कैसे बेहतर बनाता है</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">स्टेल्थ API कनेक्ट</string>
 	<string name="censorship_stealth_description">API अनुरोधों को पॉपुलर, अनुमत डोमेन के पीछे छुपाता है ताकि VPN ब्लॉकिंग को बायपास किया जा सके। जब मानक API कनेक्शन प्रयास विफल हो जाते हैं, तो NymVPN इसे स्वचालित रूप से इसका उपयोग करता है।</string>
-	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
+	<string name="censorship_stealth_link_text">Stealth API कनेक्ट मोड कैसे काम करता है</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
-	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
-	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
-	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
+	<string name="quick_info_modal_title">संशोधित कनेक्शन (QUIC)?</string>
+	<string name="quick_info_modal_desc">यह आपको QUIC प्रोटोकॉल के साथ दोबारा कनेक्ट करेगा। आपके मौजूदा गेटवे QUIC सपोर्ट करते हैं तो बने रहेंगे, वरना अपने-आप उपयुक्त गेटवे चुने जाएंगे।\n\nरीकनेक्शन के दौरान आपका डेटा सुरक्षित रहेगा।</string>
+	<string name="quic_primary_btn_text">अभी QUIC के साथ दोबारा कनेक्ट करें</string>
+	<string name="quic_text_btn_text">अगले कनेक्शन पर QUIC लागू करें</string>
+	<string name="quick_info_modal_title_non_quic">संशोधित कनेक्शन (QUIC)?</string>
+	<string name="quick_info_modal_desc_non_quic">यह आपको बिना QUIC प्रोटोकॉल के दोबारा कनेक्ट करेगा। आपके मौजूदा गेटवे वैसे ही रहेंगे।\n\nरीकनेक्शन के दौरान आपका डेटा सुरक्षित रहेगा।</string>
+	<string name="quic_primary_btn_text_non_quic">अभी बिना QUIC के दोबारा कनेक्ट करें</string>
+	<string name="quic_text_btn_text_non_quic">अगले कनेक्शन पर QUIC बंद करें</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
-	<string name="account_welcome_countries">50+ countries worldwide</string>
-	<string name="account_welcome_payments">Payments and activity stay unlinked</string>
-	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
-	<string name="account_welcome_button">Start protecting my privacy</string>
-	<string name="account_welcome_have_account">Already have account?</string>
+	<string name="account_welcome_anonymous">गुमनाम mixnet प्रौद्योगिकी</string>
+	<string name="account_welcome_countries">50+ देश दुनिया भर में</string>
+	<string name="account_welcome_payments">भुगतान और गतिविधि जोड़ी नहीं जा सकती</string>
+	<string name="account_welcome_open_source">ओपन सोर्स और स्विस गोपनीयता कानून</string>
+	<string name="account_welcome_button">मेरी गोपनीयता की रक्षा शुरू करें</string>
+	<string name="account_welcome_have_account">क्या आपके पास पहले से एक खाता है?</string>
 	<!-- Existing subscription -->
-	<string name="account_subscription_title">You’re already subscribed!</string>
-	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
-	<string name="account_subscription_button">Log in with Nym passphrase</string>
+	<string name="account_subscription_title">आप पहले से ही सब्सक्राइब हैं!</string>
+	<string name="account_subscription_description">हमें आपके Google Play अकाउंट से जुड़ी एक सक्रिय सब्सक्रिप्शन मिली है। साइनअप छोड़ें और सीधे NymVPN इस्तेमाल करना शुरू करें। बस अपना 24 शब्दों वाला पासफ़्रेज़ तैयार रखें।</string>
+	<string name="account_subscription_button">NYM पासफ़्रेज़ से लॉग इन करें</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">Creating your anonymous identity…</string>
-	<string name="account_generating_establishing">Establishing anonymous network credentials</string>
-	<string name="account_generating_securing">Securing your credentials locally…</string>
-	<string name="account_generating_encrypting">Encrypting credentials with your device key; \nonly you can unlock them</string>
-	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<string name="account_generating_creating">आपकी गुमनाम पहचान बनाई जा रही है...</string>
+	<string name="account_generating_establishing">गुमनाम नेटवर्क प्रमाण पत्र स्थापित हो रहा है</string>
+	<string name="account_generating_securing">आपके प्रमाणपत्रों को स्थानीय रूप से सुरक्षित किया जा रहा है...</string>
+	<string name="account_generating_encrypting">आपके डिवाइस कुंजी से क्रेडेंशियल्स को एन्क्रिप्ट किया जा रहा है। केवल आप ही उन्हें अनलॉक कर सकते हैं।</string>
+	<string name="account_generating_error">अकाउंट रजिस्टर नहीं हो सका। कृपया बाद में दोबारा कोशिश करें।</string>
 	<!-- Account Payment screen -->
-	<string name="account_payment_processing">Processing your payment securely…</string>
-	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>
-	<string name="account_payment_retrieving">Retrieving your anonymous account credentials (zk-nyms)…</string>
-	<string name="account_payment_credentials">These zero-knowledge credentials prove you have access without revealing who you are</string>
-	<string name="account_payment_saving">Saving your zk-nyms on the device…</string>
-	<string name="account_payment_anonymous">Your anonymous access credentials are now safely stored, private, encrypted, and in your control</string>
-	<string name="account_payment_welcome">Welcome to true privacy 🎉</string>
-	<string name="account_payment_protected">You\'re now fully protected</string>
-	<string name="account_payment_error">Failed to purchase a subscription. Please, try again later</string>
+	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है...</string>
+	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
+	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण 
+जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
+	<string name="account_payment_credentials">ये zero-knowledge क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
+	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं...</string>
+	<string name="account_payment_anonymous">आपके गुमनाम पहुंच प्रमाणपत्र अब सुरक्षित, निजी, एन्क्रिप्टेड हैं और आपके नियंत्रण में हैं</string>
+	<string name="account_payment_welcome">असली गोपनीयता में आपका स्वागत है 🎉</string>
+	<string name="account_payment_protected">आप अब पूरी तरह से संरक्षित हैं</string>
+	<string name="account_payment_error">सदस्यता ख़रीदने में विफलता हुई। कृपया कुछ समय बाद पुनः प्रयास करें।</string>
 	<!-- Passphrase screen -->
-	<string name="passphrase_title">Your account passphrase</string>
-	<string name="passphrase_description">🔒Your master account passphrase: 24 words that let you access your account from any device.</string>
-	<string name="passphrase_show">Show my passphrase</string>
-	<string name="passphrase_copy">Copy passphrase</string>
-	<string name="passphrase_save">Save to password manager</string>
-	<string name="passphrase_lose">⚠️ Lose these words = lose your account forever.</string>
-	<string name="passphrase_never">Never share them with anyone, including Nym Support.</string>
-	<string name="passphrase_saved">I have saved these 24 words securely and will never share them</string>
-	<string name="passphrase_info_title">What is passphrase</string>
-	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
-	<string name="passphrase_info_privacy_removed">For your privacy, we’ve removed:</string>
-	<string name="passphrase_info_stored_accounts">Centrally-stored accounts</string>
-	<string name="passphrase_info_personal_logins">Personal data-based logins</string>
-	<string name="passphrase_info_access_resets">Admin-controlled access resets</string>
-	<string name="passphrase_info_use">You’ll use a 24-word passphrase that:</string>
-	<string name="passphrase_info_secure_login">Works as your secure login</string>
-	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
-	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
+	<string name="passphrase_title">आपके खाते का पासफ़्रेज़</string>
+	<string name="passphrase_description">🔒आपका मास्टर खाता पासफ्रेज़: 24 शब्द जो आपको किसी भी डिवाइस से आपका खाता एक्सेस करने की अनुमति देते हैं।</string>
+	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
+	<string name="passphrase_show">मेरा पासफ़्रेज़ दिखाएं</string>
+	<string name="passphrase_copy">पासफ़्रेज़ कॉपी करें</string>
+	<string name="passphrase_save">पासवर्ड मैनेजर में सेव करें</string>
+	<string name="passphrase_download">Download</string>
+	<string name="passphrase_lose">⚠️ यदि ये शब्द खो दिए तो = आपका खाता हमेशा के लिए खो जाएगा।</string>
+	<string name="passphrase_never">इन्हें किसी के साथ भी साझा न करें, जिसमें Nym सपोर्ट भी शामिल है।</string>
+	<string name="passphrase_saved">मैंने इन 24 शब्दों को सुरक्षित रूप से सहेजा है और कभी भी इन्हें साझा नहीं करूंगा</string>
+	<string name="passphrase_info_title">मेरा पासफ़्रेज़ दिखाएं</string>
+	<string name="passphrase_info_description">यह 24 शब्दों का एक अनोखा सेट है, जो आपके डिवाइस पर बनाया जाता है और सुरक्षित लॉगिन की तरह काम करता है। इसका एक्सेस सिर्फ आपके पास है — इसका कोई बैकअप, रीसेट या रिकवरी नहीं है।\n\n⚠️ इसे सुरक्षित रखें: यही पासफ़्रेज़ आपके अकाउंट तक पहुँचने का एकमात्र तरीका है।</string>
+	<string name="passphrase_info_privacy_removed">आपकी गोपनीयता के लिए, हमने हटाया है:</string>
+	<string name="passphrase_info_stored_accounts">केंद्रीय रूप से संग्रहीत खाते</string>
+	<string name="passphrase_info_personal_logins">Email usage</string>
+	<string name="passphrase_info_access_resets">Password creation</string>
+	<string name="passphrase_info_use">आप 24-शब्द पासफ्रेज़ का उपयोग करेंगे जो कि:</string>
+	<string name="passphrase_info_secure_login">Enables self-custody</string>
+	<string name="passphrase_info_keeps_anonymous">Is anonymous by design</string>
+	<string name="passphrase_info_belongs">केवल आपके लिए है (स्वयं-रक्षा)</string>
 	<!-- Account screen -->
-	<string name="account_info_plan">Plan</string>
-	<string name="account_info_payments">Payments</string>
-	<string name="account_info_devices">Devices</string>
-	<string name="account_info_id_title">Account ID</string>
-	<string name="account_info_id_description">Use this ID for support requests</string>
-	<string name="account_info_id_important">⚠️ Important: Nym support will never ask for your 24-word passphrase. Never share it with anyone.</string>
+	<string name="account_info_plan">प्लान</string>
+	<string name="account_info_payments">भुगतान</string>
+	<string name="account_info_devices">डिवाइस</string>
+	<string name="account_info_id_title">खाता पहचान</string>
+	<string name="account_info_id_description">सहायता के अनुरोधों के लिए इस आईडी का उपयोग करें</string>
+	<string name="account_info_id_important">⚠️ महत्वपूर्ण: Nym सपोर्ट कभी भी आपकी 24-शब्दों की पासफ़्रेज़ नहीं मांगेगा। इसे किसी के साथ साझा न करें।</string>
 	<!-- Logs screen -->
-	<string name="logs_share">Share</string>
-	<string name="logs_download">Download</string>
-	<string name="logs_delete">Delete</string>
-	<string name="logs_delete_title">Delete NymVPN logs?</string>
-	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
-	<string name="logs_delete_button">Delete logs</string>
-	<string name="logs_share_title">Share NymVPN logs?</string>
-	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
-	<string name="logs_share_button">Share anyway</string>
-	<string name="logs_download_title">Save NymVPN logs as file?</string>
-	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
-	<string name="logs_download_button">Save as file anyway</string>
+	<string name="logs_share">साझा करें</string>
+	<string name="logs_download">डाउनलोड</string>
+	<string name="logs_delete">हटाएं</string>
+	<string name="logs_delete_title">NymVPN के लॉग्स मिटाएं?</string>
+	<string name="logs_delete_description">लॉग हटाने से गोपनीयता बढ़ती है, लेकिन इससे सपोर्ट आपकी कनेक्शन समस्याओं का निदान नहीं कर पाएगा।</string>
+	<string name="logs_delete_button">लॉग हटाएं</string>
+	<string name="logs_share_title">NymVPN के लॉग्स भेजें?</string>
+	<string name="logs_share_description">शेयर की गई लॉग फ़ाइलें प्राप्तकर्ताओं और जिनसे वे साझा करें, उनके द्वारा देखी जा सकती हैं।</string>
+	<string name="logs_share_button">फिर भी साझा करें</string>
+	<string name="logs_download_title">क्या NymVPN लॉग्स को फ़ाइल के रूप में सहेजना है?</string>
+	<string name="logs_download_description">सहेजे गए लॉग्स को अन्य ऐप्स या वे व्यक्ति एक्सेस कर सकते हैं, जिन्हें आपके डिवाइस की स्टोरेज तक पहुँच है।</string>
+	<string name="logs_download_button">फिर भी फ़ाइल के रूप में सहेजें</string>
 	<string name="logs_saved">लॉग्स Downloads फोल्डर में सहेजे गए</string>
 </resources>

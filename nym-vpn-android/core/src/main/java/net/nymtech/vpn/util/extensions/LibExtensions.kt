@@ -42,7 +42,7 @@ fun String.asEntryPoint(): EntryPoint {
 		this == "random" -> EntryPoint.Random
 		length == 2 -> EntryPoint.Country(this.uppercase())
 		Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
-		else -> EntryPoint.Random
+		else -> EntryPoint.Region(this)
 	}
 }
 

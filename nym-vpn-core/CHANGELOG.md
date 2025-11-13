@@ -7,17 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Implement a TCP-based probe as a fallback for connection monitoring when ICMP is unavailable. (https://github.com/nymtech/nym-vpn-client/pull/3868)
-
 ### Changed
 
 - Rotate wireguard keys every 1-2 weeks, if disconnected (https://github.com/nymtech/nym-vpn-client/pull/3788)
+- When querying for bandwidth, retry once on failure (https://github.com/nymtech/nym-vpn-client/pull/3922).
 
 ### Fixed
 
 - [macOS] Prevent resetting state for non-tunnel DNS connections (https://github.com/nymtech/nym-vpn-client/pull/3899)
+- Filter out gateways that might be blacklisted by mixnet (https://github.com/nymtech/nym-vpn-client/pull/3948)
+
+### Removed
+
+- Remove unnecessary DNS resolutions on mobile platforms where there is no configurable firewall. (https://github.com/nymtech/nym-vpn-client/pull/3913)
+
+## [1.18.1] - TBD
+
+### Added
+
+- Implement a TCP-based probe as a fallback for connection monitoring when ICMP is unavailable. (https://github.com/nymtech/nym-vpn-client/pull/3868)
+- Expose A/C's `RequestingZkNyms` state to UI for in app payment flows (https://github.com/nymtech/nym-vpn-client/pull/3925)
 
 ## [1.18.0] - 2025-11-03
 

@@ -21,13 +21,8 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
-
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_common::trace_err_chain;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -35,8 +30,16 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
 use tokio::{
     sync::{mpsc, oneshot, watch},
     task::JoinHandle,
@@ -195,28 +198,16 @@ pub struct MixnetTunnelOptions {
     pub mtu: Option<u16>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub enum WireguardMultihopMode {
     /// Multihop using two tun devices to nest tunnels.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[default]
     TunTun,
 
+    #[cfg_attr(any(target_os = "ios", target_os = "android"), default)]
     /// Netstack based multihop.
     Netstack,
-}
-
-impl Default for WireguardMultihopMode {
-    fn default() -> Self {
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        {
-            Self::Netstack
-        }
-
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::TunTun
-        }
-    }
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
@@ -455,6 +446,63 @@ impl SharedState {
         } else {
             self.tunnel_settings.allow_lan = allow_lan;
             true
+        }
+    }
+
+    /// Notify discovery and account controller when network is unrestricted.
+    async fn allow_networking(&self) {
+        self.discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(false))
+            .ok();
+        self.account_command_tx
+            .set_vpn_api_firewall_down()
+            .await
+            .ok();
+    }
+
+    /// Notify discovery and account controller when network is restricted.
+    async fn disallow_networking(&self) {
+        self.discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::Pause(true))
+            .ok();
+        self.account_command_tx.set_vpn_api_firewall_up().await.ok();
+    }
+
+    /// Set DNS resolver overrides on HTTP clients used by discovery and account controller
+    /// Returns `true` on success, otherwise `false`
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    async fn set_resolver_overrides(
+        &self,
+        nym_vpn_api_resolver_overrides: ResolverOverrides,
+    ) -> bool {
+        self.discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
+                Box::new(nym_vpn_api_resolver_overrides.clone()),
+            )))
+            .ok();
+        if let Err(err) = self
+            .account_command_tx
+            .set_resolver_overrides(Some(nym_vpn_api_resolver_overrides))
+            .await
+        {
+            trace_err_chain!(
+                err,
+                "Failed to set resolver overrides for account controller"
+            );
+            false
+        } else {
+            true
+        }
+    }
+
+    /// Reset DNS resolver overrides on HTTP clients used by discovery and account controller
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    async fn reset_resolver_overrides(&self) {
+        self.discovery_refresher_command_tx
+            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
+            .ok();
+        if let Err(err) = self.account_command_tx.set_resolver_overrides(None).await {
+            trace_err_chain!(err, "Failed to unset static API addresses");
         }
     }
 }

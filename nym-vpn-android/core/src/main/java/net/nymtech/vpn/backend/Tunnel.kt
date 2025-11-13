@@ -67,6 +67,7 @@ interface Tunnel {
 			return this.name.lowercase()
 		}
 	}
+
 	companion object {
 		val IPV4_PUBLIC_NETWORKS = listOf(
 			"0.0.0.0/5", "8.0.0.0/7", "11.0.0.0/8", "12.0.0.0/6", "16.0.0.0/4", "32.0.0.0/3",

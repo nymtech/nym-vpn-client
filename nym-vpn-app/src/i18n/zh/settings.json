@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "带宽已达上限",
     "max-device-reached": "设备数量已达上限",
     "status-inactive": "账号未激活",
+    "requesting-zknyms": "正在请求 ZkNyms",
     "error": "内部错误"
   }
 }

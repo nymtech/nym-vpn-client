@@ -1,16 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ErrorKey, TunnelError } from '../types';
-
-// enforce that all errors are handled
-type Terror = (error: ErrorKey | TunnelError) => string;
-
-function fmtErr(msg: string, data?: string | null) {
-  if (data && data.length > 0) {
-    return `${msg} - ${data}`;
-  }
-  return msg;
-}
+import { ErrorKey } from '../types';
 
 /**
  * Hook to get the translation function for backend errors
@@ -20,59 +10,8 @@ function fmtErr(msg: string, data?: string | null) {
 function useI18nError() {
   const { t } = useTranslation('errors');
 
-  const translateError: Terror = useCallback(
-    (error: ErrorKey | TunnelError) => {
-      if (typeof error === 'object') {
-        const { message } = error;
-        // tunnel state errors
-        switch (error.key) {
-          case 'tun-device':
-            return fmtErr(t('tunnel.tun-device'), message);
-          case 'tunnel-provider':
-            return fmtErr(t('tunnel.tunnel-provider'), message);
-          case 'inactive-account':
-            return fmtErr(t('tunnel.inactive-account'), message);
-          case 'device-logged-out':
-            return fmtErr(t('tunnel.device-logged-out'), message);
-          case 'internal':
-            return fmtErr(t('tunnel.internal'), message);
-          case 'set-firewall-policy':
-            return fmtErr(t('tunnel.firewall'), message);
-          case 'set-routing':
-            return fmtErr(t('tunnel.routing'), message);
-          case 'set-dns':
-            return fmtErr(t('tunnel.dns'), message);
-          case 'same-entry-and-exit-gw':
-            return fmtErr(t('tunnel.same-entry-exit-gw'), message);
-          case 'invalid-entry-gw-country':
-            return fmtErr(t('tunnel.invalid-entry-gw-country'), message);
-          case 'invalid-exit-gw-country':
-            return fmtErr(t('tunnel.invalid-exit-gw-country'), message);
-          case 'invalid-entry-gw-id':
-            return fmtErr(t('tunnel.invalid-entry-gw-id'), message);
-          case 'invalid-exit-gw-id':
-            return fmtErr(t('tunnel.invalid-exit-gw-id'), message);
-          case 'max-devices-reached':
-            return fmtErr(t('tunnel.max-devices-reached'), message);
-          case 'bandwidth-exceeded':
-            return fmtErr(t('tunnel.bandwidth-exceeded'), message);
-          case 'inactive-subscription':
-            return fmtErr(t('tunnel.subscription-expired'), message);
-          case 'device-time-out-of-sync':
-            return fmtErr(t('tunnel.device-time-out-of-sync'), message);
-          case 'ipv6-unavailable':
-            return fmtErr(t('tunnel.ipv6-unavailable'), message);
-          case 'credential-wasted-on-entry-gateway':
-            return fmtErr(t('tunnel.credential-wasted-entry-gw'), message);
-          case 'credential-wasted-on-exit-gateway':
-            return fmtErr(t('tunnel.credential-wasted-exit-gw'), message);
-          case 'performant-entry-gw-unavailable':
-            return fmtErr(t('tunnel.performant-entry-gw-unavailable'), message);
-          case 'performant-exit-gw-unavailable':
-            return fmtErr(t('tunnel.performant-exit-gw-unavailable'), message);
-        }
-      }
-      // not a tunnel error
+  const translate = useCallback(
+    (error: ErrorKey) => {
       switch (error) {
         // mixnet event errors
         case 'entry-gw-down':
@@ -90,8 +29,8 @@ function useI18nError() {
         // general errors
         case 'internal':
           return t('internal');
-        case 'grpc':
-          return t('grpc');
+        case 'vpnd-client':
+          return t('vpnd-client');
         case 'not-connected-to-daemon':
           return t('daemon.not-connected');
         case 'account-invalid-mnemonic':
@@ -109,8 +48,6 @@ function useI18nError() {
           return t('account.no-device-stored');
         case 'existing-account':
           return t('account.existing-account');
-        case 'bandwidth-exceeded':
-          return t('account.bandwidth-exceeded');
         case 'account-status-not-active':
           return t('account.status-not-active');
         case 'no-subscription':
@@ -119,6 +56,8 @@ function useI18nError() {
           return t('account.max-devices-reached');
         case 'device-time-desync':
           return t('account.device-time-out-of-sync');
+        case 'bandwidth-exceeded':
+          return t('account.bandwidth-exceeded');
       }
 
       console.warn('unhandled backend error', error);
@@ -127,7 +66,7 @@ function useI18nError() {
     [t],
   );
 
-  return { tE: translateError };
+  return { tE: translate };
 }
 
 export default useI18nError;

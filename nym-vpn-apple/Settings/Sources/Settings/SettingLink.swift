@@ -3,9 +3,10 @@ import Foundation
 public enum SettingLink: Hashable, Identifiable {
     case addCredentials
     case createAccountWelcome
-    case createAccount
-    case createAccountSuccess
-    case planPurchaseSuccess
+    case generatePassphrase
+    case planPurchase
+    case processingAccount
+    case passphrase
     case appearance
     case displayTheme
     case logs

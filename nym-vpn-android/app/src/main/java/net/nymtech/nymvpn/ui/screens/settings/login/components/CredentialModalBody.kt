@@ -46,7 +46,9 @@ fun CredentialModalBody(onClick: () -> Unit) {
 						color = MaterialTheme.colorScheme.onPrimary,
 					)
 				},
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		}
 	}

@@ -106,6 +106,7 @@ fun SurfaceSelectionGroupButton(
 						Box(
 							contentAlignment = Alignment.CenterEnd,
 							modifier = Modifier
+								.weight(0.35f)
 								.padding(horizontal = anchorsPadding.scaledWidth()),
 						) {
 							trailing()

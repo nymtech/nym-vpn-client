@@ -4,9 +4,9 @@ use tracing::{debug, trace};
 use ts_rs::TS;
 
 use crate::error::{BackendError, ErrorKey};
-use crate::grpc::account::AccountState;
-use crate::grpc::tunnel::ConnectingState;
-use crate::grpc::{client::VpndStatus, events::MixnetEvent, tunnel::TunnelState};
+use crate::vpnd::account::AccountState;
+use crate::vpnd::tunnel::ConnectingState;
+use crate::vpnd::{client::VpndStatus, events::MixnetEvent, tunnel::TunnelState};
 
 pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_TUNNEL_STATE: &str = "tunnel-state";

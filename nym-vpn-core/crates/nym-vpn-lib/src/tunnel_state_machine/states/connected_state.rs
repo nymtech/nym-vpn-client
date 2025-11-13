@@ -27,7 +27,6 @@ use nym_common::trace_err_chain;
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 use super::ErrorState;
 
@@ -91,30 +90,21 @@ impl ConnectedState {
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                 connected_state.tunnel_monitor_handle,
                 shared_state,
-            );
+            )
+            .await;
         } else if let Err(e) = connected_state.set_dns(shared_state).await {
             trace_err_chain!(e, "failed to set dns");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetDns),
                 connected_state.tunnel_monitor_handle,
                 shared_state,
-            );
+            )
+            .await;
         }
 
-        // Configure Discovery Referesher to not use any resolver overrides and to resume operation
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .ok();
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(false))
-            .ok();
-        shared_state
-            .account_command_tx
-            .set_resolver_overrides(None)
-            .await
-            .ok();
+        // Reset DNS resolver overrides since connections can be established over the tunnel
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        shared_state.reset_resolver_overrides().await;
 
         // We can use slower network fetches now
         shared_state.topology_provider.use_network(true).await;
@@ -206,11 +196,10 @@ impl ConnectedState {
             Self::reset_routes(shared_state).await;
         }
 
-        NextTunnelState::NewState(DisconnectingState::enter(
-            after_disconnect,
-            self.tunnel_monitor_handle,
-            shared_state,
-        ))
+        NextTunnelState::NewState(
+            DisconnectingState::enter(after_disconnect, self.tunnel_monitor_handle, shared_state)
+                .await,
+        )
     }
 
     async fn handle_tunnel_down(

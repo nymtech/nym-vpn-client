@@ -57,6 +57,9 @@ impl ErrorState {
         reason: ErrorStateReason,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        // Disallow networking in error state since there are no configured firewall exceptions
+        shared_state.disallow_networking().await;
+
         #[cfg(target_os = "macos")]
         if !reason.prevents_filtering_resolver() {
             // Set system DNS to our local DNS resolver
@@ -69,6 +72,8 @@ impl ErrorState {
         {
             Self::set_blocking_network_settings(shared_state.tun_provider.clone()).await;
         }
+
+        // todo: activate kill switch on Android
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = BlockedPolicyParameters {
@@ -85,10 +90,6 @@ impl ErrorState {
             firewall_policy_params,
         };
 
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_up()
-            .await;
         (Box::new(blocked_state), PrivateTunnelState::Error(reason))
     }
 

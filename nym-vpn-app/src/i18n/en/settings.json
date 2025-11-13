@@ -75,7 +75,7 @@
   },
   "killswitch": {
     "title": "Killswitch",
-    "desc": "Disconnect if the internet drops"
+    "desc": "Always on to protect your data"
   },
   "privacy": {
     "error-monitoring": {
@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Bandwidth exceeded",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
+    "requesting-zknyms": "Requesting ZkNyms",
     "error": "Internal error"
   }
 }

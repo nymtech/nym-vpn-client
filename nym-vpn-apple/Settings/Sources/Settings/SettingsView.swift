@@ -132,6 +132,8 @@ private extension SettingsView {
                     .animation(.easeInOut, value: displayCopiedOverlay)
                 }
             }
+            Spacer()
+                .frame(height: 24)
         }
     }
 }

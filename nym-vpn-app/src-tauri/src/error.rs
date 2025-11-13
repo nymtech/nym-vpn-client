@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::db::DbError;
-use crate::grpc::{client::VpndError, gateway::GatewayType};
+use crate::vpnd::{client::VpndError, gateway::GatewayType};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
@@ -92,8 +92,8 @@ impl Display for BackendError {
 impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
-            VpndError::GrpcError(s) => {
-                BackendError::new(&format!("grpc error: {s}"), ErrorKey::Grpc)
+            VpndError::RpcClient(e) => {
+                BackendError::new(&format!("rpc client error: {e}"), ErrorKey::VpndClient)
             }
             VpndError::FailedToConnectIpc(_) => BackendError::new(
                 "not connected to the daemon",
@@ -114,11 +114,11 @@ pub enum ErrorKey {
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
     Internal,
-    /// gRPC bare layer error, when an RPC call fails (aka `tonic::Status`)
-    /// That is, the error does not come from the application layer
-    Grpc,
+    /// Rpc Client layer error
+    /// the error does not originate from the application layer
+    VpndClient,
     /// Happens when the app is not connected to a running daemon
-    /// and attempts to make a gRPC call
+    /// and attempts to make an RPC call
     NotConnectedToDaemon,
     // Various mixnet events that should be mapped to errors
     EntryGwDown,
@@ -137,7 +137,7 @@ pub enum ErrorKey {
     NoSubscription,
     MaxDeviceReached,
     DeviceTimeDesync,
-    // Failure when querying countries from gRPC
+    // Failure when querying countries from daemon
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,

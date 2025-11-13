@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">设置</string>
 	<string name="connected">已连接</string>
 	<string name="disconnected">未连接</string>
 	<string name="disconnecting">断开连接</string>
 	<string name="connecting">正在连接</string>
 	<string name="five_hop_mixnet">匿名模式 （混合网络）</string>
-	<string name="five_hop_description">适用于付款、电子邮件和信息</string>
-	<string name="two_hop_description">适用于浏览、流媒体、分享</string>
+	<string name="five_hop_description">为敏感活动提供最大程度的保护</string>
+	<string name="two_hop_description">适用于浏览、流媒体、下载</string>
 	<string name="connect">连接</string>
 	<string name="disconnect">断开</string>
 	<string name="init_client">初始化客户端…</string>
@@ -54,16 +53,16 @@
 	<string name="notification_permission_required">请为适当的应用功能启用通知权限</string>
 	<string name="kill_switch">Kill Switch</string>
 	<string name="mode_selection">模式选择</string>
-	<string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
+	<string name="five_hop_explanation">通过带有混淆流量和时间混淆技术的5台服务器组成的混合网络路由（网速大约1-5Mbps）享受最高级别的隐私保护。该模式是安全处理付款、电子邮件和信息的完美选择。</string>
 	<string name="continue_reading">继续阅读</string>
 	<string name="appearance">外观</string>
 	<string name="language">语言</string>
 	<string name="gateway_modal_description">我们根据 IP 地址推断服务器位置，但实际位置可能略有不同。</string>
 	<string name="gateway_locations_title">服务器位置详情</string>
-	<string name="exit_gateway_locations_title">选择退出地点</string>
-	<string name="exit_gateway_locations_sub_item_1">流流</string>
+	<string name="exit_gateway_locations_title">选择出口网关</string>
+	<string name="exit_gateway_locations_sub_item_1">流媒体</string>
 	<string name="exit_gateway_locations_sub_item_1_desc_link_text">住宅IP服务器优化</string>
-	<string name="exit_gateway_locations_sub_item_1_desc">流媒体和内容访问。由于更高的需求和硬件限制，可能会减慢速度。</string>
+	<string name="exit_gateway_locations_sub_item_1_desc">用来进行流媒体和内容访问。由于更高的需求和硬件限制，您可能会遇到网速变慢的问题。</string>
 	<string name="exit_gateway_locations_sub_item_2">位置精度</string>
 	<string name="exit_gateway_locations_sub_item_2_desc">显示的位置是</string>
 	<string name="exit_gateway_locations_sub_item_2_desc_link_text">从 IP 地址确定</string>
@@ -114,8 +113,8 @@
 	<string name="offline">无网络</string>
 	<string name="no_internet">您的设备没有网络连接</string>
 	<string name="waiting_for_connection">设备上线后即可连接</string>
-	<string name="two_hop_explanation">通过2个服务器连接体验最高速度。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard，是快速浏览、流媒体和文件共享的理想选择。</string>
-	<string name="two_hop_title">快速 (WireGuard<small>*</small>)</string>
+	<string name="two_hop_explanation">通过两跳路由连接享受高速浏览（250+Mbps）。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard。快速模式是快速浏览、流媒体和文件共享的理想选择。</string>
+	<string name="two_hop_title">快速 (WireGuard)</string>
 	<string name="disabled_while_connecting">连接 VPN 时禁用</string>
 	<string name="exit">退出</string>
 	<string name="entry">进入</string>
@@ -154,10 +153,10 @@
 	<string name="join_telegram">加入Telegram</string>
 	<!-- Common -->
 	<string name="button_done">完成</string>
-	<string name="stream_display">流显示</string>
-	<string name="streaming_server_banner_title">新建: 发现串流 -\n优化服务器 (:play_buton:)</string>
-	<string name="streaming_server_banner_action">检查新的\n退出服务器</string>
-	<string name="quic_gatway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要关闭所有服务器，请关闭 QUIC</string>
+	<string name="stream_display">流媒体显示</string>
+	<string name="streaming_server_banner_title">新功能: 探索串流 -\n优化服务器 (▶️)</string>
+	<string name="streaming_server_banner_action">检查新的\n出口服务器</string>
+	<string name="quic_gatway_filter_info_msg">仅显示支持QUIC 协议的快速模式的国家和地区以及服务器。要显示所有服务器，请关闭 QUIC 协议</string>
 	<string name="here">在这里</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">无法连接到相同的进出服务器。更改进入或退出服务器并重新连接。</string>
@@ -193,7 +192,7 @@
 	<string name="connection_state_connecting_tunnel">建立服务器连接(6/6)</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">反检查</string>
-	<string name="settings_passphrase_title">口令</string>
+	<string name="settings_passphrase_title">助记词</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">最佳连接方式</string>
 	<string name="battery_opt_descr">禁用 NymVPN 电池优化以获得更稳定的 VPN 连接。</string>
@@ -233,7 +232,7 @@
 	<string name="select_plan_modal_title">选择您的 NymVPN 计划</string>
 	<string name="select_plan_modal_free_trial">免费试用：1周</string>
 	<string name="select_plan_modal_free_trial_starts_today">开始：今日开始</string>
-	<string name="select_plan_modal_free_trial_starts">开始时间: %1$s</string>
+	<string name="select_plan_modal_free_trial_starts">开始: %1$s</string>
 	<!-- Server Details screen -->
 	<string name="details_title">服务器详细信息</string>
 	<string name="details_select_server_button">选择服务器</string>
@@ -251,7 +250,7 @@
 	<string name="details_server_load">服务器负载</string>
 	<string name="details_speed">速度</string>
 	<string name="details_uptime">运行时间</string>
-	<string name="not_applicable">无</string>
+	<string name="not_applicable">不适用</string>
 	<string name="details_performance_calculated">根据服务器负载和更新计算的性能得分。最近一次更新 %1$s。</string>
 	<string name="details_exit_ipv4">退出 IPv4</string>
 	<string name="details_exit_ipv6">退出 IPv6</string>
@@ -269,87 +268,90 @@
 	<string name="censorship_description">如果您在您的位置遇到连接问题或NymVPN 屏蔽，请启用这些功能。</string>
 	<string name="censorship_quic_title">增强连接 (QUIC)</string>
 	<string name="censorship_quic_changes">更改将在重新连接后应用</string>
-	<string name="censorship_quic_description">使用 QUIC (HTTP/3) 包装无线保真流量以作为常规浏览器来提高限制性网络中的快速模式可靠性。\n\n注意：将条目服务器选项限制为只匹配QUIC兼容的网关。</string>
+	<string name="censorship_quic_description">使用 QUIC (HTTP/3) 包装WireGuard流量让用户数据看起来像常规网络流量来改善在限制性网络中的快速模式可靠性。\n\n注意：将只会显示QUIC协议兼容的网关。</string>
 	<string name="censorship_quic_link_text">QUIC如何改善连接</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">隐身API连接</string>
 	<string name="censorship_stealth_description">伪装API请求，允许域绕过VPN 拦截。当标准API连接尝试失败时，NymVPN 会自动使用。</string>
 	<string name="censorship_stealth_link_text">SteomAPI连接模式工作方式</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">全屏模式</string>
+	<string name="quic">QUIC</string>
 	<string name="quick_info_modal_title">启用增强连接(QUIC)？</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">现在重新连接QUIC</string>
+	<string name="quick_info_modal_desc">一旦启用QUIC协议您需要重新连接。如果当前选中的节点本身支持QUIC协议你将会重新连接到当前节点，否则需要重新选择一个支持QUIC的节点。\n\n在重新连接的过程中，你的数据将会继续被保护。</string>
+	<string name="quic_primary_btn_text">现在使用QUIC协议重新连接</string>
 	<string name="quic_text_btn_text">对下次连接应用QUIC</string>
 	<string name="quick_info_modal_title_non_quic">禁用增强连接(QUIC)？</string>
-	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接您。您将保持当前网关。\n\n您的数据在重新连接时保持保护。</string>
-	<string name="quic_primary_btn_text_non_quic">现在重新连接，没有QUIC</string>
-	<string name="quic_text_btn_text_non_quic">下次连接时关闭 QUIC</string>
+	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接，您将重新连接到当前网关。\n\n您的数据在重新连接时依然受到保护。</string>
+	<string name="quic_primary_btn_text_non_quic">不使用QUIC重新连接</string>
+	<string name="quic_text_btn_text_non_quic">下次连接时再关闭QUIC</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">匿名混合技术</string>
+	<string name="account_welcome_anonymous">匿名混合网络技术</string>
 	<string name="account_welcome_countries">全世界50多个国家</string>
-	<string name="account_welcome_payments">付款和活动未连接</string>
-	<string name="account_welcome_open_source">开源 &amp; 瑞士隐私法</string>
+	<string name="account_welcome_payments">付款信息和线上活动无法关联</string>
+	<string name="account_welcome_open_source">开源 &amp; 遵守瑞士隐私法</string>
 	<string name="account_welcome_button">开始保护我的隐私</string>
 	<string name="account_welcome_have_account">已经有帐户？</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">您已经订阅了！</string>
-	<string name="account_subscription_description">我们发现一个活跃的订阅链接到您的 Google Play 帐户。 跳过注册并直接跳转到使用 NymVPN。只要有您的24个单词密码就可以了。</string>
-	<string name="account_subscription_button">用 Nym 密码登录</string>
+	<string name="account_subscription_description">我们发现一个活跃的订阅链接到您的 Google Play 帐户。 请跳过注册环节并直接跳转到 NymVPN。只需输入您的24个单词助记词登录就可以了。</string>
+	<string name="account_subscription_button">用 Nym 助记词登录</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">创建您的匿名身份…</string>
-	<string name="account_generating_establishing">建立匿名网络凭据</string>
-	<string name="account_generating_securing">Securing your credentials locally…</string>
-	<string name="account_generating_encrypting">Encrypting credentials with your device key; \nonly you can unlock them</string>
+	<string name="account_generating_creating">正在创建您的匿名身份…</string>
+	<string name="account_generating_establishing">正在建立匿名网络凭据</string>
+	<string name="account_generating_securing">正在本地读取你的凭据…</string>
+	<string name="account_generating_encrypting">正在使用你的设备密钥加密凭据；\n只有你才能解锁这些信息</string>
 	<string name="account_generating_error">注册帐户失败。请稍后再试</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">安全处理您的付款…</string>
-	<string name="account_payment_verifying">我们正在验证您的订阅——没有任何个人详细信息与您的身份</string>
+	<string name="account_payment_verifying">我们正在验证您的订阅—没有任何个人信息与您的身份可以关联</string>
 	<string name="account_payment_retrieving">正在获取您的匿名帐户凭据(zk-nyms)…</string>
-	<string name="account_payment_credentials">这些零知识凭据证明您可以访问，但不透露您是谁。</string>
+	<string name="account_payment_credentials">这些零知识凭据可以证明您有权使用NymVPN，但不会透露您是谁</string>
 	<string name="account_payment_saving">在设备上保存您的zk-nyms…</string>
-	<string name="account_payment_anonymous">您的匿名访问凭据现已安全存储、私密、加密并在您的控制中</string>
-	<string name="account_payment_welcome">欢迎使用真正的隐私 :party_popper：</string>
+	<string name="account_payment_anonymous">您的匿名访问凭据现已安全地加密存储在您的设备中并在您的控制之下</string>
+	<string name="account_payment_welcome">欢迎使用真正的隐私 🎉</string>
 	<string name="account_payment_protected">您现在已经完全受保护</string>
 	<string name="account_payment_error">购买订阅失败。请稍后再试</string>
 	<!-- Passphrase screen -->
-	<string name="passphrase_title">您的账户密码</string>
-	<string name="passphrase_description">🔒您的主帐户密码短语：24个单词让您从任何设备访问您的帐户。</string>
-	<string name="passphrase_show">显示我的密码</string>
-	<string name="passphrase_copy">复制密码</string>
+	<string name="passphrase_title">您的账户助记词</string>
+	<string name="passphrase_description">🔒您的主帐户密码短语：24个单词组成的助记词让您从任何设备访问您的帐户。</string>
+	<string name="passphrase_description_first">🔒您的主帐户密码短语:</string>
+	<string name="passphrase_description_last">允许您从任何设备访问账户的24个单词。</string>
+	<string name="passphrase_show">显示我的助记词</string>
+	<string name="passphrase_copy">复制短语</string>
 	<string name="passphrase_save">保存到密码管理器</string>
-	<string name="passphrase_lose">:警告：丢失这些单词 = 永远失去您的帐户。</string>
-	<string name="passphrase_never">永远不要与任何人分享，包括Nym Support。</string>
-	<string name="passphrase_saved">我已经安全地保存了这24个单词，永远不会分享它</string>
-	<string name="passphrase_info_title">什么是密码</string>
-	<string name="passphrase_info_description">这是一组独特的24个单词，在您的设备上生成，作为您的安全登录。 只有您可以访问它——没有备份、重置或恢复。\n\n ⚠️ 保持安全: 这个密码是访问您帐户的唯一途径。</string>
+	<string name="passphrase_download">下载</string>
+	<string name="passphrase_lose">⚠️丢失这些单词 = 永远失去您的帐户。</string>
+	<string name="passphrase_never">永远不要与包括Nym工作人员在内的任何人分享您的助记词。</string>
+	<string name="passphrase_saved">我已经安全地保存了这24个单词，并保证永远不会分享它</string>
+	<string name="passphrase_info_title">什么是助记词</string>
+	<string name="passphrase_info_description">这是一组独特的24个单词，在您的设备上生成，作为您的安全登录的唯一方式。 只有您可以访问它—没有任何备份、重置或恢复的可能。\n\n ⚠️ 保持安全: 这份助记词是访问您帐户的唯一途径。</string>
 	<string name="passphrase_info_privacy_removed">为了您的隐私，我们已经移除：</string>
-	<string name="passphrase_info_stored_accounts">中央存储账户</string>
-	<string name="passphrase_info_personal_logins">基于个人数据的登录</string>
+	<string name="passphrase_info_stored_accounts">中心化存储的账户</string>
+	<string name="passphrase_info_personal_logins">基于个人数据的登录方式</string>
 	<string name="passphrase_info_access_resets">管理员控制的访问重置</string>
-	<string name="passphrase_info_use">您将使用一个24字密码：</string>
-	<string name="passphrase_info_secure_login">作为您的安全登录</string>
+	<string name="passphrase_info_use">您将使用一个24个单词组成的助记词：</string>
+	<string name="passphrase_info_secure_login">作为您的安全登录凭据</string>
 	<string name="passphrase_info_keeps_anonymous">保持您的匿名状态</string>
-	<string name="passphrase_info_belongs">仅属于您(自我监护)</string>
+	<string name="passphrase_info_belongs">仅属于您(自我托管)</string>
 	<!-- Account screen -->
 	<string name="account_info_plan">计划</string>
 	<string name="account_info_payments">付款</string>
 	<string name="account_info_devices">设备</string>
 	<string name="account_info_id_title">帐户 ID</string>
-	<string name="account_info_id_description">将此ID用于支持请求</string>
-	<string name="account_info_id_important">⚠️ 重要: Nym support 永远不会请求您的24个单词密码短语。永远不会与任何人共享它。</string>
+	<string name="account_info_id_description">将此ID用于联系Nym支持团队</string>
+	<string name="account_info_id_important">⚠️ 重要: Nym支持团队永远不会索要您的24个单词密组成的助记词。永远不要与包括Nym工作人员在内的任何人共享它。</string>
 	<!-- Logs screen -->
 	<string name="logs_share">分享</string>
 	<string name="logs_download">下载</string>
 	<string name="logs_delete">删除</string>
-	<string name="logs_delete_title">删除 NymVPN 日志吗？</string>
-	<string name="logs_delete_description">删除日志可以改善隐私，但也可以防止支持诊断您的连接问题。</string>
+	<string name="logs_delete_title">你要删除 NymVPN 日志吗？</string>
+	<string name="logs_delete_description">删除日志可以改善隐私，但是也会导致Nym团队无法使用日志诊断您的连接问题。</string>
 	<string name="logs_delete_button">删除日志</string>
 	<string name="logs_share_title">分享 NymVPN 日志吗？</string>
 	<string name="logs_share_description">共享的日志文件可以被收件人和他们共享的任何人查看。</string>
 	<string name="logs_share_button">仍然分享</string>
-	<string name="logs_download_title">保存 NymVPN 日志为文件？</string>
-	<string name="logs_download_description">已保存的日志可能会被其他应用或任何有权访问您设备存储空间的人访问。</string>
+	<string name="logs_download_title">把NymVPN日志另存为文件？</string>
+	<string name="logs_download_description">另存为的日志文件可能会被其他任何具有你的设备存储访问权限的应用程序或其他人访问。</string>
 	<string name="logs_download_button">仍然保存为文件</string>
 	<string name="logs_saved">保存日志到下载文件夹</string>
 </resources>

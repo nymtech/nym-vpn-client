@@ -9,16 +9,14 @@ use nym_registration_common::GatewayData;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
-use nym_common::ErrorExt;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::Gateway;
 
-use nym_wg_metadata_client::{MetadataClient, TunUpReceiver};
+use crate::tunnel_state_machine::tunnel::SelectedGateways;
+use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
-
-use crate::tunnel_state_machine::tunnel::SelectedGateways;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
 const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
@@ -26,6 +24,8 @@ const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
+
+const DEFAULT_CLIENT_RETRIES: usize = 1;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -65,8 +65,25 @@ pub enum SpecificGatewayError {
         gateway_id: String,
         ticketbook_type: TicketType,
         #[source]
-        source: Box<nym_wg_metadata_client::error::MetadataClientError>,
+        source: Box<MetadataClientError>,
     },
+
+    #[error("failed to query bandwidth from gateway: {gateway_id}")]
+    DeprecatedQueryBandwidth {
+        gateway_id: String,
+        #[source]
+        source: Box<nym_authenticator_client::AuthenticationClientError>,
+    },
+
+    #[error("failed to query bandwidth from gateway: {gateway_id}")]
+    QueryBandwidth {
+        gateway_id: String,
+        #[source]
+        source: Box<MetadataClientError>,
+    },
+
+    #[error("timed-out while communicating with gateway: {gateway_id}")]
+    GatewayTimeout { gateway_id: String },
 
     #[error("internal error: {reason}")]
     Internal { reason: String },
@@ -79,6 +96,61 @@ impl SpecificGatewayError {
             SpecificGatewayError::DeprecatedTopUpWireguard { .. }
                 | SpecificGatewayError::TopUpWireguard { .. }
         )
+    }
+
+    pub fn from_deprecated_topup_wireguard(
+        gateway_id: String,
+        ticketbook_type: TicketType,
+        source: nym_authenticator_client::AuthenticationClientError,
+    ) -> Self {
+        if matches!(
+            source,
+            nym_authenticator_client::AuthenticationClientError::TimeoutWaitingForConnectResponse
+        ) {
+            return SpecificGatewayError::GatewayTimeout { gateway_id };
+        }
+
+        SpecificGatewayError::DeprecatedTopUpWireguard {
+            gateway_id,
+            ticketbook_type,
+            source: Box::new(source),
+        }
+    }
+
+    pub fn from_topup_wireguard(
+        gateway_id: String,
+        ticketbook_type: TicketType,
+        source: MetadataClientError,
+    ) -> Self {
+        SpecificGatewayError::TopUpWireguard {
+            gateway_id,
+            ticketbook_type,
+            source: Box::new(source),
+        }
+    }
+
+    pub fn from_deprecated_query_bandwidth(
+        gateway_id: String,
+        source: nym_authenticator_client::AuthenticationClientError,
+    ) -> Self {
+        if matches!(
+            source,
+            nym_authenticator_client::AuthenticationClientError::TimeoutWaitingForConnectResponse
+        ) {
+            return SpecificGatewayError::GatewayTimeout { gateway_id };
+        }
+
+        SpecificGatewayError::DeprecatedQueryBandwidth {
+            gateway_id,
+            source: Box::new(source),
+        }
+    }
+
+    pub fn from_query_bandwidth(gateway_id: String, source: MetadataClientError) -> Self {
+        SpecificGatewayError::QueryBandwidth {
+            gateway_id,
+            source: Box::new(source),
+        }
     }
 }
 
@@ -205,18 +277,52 @@ impl TemporaryBandwidthClient {
         }
     }
 
-    pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, String> {
+    pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, SpecificGatewayError> {
         match self {
             TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
                 .query_bandwidth()
                 .await
-                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth"))?
-                .ok_or("No such peer on the gateway".to_string()),
-            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
-                .query_bandwidth()
-                .await
-                .map_err(|e| e.display_chain_with_msg("error querying remaining bandwidth")),
+                .map_err(|e| {
+                    SpecificGatewayError::from_deprecated_query_bandwidth(
+                        self.gateway_id().to_string(),
+                        e,
+                    )
+                })?
+                .ok_or({
+                    SpecificGatewayError::Internal {
+                        reason: "No such peer on the gateway".to_string(),
+                    }
+                }),
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                metadata_client.query_bandwidth().await.map_err(|e| {
+                    SpecificGatewayError::from_query_bandwidth(self.gateway_id().to_string(), e)
+                })
+            }
         }
+    }
+
+    pub(crate) async fn query_bandwidth_with_retries(
+        &mut self,
+        retries: usize,
+    ) -> Result<i64, SpecificGatewayError> {
+        let mut res = Ok(0);
+        for attempt in 0..retries + 1 {
+            tracing::debug!(
+                "Attempt #{} to query bandwidth of gateway {}...",
+                attempt + 1,
+                self.gateway_id().to_string()
+            );
+            res = self.query_bandwidth().await;
+            let Err(err) = &res else {
+                // Success
+                break;
+            };
+            let SpecificGatewayError::GatewayTimeout { .. } = &err else {
+                // Error wasn't a timeout
+                break;
+            };
+        }
+        res
     }
 
     pub(crate) fn gateway_id(&self) -> nym_gateway_directory::NodeIdentity {
@@ -234,21 +340,24 @@ impl TemporaryBandwidthClient {
         ticketbook_type: TicketType,
     ) -> Result<i64, SpecificGatewayError> {
         match self {
-            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
-                .top_up(credential)
-                .await
-                .map_err(|source| SpecificGatewayError::DeprecatedTopUpWireguard {
-                    gateway_id: self.gateway_id().to_string(),
-                    ticketbook_type,
-                    source: Box::new(source),
-                }),
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+                authenticator_client.top_up(credential).await.map_err(|e| {
+                    SpecificGatewayError::from_deprecated_topup_wireguard(
+                        self.gateway_id().to_string(),
+                        ticketbook_type,
+                        e,
+                    )
+                })
+            }
             TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
                 .topup_bandwidth(credential)
                 .await
-                .map_err(|source| SpecificGatewayError::TopUpWireguard {
-                    gateway_id: self.gateway_id().to_string(),
-                    ticketbook_type,
-                    source: Box::new(source),
+                .map_err(|e| {
+                    SpecificGatewayError::from_topup_wireguard(
+                        self.gateway_id().to_string(),
+                        ticketbook_type,
+                        e,
+                    )
                 }),
         }
     }
@@ -308,6 +417,7 @@ impl BandwidthController {
             gateway.identity(),
             bind_ip,
             signal_channel,
+            DEFAULT_CLIENT_RETRIES,
         );
         TemporaryBandwidthClient::new(
             gateway,
@@ -406,7 +516,7 @@ impl BandwidthController {
             _ = self.shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
-            ret = wg_metadata_client.query_bandwidth() => {
+            ret = wg_metadata_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
                 match ret {
                     Ok(remaining_bandwidth) => {
                         self.successful_checks += 1;

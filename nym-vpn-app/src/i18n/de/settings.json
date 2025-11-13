@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Bandbreite überschritten",
     "max-device-reached": "Max. Geräte erreicht",
     "status-inactive": "Konto ist inaktiv",
+    "requesting-zknyms": "ZkNyms anfordern",
     "error": "Interner Fehler"
   }
 }

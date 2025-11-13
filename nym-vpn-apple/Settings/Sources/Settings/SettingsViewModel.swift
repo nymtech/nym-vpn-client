@@ -7,6 +7,7 @@ import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
 import FeatureFlagsManager
+import ImpactGenerator
 import UIComponents
 
 @MainActor public class SettingsViewModel: SettingsFlowState {
@@ -15,6 +16,7 @@ import UIComponents
     private let connectionManager: ConnectionManager
     private let externalLinkManager: ExternalLinkManager
     private let featureFlagsManager: FeatureFlagsManager
+    private let impactGenerator: ImpactGenerator
 
     @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
@@ -58,7 +60,8 @@ import UIComponents
         connectionManager: ConnectionManager,
         credentialsManager: CredentialsManager,
         externalLinkManager: ExternalLinkManager,
-        featureFlagsManager: FeatureFlagsManager
+        featureFlagsManager: FeatureFlagsManager,
+        impactGenerator: ImpactGenerator
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -66,6 +69,7 @@ import UIComponents
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         self.featureFlagsManager = featureFlagsManager
+        self.impactGenerator = impactGenerator
         super.init(path: path)
         setup()
     }
@@ -78,7 +82,8 @@ import UIComponents
         connectionManager: ConnectionManager,
         credentialsManager: CredentialsManager,
         externalLinkManager: ExternalLinkManager,
-        featureFlagsManager: FeatureFlagsManager
+        featureFlagsManager: FeatureFlagsManager,
+        impactGenerator: ImpactGenerator
     ) {
         _isServing = isServing
         self.appSettings = appSettings
@@ -87,6 +92,7 @@ import UIComponents
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         self.featureFlagsManager = featureFlagsManager
+        self.impactGenerator = impactGenerator
         super.init(path: path)
         setup()
     }
@@ -98,6 +104,7 @@ import UIComponents
 
     func navigateBack() {
         guard !path.isEmpty else { return }
+        impactGenerator.softImpact()
         path.removeLast()
     }
 
@@ -114,6 +121,7 @@ import UIComponents
             path.append(SettingLink.addCredentials)
         }
 #elseif os(iOS)
+        impactGenerator.softImpact()
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {
@@ -124,36 +132,49 @@ import UIComponents
 
     func navigateToSantasMenu() {
         guard configurationManager.isSantaClaus else { return }
+        impactGenerator.impact()
         path.append(SettingLink.santasMenu)
     }
 }
 
 private extension SettingsViewModel {
     func navigateToPrivacyAndData() {
+        impactGenerator.softImpact()
         path.append(SettingLink.privacyAndData)
     }
 
     func navigateToAppearance() {
+        impactGenerator.softImpact()
         path.append(SettingLink.appearance)
     }
 
     func navigateToLogs() {
+        impactGenerator.softImpact()
         path.append(SettingLink.logs)
     }
 
     func navigateToSupportAndFeedback() {
+        impactGenerator.softImpact()
         path.append(SettingLink.support)
     }
 
     func navigateToLegal() {
+        impactGenerator.softImpact()
         path.append(SettingLink.legal)
     }
 
     func navigateToAccount() {
+        impactGenerator.softImpact()
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
 
+    func navigateToPassphrase() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.passphrase)
+    }
+
     func navigateToCensorship() {
+        impactGenerator.softImpact()
         path.append(SettingLink.censorship)
     }
 }
@@ -219,21 +240,34 @@ private extension SettingsViewModel {
 // MARK: - Sections -
 private extension SettingsViewModel {
     func accountSection() -> SettingsSection {
-        .account(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .externalLink,
-                    title: "settings.account".localizedString,
-                    subtitle: deviceIdentifier,
-                    imageName: "person",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToAccount()
-                        }
+        var viewModels = [
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.account".localizedString,
+                subtitle: deviceIdentifier,
+                imageName: "person",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToAccount()
                     }
-                )
-            ]
+                }
+            )
+        ]
+#if os(iOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.passphrase".localizedString,
+                imageName: "key",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToPassphrase()
+                    }
+                }
+            )
         )
+#endif
+        return .account(viewModels: viewModels)
     }
 
     func appearanceSection() -> SettingsSection {
@@ -295,7 +329,7 @@ private extension SettingsViewModel {
         var viewModels = [SettingsListItemViewModel]()
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: .constant(true), isDisabled: true)),
+                accessory: .empty,
                 title: "settings.killswitch.title".localizedString,
                 subtitle: "settings.killswitch.subtitle".localizedString,
                 systemImageName: "power",
@@ -363,6 +397,7 @@ private extension SettingsViewModel {
 
 extension SettingsViewModel {
     func copyToPasteboard(text: String) {
+        impactGenerator.success()
 #if os(iOS)
         UIPasteboard.general.string = text
 #elseif os(macOS)

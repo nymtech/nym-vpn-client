@@ -1,4 +1,5 @@
 import SwiftUI
+import Device
 import UIComponents
 
 extension HomeView {
@@ -56,6 +57,16 @@ extension HomeView {
             )
             .transition(.opacity)
             .animation(.easeInOut, value: viewModel.isStatisticsOverlayDisplayed)
+        }
+    }
+
+    @ViewBuilder
+    func passphraseOverlay() -> some View {
+        if !Device.isMacOS,
+           viewModel.appSettings.isSmallScreen,
+           viewModel.connectionManager.currentTunnelStatus == .connected,
+           !viewModel.appSettings.isPassphraseStored {
+            PassphraseOverlay(path: $viewModel.path)
         }
     }
 }

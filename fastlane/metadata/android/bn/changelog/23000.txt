@@ -1,0 +1,8 @@
+What's new:
+- Added QUIC status and server details
+- New streaming icon and updated tooltips on Home/Exit
+- New passphrase screen and account creation flow
+- Entry/Exit screens now show city names instead of server IDs
+- Improved gateway details with relative update times
+- Fixed server uptime display
+- Various UI improvements and fixes

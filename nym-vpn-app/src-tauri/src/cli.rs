@@ -3,7 +3,6 @@ use anyhow::{Result, anyhow};
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::path::PathBuf;
 use strum::IntoEnumIterator;
 use tauri::PackageInfo;
 use tracing::{error, info};
@@ -58,11 +57,6 @@ pub struct Cli {
     /// Print build information
     #[arg(short, long)]
     pub build_info: bool,
-
-    /// Unix socket path of gRPC endpoint
-    #[arg(short, long)]
-    #[ts(skip)]
-    pub grpc_socket_endpoint: Option<PathBuf>,
 
     /// IP address of the DNS server to use when connected to the VPN
     #[arg(short = 'D', long)]

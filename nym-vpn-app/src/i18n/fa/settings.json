@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "حجم ترافیک شما تمام شده است",
     "max-device-reached": "به حداکثر تعداد دستگاه‌ها رسیده است",
     "status-inactive": "حساب غیرفعال است",
+    "requesting-zknyms": "Requesting ZkNyms",
     "error": "خطای داخلی"
   }
 }

@@ -1,4 +1,5 @@
 package net.nymtech.vpn.util.extensions
+
 import android.net.VpnService
 import net.nymtech.ipcalculator.IpCalculator
 import net.nymtech.vpn.util.NetworkUtils
@@ -34,6 +35,7 @@ fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCa
 					Timber.d("Excluding route: ${it.destination}")
 					excludedRoutes.add(it.destination)
 				}
+
 				Ipv4Route.Default -> Unit
 			}
 		}
@@ -51,6 +53,7 @@ fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCa
 					// need to use IpPrefix, strange bug with just string/int
 					includedRoutes.add(routeAddress)
 				}
+
 				Ipv6Route.Default -> Unit
 			}
 		}
@@ -59,6 +62,7 @@ fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, calculator: IpCa
 				is Ipv6Route.Specific -> {
 					excludedRoutes.add(it.destination)
 				}
+
 				Ipv6Route.Default -> Unit
 			}
 		}

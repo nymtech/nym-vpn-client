@@ -1,12 +1,12 @@
 {
   "vpn-modes": {
-    "privacy": "匿名",
-    "fast": "快速"
+    "privacy": "匿名（混合网络）",
+    "fast": "快速（WireGuard）"
   },
   "connect": "连接",
   "disconnect": "断开连接",
   "first-hop-selection": "入口",
-  "last-hop-selection": "出口",
+  "last-hop-selection": "出口位置",
   "settings": "设置",
   "display-theme": "显示",
   "notifications": "通知",

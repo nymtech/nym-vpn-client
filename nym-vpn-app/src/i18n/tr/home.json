@@ -19,11 +19,11 @@
   "select-node-title": "-e bağlan",
   "privacy-mode": {
     "title": "Anonim (mixnet)",
-    "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
+    "desc": "Hassas işlemler için maksimum gizlilik"
   },
   "fast-mode": {
-    "title": "Hızlı (WireGuard*)",
-    "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
+    "title": "Hızlı (WireGuard)",
+    "desc": "İnternette gezinme, yayın izleme, indirmeler"
   },
   "last-node-select": {
     "label": "Son hop",

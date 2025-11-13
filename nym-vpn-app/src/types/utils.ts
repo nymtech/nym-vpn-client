@@ -187,3 +187,9 @@ export type AppError = {
   key: ErrorKey;
   data?: Record<string, string> | null;
 };
+
+export function isTunnelInternalError(
+  error: TunnelError,
+): error is { internal: string } {
+  return (error as { internal: string }).internal !== undefined;
+}

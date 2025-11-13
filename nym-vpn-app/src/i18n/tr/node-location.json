@@ -5,17 +5,17 @@
   "selected": "Seçildi",
   "search-country": "Konum ara",
   "input-label": "Ara",
-  "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
+  "quic-filter-note": "Yalnızca Hızlı mod konumları ve QUIC protokolünü destekleyen sunucular gösteriliyor. Tüm sunucuları görmek için QUIC’i kapatın.<here />",
   "location-details": {
     "streaming": {
-      "title": "Streaming",
-      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+      "title": "Yayın",
+      "description": "<0>Residential IP sunucuları</0>  yayın izleme ve içerik erişimi için optimize edilmiştir. Yüksek talep ve donanım sınırlamaları nedeniyle hız zaman zaman yavaşlayabilir."
     },
     "location": {
       "title": "Location accuracy",
-      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+      "description": "örüntülenen konumla <1>IP adreslerinden belirlenir</1> ve tam fiziksel konumları yansıtmayabilir."
     },
-    "title": "Sunucu konumları hakkında detaylar"
+    "title": "Çıkış konumları seçiliyor"
   },
   "location-not-available": {
     "entry": "Seçilen giriş konumu kullanılamıyor, {{location}} konumuna geçildi",
@@ -66,5 +66,5 @@
     },
     "select-button": "Sunucu seçin"
   },
-  "search-other-nodes": "Other search results"
+  "search-other-nodes": "Diğer arama sonuçları"
 }

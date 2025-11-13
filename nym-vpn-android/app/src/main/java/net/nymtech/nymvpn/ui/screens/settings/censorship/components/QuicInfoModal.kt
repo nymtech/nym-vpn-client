@@ -99,6 +99,7 @@ data class QuicInfoModalData(
 						secondaryButtonText = R.string.quic_text_btn_text,
 					)
 				}
+
 				else -> {
 					QuicInfoModalData(
 						title = R.string.quick_info_modal_title_non_quic,

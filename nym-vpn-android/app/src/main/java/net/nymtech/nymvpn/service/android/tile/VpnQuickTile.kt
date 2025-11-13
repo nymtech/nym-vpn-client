@@ -63,18 +63,22 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 				setTileText()
 				setActive()
 			}
+
 			Tunnel.State.Down -> {
 				setTileText()
 				setInactive()
 			}
+
 			Tunnel.State.Disconnecting -> {
 				setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
 				setActive()
 			}
+
 			Tunnel.State.InitializingClient -> {
 				setTileDescription(this@VpnQuickTile.getString(R.string.initializing))
 				setActive()
 			}
+
 			Tunnel.State.EstablishingConnection -> {
 				setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
 				setActive()

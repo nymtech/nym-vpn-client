@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">Налаштування</string>
 	<string name="connected">Підключено</string>
 	<string name="disconnected">Від\'єднано</string>
@@ -155,10 +154,10 @@
 	<!-- Common -->
 	<string name="button_done">Готово</string>
 	<string name="stream_display">Показ стріму</string>
-	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
-	<string name="streaming_server_banner_action">Check new\nexit servers</string>
-	<string name="quic_gatway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
-	<string name="here">here</string>
+	<string name="streaming_server_banner_title">Нове: Відкрийте для себе сервери, оптимізовані для потокового передавання (▶️)</string>
+	<string name="streaming_server_banner_action">Перевірити нові\nвихідні сервери</string>
+	<string name="quic_gatway_filter_info_msg">Відображаються лише локації в швидкому режимі та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC.</string>
+	<string name="here">тут</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Неможливо підключитися до одного і того ж сервера входу та виходу. Змініть сервер входу або виходу та підключіться знову.</string>
 	<string name="unexpected_error">Виникла непередбачувана помилка:</string>
@@ -230,10 +229,10 @@
 	<string name="select_plan_title">Виберіть рівень захисту 🛡️</string>
 	<string name="select_plan_descr">Виберіть план зараз, щоб активувати захист. Ваш майбутній платіж не може бути пов\'язаний з вашою майбутньою активністю в Інтернеті.</string>
 	<string name="select_plan_button">Виберіть мій план NymVPN</string>
-	<string name="select_plan_modal_title">Choose your NymVPN plan</string>
-	<string name="select_plan_modal_free_trial">Free trial: 1 week</string>
-	<string name="select_plan_modal_free_trial_starts_today">Starts: today</string>
-	<string name="select_plan_modal_free_trial_starts">Starts: %1$s</string>
+	<string name="select_plan_modal_title">Виберіть Ваш тарифний план NymVPN</string>
+	<string name="select_plan_modal_free_trial">Безкоштовна пробна версія: 1 тиждень</string>
+	<string name="select_plan_modal_free_trial_starts_today">Початок: сьогодні</string>
+	<string name="select_plan_modal_free_trial_starts">Початок: %1$s</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Деталі сервера</string>
 	<string name="details_select_server_button">Виберіть сервер</string>
@@ -269,7 +268,7 @@
 	<string name="censorship_description">Увімкніть ці функції, якщо у вас виникають проблеми з підключенням або блокування NymVPN у вашому регіоні.</string>
 	<string name="censorship_quic_title">Покращене з\'єднання (QUIC)</string>
 	<string name="censorship_quic_changes">Зміни будуть застосовані після повторного підключення</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">Покращує надійність швидкого режиму в обмежених мережах, обертаючи трафік WireGuard в QUIC (HTTP/3), щоб він виглядав як звичайний веб-перегляд.\n\nПримітка: обмежує опції вхідного сервера тільки шлюзами, сумісними з QUIC.</string>
 	<string name="censorship_quic_link_text">Як QUIC покращує з\'єднання</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Приховане підключення API</string>
@@ -277,14 +276,14 @@
 	<string name="censorship_stealth_link_text">Як працює режим підключення Stealth API</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
-	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
-	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
-	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
+	<string name="quick_info_modal_title">Увімкнути розширене з\'єднання (QUIC)?</string>
+	<string name="quick_info_modal_desc">Це дозволить вам знову підключитися з увімкненим протоколом QUIC. Ви збережете свої поточні шлюзи, якщо вони підтримують QUIC, або виберете сумісні, якщо це необхідно. \n\nВаші дані залишаються захищеними під час повторного підключення.</string>
+	<string name="quic_primary_btn_text">Відновіть з\'єднання з QUIC зараз</string>
+	<string name="quic_text_btn_text">Застосувати QUIC при наступному з\'єднанні</string>
+	<string name="quick_info_modal_title_non_quic">Вимкнути розширене з\'єднання (QUIC)?</string>
+	<string name="quick_info_modal_desc_non_quic">Це дозволить вам знову підключитися без увімкненого протоколу QUIC. Ви збережете свої поточні шлюзи.\n\nВаші дані залишаться захищеними під час повторного підключення.</string>
+	<string name="quic_primary_btn_text_non_quic">Підключитися знову без QUIC зараз</string>
+	<string name="quic_text_btn_text_non_quic">Вимкнути QUIC при наступному з\'єднанні</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Анонімна технологія змішаних мереж</string>
 	<string name="account_welcome_countries">50 + країни по всьому світу</string>
@@ -293,9 +292,9 @@
 	<string name="account_welcome_button">Почніть захищати мою конфіденційність</string>
 	<string name="account_welcome_have_account">Вже є обліковий запис?</string>
 	<!-- Existing subscription -->
-	<string name="account_subscription_title">You’re already subscribed!</string>
-	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
-	<string name="account_subscription_button">Log in with Nym passphrase</string>
+	<string name="account_subscription_title">Ви вже підписані!</string>
+	<string name="account_subscription_description">Ми знайшли активну підписку, пов\'язану з вашим обліковим записом Google Play. Пропустіть реєстрацію та відразу перейдіть до використання NymVPN. Просто підготуйте свою 24-слівну парольну фразу.</string>
+	<string name="account_subscription_button">Увійдіть за допомогою парольної фрази Nym</string>
 	<!-- Account Generating screen -->
 	<string name="account_generating_creating">Створення вашої анонімної ідентифікації...</string>
 	<string name="account_generating_establishing">Додавання анонімних облікових даних мережі</string>
@@ -315,14 +314,17 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Фраза-ключ вашого акаунта</string>
 	<string name="passphrase_description">🔒Ваш головний пароль фразу: 24 слова, що дозволяють отримати доступ до вашого облікового запису з будь-якого пристрою.</string>
+	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Показати мою фразу-пароль</string>
 	<string name="passphrase_copy">Скопіювати фразу-пароль</string>
-	<string name="passphrase_save">Save to password manager</string>
+	<string name="passphrase_save">Зберегти до менеджера паролів</string>
+	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">⚠️ Втрата цих слів = втрата свого обліковий запис назавжди.</string>
 	<string name="passphrase_never">Ніколи не повідомляйте їх нікому, включаючи службу підтримки Nym.</string>
 	<string name="passphrase_saved">Я надійно зберіг ці 24 слова і ніколи нікому їх не розкажу.</string>
 	<string name="passphrase_info_title">Що таке фраза-пароль</string>
-	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
+	<string name="passphrase_info_description">Це унікальний набір із 24 слів, згенерований на вашому пристрої, який слугує вашим безпечним логіном. Доступ до нього маєте лише ви — резервного копіювання, скидання або відновлення немає. \n\n ⚠️ Зберігайте його в безпеці: цей пароль — єдиний спосіб отримати доступ до вашого облікового запису.</string>
 	<string name="passphrase_info_privacy_removed">Для забезпечення вашої конфіденційності ми видалили:</string>
 	<string name="passphrase_info_stored_accounts">Централізовано зберігаються рахунки</string>
 	<string name="passphrase_info_personal_logins">Логіни на основі особистих даних</string>
@@ -339,17 +341,17 @@
 	<string name="account_info_id_description">Використовуйте цей ID для запитів на підтримку</string>
 	<string name="account_info_id_important">⚠️ Важливо: служба підтримки Nym ніколи не запитуватиме у вас 24-слівний пароль. Ніколи не повідомляйте його нікому.</string>
 	<!-- Logs screen -->
-	<string name="logs_share">Share</string>
-	<string name="logs_download">Download</string>
-	<string name="logs_delete">Delete</string>
-	<string name="logs_delete_title">Delete NymVPN logs?</string>
-	<string name="logs_delete_description">Deleting logs improves privacy but prevents Support from diagnosing your connection issues.</string>
-	<string name="logs_delete_button">Delete logs</string>
-	<string name="logs_share_title">Share NymVPN logs?</string>
-	<string name="logs_share_description">Shared log files can be viewed by recipients and anyone they share them with.</string>
-	<string name="logs_share_button">Share anyway</string>
-	<string name="logs_download_title">Save NymVPN logs as file?</string>
-	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
-	<string name="logs_download_button">Save as file anyway</string>
+	<string name="logs_share">Поділіться</string>
+	<string name="logs_download">Завантажити</string>
+	<string name="logs_delete">Видалити</string>
+	<string name="logs_delete_title">Видалити журнали NymVPN?</string>
+	<string name="logs_delete_description">Видалення журналів покращує конфіденційність, але заважає службі підтримки діагностувати проблеми з підключенням.</string>
+	<string name="logs_delete_button">Видалення логів</string>
+	<string name="logs_share_title">Поділитися журналами NymVPN?</string>
+	<string name="logs_share_description">Спільні файли журналів можуть переглядати одержувачі та всі, з ким ними діляться.</string>
+	<string name="logs_share_button">Все одно поширити</string>
+	<string name="logs_download_title">Зберегти NymVPN журнали як файл?</string>
+	<string name="logs_download_description">До збережених журналів можуть отримати доступ інші програми або будь-хто, хто має доступ до пам\'яті вашого пристрою.</string>
+	<string name="logs_download_button">Все одно зберегти як файл</string>
 	<string name="logs_saved">Логи збережені в папці завантажень</string>
 </resources>

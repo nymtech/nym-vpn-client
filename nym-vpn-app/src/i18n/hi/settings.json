@@ -36,18 +36,18 @@
     "daemon": "डेमन लॉग्स"
   },
   "anti-censorship": {
-    "title": "Anti-censorship",
+    "title": "सेन्सरशिप के विरोध में",
     "intro": "Enable these features if you're experiencing connection issues or NymVPN blocking in your location.",
     "quic": {
-      "label": "Enhanced connection (QUIC)",
-      "warning": "Changes will apply after reconnect",
+      "label": "संशोधित कनेक्शन (QUIC)",
+      "warning": "पुनः कनेक्ट करने के बाद परिवर्तन लागू होंगे",
       "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
-      "link": "How QUIC improves connections"
+      "link": "QUIC कनेक्शनों को कैसे बेहतर बनाता है"
     },
     "stealth-api": {
-      "label": "Stealth API connect",
-      "warning": "Changes will apply after reconnect",
-      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
+      "label": "स्टेल्थ API कनेक्ट",
+      "warning": "पुनः कनेक्ट करने के बाद परिवर्तन लागू होंगे",
+      "content": "API अनुरोधों को पॉपुलर, अनुमत डोमेन के पीछे छुपाता है ताकि VPN ब्लॉकिंग को बायपास किया जा सके। जब मानक API कनेक्शन प्रयास विफल हो जाते हैं, तो NymVPN इसे स्वचालित रूप से इसका उपयोग करता है।",
       "link": "How the Stealth API connect mode works"
     },
     "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
@@ -87,7 +87,7 @@
     "network-stats": {
       "label": "गुमनाम नेटवर्क आँकड़े",
       "sublabel": "डेमन पुनः आरंभ करने के बाद परिवर्तन लागू होंगे।",
-      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "desc": "अपने क्षेत्र से गुमनाम प्रदर्शन डेटा साझा करके हमें एक तेज़ नेटवर्क बनाने में मदद करें। हम इसे गति को अनुकूलित करने, डिसकनेक्शन को कम करने, और सर्वर कवरेज को उसकी सबसे अधिक आवश्यकता वाले स्थान पर निर्देशित करने के लिए उपयोग करते हैं। \n\nकेवल नेटवर्क प्रदर्शन डेटा साझा किया जाता है – कभी भी आपकी ब्राउज़िंग गतिविधि या व्यक्तिगत डेटा नहीं।",
       "link": "सटीक रूप से जानें कि क्या साझा किया गया है"
     }
   },
@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "बैंडविड्थ ख़त्म है",
     "max-device-reached": "अधिकतम उपकरणों की सीमा ",
     "status-inactive": "खाता निष्क्रिय है",
+    "requesting-zknyms": "Requesting ZkNyms",
     "error": "अंदरूनी त्रुटि"
   }
 }

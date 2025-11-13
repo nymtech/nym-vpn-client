@@ -87,14 +87,12 @@ function NodeDetails() {
   const featureRow = (
     label: string,
     feature: string,
+    icon: React.ReactNode,
     status: 'green' | 'orange' = 'green',
   ) => (
     <DataRow label={label}>
       {status === 'green' ? (
-        <MsIcon
-          className="text-malachite-moss dark:text-malachite text-xl"
-          icon="check"
-        />
+        icon
       ) : (
         <MsIcon
           className="text-cheddar dark:text-king-nacho text-xl"
@@ -172,6 +170,10 @@ function NodeDetails() {
       row: featureRow(
         t('node-details.data.advanced-privacy'),
         t('node-details.data.with-mixnet'),
+        <MsIcon
+          icon="visibility_off"
+          className="text-malachite-moss dark:text-malachite text-xl"
+        />,
       ),
       key: 'privacy',
     },
@@ -181,6 +183,7 @@ function NodeDetails() {
         isGoodIp
           ? t('node-details.data.ip-residential')
           : t('node-details.data.ip-datacenter'),
+        <MsIcon icon="smart_display" className="text-cornflower text-xl" />,
         isGoodIp ? 'green' : 'orange',
       ),
       key: 'ip-type',
@@ -191,6 +194,7 @@ function NodeDetails() {
         quic
           ? t('node-details.data.quic-protocol')
           : t('node-details.data.standard-protocol'),
+        <MsIcon icon="package_2" className="text-azur text-xl" />,
         quic ? 'green' : 'orange',
       ),
       key: 'anticensor-protocal',

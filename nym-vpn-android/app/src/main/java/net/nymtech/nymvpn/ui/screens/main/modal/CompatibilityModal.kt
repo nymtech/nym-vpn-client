@@ -43,7 +43,9 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 			MainStyledButton(
 				onClick = onConfirmClick,
 				content = { Text(stringResource(R.string.update), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
-				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(40.dp.scaledHeight()),
 			)
 		},
 	)

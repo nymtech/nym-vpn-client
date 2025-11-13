@@ -55,7 +55,9 @@ fun PermissionContent(permission: Permission, navController: NavController) {
 							),
 						)
 					},
-					modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(56.dp.scaledHeight()),
 				)
 			}
 		}

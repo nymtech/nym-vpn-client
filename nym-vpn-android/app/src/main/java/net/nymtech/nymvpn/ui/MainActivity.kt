@@ -53,13 +53,13 @@ import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
+import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
+import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
-import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
-import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
@@ -123,6 +123,7 @@ class MainActivity : AppCompatActivity() {
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
+			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
 
 			LaunchedEffect(configurationChange) {
 				if (configurationChange) {
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
 											it.size.height.toDp()
 										}
 									},
+									hideBackButton = hideBackButtonInNavBar,
 								)
 							},
 							snackbarHost = {
@@ -288,7 +290,11 @@ class MainActivity : AppCompatActivity() {
 									}
 								}
 								composable<Route.Passphrase> {
-									PassphraseScreen()
+									PassphraseScreen(
+										onBackButtonVisibilityChange = {
+											hideBackButtonInNavBar = it
+										},
+									)
 								}
 								composable<Route.Account> {
 									AccountInfoScreen(appState)

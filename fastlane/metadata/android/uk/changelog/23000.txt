@@ -1,8 +1,8 @@
 Що нового:
-- Added QUIC status and server details
-- New streaming icon and updated tooltips on Home/Exit
-- New passphrase screen and account creation flow
-- Entry/Exit screens now show city names instead of server IDs
-- Improved gateway details with relative update times
-- Fixed server uptime display
-- Various UI improvements and fixes
+- Додано дані про статус QUIC і сервер
+- Нова іконка потокового передавання та оновлені підказки на головній сторінці/при виході
+- Новий екран для введення пароля та процес створення облікового запису
+- На екранах входу/виходу тепер відображаються назви міст замість ідентифікаторів серверів.
+- Покращені деталі шлюзу з відносними часами оновлення
+- Виправлено відображення часу роботи сервера
+- Різні вдосконалення та виправлення інтерфейсу користувача

@@ -19,7 +19,6 @@ use crate::tunnel_state_machine::{
 use nym_common::trace_err_chain;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
-use nym_vpn_network_config::DiscoveryRefresherCommand;
 
 pub struct OfflineState {
     /// Whether to connect the tunnel once online
@@ -38,15 +37,7 @@ impl OfflineState {
         selected_gateways: Option<SelectedGateways>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Configure Discovery Referesher to not use any resolver overrides and to pause operation
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
-            .ok();
-        shared_state
-            .discovery_refresher_command_tx
-            .send(DiscoveryRefresherCommand::Pause(true))
-            .ok();
+        shared_state.disallow_networking().await;
 
         #[cfg(target_os = "macos")]
         if Self::set_local_dns_resolver(shared_state).await.is_err() {
@@ -62,11 +53,6 @@ impl OfflineState {
         if let Err(e) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
             trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
-
-        let _ = shared_state
-            .account_command_tx
-            .set_vpn_api_firewall_up()
-            .await;
 
         (
             Box::new(Self {
