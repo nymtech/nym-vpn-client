@@ -7,7 +7,7 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
 use nym_http_api_client::ReqwestClientBuilder;
 use nym_wireguard_private_metadata_client::WireguardMetadataApiClient;
-use nym_wireguard_private_metadata_shared::{v1, Version};
+use nym_wireguard_private_metadata_shared::{Version, v1};
 use tokio::sync::OnceCell;
 use url::Url;
 
@@ -96,7 +96,13 @@ impl MetadataClient {
                     .map_err(|_| {
                         MetadataClientError::Internal("interface up signal never sent".to_string())
                     })?;
-                LazyMetadataClient::new(self.base_url.clone(), self.bind_ip, self.lazy_client_retries, data).await
+                LazyMetadataClient::new(
+                    self.base_url.clone(),
+                    self.bind_ip,
+                    self.lazy_client_retries,
+                    data,
+                )
+                .await
             })
             .await
     }

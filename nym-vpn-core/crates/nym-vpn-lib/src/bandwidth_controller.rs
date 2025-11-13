@@ -6,7 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 use nym_registration_common::GatewayData;
-use tokio_stream::{wrappers::IntervalStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -14,7 +14,7 @@ use nym_credentials_interface::TicketType;
 use nym_gateway_directory::Gateway;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
-use nym_wg_metadata_client::{error::MetadataClientError, MetadataClient, TunUpReceiver};
+use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
 
