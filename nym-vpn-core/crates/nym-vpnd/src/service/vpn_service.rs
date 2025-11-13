@@ -37,6 +37,7 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
+    NodeIdentity, UserAgent, VpnTopologyProvider,
     DEFAULT_DNS_SERVERS, UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
