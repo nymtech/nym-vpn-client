@@ -3,7 +3,9 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
 import {
+  bn,
   de,
+  el,
   en,
   es,
   fr,
@@ -15,13 +17,16 @@ import {
   ru,
   tr,
   uk,
+  vi,
   zhHans,
 } from './resources';
 import { Lang } from './types';
 
 export const defaultNS = 'common';
 export const resources = {
+  bn,
   de,
+  el,
   en,
   es,
   fr,
@@ -33,11 +38,14 @@ export const resources = {
   ru,
   tr,
   uk,
+  vi,
   ['zh-Hans']: zhHans,
 } as const;
 
 export const languages: Lang[] = [
+  { code: 'bn', name: 'বাংলা' },
   { code: 'de', name: 'Deutsch' },
+  { code: 'el', name: 'ελληνικά' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
@@ -49,6 +57,7 @@ export const languages: Lang[] = [
   { code: 'ru', name: 'Русский язык' },
   { code: 'tr', name: 'Türkçe' },
   { code: 'uk', name: 'Українська' },
+  { code: 'vi', name: 'Tiếng Việt' },
   { code: 'zh-Hans', name: '中文' },
 ];
 
