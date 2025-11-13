@@ -374,7 +374,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	override suspend fun getAccountState(): AccountControllerState = nym_vpn_lib.getAccountState()
+	override suspend fun getAccountState(): AccountControllerState {
+		return nym_vpn_lib.getAccountState()
+	}
 
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
