@@ -317,10 +317,10 @@ impl TemporaryBandwidthClient {
                 // Success
                 break;
             };
-            if matches!(err, SpecificGatewayError::GatewayTimeout { .. }) {
-                // If the error wasn't a time-out then don't retry
+            let SpecificGatewayError::GatewayTimeout { .. } = &err else {
+                // Error wasn't a timeout
                 break;
-            }
+            };
         }
         res
     }
