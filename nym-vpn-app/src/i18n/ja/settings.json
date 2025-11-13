@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "帯域幅を超えました",
     "max-device-reached": "最大デバイス数に達しました",
     "status-inactive": "アカウントは無効です",
+    "requesting-zknyms": "ZkNyms をリクエスト中",
     "error": "内部エラー"
   }
 }

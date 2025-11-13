@@ -5,17 +5,17 @@
   "selected": "已选择",
   "search-country": "搜索位置",
   "input-label": "搜索",
-  "quic-filter-note": "仅显示支持QUIC 协议的快速模式位置和服务器。要打开所有服务器，请关闭 QUIC <here />。",
+  "quic-filter-note": "仅显示支持QUIC 协议的快速模式的国家和地区以及服务器。要显示所有服务器，请关闭 QUIC <here />。",
   "location-details": {
     "streaming": {
-      "title": "流流",
-      "description": "<0>住宅IP服务器</0> 优化流媒体和内容访问。由于需求和硬件限制，可能会减慢速度。"
+      "title": "流媒体",
+      "description": "<0>住宅IP服务器</0> 优化流媒体和内容访问。由于需求和硬件限制，您可能会遇到网速变慢的问题。"
     },
     "location": {
       "title": "位置精度",
-      "description": "显示的位置是 <1>通过 IP 地址</1> 确定，可能无法反映确切的实际位置。"
+      "description": "显示的位置是 <1>通过 IP 地址</1> 决定，可能无法反映确切的实际位置。"
     },
-    "title": "服务器位置详情"
+    "title": "选择出口位置"
   },
   "location-not-available": {
     "entry": "所选条目位置不可用，切换到 {{location}}",
@@ -56,7 +56,7 @@
       "offline": "离线的"
     },
     "notes": {
-      "anti-censorship": "在反新闻检查设置中启用“QUIC协议”来使用此功能",
+      "anti-censorship": "在反审查设置中<0>启用“QUIC协议”</0>来使用此功能",
       "performance_with_time": "性能评分基于服务器负载与运行时间计算得出。运行时间取过去24小时的平均值。最后更新于{{relativeTime}}。",
       "performance": "根据服务器负载和上班时间计算性能分数。上传时间为24小时平均值。"
     },

@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "تم تجاوز العرض الترددي",
     "max-device-reached": "وصل الحد الأقصى للأجهزة",
     "status-inactive": "الحساب غير نشط",
+    "requesting-zknyms": "طلب ZkNyms",
     "error": "خطأ داخلي"
   }
 }

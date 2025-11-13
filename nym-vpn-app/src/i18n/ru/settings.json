@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Превышена пропускная способность",
     "max-device-reached": "Достигнуто максимальное количество устройств",
     "status-inactive": "Учетная запись неактивна",
+    "requesting-zknyms": "Запрос ZkNyms",
     "error": "Внутренняя ошибка"
   }
 }

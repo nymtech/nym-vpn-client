@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Перевищено пропускну здатність",
     "max-device-reached": "Досягнуто максимальної кількості пристроїв",
     "status-inactive": "Обліковий запис неактивний",
+    "requesting-zknyms": "Requesting ZkNyms",
     "error": "Внутрішня помилка"
   }
 }

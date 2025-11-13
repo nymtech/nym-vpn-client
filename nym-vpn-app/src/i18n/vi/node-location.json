@@ -8,12 +8,12 @@
   "quic-filter-note": "Chỉ hiển thị các vị trí chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, tắt QUIC <here />.",
   "location-details": {
     "streaming": {
-      "title": "Streaming",
-      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+      "title": "Phát trực tiếp",
+      "description": "<0>Các máy chủ IP dân cư</0> tối ưu cho việc phát trực tuyến và truy cập nội dung. Tốc độ có thể chậm hơn do nhu cầu cao và giới hạn về phần cứng."
     },
     "location": {
-      "title": "Location accuracy",
-      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+      "title": "Vị trí chính xác",
+      "description": "Các vị trí được hiển thị <1>xác định từ địa chỉ IP</1> và có thể không phản ánh chính xác vị trí vật lý."
     },
     "title": "Chi tiết về vị trí máy chủ"
   },

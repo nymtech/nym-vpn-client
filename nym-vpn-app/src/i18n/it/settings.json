@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Larghezza di banda superata",
     "max-device-reached": "Max dispositivi raggiunti",
     "status-inactive": "L'account è inattivo",
+    "requesting-zknyms": "Richiesta ZkNyms",
     "error": "Errore interno"
   }
 }
