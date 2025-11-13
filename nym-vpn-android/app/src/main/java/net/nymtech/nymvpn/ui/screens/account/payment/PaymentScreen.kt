@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -63,7 +62,6 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 	var animationStart by rememberSaveable { mutableStateOf(false) }
 	var latestEvent by remember { mutableStateOf<PaymentUiEvent?>(null) }
 	val accountState by viewModel.accountState.collectAsState()
-
 
 	LaunchedEffect(activity, productId) {
 		activity?.let {

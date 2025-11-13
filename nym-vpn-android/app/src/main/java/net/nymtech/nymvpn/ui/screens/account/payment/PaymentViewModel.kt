@@ -136,8 +136,8 @@ constructor(
 			while (isActive) {
 				try {
 					val state = backendManager.getAccountState()
-					if(state is AccountControllerState.Error) {
-						if(state.v1 == AccountControllerErrorStateReason.InactiveSubscription) {
+					if (state is AccountControllerState.Error) {
+						if (state.v1 == AccountControllerErrorStateReason.InactiveSubscription) {
 							refreshAccountState()
 						}
 					}
