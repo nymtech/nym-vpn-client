@@ -4345,6 +4345,7 @@ dependencies = [
  "nym-common",
  "nym-dns",
  "nym-platform-metadata",
+ "nym-windows",
  "pfctl",
  "thiserror 2.0.17",
  "tracing",

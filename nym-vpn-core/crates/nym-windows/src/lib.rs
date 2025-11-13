@@ -6,20 +6,11 @@
 
 #![cfg(windows)]
 
-/// I/O
+pub mod error;
 pub mod io;
-
-/// Networking
 pub mod net;
-
-/// Synchronization
-pub mod sync;
-
-/// Processes
 pub mod process;
-
-/// Window event handling
-pub mod window;
-
-/// Security and identity
 pub mod security;
+pub mod str;
+pub mod sync;
+pub mod window;

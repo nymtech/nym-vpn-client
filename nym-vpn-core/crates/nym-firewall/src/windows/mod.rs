@@ -5,6 +5,9 @@
 #[macro_use]
 mod ffi;
 
+mod hyperv;
+mod wfp;
+
 use crate::{AllowedClients, DNS_TCP_PORTS, Endpoint, TransportProtocol, TunnelInterface};
 use nym_dns::ResolvedDnsConfig;
 
@@ -20,8 +23,6 @@ use super::{
     net::{AllowedEndpoint, AllowedTunnelTraffic},
 };
 use crate::FirewallPolicyError;
-
-mod hyperv;
 
 const HYPERV_LEAK_WARNING_MSG: &str = "Hyper-V (e.g. WSL machines) may leak in blocked states.";
 
@@ -57,12 +58,24 @@ static BLOCK_HYPERV: LazyLock<bool> = LazyLock::new(|| {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to initialize windows firewall module
-    #[error("failed to initialize windows firewall module")]
-    Initialization,
+    #[error("failed to initialize windows firewall module: {reason}")]
+    Initialization { reason: String },
 
     /// Failure to deinitialize windows firewall module
-    #[error("failed to deinitialize windows firewall module")]
-    Deinitialization,
+    #[error("failed to deinitialize windows firewall module: {reason}")]
+    Deinitialization { reason: String },
+
+    /// WFP transaction error
+    #[error("WFP transaction error: {reason}")]
+    Transaction { reason: String },
+
+    /// WFP filter error
+    #[error("WFP filter error: {reason}")]
+    Filter { reason: String },
+
+    /// WFP filter condition error
+    #[error("WFP filter condition error: {reason}")]
+    Condition { reason: String },
 
     /// Failure to apply a firewall _connecting_ policy
     #[error("failed to apply connecting firewall policy")]
@@ -87,7 +100,7 @@ const WINFW_TIMEOUT_SECONDS: u32 = 5;
 const LOGGING_CONTEXT: &[u8] = b"WinFw\0";
 
 /// The Windows implementation for the firewall.
-pub struct Firewall(());
+pub struct Firewall(wfp::Engine);
 
 impl Firewall {
     pub fn from_args(args: FirewallArguments) -> Result<Self, Error> {
@@ -99,47 +112,31 @@ impl Firewall {
     }
 
     pub fn new() -> Result<Self, Error> {
-        unsafe {
-            WinFw_Initialize(
-                WINFW_TIMEOUT_SECONDS,
-                Some(log_sink),
-                LOGGING_CONTEXT.as_ptr(),
-            )
-            .into_result()?
+        let engine_config = wfp::EngineConfig {
+            dynamic: false,
+            timeout_secs: WINFW_TIMEOUT_SECONDS,
+            allow_dhcp: true,
+            allow_lan: false,
         };
-
+        let engine = wfp::Engine::init(&engine_config)?;
         tracing::trace!("Successfully initialized windows firewall module");
-        Ok(Firewall(()))
+        Ok(Firewall(engine))
     }
 
     fn initialize_blocked(
         allowed_endpoints: &[AllowedEndpoint],
         allow_lan: bool,
     ) -> Result<Self, Error> {
-        let cfg = &WinFwSettings::new(allow_lan);
-        let allowed_endpoint_containers = allowed_endpoints
-            .iter()
-            .cloned()
-            .map(AllowedEndpointBridge::from)
-            .collect::<Vec<_>>();
-        let winfw_allowed_endpoints = allowed_endpoint_containers
-            .iter()
-            .map(|allowed_endpoint| allowed_endpoint.as_endpoint())
-            .collect::<Vec<_>>();
-        // todo: verify that this is correct way to pass array of pointers.
-        let allowed_endpoints_refs = winfw_allowed_endpoints.iter().collect::<Vec<_>>();
-
-        unsafe {
-            WinFw_InitializeBlocked(
-                WINFW_TIMEOUT_SECONDS,
-                cfg,
-                allowed_endpoints_refs.as_ptr() as _,
-                allowed_endpoints_refs.len(),
-                Some(log_sink),
-                LOGGING_CONTEXT.as_ptr(),
-            )
-            .into_result()?
+        let engine_config = wfp::EngineConfig {
+            dynamic: false,
+            timeout_secs: WINFW_TIMEOUT_SECONDS,
+            allow_dhcp: true,
+            allow_lan,
         };
+        let engine = wfp::Engine::init(&engine_config)?;
+
+        wfp::rules::baseline::apply_blocked(&engine, allowed_endpoints)?;
+
         tracing::trace!("Successfully initialized windows firewall module to a blocking state");
 
         with_wmi_if_enabled(|wmi| {
@@ -147,7 +144,7 @@ impl Firewall {
             consume_and_log_hyperv_err("Add block-all Hyper-V filter", result);
         });
 
-        Ok(Firewall(()))
+        Ok(Firewall(engine))
     }
 
     pub fn apply_policy(&mut self, policy: FirewallPolicy) -> Result<(), Error> {
@@ -775,8 +772,18 @@ mod winfw {
         ResetFirewall = 1,
     }
 
-    ffi_error!(InitializationResult, Error::Initialization);
-    ffi_error!(DeinitializationResult, Error::Deinitialization);
+    ffi_error!(
+        InitializationResult,
+        Error::Initialization {
+            reason: "Unknown".to_string()
+        }
+    );
+    ffi_error!(
+        DeinitializationResult,
+        Error::Deinitialization {
+            reason: "Unknown".to_string()
+        }
+    );
 
     #[derive(Debug)]
     #[allow(dead_code)]

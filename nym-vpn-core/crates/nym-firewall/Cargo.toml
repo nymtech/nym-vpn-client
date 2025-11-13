@@ -31,13 +31,19 @@ mnl = { workspace = true, features = ["mnl-1-0-4"] }
 
 [target.'cfg(windows)'.dependencies]
 log.workspace = true
-wmi.workspace = true
+nym-windows.workspace = true
 widestring.workspace = true
 windows = { workspace = true, features = [
     "Win32",
     "Win32_Foundation",
+    "Win32_Security",
     "Win32_Globalization",
     "Win32_System",
+    "Win32_System_Diagnostics_Debug",
     "Win32_System_Wmi",
     "Win32_System_Variant",
+    "Win32_NetworkManagement_WindowsFilteringPlatform",
 ] }
+wmi.workspace = true
+
+

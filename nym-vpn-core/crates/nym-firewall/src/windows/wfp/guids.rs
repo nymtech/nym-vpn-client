@@ -1,0 +1,33 @@
+use windows::core::GUID;
+
+//
+// TODO: These need to be made properly random!
+//
+
+pub const PROVIDER: GUID = GUID::from_u128(0xbed64ec9_9a11_47d5_ae9e_d6dc44cd4148);
+
+pub const SUBLAYER_BASELINE: GUID = GUID::from_u128(0x2a80e390_e2d9_4d70_b323_49c1d93243c8);
+
+pub const FILTER_BASELINE_BLOCK_ALL_OUTBOUND_IPV4: GUID =
+    GUID::from_u128(0xa759c7b1_808c_445b_a7a0_83984100adab);
+
+pub const FILTER_BASELINE_BLOCK_ALL_INBOUND_IPV4: GUID =
+    GUID::from_u128(0x944b888c_9d23_440b_802f_ac6c8ca0c031);
+
+pub const FILTER_BASELINE_BLOCK_ALL_OUTBOUND_IPV6: GUID =
+    GUID::from_u128(0xd47ba1be_bf34_4573_a267_76c36a053362);
+
+pub const FILTER_BASELINE_BLOCK_ALL_INBOUND_IPV6: GUID =
+    GUID::from_u128(0xfd68e4c2_b5ce_4891_97ac_6896ba4cc50d);
+
+pub const FILTER_BASELINE_PERMIT_DHCP_OUTBOUND_REQUEST_V4: GUID =
+    GUID::from_u128(0x1f4e5c2a_3b6b_4d6a_8f3b_2c4f5e8e9a12);
+
+pub const FILTER_BASELINE_PERMIT_DHCP_INBOUND_RESPONSE_V4: GUID =
+    GUID::from_u128(0x3c6f7d4e_5a7b_4e8c_9f2d_1b3a4c5d6e7f);
+
+pub const FILTER_BASELINE_PERMIT_DHCP_OUTBOUND_REQUEST_V6: GUID =
+    GUID::from_u128(0x1f4e5c2a_3b6b_4d6a_8f3b_2c4f5e8e9a12);
+
+pub const FILTER_BASELINE_PERMIT_DHCP_INBOUND_RESPONSE_V6: GUID =
+    GUID::from_u128(0x3c6f7d4e_5a7b_4e8c_9f2d_1b3a4c5d6e7f);
