@@ -26,7 +26,7 @@ use nym_vpn_proto::proto::{
 };
 
 use crate::service::{
-    HttpRpcSettings, SetNetworkError, Socks5Error, Socks5Settings, Socks5State, VpnServiceCommand,
+    HttpRpcSettings, SetNetworkError, Socks5Error, Socks5Settings, VpnServiceCommand,
 };
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
@@ -756,17 +756,13 @@ impl NymVpnService for CommandInterface {
         // Extract other SOCKS5 settings from proto request
         let socks5_settings = req
             .socks5_settings
-            .map(|s| Socks5Settings {
-                listen_address: s.listen_address,
-            })
+            .map(Socks5Settings::from)
             .ok_or_else(|| tonic::Status::invalid_argument("SOCKS5 settings are required"))?;
 
         // Extract HTTP RPC settings from proto request
         let http_rpc_settings = req
             .http_rpc_settings
-            .map(|s| HttpRpcSettings {
-                listen_address: s.listen_address,
-            })
+            .map(HttpRpcSettings::from)
             .ok_or_else(|| tonic::Status::invalid_argument("HTTP RPC settings are required"))?;
 
         self.send_and_wait(
@@ -813,22 +809,8 @@ impl NymVpnService for CommandInterface {
                 tonic::Status::internal(format!("Failed to get SOCKS5 status: {err}"))
             })?;
 
-        let proto_status = proto::Socks5Status {
-            state: match status.state {
-                Socks5State::Disabled => proto::socks5_status::State::Disabled as i32,
-                Socks5State::Idle => proto::socks5_status::State::Idle as i32,
-                Socks5State::Connected => proto::socks5_status::State::Connected as i32,
-                Socks5State::Error => proto::socks5_status::State::Error as i32,
-            },
-            socks5_settings: Some(proto::Socks5Settings {
-                listen_address: status.socks5_settings.listen_address,
-            }),
-            http_rpc_settings: Some(proto::HttpRpcSettings {
-                listen_address: status.http_rpc_settings.listen_address,
-            }),
-            error_message: status.error_message,
-            active_connections: status.active_connections,
-        };
+        // Convert from lib type to proto type using From trait
+        let proto_status = proto::Socks5Status::from(status);
 
         Ok(tonic::Response::new(proto_status))
     }
