@@ -92,12 +92,12 @@ function NodeDetails() {
     <DataRow label={label}>
       {status === 'green' ? (
         <MsIcon
-          className="dark:text-malachite text-malachite-moss text-xl"
+          className="text-malachite-moss dark:text-malachite text-xl"
           icon="check"
         />
       ) : (
         <MsIcon
-          className="dark:text-king-nacho text-cheddar text-xl"
+          className="text-cheddar dark:text-king-nacho text-xl"
           icon="circle"
         />
       )}
