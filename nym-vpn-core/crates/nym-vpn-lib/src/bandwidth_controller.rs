@@ -6,7 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 use nym_registration_common::GatewayData;
-use tokio_stream::{StreamExt, wrappers::IntervalStream};
+use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -14,7 +14,7 @@ use nym_credentials_interface::TicketType;
 use nym_gateway_directory::Gateway;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
-use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
+use nym_wg_metadata_client::{error::MetadataClientError, MetadataClient, TunUpReceiver};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
 
@@ -24,6 +24,8 @@ const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
+
+const DEFAULT_CLIENT_RETRIES: usize = 1;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -120,16 +122,6 @@ impl SpecificGatewayError {
         ticketbook_type: TicketType,
         source: MetadataClientError,
     ) -> Self {
-        if let MetadataClientError::HttpClientError(e) = &source
-            && matches!(
-                e,
-                nym_http_api_client::HttpClientError::RequestSendFailure { .. }
-                    | nym_http_api_client::HttpClientError::ResponseReadFailure { .. }
-            )
-        {
-            return SpecificGatewayError::GatewayTimeout { gateway_id };
-        }
-
         SpecificGatewayError::TopUpWireguard {
             gateway_id,
             ticketbook_type,
@@ -155,16 +147,6 @@ impl SpecificGatewayError {
     }
 
     pub fn from_query_bandwidth(gateway_id: String, source: MetadataClientError) -> Self {
-        if let MetadataClientError::HttpClientError(e) = &source
-            && matches!(
-                e,
-                nym_http_api_client::HttpClientError::RequestSendFailure { .. }
-                    | nym_http_api_client::HttpClientError::ResponseReadFailure { .. }
-            )
-        {
-            return SpecificGatewayError::GatewayTimeout { gateway_id };
-        }
-
         SpecificGatewayError::QueryBandwidth {
             gateway_id,
             source: Box::new(source),
@@ -321,11 +303,11 @@ impl TemporaryBandwidthClient {
 
     pub(crate) async fn query_bandwidth_with_retries(
         &mut self,
-        tries: usize,
+        retries: usize,
     ) -> Result<i64, SpecificGatewayError> {
-        assert!(tries > 0);
         let mut res = Ok(0);
-        for attempt in 1..tries + 1 {
+        for attempt in 0..retries + 1 {
+            tracing::warn!("Attempt #{} to query bandwidth...", attempt + 1);
             res = self.query_bandwidth().await;
             let Err(err) = &res else {
                 // Success
@@ -334,11 +316,6 @@ impl TemporaryBandwidthClient {
             if matches!(err, SpecificGatewayError::GatewayTimeout { .. }) {
                 // If the error wasn't a time-out then don't retry
                 break;
-            }
-            if attempt < tries - 1 {
-                tracing::warn!(
-                    "Attempt {attempt}/{tries} to query bandwidth timed-out. Retrying..."
-                );
             }
         }
         res
@@ -436,6 +413,7 @@ impl BandwidthController {
             gateway.identity(),
             bind_ip,
             signal_channel,
+            DEFAULT_CLIENT_RETRIES,
         );
         TemporaryBandwidthClient::new(
             gateway,
@@ -534,7 +512,7 @@ impl BandwidthController {
             _ = self.shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
-            ret = wg_metadata_client.query_bandwidth_with_retries(2) => {
+            ret = wg_metadata_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
                 match ret {
                     Ok(remaining_bandwidth) => {
                         self.successful_checks += 1;

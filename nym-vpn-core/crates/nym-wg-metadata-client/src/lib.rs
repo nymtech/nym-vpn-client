@@ -7,7 +7,7 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
 use nym_http_api_client::ReqwestClientBuilder;
 use nym_wireguard_private_metadata_client::WireguardMetadataApiClient;
-use nym_wireguard_private_metadata_shared::{Version, v1};
+use nym_wireguard_private_metadata_shared::{v1, Version};
 use tokio::sync::OnceCell;
 use url::Url;
 
@@ -35,7 +35,12 @@ struct LazyMetadataClient {
 }
 
 impl LazyMetadataClient {
-    async fn new(mut base_url: Url, bind_ip: IpAddr, sent_data: TunUpSendData) -> Result<Self> {
+    async fn new(
+        mut base_url: Url,
+        bind_ip: IpAddr,
+        retries: usize,
+        sent_data: TunUpSendData,
+    ) -> Result<Self> {
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data {
             #[cfg(not(target_os = "windows"))]
@@ -55,8 +60,13 @@ impl LazyMetadataClient {
             }
             _ => reqwest_builder.local_address(bind_ip),
         };
-        let inner = nym_http_api_client::Client::builder(base_url)
-            .and_then(|builder| builder.with_reqwest_builder(reqwest_builder).build())?;
+
+        let inner = nym_http_api_client::Client::builder(base_url).and_then(|builder| {
+            builder
+                .with_reqwest_builder(reqwest_builder)
+                .with_retries(retries)
+                .build()
+        })?;
         let version = inner.version().await?;
 
         Ok(Self { inner, version })
@@ -65,6 +75,7 @@ impl LazyMetadataClient {
 
 pub struct MetadataClient {
     lazy_client: OnceCell<Result<LazyMetadataClient>>,
+    lazy_client_retries: usize,
     gateway_id: NodeIdentity,
     base_url: Url,
     bind_ip: IpAddr,
@@ -85,7 +96,7 @@ impl MetadataClient {
                     .map_err(|_| {
                         MetadataClientError::Internal("interface up signal never sent".to_string())
                     })?;
-                LazyMetadataClient::new(self.base_url.clone(), self.bind_ip, data).await
+                LazyMetadataClient::new(self.base_url.clone(), self.bind_ip, self.lazy_client_retries, data).await
             })
             .await
     }
@@ -95,9 +106,11 @@ impl MetadataClient {
         gateway_id: NodeIdentity,
         bind_ip: IpAddr,
         signal_channel: TunUpReceiver,
+        lazy_client_retries: usize,
     ) -> Self {
         Self {
             lazy_client: OnceCell::new(),
+            lazy_client_retries,
             gateway_id,
             bind_ip,
             base_url,
