@@ -1,8 +1,8 @@
 use crate::env::DEV_MODE;
 use crate::error::BackendError;
-use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
 use crate::state::SharedAppState;
 use crate::state::app::NetworkCompat;
+use crate::vpnd::client::{FeatureFlags, SystemMessage, VpndClient, VpndStatus};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{debug, info, instrument, warn};
@@ -34,18 +34,17 @@ pub async fn daemon_status(
     Ok(status)
 }
 
-#[instrument(skip(grpc_client))]
+#[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn set_network(
-    grpc_client: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
     network: NetworkEnv,
 ) -> Result<(), BackendError> {
     if !*DEV_MODE {
         warn!("not in dev mode");
         return Err(BackendError::internal("nope", None));
     }
-    grpc_client
-        .set_network(network.as_ref())
+    vpnd.set_network(network.as_ref())
         .await
         .map_err(|e| {
             warn!("failed to set network {}: {:?}", network.as_ref(), e);
@@ -59,10 +58,9 @@ pub async fn set_network(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn system_messages(
-    grpc_client: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<Vec<SystemMessage>, BackendError> {
-    grpc_client
-        .system_messages()
+    vpnd.system_messages()
         .await
         .inspect_err(|e| {
             warn!("failed to get system messages: {:?}", e);
@@ -72,11 +70,8 @@ pub async fn system_messages(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn feature_flags(
-    grpc_client: State<'_, GrpcClient>,
-) -> Result<FeatureFlags, BackendError> {
-    grpc_client
-        .feature_flags()
+pub async fn feature_flags(vpnd: State<'_, VpndClient>) -> Result<FeatureFlags, BackendError> {
+    vpnd.feature_flags()
         .await
         .inspect_err(|e| {
             warn!("failed to get feature flags: {:?}", e);
@@ -96,7 +91,7 @@ pub async fn network_compat(
 #[tauri::command]
 pub async fn vpnd_log_dir(
     app_state: State<'_, SharedAppState>,
-    grpc_client: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
 ) -> Result<String, BackendError> {
     let state = app_state.lock().await;
     if state.vpnd_status == VpndStatus::Down {
@@ -104,11 +99,6 @@ pub async fn vpnd_log_dir(
         return Ok(DEFAULT_VPND_LOG_DIR.to_string());
     }
 
-    Ok(grpc_client
-        .vpnd_log_path()
-        .await
-        .inspect_err(|e| {
-            warn!("failed to get vpnd log path: {:?}", e);
-        })
-        .unwrap_or_else(|_| DEFAULT_VPND_LOG_DIR.to_string()))
+    let path = vpnd.vpnd_log_path().await?.to_string_lossy().to_string();
+    Ok(path)
 }

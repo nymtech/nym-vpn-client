@@ -11,7 +11,6 @@ use ts_rs::TS;
 const WIN_TITLE: &str = "NymVPN - Error";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone, strum::AsRefStr)]
-#[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum ErrorKey {

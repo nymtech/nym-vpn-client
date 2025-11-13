@@ -11,9 +11,9 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
-use crate::grpc::tunnel::TunnelState;
+use crate::vpnd::tunnel::TunnelState;
 use crate::{
-    MAIN_WINDOW_LABEL, grpc::client::GrpcClient, state::SharedAppState, window::AppWindow,
+    MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient, window::AppWindow,
 };
 
 pub const TRAY_ICON_ID: &str = "main";
@@ -53,7 +53,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
             let c_app = app.clone();
             tokio::spawn(async move {
                 let state = c_app.state::<SharedAppState>();
-                let grpc = c_app.state::<GrpcClient>();
+                let vpnd = c_app.state::<VpndClient>();
 
                 let app_state = state.lock().await;
                 if let TunnelState::Connected(_)
@@ -62,7 +62,7 @@ fn on_menu_event(app: &AppHandle, event: MenuEvent) {
                 | TunnelState::Error(_) = app_state.tunnel
                 {
                     drop(app_state);
-                    grpc.vpn_disconnect().await.ok();
+                    vpnd.vpn_disconnect().await.ok();
                 };
                 info!("app exit");
                 c_app.exit(0);

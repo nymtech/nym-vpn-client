@@ -7,6 +7,7 @@ import {
   useI18nAccountState,
   useI18nError,
   useI18nProgressMsg,
+  useI18nTunnelError,
 } from '../../hooks';
 import { AppError } from '../../types';
 import ConnectionBadge from './ConnectionBadge';
@@ -40,6 +41,7 @@ function TunnelState() {
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
+  const { tTE } = useI18nTunnelError();
   const { t: tA } = useI18nAccountState();
   const { t: tP } = useI18nProgressMsg();
 
@@ -128,7 +130,7 @@ function TunnelState() {
   const getError = () => {
     // prioritize tunnel error first, then account error and finally any general error
     if (tunnelError) {
-      return <p data-testid="tunnel-specific-error">{tE(tunnelError)}</p>;
+      return <p data-testid="tunnel-specific-error">{tTE(tunnelError)}</p>;
     }
     if (isAccountError) {
       const error = accountError ? tE(accountError.key) : tA(accountState);

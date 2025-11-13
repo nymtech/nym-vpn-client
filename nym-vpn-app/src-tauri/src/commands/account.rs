@@ -1,11 +1,11 @@
 use tauri::State;
 use tracing::{error, info, instrument, warn};
 
-use crate::grpc::account::AccountState;
-use crate::grpc::account_links::AccountLinks;
-use crate::grpc::tunnel::TunnelState;
 use crate::state::SharedAppState;
-use crate::{error::BackendError, grpc::client::GrpcClient};
+use crate::vpnd::account::AccountState;
+use crate::vpnd::account_links::AccountLinks;
+use crate::vpnd::tunnel::TunnelState;
+use crate::{error::BackendError, vpnd::client::VpndClient};
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -20,7 +20,7 @@ pub async fn get_account_state(
 #[tauri::command]
 pub async fn add_account(
     mnemonic: String,
-    grpc: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
     app_state: State<'_, SharedAppState>,
 ) -> Result<(), BackendError> {
     let state = app_state.lock().await;
@@ -32,7 +32,7 @@ pub async fn add_account(
     };
     drop(state);
 
-    grpc.store_account(mnemonic)
+    vpnd.store_account(mnemonic)
         .await
         .map_err(|e| {
             error!("failed to add account: {}", e);
@@ -46,7 +46,7 @@ pub async fn add_account(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn forget_account(
-    grpc: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
     app_state: State<'_, SharedAppState>,
 ) -> Result<(), BackendError> {
     let state = app_state.lock().await;
@@ -58,7 +58,7 @@ pub async fn forget_account(
     };
     drop(state);
 
-    grpc.forget_account()
+    vpnd.forget_account()
         .await
         .map_err(|e| {
             error!("failed to forget account: {}", e);
@@ -71,8 +71,8 @@ pub async fn forget_account(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, BackendError> {
-    grpc.is_account_stored()
+pub async fn is_account_stored(vpnd: State<'_, VpndClient>) -> Result<bool, BackendError> {
+    vpnd.is_account_stored()
         .await
         .map_err(|e| {
             error!("failed to check stored account: {e}");
@@ -83,13 +83,13 @@ pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, Back
         })
 }
 
-#[instrument(skip(grpc))]
+#[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn account_links(
-    grpc: State<'_, GrpcClient>,
+    vpnd: State<'_, VpndClient>,
     locale: String,
 ) -> Result<AccountLinks, BackendError> {
-    grpc.account_links(&locale).await.map_err(|e| {
+    vpnd.account_links(&locale).await.map_err(|e| {
         error!("failed to get account link: {e}");
         e.into()
     })
@@ -97,8 +97,8 @@ pub async fn account_links(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_account_id(grpc: State<'_, GrpcClient>) -> Result<Option<String>, BackendError> {
-    grpc.account_id()
+pub async fn get_account_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>, BackendError> {
+    vpnd.account_id()
         .await
         .map_err(|e| {
             warn!("failed to get account id: {e}");
@@ -111,8 +111,8 @@ pub async fn get_account_id(grpc: State<'_, GrpcClient>) -> Result<Option<String
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_device_id(grpc: State<'_, GrpcClient>) -> Result<Option<String>, BackendError> {
-    grpc.device_id()
+pub async fn get_device_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>, BackendError> {
+    vpnd.device_id()
         .await
         .map_err(|e| {
             warn!("failed to get device id: {e}");

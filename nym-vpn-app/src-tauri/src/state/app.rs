@@ -8,16 +8,16 @@ use ts_rs::TS;
 
 use crate::env::{DEV_MODE, VPND_COMPAT_REQ};
 use crate::events::AppHandleEventEmitter;
-use crate::grpc::account::AccountState;
-use crate::grpc::client::{NetworkCompatVersions, VersionCheck};
-use crate::grpc::tunnel::TunnelState;
 use crate::state::SharedAppState;
 use crate::sys::OsInfo;
+use crate::vpnd::account::AccountState;
+use crate::vpnd::client::{NetworkCompatVersions, VersionCheck};
+use crate::vpnd::tunnel::TunnelState;
 use crate::{
     cli::Cli,
     db::{Db, Key},
     fs::config::AppConfig,
-    grpc::client::{VpndInfo, VpndStatus},
+    vpnd::client::{VpndInfo, VpndStatus},
 };
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
