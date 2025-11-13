@@ -420,8 +420,8 @@ impl LazySocks5 {
         // Create connection guard - will automatically decrement on drop
         let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
 
-        // Ensure backend is started (lazy initialization)
-        if let Err(e) = self.ensure_backend_started().await {
+        // Ensure backend is started (lazy initialization) with retries
+        if let Err(e) = self.ensure_backend_started_with_retry(client_addr).await {
             error!("Failed to start backend for {}: {}", client_addr, e);
             // Send SOCKS5 error response
             let _ = Self::send_socks5_error(&mut client_stream).await;
@@ -591,6 +591,40 @@ impl LazySocks5 {
         info!("Backend initialization complete");
 
         Ok(())
+    }
+
+    /// Ensure backend is started with retry logic
+    /// Retries backend initialization in case of transient failures (e.g., DNS timeouts)
+    async fn ensure_backend_started_with_retry(
+        &self,
+        client_addr: SocketAddr,
+    ) -> Result<(), LazySocks5Error> {
+        const MAX_RETRIES: u32 = 3;
+        const INITIAL_RETRY_DELAY: Duration = Duration::from_millis(500);
+
+        let mut last_error = None;
+        for attempt in 1..=MAX_RETRIES {
+            match self.ensure_backend_started().await {
+                Ok(_) => {
+                    return Ok(());
+                }
+                Err(e) => {
+                    error!(
+                        "Failed to start backend for {} (attempt {}/{}): {}",
+                        client_addr, attempt, MAX_RETRIES, e
+                    );
+                    last_error = Some(e);
+
+                    if attempt < MAX_RETRIES {
+                        let delay = INITIAL_RETRY_DELAY * 2_u32.pow(attempt - 1);
+                        info!("Retrying backend start in {:?}...", delay);
+                        sleep(delay).await;
+                    }
+                }
+            }
+        }
+
+        Err(last_error.unwrap())
     }
 
     /// Connect to internal SOCKS5 server with retry logic

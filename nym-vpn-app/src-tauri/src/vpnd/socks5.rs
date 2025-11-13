@@ -37,8 +37,6 @@ pub struct Socks5Status {
     pub active_connections: u32,
 }
 
-// Conversions from lib types (nym-vpn-lib-types)
-
 impl From<lib::Socks5Settings> for Socks5Settings {
     fn from(settings: lib::Socks5Settings) -> Self {
         Socks5Settings {
