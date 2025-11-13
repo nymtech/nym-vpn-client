@@ -561,7 +561,9 @@ impl LazySocks5 {
         );
 
         // Build the mixnet client with shared credentials but different identity
-        let mixnet_client = MixnetClientBuilder::new_with_default_storage(socks5_storage_paths)
+        let mixnet_client: nym_sdk::mixnet::DisconnectedMixnetClient<
+            nym_sdk::mixnet::OnDiskPersistent,
+        > = MixnetClientBuilder::new_with_default_storage(socks5_storage_paths)
             .await
             .map_err(|e| {
                 error!("Failed to create mixnet client builder: {}", e);
