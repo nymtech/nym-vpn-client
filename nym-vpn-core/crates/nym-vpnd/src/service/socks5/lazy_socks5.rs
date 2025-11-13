@@ -1,5 +1,6 @@
 //! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection
 
+use super::util::ConnectionGuard;
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
@@ -184,15 +185,14 @@ impl LazySocks5 {
         mut client_stream: TcpStream,
         client_addr: SocketAddr,
     ) -> Result<(), LazySocks5Error> {
-        // Increment connection counter
-        self.increment_connections().await;
+        // Create connection guard - will automatically decrement on drop
+        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
 
         // Parse SOCKS5 handshake and request
         let target_addr = match Self::socks5_handshake(&mut client_stream).await {
             Ok(addr) => addr,
             Err(e) => {
                 error!("SOCKS5 handshake failed for {}: {}", client_addr, e);
-                self.decrement_connections().await;
                 return Err(e);
             }
         };
@@ -222,7 +222,6 @@ impl LazySocks5 {
                 // Use unspecified address for error responses
                 let dummy_addr = SocketAddr::from(([0, 0, 0, 0], 0));
                 let _ = Self::send_socks5_reply(&mut client_stream, reply_code, dummy_addr).await;
-                self.decrement_connections().await;
                 return Err(LazySocks5Error::Internal(format!(
                     "Failed to connect to target: {}",
                     e
@@ -246,7 +245,6 @@ impl LazySocks5 {
                 "Failed to send SOCKS5 success response to {}: {}",
                 client_addr, e
             );
-            self.decrement_connections().await;
             return Err(LazySocks5Error::Internal(format!(
                 "Failed to send SOCKS5 response: {}",
                 e
@@ -269,9 +267,6 @@ impl LazySocks5 {
                 );
             }
         }
-
-        // Decrement connection counter
-        self.decrement_connections().await;
 
         Ok(())
     }
@@ -422,15 +417,14 @@ impl LazySocks5 {
         mut client_stream: TcpStream,
         client_addr: SocketAddr,
     ) -> Result<(), LazySocks5Error> {
-        // Increment connection counter
-        self.increment_connections().await;
+        // Create connection guard - will automatically decrement on drop
+        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
 
         // Ensure backend is started (lazy initialization)
         if let Err(e) = self.ensure_backend_started().await {
             error!("Failed to start backend for {}: {}", client_addr, e);
             // Send SOCKS5 error response
             let _ = Self::send_socks5_error(&mut client_stream).await;
-            self.decrement_connections().await;
             return Err(e);
         }
 
@@ -445,7 +439,6 @@ impl LazySocks5 {
                     e
                 );
                 let _ = Self::send_socks5_error(&mut client_stream).await;
-                self.decrement_connections().await;
                 return Err(LazySocks5Error::InternalConnectionError(e));
             }
         };
@@ -468,9 +461,6 @@ impl LazySocks5 {
                 debug!("Proxy error for {}: {}", client_addr, e);
             }
         }
-
-        // Decrement connection counter
-        self.decrement_connections().await;
 
         Ok(())
     }
@@ -690,6 +680,8 @@ impl LazySocks5 {
                 }
             };
 
+            debug!("should_shutdown: {}", should_shutdown);
+
             if should_shutdown {
                 info!(
                     "Idle timeout of {:?} reached, shutting down backend",
@@ -757,22 +749,6 @@ impl LazySocks5 {
             info!("Shutting down Nym mixnet client");
             *self.is_mixnet_running.write().await = false;
             mixnet_client.disconnect().await;
-        }
-    }
-
-    /// Increment active connection counter
-    async fn increment_connections(&self) {
-        let mut count = self.active_connections.write().await;
-        *count += 1;
-        debug!("Active connections: {}", *count);
-    }
-
-    /// Decrement active connection counter
-    async fn decrement_connections(&self) {
-        let mut count = self.active_connections.write().await;
-        if *count > 0 {
-            *count -= 1;
-            debug!("Active connections: {}", *count);
         }
     }
 
