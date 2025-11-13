@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">Ayarlar</string>
 	<string name="connected">Bağlandı</string>
 	<string name="disconnected">Bağlantı kesildi</string>
@@ -315,9 +314,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Hesap parola cümleniz</string>
 	<string name="passphrase_description">🔒Ana hesap parola cümleniz: Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
+	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Parola cümlemi göster</string>
 	<string name="passphrase_copy">Parolayı kopyala</string>
 	<string name="passphrase_save">Parola yöneticisine kaydet</string>
+	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">⚠️ Bu kelimeleri kaybederseniz = hesabınızı sonsuza kadar kaybedersiniz.</string>
 	<string name="passphrase_never">Bunları, Nym Destek de dahil olmak üzere, hiç kimseyle paylaşmayın.</string>
 	<string name="passphrase_saved">Bu 24 kelimeyi güvenli bir şekilde kaydettim ve asla paylaşmayacağım.</string>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">Настройки</string>
 	<string name="connected">Подключено</string>
 	<string name="disconnected">Отключено</string>
@@ -317,9 +316,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Кодовая фраза вашего аккаунта</string>
 	<string name="passphrase_description">🔒 Ваша кодовая фраза для аккаунта: 24 слова, которые позволяют получить доступ к аккаунту с любого устройства.</string>
+	<string name="passphrase_description_first">🔒Пароль вашей основной учетной записи:</string>
+	<string name="passphrase_description_last">24 слова, которые позволяют вам заходить в свою учетную запись с любого устройства.</string>
 	<string name="passphrase_show">Показать мою кодовую фразу</string>
 	<string name="passphrase_copy">Копировать кодовую фразу</string>
 	<string name="passphrase_save">Сохранить в менеджер паролей</string>
+	<string name="passphrase_download">Скачать</string>
 	<string name="passphrase_lose">⚠️ Потеряете эти слова = потеряете свой аккаунт навсегда.</string>
 	<string name="passphrase_never">Никогда не передавайте их никому, включая поддержку Nym.</string>
 	<string name="passphrase_saved">Я сохранил эти 24 слова в надёжном месте и никогда не буду их раскрывать</string>

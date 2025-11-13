@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">Cài đặt</string>
 	<string name="connected">Đã kết nối</string>
 	<string name="disconnected">Đã ngắt kết nối</string>
@@ -315,9 +314,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Cụm mật khẩu tài khoản của bạn</string>
 	<string name="passphrase_description">🔒Cụm mật khẩu chính của tài khoản bạn: 24 từ giúp bạn truy cập tài khoản từ mọi thiết bị.</string>
+	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">Hiển thị cụm từ mật khẩu của tôi</string>
 	<string name="passphrase_copy">Sao chép cụm từ mật khẩu</string>
 	<string name="passphrase_save">Lưu vào trình quản lý mật khẩu</string>
+	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi.</string>
 	<string name="passphrase_never">Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym.</string>
 	<string name="passphrase_saved">Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng</string>
