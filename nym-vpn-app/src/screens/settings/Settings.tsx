@@ -86,19 +86,6 @@ function Settings() {
             title: t('killswitch.title'),
             desc: t('killswitch.desc'),
             leadingIcon: 'power_settings_new',
-            onClick: () => {
-              /**/
-            },
-            trailing: (
-              <Switch
-                checked={true}
-                onChange={() => {
-                  /* */
-                }}
-                disabled
-              />
-            ),
-            disabled: true,
           },
           showAntiCensorship && {
             title: t('anti-censorship.title', { ns: 'settings' }),
