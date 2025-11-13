@@ -446,6 +446,8 @@ impl GatewayClient {
                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                     .ok()
             })
+            // we need to filter for possible mixnet blacklisting, as the mixnet channel is a prerequisite for VPN connection too
+            .filter(|gw| gw.not_mixnet_blacklisted())
             .collect();
 
         tracing::debug!(

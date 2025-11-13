@@ -218,6 +218,14 @@ impl Gateway {
         }
     }
 
+    pub fn not_mixnet_blacklisted(&self) -> bool {
+        // Currently the mixnet blacklisting threshold is 50%, so let's take a slightly bigger number
+        // in case of caching differences between VPN API and mixnet API
+        self.mixnet_performance
+            .as_ref()
+            .is_some_and(|p| p.round_to_integer() > 55)
+    }
+
     /// Tests whether the gateway matches a specific filter.
     pub fn matches_filter(&self, gw_type: Option<GatewayType>, filter: &GatewayFilter) -> bool {
         match filter {
