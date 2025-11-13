@@ -68,9 +68,6 @@ function NodeDetails() {
     gateway.isSelected === 'exit' || gateway.isSelected === 'entry';
   const quic = backendFlags.quic && gateway.quic;
 
-  console.log('gateway', gateway);
-  // debugger;
-
   const DataRow = ({
     children,
     label,
