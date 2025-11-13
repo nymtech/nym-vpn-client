@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [macOS] Prevent resetting state for non-tunnel DNS connections (https://github.com/nymtech/nym-vpn-client/pull/3899)
+- Filter out gateways that might be blacklisted by mixnet (https://github.com/nymtech/nym-vpn-client/pull/3948)
 
 ### Removed
 
