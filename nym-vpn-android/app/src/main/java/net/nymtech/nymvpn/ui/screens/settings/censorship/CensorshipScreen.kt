@@ -50,7 +50,7 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 		showDomainFrontingSection = uiState.showDomainSection,
 		appUiState.settings.quicEnabled,
 		onQuicEnable = {
-			val connectionStatus = getConnectionStatus(appUiState)
+			val connectionStatus = getConnectionStatus(!it, appUiState)
 			if (it && connectionStatus == ConnectionStatus.FastNonQuicConnected || !it && connectionStatus == ConnectionStatus.FastQuicConnected) {
 				quicInfoModal = true to connectionStatus
 			}

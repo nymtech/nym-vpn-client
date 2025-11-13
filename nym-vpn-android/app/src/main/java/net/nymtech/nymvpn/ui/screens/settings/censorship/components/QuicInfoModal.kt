@@ -83,15 +83,15 @@ fun QuicInfoModal(show: Boolean, data: QuicInfoModalData, onConfirm: () -> Unit,
 }
 
 data class QuicInfoModalData(
-	@StringRes val title: Int,
-	@StringRes val description: Int,
-	@StringRes val primaryButtonText: Int,
-	@StringRes val secondaryButtonText: Int,
+	@param:StringRes val title: Int,
+	@param:StringRes val description: Int,
+	@param:StringRes val primaryButtonText: Int,
+	@param:StringRes val secondaryButtonText: Int,
 ) {
 	companion object {
 		fun getQuicInfoModalData(connectionStatus: ConnectionStatus): QuicInfoModalData {
 			return when (connectionStatus) {
-				ConnectionStatus.FastQuicConnected -> {
+				ConnectionStatus.FastNonQuicConnected -> {
 					QuicInfoModalData(
 						title = R.string.quick_info_modal_title,
 						description = R.string.quick_info_modal_desc,
