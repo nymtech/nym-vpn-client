@@ -307,7 +307,11 @@ impl TemporaryBandwidthClient {
     ) -> Result<i64, SpecificGatewayError> {
         let mut res = Ok(0);
         for attempt in 0..retries + 1 {
-            tracing::warn!("Attempt #{} to query bandwidth...", attempt + 1);
+            tracing::debug!(
+                "Attempt #{} to query bandwidth of gateway {}...",
+                attempt + 1,
+                self.gateway_id().to_string()
+            );
             res = self.query_bandwidth().await;
             let Err(err) = &res else {
                 // Success
