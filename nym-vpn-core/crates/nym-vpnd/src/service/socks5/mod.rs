@@ -9,6 +9,7 @@
 
 mod http_rpc;
 mod lazy_socks5;
+mod util;
 
 use http_rpc::HttpRpc;
 use lazy_socks5::{LazySocks5, LazySocks5Error};
